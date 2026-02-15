@@ -1,71 +1,58 @@
 
+## Opret docs-mappestruktur
 
-## 3 konkrete polish-forslag til visuelt loft
+### Hvad der oprettes
 
-### Forslag 1: Subtil hover-transition på AssignmentCard og DaySection
-
-**Problem:** AssignmentCard har `hover:border-polygon-purple transition-colors`, men mangler en blod skygge-overgang. Kortet foler sig "fladt" ved hover. DaySection's klikbare dato-header bruger `hover:bg-gray-50` (hardcoded, dark mode-inkompatibelt) uden skygge.
-
-**AEndring:**
-- `AssignmentCard.tsx` (linje 137): Tilfoej `hover:shadow-xl transition-all duration-200` i stedet for kun `transition-colors`
-- `DaySection.tsx` (linje 74): Erstat `hover:bg-gray-50` med `hover:bg-muted/50` (dark mode-korrekt)
-
-| Fil | Linje | Fra | Til |
-|-----|-------|-----|-----|
-| `AssignmentCard.tsx` | 137 | `hover:border-polygon-purple transition-colors` | `hover:border-polygon-purple hover:shadow-xl transition-all duration-200` |
-| `DaySection.tsx` | 74 | `hover:bg-gray-50` | `hover:bg-muted/50` |
-| `DaySection.tsx` | 88-90 | `text-gray-500` (chevron-ikoner) | `text-muted-foreground` |
-
----
-
-### Forslag 2: Forbedret typografi-hierarki paa PageHeader
-
-**Problem:** `PageHeader.tsx` bruger `text-2xl font-semibold` til titlen. Sammenlignet med WelcomeHeader (som bruger `text-3xl font-bold tracking-tight`) virker side-headerne visuelt svagere. Derudover mangler beskrivelsen tilstraekkelig linjehojde.
-
-**AEndring i `PageHeader.tsx`:**
-- Titel: `text-2xl font-semibold` -> `text-2xl font-bold tracking-tight` (matcher WelcomeHeader-stilen)
-- Beskrivelse: Tilfoej `leading-relaxed` for bedre laesbarhed
-- Kort-container: Tilfoej `shadow-sm` for subtil dybde (matcher InteractiveMetricCard)
-
-| Fil | Linje | Fra | Til |
-|-----|-------|-----|-----|
-| `PageHeader.tsx` | 16 | `bg-card rounded-xl border border-border p-6 shadow-sm` | `bg-card rounded-2xl border border-border/50 p-6 shadow-md` |
-| `PageHeader.tsx` | 19 | `text-2xl font-semibold text-foreground` | `text-2xl font-bold tracking-tight text-foreground` |
-| `PageHeader.tsx` | 21 | `text-sm text-muted-foreground` | `text-sm text-muted-foreground leading-relaxed` |
-
----
-
-### Forslag 3: Forbedret tom-tilstand i DaySection med ikon og blodere styling
-
-**Problem:** Naar en dag er tom, vises en simpel `border-dashed` div med tekst (linje 131). Det ser minimalistisk ud, men mangler visuel "varme" sammenlignet med resten af appens kort-baserede design.
-
-**AEndring i `DaySection.tsx` (linje 131):**
-
-Fra:
-```html
-<div class="p-4 border border-dashed rounded-md text-center text-muted-foreground">
+```text
+docs/
+  implementation-plan/
+    readme.md        -- Formaal: Aktive opgaver og faser
+    tasks.md         -- De 4 faser (Sikkerhed, Database, Performance, UI)
+  product-roadmap/
+    readme.md        -- Formaal: Langsigtet vision, afdelinger, udrulning
+  technical-specs/
+    readme.md        -- Formaal: Database-arkitektur, SHA256, RLS-politikker
+  ui-guidelines/
+    readme.md        -- Formaal: Visuelle standarder, visninger, responsivitet
 ```
 
-Til:
-```html
-<div class="py-8 px-4 border border-dashed border-border/50 rounded-xl text-center text-muted-foreground bg-muted/20">
-  <CalendarX2 icon (h-8 w-8, text-muted-foreground/50, centered)>
-  <p>Tekst</p>
-</div>
+### Indhold i hver readme.md
+
+**implementation-plan/readme.md**: Beskriver mappen som projektets opgavestyring. Refererer til tasks.md for aktive og afsluttede opgaver.
+
+**implementation-plan/tasks.md**: Indeholder de 4 gennemfoerte faser fra vores samtaler:
+1. Sikkerhedsaudit (RLS, edge functions, logging)
+2. Database-optimering (indexes, redundans, logs-oprydning)
+3. Performance (console.log guards, font-subsetting, caching)
+4. UI/Visuel konsistens (tema-variabler, tomme tilstande, polish)
+
+Alle opgaver markeres som faerdige (`[x]`) da de er implementeret.
+
+**product-roadmap/readme.md**: Beskriver den langsigtede vision, herunder understoettelse af flere afdelinger/underafdelinger, feature toggles per afdeling, og fremtidig udrulning.
+
+**technical-specs/readme.md**: Beskriver regler for database-arkitektur (RLS-politikker, junction-tabeller, SHA256-kryptering via Supabase Auth), sikkerhedsstandarder og logging-politikker.
+
+**ui-guidelines/readme.md**: Beskriver de visuelle standarder: tema-variabler (ingen hardcoded farver), Standard/Kompakt/Gitter-visning, responsivt design, tomme tilstande og hover-effekter.
+
+### Changelog
+
+Tilfoej en ny sektion i CHANGELOG.md:
+```
+### Added - 2026-02-15
+- Oprettet docs/ mappestruktur som projektets Single Source of Truth
+- docs/implementation-plan/ med tasks.md (4 faser: Sikkerhed, Database, Performance, UI)
+- docs/product-roadmap/ med readme.md (langsigtet vision)
+- docs/technical-specs/ med readme.md (database og sikkerhedsstandarder)
+- docs/ui-guidelines/ med readme.md (visuelle standarder og visninger)
 ```
 
-Tilfojer: Lucide `CalendarX2`-ikon over teksten, blodere afrunding (`rounded-xl`), let baggrund (`bg-muted/20`), og mere vertikal luft (`py-8`).
+### Filer der oprettes (6 nye filer) og redigeres (1 fil)
 
----
-
-### Samlet filplan
-
-| Fil | AEndring |
+| Fil | Handling |
 |-----|---------|
-| `src/components/Planner/AssignmentCard.tsx` | Tilfoej `hover:shadow-xl transition-all duration-200` |
-| `src/components/Planner/DaySection.tsx` | Fix hardcoded graa, forbedret tom-tilstand med ikon |
-| `src/components/Layout/PageHeader.tsx` | Skarpere typografi, blodere kort-styling |
-| `CHANGELOG.md` | Tilfoej "Visuel polish - 2026-02-15" |
-
-Alle aendringer er rent kosmetiske - ingen funktionalitet aendres.
-
+| `docs/implementation-plan/readme.md` | Opret |
+| `docs/implementation-plan/tasks.md` | Opret |
+| `docs/product-roadmap/readme.md` | Opret |
+| `docs/technical-specs/readme.md` | Opret |
+| `docs/ui-guidelines/readme.md` | Opret |
+| `CHANGELOG.md` | Opdater |
