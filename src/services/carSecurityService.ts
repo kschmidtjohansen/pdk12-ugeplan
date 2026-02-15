@@ -13,9 +13,8 @@ export class CarSecurityService {
       const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
       
       // Use direct table access - new RLS policies handle security automatically
-      let query = isDemoMode 
-        ? getSchemaClient(true).from('cars').select('*').order('name')
-        : supabase.from('cars').select('*').order('name');
+      const client = getSchemaClient(isDemoMode);
+      let query = client.from('cars').select('*').order('name');
       
       // Filter by department if provided (production only)
       if (!isDemoMode && departmentId) {
@@ -118,9 +117,8 @@ export class CarSecurityService {
         insertData.fuel_card_code = carData.fuel_card_code || '';
       }
 
-      const { data, error } = isDemoMode
-        ? await getSchemaClient(true).from('cars').insert(insertData).select().single()
-        : await supabase.from('cars').insert(insertData).select().single();
+      const dbClient = getSchemaClient(isDemoMode);
+      const { data, error } = await dbClient.from('cars').insert(insertData).select().single();
 
       if (error) {
         // Log failed car creation attempt
@@ -193,9 +191,8 @@ export class CarSecurityService {
         updateData.fuel_card_code = carData.fuel_card_code;
       }
 
-      const { data, error } = isDemoMode
-        ? await getSchemaClient(true).from('cars').update(updateData).eq('id', carId).select().single()
-        : await supabase.from('cars').update(updateData).eq('id', carId).select().single();
+      const dbClient = getSchemaClient(isDemoMode);
+      const { data, error } = await dbClient.from('cars').update(updateData).eq('id', carId).select().single();
 
       if (error) {
         // Log failed car update attempt

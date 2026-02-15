@@ -1,7 +1,10 @@
 import { supabase } from './client';
+import type { Database } from './types';
 
 // Baseline timestamp for demo data - everything before this is persistent baseline data
 const BASELINE_TIMESTAMP = '2024-01-01T00:00:00Z';
+
+type TableName = keyof Database['public']['Tables'] & string;
 
 /**
  * Schema-aware Supabase client that automatically routes queries to demo or public schema
@@ -15,10 +18,10 @@ export class DemoSchemaClient {
    * @param table - Table name without schema prefix
    * @returns Supabase query builder for the table
    */
-  from(table: string) {
+  from<T extends TableName>(table: T) {
     // All operations now use public schema with is_demo flag for isolation
     // Demo schema routing removed — is_demo column + RESTRICTIVE RLS handles separation
-    return supabase.from(table as any);
+    return supabase.from(table);
   }
   
   /**
