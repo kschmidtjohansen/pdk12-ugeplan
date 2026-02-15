@@ -42,31 +42,31 @@ const CarsTable: React.FC<CarsTableProps> = ({
     <div className="overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="border-gray-100">
-            <TableHead className="text-gray-600 font-medium">{t('cars.carNumber')}</TableHead>
-            <TableHead className="text-gray-600 font-medium">{t('cars.vehicleName')}</TableHead>
-            <TableHead className="text-gray-600 font-medium">{t('cars.numberPlate')}</TableHead>
-            {canViewFuelCardCode && <TableHead className="text-gray-600 font-medium">{t('cars.fuelCardCode')}</TableHead>}
-            <TableHead className="text-gray-600 font-medium">{t('cars.hasTrailerHitch')}</TableHead>
-            <TableHead className="text-gray-600 font-medium">{t('cars.isAvailable')}</TableHead>
-            {isAdmin && <TableHead className="w-[150px] text-gray-600 font-medium">{t('common.actions')}</TableHead>}
+          <TableRow className="border-border">
+            <TableHead className="text-muted-foreground font-medium">{t('cars.carNumber')}</TableHead>
+            <TableHead className="text-muted-foreground font-medium">{t('cars.vehicleName')}</TableHead>
+            <TableHead className="text-muted-foreground font-medium">{t('cars.numberPlate')}</TableHead>
+            {canViewFuelCardCode && <TableHead className="text-muted-foreground font-medium">{t('cars.fuelCardCode')}</TableHead>}
+            <TableHead className="text-muted-foreground font-medium">{t('cars.hasTrailerHitch')}</TableHead>
+            <TableHead className="text-muted-foreground font-medium">{t('cars.isAvailable')}</TableHead>
+            {isAdmin && <TableHead className="w-[150px] text-muted-foreground font-medium">{t('common.actions')}</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {cars.map((car) => (
-            <TableRow key={car.id} className="border-gray-100 hover:bg-gray-50/50">
+            <TableRow key={car.id} className="border-border hover:bg-muted/50">
               <TableCell>
                 <div className="flex items-center">
                   <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 mr-3">
                     <Car className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="font-medium text-gray-900">{car.car_number}</span>
+                  <span className="font-medium text-foreground">{car.car_number}</span>
                 </div>
               </TableCell>
-              <TableCell className="text-gray-900">{car.name}</TableCell>
+              <TableCell className="text-foreground">{car.name}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-900">{car.number_plate}</span>
+                  <span className="text-foreground">{car.number_plate}</span>
                   {car.number_plate.toLowerCase().includes('trailer') && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -91,14 +91,14 @@ const CarsTable: React.FC<CarsTableProps> = ({
               </TableCell>
               {canViewFuelCardCode && (
                 <TableCell>
-                  <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-mono">{car.fuel_card_code}</code>
+                  <code className="bg-muted text-foreground px-2 py-1 rounded text-xs font-mono">{car.fuel_card_code}</code>
                 </TableCell>
               )}
               <TableCell>
                 {car.has_trailer_hitch ? (
                   <div className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-green-500" />
-                    <span className="text-gray-900">{t('common.yes')}</span>
+                    <span className="text-foreground">{t('common.yes')}</span>
                     {(car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) && (
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -122,8 +122,8 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   </div>
                 ) : (
                   <div className="flex items-center">
-                    <X className="h-4 w-4 mr-2 text-gray-400" />
-                    <span className="text-gray-600">{t('common.no')}</span>
+                    <X className="h-4 w-4 mr-2 text-muted-foreground/50" />
+                    <span className="text-muted-foreground">{t('common.no')}</span>
                   </div>
                 )}
               </TableCell>
@@ -132,12 +132,12 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   {car.is_available ? (
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-gray-900">{t('common.available')}</span>
+                      <span className="text-foreground">{t('common.available')}</span>
                     </div>
                   ) : (
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                      <span className="text-gray-900">{t('common.unavailable')}</span>
+                      <span className="text-foreground">{t('common.unavailable')}</span>
                     </div>
                   )}
                   {car.notes && car.notes.trim() !== '' && (
@@ -169,7 +169,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           {car.is_available ? (
                             <ToggleRight className="h-4 w-4 text-green-500" />
                           ) : (
-                            <ToggleLeft className="h-4 w-4 text-gray-400" />
+                            <ToggleLeft className="h-4 w-4 text-muted-foreground" />
                           )}
                         </Button>
                       </TooltipTrigger>

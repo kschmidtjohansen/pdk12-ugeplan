@@ -35,7 +35,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
   const hasDetails = car.has_trailer_hitch && (car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) || (car.notes && car.notes.trim() !== '');
   
   return (
-    <Card className="overflow-hidden border-gray-100 hover:shadow-md transition-all">
+    <Card className="overflow-hidden border-border hover:shadow-md transition-all">
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div 
@@ -47,12 +47,12 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-gray-900">{car.car_number}</h3>
+                <h3 className="font-semibold text-foreground">{car.car_number}</h3>
                 {hasDetails && (
                   expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
-              <p className="text-sm text-gray-600">{car.name}</p>
+              <p className="text-sm text-muted-foreground">{car.name}</p>
             </div>
           </div>
           {isAdmin && (
@@ -71,7 +71,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                     {car.is_available ? (
                       <ToggleRight className="h-4 w-4 text-green-500" />
                     ) : (
-                      <ToggleLeft className="h-4 w-4 text-gray-400" />
+                      <ToggleLeft className="h-4 w-4 text-muted-foreground" />
                     )}
                   </Button>
                 </TooltipTrigger>
@@ -122,9 +122,9 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">{t('cars.numberPlate')}</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('cars.numberPlate')}</p>
               <div className="flex items-center gap-2">
-                <p className="text-gray-900 font-medium">{car.number_plate}</p>
+                <p className="text-foreground font-medium">{car.number_plate}</p>
                 {car.number_plate.toLowerCase().includes('trailer') && (
                   <Truck className="h-4 w-4 text-orange-500" />
                 )}
@@ -134,17 +134,17 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
               </div>
             </div>
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">{t('cars.hasTrailerHitch')}</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('cars.hasTrailerHitch')}</p>
               <div className="flex items-center gap-2">
                 {car.has_trailer_hitch ? (
                   <>
                     <Check className="h-4 w-4 text-green-500" />
-                    <span className="text-gray-900">{t('common.yes')}</span>
+                    <span className="text-foreground">{t('common.yes')}</span>
                   </>
                 ) : (
                   <>
-                    <X className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-600">{t('common.no')}</span>
+                    <X className="h-4 w-4 text-muted-foreground/50" />
+                    <span className="text-muted-foreground">{t('common.no')}</span>
                   </>
                 )}
               </div>
@@ -153,14 +153,14 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
 
           {canViewFuelCardCode && (
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">{t('cars.fuelCardCode')}</p>
-              <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-mono">{car.fuel_card_code}</code>
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('cars.fuelCardCode')}</p>
+              <code className="bg-muted text-foreground px-2 py-1 rounded text-xs font-mono">{car.fuel_card_code}</code>
             </div>
           )}
 
           {/* Expandable details section */}
           {expanded && hasDetails && (
-            <div className="border-t border-gray-100 pt-3 space-y-2 animate-fade-in">
+            <div className="border-t border-border pt-3 space-y-2 animate-fade-in">
               {car.has_trailer_hitch && (car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) && (
                 <div className="bg-blue-50 rounded-lg p-3 space-y-1 text-sm">
                   <p className="font-medium text-blue-900">{t('cars.hasTrailerHitch')}</p>
@@ -176,25 +176,25 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 </div>
               )}
               {car.notes && car.notes.trim() !== '' && (
-                <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                  <p className="font-medium text-gray-700 mb-1">{t('cars.notes')}</p>
-                  <p className="text-gray-600 whitespace-pre-wrap">{car.notes}</p>
+                <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                  <p className="font-medium text-foreground mb-1">{t('cars.notes')}</p>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{car.notes}</p>
                 </div>
               )}
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between pt-2 border-t border-border">
             <div className="flex items-center gap-2">
               {car.is_available ? (
                 <>
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-gray-900">{t('common.available')}</span>
+                  <span className="text-sm text-foreground">{t('common.available')}</span>
                 </>
               ) : (
                 <>
                   <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span className="text-sm text-gray-900">{t('common.unavailable')}</span>
+                  <span className="text-sm text-foreground">{t('common.unavailable')}</span>
                 </>
               )}
             </div>

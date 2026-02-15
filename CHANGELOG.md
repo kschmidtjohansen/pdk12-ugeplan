@@ -40,6 +40,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added - 2026-02-15
+- Erstattet 36 hardcoded gray-farver med semantiske tema-tokens i `CarsTable.tsx` og `MobileCarCard.tsx` (border-border, text-foreground, text-muted-foreground, bg-muted)
+- Oprettet `docs/implementation-plan/timeline.md` med milepæle: Prøveperiode uge 10, Udrulning uge 12, fremtidige afdelinger
+- Oprettet `docs/product-roadmap/features.md` med nuværende (7) og kommende (5) features
+- Oprettet `docs/product-roadmap/user-personas.md` med 5 roller: Super Admin, Administrator, Skadeleder, Servicemedarbejder, Vikar
+- Oprettet `docs/technical-specs/database-schema.md` med afdelingsrelationer, junction-tabeller, indexes og backup-rutiner
+- Oprettet `docs/ui-guidelines/design-system.md` med regler for Standard, Kompakt og Gitter-visning, farve-tokens og spacing
 - Oprettet `docs/technical-specs/data-models.md` med komplet oversigt over 17+ tabeller, relationer, enums og 47 RPC-funktioner
 - Oprettet `docs/technical-specs/architecture.md` med SHA256/bcrypt-kryptering, RLS-politikker, edge function sikkerhed og input-sanitering
 - Oprettet `docs/ui-guidelines/component-library.md` med 9 shared-komponenter og 51 UI-primitiver inkl. props og anvendelsesmønstre
