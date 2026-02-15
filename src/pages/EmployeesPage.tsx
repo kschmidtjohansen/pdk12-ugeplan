@@ -102,10 +102,10 @@ const EmployeesPage: React.FC = () => {
         {/* Simple Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               {regularEmployees.length} {t("employees.title")} - {vikarer.length} Vikarer
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {t("employees.description")}
             </p>
           </div>
@@ -128,7 +128,7 @@ const EmployeesPage: React.FC = () => {
         </div>
 
         {/* Employees Table */}
-        <div className="bg-white rounded-lg border shadow-sm">
+        <div className="bg-card rounded-lg border shadow-sm">
           <EmployeesTable 
             employees={employees}
             vacations={vacations}

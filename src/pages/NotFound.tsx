@@ -27,16 +27,16 @@ const NotFound = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/30">
+    <div className="min-h-screen bg-muted/30">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Modern Page Header */}
-        <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+        <div className="bg-card rounded-xl border border-border p-8 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-gray-900">
+              <h1 className="text-2xl font-semibold text-foreground">
                 {t('common.pageNotFound') || 'Page Not Found'}
               </h1>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {t('common.pageNotFoundDescription') || 'The page you are looking for does not exist'}
               </p>
             </div>
@@ -49,22 +49,22 @@ const NotFound = () => {
         </div>
 
         {/* 404 Content Card */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="bg-card rounded-xl border border-border shadow-sm">
           <div className="p-12">
             <Card className="border-0 shadow-none max-w-md mx-auto text-center">
               <CardHeader className="space-y-4">
                 <div className="mx-auto w-24 h-24 bg-red-50 rounded-full flex items-center justify-center">
                   <AlertTriangle className="h-12 w-12 text-red-500" />
                 </div>
-                <CardTitle className="text-6xl font-bold text-gray-900">404</CardTitle>
+                <CardTitle className="text-6xl font-bold text-foreground">404</CardTitle>
                 <div className="space-y-2">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-xl font-semibold text-foreground">
                     {t('common.pageNotFound') || 'Page Not Found'}
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     {t('common.pageNotFoundDescription') || 'The page you are looking for does not exist or has been moved.'}
                   </p>
-                  <p className="text-sm text-gray-500 font-mono bg-gray-100 px-3 py-1 rounded">
+                  <p className="text-sm text-muted-foreground font-mono bg-muted px-3 py-1 rounded">
                     {location.pathname}
                   </p>
                 </div>
@@ -81,7 +81,7 @@ const NotFound = () => {
                   <Button 
                     onClick={handleGoBack}
                     variant="outline"
-                    className="border-gray-200 hover:bg-gray-50"
+                    className="border-border hover:bg-muted/50"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     {t('common.goBack') || 'Go Back'}

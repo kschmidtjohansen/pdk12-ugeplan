@@ -34,7 +34,7 @@ const EmployeeLoadingError: React.FC<EmployeeLoadingErrorProps> = ({
           {t('employees.fetchError') || 'Error loading employees'}
         </AlertTitle>
         <AlertDescription className="mt-3 space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             {isAuthError 
               ? (t('auth.sessionExpired') || 'Your session has expired. Please refresh the page to continue.')
               : (t('employees.generalErrorDescription') || 'An error occurred while loading employee data.')
@@ -74,10 +74,10 @@ const EmployeeLoadingError: React.FC<EmployeeLoadingErrorProps> = ({
           </div>
           
           <details className="mt-4">
-            <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
-              Technical details
+            <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+              Tekniske detaljer
             </summary>
-            <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto">
+            <pre className="mt-2 text-xs bg-muted p-2 rounded overflow-auto">
               {error}
             </pre>
           </details>

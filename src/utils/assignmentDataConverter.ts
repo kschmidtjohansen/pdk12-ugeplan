@@ -38,7 +38,7 @@ export interface OptimizedAssignmentData {
  * This ensures data consistency between all views
  */
 export const convertOptimizedAssignmentToAssignment = (data: OptimizedAssignmentData): Assignment => {
-  console.log('[convertOptimizedAssignmentToAssignment] Converting data:', {
+  if (import.meta.env.DEV) console.log('[convertOptimizedAssignmentToAssignment] Converting data:', {
     id: data.id,
     title: data.title,
     published: data.published,
@@ -51,28 +51,24 @@ export const convertOptimizedAssignmentToAssignment = (data: OptimizedAssignment
     id: data.id,
     title: data.title,
     description: data.description,
-    date: data.assignment_date, // Convert assignment_date to date
-    fromTime: data.from_time,   // Convert from_time to fromTime
-    toTime: data.to_time,       // Convert to_time to toTime
+    date: data.assignment_date,
+    fromTime: data.from_time,
+    toTime: data.to_time,
     location: data.location,
     type: data.type,
     published: data.published,
     responsibleUserId: data.responsible_user_id,
-    // CRITICAL FIX: employees should be array of IDs for consistency
     employees: data.assignment_employees?.map((emp: any) => emp.user_id) || [],
-  // assignedEmployees provides full employee data for display
   assignedEmployees: data.assignment_employees?.map((emp: any) => {
     const profileName = emp.profiles?.name;
     const profileEmail = emp.profiles?.email;
     
-    // Function to check if a string is a UUID
     const isUUID = (str: string) => {
       if (!str || typeof str !== 'string') return false;
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       return uuidRegex.test(str);
     };
     
-    // Determine the best name to use
     let displayName = 'Unknown User';
     
     if (profileName && profileName.trim() && !isUUID(profileName)) {
@@ -87,7 +83,6 @@ export const convertOptimizedAssignmentToAssignment = (data: OptimizedAssignment
       email: profileEmail || ''
     };
   }) || [],
-    // Cars array for display (names)
     cars: data.assignment_cars?.map((car: any) => car.name) || [],
     createdAt: data.created_at,
     updatedAt: data.updated_at,
@@ -97,7 +92,7 @@ export const convertOptimizedAssignmentToAssignment = (data: OptimizedAssignment
     } : undefined
   };
 
-  console.log('[convertOptimizedAssignmentToAssignment] ✅ Converted assignment:', {
+  if (import.meta.env.DEV) console.log('[convertOptimizedAssignmentToAssignment] ✅ Converted assignment:', {
     id: assignment.id,
     title: assignment.title,
     published: assignment.published,

@@ -30,7 +30,7 @@ const PasswordResetPage: React.FC = () => {
     const processPasswordReset = async () => {
       try {
         setProcessingToken(true);
-        console.log("Starting password reset processing on path:", location.pathname);
+        if (import.meta.env.DEV) console.log("Starting password reset processing on path:", location.pathname);
         
         // Collect debug information
         const debugData: Record<string, any> = {
@@ -53,7 +53,7 @@ const PasswordResetPage: React.FC = () => {
           const type = hashParams.get('type');
           
           if (token && type === 'recovery') {
-            console.log("✓ Found recovery token in hash params");
+            if (import.meta.env.DEV) console.log("✓ Found recovery token in hash params");
             recoveryToken = token;
             recoveryType = 'hash';
             
@@ -63,14 +63,14 @@ const PasswordResetPage: React.FC = () => {
                 access_token: token,
                 refresh_token: hashParams.get('refresh_token') || '',
               });
-              console.log("✓ Set session from hash params");
+              if (import.meta.env.DEV) console.log("✓ Set session from hash params");
               debugData.sessionSet = 'from_hash';
             } catch (err) {
               console.error("✗ Failed to set session from hash:", err);
               debugData.hashSessionError = err instanceof Error ? err.message : String(err);
             }
           } else {
-            console.log("✗ Hash params found but not recovery token:", { token, type });
+            if (import.meta.env.DEV) console.log("✗ Hash params found but not recovery token:", { token, type });
             debugData.hashParamsFound = { hasToken: !!token, type };
           }
         }
@@ -81,7 +81,7 @@ const PasswordResetPage: React.FC = () => {
           const token = searchParams.get('token') || searchParams.get('access_token');
           
           if (token) {
-            console.log("✓ Found token in query params");
+            if (import.meta.env.DEV) console.log("✓ Found token in query params");
             recoveryToken = token;
             recoveryType = 'query';
             
@@ -93,7 +93,7 @@ const PasswordResetPage: React.FC = () => {
                   access_token: token,
                   refresh_token: refreshToken,
                 });
-                console.log("✓ Set session from query params");
+                if (import.meta.env.DEV) console.log("✓ Set session from query params");
                 debugData.sessionSet = 'from_query';
               } catch (err) {
                 console.error("✗ Failed to set session from query:", err);
@@ -101,7 +101,7 @@ const PasswordResetPage: React.FC = () => {
               }
             }
           } else {
-            console.log("✗ No token found in query params");
+            if (import.meta.env.DEV) console.log("✗ No token found in query params");
             debugData.queryParams = Object.fromEntries(searchParams.entries());
           }
         }
@@ -114,9 +114,8 @@ const PasswordResetPage: React.FC = () => {
         
         const code = extractCodeFromUrl();
         if (code) {
-          console.log("✓ Found code in URL, might be PKCE flow");
+          if (import.meta.env.DEV) console.log("✓ Found code in URL, might be PKCE flow");
           debugData.codeFound = true;
-          // The SDK should handle PKCE exchange automatically
         } else {
           debugData.codeFound = false;
         }
@@ -124,7 +123,7 @@ const PasswordResetPage: React.FC = () => {
         // Check if we already have a valid session
         const { data: sessionData } = await supabase.auth.getSession();
         if (sessionData?.session) {
-          console.log("✓ Found existing valid session");
+          if (import.meta.env.DEV) console.log("✓ Found existing valid session");
           recoveryToken = 'session_exists';
           recoveryType = 'session';
           debugData.existingSession = {
@@ -132,7 +131,7 @@ const PasswordResetPage: React.FC = () => {
             expires: sessionData.session.expires_at,
           };
         } else {
-          console.log("✗ No existing session found");
+          if (import.meta.env.DEV) console.log("✗ No existing session found");
           debugData.existingSession = false;
         }
         
@@ -204,13 +203,13 @@ const PasswordResetPage: React.FC = () => {
     setLoading(true);
     
     try {
-      console.log("Attempting to update password with token flow");
+      if (import.meta.env.DEV) console.log("Attempting to update password with token flow");
       
       const { error, data } = await supabase.auth.updateUser({
         password: password
       });
       
-      console.log("Update password response:", { 
+      if (import.meta.env.DEV) console.log("Update password response:", { 
         success: !error, 
         hasData: !!data,
         error: error ? error.message : null
@@ -289,16 +288,15 @@ const PasswordResetPage: React.FC = () => {
   // Show loading state
   if (processingToken) {
     return (
-      <div className="min-h-screen bg-gray-50/30">
+      <div className="min-h-screen bg-muted/30">
         <div className="max-w-7xl mx-auto p-6 space-y-6">
-          {/* Modern Page Header */}
-          <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+          <div className="bg-card rounded-xl border border-border p-8 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <h1 className="text-2xl font-semibold text-gray-900">
+                <h1 className="text-2xl font-semibold text-foreground">
                   {t('login.resetYourPassword')}
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {t('login.passwordReset.description')}
                 </p>
               </div>
@@ -310,8 +308,7 @@ const PasswordResetPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Loading Content */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="bg-card rounded-xl border border-border shadow-sm">
             <div className="p-12">
               <Card className="border-0 shadow-none max-w-md mx-auto">
                 <CardHeader>
@@ -319,7 +316,7 @@ const PasswordResetPage: React.FC = () => {
                   <CardDescription className="text-center">{t('login.passwordReset.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center">
-                  <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
+                  <div className="animate-spin h-8 w-8 border-4 border-primary rounded-full border-t-transparent"></div>
                 </CardContent>
               </Card>
             </div>
@@ -332,16 +329,15 @@ const PasswordResetPage: React.FC = () => {
   // If we couldn't find a token, show email-based recovery form
   if (recoveryMode === 'email') {
     return (
-      <div className="min-h-screen bg-gray-50/30">
+      <div className="min-h-screen bg-muted/30">
         <div className="max-w-7xl mx-auto p-6 space-y-6">
-          {/* Modern Page Header */}
-          <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+          <div className="bg-card rounded-xl border border-border p-8 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <h1 className="text-2xl font-semibold text-gray-900">
+                <h1 className="text-2xl font-semibold text-foreground">
                   {t('login.passwordReset.title')}
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {tokenError ? tokenError : t('login.passwordReset.description')}
                 </p>
               </div>
@@ -353,8 +349,7 @@ const PasswordResetPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Email Reset Form */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="bg-card rounded-xl border border-border shadow-sm">
             <div className="p-12">
               <Card className="border-0 shadow-none max-w-md mx-auto">
                 <CardHeader>
@@ -397,8 +392,8 @@ const PasswordResetPage: React.FC = () => {
                   </form>
                   
                   {import.meta.env.DEV && Object.keys(debugInfo).length > 0 && (
-                    <div className="bg-gray-100 p-3 rounded text-xs mt-5 font-mono">
-                      <p className="font-bold">Debug Information:</p>
+                    <div className="bg-muted p-3 rounded text-xs mt-5 font-mono">
+                      <p className="font-bold">Debug-info:</p>
                       <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
                     </div>
                   )}
@@ -418,16 +413,15 @@ const PasswordResetPage: React.FC = () => {
 
   // Show password reset form for token-based flow
   return (
-    <div className="min-h-screen bg-gray-50/30">
+    <div className="min-h-screen bg-muted/30">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Modern Page Header */}
-        <div className="bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+        <div className="bg-card rounded-xl border border-border p-8 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-gray-900">
+              <h1 className="text-2xl font-semibold text-foreground">
                 {t('login.resetYourPassword')}
               </h1>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {t('login.resetPasswordDescriptionPage')}
               </p>
             </div>
@@ -440,7 +434,7 @@ const PasswordResetPage: React.FC = () => {
         </div>
 
         {/* Password Reset Form */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="bg-card rounded-xl border border-border shadow-sm">
           <div className="p-12">
             <Card className="border-0 shadow-none max-w-md mx-auto">
               <CardHeader>
@@ -489,8 +483,8 @@ const PasswordResetPage: React.FC = () => {
                 </form>
                 
                 {import.meta.env.DEV && Object.keys(debugInfo).length > 0 && (
-                  <div className="bg-gray-100 p-3 rounded text-xs mt-5 font-mono">
-                    <p className="font-bold">Debug Information:</p>
+                  <div className="bg-muted p-3 rounded text-xs mt-5 font-mono">
+                    <p className="font-bold">Debug-info:</p>
                     <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
                   </div>
                 )}

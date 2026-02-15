@@ -85,7 +85,7 @@ const CarsPage: React.FC = () => {
           </div>
 
           {/* Cars Content */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="bg-card rounded-xl border border-border shadow-sm">
             {loading ? (
               <div className="flex justify-center items-center p-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>

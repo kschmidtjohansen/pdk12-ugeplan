@@ -435,8 +435,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           {/* Notes field - viewable by skadeleder but only editable by admin */}
           <div className="grid gap-2">
             <Label htmlFor="notes">{t("employees.notes")}</Label>
-            <Textarea id="notes" name="notes" rows={3} value={formData.notes} onChange={handleInputChange} placeholder={t("employees.notesPlaceholder")} readOnly={isSkadeleder && !isAdmin} disabled={isSubmitting} className={isSkadeleder && !isAdmin ? "bg-gray-100" : ""} />
-            {isSkadeleder && !isAdmin && <p className="text-xs text-gray-500">{t('employees.viewNotesOnly')}</p>}
+            <Textarea id="notes" name="notes" rows={3} value={formData.notes} onChange={handleInputChange} placeholder={t("employees.notesPlaceholder")} readOnly={isSkadeleder && !isAdmin} disabled={isSubmitting} className={isSkadeleder && !isAdmin ? "bg-muted" : ""} />
+            {isSkadeleder && !isAdmin && <p className="text-xs text-muted-foreground">{t('employees.viewNotesOnly')}</p>}
           </div>
         </div>
         
