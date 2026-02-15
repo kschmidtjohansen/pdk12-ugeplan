@@ -1,67 +1,92 @@
 
 
-## Performance-optimering og profilvisning
+## Funktionel logik-gennemgang
 
-### 1. Kritisk: Console-logging drosler applikationen
+### Audit-resultat
 
-Konsolloggen viser tusindvis af linjer per dashboard-render. Hovedsynderne:
+| Kategori | Fund | Kritisk | Advarsel |
+|----------|------|---------|----------|
+| Rollerettigheder | 1 fejl | 1 | 0 |
+| Fil-upload | 1 manglende validering | 1 | 0 |
+| Console-logging | 4 uguardede logs | 0 | 1 |
+| Chat + afdelingsstruktur | OK | 0 | 0 |
+| Views (Gitter/Kompakt/Standard) | OK | 0 | 0 |
+| Login dynamisk undertitel | OK | 0 | 0 |
 
-| Fil | Problem | Effekt |
-|-----|---------|--------|
-| `src/utils/employeeAvailability.ts` | Logger HVER assignment-check per medarbejder (1000 assignments x N medarbejdere = tusindvis af logs) | Massive CPU-blokering i produktion |
-| `src/hooks/useDashboardMetrics.ts` | Logger et stort debug-objekt med fuldt breakdown HVER gang metrics beregnes | Blokerer render |
-| `src/hooks/useOptimizedAssignments.ts` | 40+ console.log kald uden DEV-guard, inkl. emoji-debug og sample data | Unodvendig I/O |
-| `src/hooks/useAssignmentsConsolidated.ts` | Logger filter-logik ved hvert kald (linje 26, 32, 34, 46, 54) | Spild |
-| `src/hooks/useDashboard.ts` | Logger uge-info og alle filtrerede assignments (linje 12-13, 23, 40-46, 52, 59, 66, 76) | Spild |
-| `src/services/enhancedUnifiedDataService.ts` | Logger ved hver fetch-operation | Spild |
-| `src/hooks/car/useCarData.ts` | Logger ved fetch (linje 24, 46, 50) | Minor |
-| `src/hooks/employee/useEmployeeData.ts` | Logger ved fetch (linje 24, 41, 80, 96, 160) | Minor |
-| `src/hooks/vacation/useVacationData.ts` | Logger ved fetch (linje 24, 32, 85) | Minor |
+---
 
-**Rettelse:** Wrap ALLE debug console.log kald i `import.meta.env.DEV` guard. Fjern verbose per-assignment logging i `employeeAvailability.ts` helt (selv i DEV er det for meget).
+### KRITISK: Fejl der skal rettes
 
-### 2. Profilmenu: Viser "super_admin" i stedet for jobtitel
+#### 1. `super_admin` kan ikke slette andres chat-beskeder
 
-**Problem:** `UserMenu.tsx` linje 85 viser `user?.role` (teknisk rolle-ID som "super_admin"). Brugeren forventer at se sin jobtitel (f.eks. "Skadeleder/Projektleder").
+**Fil:** `src/components/Assignment/AssignmentMessagesPanel.tsx`, linje 73
 
-**Lossning:** Hent `job_title` fra profilen (allerede fetchet i useEffect linje 39-58, men kun `avatar_url` selectes). Udvid SELECT til at inkludere `job_title` og vis den. Fald tilbage til oversat rolle hvis ingen jobtitel er sat.
+```typescript
+// NUVAERENDE (fejl):
+return ['administrator', 'skadeleder'].includes(user.role || '');
 
-**AEndring i `UserMenu.tsx`:**
-- Udvid profile-fetch til `select('avatar_url, job_title')`  
-- Gem `jobTitle` i state
-- Vis `jobTitle || t('common.roles.' + user?.role) || user?.role` i stedet for bare `user?.role`
+// RETTET:
+return ['super_admin', 'administrator', 'skadeleder'].includes(user.role || '');
+```
 
-### 3. Vacation realtime-logging fylder 170MB i logs-tabellen
+En Super Admin kan ikke slette andres beskeder i chat-panelet, fordi rollen mangler i listen. Administrator og Skadeleder kan, men Super Admin er udeladt.
 
-**Problem:** `useVacationData.ts` linje 122-127 kalder `logSecurityEvent('vacation_realtime_change', ...)` ved HVER realtime-opdatering. Dette har genereret 229.000 raekker i logs-tabellen.
+#### 2. Fil-upload mangler stoerrelsesbegransning
 
-**Rettelse:** Fjern `logSecurityEvent`-kaldet fra realtime-handleren. Det er ikke et sikkerhedsevent - det er normal drift.
+**Fil:** `src/hooks/assignment/useAssignmentFiles.ts`, `uploadFile`-funktionen (linje 113-157)
 
-### 4. Data-fetching redundans
+Der er ingen validering af filstoerrelse foer upload. Profilbillede-upload har en 5MB-graense (ProfilePictureDialog), men assignment-filer har ingen. En bruger kan uploade vilkaarligt store filer.
 
-**Observation:** Systemet har to parallelle data-pipelines:
-- **TanStack Query-baseret** (useEmployeeData, useCarData, useVacationData, useWarehouseData) - korrekt med staleTime, queryKey deduplication
-- **Manuel state + enhancedUnifiedDataService** (useEnhancedUnifiedData) - egen cache, ingen deduplication
+**Rettelse:** Tilfoej en 20MB-graense (matcher Supabase Storage standard) med brugervenlig fejlbesked foer upload-kaldet:
 
-`useOptimizedAssignments` bruger heller ikke TanStack Query, men har sin egen cache-mekanisme. At migrere denne til TanStack Query er en storre refaktor der risikerer at bryde funktionalitet.
+```typescript
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
-**Handling nu:** Ingen strukturel aendring - fokus paa at fjerne de mest skadelige console.logs som er den primaere performance-flaskehals.
+if (file.size > MAX_FILE_SIZE) {
+  toast.error('Filen er for stor. Maksimal stoerrelse er 20MB.');
+  return;
+}
+```
 
-### 5. Login dynamisk undertitel
+---
 
-Allerede implementeret i forrige plan. Koden i `LoginPage.tsx` laeser `selected_department_id` fra localStorage og henter afdelingsnavnet. Virker korrekt.
+### ADVARSEL: Resterende console.logs i produktion
 
-### 6. Memory leak-tjek
+Disse logs blev overset i den forrige performance-optimering:
 
-Alle realtime-subscriptions har korrekte cleanup-funktioner:
-- `useEmployeeData`: `clearTimeout(timeoutId)` + `removeChannel` i cleanup (OK)
-- `useCarData`: `removeChannel` i cleanup (OK)  
-- `useWarehouseData`: `clearInterval` / `removeChannel` i cleanup (OK)
-- `useVacationData`: `clearInterval` / `realtimeManager.unsubscribe` i cleanup (OK)
-- `useOptimizedAssignments`: `isMounted` flag + `clearTimeout` + `removeChannel` (OK)
-- `useUnifiedData`: `isMounted` flag + `clearTimeout` + `removeChannel` (OK)
+| Fil | Linje | Indhold |
+|-----|-------|---------|
+| `src/components/Planner/PlannerContent.tsx` | 62 | Logger antal assignments, employees, cars |
+| `src/components/Layout/TopNavbar.tsx` | 43-48 | Logger vacation request status med emoji |
+| `src/components/Layout/TopNavbar.tsx` | 56 | Logger pending vacation notification |
+| `src/components/Layout/TopNavbar.tsx` | 115-120 | Logger alle navigation items |
 
-Ingen memory leaks fundet i realtime-subscriptions.
+**Rettelse:** Wrap alle 4 steder i `import.meta.env.DEV` guard.
+
+---
+
+### Verificerede omraader (ingen fejl)
+
+**Chat + afdelingsstruktur:**
+- `isChatEnabled` og `isFilesEnabled` styrer korrekt visning i `AssignmentDetailsDialog`
+- Chat-panelet filtrerer ikke data per afdeling (beskeder er knyttet til en specifik opgave, som allerede er filtreret per underafdeling via RLS)
+
+**Rollerettigheder i UI:**
+- `isEffectiveAdmin` inkluderer korrekt baade `super_admin` og `administrator` (AuthContext linje 543)
+- Admin-fane er korrekt skjult for ikke-admins via `adminOnly` filter i TopNavbar
+- Super Admin-rolle er kun synlig i brugerformularer hvis den autentificerede bruger selv er `super_admin` (UserFormDialog, EmployeeFormDialog)
+- `canPublishTasks`, `canEdit`, `canCreate` inkluderer korrekt `super_admin` via `isAdmin`-flaget
+
+**Views (Gitter/Kompakt/Standard):**
+- PlannerContent renderer korrekt baseret paa `viewMode` prop
+- Kompakt-view bruger separate komponenter (CompactCurrentAndFutureDays/CompactPastAssignments)
+- Grid-view bruger `gridLayout` prop paa standard-komponenterne
+- Alle tre views bruger samme data og expandedDays-logik
+
+**Login dynamisk undertitel:**
+- LoginPage laeser `selected_department_id` fra localStorage og henter afdelingsnavnet
+- Fallback til "Internt planlagningssystem" hvis ingen afdeling er gemt
+- Fungerer korrekt
 
 ---
 
@@ -69,23 +94,15 @@ Ingen memory leaks fundet i realtime-subscriptions.
 
 | Fil | AEndring |
 |-----|---------|
-| `src/utils/employeeAvailability.ts` | Wrap alle console.log i DEV guard. Fjern per-assignment verbose logging helt (selv i DEV) |
-| `src/hooks/useDashboardMetrics.ts` | Wrap COMPREHENSIVE METRICS DEBUG log (linje 124-160) i DEV guard |
-| `src/hooks/useOptimizedAssignments.ts` | Wrap alle 40+ console.log i DEV guard |
-| `src/hooks/useAssignmentsConsolidated.ts` | Wrap alle console.log (linje 26, 32, 34, 46, 54) i DEV guard |
-| `src/hooks/useDashboard.ts` | Wrap alle console.log (linje 12-13, 23, 40-46, 52, 59, 66, 76) i DEV guard |
-| `src/services/enhancedUnifiedDataService.ts` | Wrap alle console.log i DEV guard |
-| `src/hooks/car/useCarData.ts` | Wrap console.log (linje 24, 46, 50) i DEV guard |
-| `src/hooks/employee/useEmployeeData.ts` | Wrap console.log (linje 24, 41, 80, 96, 160) i DEV guard |
-| `src/hooks/vacation/useVacationData.ts` | Wrap console.log (linje 24, 32, 85) i DEV guard. Fjern `logSecurityEvent` fra realtime-handler |
-| `src/components/Layout/NavComponents/UserMenu.tsx` | Fetch job_title, vis jobtitel i stedet for rolle-ID |
-| `CHANGELOG.md` | Tilfoej alle aendringer under Performance Optimization - 2026-02-15 |
+| `src/components/Assignment/AssignmentMessagesPanel.tsx` | Tilfoej `'super_admin'` til canDeleteMessage rolle-liste |
+| `src/hooks/assignment/useAssignmentFiles.ts` | Tilfoej 20MB filstoerrelses-validering foer upload |
+| `src/components/Planner/PlannerContent.tsx` | Wrap console.log (linje 62) i `import.meta.env.DEV` |
+| `src/components/Layout/TopNavbar.tsx` | Wrap 3 console.log kald (linje 43, 56, 115) i `import.meta.env.DEV` |
+| `CHANGELOG.md` | Tilfoej alle rettelser under "Funktionel logik-gennemgang - 2026-02-15" |
 
 ### Hvad der IKKE aendres
 
-- UI-design og alle brugerfunktioner forbliver identiske
-- TanStack Query konfiguration (staleTime, gcTime) er allerede optimal
-- Realtime-subscriptions struktur (ingen memory leaks fundet)
-- Bundle-splitting konfiguration (allerede veldefineret i vite.config.ts)
-- Data-fetching arkitektur (risikabelt at refaktorere nu)
+- UI-design og layout forbliver identisk
+- Ingen database-aendringer
+- Ingen nye features - kun fejlrettelser
 
