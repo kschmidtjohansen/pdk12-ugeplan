@@ -13,19 +13,16 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
 
-  // Direct database user creation fallback
   const createUserDirectly = async (userData: any) => {
-    console.log('[useEmployeeCreation] Attempting direct database user creation');
+    if (import.meta.env.DEV) console.log('[useEmployeeCreation] Attempting direct database user creation');
     
     try {
       let userId: string;
       
-      // For temporary users, skip Auth creation and generate UUID
       if (userData.is_temporary) {
-        console.log('[useEmployeeCreation] Creating temporary user without Auth');
+        if (import.meta.env.DEV) console.log('[useEmployeeCreation] Creating temporary user without Auth');
         userId = crypto.randomUUID();
       } else {
-        // For regular users, create auth user
         const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
           email: userData.email,
           password: userData.password,
@@ -47,10 +44,9 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         }
 
         userId = authUser.user.id;
-        console.log('[useEmployeeCreation] Auth user created:', userId);
+        if (import.meta.env.DEV) console.log('[useEmployeeCreation] Auth user created');
       }
 
-      // Create profile entry
       const client = getSchemaClient(isDemoMode);
       const { error: profileError } = await client
         .from('profiles')
@@ -74,7 +70,6 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         throw new Error(`Profile creation failed: ${profileError.message}`);
       }
 
-      // Set user role
       const { error: roleError } = await client
         .from('user_roles')
         .insert({
@@ -87,7 +82,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         throw new Error(`Role assignment failed: ${roleError.message}`);
       }
 
-      console.log('[useEmployeeCreation] Direct user creation completed successfully');
+      if (import.meta.env.DEV) console.log('[useEmployeeCreation] Direct user creation completed successfully');
       return { success: true, user: { id: userId } };
 
     } catch (err) {
@@ -96,24 +91,20 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
     }
   };
 
-  // Enhanced user creation with multiple fallback methods
   const createEmployee = async (formData: any) => {
     try {
-      console.log('[useEmployeeCreation] Form data received:', {
+      if (import.meta.env.DEV) console.log('[useEmployeeCreation] Form data received:', {
         name: formData.name,
-        email: formData.email,
         is_temporary: formData.is_temporary,
         hasPassword: !!formData.password
       });
       
-      // Enhanced validation
       if (!formData.name) {
         throw new Error(t('employees.nameRequired'));
       }
       
-      // For non-temporary users, validate email and password
       if (!formData.is_temporary) {
-        console.log('[useEmployeeCreation] Validating regular employee - email and password required');
+        if (import.meta.env.DEV) console.log('[useEmployeeCreation] Validating regular employee');
         if (!formData.email || !formData.password) {
           throw new Error(`Missing required fields: ${!formData.email ? 'Email' : ''} ${!formData.password ? 'password' : ''}`);
         }
@@ -123,16 +114,14 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           throw new Error(t('employees.validEmailRequired'));
         }
       } else {
-        console.log('[useEmployeeCreation] Creating temporary user - skipping email/password validation');
+        if (import.meta.env.DEV) console.log('[useEmployeeCreation] Creating temporary user - skipping email/password validation');
       }
 
-
-      console.log('[useEmployeeCreation] Starting user creation process');
+      if (import.meta.env.DEV) console.log('[useEmployeeCreation] Starting user creation process');
 
       let result = null;
       let method = 'unknown';
 
-      // Generate email for temporary users if not provided
       let finalEmail = formData.email;
       if (formData.is_temporary && (!finalEmail || !finalEmail.trim())) {
         const timestamp = Date.now();
@@ -141,7 +130,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
 
       // Method 1: Try edge function first
       try {
-        console.log('[useEmployeeCreation] Attempting edge function creation');
+        if (import.meta.env.DEV) console.log('[useEmployeeCreation] Attempting edge function creation');
         
         const requestBody: any = {
           name: formData.name,
@@ -157,7 +146,6 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           }
         };
         
-        // Only add email and password for non-temporary users
         if (!formData.is_temporary) {
           requestBody.email = finalEmail;
           requestBody.password = formData.password;
@@ -177,22 +165,20 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           throw new Error(data.error);
         }
         
-        // Handle successful 2xx responses
         if (data && (data.user?.id || data.id)) {
-          console.log('[useEmployeeCreation] Edge function succeeded:', data);
+          if (import.meta.env.DEV) console.log('[useEmployeeCreation] Edge function succeeded');
           result = data;
           method = 'edge-function';
         } else if (data?.message && data.message.includes('successfully')) {
-          // Handle cases where function returns success message but different structure
-          console.log('[useEmployeeCreation] Edge function succeeded with message:', data);
+          if (import.meta.env.DEV) console.log('[useEmployeeCreation] Edge function succeeded with message');
           result = data;
           method = 'edge-function';
         } else {
-          console.error('[useEmployeeCreation] Edge function returned unexpected data:', data);
+          console.error('[useEmployeeCreation] Edge function returned unexpected data');
           throw new Error(t('employees.edgeFunctionFailed'));
         }
       } catch (edgeError) {
-        console.log('[useEmployeeCreation] Edge function failed, trying direct method:', edgeError);
+        if (import.meta.env.DEV) console.log('[useEmployeeCreation] Edge function failed, trying direct method');
         
         // Method 2: Direct database creation
         try {
@@ -201,20 +187,15 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           method = 'direct-database';
         } catch (directError) {
           console.error('[useEmployeeCreation] Direct creation also failed:', directError);
-          
-          // Method 3: Last resort - create profile only (manual auth setup required)
-          console.log('[useEmployeeCreation] Attempting profile-only creation');
           throw new Error(`${t('employees.allMethodsFailed')}. ${t('employees.edgeFunctionFailed')}: ${edgeError.message}. ${t('employees.directCreationFailed')}: ${directError.message}`);
         }
       }
 
-      // If we got here, one method succeeded
       if (result?.user?.id || result?.success || result?.id || (result?.message && result.message.includes('successfully'))) {
         const userId = result.user?.id || result.id;
         
-        // Update profile with additional fields if we have a valid ID
         if (userId && isValidUUID(userId)) {
-          console.log('[useEmployeeCreation] Updating profile with additional data');
+          if (import.meta.env.DEV) console.log('[useEmployeeCreation] Updating profile with additional data');
           
           const client = getSchemaClient(isDemoMode);
           const { error: profileError } = await client
@@ -237,7 +218,6 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             console.warn('[useEmployeeCreation] Profile update warning:', profileError);
           }
 
-          // Update role if specified and different from default
           const targetRole = formData.is_temporary ? 'vikar' : formData.role;
           if (targetRole && targetRole !== 'servicemedarbejder') {
             const { error: roleError } = await client
@@ -270,7 +250,6 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       if (err instanceof Error) {
         errorMessage = err.message;
         
-        // Categorize errors for better user feedback
         if (errorMessage.includes('User already registered') || errorMessage.includes('email_address_already_registered')) {
           errorMessage = t('employees.userAlreadyExists');
         } else if (errorMessage.includes('Invalid email')) {

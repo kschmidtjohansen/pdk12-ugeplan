@@ -4,10 +4,8 @@ import { logSecurityEvent } from '@/utils/securityLogger';
 
 export const cleanupFalsePositiveSecurityLogs = async (): Promise<{ success: boolean; deletedCount: number; error?: string }> => {
   try {
-    console.log('[DatabaseCleanup] Starting cleanup of false positive security logs...');
+    if (import.meta.env.DEV) console.log('[DatabaseCleanup] Starting cleanup of false positive security logs...');
     
-    // Delete false positive suspicious activity logs
-    // These are typically mouse movement events logged too frequently
     const { data: deletedLogs, error } = await supabase
       .from('logs')
       .delete()
@@ -22,7 +20,6 @@ export const cleanupFalsePositiveSecurityLogs = async (): Promise<{ success: boo
 
     const deletedCount = deletedLogs?.length || 0;
     
-    // Log the cleanup operation
     await logSecurityEvent(
       'system_cleanup',
       `Cleaned up ${deletedCount} false positive security logs`,
@@ -34,7 +31,7 @@ export const cleanupFalsePositiveSecurityLogs = async (): Promise<{ success: boo
       'info'
     );
 
-    console.log(`[DatabaseCleanup] Successfully cleaned up ${deletedCount} false positive logs`);
+    if (import.meta.env.DEV) console.log(`[DatabaseCleanup] Successfully cleaned up ${deletedCount} false positive logs`);
     
     return { success: true, deletedCount };
   } catch (err) {
@@ -47,12 +44,11 @@ export const cleanupFalsePositiveSecurityLogs = async (): Promise<{ success: boo
 
 export const cleanupOldSecurityLogs = async (daysToKeep: number = 30): Promise<{ success: boolean; deletedCount: number; error?: string }> => {
   try {
-    console.log(`[DatabaseCleanup] Cleaning up security logs older than ${daysToKeep} days...`);
+    if (import.meta.env.DEV) console.log(`[DatabaseCleanup] Cleaning up security logs older than ${daysToKeep} days...`);
     
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
     
-    // Delete old non-critical security logs
     const { data: deletedLogs, error } = await supabase
       .from('logs')
       .delete()
@@ -67,7 +63,6 @@ export const cleanupOldSecurityLogs = async (daysToKeep: number = 30): Promise<{
 
     const deletedCount = deletedLogs?.length || 0;
     
-    // Log the cleanup operation
     await logSecurityEvent(
       'system_cleanup',
       `Cleaned up ${deletedCount} old security logs (older than ${daysToKeep} days)`,
@@ -80,7 +75,7 @@ export const cleanupOldSecurityLogs = async (daysToKeep: number = 30): Promise<{
       'info'
     );
 
-    console.log(`[DatabaseCleanup] Successfully cleaned up ${deletedCount} old security logs`);
+    if (import.meta.env.DEV) console.log(`[DatabaseCleanup] Successfully cleaned up ${deletedCount} old security logs`);
     
     return { success: true, deletedCount };
   } catch (err) {
@@ -93,10 +88,8 @@ export const cleanupOldSecurityLogs = async (daysToKeep: number = 30): Promise<{
 
 export const optimizeSecurityLogsTable = async (): Promise<{ success: boolean; error?: string }> => {
   try {
-    console.log('[DatabaseCleanup] Optimizing security logs table...');
+    if (import.meta.env.DEV) console.log('[DatabaseCleanup] Optimizing security logs table...');
     
-    // This would typically run database optimization commands
-    // For now, we'll just log that optimization is needed
     await logSecurityEvent(
       'system_maintenance',
       'Security logs table optimization requested',
@@ -107,7 +100,7 @@ export const optimizeSecurityLogsTable = async (): Promise<{ success: boolean; e
       'info'
     );
 
-    console.log('[DatabaseCleanup] Table optimization logged for admin review');
+    if (import.meta.env.DEV) console.log('[DatabaseCleanup] Table optimization logged for admin review');
     
     return { success: true };
   } catch (err) {

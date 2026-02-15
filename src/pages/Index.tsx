@@ -8,7 +8,7 @@ const Index = () => {
   const [redirectAttempts, setRedirectAttempts] = useState(0);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
 
-  console.log('[Index] SESSION EXPIRATION FIX - Render state:', {
+  if (import.meta.env.DEV) console.log('[Index] SESSION EXPIRATION FIX - Render state:', {
     isAuthenticated,
     loading,
     authReady,
@@ -115,11 +115,11 @@ const Index = () => {
 
   // Route based on authentication status
   if (isAuthenticated) {
-    console.log('[Index] SESSION EXPIRATION FIX - User authenticated, redirecting to dashboard');
+    if (import.meta.env.DEV) console.log('[Index] Redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
-  console.log('[Index] SESSION EXPIRATION FIX - User not authenticated, redirecting to login');
+  if (import.meta.env.DEV) console.log('[Index] Redirecting to login');
   return <Navigate to="/login" replace />;
 };
 

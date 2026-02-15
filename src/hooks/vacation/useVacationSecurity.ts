@@ -36,7 +36,7 @@ export const useVacationSecurity = () => {
 
         const userIds = new Set((usersInSubDepts || []).map(u => u.user_id));
         setSkadelederSubDeptUserIds(userIds);
-        console.log(`[useVacationSecurity] Skadeleder has access to ${userIds.size} users in ${subDeptIds.length} sub-departments`);
+        if (import.meta.env.DEV) console.log(`[useVacationSecurity] Skadeleder has access to ${userIds.size} users in ${subDeptIds.length} sub-departments`);
       } catch (error) {
         console.error('[useVacationSecurity] Failed to fetch sub-department users:', error);
       }

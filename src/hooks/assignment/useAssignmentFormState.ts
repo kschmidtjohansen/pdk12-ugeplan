@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export interface AssignmentFormData {
   date: string;
-  dates?: string[]; // Array of dates for multi-date assignments
+  dates?: string[];
   title?: string;
   description?: string;
   fromTime?: string;
@@ -32,26 +32,24 @@ export const useAssignmentFormState = (
 ) => {
   const { user, isDemoMode } = useAuth();
   
-  // Always calculate a fresh today's date when the hook is initialized
   const getTodayDate = () => format(new Date(), 'yyyy-MM-dd');
   const initialDate = selectedDate && selectedDate.trim() !== '' ? selectedDate : getTodayDate();
   
-  // Default responsible user - for demo mode, always default to current user
   const getDefaultResponsibleUser = () => {
     if (isDemoMode && user) {
-      console.log('[useAssignmentFormState] Demo mode: defaulting responsible user to current user:', user.id);
+      if (import.meta.env.DEV) console.log('[useAssignmentFormState] Demo mode: defaulting responsible user to current user');
       return user.id;
     }
     return '';
   };
   
-  console.log('[useAssignmentFormState] Initializing with date:', initialDate);
-  console.log('[useAssignmentFormState] Today fresh date:', getTodayDate());
-  console.log('[useAssignmentFormState] Selected date provided:', selectedDate);
+  if (import.meta.env.DEV) {
+    console.log('[useAssignmentFormState] Initializing with date:', initialDate);
+  }
 
   const [formData, setFormData] = useState<AssignmentFormData>({
     date: initialDate,
-    dates: [initialDate], // Initialize with today's date as array
+    dates: [initialDate],
     title: '',
     description: '',
     fromTime: '08:00',
@@ -63,22 +61,20 @@ export const useAssignmentFormState = (
     responsibleUserId: getDefaultResponsibleUser()
   });
 
-  // Update form date if selectedDate changes
   useEffect(() => {
     if (selectedDate && selectedDate.trim() !== '') {
-      console.log('[useAssignmentFormState] Selected date changed, updating form date:', selectedDate);
+      if (import.meta.env.DEV) console.log('[useAssignmentFormState] Selected date changed:', selectedDate);
       setFormData(prev => ({
         ...prev,
         date: selectedDate,
-        dates: [selectedDate] // Also update dates array for consistency
+        dates: [selectedDate]
       }));
     }
   }, [selectedDate]);
 
-  // Set default responsible user for demo mode when user is available
   useEffect(() => {
     if (isDemoMode && user && !currentAssignment) {
-      console.log('[useAssignmentFormState] Setting default responsible user for demo mode:', user.id);
+      if (import.meta.env.DEV) console.log('[useAssignmentFormState] Setting default responsible user for demo mode');
       setFormData(prev => ({
         ...prev,
         responsibleUserId: user.id
@@ -86,7 +82,6 @@ export const useAssignmentFormState = (
     }
   }, [isDemoMode, user, currentAssignment]);
 
-  // Handle input changes for text fields
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -95,13 +90,11 @@ export const useAssignmentFormState = (
     }));
   }, []);
 
-  // Handle employee toggle (add/remove from array)
   const handleEmployeeToggle = useCallback((employeeId: string) => {
-    console.log('[useAssignmentFormState] Employee toggled:', employeeId);
-    console.log('[useAssignmentFormState] Current employees:', formData.employees);
+    if (import.meta.env.DEV) console.log('[useAssignmentFormState] Employee toggled:', employeeId);
     
     if (!employeeId || employeeId.trim() === '') {
-      console.warn('[useAssignmentFormState] Invalid employee ID provided');
+      if (import.meta.env.DEV) console.warn('[useAssignmentFormState] Invalid employee ID provided');
       return;
     }
 
@@ -111,13 +104,11 @@ export const useAssignmentFormState = (
       
       if (currentEmployees.includes(employeeId)) {
         newEmployees = currentEmployees.filter(id => id !== employeeId);
-        console.log('[useAssignmentFormState] Removing employee:', employeeId);
       } else {
         newEmployees = [...currentEmployees, employeeId];
-        console.log('[useAssignmentFormState] Adding employee:', employeeId);
       }
       
-      console.log('[useAssignmentFormState] New employees array:', newEmployees);
+      if (import.meta.env.DEV) console.log('[useAssignmentFormState] New employees array:', newEmployees);
       
       return {
         ...prev,
@@ -126,7 +117,6 @@ export const useAssignmentFormState = (
     });
   }, [formData.employees]);
 
-  // Handle car selection (single car - backward compatibility)
   const handleCarChange = useCallback((value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -134,7 +124,6 @@ export const useAssignmentFormState = (
     }));
   }, []);
 
-  // Handle multiple cars selection
   const handleCarsChange = useCallback((carIds: string[]) => {
     setFormData(prev => ({
       ...prev,
@@ -142,7 +131,6 @@ export const useAssignmentFormState = (
     }));
   }, []);
 
-  // Handle responsible user selection
   const handleResponsibleUserChange = useCallback((value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -150,9 +138,8 @@ export const useAssignmentFormState = (
     }));
   }, []);
 
-  // Reset form after successful submission
   const resetForm = useCallback(() => {
-    console.log('[useAssignmentFormState] Resetting form data');
+    if (import.meta.env.DEV) console.log('[useAssignmentFormState] Resetting form data');
     const todayDate = format(new Date(), 'yyyy-MM-dd');
     setFormData({
       date: todayDate,
@@ -169,7 +156,6 @@ export const useAssignmentFormState = (
     });
   }, [isDemoMode, user]);
 
-  // Handle form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     
@@ -179,15 +165,14 @@ export const useAssignmentFormState = (
       published: currentAssignment?.published || false
     };
     
-    if (currentAssignment) {
-      // We're updating an existing assignment
-      console.log("Updating assignment:", updatedAssignment);
-    } else {
-      // We're creating a new assignment
-      console.log("Creating new assignment:", updatedAssignment);
+    if (import.meta.env.DEV) {
+      if (currentAssignment) {
+        console.log("Updating assignment:", updatedAssignment);
+      } else {
+        console.log("Creating new assignment:", updatedAssignment);
+      }
     }
     
-    // Close the dialog and refresh assignments
     setDialogOpen(false);
     fetchAssignments();
   }, [formData, currentAssignment, setDialogOpen, fetchAssignments]);

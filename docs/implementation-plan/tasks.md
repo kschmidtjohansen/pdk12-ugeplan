@@ -50,3 +50,27 @@ Gennemført 2026-02-15.
 - [x] 20MB filstørrelses-validering på assignment fil-upload
 - [x] Erstattet alle hardcoded `text-gray-*` / `border-gray-*` / `bg-gray-*` med tema-tokens i CarsTable og MobileCarCard (36 erstatninger)
 - [x] Oprettet komplet docs-mappestruktur: timeline, features, user-personas, database-schema, design-system
+
+## Fase 5: Sikkerhedsrettelser (Runde 2) ✅
+
+Gennemført 2026-02-15.
+
+- [x] Verificeret `can_access_vacation()` RLS-funktion — skadeledere begrænset til egen afdeling via `user_access.department_id`
+- [x] Verificeret PasswordChangeDialog.tsx — ingen følsom logging fundet
+- [x] Fjernet følsom logging fra `admin-reset-password` edge function (IP, token-længde, key-presence, bruger-email, password-længde)
+- [x] Tilføjet JWT-validerings-dokumentation som kommentarer i `admin-reset-password` edge function
+- [x] Fjernet bruger-email fra security event logs i `admin-reset-password`
+- [x] Wrapped 48+ console.log i `import.meta.env.DEV` guard på tværs af 14 filer:
+  - `EnhancedSecureLoginForm.tsx` (3 stk)
+  - `notificationRealtime.ts` (7 stk)
+  - `notificationActions.ts` (4 stk)
+  - `notificationFetching.ts` (2 stk)
+  - `useVacationRequestActions.ts` (8 stk)
+  - `useVacationSecurity.ts` (1 stk)
+  - `useAssignmentFormState.ts` (alle console.log)
+  - `useAssignmentActions.ts` (4 stk responsible user logs)
+  - `useEmployeeCreation.ts` (alle console.log)
+  - `Index.tsx` (3 stk auth-status)
+  - `PasswordResetPage.tsx` (3 stk recovery mode)
+  - `ScreenDisplayPage.tsx` (8 stk URL/dato-data)
+  - `databaseCleanup.ts` (6 stk cleanup-operationer)

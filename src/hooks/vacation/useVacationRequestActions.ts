@@ -89,15 +89,12 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
       const endDateFormatted = format(dateRange.to, 'yyyy-MM-dd');
       const isSameDay = startDateFormatted === endDateFormatted;
       
-      console.log("Creating vacation record:", {
+      if (import.meta.env.DEV) console.log("Creating vacation record:", {
         user_id: requestEmployeeId,
         start_date: startDateFormatted,
         end_date: endDateFormatted,
         request_type: requestType,
-        start_time: startTime,
-        end_time: endTime,
         is_same_day: isSameDay,
-        reason: reason,
         status: 'pending'
       });
       
@@ -123,7 +120,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         throw error;
       }
       
-      console.log("Vacation created successfully:", data);
+      if (import.meta.env.DEV) console.log("Vacation created successfully");
       
       // Create notification message based on request type
       const timeInfo = requestType === 'partial_day' && startTime && endTime 
@@ -199,7 +196,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
     endTime?: string
   ) => {
     try {
-      console.log("Fetching administrators to notify about new vacation request");
+      if (import.meta.env.DEV) console.log("Fetching administrators to notify about new vacation request");
       
       const { data: adminUsers, error: adminError } = await supabase
         .from('user_roles')
@@ -212,11 +209,11 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
       }
       
       if (!adminUsers || adminUsers.length === 0) {
-        console.log("No administrators found to notify");
+        if (import.meta.env.DEV) console.log("No administrators found to notify");
         return;
       }
       
-      console.log(`Found ${adminUsers.length} administrators to notify`);
+      if (import.meta.env.DEV) console.log(`Found ${adminUsers.length} administrators to notify`);
       
       const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
       const formattedStartDate = format(startDate, dateFormat);
@@ -230,7 +227,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         .filter(admin => admin.user_id !== user?.id)
         .map(async (admin) => {
           try {
-            console.log(`Sending notification to admin: ${admin.user_id}`);
+            if (import.meta.env.DEV) console.log(`Sending notification to admin: ${admin.user_id}`);
             
             const notifyMessage = requestType === 'partial_day'
               ? `${employeeName} requesting partial day off from ${startTime} to ${endTime} on ${formattedStartDate}`
@@ -248,17 +245,17 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
               targetUserId: admin.user_id
             });
             
-            console.log(`Notification sent to admin: ${admin.user_id}`);
+            if (import.meta.env.DEV) console.log(`Notification sent to admin: ${admin.user_id}`);
             return true;
           } catch (notifErr) {
-            console.error(`Error adding admin notification for ${admin.user_id}:`, notifErr);
+            console.error(`Error adding admin notification:`, notifErr);
             return false;
           }
         });
       
       const results = await Promise.allSettled(notifyPromises);
       const successful = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
-      console.log(`Successfully sent ${successful} admin notifications out of ${adminUsers.length - 1}`);
+      if (import.meta.env.DEV) console.log(`Successfully sent ${successful} admin notifications`);
     } catch (err) {
       console.error('Error in admin notification process:', err);
     }

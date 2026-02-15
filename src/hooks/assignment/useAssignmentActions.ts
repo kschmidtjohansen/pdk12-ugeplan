@@ -144,10 +144,10 @@ export const useAssignmentActions = (
       let responsibleUserId = null;
       if (assignmentData.responsibleUserId) {
         responsibleUserId = safeUUID(assignmentData.responsibleUserId);
-        console.log("[useAssignmentActions] Using responsibleUserId:", responsibleUserId);
+      if (import.meta.env.DEV) console.log("[useAssignmentActions] Using responsibleUserId:", responsibleUserId);
       } else if (assignmentData.responsibleUser?.id) {
         responsibleUserId = safeUUID(assignmentData.responsibleUser.id);
-        console.log("[useAssignmentActions] Using responsibleUser.id:", responsibleUserId);
+        if (import.meta.env.DEV) console.log("[useAssignmentActions] Using responsibleUser.id:", responsibleUserId);
       } else {
         console.log("[useAssignmentActions] No responsible user found in data");
       }
@@ -420,14 +420,14 @@ export const useAssignmentActions = (
       let responsibleUserId = null;
       if (assignmentData.responsibleUserId) {
         responsibleUserId = safeUUID(assignmentData.responsibleUserId);
-        console.log("[useAssignmentActions] Using responsibleUserId:", responsibleUserId);
+      if (import.meta.env.DEV) console.log("[useAssignmentActions] Using responsibleUserId:", responsibleUserId);
       } else if (assignmentData.responsibleUser?.id) {
         responsibleUserId = safeUUID(assignmentData.responsibleUser.id);
-        console.log("[useAssignmentActions] Using responsibleUser.id:", responsibleUserId);
+        if (import.meta.env.DEV) console.log("[useAssignmentActions] Using responsibleUser.id:", responsibleUserId);
       } else {
-        console.log("[useAssignmentActions] No responsible user found in data");
+        if (import.meta.env.DEV) console.log("[useAssignmentActions] No responsible user found in data");
       }
-      console.log("[useAssignmentActions] Final responsibleUserId to store:", responsibleUserId);
+      if (import.meta.env.DEV) console.log("[useAssignmentActions] Final responsibleUserId to store:", responsibleUserId);
 
       // Update the existing assignment (use first date if multiple dates provided)
       const updateDate = hasMultipleDates ? dates[0] : assignmentData.date;

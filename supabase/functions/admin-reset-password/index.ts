@@ -57,30 +57,26 @@ function isValidUuid(uuid: string): boolean {
 }
 
 function sanitizeInput(input: string): string {
-  // Basic input sanitization to prevent injection attacks
   return input.replace(/[<>'"]/g, '');
 }
 
 serve(async (req) => {
   const requestId = crypto.randomUUID().substring(0, 8);
-  console.log(`[admin-reset-password:${requestId}] ${req.method} request received from ${req.headers.get('origin')}`);
+  console.log(`[admin-reset-password:${requestId}] ${req.method} request received`);
   
   if (req.method === 'OPTIONS') {
-    console.log(`[admin-reset-password:${requestId}] Responding to OPTIONS request`);
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     // Enhanced origin validation with stricter checks
     const origin = req.headers.get('origin');
-    console.log(`[admin-reset-password:${requestId}] Request origin: ${origin}`);
     
     const allowedOrigins = [
       'https://www.pdk12.dk',
       'https://pdk12.dk'
     ];
     
-    // Allow localhost, lovable.dev domains, and any development URLs in development
     const isDev = origin?.includes('localhost') || 
                   origin?.includes('lovable.dev') || 
                   origin?.includes('lovableproject.com') ||
@@ -88,10 +84,8 @@ serve(async (req) => {
                   origin?.includes('127.0.0.1');
     const isAllowedOrigin = allowedOrigins.includes(origin || '') || isDev;
     
-    console.log(`[admin-reset-password:${requestId}] Origin check - isDev: ${isDev}, isAllowedOrigin: ${isAllowedOrigin}`);
-    
     if (!isAllowedOrigin) {
-      console.error(`[admin-reset-password:${requestId}] Forbidden origin: ${origin}`);
+      console.error(`[admin-reset-password:${requestId}] Forbidden origin`);
       return new Response(
         JSON.stringify({ error: 'Origin not allowed' }),
         { 
@@ -106,10 +100,9 @@ serve(async (req) => {
                      req.headers.get('x-real-ip') || 
                      req.headers.get('cf-connecting-ip') || 
                      'unknown';
-    console.log(`[admin-reset-password:${requestId}] Client IP: ${clientIp}`);
     
     if (!checkRateLimit(clientIp)) {
-      console.warn(`[admin-reset-password:${requestId}] Rate limit exceeded for IP: ${clientIp}`);
+      console.warn(`[admin-reset-password:${requestId}] Rate limit exceeded`);
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Too many requests.' }),
         { 
@@ -119,9 +112,17 @@ serve(async (req) => {
       );
     }
 
-    // Verify JWT token with enhanced validation
+    // ─── MANUAL JWT VALIDATION ───────────────────────────────────────
+    // This function has verify_jwt = false in config.toml because it
+    // performs manual JWT validation below. The manual flow is:
+    //   1. Extract Bearer token from Authorization header
+    //   2. Validate token format (3-part JWT structure)
+    //   3. Create anon Supabase client with user's token
+    //   4. Call supabase.auth.getUser() to verify token server-side
+    //   5. Check user_roles table for administrator/super_admin role
+    // Do NOT enable verify_jwt without removing this manual validation.
+    // ─────────────────────────────────────────────────────────────────
     const authHeader = req.headers.get('Authorization');
-    console.log(`[admin-reset-password:${requestId}] Auth header present: ${!!authHeader}`);
     
     if (!authHeader?.startsWith('Bearer ')) {
       console.error(`[admin-reset-password:${requestId}] Missing or invalid authorization header`);
@@ -135,7 +136,6 @@ serve(async (req) => {
     }
 
     const token = authHeader.substring(7);
-    console.log(`[admin-reset-password:${requestId}] Token length: ${token.length}`);
     
     // Validate token format (basic JWT structure check)
     if (token.split('.').length !== 3) {
@@ -152,14 +152,8 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    
-    console.log(`[admin-reset-password:${requestId}] Supabase URL: ${supabaseUrl}`);
-    console.log(`[admin-reset-password:${requestId}] Service key present: ${!!serviceKey}`);
-    console.log(`[admin-reset-password:${requestId}] Anon key present: ${!!anonKey}`);
 
-    // Create two Supabase clients with enhanced configuration
-    console.log(`[admin-reset-password:${requestId}] Creating Supabase clients`);
-    
+    // Create two Supabase clients
     const supabaseAnon = createClient(supabaseUrl, anonKey, {
       global: {
         headers: {
@@ -178,22 +172,13 @@ serve(async (req) => {
     });
 
     // Verify the user's JWT using the anon client
-    console.log(`[admin-reset-password:${requestId}] Verifying user token with anon client`);
+    console.log(`[admin-reset-password:${requestId}] Verifying user token`);
     
     try {
       const { data: { user }, error: userError } = await supabaseAnon.auth.getUser();
-      console.log(`[admin-reset-password:${requestId}] User verification result - error: ${!!userError}, user: ${!!user}`);
-      
-      if (userError) {
-        console.error(`[admin-reset-password:${requestId}] User verification error:`, userError);
-      }
-      
-      if (user) {
-        console.log(`[admin-reset-password:${requestId}] User ID: ${user.id}, Email: ${user.email}`);
-      }
       
       if (userError || !user) {
-        console.error(`[admin-reset-password:${requestId}] Invalid authentication token:`, userError);
+        console.error(`[admin-reset-password:${requestId}] Invalid authentication token`);
         return new Response(
           JSON.stringify({ error: 'Invalid authentication token' }),
           { 
@@ -203,31 +188,28 @@ serve(async (req) => {
         );
       }
 
-      console.log(`[admin-reset-password:${requestId}] User verified: ${user.email}`);
+      console.log(`[admin-reset-password:${requestId}] User verified, checking role`);
 
       // Check if user is admin using the anon client (RLS will handle access control)
-      console.log(`[admin-reset-password:${requestId}] Checking user role with anon client`);
       const { data: roleData, error: roleError } = await supabaseAnon
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .single();
 
-      console.log(`[admin-reset-password:${requestId}] Role check result - error: ${!!roleError}, role: ${roleData?.role}`);
-
       if (roleError || !roleData || !['administrator', 'super_admin'].includes(roleData.role)) {
-        console.error(`[admin-reset-password:${requestId}] Access denied for user ${user.email}, role: ${roleData?.role}`);
+        console.error(`[admin-reset-password:${requestId}] Access denied - insufficient role`);
         
         // Log security event using service client
         try {
           await supabaseService.rpc('log_security_event_safe', {
             event_type: 'unauthorized_admin_access',
-            event_message: `User ${user.email} attempted unauthorized password reset`,
+            event_message: 'Unauthorized password reset attempt',
             event_details: { user_id: user.id, function: 'admin-reset-password', ip: clientIp },
             severity: 'warning'
           });
         } catch (logError) {
-          console.warn(`[admin-reset-password:${requestId}] Failed to log security event:`, logError);
+          console.warn(`[admin-reset-password:${requestId}] Failed to log security event`);
         }
         
         return new Response(
@@ -242,13 +224,11 @@ serve(async (req) => {
       console.log(`[admin-reset-password:${requestId}] Admin access confirmed`);
 
       // Parse request body with enhanced validation
-      console.log(`[admin-reset-password:${requestId}] Parsing request body`);
       let requestBody;
       try {
         requestBody = await req.json();
-        console.log(`[admin-reset-password:${requestId}] Request body parsed successfully`);
       } catch (parseError) {
-        console.error(`[admin-reset-password:${requestId}] Failed to parse request body:`, parseError);
+        console.error(`[admin-reset-password:${requestId}] Failed to parse request body`);
         return new Response(
           JSON.stringify({ error: 'Invalid request body' }),
           { 
@@ -259,7 +239,6 @@ serve(async (req) => {
       }
 
       let { userId, newPassword } = requestBody;
-      console.log(`[admin-reset-password:${requestId}] Target user ID: ${userId}, Password length: ${newPassword?.length}`);
 
       // Enhanced input validation and sanitization
       if (!userId || !newPassword) {
@@ -277,7 +256,7 @@ serve(async (req) => {
       userId = sanitizeInput(userId);
       
       if (!isValidUuid(userId)) {
-        console.error(`[admin-reset-password:${requestId}] Invalid user ID format: ${userId}`);
+        console.error(`[admin-reset-password:${requestId}] Invalid user ID format`);
         return new Response(
           JSON.stringify({ error: 'Invalid user ID format' }),
           { 
@@ -289,7 +268,7 @@ serve(async (req) => {
 
       const passwordValidation = validatePassword(newPassword);
       if (!passwordValidation.valid) {
-        console.error(`[admin-reset-password:${requestId}] Password validation failed: ${passwordValidation.message}`);
+        console.error(`[admin-reset-password:${requestId}] Password validation failed`);
         return new Response(
           JSON.stringify({ error: passwordValidation.message || 'Invalid password' }),
           { 
@@ -299,7 +278,7 @@ serve(async (req) => {
         );
       }
 
-      console.log(`[admin-reset-password:${requestId}] Resetting password for user: ${userId} using service role client`);
+      console.log(`[admin-reset-password:${requestId}] Resetting password for target user`);
 
       // Reset password using service role client
       const { error: resetError } = await supabaseService.auth.admin.updateUserById(userId, {
@@ -307,7 +286,7 @@ serve(async (req) => {
       });
 
       if (resetError) {
-        console.error(`[admin-reset-password:${requestId}] Password reset failed:`, resetError);
+        console.error(`[admin-reset-password:${requestId}] Password reset failed:`, resetError.message);
         return new Response(
           JSON.stringify({ error: `Password reset failed: ${resetError.message}` }),
           { 
@@ -319,22 +298,20 @@ serve(async (req) => {
 
       console.log(`[admin-reset-password:${requestId}] Password reset successful`);
 
-      // Log successful password reset with enhanced details
+      // Log successful password reset (without sensitive data)
       try {
         await supabaseService.rpc('log_security_event_safe', {
           event_type: 'password_reset',
-          event_message: `Admin ${user.email} reset password for user ${userId}`,
+          event_message: 'Admin password reset completed',
           event_details: { 
             admin_id: user.id, 
             target_user_id: userId,
-            request_id: requestId,
-            ip_address: clientIp,
-            user_agent: req.headers.get('user-agent')
+            request_id: requestId
           },
           severity: 'info'
         });
       } catch (logError) {
-        console.warn(`[admin-reset-password:${requestId}] Failed to log password reset event:`, logError);
+        console.warn(`[admin-reset-password:${requestId}] Failed to log password reset event`);
       }
 
       return new Response(
@@ -345,9 +322,9 @@ serve(async (req) => {
         }
       );
     } catch (authError) {
-      console.error(`[admin-reset-password:${requestId}] Authentication error:`, authError);
+      console.error(`[admin-reset-password:${requestId}] Authentication error`);
       return new Response(
-        JSON.stringify({ error: `Authentication failed: ${authError.message}` }),
+        JSON.stringify({ error: 'Authentication failed' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -356,15 +333,12 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error(`[admin-reset-password:${requestId}] Unexpected error:`, error);
+    console.error(`[admin-reset-password:${requestId}] Unexpected error`);
     
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-    const statusCode = errorMessage.includes('Insufficient privileges') ? 403 :
-                      errorMessage.includes('Rate limit') ? 429 :
-                      errorMessage.includes('Invalid') || errorMessage.includes('Missing') || errorMessage.includes('Password must') ? 400 : 500;
+    const statusCode = 500;
 
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'An unexpected error occurred' }),
       { 
         status: statusCode, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

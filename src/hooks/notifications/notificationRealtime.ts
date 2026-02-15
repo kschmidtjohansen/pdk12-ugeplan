@@ -64,55 +64,43 @@ export const useNotificationRealtime = (
   setUnreadCount: (updater: (prev: number) => number) => void
 ) => {
   const { toast } = useToast();
-  // Use localStorage-backed tracking to prevent duplicate toasts across sessions
   const shownNotificationsRef = useRef<Set<string>>(getShownNotificationIds());
-  
-  // Track active channel to avoid duplicate subscriptions
   const channelRef = useRef<any>(null);
   const previousUserIdRef = useRef<string | null>(null);
 
-  // Clean up function to remove channel subscription
   const cleanupChannel = () => {
     if (channelRef.current) {
-      console.log(`Cleaning up notification subscription`);
+      if (import.meta.env.DEV) console.log('Cleaning up notification subscription');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
       clearActiveChannel();
     }
   };
 
-  // Listen for real-time notifications
   useEffect(() => {
     if (!user) {
-      console.log('No user, skipping real-time subscription');
+      if (import.meta.env.DEV) console.log('No user, skipping real-time subscription');
       previousUserIdRef.current = null;
       return cleanupChannel();
     }
     
-    // Don't resubscribe for the same user
     if (previousUserIdRef.current === user.id && channelRef.current) {
-      console.log(`Already subscribed to notifications for user ${user.id}, skipping`);
+      if (import.meta.env.DEV) console.log('Already subscribed to notifications, skipping');
       return;
     }
     
-    // Update previous user ID
     previousUserIdRef.current = user.id;
-    
-    // Clean up any existing subscription to avoid duplicates
     cleanupChannel();
     
-    // Check if we already have a channel active in another tab/window
     const existingChannel = getActiveChannel();
     if (existingChannel) {
-      console.log(`Using existing notification channel: ${existingChannel}`);
+      if (import.meta.env.DEV) console.log('Using existing notification channel');
       return;
     }
     
-    // Create a unique channel name for this user and instance
     const channelName = `notification_changes_${user.id}_${Math.random().toString(36).substring(2, 9)}`;
-    console.log(`Setting up realtime subscription for notifications using channel: ${channelName}`);
+    if (import.meta.env.DEV) console.log('Setting up realtime subscription:', channelName);
     
-    // Set as active channel
     setActiveChannel(channelName);
     
     const channel = supabase
@@ -126,15 +114,13 @@ export const useNotificationRealtime = (
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log(`Received new notification via realtime for user ${user.id}:`, payload);
+          if (import.meta.env.DEV) console.log('Received new notification via realtime');
           
-          // A new notification has been inserted
           if (payload.new) {
             const notificationId = payload.new.id;
             
-            // Check if we've already processed this notification in this session
             if (shownNotificationsRef.current.has(notificationId)) {
-              console.log('Notification already processed in this session, skipping:', notificationId);
+              if (import.meta.env.DEV) console.log('Notification already processed, skipping');
               return;
             }
             
@@ -148,11 +134,9 @@ export const useNotificationRealtime = (
               date: new Date(payload.new.created_at)
             };
             
-            // Add to notifications and resort
             setNotifications((prev: NotificationType[]) => {
-              // Check if notification already exists to prevent duplicates
               if (prev.some(n => n.id === newNotification.id)) {
-                console.log('Notification already exists in state, skipping');
+                if (import.meta.env.DEV) console.log('Notification already exists in state, skipping');
                 return prev;
               }
               
@@ -161,30 +145,26 @@ export const useNotificationRealtime = (
               return updated;
             });
             
-            // Increment unread count if unread
             if (!payload.new.read) {
               setUnreadCount((prev: number) => prev + 1);
               
-              // Mark this notification as shown
               shownNotificationsRef.current.add(notificationId);
               saveShownNotificationId(notificationId);
               
-              // Show toast for new notification
               toast({
                 title: newNotification.title,
                 description: newNotification.message,
               });
               
-              console.log('Toast shown for notification:', notificationId);
+              if (import.meta.env.DEV) console.log('Toast shown for notification:', notificationId);
             }
           }
         }
       )
       .subscribe((status) => {
-        console.log(`Notification subscription status for user ${user.id}:`, status);
+        if (import.meta.env.DEV) console.log('Notification subscription status:', status);
       });
       
-    // Store the channel reference for cleanup
     channelRef.current = channel;
       
     return cleanupChannel;

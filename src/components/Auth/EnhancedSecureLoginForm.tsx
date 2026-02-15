@@ -45,7 +45,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
       return;
     }
 
-    console.log('[LoginForm] Attempting login for:', email);
+    if (import.meta.env.DEV) console.log('[LoginForm] Attempting login');
     setIsLoading(true);
 
     const loginTimeoutId = setTimeout(() => {
@@ -60,7 +60,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
       clearTimeout(loginTimeoutId);
 
       if (result.error) {
-        console.log('[LoginForm] Login failed:', result.error);
+        if (import.meta.env.DEV) console.log('[LoginForm] Login failed:', result.error);
         setAttempts(prev => prev + 1);
         setError(t('login.invalidCredentials'));
         if (attempts >= 3) {
@@ -71,7 +71,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
           });
         }
       } else {
-        console.log('[LoginForm] Auth successful, proceeding...');
+        if (import.meta.env.DEV) console.log('[LoginForm] Auth successful, proceeding...');
         setAttempts(0);
         setError('');
         onSuccess?.();

@@ -8,69 +8,50 @@ import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 
 const ScreenDisplayPage: React.FC = () => {
-  // Parse date from URL parameters or default to today
   const getInitialDate = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const dateParam = urlParams.get('date');
-    const sourceParam = urlParams.get('source');
-    const isNewWindow = window.opener !== null;
     
-    console.log('[ScreenDisplayPage] 🔍 URL PARSING:', {
-      fullUrl: window.location.href,
-      search: window.location.search,
-      dateParam,
-      sourceParam,
-      isNewWindow,
-      timestamp: new Date().toISOString()
-    });
+    if (import.meta.env.DEV) {
+      console.log('[ScreenDisplayPage] URL PARSING:', {
+        fullUrl: window.location.href,
+        dateParam,
+        timestamp: new Date().toISOString()
+      });
+    }
     
     if (dateParam) {
       try {
         const parsedDate = parseISO(dateParam);
-        console.log('[ScreenDisplayPage] ✅ PARSED DATE:', {
-          input: dateParam,
-          output: parsedDate,
-          formatted: format(parsedDate, 'yyyy-MM-dd'),
-          sourceParam,
-          isNewWindow
-        });
+        if (import.meta.env.DEV) console.log('[ScreenDisplayPage] PARSED DATE:', format(parsedDate, 'yyyy-MM-dd'));
         return parsedDate;
       } catch (error) {
-        console.error('[ScreenDisplayPage] ❌ Error parsing date from URL:', dateParam, error);
+        console.error('[ScreenDisplayPage] Error parsing date from URL:', dateParam, error);
       }
     }
     
-    const today = new Date();
-    console.log('[ScreenDisplayPage] 📅 USING DEFAULT (TODAY):', {
-      date: today,
-      formatted: format(today, 'yyyy-MM-dd'),
-      isNewWindow
-    });
-    return today;
+    return new Date();
   };
 
-  // Default to today's date if no date parameter is provided
   const shouldShowAllAssignments = () => {
-    return false; // Always filter by date, default to today
+    return false;
   };
 
   const [selectedDate, setSelectedDate] = useState(getInitialDate);
   const [showAllAssignments] = useState(shouldShowAllAssignments);
   
-  // Get formatted date string for API call - pass empty string if showing all
   const selectedDateStr = showAllAssignments ? '' : format(selectedDate, 'yyyy-MM-dd');
   
-  console.log('[ScreenDisplayPage] 🚀 DATA FETCHING:', {
-    selectedDate,
-    selectedDateStr,
-    showAllAssignments,
-    timestamp: new Date().toISOString()
-  });
+  if (import.meta.env.DEV) {
+    console.log('[ScreenDisplayPage] DATA FETCHING:', {
+      selectedDateStr,
+      showAllAssignments,
+      timestamp: new Date().toISOString()
+    });
+  }
   
-  // Fetch assignments using the new simplified hook
   const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr);
 
-  // Auto-refresh every 5 minutes
   useEffect(() => {
     const timer = setInterval(() => {
       refetch();
@@ -78,29 +59,25 @@ const ScreenDisplayPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [refetch]);
 
-  // Listen for URL parameter changes and handle initial load with proper new window handling
   useEffect(() => {
     const handleUrlChange = () => {
-      console.log('[ScreenDisplayPage] 🔄 URL CHANGED, refreshing date');
+      if (import.meta.env.DEV) console.log('[ScreenDisplayPage] URL CHANGED, refreshing date');
       const newDate = getInitialDate();
       setSelectedDate(newDate);
     };
 
-    // Handle initial URL parsing on component mount with new window detection
     const isNewWindow = window.opener !== null;
     const urlParams = new URLSearchParams(window.location.search);
     const sourceParam = urlParams.get('source');
     
     if (isNewWindow && sourceParam === 'button') {
-      console.log('[ScreenDisplayPage] 🆕 NEW WINDOW FROM BUTTON - Ensuring proper initialization');
-      // For new windows opened from button, ensure we have the correct date
+      if (import.meta.env.DEV) console.log('[ScreenDisplayPage] NEW WINDOW FROM BUTTON');
       const initialDate = getInitialDate();
       setSelectedDate(initialDate);
     } else {
-      // Normal initialization
       const initialDate = getInitialDate();
       if (initialDate.getTime() !== selectedDate.getTime()) {
-        console.log('[ScreenDisplayPage] 🔄 INITIAL DATE UPDATE needed');
+        if (import.meta.env.DEV) console.log('[ScreenDisplayPage] INITIAL DATE UPDATE needed');
         setSelectedDate(initialDate);
       }
     }
@@ -109,15 +86,15 @@ const ScreenDisplayPage: React.FC = () => {
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
 
-  // Add effect to monitor data loading results
   useEffect(() => {
-    console.log('[ScreenDisplayPage] 📊 DATA STATE CHANGED:', {
-      loading,
-      error: error?.message,
-      assignmentsCount: assignments?.length,
-      selectedDateStr,
-      timestamp: new Date().toISOString()
-    });
+    if (import.meta.env.DEV) {
+      console.log('[ScreenDisplayPage] DATA STATE CHANGED:', {
+        loading,
+        error: error?.message,
+        assignmentsCount: assignments?.length,
+        selectedDateStr
+      });
+    }
   }, [loading, error, assignments, selectedDateStr]);
 
   const updateUrlDate = (date: Date) => {
@@ -144,7 +121,6 @@ const ScreenDisplayPage: React.FC = () => {
     updateUrlDate(today);
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
@@ -159,7 +135,6 @@ const ScreenDisplayPage: React.FC = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
