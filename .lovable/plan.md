@@ -1,92 +1,59 @@
 
+## Fase 3: Performance og Hastighed
 
-## Fase 6: Database-optimering (Runde 2)
+### Problem-analyse
 
-### 1. Fjern redundante indexes (13 stk)
+Tre hovedproblemer identificeret:
 
-Frigoer indeks-plads og reducerer write-overhead uden at paavirke laeseydelse.
+1. **Ingen TanStack Query caching paa assignments**: `useOptimizedAssignments` bruger `useState`/`useEffect` i stedet for `useQuery`, saa data genindlaeses ved hvert mount/tab-skift
+2. **Overdrevne realtime-kanaler**: 5-6 separate Supabase channels abonnerer paa de samme tabeller (f.eks. `assignments` har 3 kanaler: `optimized-assignments-realtime`, `unified-data-changes`, `assignment_changes_optimized`)
+3. **100+ uguardede `console.log`** i `usePlannerPage.ts`, `realtimeManager.ts`, `optimizedAssignmentService.ts` (korer i produktion)
 
-| Index | Tabel | Grund til fjernelse |
-|-------|-------|---------------------|
-| `idx_notifications_user_unread` | notifications | Subset af `idx_notifications_unread` (user_id, created_at WHERE read=false) |
-| `notifications_user_id_idx` | notifications | Subset af `idx_notifications_user_read_created` (user_id, read, created_at) |
-| `notifications_created_at_idx` | notifications | Sjelden brugt alene, daekket af user_id composites |
-| `idx_profiles_id` | profiles | Duplikerer `profiles_pkey` (btree paa id) |
-| `idx_profiles_status` | profiles | Subset af `idx_profiles_status_name` og `idx_profiles_status_job_title` |
-| `idx_profiles_status_name` | profiles | Duplikeret af `idx_profiles_status_name_optimized` (same cols + WHERE filter) |
-| `idx_assignments_published_date` | assignments | Subset af `idx_assignments_combined` (date, published, user, time WHERE published) |
-| `idx_assignments_date_range_user` | assignments | Subset af `idx_assignments_combined` (date, published, user WHERE published) |
-| `idx_assignments_date_time` | assignments | Subset af `idx_assignments_comprehensive` (date, published, type, user INCLUDE title, location) |
-| `idx_logs_created_at` | logs | Subset af `idx_logs_type_created_optimal` (event_type, created_at DESC) |
-| `idx_logs_event_type` | logs | Subset af `idx_logs_type_created_optimal` |
-| `idx_case_folder_mappings_case_number` | case_folder_mappings | Duplikerer unique constraint `case_folder_mappings_case_number_key` |
-| `idx_vacations_status_dates` | vacations | Overlapper med `idx_vacations_date_range_status` (same cols, different order) |
+### Plan
 
-SQL-migration:
-```text
-DROP INDEX IF EXISTS idx_notifications_user_unread;
-DROP INDEX IF EXISTS notifications_user_id_idx;
-DROP INDEX IF EXISTS notifications_created_at_idx;
-DROP INDEX IF EXISTS idx_profiles_id;
-DROP INDEX IF EXISTS idx_profiles_status;
-DROP INDEX IF EXISTS idx_profiles_status_name;
-DROP INDEX IF EXISTS idx_assignments_published_date;
-DROP INDEX IF EXISTS idx_assignments_date_range_user;
-DROP INDEX IF EXISTS idx_assignments_date_time;
-DROP INDEX IF EXISTS idx_logs_created_at;
-DROP INDEX IF EXISTS idx_logs_event_type;
-DROP INDEX IF EXISTS idx_case_folder_mappings_case_number;
-DROP INDEX IF EXISTS idx_vacations_status_dates;
-```
+#### 1. Wrap `useOptimizedAssignments` i TanStack Query
 
----
+**Fil**: `src/hooks/useOptimizedAssignments.ts`
 
-### 2. Oprydning af logs-stoej (317k raekker / ~180 MB)
+Erstatter `useState`/`useEffect`-baseret datahentning (linje 103-189, 838-842) med `useQuery`:
+- `queryKey: ['assignments', user?.id, filter, selectedDepartmentId, selectedSubDepartmentId]`
+- `staleTime: 5 * 60 * 1000` (5 min, matcher QueryClient default)
+- `gcTime: 10 * 60 * 1000` (10 min)
+- Bevarer optimistisk UI i mutations (create/update/delete bruger `setQueryData` i stedet for `setAssignments`)
+- Realtime-kanal trigger `queryClient.invalidateQueries` i stedet for fuld refetch
+- **Resultat**: Tab-skift viser cached data oejeblikkeligt (stale-while-revalidate)
 
-Slet de 3 stoerste stoejkategorier via data-operation (INSERT tool):
+#### 2. Konsolider duplikerede realtime-kanaler
 
-```text
-DELETE FROM logs WHERE event_type = 'vacation_realtime_change';    -- 229k raekker (62.6%)
-DELETE FROM logs WHERE event_type = 'enhanced_error_timeout';      -- 58k raekker (15.8%)
-DELETE FROM logs WHERE event_type = 'enhanced_error_database';     -- 30k raekker (8.3%)
-```
+**Problem**: `assignments`-tabellen har 3 separate kanaler:
+- `optimized-assignments-realtime` (useOptimizedAssignments)
+- `unified-data-changes` (useUnifiedData)
+- `assignment_changes_optimized` (useAssignmentDataOptimized)
 
-Forventet besparelse: ~180 MB af 276 MB (65% reduktion).
+Desuden abonnerer `profiles` paa 3 separate kanaler.
 
----
+**Handling** i `src/hooks/data/useUnifiedData.ts`:
+- Fjern `assignments`-lytter fra `unified-data-changes` kanalen (allerede daekket af useOptimizedAssignments)
+- Bevar kun `cars` og `profiles` i denne kanal
 
-### 3. Dokumentation af redundante kolonner
+**Handling** i `src/hooks/useOptimizedAssignments.ts`:
+- Tilfoej ogsaa lytning paa `assignments_employees`-tabellen i den eksisterende kanal (saa vi fanger medarbejder-tildelinger)
 
-Folgende kolonner er identificeret som ubrugte/redundante. De fjernes **ikke** (sikkerhedsklausul), men dokumenteres:
+#### 3. DEV-guard paa 100+ console.log
 
-| Tabel | Kolonne | Status | Begrundelse |
-|-------|---------|--------|-------------|
-| `assignments` | `onedrive_folder_id` | 100% NULL | Aldrig taget i brug |
-| `assignments` | `route_distance_km` | 100% NULL | Aldrig taget i brug |
-| `assignments` | `route_duration_min` | 100% NULL | Aldrig taget i brug |
-| `assignments` | `attachment_files` | JSONB, avg 5 bytes (`[]`) | Erstattet af `assignment_files`-tabel |
-| `cars` | `sub_department_id` | Legacy | Erstattet af `car_sub_departments` junction |
-| `logs` | `message` | btree index paa TEXT | `logs_message_idx` er ineffektiv paa lange tekster |
+| Fil | Antal uguardede console.log |
+|-----|-----------------------------|
+| `src/hooks/usePlannerPage.ts` | 15 stk |
+| `src/services/realtimeManager.ts` | 11 stk |
+| `src/services/optimizedAssignmentService.ts` | ~30 stk |
 
----
+**Handling**: Wrap alle i `if (import.meta.env.DEV)` guard. `console.error` og `console.warn` bevares (fejlhaandtering).
 
-### 4. Fjern ineffektivt logs_message_idx
+#### 4. Profilmenu: Vis jobtitel i stedet for rolle-ID
 
-`logs_message_idx` er et btree-index paa en `TEXT`-kolonne med avg_width 66 og kun 95 distinct vaerdier. Btree paa lange tekstfelter er ineffektivt. Fjernes:
+**Fil**: `src/components/Layout/NavComponents/UserMenu.tsx`
 
-```text
-DROP INDEX IF EXISTS logs_message_idx;
-```
-
----
-
-### 5. Fil-upload metadata verifikation
-
-`assignment_files`-tabellen er korrekt normaliseret:
-- Gemmer kun `file_path` (URL), `file_name`, `mime_type`, `file_size` og `folder_name`
-- Ingen redundant data (billeder gemmes i Supabase Storage, kun reference i DB)
-- Eksisterende `cleanup_old_change_logs()` RPC daekker log-oprydning
-- `assignments.attachment_files` JSONB er redundant men kan ikke fjernes (sikkerhedsklausul)
+Visning i profilmenuen viser aktuelt den tekniske rolle-ID (f.eks. `skadeleder`). Erstat med `user.jobTitle` eller et oversat rollenavn for bedre brugervenlighed.
 
 ---
 
@@ -94,16 +61,18 @@ DROP INDEX IF EXISTS logs_message_idx;
 
 | Fil | Handling |
 |-----|---------|
-| **SQL-migration** | Fjern 14 redundante indexes |
-| **Data-oprydning** | Slet 317k stoej-raekker fra logs |
-| `docs/implementation-plan/tasks.md` | Tilfoej Fase 6 med opgaver markeret [x] |
-| `docs/technical-specs/database-schema.md` | Tilfoej sektion om redundante kolonner og fjernede indexes |
-| `CHANGELOG.md` | Dokumenter alle optimeriner |
+| `src/hooks/useOptimizedAssignments.ts` | Migrer til useQuery + tilfoej assignments_employees lytning + DEV-guard |
+| `src/hooks/usePlannerPage.ts` | DEV-guard paa 15 console.log + fjern verbose assignment-detaljer logging |
+| `src/services/realtimeManager.ts` | DEV-guard paa 11 console.log |
+| `src/services/optimizedAssignmentService.ts` | DEV-guard paa ~30 console.log |
+| `src/hooks/data/useUnifiedData.ts` | Fjern assignments-lytter fra realtime-kanal |
+| `src/components/Layout/NavComponents/UserMenu.tsx` | Vis jobtitel i stedet for teknisk rolle-ID |
+| `docs/implementation-plan/tasks.md` | Tilfoej Fase 3 med opgaver markeret [x] |
+| `CHANGELOG.md` | Dokumenter performance-forbedringer |
 
 ### Hvad der IKKE aendres
 
-- Ingen kolonner omdoebes eller fjernes (sikkerhedsklausul)
-- Ingen tabelnavne aendres
-- Ingen datatyper aendres (TEXT -> VARCHAR er risikabelt med eksisterende data)
-- Frontend-kode paavirkes ikke
-
+- Mutation-logik (create/update/delete) bevarer optimistisk UI
+- Realtime forbliver intakt (kun konsolidering, ingen fjernelse)
+- Fil-upload og billeder i opgaver paavirkes ikke (allerede lazy-loaded via Supabase Storage URLs)
+- Ingen aendringer af database-struktur eller RLS-politikker
