@@ -7,7 +7,7 @@ import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { usePermissions, useAuth } from '@/context/AuthContext';
-import { DemoUserService } from '@/services/demoUserService';
+// DemoUserService removed — demo car actions now go through DB with is_demo=true
 
 export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.SetStateAction<CarData[]>>) => {
   const { canViewFuelCardCode } = usePermissions();
@@ -36,58 +36,20 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       try {
         let assignmentsAffected = 0;
 
-        // Handle demo mode deletion locally
-        if (isDemoMode && currentCar.id.startsWith('demo-')) {
-          console.log('[useCarActions] Demo mode: deleting car locally', currentCar.id);
-          const demoService = DemoUserService.getInstance();
+        // Demo mode: delete from DB (is_demo data handled via RLS)
+        if (isDemoMode) {
+          if (import.meta.env.DEV) console.log('[useCarActions] Demo mode: deleting car from DB', currentCar.id);
           
           if (forceDelete) {
-            // Clean up assignments that reference this car in local storage
-            const demoAssignments = demoService.getDemoAssignments();
-            for (const assignment of demoAssignments) {
-              let needsUpdate = false;
-              const updates: any = {};
-              
-              if (assignment.car_id === currentCar.id) {
-                updates.car_id = null;
-                needsUpdate = true;
-                assignmentsAffected++;
-              }
-              
-              if (assignment.car_ids && Array.isArray(assignment.car_ids) && assignment.car_ids.includes(currentCar.id)) {
-                updates.car_ids = assignment.car_ids.filter(id => id !== currentCar.id);
-                if (updates.car_ids.length === 0) updates.car_ids = null;
-                needsUpdate = true;
-                assignmentsAffected++;
-              }
-              
-              if (needsUpdate) {
-                demoService.updateDemoAssignment(assignment.id, updates);
-              }
-            }
-            console.log(`[useCarActions] Demo: cleaned up ${assignmentsAffected} assignments`);
+            // Clean up assignments referencing this car in DB
+            const client = getSchemaClient(isDemoMode);
+            const { data: mainCarAssignments } = await client
+              .from('assignments')
+              .update({ car_id: null })
+              .eq('car_id', currentCar.id)
+              .select('id');
+            assignmentsAffected += mainCarAssignments?.length || 0;
           }
-          
-          // Delete the car from local storage
-          demoService.deleteDemoCar(currentCar.id);
-          
-          // Update local state
-          setCars(cars.filter(car => car.id !== currentCar.id));
-          
-          const successMessage = forceDelete && assignmentsAffected > 0
-            ? t('cars.vehicleDeletedWithCleanup', { 
-                name: currentCar.name, 
-                count: assignmentsAffected 
-              })
-            : t('cars.vehicleDeletedMsg', { name: currentCar.name });
-          
-          toast({
-            title: t('cars.vehicleDeleted'),
-            description: successMessage
-          });
-          
-          setDeleteDialogOpen(false);
-          return;
         }
 
         if (forceDelete) {
@@ -268,41 +230,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         notes: notes
       });
 
-      // Handle demo mode updates locally
-      if (isDemoMode && car.id.startsWith('demo-')) {
-        console.log('[useCarActions] Demo mode: updating car availability locally', car.id);
-        const demoService = DemoUserService.getInstance();
-        
-        demoService.updateDemoCar(car.id, {
-          is_available: isAvailable,
-          notes: notes,
-          towing_capacity_with_brakes: car.towing_capacity_with_brakes,
-          towing_capacity_without_brakes: car.towing_capacity_without_brakes,
-          total_weight: car.total_weight,
-          updated_at: new Date().toISOString()
-        });
-        
-        // Update local state
-        setCars(cars.map(c => 
-          c.id === car.id 
-            ? { ...c, is_available: isAvailable, notes: notes }
-            : c
-        ));
-        
-        // Show success message
-        if (isAvailable) {
-          toast({
-            title: t('cars.vehicleAvailable'),
-            description: t('cars.vehicleAvailableMsg', { name: car.name })
-          });
-        } else {
-          toast({
-            title: t('cars.vehicleUnavailable'),
-            description: t('cars.vehicleUnavailableMsg', { name: car.name })
-          });
-        }
-        return;
-      }
+      // Demo mode now also goes through DB (is_demo cars handled via RLS)
 
       // Optimistic: update UI immediately
       const previousCars = [...cars];

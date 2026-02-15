@@ -9,7 +9,7 @@ import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
-import { DemoUserService } from '@/services/demoUserService';
+// DemoUserService removed — demo car data now comes from DB via RLS
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
 
@@ -48,10 +48,9 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         ] as any;
       }
 
-      const localCars = DemoUserService.getInstance().getDemoCars();
-      const merged = [...baseline, ...localCars];
-      if (import.meta.env.DEV) console.log('[useCarData] Successfully fetched', merged.length, 'demo cars (baseline + local)');
-      return merged;
+      // RLS ensures demo user sees is_demo=true data — no local merge needed
+      if (import.meta.env.DEV) console.log('[useCarData] Successfully fetched', baseline.length, 'demo cars');
+      return baseline;
     } else {
       const data = await CarSecurityService.fetchCars(canViewFuelCardCode, selectedDepartmentId, selectedSubDepartmentId);
       if (import.meta.env.DEV) console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars (filtered by department)');
@@ -124,8 +123,9 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
           });
         
         if (insertError) {
-          if (import.meta.env.DEV) console.warn('[useCarData] Demo DB insert failed, using local only:', insertError);
-          DemoUserService.getInstance().storeDemoCar(demoCar);
+          console.error('[useCarData] Demo DB insert failed:', insertError);
+          toast({ title: t('common.error'), description: String(insertError.message), variant: 'destructive' });
+          return false;
         }
         
         setCars(prev => [...prev, demoCar]);

@@ -32,8 +32,27 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       setLoading(true);
       
       if (isDemoMode) {
-        localHandlers?.addLocalItem?.(data);
+        const { data: { user } } = await supabase.auth.getUser();
+        const client = getSchemaClient(isDemoMode);
+        const { error } = await client.from('warehouse_items').insert({
+          address: data.address,
+          case_number: data.case_number || null,
+          is_cleaned: data.is_cleaned,
+          quantity: data.quantity,
+          hall: data.hall || null,
+          notes: data.notes || null,
+          created_by: user?.id,
+          department_id: selectedDepartmentId || null,
+          sub_department_id: selectedSubDepartmentId || null,
+          is_demo: true,
+        });
+        if (error) {
+          console.error('Error creating demo warehouse item:', error);
+          toast({ title: t('warehouse.messages.addError'), variant: 'destructive' });
+          return;
+        }
         toast({ title: t('warehouse.messages.addSuccess') });
+        queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
         onSuccess?.();
         return;
       }
@@ -101,8 +120,22 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       setLoading(true);
       
       if (isDemoMode) {
-        localHandlers?.updateLocalItem?.(id, data);
+        const client = getSchemaClient(isDemoMode);
+        const { error } = await client.from('warehouse_items').update({
+          address: data.address,
+          case_number: data.case_number || null,
+          is_cleaned: data.is_cleaned,
+          quantity: data.quantity,
+          hall: data.hall || null,
+          notes: data.notes || null,
+        }).eq('id', id);
+        if (error) {
+          console.error('Error updating demo warehouse item:', error);
+          toast({ title: t('warehouse.messages.updateError'), variant: 'destructive' });
+          return;
+        }
         toast({ title: t('warehouse.messages.updateSuccess') });
+        queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
         onSuccess?.();
         return;
       }
@@ -159,8 +192,15 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       setLoading(true);
       
       if (isDemoMode) {
-        localHandlers?.deleteLocalItem?.(id);
+        const client = getSchemaClient(isDemoMode);
+        const { error } = await client.from('warehouse_items').delete().eq('id', id);
+        if (error) {
+          console.error('Error deleting demo warehouse item:', error);
+          toast({ title: t('warehouse.messages.deleteError'), variant: 'destructive' });
+          return;
+        }
         toast({ title: t('warehouse.messages.deleteSuccess') });
+        queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
         onSuccess?.();
         return;
       }
