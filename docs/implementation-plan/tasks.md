@@ -60,17 +60,15 @@ Gennemført 2026-02-15.
 - [x] Fjernet følsom logging fra `admin-reset-password` edge function (IP, token-længde, key-presence, bruger-email, password-længde)
 - [x] Tilføjet JWT-validerings-dokumentation som kommentarer i `admin-reset-password` edge function
 - [x] Fjernet bruger-email fra security event logs i `admin-reset-password`
-- [x] Wrapped 48+ console.log i `import.meta.env.DEV` guard på tværs af 14 filer:
-  - `EnhancedSecureLoginForm.tsx` (3 stk)
-  - `notificationRealtime.ts` (7 stk)
-  - `notificationActions.ts` (4 stk)
-  - `notificationFetching.ts` (2 stk)
-  - `useVacationRequestActions.ts` (8 stk)
-  - `useVacationSecurity.ts` (1 stk)
-  - `useAssignmentFormState.ts` (alle console.log)
-  - `useAssignmentActions.ts` (4 stk responsible user logs)
-  - `useEmployeeCreation.ts` (alle console.log)
-  - `Index.tsx` (3 stk auth-status)
-  - `PasswordResetPage.tsx` (3 stk recovery mode)
-  - `ScreenDisplayPage.tsx` (8 stk URL/dato-data)
   - `databaseCleanup.ts` (6 stk cleanup-operationer)
+
+## Fase 6: Database-optimering (Runde 2) ✅
+
+Gennemført 2026-02-15.
+
+- [x] Fjernet 13 redundante indexes på `notifications`, `profiles`, `assignments`, `logs`, `case_folder_mappings`, `vacations`
+- [x] Fjernet ineffektivt `logs_message_idx` (btree på TEXT-kolonne med 95 distinct værdier)
+- [x] Slettet 317k støj-rækker fra `logs` (vacation_realtime_change, enhanced_error_timeout, enhanced_error_database) — ~180 MB frigjort
+- [x] Dokumenteret 6 redundante kolonner (assignments.onedrive_folder_id, route_distance_km, route_duration_min, attachment_files; cars.sub_department_id; logs.message index)
+- [x] Verificeret `assignment_files`-tabel som korrekt normaliseret (ingen redundant fil-metadata)
+- [x] Opdateret `docs/technical-specs/database-schema.md` med fjernede indexes og redundante kolonner

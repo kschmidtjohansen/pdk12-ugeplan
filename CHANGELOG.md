@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Database Optimization (Fase 6) - 2026-02-15
+- Fjernet 14 redundante indexes på tværs af `notifications`, `profiles`, `assignments`, `logs`, `case_folder_mappings` og `vacations` (reducerer write-overhead)
+- Fjernet ineffektivt `logs_message_idx` (btree på TEXT-kolonne med kun 95 distinct værdier)
+- Slettet 317.538 støj-rækker fra `logs`-tabellen: `vacation_realtime_change` (229k), `enhanced_error_timeout` (58k), `enhanced_error_database` (30k) — estimeret ~180 MB frigjort (65% reduktion)
+- Dokumenteret 5 redundante kolonner (assignments: onedrive_folder_id, route_distance_km, route_duration_min, attachment_files; cars: sub_department_id) — fjernes ikke pga. sikkerhedsklausul
+- Verificeret `assignment_files`-tabel som korrekt normaliseret fil-metadata storage
+
 ### Security (Fase 5) - 2026-02-15
 - Verificeret `can_access_vacation()` RLS-funktion — skadeledere korrekt begrænset til egen afdeling
 - Fjernet følsom logging fra `admin-reset-password` edge function: klient-IP, token-længde, service key presence, bruger-email, password-længde
