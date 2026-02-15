@@ -57,10 +57,8 @@ serve(async (req) => {
     console.log(`[${requestId}] Environment check:`, {
       hasUrl: !!supabaseUrl,
       hasServiceKey: !!supabaseServiceKey,
-      urlPrefix: supabaseUrl?.substring(0, 20) + '...',
-      keyPrefix: supabaseServiceKey?.substring(0, 10) + '...'
     });
-    
+
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error(`[${requestId}] Missing environment variables`);
       return new Response(

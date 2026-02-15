@@ -39,6 +39,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security Audit - 2026-02-15
+- Fjernet JWT token-preview logging fra Admin PasswordChangeDialog (konsol-sikkerhed)
+- Fjernet hardcoded API-nøgle fra Admin PasswordChangeDialog — bruger nu `supabase.functions.invoke`
+- Fjernet password-metadata logging (password-længde) fra konsollen
+- Fjernet service-key prefix logging fra `admin-list-users` edge function
+- Wrapped 50+ debug console.log kald i AuthContext med `import.meta.env.DEV` guard (KASPER SESSION FIX / BRIAN REUS DEBUG logs)
+- Wrapped e-mail og token logs i PasswordResetPage med `import.meta.env.DEV` guard
+- Gennemført fuld RLS-audit af alle 24 tabeller — ingen kritiske policy-fejl fundet
+- Gennemført auth-audit af alle 11 edge functions — korrekt JWT-verifikation og rolle-check
+- Dokumenteret kendte advarsler: `profiles` og `user_roles` er offentligt læsbare (nødvendigt for app-funktionalitet)
+
 ### Added - 2026-02-14
 - Biler kan nu tilknyttes flere underafdelinger via junction-tabel (`car_sub_departments`)
 - Validering: Mindst én underafdeling skal vælges ved oprettelse/redigering af bil
