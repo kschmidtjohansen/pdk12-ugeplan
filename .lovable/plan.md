@@ -1,51 +1,45 @@
 
+## Fase 9c: Demo-data afdelingsisolering
 
-## Fase 9b: Demo-bruger afdelingsadgang
+### Problem
+Demo-schemaets tabeller (`assignments`, `profiles`, `cars`, `warehouse_items`, `vacations`, `on_call_duties`) har ingen `department_id`-kolonne. Alle demo-data returneres derfor ufiltreret, uanset hvilken afdeling der er valgt i UI'et.
 
-### Nuvaerende datatilstand
+### Loesning
+Definer en konstant `DEMO_HOME_DEPARTMENT_ID = '8c542620-9156-4155-b686-564b14a4ca62'` (12 - Fredericia). I alle hooks der haandterer demo-mode, tilfoej et tjek: hvis `selectedDepartmentId` er sat og IKKE matcher `DEMO_HOME_DEPARTMENT_ID`, returner en tom liste. Paa den maade "tilhoerer" al demo-data afdeling 12, og skift til afdeling 02 viser korrekt ingen data.
 
-| Data | Dept 12 - Fredericia | Dept 02 - Storkoebenhavn |
-|------|---------------------|-------------------------|
-| Opgaver | 1.023 (sub_dept: null) | 2 |
-| Biler | 12 | 1 |
-| Lager | 22 | 0 |
-| Underafdelinger | Ingen | 3 (Fugt & Skimmel, Loesoere, Miljoe & Brand) |
-| Demo-bruger adgang | Ja (17 user_access raekker) | Nej |
+### Beroorte filer
 
-### Hvad der skal goeres
+| Fil | Aendring |
+|-----|---------|
+| `src/constants/demo.ts` (ny) | Eksporter `DEMO_HOME_DEPARTMENT_ID` |
+| `src/hooks/employee/useEmployeeData.ts` | I demo-blokken (linje 26-81): returner `[]` hvis `selectedDepartmentId` ikke matcher demo-afdelingen |
+| `src/hooks/car/useCarData.ts` | I demo-blokken (linje 26-46): returner `[]` hvis forkert afdeling |
+| `src/hooks/vacation/useVacationData.ts` | Videregiv department-check til `fetchVacationsFn` |
+| `src/services/enhancedDataFetching.ts` | I `fetchVacationsEnhanced` demo-blokken (linje 205-216): returner tom liste hvis forkert afdeling |
+| `src/hooks/warehouse/useWarehouseData.ts` | I demo-blokken (linje 13-18): returner `[]` hvis forkert afdeling |
+| `src/hooks/duty/useDutyData.ts` | I demo-blokken (linje 23-46): returner `[]` hvis forkert afdeling |
+| `src/services/optimizedAssignmentService.ts` | I `fetchAllAssignments` demo-blok (linje 287-306): returner `[]` hvis forkert afdeling. Tilsvarende for `fetchAllPublishedAssignments`, `fetchUnpublishedAssignments`, `fetchUserAssignments` |
+| `src/hooks/data/useUnifiedData.ts` | I demo-filtreringen: returner tomme lister for forkert afdeling |
+| `CHANGELOG.md` | Dokumenter aendringerne |
+| `docs/implementation-plan/tasks.md` | Tilfoej Fase 9c markeret [x] |
 
-Opgaven er udelukkende en **database-aendring**: Tilfoej 3 raekker i `user_access` saa demo-brugeren ogsaa faar adgang til dept 02 med dens underafdelinger.
+### Teknisk implementering
 
-Naar brugeren skifter til dept 02, vil filtreringslogikken i `DepartmentContext` og `unifiedDataService` automatisk kun vise data bundet til dept 02 — dvs. naesten ingenting. Alle 1.023 opgaver, 12 biler og 22 lageremner forbliver isoleret paa dept 12 og vises KUN naar dept 12 er valgt.
-
-**Ingen kodeaendringer er noedvendige.** Filtreringen virker allerede korrekt via `department_id`-parameteren.
-
-### Database INSERT
-
-3 nye raekker i `user_access`:
+Hvert hook faar et enkelt tjek i toppen af sin demo-blok:
 
 ```text
-user_id:        165cdbc9-6722-4c96-97d2-1a87185c8133 (demo-bruger)
-department_id:  de10b9d0-bd39-4c20-81d8-a12719beb53b (02 - Storkoebenhavn)
-
-Sub-department IDs:
-  - 5931531c-0bb0-4e97-b5dd-03283ee1865c  (Fugt & Skimmel)
-  - 8a63e216-388e-4f83-a19c-623c1f5352ed  (Loesoere)
-  - 21bf50af-6a84-4bea-853a-ddbe15f9a54f  (Miljoe & Brand)
+if (isDemoMode && selectedDepartmentId && selectedDepartmentId !== DEMO_HOME_DEPARTMENT_ID) {
+  return [];  // Demo-data tilhoerer kun dept 12
+}
 ```
 
-### Dokumentation (jf. Knowledge-instruks)
+Query-keys inkluderer allerede `selectedDepartmentId`, saa TanStack Query haandterer automatisk cache-invalidering ved afdelingsskift.
 
-| Fil | Handling |
-|-----|---------|
-| `CHANGELOG.md` | Tilfoej entry: "Demo-bruger faar adgang til 02 - Storkoebenhavn med 3 underafdelinger. Eksisterende data forbliver isoleret paa 12 - Fredericia." |
-| `docs/implementation-plan/tasks.md` | Tilfoej Fase 9b markeret [x] |
+### Oprettelse af data i demo-mode
+Naar demo-brugeren opretter nye data (opgaver, biler osv.) mens dept 12 er valgt, fungerer det som hidtil (sessionStorage). Hvis brugeren staar paa dept 02, vil der ikke vaere nogen data synlig, men oprettelsesfunktioner er stadig tilgaengelige (de gemmer i sessionStorage og vises naar man skifter tilbage til dept 12).
 
-### Kvalitetstjek
-
-- Ingen skema-aendringer — kun data-INSERT i eksisterende tabel
-- Overholder tekniske specifikationer (ingen nye kolonner/tabeller)
+### Kvalitetstjek (jf. Knowledge)
+- Ingen database-aendringer - kun klient-side filtrering
 - Ingen foelsom logging tilfojet
-- UI-guidelines upaavirkede
-- Eksisterende data paa dept 12 forbliver 100% uaendret og usynligt ved dept 02-visning
-
+- Overholder tekniske specifikationer og UI-guidelines
+- Alle aendringer dokumenteres i CHANGELOG.md og implementation-plan
