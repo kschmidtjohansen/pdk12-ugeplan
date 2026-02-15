@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Funktionel logik-gennemgang - 2026-02-15
+- Rettet: `super_admin` kan nu slette andres chat-beskeder (manglede i rolle-listen i `AssignmentMessagesPanel`)
+- Tilføjet: 20MB filstørrelses-validering på assignment fil-upload (forhindrer vilkårligt store uploads)
+- Wrappet 4 resterende console.log kald i `import.meta.env.DEV` guard (`PlannerContent`, `TopNavbar`)
+
 ### Performance Optimization - 2026-02-15
 - Wrapped 100+ debug `console.log` kald i `import.meta.env.DEV` guard på tværs af 9 filer (eliminerer console I/O i produktion)
 - Fjernet verbose per-assignment logging i `employeeAvailability.ts` (tusindvis af logs per dashboard-render)
