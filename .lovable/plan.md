@@ -1,134 +1,91 @@
 
 
-## Database-strukturanalyse og optimering
+## Performance-optimering og profilvisning
 
-### 1. Audit-resumé
+### 1. Kritisk: Console-logging drosler applikationen
 
-| Kategori | Fund | Handling |
-|----------|------|---------|
-| Manglende indexes | 8 kolonner | SQL-migration |
-| Redundante indexes | 3 på assignments | SQL-migration (fjern) |
-| Redundant kolonne | `cars.sub_department_id` | Dokumenteret (kræver schema-ændring) |
-| Logs-tabel | 276 MB / 366k rækker | Anbefaling (ingen ændring nu) |
-| Hardcoded undertitel | Login + index.html | Kode-ændring |
+Konsolloggen viser tusindvis af linjer per dashboard-render. Hovedsynderne:
 
----
+| Fil | Problem | Effekt |
+|-----|---------|--------|
+| `src/utils/employeeAvailability.ts` | Logger HVER assignment-check per medarbejder (1000 assignments x N medarbejdere = tusindvis af logs) | Massive CPU-blokering i produktion |
+| `src/hooks/useDashboardMetrics.ts` | Logger et stort debug-objekt med fuldt breakdown HVER gang metrics beregnes | Blokerer render |
+| `src/hooks/useOptimizedAssignments.ts` | 40+ console.log kald uden DEV-guard, inkl. emoji-debug og sample data | Unodvendig I/O |
+| `src/hooks/useAssignmentsConsolidated.ts` | Logger filter-logik ved hvert kald (linje 26, 32, 34, 46, 54) | Spild |
+| `src/hooks/useDashboard.ts` | Logger uge-info og alle filtrerede assignments (linje 12-13, 23, 40-46, 52, 59, 66, 76) | Spild |
+| `src/services/enhancedUnifiedDataService.ts` | Logger ved hver fetch-operation | Spild |
+| `src/hooks/car/useCarData.ts` | Logger ved fetch (linje 24, 46, 50) | Minor |
+| `src/hooks/employee/useEmployeeData.ts` | Logger ved fetch (linje 24, 41, 80, 96, 160) | Minor |
+| `src/hooks/vacation/useVacationData.ts` | Logger ved fetch (linje 24, 32, 85) | Minor |
 
-### 2. Manglende indexes (skal tilføjes)
+**Rettelse:** Wrap ALLE debug console.log kald i `import.meta.env.DEV` guard. Fjern verbose per-assignment logging i `employeeAvailability.ts` helt (selv i DEV er det for meget).
 
-Følgende kolonner bruges hyppigt i WHERE-betingelser og JOINs men mangler indexes:
+### 2. Profilmenu: Viser "super_admin" i stedet for jobtitel
 
-| Tabel | Kolonne | Begrundelse |
-|-------|---------|------------|
-| `assignments` | `department_id` | Filtrering per afdeling i planner |
-| `assignments` | `sub_department_id` | Filtrering per underafdeling |
-| `on_call_duties` | `department_id` | Vagtplan filtreres per afdeling |
-| `on_call_duties` | `sub_department_id` | Vagtplan filtreres per underafdeling |
-| `vacations` | `department_id` | Ferie filtreres per afdeling |
-| `vacations` | `sub_department_id` | Ferie filtreres per underafdeling |
-| `warehouse_items` | `department_id` | Lager filtreres per afdeling |
-| `warehouse_items` | `sub_department_id` | Lager filtreres per underafdeling |
+**Problem:** `UserMenu.tsx` linje 85 viser `user?.role` (teknisk rolle-ID som "super_admin"). Brugeren forventer at se sin jobtitel (f.eks. "Skadeleder/Projektleder").
 
----
+**Lossning:** Hent `job_title` fra profilen (allerede fetchet i useEffect linje 39-58, men kun `avatar_url` selectes). Udvid SELECT til at inkludere `job_title` og vis den. Fald tilbage til oversat rolle hvis ingen jobtitel er sat.
 
-### 3. Redundante indexes (kan fjernes)
+**AEndring i `UserMenu.tsx`:**
+- Udvid profile-fetch til `select('avatar_url, job_title')`  
+- Gem `jobTitle` i state
+- Vis `jobTitle || t('common.roles.' + user?.role) || user?.role` i stedet for bare `user?.role`
 
-`assignments`-tabellen har 12 indexes for kun 1035 rækker. Flere overlapper:
+### 3. Vacation realtime-logging fylder 170MB i logs-tabellen
 
-| Index | Erstattet af |
-|-------|-------------|
-| `idx_assignments_date_published` | `idx_assignments_combined` (dækker `assignment_date, published` + mere) |
-| `idx_assignments_responsible_user` | `idx_assignments_responsible_date` (dækker `responsible_user_id` + `assignment_date`) |
-| `idx_assignments_responsible_published` | `idx_assignments_date_range_user` (dækker samme filtre med partial index) |
+**Problem:** `useVacationData.ts` linje 122-127 kalder `logSecurityEvent('vacation_realtime_change', ...)` ved HVER realtime-opdatering. Dette har genereret 229.000 raekker i logs-tabellen.
 
----
+**Rettelse:** Fjern `logSecurityEvent`-kaldet fra realtime-handleren. Det er ikke et sikkerhedsevent - det er normal drift.
 
-### 4. Redundant kolonne (dokumenteres, ændres ikke)
+### 4. Data-fetching redundans
 
-`cars.sub_department_id` er nu erstattet af `car_sub_departments` junction-tabellen. Kolonnen bruges stadig af 1 bil i live-data. Vi fjerner den IKKE nu (brugeren har bedt om at bevare schema), men det dokumenteres som fremtidig oprydning.
+**Observation:** Systemet har to parallelle data-pipelines:
+- **TanStack Query-baseret** (useEmployeeData, useCarData, useVacationData, useWarehouseData) - korrekt med staleTime, queryKey deduplication
+- **Manuel state + enhancedUnifiedDataService** (useEnhancedUnifiedData) - egen cache, ingen deduplication
 
----
+`useOptimizedAssignments` bruger heller ikke TanStack Query, men har sin egen cache-mekanisme. At migrere denne til TanStack Query er en storre refaktor der risikerer at bryde funktionalitet.
 
-### 5. Logs-tabel: 276 MB (observation)
+**Handling nu:** Ingen strukturel aendring - fokus paa at fjerne de mest skadelige console.logs som er den primaere performance-flaskehals.
 
-| Event type | Rækker | Andel |
-|-----------|--------|-------|
-| `vacation_realtime_change` | 229.276 | 63% |
-| `enhanced_error_timeout` | 58.009 | 16% |
-| `enhanced_error_database` | 30.149 | 8% |
+### 5. Login dynamisk undertitel
 
-229k rækker er `vacation_realtime_change` - dette er støj fra realtime-triggers. Det fylder ca. 170 MB. En oprydning kan reducere tabellen med ~80%, men det kræver DELETE-operationer som brugeren har bedt os om at undgå. Dokumenteres som anbefaling.
+Allerede implementeret i forrige plan. Koden i `LoginPage.tsx` laeser `selected_department_id` fra localStorage og henter afdelingsnavnet. Virker korrekt.
 
----
+### 6. Memory leak-tjek
 
-### 6. Fil-upload metadata (OK)
+Alle realtime-subscriptions har korrekte cleanup-funktioner:
+- `useEmployeeData`: `clearTimeout(timeoutId)` + `removeChannel` i cleanup (OK)
+- `useCarData`: `removeChannel` i cleanup (OK)  
+- `useWarehouseData`: `clearInterval` / `removeChannel` i cleanup (OK)
+- `useVacationData`: `clearInterval` / `realtimeManager.unsubscribe` i cleanup (OK)
+- `useOptimizedAssignments`: `isMounted` flag + `clearTimeout` + `removeChannel` (OK)
+- `useUnifiedData`: `isMounted` flag + `clearTimeout` + `removeChannel` (OK)
 
-`assignment_files`-tabellen er effektiv: `file_name`, `file_path`, `mime_type`, `file_size`, `comment`, `folder_name`. Ingen redundans. Filerne selv er i Supabase Storage. Ingen ændring nødvendig.
+Ingen memory leaks fundet i realtime-subscriptions.
 
 ---
 
-### 7. Hardcoded undertitel ved login
+### Konkrete aendringer
 
-**Problem:** `login.internalSystem` er hardcoded til "Afdeling 12 - Trekantsområdet" i både DA og EN oversættelser. `index.html` meta tags indeholder også "Afdeling 12".
-
-**Løsning:** LoginPage læser `selected_department_id` fra localStorage (som DepartmentContext allerede gemmer) og henter afdelingsnavnet fra Supabase. Hvis ingen afdeling er gemt, vises en generisk tekst ("Internt planlægningssystem").
-
----
-
-### Konkrete ændringer
-
-| Fil | Ændring |
+| Fil | AEndring |
 |-----|---------|
-| **SQL-migration** | Tilføj 8 indexes på department_id/sub_department_id. Fjern 3 redundante indexes på assignments |
-| `src/translations/da/login.ts` | Ændr `internalSystem` til `'Internt planlægningssystem'` (fallback-tekst) |
-| `src/translations/en/login.ts` | Ændr `internalSystem` til `'Internal planning system'` (fallback-tekst) |
-| `src/pages/LoginPage.tsx` | Tilføj useEffect der læser `selected_department_id` fra localStorage og henter afdelingsnavn fra `departments`-tabellen. Vis afdelingsnavnet i stedet for den statiske oversættelse |
-| `index.html` | Fjern "Afdeling 12 Trekantsområdet" fra meta description og og:description, erstat med "Polygon Ugeplan - Internt planlægningssystem" |
-| `CHANGELOG.md` | Tilføj alle ændringer |
+| `src/utils/employeeAvailability.ts` | Wrap alle console.log i DEV guard. Fjern per-assignment verbose logging helt (selv i DEV) |
+| `src/hooks/useDashboardMetrics.ts` | Wrap COMPREHENSIVE METRICS DEBUG log (linje 124-160) i DEV guard |
+| `src/hooks/useOptimizedAssignments.ts` | Wrap alle 40+ console.log i DEV guard |
+| `src/hooks/useAssignmentsConsolidated.ts` | Wrap alle console.log (linje 26, 32, 34, 46, 54) i DEV guard |
+| `src/hooks/useDashboard.ts` | Wrap alle console.log (linje 12-13, 23, 40-46, 52, 59, 66, 76) i DEV guard |
+| `src/services/enhancedUnifiedDataService.ts` | Wrap alle console.log i DEV guard |
+| `src/hooks/car/useCarData.ts` | Wrap console.log (linje 24, 46, 50) i DEV guard |
+| `src/hooks/employee/useEmployeeData.ts` | Wrap console.log (linje 24, 41, 80, 96, 160) i DEV guard |
+| `src/hooks/vacation/useVacationData.ts` | Wrap console.log (linje 24, 32, 85) i DEV guard. Fjern `logSecurityEvent` fra realtime-handler |
+| `src/components/Layout/NavComponents/UserMenu.tsx` | Fetch job_title, vis jobtitel i stedet for rolle-ID |
+| `CHANGELOG.md` | Tilfoej alle aendringer under Performance Optimization - 2026-02-15 |
 
-### Tekniske detaljer
+### Hvad der IKKE aendres
 
-**SQL-migration:**
-```sql
--- Tilføj manglende indexes
-CREATE INDEX idx_assignments_department ON assignments(department_id);
-CREATE INDEX idx_assignments_sub_department ON assignments(sub_department_id);
-CREATE INDEX idx_on_call_duties_department ON on_call_duties(department_id);
-CREATE INDEX idx_on_call_duties_sub_department ON on_call_duties(sub_department_id);
-CREATE INDEX idx_vacations_department ON vacations(department_id);
-CREATE INDEX idx_vacations_sub_department ON vacations(sub_department_id);
-CREATE INDEX idx_warehouse_items_department ON warehouse_items(department_id);
-CREATE INDEX idx_warehouse_items_sub_department ON warehouse_items(sub_department_id);
-
--- Fjern redundante indexes
-DROP INDEX idx_assignments_date_published;
-DROP INDEX idx_assignments_responsible_user;
-DROP INDEX idx_assignments_responsible_published;
-```
-
-**LoginPage.tsx - dynamisk undertitel:**
-```tsx
-const [departmentName, setDepartmentName] = useState<string | null>(null);
-
-useEffect(() => {
-  const storedDeptId = localStorage.getItem('selected_department_id');
-  if (storedDeptId) {
-    supabase.from('departments').select('name').eq('id', storedDeptId).single()
-      .then(({ data }) => {
-        if (data?.name) setDepartmentName(data.name);
-      });
-  }
-}, []);
-
-// I JSX:
-<p className="text-gray-600">
-  {departmentName || t('login.internalSystem')}
-</p>
-```
-
-### Anbefalinger (ikke implementeret nu)
-
-1. **Logs-oprydning:** Slet `vacation_realtime_change` og `enhanced_error_*` logs ældre end 30 dage. Potentiel besparelse: ~250 MB
-2. **Fjern `cars.sub_department_id`:** Når junction-tabellen er fuldt migreret, kan den gamle kolonne droppes
-3. **Partitioner logs-tabellen:** `logs_partitioned` eksisterer men bruges ikke. Overvej at migrere til partitioneret tabel for automatisk oprydning
+- UI-design og alle brugerfunktioner forbliver identiske
+- TanStack Query konfiguration (staleTime, gcTime) er allerede optimal
+- Realtime-subscriptions struktur (ingen memory leaks fundet)
+- Bundle-splitting konfiguration (allerede veldefineret i vite.config.ts)
+- Data-fetching arkitektur (risikabelt at refaktorere nu)
 
