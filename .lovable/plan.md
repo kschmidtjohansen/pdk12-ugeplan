@@ -1,59 +1,70 @@
 
-## Fase 3: Performance og Hastighed
+## Fase 4: UI/UX og Responsivitet
 
-### Problem-analyse
+### Status: Gitter-visning allerede implementeret
 
-Tre hovedproblemer identificeret:
+Gitter-knappen med `LayoutGrid`-ikonet eksisterer allerede i PlannerPage (linje 487-490). `DaySection` renderer korrekt med `md:grid-cols-3` naar `gridLayout=true` (linje 113). AssignmentCard har allerede `line-clamp-3` paa beskrivelser (linje 210).
 
-1. **Ingen TanStack Query caching paa assignments**: `useOptimizedAssignments` bruger `useState`/`useEffect` i stedet for `useQuery`, saa data genindlaeses ved hvert mount/tab-skift
-2. **Overdrevne realtime-kanaler**: 5-6 separate Supabase channels abonnerer paa de samme tabeller (f.eks. `assignments` har 3 kanaler: `optimized-assignments-realtime`, `unified-data-changes`, `assignment_changes_optimized`)
-3. **100+ uguardede `console.log`** i `usePlannerPage.ts`, `realtimeManager.ts`, `optimizedAssignmentService.ts` (korer i produktion)
+**Ingen ny funktionalitet noedvendig** for grid view - kun visuel finpudsning.
 
-### Plan
+---
 
-#### 1. Wrap `useOptimizedAssignments` i TanStack Query
+### 1. Tema-konsistens: Erstat hardcoded gray-farver
 
-**Fil**: `src/hooks/useOptimizedAssignments.ts`
+Erstat `text-gray-600`, `text-gray-500`, `text-gray-400`, `bg-gray-50`, `bg-gray-100`, `hover:bg-gray-50`, `hover:bg-gray-100` med tema-tokens i foelgende filer:
 
-Erstatter `useState`/`useEffect`-baseret datahentning (linje 103-189, 838-842) med `useQuery`:
-- `queryKey: ['assignments', user?.id, filter, selectedDepartmentId, selectedSubDepartmentId]`
-- `staleTime: 5 * 60 * 1000` (5 min, matcher QueryClient default)
-- `gcTime: 10 * 60 * 1000` (10 min)
-- Bevarer optimistisk UI i mutations (create/update/delete bruger `setQueryData` i stedet for `setAssignments`)
-- Realtime-kanal trigger `queryClient.invalidateQueries` i stedet for fuld refetch
-- **Resultat**: Tab-skift viser cached data oejeblikkeligt (stale-while-revalidate)
+| Fil | Antal erstatninger | Eksempel |
+|-----|--------------------|----------|
+| `src/pages/PlannerPage.tsx` | 2 | `text-gray-600` -> `text-muted-foreground` |
+| `src/components/Planner/CarSelector.tsx` | 2 | `hover:bg-gray-50` -> `hover:bg-muted/50` |
+| `src/components/Admin/UserManagement.tsx` | 4 | `text-gray-500` -> `text-muted-foreground` |
+| `src/components/shared/LoadingSpinner.tsx` | 1 | `text-gray-500` -> `text-muted-foreground` |
+| `src/components/Layout/TopNavbar.tsx` | 3 | `border-gray-200` -> `border-border`, `text-gray-700` -> `text-foreground` |
+| `src/components/Vacation/EnhancedVacationCard.tsx` | 1 | `bg-gray-600` -> `bg-muted-foreground` |
 
-#### 2. Konsolider duplikerede realtime-kanaler
+**Udeladt**: `from-gray-25` og `to-gray-50` er **custom CSS-variabler** (defineret i index.css), ikke hardcoded Tailwind — disse bevares.
 
-**Problem**: `assignments`-tabellen har 3 separate kanaler:
-- `optimized-assignments-realtime` (useOptimizedAssignments)
-- `unified-data-changes` (useUnifiedData)
-- `assignment_changes_optimized` (useAssignmentDataOptimized)
+---
 
-Desuden abonnerer `profiles` paa 3 separate kanaler.
+### 2. Fjern debug-logging i AssignmentDetails.tsx
 
-**Handling** i `src/hooks/data/useUnifiedData.ts`:
-- Fjern `assignments`-lytter fra `unified-data-changes` kanalen (allerede daekket af useOptimizedAssignments)
-- Bevar kun `cars` og `profiles` i denne kanal
+`AssignmentDetails.tsx` har 4 uguardede `console.log` (linje 89-95, 112) der logger medarbejder-data i produktion. Wrap i `import.meta.env.DEV` guard.
 
-**Handling** i `src/hooks/useOptimizedAssignments.ts`:
-- Tilfoej ogsaa lytning paa `assignments_employees`-tabellen i den eksisterende kanal (saa vi fanger medarbejder-tildelinger)
+---
 
-#### 3. DEV-guard paa 100+ console.log
+### 3. Horisontal scroll paa tabeller (mobil)
 
-| Fil | Antal uguardede console.log |
-|-----|-----------------------------|
-| `src/hooks/usePlannerPage.ts` | 15 stk |
-| `src/services/realtimeManager.ts` | 11 stk |
-| `src/services/optimizedAssignmentService.ts` | ~30 stk |
+Tilfoej `overflow-x-auto` wrapper paa:
+- `src/components/Cars/CarsTable.tsx` (linje 42: aendr `overflow-hidden` -> `overflow-x-auto`)
+- `src/components/Warehouse/WarehouseTable.tsx` (linje 11: tilfoej `overflow-x-auto` paa outer div)
 
-**Handling**: Wrap alle i `if (import.meta.env.DEV)` guard. `console.error` og `console.warn` bevares (fejlhaandtering).
+Dette sikrer at tabeller kan scrolles horisontalt paa smaa skaerme uden at oedelaegge resten af layoutet.
 
-#### 4. Profilmenu: Vis jobtitel i stedet for rolle-ID
+---
 
-**Fil**: `src/components/Layout/NavComponents/UserMenu.tsx`
+### 4. Standardisering af tomme tilstande
 
-Visning i profilmenuen viser aktuelt den tekniske rolle-ID (f.eks. `skadeleder`). Erstat med `user.jobTitle` eller et oversat rollenavn for bedre brugervenlighed.
+`DaySection.tsx` bruger allerede korrekt tom-tilstand med `CalendarX2`-ikon, `border-dashed`, `bg-muted/20` og tema-farver (linje 131-134). Denne er konsistent med design-systemet.
+
+**Verificeret**: Ingen yderligere aendringer noeudvendige.
+
+---
+
+### 5. Hover-effekter paa opgavekort
+
+`AssignmentCard` har allerede `hover:border-polygon-purple hover:shadow-xl transition-all duration-200` (linje 137). `CompactAssignmentRow` har `hover:bg-muted/50 transition-colors` (linje 71).
+
+**Verificeret**: Allerede implementeret.
+
+---
+
+### 6. Dokumentation
+
+| Fil | Handling |
+|-----|---------|
+| `docs/implementation-plan/tasks.md` | Tilfoej Fase 4 med opgaver markeret [x] |
+| `docs/ui-guidelines/component-library.md` | Tilfoej gitter-regler sektion |
+| `CHANGELOG.md` | Dokumenter UI-forbedringer |
 
 ---
 
@@ -61,18 +72,23 @@ Visning i profilmenuen viser aktuelt den tekniske rolle-ID (f.eks. `skadeleder`)
 
 | Fil | Handling |
 |-----|---------|
-| `src/hooks/useOptimizedAssignments.ts` | Migrer til useQuery + tilfoej assignments_employees lytning + DEV-guard |
-| `src/hooks/usePlannerPage.ts` | DEV-guard paa 15 console.log + fjern verbose assignment-detaljer logging |
-| `src/services/realtimeManager.ts` | DEV-guard paa 11 console.log |
-| `src/services/optimizedAssignmentService.ts` | DEV-guard paa ~30 console.log |
-| `src/hooks/data/useUnifiedData.ts` | Fjern assignments-lytter fra realtime-kanal |
-| `src/components/Layout/NavComponents/UserMenu.tsx` | Vis jobtitel i stedet for teknisk rolle-ID |
-| `docs/implementation-plan/tasks.md` | Tilfoej Fase 3 med opgaver markeret [x] |
-| `CHANGELOG.md` | Dokumenter performance-forbedringer |
+| `src/pages/PlannerPage.tsx` | Erstat 2 hardcoded `text-gray-600` med `text-muted-foreground` |
+| `src/components/Planner/CarSelector.tsx` | Erstat `hover:bg-gray-50` med `hover:bg-muted/50` |
+| `src/components/Planner/AssignmentDetails.tsx` | DEV-guard paa 4 console.log |
+| `src/components/Admin/UserManagement.tsx` | Erstat 4 hardcoded gray-farver med tema-tokens |
+| `src/components/shared/LoadingSpinner.tsx` | Erstat `text-gray-500` med `text-muted-foreground` |
+| `src/components/Layout/TopNavbar.tsx` | Erstat 3 hardcoded gray-farver med tema-tokens |
+| `src/components/Vacation/EnhancedVacationCard.tsx` | Erstat `bg-gray-600` med tema-token |
+| `src/components/Cars/CarsTable.tsx` | Tilfoej `overflow-x-auto` for mobil horisontal scroll |
+| `src/components/Warehouse/WarehouseTable.tsx` | Tilfoej `overflow-x-auto` for mobil horisontal scroll |
+| `docs/implementation-plan/tasks.md` | Marker Fase 4 som fuldfoert |
+| `docs/ui-guidelines/component-library.md` | Tilfoej gitter-visnings-regler |
+| `CHANGELOG.md` | Dokumenter UI-forbedringer |
 
 ### Hvad der IKKE aendres
 
-- Mutation-logik (create/update/delete) bevarer optimistisk UI
-- Realtime forbliver intakt (kun konsolidering, ingen fjernelse)
-- Fil-upload og billeder i opgaver paavirkes ikke (allerede lazy-loaded via Supabase Storage URLs)
-- Ingen aendringer af database-struktur eller RLS-politikker
+- Grid-view logik (allerede fungerende med 3-kolonne layout)
+- AssignmentCard layout og datafelter (alle felter bevares)
+- Chat- og fil-interface (allerede implementeret med korrekt upload-indikator)
+- Custom `gray-25`/`gray-50` CSS-variabler (disse er tema-kompatible)
+- Eksisterende hover-effekter og tomme tilstande (allerede korrekte)
