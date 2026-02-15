@@ -1,102 +1,76 @@
 
+## Fase 1: Sikkerhedsrettelser
 
-## Visuel tema-fix + Komplet docs-mappestruktur
+### 1. RLS-laekage: vacations-tabellen
 
-### Del 1: Hardcoded farver i CarsTable og MobileCarCard
+**Status**: `can_access_vacation()` funktionen tillader allerede kun skadeledere at se ferier for brugere i **samme afdeling** (via `user_access.department_id` join). Den er korrekt implementeret med `SECURITY DEFINER`.
 
-#### CarsTable.tsx (17 erstatninger)
+**Anbefaling**: Ingen SQL-aendring nødvendig. Funktionen matcher allerede kravet:
+- Egen ferie: altid synlig
+- Super admin / administrator: fuld adgang
+- Skadeleder: kun brugere der deler mindst en `department_id` via `user_access`
 
-| Linje | Fra | Til |
-|-------|-----|-----|
-| 45 | `border-gray-100` | `border-border` |
-| 46-52 | `text-gray-600 font-medium` (7 stk) | `text-muted-foreground font-medium` |
-| 57 | `border-gray-100 hover:bg-gray-50/50` | `border-border hover:bg-muted/50` |
-| 63 | `text-gray-900` | `text-foreground` |
-| 66 | `text-gray-900` | `text-foreground` |
-| 69 | `text-gray-900` | `text-foreground` |
-| 94 | `bg-gray-100 text-gray-800` | `bg-muted text-foreground` |
-| 101 | `text-gray-900` | `text-foreground` |
-| 125 | `text-gray-400` (X-ikon) | `text-muted-foreground/50` |
-| 126 | `text-gray-600` | `text-muted-foreground` |
-| 135 | `text-gray-900` | `text-foreground` |
-| 140 | `text-gray-900` | `text-foreground` |
-| 172 | `text-gray-400` (ToggleLeft) | `text-muted-foreground` |
+Klient-side hooket `useVacationSecurity.ts` bruger `sub_department_id` til filtrering, hvilket giver endnu finere granularitet.
 
-#### MobileCarCard.tsx (19 erstatninger)
-
-| Linje | Fra | Til |
-|-------|-----|-----|
-| 38 | `border-gray-100` | `border-border` |
-| 50 | `text-gray-900` | `text-foreground` |
-| 55 | `text-gray-600` | `text-muted-foreground` |
-| 74 | `text-gray-400` (ToggleLeft) | `text-muted-foreground` |
-| 125 | `text-gray-500` | `text-muted-foreground` |
-| 127 | `text-gray-900` | `text-foreground` |
-| 137 | `text-gray-500` | `text-muted-foreground` |
-| 142 | `text-gray-900` | `text-foreground` |
-| 146 | `text-gray-400` (X-ikon) | `text-muted-foreground/50` |
-| 147 | `text-gray-600` | `text-muted-foreground` |
-| 156 | `text-gray-500` | `text-muted-foreground` |
-| 157 | `bg-gray-100 text-gray-800` | `bg-muted text-foreground` |
-| 163 | `border-gray-100` | `border-border` |
-| 179 | `bg-gray-50` | `bg-muted/50` |
-| 180 | `text-gray-700` | `text-foreground` |
-| 181 | `text-gray-600` | `text-muted-foreground` |
-| 187 | `border-gray-100` | `border-border` |
-| 192 | `text-gray-900` | `text-foreground` |
-| 197 | `text-gray-900` | `text-foreground` |
-
-Semantiske farver (green-500, red-500, blue-500, orange-500) bevares, da de er funktionelle statusfarver.
+**Handling**: Dokumenter dette som verificeret i `tasks.md`.
 
 ---
 
-### Del 2: Manglende docs-filer
+### 2. Logging af folsom data: PasswordChangeDialog.tsx
 
-Eksisterende filer der allerede er udfyldt og bevares:
-- `implementation-plan/readme.md` og `tasks.md`
-- `product-roadmap/readme.md`
-- `technical-specs/readme.md`, `architecture.md`, `data-models.md`
-- `ui-guidelines/readme.md`, `component-library.md`
+**Status**: Filen er allerede renset. Der er ingen `console.log` der udskriver tokens, passwords eller auth-metadata. Kun en `console.error` paa linje 99 der logger fejlbeskeder (ikke folsomme data).
 
-#### Nye filer der oprettes (5 stk)
+**Handling**: Dokumenter som verificeret.
 
-**1. `docs/implementation-plan/timeline.md`**
-Milepalsplan med 3 faser:
-- Fase 1-4: Faerdiggjort 2026-02-15 (Sikkerhed, Database, Performance, UI)
-- Proveperiode: Uge 10 (2026-03-02 til 2026-03-06) -- intern test med reelle brugere
-- Udrulning: Uge 12 (2026-03-16) -- produktionslancering for foerste afdeling
-- Fremtidige afdelinger: Loebende efter uge 12
+---
 
-**2. `docs/product-roadmap/features.md`**
-Opdelt i nuvaerende og kommende features:
-- Nuvaerende: Multi-afdeling, Chat (assignment_messages), Fil-upload, Vagtplan, Lager, Ferie, Demo mode
-- Kommende: OneDrive/SharePoint-integration, PDF-eksport, Push-notifikationer, Avanceret rapportering, Automatisk vagtfordeling
+### 3. JWT-validering i admin-reset-password Edge Function
 
-**3. `docs/product-roadmap/user-personas.md`**
-Definition af alle 5 roller:
-- Super Admin: Fuld systemadgang, alle afdelinger, brugerstyring
-- Administrator (Chef): Afdelingsleder, godkender ferie, opretter opgaver
-- Skadeleder: Daglig planlaegning, vagtbytter, brændstofkort-adgang
-- Servicemedarbejder: Ser egne opgaver og kolleger, ansoeger ferie
-- Vikar: Midlertidig med udloebsdato, begranset adgang
+**Status**: Funktionen har `verify_jwt = false` i `config.toml` men udforer **manuel JWT-validering** i koden:
+- Linje 123-150: Verificerer Authorization header og token-format
+- Linje 183-204: Kalder `supabase.auth.getUser()` med brugerens token
+- Linje 210-240: Tjekker rolle (`administrator` eller `super_admin`)
 
-**4. `docs/technical-specs/database-schema.md`**
-Detaljeret gennemgang af tabel-relationer med fokus paa afdelingsstruktur:
-- `departments` -> `sub_departments` (1:N)
-- `user_access` junction: bruger <-> afdeling/underafdeling
-- `car_sub_departments` junction: bil <-> underafdeling
-- `assignments` -> `department_id` + `sub_department_id` (afdelingsfiltrering)
-- RLS-isolation via `can_access_department_data()`
-- Backup-rutiner: 2x dagligt (Supabase automatisk + custom)
+**Problem**: Funktionen har **overdreven logging** af folsom data:
+- Linje 109: Logger klient-IP
+- Linje 138: Logger token-laengde
+- Linje 156-158: Logger Supabase URL, service key present, anon key present
+- Linje 192: Logger bruger-ID og email
+- Linje 206: Logger bruger-email
+- Linje 219: Logger email og rolle ved afvist adgang
+- Linje 262: Logger target user ID og password-laengde
+- Linje 327: Logger admin email og target user ID i security event
 
-**5. `docs/ui-guidelines/design-system.md`**
-Regler for de 3 visningstyper med konkrete CSS-klasser:
-- Standard: Fuld kortvisning, `shadow-sm`, alle detaljer synlige
-- Kompakt: Tabel-layout, reduceret padding, hover-actions
-- Gitter: `md:grid-cols-3`, `line-clamp-3` paa beskrivelser
-- Farve-tokens: Komplet liste over semantiske variabler
-- Spacing-skala: `py-8` (tom tilstand), `py-12` (EmptyState), `p-4`/`p-6` (kort)
-- Breakpoints: Mobile-first, `md:` for tablet, `lg:` for desktop
+**Handling**:
+1. Fjern logging af token-laengde (linje 138)
+2. Fjern logging af key-presence (linje 157-158)
+3. Fjern logging af bruger-email (linje 192, 206, 219)
+4. Fjern logging af password-laengde (linje 262)
+5. Bevar `requestId`-baseret flow-logging (uden folsomme data)
+6. Tilfoej kommentarer der dokumenterer den manuelle JWT-validering
+
+---
+
+### 4. Generelt console.log scan
+
+Filer med uguardede `console.log` der eksponerer brugerdata i produktion:
+
+| Fil | Problem | Handling |
+|-----|---------|---------|
+| `src/components/Auth/EnhancedSecureLoginForm.tsx:48` | Logger email ved login-forsoeg | Wrap i `import.meta.env.DEV` |
+| `src/components/Auth/EnhancedSecureLoginForm.tsx:63,74` | Logger login-resultat | Wrap i `import.meta.env.DEV` |
+| `src/hooks/notifications/notificationRealtime.ts:94,113,129,155,178,184` | Logger user.id og notification payloads | Wrap i `import.meta.env.DEV` |
+| `src/hooks/notifications/notificationActions.ts:115` | Logger user.id ved sletning | Wrap i `import.meta.env.DEV` |
+| `src/hooks/notifications/notificationFetching.ts:35,49` | Logger user.id og rolle | Wrap i `import.meta.env.DEV` |
+| `src/hooks/vacation/useVacationRequestActions.ts:92,126,202,215,219,233,251,261` | Logger ferie-data med user_id | Wrap i `import.meta.env.DEV` |
+| `src/hooks/vacation/useVacationSecurity.ts:37` | Logger antal brugere i underafdelinger | Wrap i `import.meta.env.DEV` |
+| `src/hooks/assignment/useAssignmentFormState.ts:42,81` | Logger user.id | Wrap i `import.meta.env.DEV` |
+| `src/hooks/assignment/useAssignmentActions.ts:150,426` | Logger responsible user ID | Wrap i `import.meta.env.DEV` |
+| `src/hooks/employee/useEmployeeCreation.ts:25,50,116,126` | Logger user creation og email/password validation | Wrap i `import.meta.env.DEV` |
+| `src/pages/Index.tsx:118,122` | Logger auth-status | Wrap i `import.meta.env.DEV` |
+| `src/pages/PasswordResetPage.tsx:158,162` | Logger recovery mode (ikke guarded) | Wrap i `import.meta.env.DEV` |
+| `src/pages/ScreenDisplayPage.tsx:18,30,44,63,84,95,101,103` | Logger URL og dato-data | Wrap i `import.meta.env.DEV` |
+| `src/utils/databaseCleanup.ts:7,37,50,83,96,110` | Logger cleanup-operationer | Wrap i `import.meta.env.DEV` |
 
 ---
 
@@ -104,13 +78,26 @@ Regler for de 3 visningstyper med konkrete CSS-klasser:
 
 | Fil | Handling |
 |-----|---------|
-| `src/components/Cars/CarsTable.tsx` | Erstat 17 hardcoded farver |
-| `src/components/Cars/MobileCarCard.tsx` | Erstat 19 hardcoded farver |
-| `docs/implementation-plan/timeline.md` | Opret med milepale |
-| `docs/product-roadmap/features.md` | Opret med nuvaerende/kommende features |
-| `docs/product-roadmap/user-personas.md` | Opret med 5 rollerbeskrivelser |
-| `docs/technical-specs/database-schema.md` | Opret med afdelingsrelationer og backup |
-| `docs/ui-guidelines/design-system.md` | Opret med visningsregler og tokens |
-| `docs/implementation-plan/tasks.md` | Tilfoej ny opgave under Fase 4 |
-| `CHANGELOG.md` | Opdater med alle aendringer |
+| `supabase/functions/admin-reset-password/index.ts` | Fjern folsom logging, tilfoej JWT-dokumentation |
+| `src/components/Auth/EnhancedSecureLoginForm.tsx` | Wrap 3 console.log i DEV guard |
+| `src/hooks/notifications/notificationRealtime.ts` | Wrap 7 console.log i DEV guard |
+| `src/hooks/notifications/notificationActions.ts` | Wrap 1 console.log i DEV guard |
+| `src/hooks/notifications/notificationFetching.ts` | Wrap 2 console.log i DEV guard |
+| `src/hooks/vacation/useVacationRequestActions.ts` | Wrap 8 console.log i DEV guard |
+| `src/hooks/vacation/useVacationSecurity.ts` | Wrap 1 console.log i DEV guard |
+| `src/hooks/assignment/useAssignmentFormState.ts` | Wrap 2 console.log i DEV guard |
+| `src/hooks/assignment/useAssignmentActions.ts` | Wrap 2 console.log i DEV guard |
+| `src/hooks/employee/useEmployeeCreation.ts` | Wrap 4 console.log i DEV guard |
+| `src/pages/Index.tsx` | Wrap 2 console.log i DEV guard |
+| `src/pages/PasswordResetPage.tsx` | Wrap 2 console.log i DEV guard |
+| `src/pages/ScreenDisplayPage.tsx` | Wrap 8 console.log i DEV guard |
+| `src/utils/databaseCleanup.ts` | Wrap 6 console.log i DEV guard |
+| `docs/implementation-plan/tasks.md` | Tilfoej Fase 5 med nye sikkerhedsopgaver markeret [x] |
+| `CHANGELOG.md` | Dokumenter alle aendringer |
 
+### Hvad der IKKE aendres
+
+- Logikken for password-skift (kun logging fjernes)
+- Logikken for ferie-oprettelse (kun logging guards tilfojes)
+- RLS-politikker paa vacations (allerede korrekte)
+- Edge function funktionalitet (kun logging reduceres og kommentarer tilfojes)
