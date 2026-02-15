@@ -59,7 +59,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   // State for assignment details dialog
   const [detailsDialogAssignment, setDetailsDialogAssignment] = useState<Assignment | null>(null);
 
-  console.log(`[PlannerContent] Displaying ${weekAssignments.length} assignments with ${employees.length} employees and ${cars.length} cars`);
+  if (import.meta.env.DEV) console.log(`[PlannerContent] Displaying ${weekAssignments.length} assignments with ${employees.length} employees and ${cars.length} cars`);
 
   // Group assignments by day
   const groupedAssignments = useMemo(() => {

@@ -70,7 +70,7 @@ import {
     if (message.user_id === user.id) return true;
     
     // Skadeleder and administrator can delete any message
-    return ['administrator', 'skadeleder'].includes(user.role || '');
+    return ['super_admin', 'administrator', 'skadeleder'].includes(user.role || '');
   };
 
    // Auto-scroll to bottom when new messages arrive

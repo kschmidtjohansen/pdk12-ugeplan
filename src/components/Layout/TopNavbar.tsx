@@ -40,7 +40,7 @@ const TopNavbar: React.FC = () => {
   // Use vacation requests status hook instead of notification-based logic
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
   
-  console.log('[TopNavbar] 🔔 VACATION REQUESTS STATUS', {
+  if (import.meta.env.DEV) console.log('[TopNavbar] 🔔 VACATION REQUESTS STATUS', {
     hasPendingRequests,
     pendingCount,
     isEffectiveAdmin,
@@ -53,7 +53,7 @@ const TopNavbar: React.FC = () => {
       const noticeShown = sessionStorage.getItem('vacation-notice-shown');
       
       if (!noticeShown) {
-        console.log('[TopNavbar] 📢 Showing pending vacation requests notification', { pendingCount });
+        if (import.meta.env.DEV) console.log('[TopNavbar] 📢 Showing pending vacation requests notification', { pendingCount });
         
         toast({
           title: t('vacation.pendingRequestsTitle') || 'Der er afventende anmodninger',
@@ -112,7 +112,7 @@ const TopNavbar: React.FC = () => {
 
   const navigationItems = getNavigationItems(hasPendingRequests);
   
-  console.log('[TopNavbar] 📋 NAVIGATION ITEMS', {
+  if (import.meta.env.DEV) console.log('[TopNavbar] 📋 NAVIGATION ITEMS', {
     hasPendingRequests,
     vacationItem: navigationItems.find(item => item.path === '/vacation'),
     allItemsWithNotifications: navigationItems.filter(item => item.hasNotification),

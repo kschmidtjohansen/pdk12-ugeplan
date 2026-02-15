@@ -110,8 +110,15 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
     }
   }, [assignmentId]);
 
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+
   const uploadFile = useCallback(async (file: File, folderName?: string, comment?: string) => {
     if (!assignmentId) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Filen er for stor. Maksimal størrelse er 20MB.');
+      return;
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
