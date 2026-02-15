@@ -111,7 +111,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   const fetchAssignments = useCallback(async () => {
     if (!user?.id || !user?.role) {
-      console.log('[useOptimizedAssignments] User not authenticated or role not available, skipping fetch');
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] User not authenticated or role not available, skipping fetch');
       setAssignments([]);
       setLoading(false);
       return;
@@ -119,29 +119,24 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
     try {
       setError(null);
-      console.log(`[useOptimizedAssignments] ⭐ CRITICAL DEBUG: Fetching assignments with filter: ${filter} for user: ${user.email} (${user.role})`);
+      if (import.meta.env.DEV) console.log(`[useOptimizedAssignments] Fetching assignments with filter: ${filter} for user: ${user.email} (${user.role})`);
       
       let result: OptimizedAssignmentData[];
       
       switch (filter) {
         case 'all':
-          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: all - calling fetchAllAssignments');
           result = await OptimizedAssignmentService.fetchAllAssignments(user.role, user.email, selectedDepartmentId, selectedSubDepartmentId);
           break;
         case 'published':
-          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: published - calling fetchAllPublishedAssignments');
           result = await OptimizedAssignmentService.fetchAllPublishedAssignments(user.email, selectedDepartmentId, selectedSubDepartmentId);
           break;
         case 'unpublished':
-          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: unpublished - calling fetchUnpublishedAssignments');
           result = await OptimizedAssignmentService.fetchUnpublishedAssignments(user.id, user.role, user.email, selectedDepartmentId, selectedSubDepartmentId);
           break;
         case 'user':
-          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: user - calling fetchUserAssignments');
           result = await OptimizedAssignmentService.fetchUserAssignments(user.id, user.role, user.email, selectedDepartmentId, selectedSubDepartmentId);
           break;
         default:
-          console.log('[useOptimizedAssignments] ⭐ FILTER MATCH: default - no assignments');
           result = [];
       }
 
@@ -174,10 +169,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         }
       });
 
-      console.log(`[useOptimizedAssignments] Successfully fetched ${convertedAssignments.length} assignments`);
-      if (convertedAssignments.length > 0) {
-        console.log(`[useOptimizedAssignments] Sample assignment data:`, convertedAssignments[0]);
-      }
+      if (import.meta.env.DEV) console.log(`[useOptimizedAssignments] Successfully fetched ${convertedAssignments.length} assignments`);
       setAssignments(convertedAssignments);
     } catch (err) {
       console.error('[useOptimizedAssignments] Error fetching assignments:', err);
@@ -226,7 +218,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       // Check for multiple dates (multi-date creation)
       const dates = (data as any).dates?.length ? (data as any).dates : [data.date!];
       
-      console.log('[useOptimizedAssignments] 🎯 CREATE - Detected dates:', dates);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] CREATE - Detected dates:', dates);
       
       if (!dates || dates.length === 0 || !dates[0]) {
         throw new Error(t('planner.validation.dateRequired'));
@@ -234,7 +226,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
       // MULTI-DATE CREATION
       if (dates.length > 1) {
-        console.log('[useOptimizedAssignments] 🎯 MULTI-DATE CREATE - Creating assignments for', dates.length, 'dates');
+        if (import.meta.env.DEV) console.log('[useOptimizedAssignments] MULTI-DATE CREATE - Creating assignments for', dates.length, 'dates');
         
         const createdAssignments = [];
         const errors = [];
@@ -260,7 +252,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         // Create one assignment per date
         for (const date of dates) {
           try {
-            console.log('[useOptimizedAssignments] 🎯 Creating assignment for date:', date);
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Creating assignment for date:', date);
             const serviceData = { ...baseServiceData, assignment_date: date };
             const created = await OptimizedAssignmentService.createAssignment(serviceData, user.email);
             createdAssignments.push(created);
@@ -277,7 +269,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
               cars: serviceData.car_ids
             });
             
-            console.log('[useOptimizedAssignments] ✅ Successfully created assignment for', date);
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Successfully created assignment for', date);
           } catch (err) {
             console.error('[useOptimizedAssignments] ❌ Failed to create assignment for', date, err);
             errors.push({ date, error: err });
@@ -306,7 +298,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           });
         }
         
-        console.log('[useOptimizedAssignments] 🎯 MULTI-DATE CREATE complete:', {
+        if (import.meta.env.DEV) console.log('[useOptimizedAssignments] MULTI-DATE CREATE complete:', {
           success: createdAssignments.length,
           failed: errors.length
         });
@@ -315,7 +307,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       }
 
       // SINGLE-DATE CREATION (existing flow)
-      console.log('[useOptimizedAssignments] 🎯 SINGLE-DATE CREATE for date:', dates[0]);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] SINGLE-DATE CREATE for date:', dates[0]);
       
       const serviceData = {
         title: data.title.trim(),
@@ -335,7 +327,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         sub_department_id: selectedSubDepartmentId || null,
       };
 
-      console.log('[useOptimizedAssignments] Creating assignment with data:', serviceData);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Creating assignment with data:', serviceData);
 
       // Create optimistic assignment for immediate UI update
       const optimisticAssignment: Assignment = {
@@ -419,9 +411,10 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const updateAssignment = useCallback(async (id: string, data: Partial<Assignment>) => {
     setOperationState(id, 'loading');
     try {
-      console.log('[useOptimizedAssignments] === UPDATE ASSIGNMENT DEBUG ===');
-      console.log('[useOptimizedAssignments] Assignment ID:', id);
-      console.log('[useOptimizedAssignments] Input data:', data);
+      if (import.meta.env.DEV) {
+        console.log('[useOptimizedAssignments] UPDATE - Assignment ID:', id);
+        console.log('[useOptimizedAssignments] UPDATE - Input data:', data);
+      }
       
       // Enhanced data validation with detailed logging
       if (!data.title?.trim()) {
@@ -440,7 +433,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       // Check for multiple dates (multi-date update)
       const dates = (data as any).dates?.length ? (data as any).dates : [data.date!];
       
-      console.log('[useOptimizedAssignments] 🎯 UPDATE - Detected dates:', dates);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] UPDATE - Detected dates:', dates);
       
       if (!dates || dates.length === 0 || !dates[0]) {
         throw new Error('Date is required');
@@ -449,11 +442,11 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       // Find original assignment for proper optimistic update
       const originalAssignment = assignments.find(a => a.id === id);
       
-      console.log('[useOptimizedAssignments] Available employees for lookup:', allEmployees.length);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Available employees for lookup:', allEmployees.length);
       
       // MULTI-DATE UPDATE
       if (dates.length > 1) {
-        console.log('[useOptimizedAssignments] 🎯 MULTI-DATE UPDATE - Updating assignment and creating', dates.length - 1, 'additional assignments');
+        if (import.meta.env.DEV) console.log('[useOptimizedAssignments] MULTI-DATE UPDATE - Updating and creating', dates.length - 1, 'additional assignments');
         
         // Update the current assignment with the first date
         const firstDateServiceData = {
@@ -472,7 +465,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           employees: data.employees || []
         };
         
-        console.log('[useOptimizedAssignments] 🎯 Updating existing assignment with first date:', dates[0]);
+        if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Updating existing assignment with first date:', dates[0]);
         await OptimizedAssignmentService.updateAssignment(id, firstDateServiceData, user.email);
         
         // Log the update
@@ -490,7 +483,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         
         for (let i = 1; i < dates.length; i++) {
           try {
-            console.log('[useOptimizedAssignments] 🎯 Creating new assignment for date:', dates[i]);
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Creating new assignment for date:', dates[i]);
             const newAssignmentData = {
               title: data.title?.trim(),
               description: data.description?.trim() || null,
@@ -522,7 +515,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
               cars: newAssignmentData.car_ids
             });
             
-            console.log('[useOptimizedAssignments] ✅ Successfully created assignment for', dates[i]);
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Successfully created assignment for', dates[i]);
           } catch (err) {
             console.error('[useOptimizedAssignments] ❌ Failed to create assignment for', dates[i], err);
             errors.push({ date: dates[i], error: err });
@@ -551,7 +544,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           });
         }
         
-        console.log('[useOptimizedAssignments] 🎯 MULTI-DATE UPDATE complete:', {
+        if (import.meta.env.DEV) console.log('[useOptimizedAssignments] MULTI-DATE UPDATE complete:', {
           updated: 1,
           created: createdAssignments.length,
           failed: errors.length
@@ -561,7 +554,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       }
       
       // SINGLE-DATE UPDATE (existing flow)
-      console.log('[useOptimizedAssignments] 🎯 SINGLE-DATE UPDATE for date:', dates[0]);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] SINGLE-DATE UPDATE for date:', dates[0]);
       
       // Optimistically update the UI with proper employee and car data reconstruction
       setAssignments(prev => prev.map(assignment => {
@@ -570,7 +563,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           
           // EMPLOYEE UPDATE FIX: Properly reconstruct assignedEmployees when employee IDs change
           if (data.employees !== undefined) {
-            console.log('[useOptimizedAssignments] EMPLOYEE UPDATE - New employee IDs:', data.employees);
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] EMPLOYEE UPDATE - New employee IDs:', data.employees);
             updatedAssignment.employees = data.employees;
             
             // Reconstruct assignedEmployees from employee IDs using all available employees
@@ -592,12 +585,12 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
               };
             }).filter(Boolean);
             
-            console.log('[useOptimizedAssignments] EMPLOYEE UPDATE - Reconstructed assignedEmployees:', updatedAssignment.assignedEmployees);
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] EMPLOYEE UPDATE - Reconstructed assignedEmployees:', updatedAssignment.assignedEmployees);
           }
           
           // CAR UPDATE FIX: Properly handle car updates 
           if (data.car !== undefined) {
-            console.log('[useOptimizedAssignments] CAR UPDATE - New car:', data.car);
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] CAR UPDATE - New car:', data.car);
             // Extract string ID from car data (handle both string and object)
             const carId = typeof data.car === 'string' ? data.car : (data.car as any)?.id || '';
             updatedAssignment.car = carId;
@@ -607,7 +600,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
             } else {
               updatedAssignment.cars = [];
             }
-            console.log('[useOptimizedAssignments] CAR UPDATE - Updated car data:', {
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] CAR UPDATE - Updated car data:', {
               car: updatedAssignment.car,
               cars: updatedAssignment.cars
             });
@@ -615,11 +608,11 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           
           // Handle multiple cars update
           if (data.cars !== undefined) {
-            console.log('[useOptimizedAssignments] CARS UPDATE - New cars array:', data.cars);
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] CARS UPDATE - New cars array:', data.cars);
             updatedAssignment.cars = data.cars;
             // Set the first car as the primary car
             updatedAssignment.car = data.cars.length > 0 ? data.cars[0] : '';
-            console.log('[useOptimizedAssignments] CARS UPDATE - Updated car data:', {
+            if (import.meta.env.DEV) console.log('[useOptimizedAssignments] CARS UPDATE - Updated car data:', {
               car: updatedAssignment.car,
               cars: updatedAssignment.cars
             });
@@ -647,7 +640,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         employees: data.employees || [] // Include employee IDs for updates
       };
       
-      console.log('[useOptimizedAssignments] Service data:', serviceData);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Service data:', serviceData);
       
       await OptimizedAssignmentService.updateAssignment(id, serviceData, user.email);
       
@@ -660,7 +653,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         });
       } else {
         // Fallback: fetch the before state from Supabase if not in local state
-        console.log('[useOptimizedAssignments] Original assignment not found in state, fetching from DB for logging');
+        if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Original assignment not found in state, fetching from DB for logging');
         try {
           const { data: beforeData, error: fetchError } = await supabase
             .from('assignments')
@@ -682,7 +675,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       }
       
       // Refresh assignments to ensure UI is synchronized with server data
-      console.log('[useOptimizedAssignments] Refreshing assignments after update to ensure data consistency');
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Refreshing assignments after update');
       await refetch();
       
       toast({
@@ -691,12 +684,10 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       });
       
       setOperationState(id, 'success');
-      console.log('[useOptimizedAssignments] Update completed successfully with data refresh');
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Update completed successfully');
       
     } catch (error) {
-      console.error('[useOptimizedAssignments] === UPDATE ERROR ===');
-      console.error('[useOptimizedAssignments] Error details:', error);
-      console.error('[useOptimizedAssignments] Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('[useOptimizedAssignments] Update error:', error);
       setOperationState(id, 'error');
       
       // Revert optimistic update on error
@@ -718,8 +709,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     const originalAssignment = assignments.find(a => a.id === id);
     
     try {
-      console.log('[useOptimizedAssignments] === DELETE ASSIGNMENT DEBUG ===');
-      console.log('[useOptimizedAssignments] Deleting assignment:', id);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Deleting assignment:', id);
       
       // Optimistically remove from UI
       setAssignments(prev => prev.filter(assignment => assignment.id !== id));
@@ -739,13 +729,12 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       });
       
       setOperationState(id, 'success');
-      console.log('[useOptimizedAssignments] Delete completed successfully - no refetch needed');
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Delete completed successfully');
       
       // Clear cache to ensure fresh data on next fetch (without forcing refetch)
       OptimizedAssignmentService.clearCache();
       
     } catch (error) {
-      console.error('[useOptimizedAssignments] === DELETE ERROR ===');
       console.error('[useOptimizedAssignments] Delete failed:', error);
       setOperationState(id, 'error');
       
@@ -767,7 +756,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const publishAssignment = useCallback(async (id: string) => {
     setOperationState(id, 'loading');
     try {
-      console.log('[useOptimizedAssignments] Publishing assignment:', id);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Publishing assignment:', id);
       
       // Optimistically update the UI
       setAssignments(prev => prev.map(assignment => 
@@ -805,7 +794,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   const publishAssignmentsByDate = useCallback(async (date: string) => {
     try {
-      console.log('[useOptimizedAssignments] Publishing assignments by date:', date);
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Publishing assignments by date:', date);
       
       // Get assignments to publish before the update
       const assignmentsToPublish = assignments.filter(

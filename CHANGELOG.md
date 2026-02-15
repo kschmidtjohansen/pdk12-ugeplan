@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Performance Optimization - 2026-02-15
+- Wrapped 100+ debug `console.log` kald i `import.meta.env.DEV` guard på tværs af 9 filer (eliminerer console I/O i produktion)
+- Fjernet verbose per-assignment logging i `employeeAvailability.ts` (tusindvis af logs per dashboard-render)
+- Fjernet `logSecurityEvent('vacation_realtime_change')` fra realtime-handler i `useVacationData.ts` (stoppede 170MB+ logs-bloat i databasen)
+- Profilmenu viser nu brugerens jobtitel (f.eks. "Skadeleder/Projektleder") i stedet for teknisk rolle-ID ("super_admin")
+- Fjernet ubrugte imports (`Settings`, `useEffect` fra `useDashboard.ts`, `useToast`/`useTranslation`/`usePermissions` fra `useAssignmentsConsolidated.ts`)
+
 ### Database Optimization - 2026-02-15
 - Tilføjet 8 manglende indexes på `department_id` og `sub_department_id` for `assignments`, `on_call_duties`, `vacations` og `warehouse_items` tabeller (forbedrer filtrerings-performance)
 - Fjernet 3 redundante indexes på `assignments` (`idx_assignments_date_published`, `idx_assignments_responsible_user`, `idx_assignments_responsible_published`) — dækket af eksisterende composite indexes

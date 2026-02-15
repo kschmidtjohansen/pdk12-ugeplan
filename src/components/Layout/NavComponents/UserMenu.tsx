@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Settings, Camera, Lock, Crown } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -29,28 +29,29 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [jobTitle, setJobTitle] = useState<string | null>(null);
 
-  // Get user initials for avatar
   const getInitials = (name: string): string => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
   };
 
-  // Fetch user profile data including avatar
+  // Fetch user profile data including avatar and job title
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user?.id) {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('avatar_url')
+            .select('avatar_url, job_title')
             .eq('id', user.id)
             .single();
           
-          if (data && !error && data.avatar_url) {
-            setAvatarUrl(data.avatar_url);
+          if (data && !error) {
+            if (data.avatar_url) setAvatarUrl(data.avatar_url);
+            if (data.job_title) setJobTitle(data.job_title);
           }
         } catch (err) {
-          console.log('Error fetching user profile:', err);
+          if (import.meta.env.DEV) console.log('Error fetching user profile:', err);
         }
       }
     };
@@ -81,8 +82,8 @@ const UserMenu: React.FC<UserMenuProps> = ({
                 {!userDataLoaded ? 'Loading...' : user?.name}
                 {isDemoMode && <span className="ml-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">DEMO</span>}
               </p>
-              <p className="text-xs leading-none text-muted-foreground capitalize">
-                {!userDataLoaded ? 'Loading...' : user?.role}
+              <p className="text-xs leading-none text-muted-foreground">
+                {!userDataLoaded ? 'Loading...' : (jobTitle || user?.role)}
               </p>
             </div>
           </DropdownMenuLabel>

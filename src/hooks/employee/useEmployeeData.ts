@@ -21,7 +21,7 @@ export const useEmployeeData = () => {
   const queryKey = ['employees', isDemoMode, selectedDepartmentId] as const;
 
   const fetchEmployeesFn = async (): Promise<Employee[]> => {
-    console.log(`[useEmployeeData] Starting employee fetch from ${isDemoMode ? 'demo' : 'public'} schema...`);
+    if (import.meta.env.DEV) console.log(`[useEmployeeData] Starting employee fetch from ${isDemoMode ? 'demo' : 'public'} schema...`);
 
     if (isDemoMode) {
       const { data, error: rpcError } = await rpcWithRefresh('get_demo_profiles_admin_detailed', {
@@ -38,7 +38,7 @@ export const useEmployeeData = () => {
         return [];
       }
 
-      console.log(`[useEmployeeData] Found ${data.length} demo profiles`);
+      if (import.meta.env.DEV) console.log(`[useEmployeeData] Found ${data.length} demo profiles`);
 
       const transformedEmployees: Employee[] = data.map((profile: any) => ({
         id: profile.id,
@@ -77,7 +77,7 @@ export const useEmployeeData = () => {
       }));
 
       const merged = [...transformedEmployees, ...localConverted];
-      console.log(`[useEmployeeData] Merged ${transformedEmployees.length} baseline + ${localConverted.length} local demo employees`);
+      if (import.meta.env.DEV) console.log(`[useEmployeeData] Merged ${transformedEmployees.length} baseline + ${localConverted.length} local demo employees`);
       return merged;
     } else {
       // Fetch profiles
@@ -93,7 +93,7 @@ export const useEmployeeData = () => {
       if (profilesError) throw new Error(`Profiles fetch failed: ${profilesError.message}`);
       if (!profiles || profiles.length === 0) return [];
 
-      console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
+      if (import.meta.env.DEV) console.log(`[useEmployeeData] Found ${profiles.length} profiles`);
 
       // Fetch user roles
       const { data: userRoles, error: rolesError } = await supabase
@@ -157,7 +157,7 @@ export const useEmployeeData = () => {
         );
       }
 
-      console.log('[useEmployeeData] Employee data set successfully, count:', finalEmployees.length);
+      if (import.meta.env.DEV) console.log('[useEmployeeData] Employee data set successfully, count:', finalEmployees.length);
       return finalEmployees;
     }
   };

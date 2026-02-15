@@ -21,7 +21,7 @@ export const useVacationData = () => {
   const queryKey = ['vacations', user?.email, selectedDepartmentId, selectedSubDepartmentId] as const;
 
   const fetchVacationsFn = async (): Promise<Vacation[]> => {
-    console.log('[useVacationData] Starting enhanced vacation fetch...');
+    if (import.meta.env.DEV) console.log('[useVacationData] Starting enhanced vacation fetch...');
 
     const vacationResult = await enhancedDataFetching.fetchVacationsEnhanced(user?.email, selectedDepartmentId, selectedSubDepartmentId);
     if (vacationResult.error || !vacationResult.data) {
@@ -29,7 +29,7 @@ export const useVacationData = () => {
     }
 
     const vacationsData = vacationResult.data;
-    console.log(`[useVacationData] Fetched ${vacationsData.length} vacation records`);
+    if (import.meta.env.DEV) console.log(`[useVacationData] Fetched ${vacationsData.length} vacation records`);
 
     const userIds = [...new Set(vacationsData.map(v => v.user_id).filter(id => typeof id === 'string'))] as string[];
     const profileResult = await enhancedDataFetching.fetchUserProfilesEnhanced(userIds, user?.email);
@@ -82,7 +82,7 @@ export const useVacationData = () => {
       vacation.end_date >= today || vacation.status === 'pending'
     );
 
-    console.log(`[useVacationData] Filtered ${transformedVacations.length} to ${currentAndFutureVacations.length} current/future vacation records`);
+    if (import.meta.env.DEV) console.log(`[useVacationData] Filtered ${transformedVacations.length} to ${currentAndFutureVacations.length} current/future vacation records`);
     return currentAndFutureVacations;
   };
 
@@ -119,12 +119,6 @@ export const useVacationData = () => {
       const handleRealtimeUpdate = () => {
         enhancedDataFetching.clearCache('vacations');
         queryClient.invalidateQueries({ queryKey: ['vacations'] });
-
-        logSecurityEvent('vacation_realtime_change', 'Vacation change detected via centralized realtime manager', {
-          subscription_id: subscriptionId,
-          timestamp: new Date().toISOString(),
-          source: 'realtime_manager'
-        }, 'info');
       };
 
       const subscription = realtimeManager.subscribe(subscriptionId, ['vacations'], handleRealtimeUpdate, { schema: 'public' });
