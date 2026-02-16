@@ -216,3 +216,14 @@ Gennemført 2026-02-16.
 - [x] Tilføjet DA/EN oversættelser for homePostcode, postcode, postcodeInvalid
 - [x] Opdateret `docs/technical-specs/database-schema.md`
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 5, Del 2: Nærhedsbaseret Booking-forslag ✅
+
+Gennemført 2026-02-16.
+
+- [x] Tilføjet "Sagens postnummer"-felt i AssignmentFormFields med numerisk input (max 4 cifre)
+- [x] Implementeret proximity-sortering i EmployeeSelector via `useMemo` (3 niveauer)
+- [x] Tilføjet MapPin-ikon og grønne badges for direkte match og regional match
+- [x] Tilføjet DA/EN oversættelser for casePostcode, proximityExact, proximityRegion
+- [x] Opdateret docs/product-roadmap/features.md med "Geografisk Optimering"
+- [x] Dokumenteret i CHANGELOG.md

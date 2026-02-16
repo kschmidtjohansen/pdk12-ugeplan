@@ -63,7 +63,16 @@
 - Notifikationstyper: ferie, vagt, opgave
 - Markér som læst/ulæst
 
+### Geografisk Optimering
+- "Sagens postnummer"-felt i booking-formularen
+- Automatisk sortering af medarbejdere efter nærhed til opgaven
+- 3 niveauer: Direkte match (samme postnr.), Regional (første 2 cifre), Øvrige
+- MapPin-ikon og grønne badges markerer nærliggende medarbejdere
+- Ren frontend-logik, kører i realtid mens man taster
+
 ---
+
+
 
 ## Kommende features (Planlagt)
 

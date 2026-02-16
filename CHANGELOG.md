@@ -47,6 +47,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Nærhedsbaseret Booking-forslag (Fase 5, Del 2) - 2026-02-16
+- Tilføjet "Sagens postnummer"-felt i opgaveformularen (kun numerisk, max 4 cifre)
+- Medarbejderlisten sorteres automatisk efter nærhed når postnummer indtastes
+- 3 proximity-niveauer: Direkte match (grøn badge + MapPin), Regional match (lysgrøn badge), Øvrige
+- Tomt felt = normal alfabetisk sortering
+- Frontend-only logik via `useMemo` — ingen database-ændringer
+- DA/EN oversættelser tilføjet
+
 ### Geografisk Grundlag (Fase 5, Del 1) - 2026-02-16
 - Tilføjet `home_postcode` kolonne til `profiles`-tabellen med CHECK constraint for dansk 4-cifret postnummerformat
 - Postnummer-felt i medarbejder-formularen (opret/rediger) — kun synligt for admin-brugere

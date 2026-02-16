@@ -214,6 +214,12 @@ const planner = {
   nextDay: 'Next day',
   previousDays: 'Previous days',
   
+  // Proximity
+  casePostcode: 'Case postcode',
+  casePostcodePlaceholder: 'e.g. 7000',
+  proximityExact: 'Closest',
+  proximityRegion: 'Region',
+
   // Validation messages
   validation: {
     titleRequired: 'Title is required',
