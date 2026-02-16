@@ -82,7 +82,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
-  const [casePostcode, setCasePostcode] = useState('');
+  const [casePostcode, setCasePostcode] = useState(zipCode || '');
 
   if (import.meta.env.DEV) {
     console.log('[AssignmentFormFields] Car state:', { selectedCarIds });
@@ -162,31 +162,25 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
       <div className="space-y-2">
         <Label htmlFor="location">{t('planner.location')}</Label>
-        <div className="grid grid-cols-[120px_1fr] gap-2">
-          <Input
-            id="casePostcode"
-            value={casePostcode}
-            onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-              setCasePostcode(val);
-              setZipCode(val);
-            }}
-            placeholder={t('planner.casePostcodePlaceholder')}
-            maxLength={4}
-            inputMode="numeric"
-          />
-          <AddressAutocomplete
-            value={location}
-            onChange={(val) => setLocation(val)}
-            onAddressSelect={(data) => {
-              setLocation(data.address);
-              setCasePostcode(data.zipCode);
-              setZipCode(data.zipCode);
-              setCity(data.city);
-            }}
-            placeholder={t('planner.enterLocation')}
-          />
-        </div>
+        <AddressAutocomplete
+          value={location}
+          onChange={(val) => {
+            setLocation(val);
+            // Extract postcode from manual input (format: "Street, 7000 City")
+            const match = val.match(/,\s*(\d{4})\s/);
+            if (match) {
+              setCasePostcode(match[1]);
+              setZipCode(match[1]);
+            }
+          }}
+          onAddressSelect={(data) => {
+            setLocation(data.address);
+            setCasePostcode(data.zipCode);
+            setZipCode(data.zipCode);
+            setCity(data.city);
+          }}
+          placeholder={t('planner.enterLocation')}
+        />
       </div>
 
       <div className="space-y-2">

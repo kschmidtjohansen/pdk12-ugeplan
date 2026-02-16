@@ -49,11 +49,11 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   const handleSelect = (suggestion: typeof suggestions[0]) => {
     const addr = suggestion.adresse;
-    const address = `${addr.vejnavn} ${addr.husnr}`.trim();
-    setInputValue(address);
-    onChange(address);
+    const fullAddress = `${addr.vejnavn} ${addr.husnr}, ${addr.postnr} ${addr.postnrnavn}`.trim();
+    setInputValue(fullAddress);
+    onChange(fullAddress);
     onAddressSelect({
-      address,
+      address: fullAddress,
       zipCode: addr.postnr,
       city: addr.postnrnavn,
     });

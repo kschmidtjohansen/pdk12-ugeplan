@@ -225,8 +225,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                           </Badge>
                         );
                         if (pl === 1) return (
-                          <Badge className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200">
-                            {t('planner.proximityRegion')}
+                          <Badge className="text-xs bg-amber-50 text-amber-600 border-amber-200">
+                            {t('planner.proximityAlternative')}
                           </Badge>
                         );
                         return null;

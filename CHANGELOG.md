@@ -2,6 +2,11 @@
 
 ## Security Hardening - February 2026
 
+### Changed - 2026-02-16
+- **Adresse-visning**: DAWA autocomplete viser nu fuld adresse inkl. postnummer og by (f.eks. "Julianelund 8, 7120 Vejle Øst")
+- **Samlet adresse-felt**: Fjernet separat postnummer-felt — postnummer udtrækkes automatisk fra adresse
+- **Nærhedslabel**: "Region" omdøbt til "Alternativ" med amber-farve i medarbejdervælgeren
+
 ### Fixed - 2026-02-16
 - **DAWA Proxy**: Adresse-autocomplete rutes nu via Supabase Edge Function (`dawa-proxy`) for at undgå CORS-blokering på alle domæner (preview, live, localhost)
 
