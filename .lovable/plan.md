@@ -1,63 +1,101 @@
 
 
-## Fix: Nærmeste-funktionen virker ikke
+## UI/UX Refactoring: EmployeeSelector og CarSelector
 
-### Rodårsag
+### Oversigt
 
-Der er **to problemer**:
-
-1. **Ingen medarbejdere har GPS-koordinater i databasen.** Alle 10+ medarbejdere med `home_postcode` har `lat = NULL, lng = NULL`. Koordinat-hentning blev kun tilfojet til create/update-flows, men eksisterende data blev aldrig backfilled.
-
-2. **Edit-mode initialiserer ikke koordinater.** Naar man redigerer en eksisterende opgave, starter `caseLat`/`caseLng` som `undefined` i AssignmentFormFields, selvom opgaven allerede har koordinater i `formData`.
+Transformerer begge dropdown-selectors til et rent, moderne design med bedre visuelt hierarki, reduceret farvebrug, og luftigere layout.
 
 ---
 
-### Trin 1: Backfill eksisterende medarbejderes koordinater
+### Trin 1: EmployeeSelector refactoring
 
-Opret en **one-time backfill-funktion** der koerer ved app-start (eller manuelt):
+**`src/components/Planner/EmployeeSelector.tsx`**
 
-**Ny fil: `src/utils/backfillEmployeeCoords.ts`**
-- Hent alle profiles med `home_postcode IS NOT NULL AND lat IS NULL`
-- For hver: kald `fetchPostnrCoords(home_postcode)`
-- Opdater `lat` og `lng` i profiles-tabellen
-- Kald funktionen een gang fra en admin-komponent eller som en useEffect i app-init
+**Layout-aendringer per raekke:**
+- Venstre: Checkbox (uaendret)
+- Midte: Navn med `font-medium text-foreground`, under navnet en `text-xs text-muted-foreground` linje med afstand (f.eks. "MapPin 8,5 km vaek") i stedet for groen badge
+- Hoejre: Kun badges til kritiske advarsler ("Fuldt booket", "Expired", "Terminated")
+- Fravaerende/on-leave: Hele raekken faar `opacity-60` i stedet for separate badges
 
-Alternativt (mere elegant): Tilfoej logik i `useEmployeeData.ts` der efter fetch tjekker om nogen medarbejdere mangler koordinater og backfiller dem i baggrunden.
+**Styling:**
+- Raekke-padding: `py-3 px-4` (luftigere)
+- Hover: `hover:bg-accent/50` (lys, neutral)
+- Valgt raekke: `bg-accent/30` (ingen blaa/roed border-l)
+- Separator: `border-b border-border/40` mellem raekker
+- Fjern `!bg-red-50 !border-l-4 !border-red-600` styling — brug i stedet en diskret badge for "Fuldt booket"
 
-### Trin 2: Backfill i useEmployeeData
+**Proximity-visning (ny):**
+```text
+Foer:  [Groen Badge: "Naermeste (8,4 km)"]
+Efter: Under navnet: "MapPin 8,5 km vaek" i text-xs text-muted-foreground
+```
 
-**`src/hooks/employee/useEmployeeData.ts`**:
-- Efter employees er hentet, find dem der har `home_postcode` men mangler `lat`/`lng`
-- Kald `fetchPostnrCoords` for hver og opdater via Supabase
-- Koer kun een gang (brug en ref til at tracke)
+---
 
-### Trin 3: Initialiser caseLat/caseLng i edit-mode
+### Trin 2: CarSelector refactoring
 
-**`src/components/Planner/AssignmentFormFields.tsx`**:
-- Tilfoej nye props: `initialLat?: number` og `initialLng?: number`
-- Brug dem til at initialisere `caseLat`/`caseLng` state
+**`src/components/Planner/CarSelector.tsx`**
 
-**`src/components/Planner/AssignmentForm.tsx`**:
-- Send `formData.lat` og `formData.lng` videre som `initialLat`/`initialLng` props til AssignmentFormFields
+**Layout-aendringer per raekke:**
+- Venstre: `Car`-ikon fra lucide-react i ensartet `text-muted-foreground` farve
+- Midte: Bilnavn med `font-medium`, nummerplade som `text-xs text-muted-foreground` sub-tekst under navnet
+- Hoejre: Kun badge for "I brug hele dagen" eller "Utilgaengelig"
+
+**Styling:**
+- Raekke-padding: `py-3 px-4`
+- Hover: `hover:bg-accent/50`
+- Valgt raekke: `bg-accent/30` (ingen blaa border-l)
+- Separator: `border-b border-border/40`
+- Fjern roed border-l og roed baggrund — brug diskret badge i stedet
+- Fjern "Valgt" badge — den aktive raekke vises via baggrundsfarveskift
+
+---
+
+### Trin 3: Opdater design-system dokumentation
+
+**`docs/ui-guidelines/design-system.md`**
+
+Tilfoej en ny sektion "List Item komponenter" med retningslinjer:
+
+```text
+### List Item (Dropdown/Selector)
+
+Standardmoenstre for listevisning i dropdowns og selectors.
+
+Klasser:
+- Raekke: py-3 px-4, border-b border-border/40
+- Hover: hover:bg-accent/50, transition-colors
+- Valgt: bg-accent/30
+- Disabled: opacity-60, cursor-not-allowed
+- Navn: font-medium text-foreground
+- Sub-tekst: text-xs text-muted-foreground
+- Badges: Kun til kritiske statusser (fuldt booket, utilgaengelig)
+- Proximity: Vis som sub-tekst med MapPin-ikon, ikke som badge
+```
+
+---
 
 ### Trin 4: Dokumentation
 
-**`CHANGELOG.md`**: Dokumenter backfill og edit-mode fix
+**`CHANGELOG.md`**: Log UI/UX refactoring af selectors
 
 ---
 
-### Filer der aendres/oprettes
+### Filer der aendres
 
 | Fil | Aendring |
 |-----|----------|
-| `src/hooks/employee/useEmployeeData.ts` | Backfill koordinater for eksisterende medarbejdere |
-| `src/components/Planner/AssignmentFormFields.tsx` | Tilfoej initialLat/initialLng props |
-| `src/components/Planner/AssignmentForm.tsx` | Send lat/lng fra formData til AssignmentFormFields |
-| `CHANGELOG.md` | Dokumenter fixes |
+| `src/components/Planner/EmployeeSelector.tsx` | Nyt layout, proximity som sub-tekst, luftig padding, neutrale farver |
+| `src/components/Planner/CarSelector.tsx` | Car-ikon, nummerplade sub-tekst, neutrale farver, fjern roede rammer |
+| `docs/ui-guidelines/design-system.md` | Ny "List Item" sektion |
+| `CHANGELOG.md` | Dokumenter refactoring |
 
 ### Kvalitetstjek
 
-- Backfill koerer kun for medarbejdere med postcode men uden koordinater (idempotent)
-- Ingen blokering af UI — backfill sker asynkront i baggrunden
-- Edit-mode faar korrekte koordinater med det samme
-- Fallback: hvis DAWA fejler, forbliver lat/lng NULL — ingen crash
+- Ingen hardcoded Tailwind gray-klasser (bruger semantiske tokens: accent, muted-foreground, border)
+- Fungerer i baade lys tilstand og med eksisterende tema-variabler
+- Proximity-info bevares men vises diskret som sub-tekst
+- Kritiske statusser (fuldt booket, utilgaengelig) forbliver synlige via badges
+- Fravaer markeres med opacity i stedet for ekstra badges
+
