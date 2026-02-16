@@ -51,7 +51,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
         unifiedDataService.fetchEmployees(deptId),
         unifiedDataService.fetchAssignments(deptId),
-        unifiedDataService.fetchCars()
+        unifiedDataService.fetchCars(deptId)
       ]);
 
       if (employeesResult.error || assignmentsResult.error || carsResult.error) {

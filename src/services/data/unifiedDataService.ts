@@ -202,11 +202,17 @@ class UnifiedDataService {
     }
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('cars')
         .select('*')
         .eq('is_demo', false)
         .order('name', { ascending: true });
+
+      if (departmentId) {
+        query = query.eq('department_id', departmentId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw new Error(`Cars fetch failed: ${error.message}`);
