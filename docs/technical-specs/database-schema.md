@@ -170,6 +170,20 @@ Følgende kolonner er identificeret som ubrugte/redundante men fjernes **ikke** 
 
 ---
 
+## Geografisk grundlag (Fase 5)
+
+### `profiles.home_postcode`
+
+| Kolonne | Type | Nullable | Constraint |
+|---------|------|----------|------------|
+| `home_postcode` | TEXT | Ja | CHECK `~ '^\d{4}$'` (dansk 4-cifret format) |
+
+- Kun synlig og redigerbar for admin-brugere i UI
+- RLS dækkes af eksisterende `profiles`-politikker
+- Ingen index nødvendigt (bruges ikke til filtrering endnu)
+
+---
+
 ## Log-tabeller
 
 ### Struktur

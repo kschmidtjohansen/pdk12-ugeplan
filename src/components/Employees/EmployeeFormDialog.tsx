@@ -86,6 +86,13 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
     setPhoneError('');
     setCreationMethod('attempting');
     try {
+      // Postcode validation
+      if (formData.home_postcode && !/^\d{4}$/.test(formData.home_postcode)) {
+        setErrorMessage(t('employees.postcodeInvalid'));
+        setIsSubmitting(false);
+        return;
+      }
+
       // Phone validation - only required for non-temporary users
       if (!formData.is_temporary && formData.phone) {
         const phoneValidation = validateAndSanitizePhone(formData.phone);
@@ -235,6 +242,29 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
             />
           </div>
           
+          {/* Home Postcode - Admin only */}
+          {isAdmin && (
+            <div className="grid gap-2">
+              <Label htmlFor="home_postcode">{t("employees.homePostcode")}</Label>
+              <Input 
+                id="home_postcode" 
+                name="home_postcode" 
+                value={formData.home_postcode || ''} 
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  handleInputChange({
+                    target: { name: 'home_postcode', value: val }
+                  } as any);
+                }}
+                maxLength={4}
+                inputMode="numeric"
+                pattern="\d{4}"
+                placeholder="f.eks. 7000"
+                disabled={isSubmitting}
+              />
+            </div>
+          )}
+
           {/* Certificates Section */}
           <div className="space-y-4 pt-4 border-t">
             <Label className="text-sm font-semibold">

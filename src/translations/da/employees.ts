@@ -157,6 +157,11 @@ const employees = {
   driversLicense: 'Kørekort',
   forkliftLicense: 'Truckbevis',
   
+  // Postcode
+  homePostcode: 'Postnummer',
+  postcode: 'Postnr.',
+  postcodeInvalid: 'Postnummer skal være 4 cifre',
+  
   // Vikar conversion
   convertToPermanent: 'Konverter til fast medarbejder',
   convertToPermanentNote: 'Dette fjerner udløbsdatoen og gør medarbejderen permanent',

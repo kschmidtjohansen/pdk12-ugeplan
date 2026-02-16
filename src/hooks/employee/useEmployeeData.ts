@@ -71,7 +71,7 @@ export const useEmployeeData = () => {
         .select(`
           id, name, email, phone, job_title, on_leave, status, notes, avatar_url,
           is_temporary, expires_at, has_asbestos_certificate, has_trailer_license,
-          has_drivers_license, has_forklift_license, home_department_id
+          has_drivers_license, has_forklift_license, home_department_id, home_postcode
         `)
         .eq('is_demo', false)
         .order('name', { ascending: true });
@@ -108,7 +108,8 @@ export const useEmployeeData = () => {
         expires_at: profile.expires_at,
         has_asbestos_certificate: !!profile.has_asbestos_certificate,
         has_trailer_license: !!profile.has_trailer_license,
-        has_forklift_license: !!profile.has_forklift_license
+        has_forklift_license: !!profile.has_forklift_license,
+        home_postcode: profile.home_postcode || ''
       }));
 
       // Filter by department

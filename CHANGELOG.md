@@ -47,6 +47,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Geografisk Grundlag (Fase 5, Del 1) - 2026-02-16
+- Tilføjet `home_postcode` kolonne til `profiles`-tabellen med CHECK constraint for dansk 4-cifret postnummerformat
+- Postnummer-felt i medarbejder-formularen (opret/rediger) — kun synligt for admin-brugere
+- Postnummer-kolonne i medarbejdertabel og mobilkort — kun synligt for admin-brugere
+- Klient-side validering: kun cifre, max 4 tegn, inputMode="numeric"
+- DA/EN oversættelser tilføjet
+
 ### Sikkerhedsoprydning (Fase 10) - 2026-02-16
 - **SECURITY**: Tilføjet `SET search_path = public` til 4 SECURITY DEFINER funktioner: `can_user_access_assignment`, `can_access_assignment`, `is_admin_user`, `get_current_user_role`
 - **SECURITY**: Tilføjet CHECK constraints: `assignment_messages` max 5000 tegn, `assignment_files` kommentarer max 2000 tegn

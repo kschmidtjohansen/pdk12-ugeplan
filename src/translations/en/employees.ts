@@ -157,6 +157,11 @@ const employees = {
   driversLicense: "Driver's License",
   forkliftLicense: 'Forklift License',
   
+  // Postcode
+  homePostcode: 'Postcode',
+  postcode: 'Postcode',
+  postcodeInvalid: 'Postcode must be 4 digits',
+  
   // Vikar conversion
   convertToPermanent: 'Convert to permanent employee',
   convertToPermanentNote: 'This will remove the expiration date and make the employee permanent',

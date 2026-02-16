@@ -63,6 +63,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           has_asbestos_certificate: userData.has_asbestos_certificate || false,
           has_trailer_license: userData.has_trailer_license || false,
           has_forklift_license: userData.has_forklift_license || false,
+          home_postcode: userData.home_postcode || null,
           ...(isDemoMode && { is_demo: true })
         });
 
@@ -143,7 +144,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             expires_at: formData.is_temporary && formData.expires_at ? formData.expires_at : null,
             has_asbestos_certificate: formData.has_asbestos_certificate || false,
             has_trailer_license: formData.has_trailer_license || false,
-            has_forklift_license: formData.has_forklift_license || false
+            has_forklift_license: formData.has_forklift_license || false,
+            home_postcode: formData.home_postcode || null
           }
         };
         
@@ -211,6 +213,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
               has_asbestos_certificate: formData.has_asbestos_certificate || false,
               has_trailer_license: formData.has_trailer_license || false,
               has_forklift_license: formData.has_forklift_license || false,
+              home_postcode: formData.home_postcode || null,
               updated_at: new Date().toISOString()
             })
             .eq('id', userId);
