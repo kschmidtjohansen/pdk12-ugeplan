@@ -2,6 +2,9 @@
 
 ## Security Hardening - February 2026
 
+### Optimized - 2026-02-16
+- **DAWA koordinater direkte**: Koordinater udtrækkes nu direkte fra DAWA autocomplete-svaret (`adgangspunkt.koordinater`) — fjerner overflødigt API-kald ved adresse-valg. Fallback via `fetchPostnrCoords` beholdes for manuelt input.
+
 ### Added - 2026-02-16
 - **GPS-koordinater**: Tilføjet `lat` og `lng` (float8) kolonner til `profiles` og `assignments` tabellerne
 - **DAWA postnummer-opslag**: `dawa-proxy` Edge Function understøtter nu `?postnr=7120` for at hente GPS-koordinater fra `visueltcenter`

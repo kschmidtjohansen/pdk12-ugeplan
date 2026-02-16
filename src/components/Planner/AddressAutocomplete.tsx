@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 interface AddressAutocompleteProps {
   value: string;
   onChange: (location: string) => void;
-  onAddressSelect: (data: { address: string; zipCode: string; city: string }) => void;
+  onAddressSelect: (data: { address: string; zipCode: string; city: string; lat?: number; lng?: number }) => void;
   placeholder?: string;
 }
 
@@ -52,10 +52,18 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     const fullAddress = `${addr.vejnavn} ${addr.husnr}, ${addr.postnr} ${addr.postnrnavn}`.trim();
     setInputValue(fullAddress);
     onChange(fullAddress);
+
+    // Extract coords directly from DAWA response (format: [lng, lat])
+    const coords = addr.adgangspunkt?.koordinater;
+    const lat = coords ? coords[1] : undefined;
+    const lng = coords ? coords[0] : undefined;
+
     onAddressSelect({
       address: fullAddress,
       zipCode: addr.postnr,
       city: addr.postnrnavn,
+      lat,
+      lng,
     });
     setIsOpen(false);
   };

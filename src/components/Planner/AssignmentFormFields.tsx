@@ -202,10 +202,15 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             setCasePostcode(data.zipCode);
             setZipCode(data.zipCode);
             setCity(data.city);
-            // Fetch coords for the selected address postcode
-            fetchPostnrCoords(data.zipCode).then(coords => {
-              onCoordsChange?.(coords?.lat, coords?.lng);
-            });
+            // Use coords directly from DAWA autocomplete response (no extra API call)
+            if (data.lat !== undefined && data.lng !== undefined) {
+              onCoordsChange?.(data.lat, data.lng);
+            } else {
+              // Fallback: fetch coords if not available in autocomplete response
+              fetchPostnrCoords(data.zipCode).then(coords => {
+                onCoordsChange?.(coords?.lat, coords?.lng);
+              });
+            }
           }}
           placeholder={t('planner.enterLocation')}
         />
