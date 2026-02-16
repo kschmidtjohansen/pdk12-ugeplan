@@ -1,45 +1,129 @@
 
 
-## Fase 10b: Luk de 6 resterende sikkerhedsfund
+## Fase 5, Del 1: Geografisk Grundlag - Tilfoej `home_postcode` til medarbejderprofiler
 
-### Status
+### Oversigt
 
-Tre fund er allerede rettet (CRON_SECRET, storage policy, search_path) men ikke alle er markeret korrekt i panelet. Tre har stadig aktive kodeproblemer eller mangler ignore-begrundelse.
+Tilfoej et nyt felt `home_postcode` (privat postnummer, 4-cifret dansk format) til profiles-tabellen og medarbejder-UI'en. Feltet er kun synligt og redigerbart for admin-brugere.
 
 ---
 
-### Trin 1: Fix uguardede console-statements (3 filer)
+### Trin 1: SQL-migrering
 
-**Fil: `src/integrations/supabase/client.ts`** (linje 29, 34, 52)
-- Wrap `console.error('Session validation error:' ...)` i DEV-guard
-- Wrap `console.error('Session validation failed:' ...)` i DEV-guard
-- Wrap `console.warn(operationName attempt ...)` i DEV-guard
+Tilfoej kolonnen `home_postcode` til `profiles`-tabellen med en CHECK-constraint der sikrer dansk 4-cifret format:
 
-**Fil: `src/components/Auth/SecurityHeaders.tsx`** (linje 61)
-- Wrap `console.warn('[Security] Potential security issue ...')` i DEV-guard
+```text
+ALTER TABLE profiles 
+ADD COLUMN home_postcode text;
 
-**Fil: `src/hooks/assignment/useAssignmentFiles.ts`** (linje 494, 508)
-- Wrap `console.warn('[useAssignmentFiles] Storage deletion ...')` i DEV-guard
-- Wrap `console.error('[useAssignmentFiles] Error deleting ...')` i DEV-guard
+ALTER TABLE profiles 
+ADD CONSTRAINT postcode_format_check 
+CHECK (home_postcode IS NULL OR home_postcode ~ '^\d{4}$');
+```
 
-### Trin 2: Opdater sikkerhedspanelet
+Kolonnen er nullable (ikke alle medarbejdere har indtastet postnummer endnu).
 
-Marker foelgende findings:
+---
 
-1. **`definer_no_search_path`** - Slet finding (allerede rettet i migration med SET search_path = public)
-2. **`console_prod_logging`** - Slet finding (rettet i trin 1)
-3. **`demo_pass_in_migrations`** - Marker ignoreret: "Demo-kontoen er isoleret med RESTRICTIVE RLS og 15-min TTL. Passwordet giver kun adgang til sandboxed demo-data der slettes automatisk."
-4. **`chart_dangerous_html`** - Marker ignoreret: "shadcn/ui bibliotekskode. Data stammer fra interne THEMES-konstanter, ikke brugerinput. Ingen XSS-risiko."
+### Trin 2: TypeScript-type opdatering
 
-### Trin 3: Dokumentation
+**`src/types/employee.ts`**: Tilfoej `home_postcode?: string` til `Employee` interface.
 
-- Opdater `CHANGELOG.md` med sikkerhedsrettelserne
-- Opdater `docs/implementation-plan/tasks.md` med afsluttet Fase 10
+---
 
-### Resultat
+### Trin 3: Form state
 
-Sikkerhedspanelet vil have:
-- 0 errors
-- 0 warnings
-- 2 ignorerede infos (med begrundelse)
+**`src/hooks/employee/useEmployeeFormState.ts`**: 
+- Tilfoej `home_postcode: string` til `EmployeeFormData` interface
+- Tilfoej default-vaerdi `home_postcode: ''` i alle reset/prepare-funktioner
+- Map `employee.home_postcode || ''` i `prepareForEdit`
+
+---
+
+### Trin 4: Data-lag
+
+**`src/hooks/employee/useEmployeeData.ts`**: 
+- Tilfoej `home_postcode` til SELECT-query (linje 73)
+- Map `home_postcode: profile.home_postcode || ''` i transform (linje 96-112)
+
+**`src/hooks/employee/useEmployeeActions.ts`**:
+- Tilfoej `home_postcode: formData.home_postcode || null` til updatePayload (linje 83-94)
+
+**`src/hooks/employee/useEmployeeCreation.ts`**:
+- Tilfoej `home_postcode` til profile insert og update payloads
+
+---
+
+### Trin 5: Medarbejder-formular
+
+**`src/components/Employees/EmployeeFormDialog.tsx`**:
+- Tilfoej nyt felt efter "jobTitle" (kun synligt naar `isAdmin` er true):
+
+```text
+{isAdmin && (
+  <div className="grid gap-2">
+    <Label htmlFor="home_postcode">{t("employees.homePostcode")}</Label>
+    <Input 
+      id="home_postcode" 
+      name="home_postcode" 
+      value={formData.home_postcode} 
+      onChange={handleInputChange}
+      maxLength={4}
+      pattern="\d{4}"
+      placeholder="f.eks. 7000"
+      disabled={isSubmitting}
+    />
+  </div>
+)}
+```
+
+- Tilfoej klient-side validering i `handleFormSubmit`: Hvis `home_postcode` er udfyldt men ikke matcher `/^\d{4}$/`, vis fejl.
+
+---
+
+### Trin 6: Tabel-visning (kun admin)
+
+**`src/components/Employees/EmployeesTable.tsx`**:
+- Tilfoej kolonne-header `{isAdmin && <TableHead>{t('employees.postcode')}</TableHead>}` efter "Certificates"
+
+**`src/components/Employees/EmployeeTableRow.tsx`**:
+- Tilfoej `{isAdmin && <TableCell>{employee.home_postcode || '-'}</TableCell>}` efter certificates-cellen
+
+**`src/components/Employees/MobileEmployeeCard.tsx`**:
+- Vis postnummer i admin-sektionen (under rolle-badge)
+
+---
+
+### Trin 7: Oversaettelser
+
+**`src/translations/da/employees.ts`**: Tilfoej:
+- `homePostcode: 'Postnummer'`
+- `postcode: 'Postnr.'`
+- `postcodeInvalid: 'Postnummer skal vaere 4 cifre'`
+
+**`src/translations/en/employees.ts`**: Tilfoej:
+- `homePostcode: 'Postcode'`
+- `postcode: 'Postcode'`
+- `postcodeInvalid: 'Postcode must be 4 digits'`
+
+---
+
+### Trin 8: Dokumentation
+
+**`docs/technical-specs/database-schema.md`**: Tilfoej `home_postcode` til profiles-dokumentation.
+
+**`docs/implementation-plan/tasks.md`**: Marker "Fase 5: Del 1" som faerdigt.
+
+**`CHANGELOG.md`**: Tilfoej entry under ny sektion.
+
+---
+
+### Kvalitetstjek
+
+- CHECK constraint paa databaseniveau forhindrer ugyldige postnumre
+- Klient-side validering med `pattern` og maxLength som ekstra lag
+- Kun admin-brugere kan se og redigere feltet (isAdmin guard)
+- Ingen foelsom data logges
+- Responsive: Vises i baade tabel og mobil-kort
+- RLS uaendret (eksisterende profile-policies daekker den nye kolonne)
 
