@@ -113,6 +113,11 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                     {getRoleLabel(employee.role)}
                   </StatusBadge>
                 </div>
+                {employee.home_postcode && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t('employees.postcode')}: {employee.home_postcode}
+                  </p>
+                )}
               </div>
             )}
           </div>

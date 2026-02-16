@@ -199,3 +199,20 @@ Gennemført 2026-02-16.
 - [x] Markeret `chart_dangerous_html` som ignoreret (shadcn/ui intern data)
 - [x] Sikkerhedspanel: 0 errors, 0 warnings, 2 ignorerede infos
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 5, Del 1: Geografisk Grundlag ✅
+
+Gennemført 2026-02-16.
+
+- [x] Tilføjet `home_postcode` (TEXT) kolonne til `profiles` med CHECK constraint `~ '^\d{4}$'`
+- [x] Opdateret `Employee` TypeScript-type med `home_postcode?: string`
+- [x] Opdateret `useEmployeeFormState` med `home_postcode` i alle form-funktioner
+- [x] Opdateret `useEmployeeData` SELECT-query og transform med `home_postcode`
+- [x] Opdateret `useEmployeeActions` updatePayload med `home_postcode`
+- [x] Opdateret `useEmployeeCreation` insert/update payloads med `home_postcode`
+- [x] Tilføjet postnummer-felt i `EmployeeFormDialog` (kun admin, med 4-cifret validering)
+- [x] Tilføjet postnummer-kolonne i `EmployeesTable` og `EmployeeTableRow` (kun admin)
+- [x] Tilføjet postnummer i `MobileEmployeeCard` (kun admin)
+- [x] Tilføjet DA/EN oversættelser for homePostcode, postcode, postcodeInvalid
+- [x] Opdateret `docs/technical-specs/database-schema.md`
+- [x] Dokumenteret i CHANGELOG.md
