@@ -82,7 +82,24 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
-  const [casePostcode, setCasePostcode] = useState(zipCode || '');
+
+  const extractPostcode = (loc: string) => {
+    const match = loc.match(/,\s*(\d{4})\s/);
+    return match ? match[1] : '';
+  };
+
+  const [casePostcode, setCasePostcode] = useState(zipCode || extractPostcode(location) || '');
+
+  // Sync casePostcode when location is loaded (e.g. edit mode) and no zipCode exists
+  React.useEffect(() => {
+    if (!casePostcode && location) {
+      const extracted = extractPostcode(location);
+      if (extracted) {
+        setCasePostcode(extracted);
+        setZipCode(extracted);
+      }
+    }
+  }, [location]);
 
   if (import.meta.env.DEV) {
     console.log('[AssignmentFormFields] Car state:', { selectedCarIds });
