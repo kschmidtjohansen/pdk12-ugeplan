@@ -1,49 +1,67 @@
 
 
-## Fix: Lokationer skal starte tomme per afdeling
+## Fix: Tilfoej manglende oversaettelser for lokationsstyring
 
 ### Problem
-`LocationManagement` har en hardcoded `defaultLocations`-liste med "Hal 1" og "Sort Hal" der ALTID vises. localStorage-scopingen skjuler kun tilpasninger, men standard-lokationerne vises i alle afdelinger. For Afd. 16 skal der ikke vises noget, da ingen lokationer er oprettet der.
+`LocationManagement.tsx` bruger oversaettelsesnoegler som `admin.locations.addPlaceholder`, `admin.locations.add`, `admin.locations.noLocations` osv., men disse noegler findes ikke i hverken `da/admin.ts` eller `en/admin.ts`. Derfor vises de raa noegler i UI'et.
 
 ### Loesning
-Aendr arkitekturen saa lokationer gemmes HELT i localStorage per afdeling. Ingen hardcodede defaults. Hver afdeling starter med en tom liste, og lokationer tilfojes eksplicit via en "Tilfoej lokation"-knap.
+Tilfoej en `locations`-sektion til `admin`-objektet i begge sprogfiler.
 
 ---
 
-### Aendringer i `src/components/Admin/LocationManagement.tsx`
+### Aendringer
 
-1. **Fjern hardcoded `defaultLocations`-array** (linje med hal_1 og sort_hal)
+**`src/translations/da/admin.ts`** - Tilfoej efter `tabs`-sektionen eller i bunden af admin-objektet:
 
-2. **Gem lokationer i localStorage per afdeling** som en fuld liste i stedet for kun "tilpasninger ovenpaa defaults":
 ```text
-// localStorage struktur per afdeling:
-{
-  locations: [
-    { key: "hal_1", label: "Hal 1" },
-    { key: "sort_hal", label: "Sort Hal" }
-  ]
+locations: {
+  description: 'Administrer lagerlokationer for denne afdeling',
+  addPlaceholder: 'Navn paa ny lokation...',
+  add: 'Tilfoej',
+  noLocations: 'Ingen lokationer',
+  alreadyExists: 'Lokation findes allerede',
+  added: 'Lokation tilfojet',
+  renamed: 'Lokationsnavn opdateret',
+  deleted: 'Lokation slettet',
+  editName: 'Rediger navn',
+  delete: 'Slet lokation',
+  deleteConfirm: 'Slet lokation?',
+  deleteWarning: 'Alle opbevaringer tilknyttet denne lokation vil faa deres lokation sat til ingen. Denne handling kan ikke fortrydes.'
 }
 ```
 
-3. **Tilfoej "Tilfoej lokation"-knap** med et input-felt saa brugeren kan oprette lokationer specifikt for den aktive afdeling.
+**`src/translations/en/admin.ts`** - Tilsvarende paa engelsk:
 
-4. **Bevar rename og slet funktionalitet** - de arbejder nu direkte paa den gemte liste.
+```text
+locations: {
+  description: 'Manage warehouse locations for this department',
+  addPlaceholder: 'Name of new location...',
+  add: 'Add',
+  noLocations: 'No locations',
+  alreadyExists: 'Location already exists',
+  added: 'Location added',
+  renamed: 'Location name updated',
+  deleted: 'Location deleted',
+  editName: 'Edit name',
+  delete: 'Delete location',
+  deleteConfirm: 'Delete location?',
+  deleteWarning: 'All stored items linked to this location will have their location cleared. This action cannot be undone.'
+}
+```
 
-5. **Migration**: For afdeling 12 - Fredericia (eller andre der allerede bruger lokationer), hvis der IKKE findes data under den nye noegle, kan man valgfrit pre-populate med defaults. Alternativt starter alle afdelinger tomt og brugeren tilfojer manuelt.
-
-### Ny UI-flow
-- Afdeling uden lokationer: Viser "Ingen lokationer" + "Tilfoej lokation"-knap
-- Afdeling med lokationer: Viser listen med rename/slet som nu + "Tilfoej lokation"-knap
+**`CHANGELOG.md`** - Dokumenter tilfoejelsen af manglende oversaettelser.
 
 ### Filer der aendres
 
 | Fil | Aendring |
 |-----|---------|
-| `src/components/Admin/LocationManagement.tsx` | Fjern hardcoded defaults, tilfoej lokation-CRUD fra localStorage, tilfoej "Tilfoej lokation"-knap |
-| `CHANGELOG.md` | Dokumenter aendringen |
+| `src/translations/da/admin.ts` | Tilfoej `locations`-sektion med danske oversaettelser |
+| `src/translations/en/admin.ts` | Tilfoej `locations`-sektion med engelske oversaettelser |
+| `CHANGELOG.md` | Dokumenter fix |
 
 ### Kvalitetstjek
-- Afd. 16 viser ingen lokationer (tom liste)
-- Afd. 12 kan faa sine lokationer tilbagefoert manuelt via "Tilfoej lokation"
-- Sletning fjerner lokationen permanent fra listen for den afdeling
-- Ingen pavirkning paa andre afdelinger
+- Alle noegler brugt i `LocationManagement.tsx` er daekket
+- Terminologi foelger Knowledge: "Lokation" (ikke "Hall" eller "Lagerplads")
+- Beskrivelsen er opdateret til at naevne "denne afdeling" for at reflektere den nye per-afdeling-isolering
+
