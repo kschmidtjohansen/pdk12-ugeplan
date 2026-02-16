@@ -39,6 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - 2026-02-16
+- **AUTH FIX**: Synkroniseret `auth.users.email` med `profiles.email` for Petrie Rasmussen (vikar opgraderet til fast bruger havde stadig `@temp.local` email i auth)
+
 ### Demo-RPC migrering + Afdelingsvælger redesign (Fase 9e) - 2026-02-15
 - **KRITISK FIX**: Alle 6 demo-RPCs migreret fra `demo.*` schema til `public.*` schema med `WHERE is_demo = true`
   - `get_demo_cars_with_security`, `get_demo_profiles_admin_detailed`, `get_demo_warehouse_items`
