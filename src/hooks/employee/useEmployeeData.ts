@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
@@ -9,6 +9,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
+import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
@@ -16,6 +17,7 @@ export const useEmployeeData = () => {
   const { user, isDemoMode, userDataLoaded } = useAuth();
   const { selectedDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
+  const backfillRanRef = useRef(false);
   
   const queryKey = ['employees', isDemoMode, selectedDepartmentId] as const;
 
@@ -162,6 +164,28 @@ export const useEmployeeData = () => {
     enabled: userDataLoaded && !!user,
     staleTime: 5 * 60 * 1000,
   });
+
+  // Backfill missing GPS coordinates for employees with home_postcode
+  useEffect(() => {
+    if (backfillRanRef.current || isDemoMode || employees.length === 0) return;
+    const missing = employees.filter(e => e.home_postcode && !e.lat && !e.lng);
+    if (missing.length === 0) return;
+    backfillRanRef.current = true;
+    if (import.meta.env.DEV) console.log(`[useEmployeeData] Backfilling coords for ${missing.length} employees`);
+    
+    (async () => {
+      for (const emp of missing) {
+        try {
+          const coords = await fetchPostnrCoords(emp.home_postcode!);
+          if (coords) {
+            await supabase.from('profiles').update({ lat: coords.lat, lng: coords.lng }).eq('id', emp.id);
+          }
+        } catch { /* ignore individual failures */ }
+      }
+      // Refresh employees to pick up new coords
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    })();
+  }, [employees, isDemoMode, queryClient]);
 
   // Show error toasts
   useEffect(() => {
