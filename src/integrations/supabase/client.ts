@@ -26,12 +26,12 @@ export const ensureValidSession = async (): Promise<boolean> => {
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error) {
-      console.error('Session validation error:', error);
+      if (import.meta.env.DEV) console.error('Session validation error:', error);
       return false;
     }
     return !!session;
   } catch (error) {
-    console.error('Session validation failed:', error);
+    if (import.meta.env.DEV) console.error('Session validation failed:', error);
     return false;
   }
 };
@@ -49,7 +49,7 @@ export const withRetry = async <T>(
       return await operation();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.warn(`${operationName} attempt ${attempt} failed:`, lastError.message);
+      if (import.meta.env.DEV) console.warn(`${operationName} attempt ${attempt} failed:`, lastError.message);
       
       if (attempt === maxRetries) {
         break;

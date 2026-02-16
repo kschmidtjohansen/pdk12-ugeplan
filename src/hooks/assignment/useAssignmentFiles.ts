@@ -491,7 +491,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
         .remove([file.file_path]);
 
       if (storageError) {
-        console.warn('[useAssignmentFiles] Storage deletion warning:', storageError);
+        if (import.meta.env.DEV) console.warn('[useAssignmentFiles] Storage deletion warning:', storageError);
       }
 
       // Delete database record
@@ -505,7 +505,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       await fetchFiles();
       toast.success('Fil slettet');
     } catch (error) {
-      console.error('[useAssignmentFiles] Error deleting file:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error deleting file:', error);
       toast.error('Kunne ikke slette fil');
     }
   }, [fetchFiles]);
