@@ -161,3 +161,14 @@ Gennemført 2026-02-15.
 - [x] Afdelingsvælger redesignet til side-by-side layout (to separate dropdowns)
 - [x] DEV-guard på 12 console.log i `useDutyData`, `carSecurityService`, `useCarFormState`, `DepartmentContext`
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 9f: Fix manglende opgaver + vagter (NULL department_id) ✅
+
+Gennemført 2026-02-16.
+
+- [x] Backfilled 10 assignments med `department_id = NULL` til afd. 12 - Fredericia
+- [x] Opdateret RPC `list_accessible_assignments_with_team` med `OR a.department_id IS NULL` i begge grene
+- [x] Backfilled 21 orphaned vagter med `department_id` fra opretterens profil
+- [x] Tilføjet `department_id` og `sub_department_id` til duty-insert i `useDutyActions.ts`
+- [x] Ændret `useDutyData.ts` query til defensiv `.or()` filter der inkluderer `NULL department_id`
+- [x] Dokumenteret i CHANGELOG.md

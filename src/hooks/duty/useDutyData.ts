@@ -64,7 +64,7 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
         .order('duty_date', { ascending: true });
 
       if (selectedDepartmentId && !isDemoMode) {
-        query = query.eq('department_id', selectedDepartmentId);
+        query = query.or(`department_id.eq.${selectedDepartmentId},department_id.is.null`);
       }
       if (startDateStr) query = query.gte('duty_date', startDateStr);
       if (endDateStr) query = query.lte('duty_date', endDateStr);
