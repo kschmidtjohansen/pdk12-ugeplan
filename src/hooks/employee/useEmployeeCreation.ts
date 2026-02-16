@@ -6,6 +6,7 @@ import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { isValidUUID } from '@/utils/uuidValidation';
 import { useAuth } from '@/context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
 
 export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   const queryClient = useQueryClient();
@@ -47,6 +48,14 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         if (import.meta.env.DEV) console.log('[useEmployeeCreation] Auth user created');
       }
 
+      // Fetch GPS coordinates from postcode
+      let lat: number | null = null;
+      let lng: number | null = null;
+      if (userData.home_postcode) {
+        const coords = await fetchPostnrCoords(userData.home_postcode);
+        if (coords) { lat = coords.lat; lng = coords.lng; }
+      }
+
       const client = getSchemaClient(isDemoMode);
       const { error: profileError } = await client
         .from('profiles')
@@ -65,6 +74,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           has_forklift_license: userData.has_forklift_license || false,
           home_postcode: userData.home_postcode || null,
           home_address: userData.home_address || null,
+          lat,
+          lng,
           ...(isDemoMode && { is_demo: true })
         });
 
@@ -135,6 +146,14 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       try {
         if (import.meta.env.DEV) console.log('[useEmployeeCreation] Attempting edge function creation');
         
+        // Fetch GPS coordinates before sending to edge function
+        let lat: number | undefined;
+        let lng: number | undefined;
+        if (formData.home_postcode) {
+          const coords = await fetchPostnrCoords(formData.home_postcode);
+          if (coords) { lat = coords.lat; lng = coords.lng; }
+        }
+
         const requestBody: any = {
           name: formData.name,
           role: formData.is_temporary ? 'vikar' : (formData.role || 'servicemedarbejder'),
@@ -147,7 +166,9 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             has_trailer_license: formData.has_trailer_license || false,
             has_forklift_license: formData.has_forklift_license || false,
             home_postcode: formData.home_postcode || null,
-            home_address: formData.home_address || null
+            home_address: formData.home_address || null,
+            lat: lat ?? null,
+            lng: lng ?? null,
           }
         };
         

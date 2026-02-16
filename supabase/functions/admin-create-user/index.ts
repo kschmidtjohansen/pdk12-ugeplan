@@ -225,7 +225,11 @@ serve(async (req) => {
           expires_at: userData?.is_temporary && userData?.expires_at ? userData.expires_at : null,
           has_asbestos_certificate: !!userData?.has_asbestos_certificate,
           has_trailer_license: !!userData?.has_trailer_license,
-          has_forklift_license: !!userData?.has_forklift_license
+          has_forklift_license: !!userData?.has_forklift_license,
+          home_postcode: userData?.home_postcode || null,
+          home_address: userData?.home_address || null,
+          lat: userData?.lat || null,
+          lng: userData?.lng || null,
         });
 
       if (profileError) {

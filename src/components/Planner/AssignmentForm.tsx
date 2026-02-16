@@ -54,6 +54,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [zipCode, setZipCode] = useState(formData.zip_code || '');
   const [city, setCity] = useState(formData.city || '');
+  const [assignmentLat, setAssignmentLat] = useState<number | undefined>(formData.lat ?? undefined);
+  const [assignmentLng, setAssignmentLng] = useState<number | undefined>(formData.lng ?? undefined);
   const {
     handleSubmit,
     formState: {
@@ -106,7 +108,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     setIsSubmitting(true);
     try {
       console.log('[AssignmentForm] Validation passed, calling onSubmit with data:', formData);
-      await onSubmit({ ...formData, zip_code: zipCode, city });
+      await onSubmit({ ...formData, zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng });
       console.log('[AssignmentForm] onSubmit completed successfully');
     } catch (error) {
       console.error('[AssignmentForm] Error in form submission:', error);
@@ -331,6 +333,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           setZipCode={setZipCode}
           city={city}
           setCity={setCity}
+          onCoordsChange={(lat, lng) => {
+            setAssignmentLat(lat);
+            setAssignmentLng(lng);
+          }}
         />
       </div>
 

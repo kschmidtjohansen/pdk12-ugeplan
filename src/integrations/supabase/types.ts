@@ -131,6 +131,8 @@ export type Database = {
           from_time: string
           id: string
           is_demo: boolean
+          lat: number | null
+          lng: number | null
           location: string
           onedrive_folder_id: string | null
           published: boolean | null
@@ -157,6 +159,8 @@ export type Database = {
           from_time: string
           id?: string
           is_demo?: boolean
+          lat?: number | null
+          lng?: number | null
           location: string
           onedrive_folder_id?: string | null
           published?: boolean | null
@@ -183,6 +187,8 @@ export type Database = {
           from_time?: string
           id?: string
           is_demo?: boolean
+          lat?: number | null
+          lng?: number | null
           location?: string
           onedrive_folder_id?: string | null
           published?: boolean | null
@@ -772,6 +778,8 @@ export type Database = {
           is_temporary: boolean | null
           is_visible_in_planning: boolean
           job_title: string | null
+          lat: number | null
+          lng: number | null
           name: string
           notes: string | null
           on_leave: boolean | null
@@ -796,6 +804,8 @@ export type Database = {
           is_temporary?: boolean | null
           is_visible_in_planning?: boolean
           job_title?: string | null
+          lat?: number | null
+          lng?: number | null
           name: string
           notes?: string | null
           on_leave?: boolean | null
@@ -820,6 +830,8 @@ export type Database = {
           is_temporary?: boolean | null
           is_visible_in_planning?: boolean
           job_title?: string | null
+          lat?: number | null
+          lng?: number | null
           name?: string
           notes?: string | null
           on_leave?: boolean | null

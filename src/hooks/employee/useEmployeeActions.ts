@@ -7,6 +7,7 @@ import { Employee } from '@/types/employee';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { useAuth } from '@/context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
@@ -94,6 +95,15 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         home_address: formData.home_address || null,
         updated_at: new Date().toISOString()
       };
+
+      // Fetch GPS coordinates if home_postcode changed
+      if (formData.home_postcode && formData.home_postcode !== employee.home_postcode) {
+        const coords = await fetchPostnrCoords(formData.home_postcode);
+        if (coords) {
+          updatePayload.lat = coords.lat;
+          updatePayload.lng = coords.lng;
+        }
+      }
 
       // Handle vikar to permanent conversion
       if ('is_temporary' in formData) {

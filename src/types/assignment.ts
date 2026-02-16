@@ -17,6 +17,8 @@ export interface Assignment {
   cars?: string[];
   zip_code?: string;
   city?: string;
+  lat?: number;
+  lng?: number;
   createdAt?: string;
   updatedAt?: string;
   responsibleUser?: {
