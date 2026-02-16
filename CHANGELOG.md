@@ -3,6 +3,7 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-16
+- **Manglende oversættelser for lokationsstyring**: Tilføjet `addPlaceholder`, `add`, `alreadyExists` og `added` nøgler til `admin.locations` i både da/en sprogfiler. Beskrivelsen opdateret til at reflektere per-afdeling-scope.
 - **Lokationer fuldt isoleret per afdeling**: Hardcodede default-lokationer fjernet. Hver afdeling starter nu med en tom liste og lokationer oprettes eksplicit via "Tilføj lokation"-knap. Lokationer gemmes i localStorage per afdeling, så Afd. 16 ikke arver lokationer fra Afd. 12.
 - **Afdelingstilknytning ved brugeroprettelse**: Formularen pre-selecter nu den aktive afdeling automatisk, så nye brugere altid tilknyttes mindst én afdeling. Validering forhindrer oprettelse uden afdelingsvalg.
 
