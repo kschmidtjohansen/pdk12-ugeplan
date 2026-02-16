@@ -110,6 +110,23 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
     }
   }, [location]);
 
+  // Auto-fetch coordinates in edit-mode when caseLat/caseLng are missing
+  React.useEffect(() => {
+    if (caseLat == null && caseLng == null) {
+      const postcode = zipCode || extractPostcode(location);
+      if (postcode) {
+        fetchPostnrCoords(postcode).then(coords => {
+          if (coords) {
+            setCaseLat(coords.lat);
+            setCaseLng(coords.lng);
+            onCoordsChange?.(coords.lat, coords.lng);
+          }
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
   if (import.meta.env.DEV) {
     console.log('[AssignmentFormFields] Car state:', { selectedCarIds });
   }

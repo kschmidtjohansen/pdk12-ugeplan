@@ -74,6 +74,17 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return [...employees].sort((a, b) => a.name.localeCompare(b.name));
   }, [employees, caseLat, caseLng, distanceMap]);
 
+  // Identify top-3 nearest employees within 15 km
+  const top3NearbyIds = useMemo(() => {
+    return sortedEmployees
+      .filter(emp => {
+        const d = distanceMap.get(emp.id);
+        return d != null && d <= 15;
+      })
+      .slice(0, 3)
+      .map(emp => emp.id);
+  }, [sortedEmployees, distanceMap]);
+
   const dateForComparison = (() => {
     try {
       let dateStr: string;
@@ -204,6 +215,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               // Distance info
               const dist = distanceMap.get(employee.id);
               const isNearby = dist != null && dist <= 15;
+              const isTop3 = top3NearbyIds.includes(employee.id);
               const formattedDist = dist != null
                 ? (currentLanguage === 'da' ? dist.toFixed(1).replace('.', ',') : dist.toFixed(1))
                 : null;
@@ -237,8 +249,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                         {employee.name}
                       </span>
                       {isNearby && formattedDist && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <MapPin className="h-3 w-3" />
+                        <span className={`text-xs flex items-center gap-1 mt-0.5 ${isTop3 ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
+                          <MapPin className={`h-3 w-3 ${isTop3 ? 'text-green-600' : ''}`} />
                           {formattedDist} km {currentLanguage === 'da' ? 'væk' : 'away'}
                         </span>
                       )}

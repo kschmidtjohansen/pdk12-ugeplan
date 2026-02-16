@@ -2,6 +2,10 @@
 
 ## Security Hardening - February 2026
 
+### Fixed - 2026-02-16
+- **Nærmeste-fix edit-mode**: Auto-fetch af GPS-koordinater fra postnummer ved redigering af opgave — proximity-sortering virker nu også i edit-mode
+- **Top-3 grøn visning**: De 3 nærmeste medarbejdere (inden for 15 km) vises med grøn tekst og MapPin-ikon, øvrige i standard grå
+
 ### Changed - 2026-02-16
 - **UI/UX Refactoring**: EmployeeSelector og CarSelector redesignet med luftig padding (py-3 px-4), neutrale hover/valg-farver (bg-accent/50, bg-accent/30), tynde separatorer (border-border/40). Proximity vises som diskret sub-tekst med MapPin-ikon i stedet for grøn badge. CarSelector viser nummerplade som sub-tekst og bruger Car-ikon. Røde rammer og "Valgt"-badges fjernet.
 - **Design System**: Ny "List Item (Dropdown/Selector)" sektion tilføjet i `docs/ui-guidelines/design-system.md`
