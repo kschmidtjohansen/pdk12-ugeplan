@@ -57,8 +57,7 @@ export const SecurityHeaders: React.FC = () => {
     console.error = (...args) => {
       const errorMsg = args.join(' ');
       if (errorMsg.includes('script') || errorMsg.includes('eval') || errorMsg.includes('innerHTML')) {
-        // Log potential security issues
-        console.warn('[Security] Potential security issue detected:', errorMsg);
+        if (import.meta.env.DEV) console.warn('[Security] Potential security issue detected:', errorMsg);
       }
       originalConsoleError.apply(console, args);
     };

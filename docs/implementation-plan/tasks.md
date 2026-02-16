@@ -185,3 +185,17 @@ Gennemført 2026-02-16.
 - [x] Klient-side længdevalidering i useAssignmentMessages og useAssignmentFiles
 - [x] Markeret acceptable findings som ignoreret med begrundelse
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 10b: Resterende sikkerhedsfund ✅
+
+Gennemført 2026-02-16.
+
+- [x] DEV-guard på 3 console.error/warn i `supabase/client.ts`
+- [x] DEV-guard på 1 console.warn i `SecurityHeaders.tsx`
+- [x] DEV-guard på 2 console.warn/error i `useAssignmentFiles.ts`
+- [x] Slettet `definer_no_search_path` finding (allerede rettet i migration)
+- [x] Slettet `console_prod_logging` finding (rettet i kode)
+- [x] Markeret `demo_pass_in_migrations` som ignoreret (RESTRICTIVE RLS + 15-min TTL)
+- [x] Markeret `chart_dangerous_html` som ignoreret (shadcn/ui intern data)
+- [x] Sikkerhedspanel: 0 errors, 0 warnings, 2 ignorerede infos
+- [x] Dokumenteret i CHANGELOG.md

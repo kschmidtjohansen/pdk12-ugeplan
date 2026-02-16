@@ -1,5 +1,13 @@
 # Changelog
 
+## Security Hardening - February 2026
+
+### Fixed - 2026-02-16
+- Wrappet resterende uguardede `console.error`/`console.warn` i `import.meta.env.DEV` guard (client.ts, SecurityHeaders.tsx, useAssignmentFiles.ts)
+- Slettet `definer_no_search_path` og `console_prod_logging` findings fra sikkerhedspanelet (allerede rettet)
+- Markeret `demo_pass_in_migrations` og `chart_dangerous_html` som ignoreret med begrundelse
+- Sikkerhedspanelet har nu 0 errors, 0 warnings, 2 ignorerede infos
+
 <!-- 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️  CRITICAL: MANDATORY CHANGELOG UPDATES ⚠️
