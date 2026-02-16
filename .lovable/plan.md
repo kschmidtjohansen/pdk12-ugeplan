@@ -1,50 +1,49 @@
 
 
-## Fix: Lokationer skal isoleres per afdeling
+## Fix: Lokationer skal starte tomme per afdeling
 
 ### Problem
-`LocationManagement` bruger en hardcoded liste og gemmer tilpasninger (navne, skjulte lokationer) i `localStorage` med en global noegle (`location-custom-names`). Derfor vises lokationer fra 12 - Fredericia ogsaa i 16 - Asnaes og 02 - Storkoebenhavn.
+`LocationManagement` har en hardcoded `defaultLocations`-liste med "Hal 1" og "Sort Hal" der ALTID vises. localStorage-scopingen skjuler kun tilpasninger, men standard-lokationerne vises i alle afdelinger. For Afd. 16 skal der ikke vises noget, da ingen lokationer er oprettet der.
 
 ### Loesning
-Scope localStorage-noeglen per `selectedDepartmentId`, saa hver afdeling har sine egne lokationstilpasninger.
+Aendr arkitekturen saa lokationer gemmes HELT i localStorage per afdeling. Ingen hardcodede defaults. Hver afdeling starter med en tom liste, og lokationer tilfojes eksplicit via en "Tilfoej lokation"-knap.
 
 ---
 
-### Trin 1: Importer DepartmentContext
+### Aendringer i `src/components/Admin/LocationManagement.tsx`
 
-**`src/components/Admin/LocationManagement.tsx`**
+1. **Fjern hardcoded `defaultLocations`-array** (linje med hal_1 og sort_hal)
 
-Tilfoej import af `useDepartment` og hent `selectedDepartmentId`.
-
-### Trin 2: Scope localStorage per afdeling
-
-Aendr `STORAGE_KEY` fra en statisk streng til en dynamisk noegle baseret paa `selectedDepartmentId`:
-
+2. **Gem lokationer i localStorage per afdeling** som en fuld liste i stedet for kun "tilpasninger ovenpaa defaults":
 ```text
-const storageKey = `location-custom-names-${selectedDepartmentId || 'default'}`;
+// localStorage struktur per afdeling:
+{
+  locations: [
+    { key: "hal_1", label: "Hal 1" },
+    { key: "sort_hal", label: "Sort Hal" }
+  ]
+}
 ```
 
-Opdater alle steder der bruger `STORAGE_KEY` til at bruge den dynamiske `storageKey`:
-- `useEffect` load (linje 32-41)
-- `saveToStorage` (linje 43-45)
+3. **Tilfoej "Tilfoej lokation"-knap** med et input-felt saa brugeren kan oprette lokationer specifikt for den aktive afdeling.
 
-### Trin 3: Re-load ved afdelingsskift
+4. **Bevar rename og slet funktionalitet** - de arbejder nu direkte paa den gemte liste.
 
-Tilfoej `selectedDepartmentId` som dependency i load-useEffect, saa tilpasninger genindlaeses naar brugeren skifter afdeling.
+5. **Migration**: For afdeling 12 - Fredericia (eller andre der allerede bruger lokationer), hvis der IKKE findes data under den nye noegle, kan man valgfrit pre-populate med defaults. Alternativt starter alle afdelinger tomt og brugeren tilfojer manuelt.
 
-### Trin 4: Opdater CHANGELOG.md
-
----
+### Ny UI-flow
+- Afdeling uden lokationer: Viser "Ingen lokationer" + "Tilfoej lokation"-knap
+- Afdeling med lokationer: Viser listen med rename/slet som nu + "Tilfoej lokation"-knap
 
 ### Filer der aendres
 
 | Fil | Aendring |
 |-----|---------|
-| `src/components/Admin/LocationManagement.tsx` | Import useDepartment, scope localStorage per afdeling |
-| `CHANGELOG.md` | Dokumenter fix |
+| `src/components/Admin/LocationManagement.tsx` | Fjern hardcoded defaults, tilfoej lokation-CRUD fra localStorage, tilfoej "Tilfoej lokation"-knap |
+| `CHANGELOG.md` | Dokumenter aendringen |
 
 ### Kvalitetstjek
-- Lokationer i 12 - Fredericia paavirker ikke 16 - Asnaes eller 02 - Storkoebenhavn
-- Eksisterende tilpasninger i Fredericia bevares (de ligger under den gamle noegle, men nye gemmes korrekt)
-- Sletning af en lokation i en afdeling paavirker ikke andre afdelinger
-
+- Afd. 16 viser ingen lokationer (tom liste)
+- Afd. 12 kan faa sine lokationer tilbagefoert manuelt via "Tilfoej lokation"
+- Sletning fjerner lokationen permanent fra listen for den afdeling
+- Ingen pavirkning paa andre afdelinger
