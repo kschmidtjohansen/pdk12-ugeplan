@@ -242,35 +242,26 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
             />
           </div>
           
-          {/* Home Address - Admin only */}
+          {/* Postcode - Admin only */}
           {isAdmin && (
             <div className="grid gap-2">
-              <Label>{t("employees.homeAddress")}</Label>
-              <div className="grid grid-cols-[100px_1fr] gap-2">
-                <Input 
-                  id="home_postcode" 
-                  name="home_postcode" 
-                  value={formData.home_postcode || ''} 
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                    handleInputChange({
-                      target: { name: 'home_postcode', value: val }
-                    } as any);
-                  }}
-                  maxLength={4}
-                  inputMode="numeric"
-                  placeholder="7000"
-                  disabled={isSubmitting}
-                />
-                <Input 
-                  id="home_address" 
-                  name="home_address" 
-                  value={formData.home_address || ''} 
-                  onChange={handleInputChange}
-                  placeholder={t("employees.homeAddressPlaceholder")}
-                  disabled={isSubmitting}
-                />
-              </div>
+              <Label htmlFor="home_postcode">{t("employees.homePostcode")}</Label>
+              <Input 
+                id="home_postcode" 
+                name="home_postcode" 
+                value={formData.home_postcode || ''} 
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                  handleInputChange({
+                    target: { name: 'home_postcode', value: val }
+                  } as any);
+                }}
+                maxLength={4}
+                inputMode="numeric"
+                placeholder="7000"
+                disabled={isSubmitting}
+                className="w-[120px]"
+              />
             </div>
           )}
 
