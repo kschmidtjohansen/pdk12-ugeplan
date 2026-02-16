@@ -1,85 +1,152 @@
 
 
-## Fase 9f: Fix manglende opgaver + vagter (NULL department_id)
+## Fase 10: Sikkerhedspanel-oprydning (Errors, Warnings, Infos)
 
-### Problem 1: Opgaver vises ikke i planner
-
-10 opgaver (inkl. 12-013546 "Haandvaerkervej 23") har `department_id = NULL` i databasen. RPC'en `list_accessible_assignments_with_team` filtrerer med `a.department_id = p_department_id`, og da `NULL != valgt_afdeling`, udelukkes disse opgaver.
-
-Beroorte opgaver:
-| Titel | Dato | Publiceret |
-|-------|------|-----------|
-| 12-013281 | 17-20 feb | Ja |
-| 12-013486 | 18-19 feb | Nej |
-| 12-013546 | 16 feb | Ja |
-| 12-013519 | 16 feb | Ja |
-| 12-013517 | 16 feb | Ja |
-| 12-013127 | 13 feb | Ja |
-
-### Problem 2: Vagter gemmes men vises ikke
-
-`useDutyActions.ts` indsaetter vagter uden `department_id`/`sub_department_id`. `useDutyData.ts` filtrerer med `.eq('department_id', selectedDepartmentId)`. Resultat: 21 af 194 vagter er usynlige.
+Maal: Nul aktive errors/warnings i sikkerhedspanelet uden at miste funktionalitet.
 
 ---
 
-### Loesning
+### Oversigt over aktive fund
 
-#### Trin 1: SQL-migrering (en samlet migrering)
+**Errors (3):**
+1. `cleanup_no_auth` - Edge functions uden autentificering
+2. `storage_bucket_overpermissive` - Storage bucket for aaben
+3. `PUBLIC_USER_DATA` / `EXPOSED_SENSITIVE_DATA` - profiles + user_roles laesbare for alle
 
-**1a) Backfill assignments:** Saet `department_id` paa de 10 orphaned opgaver til "12 - Fredericia" (`8c542620-9156-4155-b686-564b14a4ca62`):
+**Warnings (6):**
+4. `reply_msg_no_validation` - Manglende laengdevalidering paa beskeder/kommentarer
+5. `definer_no_search_path` - 4 SECURITY DEFINER funktioner mangler search_path
+6. Case folder / OneDrive / vacation / assignment messages+files RLS advarsler
 
-```text
-UPDATE assignments
-SET department_id = '8c542620-9156-4155-b686-564b14a4ca62'
-WHERE department_id IS NULL AND is_demo = false;
-```
+**Infos (3):**
+7. `demo_pass_in_migrations` - Demo-password i migrationsfiler
+8. `chart_dangerous_html` - dangerouslySetInnerHTML i chart.tsx (shadcn/ui)
 
-**1b) Opdater RPC** saa fremtidige NULL-vaerdier ogsaa vises. I begge grene (admin og servicemedarbejder) aendres:
+**Logging (produktionslogs):**
+9. Uguardede console.log i 10+ filer (weekFormatting, UserManagement, demoUserService, secureProfileService, m.fl.)
 
-Fra:
-```text
-WHERE (p_department_id IS NULL OR a.department_id = p_department_id)
-  AND (p_sub_department_id IS NULL OR a.sub_department_id = p_sub_department_id)
-```
+---
 
-Til:
-```text
-WHERE (p_department_id IS NULL OR a.department_id = p_department_id OR a.department_id IS NULL)
-  AND (p_sub_department_id IS NULL OR a.sub_department_id = p_sub_department_id OR a.sub_department_id IS NULL)
-```
+### Trin 1: SQL-migrering (samlet)
 
-**1c) Backfill duties:** Synkroniser de 21 orphaned vagters department_id med deres opretters afdeling:
+**1a) Tilfoej search_path til 4 SECURITY DEFINER funktioner:**
 
-```text
-UPDATE on_call_duties d
-SET department_id = p.department_id
-FROM profiles p
-WHERE d.created_by = p.id
-  AND d.department_id IS NULL
-  AND d.is_demo = false;
-```
+Genskabes med `SET search_path = public`:
+- `can_user_access_assignment(uuid, uuid)`
+- `can_access_assignment(uuid)` 
+- `is_admin_user()`
+- `get_current_user_role()`
 
-#### Trin 2: Fix `useDutyActions.ts` - tilfoej department_id ved oprettelse
-
-Importér `useDepartment` og tilfoej `department_id` og `sub_department_id` til duty-insert objektet (linje 52-59).
-
-#### Trin 3: Fix `useDutyData.ts` - defensiv query
-
-Aendr linje 66-68 fra `.eq('department_id', selectedDepartmentId)` til:
+**1b) Tilfoej CHECK constraints paa beskeder og kommentarer:**
 
 ```text
-query = query.or(`department_id.eq.${selectedDepartmentId},department_id.is.null`);
+ALTER TABLE assignment_messages 
+ADD CONSTRAINT message_length_check 
+CHECK (length(message) <= 5000 AND length(trim(message)) > 0);
+
+ALTER TABLE assignment_files 
+ADD CONSTRAINT comment_length_check 
+CHECK (comment IS NULL OR length(comment) <= 2000);
 ```
 
-#### Trin 4: Dokumentation
+**1c) Stram storage bucket policy:**
 
-Opdater `CHANGELOG.md` og `docs/implementation-plan/tasks.md`.
+Erstat den aabne SELECT-policy paa `assignment-files` med en der tjekker opgaveadgang via `assignment_files`-tabellens RLS (som allerede er strammet).
+
+---
+
+### Trin 2: Edge functions autentificering
+
+Tilfoej API-noegle-validering til de 3 uautentificerede edge functions:
+- `cleanup-expired-users`
+- `cleanup-change-logs` 
+- `send-duty-reminders`
+
+Disse er cron-job-funktioner der kun skal kaldes af systemet. Loesung: Tilfoej en simpel hemmelighed (`CRON_SECRET`) som header-check. Hvis headeren mangler eller er forkert, returneres 401.
+
+```text
+const cronSecret = Deno.env.get('CRON_SECRET');
+const providedSecret = req.headers.get('x-cron-secret');
+if (!cronSecret || providedSecret !== cronSecret) {
+  return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+}
+```
+
+Alternativt markeres disse som acceptable (de koerer allerede med verify_jwt=false fordi de kaldes af pg_cron, ikke af brugere).
+
+---
+
+### Trin 3: Fjern uguardede console.log fra produktion
+
+Wrap alle uguardede `console.log/warn/error` i `import.meta.env.DEV` guard i foelgende filer:
+
+| Fil | Antal |
+|-----|-------|
+| `src/utils/dates/weekFormatting.ts` | 4 (log+error) |
+| `src/components/Admin/UserManagement.tsx` | 5+ (log+warn) |
+| `src/services/demoUserService.ts` | 8+ (log+warn) |
+| `src/services/secureProfileService.ts` | 6 (error+warn) |
+| `src/services/securityManager.ts` | 8 (error+warn) |
+| `src/services/carSecurityService.ts` | 3 (error+warn) |
+| `src/hooks/duty/useDutyActions.ts` | 4 (error) |
+| `src/hooks/assignment/useAssignmentMessages.ts` | 3 (error) |
+| `src/hooks/assignment/useAssignmentFiles.ts` | 8 (error+warn) |
+| `src/components/Admin/PasswordChangeDialog.tsx` | 2 (error) |
+| `src/components/Admin/LocationManagement.tsx` | 1 (error) |
+| `src/components/Admin/UserFormDialog.tsx` | 2 (warn+error) |
+| `src/context/AuthContext.tsx` | ~5 uguardede (error+warn) |
+| `src/context/NotificationContext.tsx` | 1 (warn) |
+
+Error-logs beholdes men wraps i DEV-guard. Fejlhaandtering via toast forbliver uaendret.
+
+---
+
+### Trin 4: Ignorer/opdater acceptable findings
+
+Foelgende findings markeres som "ignoreret med begrundelse" i sikkerhedspanelet:
+
+1. **profiles/user_roles offentligt laesbare** - Allerede dokumenteret som noedvendigt for app-funktionalitet (navne, roller i UI). Begge er korrekt markeret i arkitekturdokumentationen.
+
+2. **chart.tsx dangerouslySetInnerHTML** - shadcn/ui bibliotekskode, data kommer fra interne konstanter, ikke brugerinput.
+
+3. **Demo-password i migrationsfiler** - Demo-kontoen er isoleret med RESTRICTIVE RLS og 15-min TTL. Passwordet giver kun adgang til sandboxed demo-data.
+
+4. **planner_change_log admin-only** / **onedrive_settings admin-only** - Korrekt konfigureret, intet at rette.
+
+5. **Case folder / OneDrive / vacation / assignment messages+files advarsler** - RLS-funktionerne (`can_access_case_data`, `can_access_vacation`) er allerede verificeret i Fase 5. Assignment messages/files er strammet i migration 20260212140657.
+
+---
+
+### Trin 5: Klient-side validering (beskeder og kommentarer)
+
+Tilfoej laengde-validering i:
+- `useAssignmentMessages.ts`: Max 5000 tegn paa beskeder
+- `useAssignmentFiles.ts`: Max 2000 tegn paa kommentarer
+
+---
+
+### Trin 6: Dokumentation
+
+- Opdater `CHANGELOG.md` med alle sikkerhedsrettelser
+- Opdater `docs/implementation-plan/tasks.md` med ny fase 10
+- Marker rettede punkter med flueben
+
+---
+
+### Raekkefoelge
+
+1. SQL-migrering (search_path + CHECK constraints + storage policy)
+2. Edge function autentificering eller accept
+3. Console.log oprydning (14+ filer)
+4. Klient-side validering (2 filer)
+5. Marker acceptable findings som ignoreret
+6. Opdater dokumentation
 
 ### Kvalitetstjek
 
-- Ingen foelsom data logges
-- RLS-politikker uaendrede (kun RPC-logik og client-side query justeret)
-- Backfill pavirker kun orphaned records
-- Defensiv `OR IS NULL`-logik forebygger fremtidige problemer
+- Ingen foelsom data logges i produktion
+- RLS-politikker styrkes (search_path, CHECK constraints)
+- Storage bucket strammes
+- Eksisterende funktionalitet uaendret
 - Overholder tekniske specifikationer og UI-guidelines
 
