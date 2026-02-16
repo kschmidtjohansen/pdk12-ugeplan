@@ -1,97 +1,143 @@
 
-## Opgave: Brug DAWA-koordinater direkte fra autocomplete-svar
 
-### Nuvaerende situation
+## Opgave: 15 km Radius-logik i medarbejder-booking
 
-Flowet er i dag:
-1. Bruger vaelger adresse fra DAWA autocomplete
-2. Postnummer udtraekkes
-3. Et **separat** API-kald til `fetchPostnrCoords` henter koordinater fra DAWA postnummer-endpoint
-4. Koordinater gemmes via `onCoordsChange` og sendes til databasen
+### Oversigt
 
-Problemet: DAWA autocomplete-API'et returnerer allerede koordinater i `adresse.adgangspunkt.koordinater` (format: `[lng, lat]`), men disse ignoreres. Det separate API-kald er unodvendigt.
-
-### Loesning
-
-Udtraek koordinaterne direkte fra DAWA autocomplete-svaret og videregiv dem til formularen. Fjern det overflodige `fetchPostnrCoords`-kald ved adresse-valg.
+Erstat den nuvaerende postnummer-baserede naerhedssortering (3 niveauer: eksakt/regional/anden) med praecis GPS-afstandsberegning via Haversine-formlen. Medarbejdere inden for 15 km vises oeverst med groen label og praecis afstand.
 
 ---
 
-### Trin 1: Udvid DawaSuggestion-typen
+### Trin 1: Opret Haversine-utility
 
-**`src/hooks/useDawaAutocomplete.ts`**:
-- Tilfoej `adgangspunkt` med `koordinater: [number, number]` til `adresse`-interfacet
-- DAWA returnerer allerede disse data — vi skal bare tilfoeje typen
+**Ny fil: `src/utils/haversine.ts`**
 
-### Trin 2: Udvid AddressAutocomplete callback
+```text
+export function haversineDistanceKm(
+  lat1: number, lng1: number,
+  lat2: number, lng2: number
+): number {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+```
 
-**`src/components/Planner/AddressAutocomplete.tsx`**:
-- Udvid `onAddressSelect` callback til ogsaa at inkludere `lat` og `lng`
-- I `handleSelect`: udtraek koordinater fra `suggestion.adresse.adgangspunkt.koordinater` (swap `[lng, lat]` til `{ lat, lng }`)
-- Fallback: hvis koordinater mangler, send `undefined`
+Ren funktion, ingen side-effekter, lynhurtig beregning.
 
-### Trin 3: Brug koordinater direkte i AssignmentFormFields
+---
 
-**`src/components/Planner/AssignmentFormFields.tsx`**:
-- I `onAddressSelect`-handleren: brug de modtagne `lat`/`lng` direkte via `onCoordsChange`
-- Fjern `fetchPostnrCoords`-kaldet ved adresse-valg (det er nu overflodigt)
-- Behold `fetchPostnrCoords` som fallback kun for manuelt indtastede adresser (hvor DAWA-koordinater ikke er tilgaengelige)
+### Trin 2: Udvid EmployeeSelector med GPS-koordinater
 
-### Trin 4: Dokumentation
+**`src/components/Planner/EmployeeSelector.tsx`**
 
-**`CHANGELOG.md`**: Log optimeringen
+Aendringer i interface:
+- Tilfoej `caseLat?: number` og `caseLng?: number` props
+
+Erstat `getProximityLevel` og `sortedEmployees` logik:
+- Beregn afstand via `haversineDistanceKm` for hver medarbejder der har `lat` og `lng`
+- Gem afstande i et `Map<string, number>` via `useMemo`
+- Sorter: medarbejdere med afstand under eller lig 15 km foerst (sorteret efter afstand), derefter resten alfabetisk
+- Fallback: hvis opgaven mangler koordinater, sorter alfabetisk
+
+Erstat badge-rendering (linje 219-233):
+- Hvis afstand er tilgaengelig og under eller lig 15 km: groen badge med MapPin-ikon og tekst "Naermeste (X,X km)"
+- Hvis afstand er tilgaengelig og over 15 km: ingen naerheds-badge (vises som normal)
+- Hvis medarbejder mangler koordinater: ingen badge
+
+---
+
+### Trin 3: Send koordinater fra AssignmentFormFields
+
+**`src/components/Planner/AssignmentFormFields.tsx`**
+
+- Tilfoej state: `caseLat` og `caseLng` (synkroniseret med `onCoordsChange`)
+- Send `caseLat` og `caseLng` som props til `EmployeeSelector`
+- Opdater `onCoordsChange`-kaldene til ogsaa at gemme lokalt i component state
+
+---
+
+### Trin 4: Opdater oversaettelser
+
+**`src/translations/da/planner.ts`**:
+- Tilfoej: `proximityNear: 'Naermeste'`
+- Tilfoej: `proximityDistance: '{distance} km vaek'`
+
+**`src/translations/en/planner.ts`**:
+- Tilfoej: `proximityNear: 'Nearest'`
+- Tilfoej: `proximityDistance: '{distance} km away'`
+
+---
+
+### Trin 5: Dokumentation
+
+**`docs/implementation-plan/tasks.md`**:
+- Tilfoej ny fase "15km Radius Optimering" markeret som faerdig
+
+**`CHANGELOG.md`**:
+- Dokumenter Haversine-implementering og 15 km radius-logik
 
 ---
 
 ### Tekniske detaljer
 
-**DawaSuggestion type (foer)**:
+**Sorteringslogik (pseudokode)**:
 ```text
-adresse: {
-  vejnavn: string;
-  husnr: string;
-  postnr: string;
-  postnrnavn: string;
-}
+distances = employees.map(emp => {
+  if (emp.lat && emp.lng && caseLat && caseLng)
+    return haversineDistanceKm(caseLat, caseLng, emp.lat, emp.lng)
+  return null
+})
+
+sorted = employees.sort((a, b) => {
+  distA = distances[a.id]
+  distB = distances[b.id]
+  
+  // Begge inden for 15 km: sorter efter afstand
+  if (distA <= 15 && distB <= 15) return distA - distB
+  // Kun A inden for: A foerst
+  if (distA <= 15) return -1
+  // Kun B inden for: B foerst
+  if (distB <= 15) return 1
+  // Begge udenfor eller uden data: alfabetisk
+  return a.name.localeCompare(b.name)
+})
 ```
 
-**DawaSuggestion type (efter)**:
+**Badge-visning**:
 ```text
-adresse: {
-  vejnavn: string;
-  husnr: string;
-  postnr: string;
-  postnrnavn: string;
-  adgangspunkt?: {
-    koordinater: [number, number]; // [lng, lat]
-  };
-}
+Inden for 15 km:
+  [MapPin] Naermeste (8,4 km vaek)
+  Groen badge: bg-green-100 text-green-700 border-green-300
+
+Over 15 km eller ingen data:
+  Ingen naerheds-badge
 ```
 
-**AddressAutocomplete onAddressSelect (foer)**:
-```text
-onAddressSelect({ address, zipCode, city })
-```
-
-**AddressAutocomplete onAddressSelect (efter)**:
-```text
-onAddressSelect({ address, zipCode, city, lat, lng })
-```
+**Afstandsformatering**: Brug dansk komma-separator (`distance.toFixed(1).replace('.', ',')`) naar `currentLanguage === 'da'`.
 
 ---
 
-### Filer der aendres
+### Filer der aendres/oprettes
 
 | Fil | Aendring |
 |-----|----------|
-| `src/hooks/useDawaAutocomplete.ts` | Udvid DawaSuggestion med adgangspunkt.koordinater |
-| `src/components/Planner/AddressAutocomplete.tsx` | Udtraek og videregiv koordinater |
-| `src/components/Planner/AssignmentFormFields.tsx` | Brug direkte koordinater, fjern overflodigt API-kald |
+| `src/utils/haversine.ts` | Ny fil: Haversine-formel |
+| `src/components/Planner/EmployeeSelector.tsx` | GPS-baseret sortering og badges |
+| `src/components/Planner/AssignmentFormFields.tsx` | Send caseLat/caseLng til EmployeeSelector |
+| `src/translations/da/planner.ts` | Nye naerheds-oversaettelser |
+| `src/translations/en/planner.ts` | Nye naerheds-oversaettelser |
+| `docs/implementation-plan/tasks.md` | Marker 15km som faerdig |
 | `CHANGELOG.md` | Dokumenter aendringen |
 
 ### Kvalitetstjek
 
-- Ingen ekstra API-kald ved adresse-valg (koordinater kommer direkte fra autocomplete)
-- Fallback via `fetchPostnrCoords` beholdes for manuelt input
-- Ingen database-aendringer (lat/lng kolonner eksisterer allerede)
-- Backward compatible: alle felter er optional
+- Haversine er ren matematik — ingen API-kald, ingen latency
+- Fallback til alfabetisk sortering hvis koordinater mangler
+- Dansk komma-formatering af afstand
+- Eksisterende postcode-props beholdes for backward compatibility men bruges ikke laengere til sortering
+- Ingen foelsom data eksponeres (koordinater er offentlige postnummer-data)
