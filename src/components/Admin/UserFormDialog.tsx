@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from '@/context/TranslationContext';
 import { UserRole, useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -79,7 +80,15 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user: authUser } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const isSuperAdmin = authUser?.role === 'super_admin';
+
+  // Pre-select active department when creating a new user
+  useEffect(() => {
+    if (!currentUser && selectedDepartmentId && selectedDeptIds.length === 0) {
+      setSelectedDeptIds([selectedDepartmentId]);
+    }
+  }, [currentUser, selectedDepartmentId]);
 
   // Load departments
   useEffect(() => {
@@ -219,6 +228,12 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       const phoneValidation = validateAndSanitizePhone(formData.phone);
       if (!phoneValidation.valid) {
         setPhoneError(phoneValidation.error || 'Invalid phone number');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (selectedDeptIds.length === 0) {
+        setErrorMessage('Vælg mindst én afdeling for brugeren');
         setIsSubmitting(false);
         return;
       }
