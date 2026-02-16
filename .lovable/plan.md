@@ -1,85 +1,130 @@
 
 
-## Fix: Naerheds-sortering ved redigering + fjern adresse-felt fra medarbejder
+## Opgave: GPS-koordinater til profiles og assignments
 
-### Problem 1: Naerheds-sortering virker ikke ved redigering
+### Oversigt
 
-Naar man aabner en eksisterende opgave til redigering, initialiseres `casePostcode` fra `zipCode` (som kommer fra `formData.zip_code`). Men for opgaver oprettet foer zip_code-kolonnen blev tilfojet, er denne vaerdi tom. Desuden udtraekkes postnummeret ikke fra den eksisterende `location`-streng ved opstart.
-
-**Fix i `AssignmentFormFields.tsx`**:
-- Ved initialisering: hvis `zipCode` er tom, forsoeges postnummeret udtrukket fra `location`-prop via regex (`/,\s*(\d{4})\s/`)
-- Tilfoej en `useEffect` der koerer ved mount og udtraekker postnummeret fra location hvis casePostcode er tomt
-
-### Problem 2: Fjern adresse-felt fra medarbejder-formularen
-
-Jf. knowledge skal medarbejdere kun have `home_postcode` - ikke `home_address`. Adresse-feltet fjernes fra UI, men kolonnen beholdes i databasen for at undgaa breaking changes.
-
-**Fix i `EmployeeFormDialog.tsx`** (linje 246-274):
-- Fjern `home_address` Input-feltet
-- Behold kun `home_postcode` Input-feltet
-- Fjern grid-layoutet (`grid-cols-[100px_1fr]`) og lad postnummer-feltet staa alene
-- Label aendres fra "Hjemmeadresse" til "Postnummer"
+Tilfoej `lat` og `lng` kolonner til `profiles` og `assignments` tabellerne, og implementer automatisk koordinat-hentning fra DAWA API naar et postnummer gemmes paa en medarbejder.
 
 ---
 
-### Tekniske detaljer
+### Trin 1: Database-migrering
 
-**Fil 1: `src/components/Planner/AssignmentFormFields.tsx`**
+Opret en ny migration der tilfojer kolonnerne:
 
-Aendr initialiseringen af `casePostcode` (linje 85):
-```text
-// Nuvaerende:
-const [casePostcode, setCasePostcode] = useState(zipCode || '');
+```sql
+-- profiles: GPS for medarbejderens hjemmepostnummer
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS lat float8;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS lng float8;
 
-// Ny logik: fallback til extraction fra location
-const extractPostcode = (loc: string) => {
-  const match = loc.match(/,\s*(\d{4})\s/);
-  return match ? match[1] : '';
-};
-const [casePostcode, setCasePostcode] = useState(zipCode || extractPostcode(location) || '');
+-- assignments: GPS for opgavens lokation
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS lat float8;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS lng float8;
 ```
 
-Tilfoej ogsaa en `useEffect` der synkroniserer `casePostcode` naar `location` aendres udefra (ved edit-load):
-```text
-useEffect(() => {
-  if (!casePostcode && location) {
-    const extracted = extractPostcode(location);
-    if (extracted) {
-      setCasePostcode(extracted);
-      setZipCode(extracted);
-    }
-  }
-}, [location]);
-```
-
-**Fil 2: `src/components/Employees/EmployeeFormDialog.tsx`**
-
-Erstat linje 246-274 (Home Address sektionen):
-- Fjern `home_address` Input
-- Fjern `grid-cols-[100px_1fr]` layout
-- Behold kun postnummer-feltet med label "Postnummer" / "Postcode"
-
-**Fil 3: Oversaettelser** (hvis noedvendigt):
-- Tilfoej/opdater `employees.homePostcode` key i `da/employees.ts` og `en/employees.ts`
-
-**Fil 4: `CHANGELOG.md`**:
-- Dokumenter begge aendringer
+Ingen index nødvendigt endnu (bruges til klient-side sortering, ikke DB-queries).
 
 ---
 
-### Filer der aendres
+### Trin 2: Udvid dawa-proxy Edge Function
+
+Tilfoej en ny rute til `supabase/functions/dawa-proxy/index.ts` der haandterer postnummer-opslag:
+
+- Hvis query-parameter `postnr` er sat (f.eks. `?postnr=7120`), kald `https://api.dataforsyningen.dk/postnumre/{postnr}`
+- Returner hele DAWA-svaret (inkl. `visueltcenter` med `[lng, lat]`)
+- Eksisterende `?q=` autocomplete-logik forbliver uaendret
+
+---
+
+### Trin 3: Hook til koordinat-hentning
+
+Opret `src/hooks/useDawaPostnrLookup.ts`:
+
+- Eksporter en funktion `fetchPostnrCoords(postnr: string): Promise<{lat: number, lng: number} | null>`
+- Kalder dawa-proxy med `?postnr={postnr}`
+- Udtraekker `visueltcenter` fra svaret (`[lng, lat]` — DAWA returnerer longitude foerst)
+- Returnerer `{ lat, lng }` eller `null` ved fejl
+
+---
+
+### Trin 4: Integrer i medarbejder-gem (profiles)
+
+**`src/hooks/employee/useEmployeeActions.ts`** (updateEmployee):
+- Naar `home_postcode` aendres, kald `fetchPostnrCoords(home_postcode)`
+- Tilfoej `lat` og `lng` til updatePayload
+
+**`src/hooks/employee/useEmployeeCreation.ts`** (createEmployee):
+- Samme logik: hent koordinater fra DAWA foer profile insert/update
+- Tilfoej `lat` og `lng` til profile-data
+
+**`supabase/functions/admin-create-user/index.ts`**:
+- Tilfoej `home_postcode`, `home_address`, `lat`, `lng` til profile insert (linje 215-229)
+- Koordinat-hentning sker paa klient-siden, edge function gemmer blot vaerdierne
+
+---
+
+### Trin 5: Integrer i opgave-gem (assignments)
+
+**`src/components/Planner/AssignmentFormFields.tsx`**:
+- Naar DAWA-adresse vaelges og postnummer udtraekkes, kald ogsaa `fetchPostnrCoords`
+- Send `lat`/`lng` videre via nye props (eller tilfoej til formData)
+
+**`src/hooks/assignment/useAssignmentActions.ts`**:
+- Tilfoej `lat` og `lng` til insert/update payloads (linje 112-126 og 288-300)
+
+---
+
+### Trin 6: Opdater TypeScript-typer
+
+**`src/types/employee.ts`**:
+- Tilfoej `lat?: number` og `lng?: number` til Employee-interface
+
+**`src/types/assignment.ts`**:
+- Tilfoej `lat?: number` og `lng?: number` til Assignment-interface
+
+---
+
+### Trin 7: Opdater data-fetching
+
+**`src/hooks/employee/useEmployeeData.ts`**:
+- Tilfoej `lat` og `lng` til SELECT-query (linje 73-76)
+- Tilfoej til transformedEmployees mapping
+
+---
+
+### Trin 8: Dokumentation
+
+**`docs/technical-specs/database-schema.md`**:
+- Tilfoej nyt afsnit "GPS-koordinater" med beskrivelse af `lat`/`lng` kolonner paa baade `profiles` og `assignments`
+- Dokumenter DAWA-integration og `visueltcenter`-feltet
+
+**`CHANGELOG.md`**:
+- Dokumenter de nye kolonner og automatisk koordinat-hentning
+
+---
+
+### Filer der aendres/oprettes
 
 | Fil | Aendring |
 |-----|----------|
-| `src/components/Planner/AssignmentFormFields.tsx` | Postnummer-extraction fra location ved edit |
-| `src/components/Employees/EmployeeFormDialog.tsx` | Fjern adresse-felt, behold kun postnummer |
-| `src/translations/da/employees.ts` | Tilfoej `homePostcode` key |
-| `src/translations/en/employees.ts` | Tilfoej `homePostcode` key |
-| `CHANGELOG.md` | Dokumenter aendringerne |
+| `supabase/migrations/[timestamp]_add_gps_coordinates.sql` | Ny migration |
+| `supabase/functions/dawa-proxy/index.ts` | Tilfoej `?postnr=` rute |
+| `src/hooks/useDawaPostnrLookup.ts` | Ny hook (koordinat-hentning) |
+| `src/types/employee.ts` | Tilfoej lat/lng |
+| `src/types/assignment.ts` | Tilfoej lat/lng |
+| `src/hooks/employee/useEmployeeActions.ts` | Koordinater ved update |
+| `src/hooks/employee/useEmployeeCreation.ts` | Koordinater ved create |
+| `src/hooks/employee/useEmployeeData.ts` | Hent lat/lng fra DB |
+| `src/hooks/assignment/useAssignmentActions.ts` | Gem lat/lng paa opgaver |
+| `src/components/Planner/AssignmentFormFields.tsx` | Hent koordinater ved adresse-valg |
+| `supabase/functions/admin-create-user/index.ts` | Gem home_postcode + lat/lng |
+| `docs/technical-specs/database-schema.md` | Dokumenter GPS-kolonner |
+| `CHANGELOG.md` | Log aendringerne |
 
 ### Kvalitetstjek
 
-- Ingen foelsom data eksponeres (postnummer er ikke PII jf. tekniske specs)
-- Adresse-kolonnen beholdes i DB for backward compatibility
-- Naerheds-sortering virker baade ved oprettelse og redigering
-- UI fungerer i baade Standard, Kompakt og Gitter-visning
+- Ingen foelsom data logges (koordinater er offentlige postnummer-data)
+- Fallback: hvis DAWA fejler, gemmes lat/lng som NULL — ingen blokering af gem-flow
+- Eksisterende RLS-politikker daekker de nye kolonner automatisk
+- Backward compatible: alle nye kolonner er nullable
+
