@@ -63,3 +63,6 @@ verify_jwt = true
 
 [functions.swap-duties]
 verify_jwt = true
+
+[functions.dawa-proxy]
+verify_jwt = false

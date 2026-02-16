@@ -33,7 +33,7 @@ export const useDawaAutocomplete = (query: string) => {
 
       try {
         const res = await fetch(
-          `https://api.dataforsyningen.dk/adresser/autocomplete?q=${encodeURIComponent(query.trim())}&per_side=5`,
+          `https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/dawa-proxy?q=${encodeURIComponent(query.trim())}`,
           { signal: abortRef.current.signal }
         );
 

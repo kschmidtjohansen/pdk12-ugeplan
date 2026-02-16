@@ -3,6 +3,8 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-16
+- **DAWA Proxy**: Adresse-autocomplete rutes nu via Supabase Edge Function (`dawa-proxy`) for at undgå CORS-blokering på alle domæner (preview, live, localhost)
+
 - **RLS-fix**: `secure_profile_updates`-policyen tillader nu `super_admin`-rollen at opdatere medarbejderprofiler (postnummer, adresse m.m. blev ikke gemt)
 
 ### Added - 2026-02-16
