@@ -105,14 +105,20 @@
  
        setMessages(messagesWithSenders);
      } catch (error) {
-       console.error('[useAssignmentMessages] Error fetching messages:', error);
+       if (import.meta.env.DEV) console.error('[useAssignmentMessages] Error fetching messages:', error);
      } finally {
        setLoading(false);
      }
    }, [assignmentId]);
  
-  const sendMessage = useCallback(async (messageText: string, replyToId?: string) => {
-     if (!assignmentId || !messageText.trim()) return;
+   const sendMessage = useCallback(async (messageText: string, replyToId?: string) => {
+      if (!assignmentId || !messageText.trim()) return;
+      
+      // Client-side length validation (matches DB CHECK constraint)
+      if (messageText.trim().length > 5000) {
+        toast.error('Beskeden er for lang (max 5000 tegn)');
+        return;
+      }
  
      try {
        const { data: { user } } = await supabase.auth.getUser();
@@ -172,7 +178,7 @@
        await fetchMessages();
        toast.success('Besked sendt');
      } catch (error) {
-       console.error('[useAssignmentMessages] Error sending message:', error);
+       if (import.meta.env.DEV) console.error('[useAssignmentMessages] Error sending message:', error);
        toast.error('Kunne ikke sende besked');
      }
    }, [assignmentId, assignmentTitle, assignedEmployeeIds, responsibleUserId, addNotification, fetchMessages]);
@@ -232,7 +238,7 @@
       await fetchMessages();
       toast.success('Besked slettet');
     } catch (error) {
-      console.error('[useAssignmentMessages] Error deleting message:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentMessages] Error deleting message:', error);
       toast.error('Kunne ikke slette besked');
     }
   }, [assignmentId, fetchMessages]);

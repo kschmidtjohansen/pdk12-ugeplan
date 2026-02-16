@@ -104,7 +104,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       )];
       setFolders(uniqueFolders);
     } catch (error) {
-      console.error('[useAssignmentFiles] Error fetching files:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error fetching files:', error);
     } finally {
       setLoading(false);
     }
@@ -158,12 +158,17 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       await fetchFiles();
       toast.success('Fil uploadet');
     } catch (error) {
-      console.error('[useAssignmentFiles] Error uploading file:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error uploading file:', error);
       toast.error('Kunne ikke uploade fil');
     }
   }, [assignmentId, fetchFiles]);
 
   const updateFileComment = useCallback(async (fileId: string, comment: string) => {
+    // Client-side length validation (matches DB CHECK constraint)
+    if (comment && comment.length > 2000) {
+      toast.error('Kommentaren er for lang (max 2000 tegn)');
+      return;
+    }
     try {
       const { error } = await supabase
         .from('assignment_files')
@@ -175,7 +180,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       await fetchFiles();
       toast.success('Kommentar opdateret');
     } catch (error) {
-      console.error('[useAssignmentFiles] Error updating comment:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error updating comment:', error);
       toast.error('Kunne ikke opdatere kommentar');
     }
   }, [fetchFiles]);
@@ -198,7 +203,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('[useAssignmentFiles] Error downloading file:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error downloading file:', error);
       toast.error('Kunne ikke downloade fil');
     }
   }, []);
@@ -212,7 +217,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('[useAssignmentFiles] Error downloading file as blob:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error downloading file as blob:', error);
       return null;
     }
   }, []);
@@ -255,7 +260,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       
       toast.success('Download færdig');
     } catch (error) {
-      console.error('[useAssignmentFiles] Error downloading folder:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error downloading folder:', error);
       toast.error('Kunne ikke downloade mappe');
     }
   }, [files, downloadFileAsBlob]);
@@ -293,7 +298,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       
       toast.success('Download færdig');
     } catch (error) {
-      console.error('[useAssignmentFiles] Error downloading all files:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error downloading all files:', error);
       toast.error('Kunne ikke downloade filer');
     }
   }, [files, downloadFileAsBlob]);
@@ -341,7 +346,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
               image = await pdfDoc.embedJpg(imageBytes);
             }
           } catch (embedError) {
-            console.warn('[useAssignmentFiles] Could not embed image:', file.file_name, embedError);
+            if (import.meta.env.DEV) console.warn('[useAssignmentFiles] Could not embed image:', file.file_name, embedError);
             skippedCount++;
             continue;
           }
@@ -444,7 +449,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
           });
 
         } catch (fileError) {
-          console.error('[useAssignmentFiles] Error processing file:', file.file_name, fileError);
+          if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error processing file:', file.file_name, fileError);
           skippedCount++;
         }
       }
@@ -473,7 +478,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
         toast.success('PDF genereret');
       }
     } catch (error) {
-      console.error('[useAssignmentFiles] Error generating PDF:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error generating PDF:', error);
       toast.error('Kunne ikke generere PDF');
     }
   }, [files, downloadFileAsBlob]);

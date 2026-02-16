@@ -6,9 +6,18 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Validate CRON_SECRET for system-only access
+  const cronSecret = Deno.env.get('CRON_SECRET');
+  const providedSecret = req.headers.get('x-cron-secret');
+  if (!cronSecret || providedSecret !== cronSecret) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
@@ -19,7 +28,6 @@ Deno.serve(async (req) => {
 
     console.log('[cleanup-change-logs] Starting cleanup...');
 
-    // Call the database function to cleanup old logs
     const { data, error } = await supabase.rpc('cleanup_old_change_logs');
 
     if (error) {
@@ -30,28 +38,14 @@ Deno.serve(async (req) => {
     console.log('[cleanup-change-logs] Cleanup result:', data);
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        result: data,
-        timestamp: new Date().toISOString()
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      JSON.stringify({ success: true, result: data, timestamp: new Date().toISOString() }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error) {
     console.error('[cleanup-change-logs] Fatal error:', error);
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
+      JSON.stringify({ success: false, error: error.message, timestamp: new Date().toISOString() }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });

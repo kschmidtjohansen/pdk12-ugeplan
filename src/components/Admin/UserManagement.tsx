@@ -106,7 +106,7 @@ const UserManagement: React.FC = () => {
   const addDebugInfo = (info: string) => {
     const timestamp = new Date().toISOString().substring(11, 23);
     setDebugInfo(prev => [`[${timestamp}] ${info}`, ...prev.slice(0, 19)]);
-    console.log(`[UserManagement Debug] ${info}`);
+    if (import.meta.env.DEV) console.log(`[UserManagement Debug] ${info}`);
   };
 
   // Demo mode user fetching
@@ -199,6 +199,7 @@ const UserManagement: React.FC = () => {
             rolesError.message?.includes('policy') || 
             rolesError.message?.includes('access denied')) {
           console.warn('[UserManagement] User roles access restricted, using default roles');
+          if (import.meta.env.DEV) console.warn('[UserManagement] Details:', rolesError);
           addDebugInfo('FALLBACK: Using default servicemedarbejder role due to restricted access');
           // Continue with empty roles array - will default to servicemedarbejder
         } else {

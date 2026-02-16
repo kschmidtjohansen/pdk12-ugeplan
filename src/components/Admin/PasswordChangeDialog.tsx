@@ -96,7 +96,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       setConfirmPassword('');
       onClose();
     } catch (error) {
-      console.error('[PasswordChangeDialog] Password reset failed:', error instanceof Error ? error.message : 'Unknown error');
+      if (import.meta.env.DEV) console.error('[PasswordChangeDialog] Password reset failed:', error instanceof Error ? error.message : 'Unknown error');
       
       let errorMessage = 'An unexpected error occurred. Please try again.';
       

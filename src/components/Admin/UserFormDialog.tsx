@@ -267,7 +267,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           })
           .eq('id', data.user.id);
 
-        if (profileError) console.warn('[UserFormDialog] Profile update warning:', profileError);
+        if (profileError && import.meta.env.DEV) console.warn('[UserFormDialog] Profile update warning:', profileError);
 
         await saveUserAccess(data.user.id);
         
@@ -286,7 +286,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       }
       
     } catch (error) {
-      console.error('[UserFormDialog] Error saving user:', error);
+      if (import.meta.env.DEV) console.error('[UserFormDialog] Error saving user:', error);
       
       let errorMsg = 'An unexpected error occurred';
       if (error instanceof Error) errorMsg = error.message;

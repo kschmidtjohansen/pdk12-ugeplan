@@ -83,7 +83,7 @@ const LocationManagement: React.FC = () => {
           .update({ hall: null })
           .eq('hall', deleteKey);
       } catch (err) {
-        console.error('Error clearing hall from items:', err);
+        if (import.meta.env.DEV) console.error('Error clearing hall from items:', err);
       }
     }
 

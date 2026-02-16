@@ -50,7 +50,7 @@ export const NotificationProvider: React.FC<{
     notificationHookData = useNotificationsHook();
   } catch (error) {
     // If there's an error during hook initialization, use default values
-    console.warn('[NotificationProvider] Error initializing notification hook, using defaults:', error);
+    if (import.meta.env.DEV) console.warn('[NotificationProvider] Error initializing notification hook, using defaults:', error);
     notificationHookData = defaultContext;
   }
   

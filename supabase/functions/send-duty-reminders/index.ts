@@ -23,6 +23,16 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Validate CRON_SECRET for system-only access
+  const cronSecret = Deno.env.get('CRON_SECRET');
+  const providedSecret = req.headers.get('x-cron-secret');
+  if (!cronSecret || providedSecret !== cronSecret) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -30,14 +40,12 @@ Deno.serve(async (req) => {
 
     console.log('Starting duty reminder check...');
 
-    // Calculate tomorrow's date
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
     console.log('Checking for duties on:', tomorrowStr);
 
-    // Get all duties for tomorrow with employee info
     const { data: duties, error: dutiesError } = await supabase
       .from('on_call_duties')
       .select(`
@@ -67,7 +75,6 @@ Deno.serve(async (req) => {
     const remindersSent: string[] = [];
     const errors: string[] = [];
 
-    // Create notifications for each duty
     for (const duty of duties as Duty[]) {
       if (!duty.employee_id) continue;
 
@@ -85,8 +92,6 @@ Deno.serve(async (req) => {
         link: '/duty',
         read: false,
       };
-
-      console.log('Creating notification for:', duty.employee?.name || duty.employee_id);
 
       const { error: notificationError } = await supabase
         .from('notifications')

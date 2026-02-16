@@ -78,7 +78,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       onSuccess?.();
       return true;
     } catch (err) {
-      console.error('Error assigning duty:', err);
+      if (import.meta.env.DEV) console.error('Error assigning duty:', err);
       const errorMessage = err instanceof Error ? err.message : '';
       
       if (errorMessage.includes('skadeleder') || errorMessage.includes('administrator')) {
@@ -115,7 +115,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       onSuccess?.();
       return true;
     } catch (err) {
-      console.error('Error updating duty:', err);
+      if (import.meta.env.DEV) console.error('Error updating duty:', err);
       const errorMessage = err instanceof Error ? err.message : '';
       
       // Check for role validation error
@@ -150,7 +150,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       onSuccess?.();
       return true;
     } catch (err) {
-      console.error('Error removing duty:', err);
+      if (import.meta.env.DEV) console.error('Error removing duty:', err);
       toast.error(err instanceof Error ? err.message : 'Failed to remove duty');
       return false;
     } finally {
@@ -178,7 +178,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       onSuccess?.();
       return true;
     } catch (err) {
-      console.error('Error reassigning duty:', err);
+      if (import.meta.env.DEV) console.error('Error reassigning duty:', err);
       toast.error(t('duty.reassignFailed'));
       return false;
     } finally {
@@ -212,7 +212,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       onSuccess?.();
       return true;
     } catch (error) {
-      console.error('Error swapping duty:', error);
+      if (import.meta.env.DEV) console.error('Error swapping duty:', error);
       toast.error(t('duty.reassignFailed'));
       return false;
     } finally {
@@ -243,7 +243,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       onSuccess?.();
       return true;
     } catch (error) {
-      console.error('Error swapping duties:', error);
+      if (import.meta.env.DEV) console.error('Error swapping duties:', error);
       toast.error(error instanceof Error ? error.message : t('duty.swapFailed'));
       return false;
     } finally {
