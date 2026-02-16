@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MapPin, Edit, Check, X, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useDepartment } from '@/context/DepartmentContext';
 
 interface LocationItem {
   key: string;
@@ -15,33 +16,40 @@ interface LocationItem {
   hidden?: boolean;
 }
 
-const STORAGE_KEY = 'location-custom-names';
-
 const LocationManagement: React.FC = () => {
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
   const { toast } = useToast();
+  const { selectedDepartmentId } = useDepartment();
   
+  const storageKey = `location-custom-names-${selectedDepartmentId || 'default'}`;
+
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [deleteKey, setDeleteKey] = useState<string | null>(null);
   const [customNames, setCustomNames] = useState<Record<string, string>>({});
   const [hiddenLocations, setHiddenLocations] = useState<string[]>([]);
 
-  // Load custom names from localStorage
+  // Load custom names from localStorage – scoped per department
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         const parsed = JSON.parse(stored);
         setCustomNames(parsed.names || {});
         setHiddenLocations(parsed.hidden || []);
+      } else {
+        setCustomNames({});
+        setHiddenLocations([]);
       }
-    } catch { /* ignore */ }
-  }, []);
+    } catch {
+      setCustomNames({});
+      setHiddenLocations([]);
+    }
+  }, [storageKey]);
 
   const saveToStorage = (names: Record<string, string>, hidden: string[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ names, hidden }));
+    localStorage.setItem(storageKey, JSON.stringify({ names, hidden }));
   };
 
   const defaultLocations: LocationItem[] = [

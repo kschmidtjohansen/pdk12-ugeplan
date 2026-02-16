@@ -3,6 +3,7 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-16
+- **Lokationer isoleret per afdeling**: Lokationstilpasninger (navne, skjulte lokationer) gemmes nu per afdeling i localStorage, så lokationer fra fx 12 - Fredericia ikke vises i 16 - Asnæs eller 02 - Storkøbenhavn.
 - **Afdelingstilknytning ved brugeroprettelse**: Formularen pre-selecter nu den aktive afdeling automatisk, så nye brugere altid tilknyttes mindst én afdeling. Validering forhindrer oprettelse uden afdelingsvalg.
 
 ### Fixed - 2026-02-16
