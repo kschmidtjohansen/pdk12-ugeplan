@@ -328,6 +328,12 @@ const planner = {
   selectDepartmentToViewData: 'Vælg en hovedafdeling for at se data',
   departmentFilterActive: 'Viser data for {department}',
 
+  // Proximity
+  casePostcode: 'Sagens postnummer',
+  casePostcodePlaceholder: 'f.eks. 7000',
+  proximityExact: 'Nærmest',
+  proximityRegion: 'Region',
+
   // Validation
   validation: {
     titleRequired: 'Titel er påkrævet',

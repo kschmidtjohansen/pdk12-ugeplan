@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
@@ -73,6 +73,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
+  const [casePostcode, setCasePostcode] = useState('');
 
   if (import.meta.env.DEV) {
     console.log('[AssignmentFormFields] Car state:', { selectedCarIds });
@@ -245,6 +246,18 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="casePostcode">{t('planner.casePostcode')}</Label>
+        <Input
+          id="casePostcode"
+          value={casePostcode}
+          onChange={(e) => setCasePostcode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+          placeholder={t('planner.casePostcodePlaceholder')}
+          maxLength={4}
+          inputMode="numeric"
+        />
+      </div>
+
       <EmployeeSelector
         employees={employees}
         selectedEmployees={selectedEmployees}
@@ -252,6 +265,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         vacations={vacations}
         currentDate={currentDateStr}
         assignments={assignments}
+        casePostcode={casePostcode}
       />
 
       {canAssignResponsibleUser && (

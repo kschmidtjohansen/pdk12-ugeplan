@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Assignment } from '@/types/assignment';
@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Users } from 'lucide-react';
+import { Users, MapPin } from 'lucide-react';
 import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus } from '@/utils/employeeAvailability';
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
 
@@ -24,6 +24,7 @@ interface EmployeeSelectorProps {
   vacations: Vacation[];
   currentDate: string;
   assignments?: Assignment[];
+  casePostcode?: string;
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -32,14 +33,30 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   onToggle,
   vacations,
   currentDate,
-  assignments = []
+  assignments = [],
+  casePostcode
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
 
-  const filteredEmployees = employees;
+  const getProximityLevel = (emp: Employee, postcode: string): number => {
+    if (!emp.home_postcode) return 3;
+    if (emp.home_postcode === postcode) return 0;
+    if (emp.home_postcode.substring(0, 2) === postcode.substring(0, 2)) return 1;
+    return 2;
+  };
+
+  const sortedEmployees = useMemo(() => {
+    if (!casePostcode || casePostcode.length !== 4) {
+      return [...employees].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return [...employees].sort((a, b) => {
+      const diff = getProximityLevel(a, casePostcode) - getProximityLevel(b, casePostcode);
+      return diff !== 0 ? diff : a.name.localeCompare(b.name);
+    });
+  }, [employees, casePostcode]);
 
   const dateForComparison = (() => {
     try {
@@ -99,12 +116,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       console.log("EmployeeSelector - Current date:", currentDate);
       console.log("EmployeeSelector - Selected employees:", selectedEmployees);
       console.log("EmployeeSelector - User role:", user?.role);
-      console.log("EmployeeSelector - Filtered employees count:", filteredEmployees.length);
+      console.log("EmployeeSelector - Sorted employees count:", sortedEmployees.length);
       console.log("EmployeeSelector - All assignments:", assignments);
       console.log("EmployeeSelector - Date for comparison:", dateForComparison);
       console.log("EmployeeSelector - Auto-removed employees:", autoRemovedEmployees);
     }
-  }, [currentDate, selectedEmployees, assignments, user?.role, filteredEmployees.length, dateForComparison, autoRemovedEmployees]);
+  }, [currentDate, selectedEmployees, assignments, user?.role, sortedEmployees.length, dateForComparison, autoRemovedEmployees]);
 
   return (
     <div className="space-y-2">
@@ -129,7 +146,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-popover border shadow-md">
-          {filteredEmployees.map(employee => {
+          {sortedEmployees.map(employee => {
             try {
               if (!employee || !employee.id || !employee.name) {
                 console.error('[EmployeeSelector] Invalid employee object:', employee);
@@ -199,6 +216,21 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                       </span>
                     </div>
                     <div className="flex gap-1 ml-2 flex-shrink-0">
+                      {casePostcode?.length === 4 && employee.home_postcode && (() => {
+                        const pl = getProximityLevel(employee, casePostcode);
+                        if (pl === 0) return (
+                          <Badge className="text-xs bg-green-100 text-green-700 border-green-300">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {t('planner.proximityExact')}
+                          </Badge>
+                        );
+                        if (pl === 1) return (
+                          <Badge className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200">
+                            {t('planner.proximityRegion')}
+                          </Badge>
+                        );
+                        return null;
+                      })()}
                       {isExpired && (
                         <Badge variant="destructive" className="text-xs">
                           Expired
