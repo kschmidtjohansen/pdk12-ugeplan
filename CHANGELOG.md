@@ -3,6 +3,9 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-16
+- **Afdelingstilknytning ved brugeroprettelse**: Formularen pre-selecter nu den aktive afdeling automatisk, så nye brugere altid tilknyttes mindst én afdeling. Validering forhindrer oprettelse uden afdelingsvalg.
+
+### Fixed - 2026-02-16
 - **Nærmeste-fix edit-mode**: Auto-fetch af GPS-koordinater fra postnummer ved redigering af opgave — proximity-sortering virker nu også i edit-mode
 - **Top-3 grøn visning**: De 3 nærmeste medarbejdere (inden for 15 km) vises med grøn tekst og MapPin-ikon, øvrige i standard grå
 
