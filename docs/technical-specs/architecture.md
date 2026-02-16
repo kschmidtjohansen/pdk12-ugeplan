@@ -158,8 +158,10 @@ Detaljeret beskrivelse af projektets sikkerhedsarkitektur, kryptering, adgangsko
 
 ### DAWA (Danmarks Adressers Web API)
 - **Endpoint**: `https://api.dataforsyningen.dk/adresser/autocomplete`
+- **Proxy**: Supabase Edge Function `dawa-proxy` (ingen JWT, `verify_jwt = false`)
 - **Formål**: Adresse-autocomplete i Planner-modulet
+- **Hvorfor proxy**: DAWA API'et blokerer cross-origin requests fra browser-klienter. Proxyen videresender server-side.
 - **Autentificering**: Ingen (åbent API)
 - **Rate limiting**: Ingen officiel grænse, debounced 300ms klient-side
-- **Fallback**: Manuel fritekst-indtastning hvis API fejler
+- **Fallback**: Manuel fritekst-indtastning hvis proxy eller API fejler
 - **Data brugt**: vejnavn, husnr, postnr, postnrnavn
