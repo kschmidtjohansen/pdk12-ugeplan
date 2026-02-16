@@ -3,6 +3,7 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-16
+- **RLS-fix**: `secure_profile_updates`-policyen tillader nu `super_admin`-rollen at opdatere medarbejderprofiler (postnummer, adresse m.m. blev ikke gemt)
 - Wrappet resterende uguardede `console.error`/`console.warn` i `import.meta.env.DEV` guard (client.ts, SecurityHeaders.tsx, useAssignmentFiles.ts)
 - Slettet `definer_no_search_path` og `console_prod_logging` findings fra sikkerhedspanelet (allerede rettet)
 - Markeret `demo_pass_in_migrations` og `chart_dangerous_html` som ignoreret med begrundelse
