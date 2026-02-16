@@ -1,48 +1,38 @@
 
 
-## Fix: Brugeroprettelse fejler + manglende afdelingstilknytning
+## Fix: Lokationer skal isoleres per afdeling
 
-### Situationsanalyse
+### Problem
+`LocationManagement` bruger en hardcoded liste og gemmer tilpasninger (navne, skjulte lokationer) i `localStorage` med en global noegle (`location-custom-names`). Derfor vises lokationer fra 12 - Fredericia ogsaa i 16 - Asnaes og 02 - Storkoebenhavn.
 
-Fejlen "Edge Function returned a non-2xx status code" skyldes at Michael Rattenborg allerede blev oprettet ved forste forsog (kl. 14:47). Brugeren vises ikke fordi `user_access`-tabellen mangler en raekke for afdeling "16 - Asnaes". Det underliggende problem er at formularen ikke pre-selecter den aktive afdeling.
+### Loesning
+Scope localStorage-noeglen per `selectedDepartmentId`, saa hver afdeling har sine egne lokationstilpasninger.
 
-### Trin 1: Pre-select aktuel afdeling ved oprettelse
+---
 
-**`src/components/Admin/UserFormDialog.tsx`**
+### Trin 1: Importer DepartmentContext
 
-- Importer `useDepartment` fra `@/context/DepartmentContext`
-- Tilfoej `const { selectedDepartmentId } = useDepartment();`
-- Tilfoej en `useEffect` der pre-selecter den aktive afdeling ved oprettelse (ikke redigering):
+**`src/components/Admin/LocationManagement.tsx`**
 
-```text
-useEffect(() => {
-  if (!currentUser && selectedDepartmentId && selectedDeptIds.length === 0) {
-    setSelectedDeptIds([selectedDepartmentId]);
-  }
-}, [currentUser, selectedDepartmentId]);
-```
+Tilfoej import af `useDepartment` og hent `selectedDepartmentId`.
 
-### Trin 2: Validering - kraev mindst en afdeling
+### Trin 2: Scope localStorage per afdeling
 
-I `handleFormSubmit`, tilfoej validering foer brugeroprettelse:
+Aendr `STORAGE_KEY` fra en statisk streng til en dynamisk noegle baseret paa `selectedDepartmentId`:
 
 ```text
-if (selectedDeptIds.length === 0) {
-  setErrorMessage('Vaelg mindst en afdeling for brugeren');
-  setIsSubmitting(false);
-  return;
-}
+const storageKey = `location-custom-names-${selectedDepartmentId || 'default'}`;
 ```
 
-Placer dette efter telefon-valideringen (linje 224) og foer password-valideringen (linje 226).
+Opdater alle steder der bruger `STORAGE_KEY` til at bruge den dynamiske `storageKey`:
+- `useEffect` load (linje 32-41)
+- `saveToStorage` (linje 43-45)
 
-### Trin 3: Bedre fejlhaandtering for duplikerede brugere
+### Trin 3: Re-load ved afdelingsskift
 
-Edge function returnerer allerede en fejlbesked "A user with this email address has already been registered". Fejlhaandteringen i `handleFormSubmit` (linje 294) fanger dette korrekt. Ingen aendringer noedvendige her.
+Tilfoej `selectedDepartmentId` som dependency i load-useEffect, saa tilpasninger genindlaeses naar brugeren skifter afdeling.
 
 ### Trin 4: Opdater CHANGELOG.md
-
-Tilfoej entry om pre-select af aktuel afdeling og validering.
 
 ---
 
@@ -50,22 +40,11 @@ Tilfoej entry om pre-select af aktuel afdeling og validering.
 
 | Fil | Aendring |
 |-----|---------|
-| `src/components/Admin/UserFormDialog.tsx` | Import useDepartment, pre-select afdeling, valider mindst 1 afdeling |
+| `src/components/Admin/LocationManagement.tsx` | Import useDepartment, scope localStorage per afdeling |
 | `CHANGELOG.md` | Dokumenter fix |
 
-### Tekniske detaljer
-
-Samlet set er der 3 aendringer i `UserFormDialog.tsx`:
-
-1. **Linje 16**: Tilfoej import af `useDepartment`
-2. **Linje 82** (efter `useAuth`): Tilfoej `const { selectedDepartmentId } = useDepartment();` og en useEffect til pre-select
-3. **Linje 224** (efter phoneValidation): Tilfoej validering for mindst 1 afdeling
-
 ### Kvalitetstjek
-
-- Pre-select koerer kun ved oprettelse (guard: `!currentUser`)
-- Brugeren kan stadig aendre/tilfoeje flere afdelinger manuelt
-- Validering forhindrer at brugere oprettes uden tilknytning
-- Eksisterende redigeringsflow paavirkes ikke (linje 131-154 haandterer edit)
-- Fejlbesked for duplikerede brugere vises allerede korrekt
+- Lokationer i 12 - Fredericia paavirker ikke 16 - Asnaes eller 02 - Storkoebenhavn
+- Eksisterende tilpasninger i Fredericia bevares (de ligger under den gamle noegle, men nye gemmes korrekt)
+- Sletning af en lokation i en afdeling paavirker ikke andre afdelinger
 
