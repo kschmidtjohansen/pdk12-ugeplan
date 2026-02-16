@@ -304,14 +304,18 @@ export const admin = {
     passwordsMustMatch: 'Passwords must match'
   },
   locations: {
-    description: 'Manage warehouse locations and their names',
+    description: 'Manage warehouse locations for this department',
+    addPlaceholder: 'Name of new location...',
+    add: 'Add',
+    noLocations: 'No locations',
+    alreadyExists: 'Location already exists',
+    added: 'Location added',
+    renamed: 'Location name updated',
+    deleted: 'Location deleted',
     editName: 'Edit name',
     delete: 'Delete location',
     deleteConfirm: 'Delete location?',
     deleteWarning: "All items assigned to this location will have their location set to 'None'. This action cannot be undone.",
-    deleted: 'Location deleted',
-    renamed: 'Location name updated',
-    noLocations: 'No locations',
   },
   roles: {
     super_admin: 'Super Admin',

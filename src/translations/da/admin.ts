@@ -308,14 +308,18 @@ export const admin = {
     passwordsMustMatch: 'Adgangskoder skal være ens'
   },
   locations: {
-    description: 'Administrer lagerlokationer og deres navne',
+    description: 'Administrer lagerlokationer for denne afdeling',
+    addPlaceholder: 'Navn på ny lokation...',
+    add: 'Tilføj',
+    noLocations: 'Ingen lokationer',
+    alreadyExists: 'Lokation findes allerede',
+    added: 'Lokation tilføjet',
+    renamed: 'Lokationsnavn opdateret',
+    deleted: 'Lokation slettet',
     editName: 'Rediger navn',
     delete: 'Slet lokation',
     deleteConfirm: 'Slet lokation?',
     deleteWarning: "Alle opbevaringer tilknyttet denne lokation vil få deres lokation sat til 'Ingen'. Denne handling kan ikke fortrydes.",
-    deleted: 'Lokation slettet',
-    renamed: 'Lokationsnavn opdateret',
-    noLocations: 'Ingen lokationer',
   },
   roles: {
     super_admin: 'Super Admin',
