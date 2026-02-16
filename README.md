@@ -27,7 +27,7 @@
 - 📦 **Lagerstyring** med sagsnummer-tracking og rengøringsstatus
 - 🏖️ **Ferieadministration** med godkendelsesworkflow og notifikationer
 - 🔔 **Real-time notifikationer** for opgaver og ferieansøgninger
-- 🎭 **Demo-mode** med automatisk data cleanup (15 minutter) og rolleskift
+- 🎭 **Demo-mode** med automatisk data cleanup (15 minutter), rolleskift og `is_demo`-isolering
 - 🔒 **Avanceret sikkerhed** med RLS policies, audit logging og password reset
 - 🌐 **Flersproget interface** (Dansk/Engelsk) med komplet oversættelse
 - 📱 **Responsivt design** til mobil, tablet og desktop
@@ -40,6 +40,9 @@
 - 🛡️ **Robust fejlhåndtering** med Error Boundaries på alle sider
 - 💾 **Intelligent caching** med TanStack Query og 5-minutters staleTime
 - 🏢 **Multi-afdeling og underafdeling** med bruger- og biltilknytning til flere afdelinger/underafdelinger
+- 📌 **DAWA adresse-autocomplete** med automatisk postnummer- og by-udfyldning via Danmarks Adressers Web API
+- 🗺️ **Nærhedsbaseret medarbejderforslag** med GPS-afstandsberegning (Haversine) — de 3 nærmeste inden for 15 km fremhæves med grøn tekst
+- 🧭 **Auto-fetch koordinater** ved redigering af opgaver — proximity-sortering virker også i edit-mode
 
 ---
 
@@ -194,7 +197,7 @@ Dette projekt er licenseret under [MIT-licensen](./LICENSE). Copyright © 2026 K
 - 📦 **Warehouse Inventory** with case number tracking and cleaning status
 - 🏖️ **Vacation Management** with approval workflow and notifications
 - 🔔 **Real-time Notifications** for tasks and vacation requests
-- 🎭 **Demo Mode** with automatic data cleanup (15 minutes) and role switching
+- 🎭 **Demo Mode** with automatic data cleanup (15 minutes), role switching and `is_demo` isolation
 - 🔒 **Advanced Security** with RLS policies, audit logging, and password reset
 - 🌐 **Multi-language Interface** (Danish/English) with complete translations
 - 📱 **Responsive Design** for mobile, tablet, and desktop
@@ -207,6 +210,9 @@ Dette projekt er licenseret under [MIT-licensen](./LICENSE). Copyright © 2026 K
 - 🛡️ **Robust Error Handling** with Error Boundaries on all pages
 - 💾 **Intelligent Caching** with TanStack Query and 5-minute staleTime
 - 🏢 **Multi-department and sub-department** with user and vehicle assignment to multiple departments/sub-departments
+- 📌 **DAWA Address Autocomplete** with automatic postcode and city population via Denmark's Address Web API
+- 🗺️ **Proximity-based Employee Suggestions** with GPS distance calculation (Haversine) — top 3 nearest within 15 km highlighted in green
+- 🧭 **Auto-fetch Coordinates** when editing assignments — proximity sorting works in edit mode too
 
 ---
 
