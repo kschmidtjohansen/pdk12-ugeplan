@@ -50,6 +50,8 @@ interface AssignmentFormFieldsProps {
   city: string;
   setCity: (value: string) => void;
   onCoordsChange?: (lat: number | undefined, lng: number | undefined) => void;
+  initialLat?: number;
+  initialLng?: number;
 }
 
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
@@ -81,7 +83,9 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   setZipCode,
   city,
   setCity,
-  onCoordsChange
+  onCoordsChange,
+  initialLat,
+  initialLng
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
@@ -92,8 +96,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   };
 
   const [casePostcode, setCasePostcode] = useState(zipCode || extractPostcode(location) || '');
-  const [caseLat, setCaseLat] = useState<number | undefined>(undefined);
-  const [caseLng, setCaseLng] = useState<number | undefined>(undefined);
+  const [caseLat, setCaseLat] = useState<number | undefined>(initialLat);
+  const [caseLng, setCaseLng] = useState<number | undefined>(initialLng);
 
   // Sync casePostcode when location is loaded (e.g. edit mode) and no zipCode exists
   React.useEffect(() => {

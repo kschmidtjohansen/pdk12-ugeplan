@@ -337,6 +337,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             setAssignmentLat(lat);
             setAssignmentLng(lng);
           }}
+          initialLat={formData.lat ?? undefined}
+          initialLng={formData.lng ?? undefined}
         />
       </div>
 
