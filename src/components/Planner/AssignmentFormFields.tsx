@@ -92,6 +92,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   };
 
   const [casePostcode, setCasePostcode] = useState(zipCode || extractPostcode(location) || '');
+  const [caseLat, setCaseLat] = useState<number | undefined>(undefined);
+  const [caseLng, setCaseLng] = useState<number | undefined>(undefined);
 
   // Sync casePostcode when location is loaded (e.g. edit mode) and no zipCode exists
   React.useEffect(() => {
@@ -194,6 +196,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
               // Fetch coords for the extracted postcode
               fetchPostnrCoords(match[1]).then(coords => {
                 onCoordsChange?.(coords?.lat, coords?.lng);
+                setCaseLat(coords?.lat);
+                setCaseLng(coords?.lng);
               });
             }
           }}
@@ -205,10 +209,14 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             // Use coords directly from DAWA autocomplete response (no extra API call)
             if (data.lat !== undefined && data.lng !== undefined) {
               onCoordsChange?.(data.lat, data.lng);
+              setCaseLat(data.lat);
+              setCaseLng(data.lng);
             } else {
               // Fallback: fetch coords if not available in autocomplete response
               fetchPostnrCoords(data.zipCode).then(coords => {
                 onCoordsChange?.(coords?.lat, coords?.lng);
+                setCaseLat(coords?.lat);
+                setCaseLng(coords?.lng);
               });
             }
           }}
@@ -285,6 +293,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         currentDate={currentDateStr}
         assignments={assignments}
         casePostcode={casePostcode}
+        caseLat={caseLat}
+        caseLng={caseLng}
       />
 
       {canAssignResponsibleUser && (

@@ -333,6 +333,8 @@ const planner = {
   casePostcodePlaceholder: 'f.eks. 7000',
   proximityExact: 'Nærmest',
   proximityAlternative: 'Alternativ',
+  proximityNear: 'Nærmeste',
+  proximityDistance: '{distance} km væk',
 
   // DAWA Address
   addressSearch: 'Søg adresse...',
