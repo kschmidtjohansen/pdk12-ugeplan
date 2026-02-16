@@ -59,7 +59,6 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   }, [employees, caseLat, caseLng]);
 
   const sortedEmployees = useMemo(() => {
-    // If we have GPS coordinates, sort by distance (≤15km first)
     if (caseLat != null && caseLng != null && distanceMap.size > 0) {
       return [...employees].sort((a, b) => {
         const distA = distanceMap.get(a.id);
@@ -163,7 +162,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-popover border shadow-md">
-          {sortedEmployees.map(employee => {
+          {sortedEmployees.map((employee, index) => {
             try {
               if (!employee || !employee.id || !employee.name) {
                 console.error('[EmployeeSelector] Invalid employee object:', employee);
@@ -200,17 +199,25 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 || employee.status === 'terminated'
                 || employee.status === 'inactive';
               
-              const hasRedStyling = availabilityInfo.status === 'fullyBooked';
-              if (import.meta.env.DEV) {
-                console.log(`[EmployeeSelector] Employee ${employee.name} red styling: ${hasRedStyling}, disabled: ${isDisabled}`);
-              }
+              const isFullyBooked = availabilityInfo.status === 'fullyBooked';
+
+              // Distance info
+              const dist = distanceMap.get(employee.id);
+              const isNearby = dist != null && dist <= 15;
+              const formattedDist = dist != null
+                ? (currentLanguage === 'da' ? dist.toFixed(1).replace('.', ',') : dist.toFixed(1))
+                : null;
               
               return (
               <DropdownMenuItem
                 key={employee.id}
-                className={`flex items-center space-x-2 p-2 ${
-                  isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                } ${hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''}`}
+                className={`flex items-center gap-2 py-3 px-4 transition-colors ${
+                  index < sortedEmployees.length - 1 ? 'border-b border-border/40' : ''
+                } ${
+                  isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
+                } ${
+                  isSelected ? 'bg-accent/30' : ''
+                }`}
                 onSelect={(e) => {
                   e.preventDefault();
                   if (!isDisabled) {
@@ -222,59 +229,43 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                   checked={isSelected}
                   onChange={() => !isDisabled && onToggle(employee.id)}
                   disabled={isDisabled}
-                  className="mr-2"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      <span className={`font-medium ${hasRedStyling ? '!text-red-700 !font-bold' : ''}`}>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-medium text-foreground truncate">
                         {employee.name}
                       </span>
+                      {isNearby && formattedDist && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <MapPin className="h-3 w-3" />
+                          {formattedDist} km {currentLanguage === 'da' ? 'væk' : 'away'}
+                        </span>
+                      )}
                     </div>
                     <div className="flex gap-1 ml-2 flex-shrink-0">
-                      {(() => {
-                        const dist = distanceMap.get(employee.id);
-                        if (dist != null && dist <= 15) {
-                          const formatted = currentLanguage === 'da'
-                            ? dist.toFixed(1).replace('.', ',')
-                            : dist.toFixed(1);
-                          return (
-                            <Badge className="text-xs bg-green-100 text-green-700 border-green-300">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {t('planner.proximityNear')} ({formatted} km)
-                            </Badge>
-                          );
-                        }
-                        return null;
-                      })()}
                       {isExpired && (
-                        <Badge variant="destructive" className="text-xs">
+                        <Badge variant="destructive" size="sm">
                           Expired
                         </Badge>
                       )}
                       {(employee.status === 'terminated' || employee.status === 'inactive') && (
-                        <Badge variant="outline" className="text-xs text-red-600 border-red-300">
+                        <Badge variant="outline" size="sm" className="text-destructive border-destructive/30">
                           {employee.status === 'terminated' ? 'Terminated' : 'Inactive'}
                         </Badge>
                       )}
-                      {vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day' && (
-                        <Badge variant="outline" className="text-xs">
-                          {t('planner.onVacation')}
-                        </Badge>
-                      )}
                       {vacationStatus.isOnVacation && vacationStatus.vacationType === 'partial_day' && (
-                        <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                        <Badge variant="warning" size="sm">
                           {availabilityInfo.statusText}
                         </Badge>
                       )}
-                      {isManuallyOnLeave && (
-                        <Badge variant="outline" className="text-xs">
-                          {t('employees.onLeave')}
+                      {isFullyBooked && !isDisabled && (
+                        <Badge variant="destructive" size="sm">
+                          {availabilityInfo.statusText}
                         </Badge>
                       )}
-                      {availabilityInfo.status !== 'available' && !vacationStatus.isOnVacation && !isDisabled && (
-                        <Badge className={`text-xs font-medium ${availabilityInfo.badgeColor}`}>
+                      {availabilityInfo.status !== 'available' && !isFullyBooked && !vacationStatus.isOnVacation && !isDisabled && (
+                        <Badge variant="warning" size="sm">
                           {availabilityInfo.statusText}
                         </Badge>
                       )}

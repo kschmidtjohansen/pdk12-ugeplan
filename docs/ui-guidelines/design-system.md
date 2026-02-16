@@ -163,3 +163,23 @@ Brug altid `<EmptyState>` komponenten med:
 - Succes/fejl: `sonner` toast via `toast.success()` / `toast.error()`
 - Bekræftelse: `<AlertDialog>` for destruktive handlinger
 - Real-time: `<RealtimeChangeNotifier>` for data-opdateringer
+
+---
+
+## List Item (Dropdown/Selector)
+
+Standardmønstre for listevisning i dropdowns og selectors.
+
+```
+Klasser:
+- Række: py-3 px-4, border-b border-border/40
+- Hover: hover:bg-accent/50, transition-colors
+- Valgt: bg-accent/30
+- Disabled: opacity-60, cursor-not-allowed
+- Navn: font-medium text-foreground
+- Sub-tekst: text-xs text-muted-foreground
+- Badges: Kun til kritiske statusser (fuldt booket, utilgængelig)
+- Proximity: Vis som sub-tekst med MapPin-ikon, ikke som badge
+```
+
+**Anvendelse**: EmployeeSelector, CarSelector og lignende dropdown-vælgere i formularer.
