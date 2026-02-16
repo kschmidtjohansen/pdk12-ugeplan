@@ -220,6 +220,11 @@ const planner = {
   proximityExact: 'Closest',
   proximityRegion: 'Region',
 
+  // DAWA Address
+  addressSearch: 'Search address...',
+  addressNotFound: 'Address not found - enter manually',
+  cityLabel: 'City',
+
   // Validation messages
   validation: {
     titleRequired: 'Title is required',

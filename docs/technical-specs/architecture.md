@@ -152,4 +152,14 @@ Detaljeret beskrivelse af projektets sikkerhedsarkitektur, kryptering, adgangsko
 | `mask_email(p_email)` | Maskerer e-mail (f.eks. `k***@example.com`) |
 | `mask_phone(p_phone)` | Maskerer telefonnummer |
 
-Bruges i sikkerhedslogge for at undgå eksponering af persondata.
+---
+
+## External APIs
+
+### DAWA (Danmarks Adressers Web API)
+- **Endpoint**: `https://api.dataforsyningen.dk/adresser/autocomplete`
+- **Formål**: Adresse-autocomplete i Planner-modulet
+- **Autentificering**: Ingen (åbent API)
+- **Rate limiting**: Ingen officiel grænse, debounced 300ms klient-side
+- **Fallback**: Manuel fritekst-indtastning hvis API fejler
+- **Data brugt**: vejnavn, husnr, postnr, postnrnavn

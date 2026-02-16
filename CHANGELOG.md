@@ -4,6 +4,15 @@
 
 ### Fixed - 2026-02-16
 - **RLS-fix**: `secure_profile_updates`-policyen tillader nu `super_admin`-rollen at opdatere medarbejderprofiler (postnummer, adresse m.m. blev ikke gemt)
+
+### Added - 2026-02-16
+- **DAWA Adresse-Autocomplete**: Smart adresse-søgning i Planner-formularen via Danmarks Adressers Web API
+  - Autocomplete-dropdown med forslag når brugeren taster en adresse
+  - Ved valg udfyldes adresse, postnummer og by automatisk
+  - Postnummer synkroniseres med nærhedsbaseret medarbejder-sortering
+  - Fallback til manuel fritekst-indtastning ved API-fejl
+  - Nye database-kolonner: `zip_code` og `city` på `assignments`-tabellen
+  - Dokumenteret under "External APIs" i `docs/technical-specs/architecture.md`
 - Wrappet resterende uguardede `console.error`/`console.warn` i `import.meta.env.DEV` guard (client.ts, SecurityHeaders.tsx, useAssignmentFiles.ts)
 - Slettet `definer_no_search_path` og `console_prod_logging` findings fra sikkerhedspanelet (allerede rettet)
 - Markeret `demo_pass_in_migrations` og `chart_dangerous_html` som ignoreret med begrundelse

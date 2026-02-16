@@ -52,6 +52,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     toast
   } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [zipCode, setZipCode] = useState(formData.zip_code || '');
+  const [city, setCity] = useState(formData.city || '');
   const {
     handleSubmit,
     formState: {
@@ -104,7 +106,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     setIsSubmitting(true);
     try {
       console.log('[AssignmentForm] Validation passed, calling onSubmit with data:', formData);
-      await onSubmit(formData);
+      await onSubmit({ ...formData, zip_code: zipCode, city });
       console.log('[AssignmentForm] onSubmit completed successfully');
     } catch (error) {
       console.error('[AssignmentForm] Error in form submission:', error);
@@ -324,7 +326,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           employees={employees} 
           vacations={vacations} 
           assignmentId={currentAssignment?.id} 
-          assignments={assignments} 
+          assignments={assignments}
+          zipCode={zipCode}
+          setZipCode={setZipCode}
+          city={city}
+          setCity={setCity}
         />
       </div>
 

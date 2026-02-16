@@ -17,6 +17,7 @@ import { Vacation } from '@/types/vacation';
 import MultipleCarSelector from './MultipleCarSelector';
 import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
+import AddressAutocomplete from './AddressAutocomplete';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -43,6 +44,10 @@ interface AssignmentFormFieldsProps {
   assignmentId?: string;
   assignments?: Assignment[];
   isEditMode?: boolean;
+  zipCode: string;
+  setZipCode: (value: string) => void;
+  city: string;
+  setCity: (value: string) => void;
 }
 
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
@@ -69,7 +74,11 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   vacations,
   assignmentId,
   assignments = [],
-  isEditMode = false
+  isEditMode = false,
+  zipCode,
+  setZipCode,
+  city,
+  setCity
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
@@ -157,17 +166,25 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           <Input
             id="casePostcode"
             value={casePostcode}
-            onChange={(e) => setCasePostcode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+              setCasePostcode(val);
+              setZipCode(val);
+            }}
             placeholder={t('planner.casePostcodePlaceholder')}
             maxLength={4}
             inputMode="numeric"
           />
-          <Input
-            id="location"
+          <AddressAutocomplete
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            onChange={(val) => setLocation(val)}
+            onAddressSelect={(data) => {
+              setLocation(data.address);
+              setCasePostcode(data.zipCode);
+              setZipCode(data.zipCode);
+              setCity(data.city);
+            }}
             placeholder={t('planner.enterLocation')}
-            required
           />
         </div>
       </div>

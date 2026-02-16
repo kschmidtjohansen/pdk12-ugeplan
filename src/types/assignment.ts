@@ -15,6 +15,8 @@ export interface Assignment {
   assignedEmployees?: Array<{ id: string; name: string; email: string }>; // PHASE 3 FIX: Full employee data
   car?: string | { id: string; name: string };
   cars?: string[];
+  zip_code?: string;
+  city?: string;
   createdAt?: string;
   updatedAt?: string;
   responsibleUser?: {
