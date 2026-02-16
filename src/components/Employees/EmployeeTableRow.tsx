@@ -165,13 +165,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
           
         </div>
       </TableCell>
-      {isAdmin && (
-        <TableCell className="text-sm text-muted-foreground">
-          {employee.home_postcode || employee.home_address 
-            ? `${employee.home_postcode || ''} ${employee.home_address || ''}`.trim()
-            : '-'}
-        </TableCell>
-      )}
+      
       {(isAdmin) && (
         <TableCell>
           <StatusBadge variant={getRoleVariant(employee.role)}>

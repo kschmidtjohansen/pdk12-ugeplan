@@ -137,7 +137,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
               <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
               <TableHead>{t('employees.jobTitle') || 'Job Title'}</TableHead>
               <TableHead>{t('employees.certificates') || 'Certificates'}</TableHead>
-              {isAdmin && <TableHead>{t('employees.homeAddress') || 'Address'}</TableHead>}
+              
               {isAdmin && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
               <TableHead>{t('employees.statusLabel') || 'Status'}</TableHead>
               {isAdmin && <TableHead>{t('common.actions') || 'Actions'}</TableHead>}
