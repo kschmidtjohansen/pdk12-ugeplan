@@ -1,91 +1,71 @@
 
 
-## Fix: Nærmeste-funktionen virker ikke ved redigering
+## Fix: Brugeroprettelse fejler + manglende afdelingstilknytning
 
-### Rodårsag
+### Situationsanalyse
 
-Alle opgaver i databasen har `lat = NULL, lng = NULL`. Selvom koden gemmer koordinater ved oprettelse, har **eksisterende opgaver aldrig fået koordinater**. Når man redigerer en opgave, starter `caseLat`/`caseLng` som `undefined`, og der er ingen logik der automatisk henter koordinater fra den eksisterende adresse/postnummer.
+Fejlen "Edge Function returned a non-2xx status code" skyldes at Michael Rattenborg allerede blev oprettet ved forste forsog (kl. 14:47). Brugeren vises ikke fordi `user_access`-tabellen mangler en raekke for afdeling "16 - Asnaes". Det underliggende problem er at formularen ikke pre-selecter den aktive afdeling.
 
-Derudover viser den nuværende kode kun afstand som `text-muted-foreground` (grå tekst) for alle inden for 15 km. Brugeren ønsker at de **3 nærmeste** vises med **grøn tekst/status**.
+### Trin 1: Pre-select aktuel afdeling ved oprettelse
+
+**`src/components/Admin/UserFormDialog.tsx`**
+
+- Importer `useDepartment` fra `@/context/DepartmentContext`
+- Tilfoej `const { selectedDepartmentId } = useDepartment();`
+- Tilfoej en `useEffect` der pre-selecter den aktive afdeling ved oprettelse (ikke redigering):
+
+```text
+useEffect(() => {
+  if (!currentUser && selectedDepartmentId && selectedDeptIds.length === 0) {
+    setSelectedDeptIds([selectedDepartmentId]);
+  }
+}, [currentUser, selectedDepartmentId]);
+```
+
+### Trin 2: Validering - kraev mindst en afdeling
+
+I `handleFormSubmit`, tilfoej validering foer brugeroprettelse:
+
+```text
+if (selectedDeptIds.length === 0) {
+  setErrorMessage('Vaelg mindst en afdeling for brugeren');
+  setIsSubmitting(false);
+  return;
+}
+```
+
+Placer dette efter telefon-valideringen (linje 224) og foer password-valideringen (linje 226).
+
+### Trin 3: Bedre fejlhaandtering for duplikerede brugere
+
+Edge function returnerer allerede en fejlbesked "A user with this email address has already been registered". Fejlhaandteringen i `handleFormSubmit` (linje 294) fanger dette korrekt. Ingen aendringer noedvendige her.
+
+### Trin 4: Opdater CHANGELOG.md
+
+Tilfoej entry om pre-select af aktuel afdeling og validering.
 
 ---
 
-### Trin 1: Auto-fetch koordinater i edit-mode
+### Filer der aendres
 
-**`src/components/Planner/AssignmentFormFields.tsx`**
-
-Tilføj en `useEffect` der kører når komponenten mountes i edit-mode:
-- Hvis `caseLat`/`caseLng` er `undefined` og der findes et `zipCode` eller et postnummer kan udtrækkes fra `location`
-- Kald `fetchPostnrCoords(postnummer)` for at hente koordinater
-- Opdater `caseLat`, `caseLng` og kald `onCoordsChange`
-
-Dette sikrer at proximity-beregningen fungerer med det samme ved redigering.
-
----
-
-### Trin 2: Top-3 nærmeste med grøn tekst
-
-**`src/components/Planner/EmployeeSelector.tsx`**
-
-Ændringer i distance-visning:
-- Beregn hvilke medarbejdere der er de 3 nærmeste (inden for 15 km radius)
-- De 3 nærmeste vises med **grøn tekst** (`text-green-600`) og MapPin-ikon i grøn
-- Øvrige inden for 15 km vises stadig med afstand, men i standard `text-muted-foreground`
-- Medarbejdere over 15 km eller uden koordinater: ingen afstandsvisning
-
----
-
-### Trin 3: Dokumentation
-
-**`CHANGELOG.md`**: Dokumenter fix af edit-mode koordinater og grøn top-3 visning.
-
----
-
-### Filer der ændres
-
-| Fil | Ændring |
+| Fil | Aendring |
 |-----|---------|
-| `src/components/Planner/AssignmentFormFields.tsx` | useEffect til auto-fetch koordinater fra postnummer i edit-mode |
-| `src/components/Planner/EmployeeSelector.tsx` | Top-3 nærmeste med grøn tekst, øvrige i grå |
-| `CHANGELOG.md` | Dokumenter ændringerne |
+| `src/components/Admin/UserFormDialog.tsx` | Import useDepartment, pre-select afdeling, valider mindst 1 afdeling |
+| `CHANGELOG.md` | Dokumenter fix |
 
 ### Tekniske detaljer
 
-**Auto-fetch logik (AssignmentFormFields)**:
-```text
-useEffect(() => {
-  if (caseLat == null && caseLng == null) {
-    const postcode = zipCode || extractPostcode(location);
-    if (postcode) {
-      fetchPostnrCoords(postcode).then(coords => {
-        if (coords) {
-          setCaseLat(coords.lat);
-          setCaseLng(coords.lng);
-          onCoordsChange?.(coords.lat, coords.lng);
-        }
-      });
-    }
-  }
-}, []);  // Kører kun ved mount
-```
+Samlet set er der 3 aendringer i `UserFormDialog.tsx`:
 
-**Top-3 grøn logik (EmployeeSelector)**:
-```text
-// Find de 3 nærmeste inden for 15 km
-const nearbyIds = sortedEmployees
-  .filter(emp => distanceMap.get(emp.id) != null && distanceMap.get(emp.id) <= 15)
-  .slice(0, 3)
-  .map(emp => emp.id);
-
-// Brug grøn tekst for top-3:
-const isTop3 = nearbyIds.includes(employee.id);
-// className: isTop3 ? "text-green-600" : "text-muted-foreground"
-```
+1. **Linje 16**: Tilfoej import af `useDepartment`
+2. **Linje 82** (efter `useAuth`): Tilfoej `const { selectedDepartmentId } = useDepartment();` og en useEffect til pre-select
+3. **Linje 224** (efter phoneValidation): Tilfoej validering for mindst 1 afdeling
 
 ### Kvalitetstjek
 
-- Auto-fetch kører kun ved mount og kun hvis koordinater mangler (idempotent)
-- Grøn visning er begrænset til top 3 inden for 15 km — ikke alle
-- Fallback til grå tekst for øvrige medarbejdere med afstand
-- Ingen ændring af sorteringslogik (stadig 15 km radius øverst)
-- Overholder UI guidelines: semantiske farver, ingen hardcoded grays
+- Pre-select koerer kun ved oprettelse (guard: `!currentUser`)
+- Brugeren kan stadig aendre/tilfoeje flere afdelinger manuelt
+- Validering forhindrer at brugere oprettes uden tilknytning
+- Eksisterende redigeringsflow paavirkes ikke (linje 131-154 haandterer edit)
+- Fejlbesked for duplikerede brugere vises allerede korrekt
+
