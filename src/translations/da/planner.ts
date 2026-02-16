@@ -334,6 +334,11 @@ const planner = {
   proximityExact: 'Nærmest',
   proximityRegion: 'Region',
 
+  // DAWA Address
+  addressSearch: 'Søg adresse...',
+  addressNotFound: 'Adresse ikke fundet - indtast manuelt',
+  cityLabel: 'By',
+
   // Validation
   validation: {
     titleRequired: 'Titel er påkrævet',

@@ -120,6 +120,8 @@ export const useAssignmentActions = (
               responsible_user_id: responsibleUserId,
               published: assignmentData.published || false,
               created_at: new Date().toISOString(),
+              zip_code: assignmentData.zip_code || null,
+              city: assignmentData.city || null,
               ...(isDemoMode && { is_demo: true })
             })
             .select('id')
@@ -293,6 +295,8 @@ export const useAssignmentActions = (
           car_id: carId,
           responsible_user_id: responsibleUserId,
           published: assignmentData.published,
+          zip_code: assignmentData.zip_code || null,
+          city: assignmentData.city || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', id);
@@ -379,6 +383,8 @@ export const useAssignmentActions = (
             car_id: carId,
             responsible_user_id: responsibleUserId,
             published: assignmentData.published || false,
+            zip_code: assignmentData.zip_code || null,
+            city: assignmentData.city || null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             ...(isDemoMode && { is_demo: true })
