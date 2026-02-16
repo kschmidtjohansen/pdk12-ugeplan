@@ -39,6 +39,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Sikkerhedsoprydning (Fase 10) - 2026-02-16
+- **SECURITY**: Tilføjet `SET search_path = public` til 4 SECURITY DEFINER funktioner: `can_user_access_assignment`, `can_access_assignment`, `is_admin_user`, `get_current_user_role`
+- **SECURITY**: Tilføjet CHECK constraints: `assignment_messages` max 5000 tegn, `assignment_files` kommentarer max 2000 tegn
+- **SECURITY**: Strammet storage bucket policy for `assignment-files` — kun adgang for tildelte medarbejdere, ansvarlige og admins
+- **SECURITY**: Tilføjet `CRON_SECRET` validering til 3 edge functions: `cleanup-expired-users`, `cleanup-change-logs`, `send-duty-reminders`
+- **SECURITY**: Klient-side længdevalidering tilføjet i `useAssignmentMessages` (max 5000 tegn) og `useAssignmentFiles` (max 2000 tegn)
+- **LOGGING**: Wrappet 80+ uguardede `console.log/warn/error` i `import.meta.env.DEV` guard i 14 filer: weekFormatting, UserManagement, demoUserService, secureProfileService, securityManager, carSecurityService, useDutyActions, useAssignmentMessages, useAssignmentFiles, PasswordChangeDialog, LocationManagement, UserFormDialog, AuthContext, NotificationContext
+
 ### Fixed - 2026-02-16
 - **KRITISK FIX**: 10 opgaver med `department_id = NULL` (inkl. 12-013546 "Håndværkervej 23") var usynlige i planner — backfilled til afd. 12 - Fredericia
 - **KRITISK FIX**: Vagter (kørevagt/skadeledervagt) blev gemt uden `department_id` og var usynlige — `useDutyActions.ts` tilføjer nu `department_id`/`sub_department_id` ved oprettelse

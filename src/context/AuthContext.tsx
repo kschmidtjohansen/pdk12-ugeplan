@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (import.meta.env.DEV) console.log(`[AuthContext] Starting user data fetch for: ${authUser.email}`);
     
     if (!circuitBreaker.canProceed(`user_data_fetch_${authUser.id}`)) {
-      console.warn(`[AuthContext] Circuit breaker open for user data fetch`);
+      if (import.meta.env.DEV) console.warn(`[AuthContext] Circuit breaker open for user data fetch`);
       return null;
     }
     
@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             'get_demo_profiles_admin_detailed', { full_access: false });
           
           if (demoError) {
-            console.error(`[AuthContext] Demo profile fetch error:`, demoError.message);
+            if (import.meta.env.DEV) console.error(`[AuthContext] Demo profile fetch error:`, demoError.message);
             throw new Error(`Demo profile fetch failed: ${demoError.message}`);
           }
           
@@ -174,7 +174,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             role: (userProfile.role as UserRole) || 'administrator'
           };
         } catch (demoError) {
-          console.error('[AuthContext] Demo user profile error:', demoError instanceof Error ? demoError.message : 'Unknown error');
+          if (import.meta.env.DEV) console.error('[AuthContext] Demo user profile error:', demoError instanceof Error ? demoError.message : 'Unknown error');
           
           return {
             id: authUser.id,
@@ -205,12 +205,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (profileResult.error) {
-        console.error(`[AuthContext] Profile fetch error:`, profileResult.error.message);
+        if (import.meta.env.DEV) console.error(`[AuthContext] Profile fetch error:`, profileResult.error.message);
         throw new Error(`Profile fetch failed: ${profileResult.error.message}`);
       }
       
       if (roleResult.error) {
-        console.error(`[AuthContext] Role fetch error:`, roleResult.error.message);
+        if (import.meta.env.DEV) console.error(`[AuthContext] Role fetch error:`, roleResult.error.message);
         throw new Error(`Role fetch failed: ${roleResult.error.message}`);
       }
 
@@ -243,7 +243,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return enhancedUser;
       
     } catch (error) {
-      console.error(`[AuthContext] User data fetch failed after ${Date.now() - startTime}ms:`, error instanceof Error ? error.message : 'Unknown error');
+      if (import.meta.env.DEV) console.error(`[AuthContext] User data fetch failed after ${Date.now() - startTime}ms:`, error instanceof Error ? error.message : 'Unknown error');
       circuitBreaker.recordFailure(`user_data_fetch_${authUser.id}`);
       
       const isDemoUser = authUser.email === DemoUserService.DEMO_USER_EMAIL;
@@ -268,7 +268,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (import.meta.env.DEV) console.log('[AuthContext] Starting authentication initialization...');
 
     if (!circuitBreaker.canProceed(AUTH_OPERATION_ID)) {
-      console.warn('[AuthContext] Auth initialization circuit breaker is open');
+      if (import.meta.env.DEV) console.warn('[AuthContext] Auth initialization circuit breaker is open');
       setLoading(false);
       setAuthReady(true);
       return;
@@ -361,7 +361,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     }
                   }
                 } catch (error) {
-                  console.error('[AuthContext] User data fetch failed:', error instanceof Error ? error.message : 'Unknown error');
+                  if (import.meta.env.DEV) console.error('[AuthContext] User data fetch failed:', error instanceof Error ? error.message : 'Unknown error');
                   if (mounted) {
                     const fallbackUser: AppUser = {
                       id: newSession.user.id,
@@ -407,7 +407,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (!mounted) return;
 
           if (error) {
-            console.error('[AuthContext] Session check error:', error.message);
+            if (import.meta.env.DEV) console.error('[AuthContext] Session check error:', error.message);
             throw error;
           }
 
@@ -424,7 +424,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           circuitBreaker.recordSuccess(AUTH_OPERATION_ID);
           
         } catch (error) {
-          console.error('[AuthContext] Session check failed:', error instanceof Error ? error.message : 'Unknown error');
+          if (import.meta.env.DEV) console.error('[AuthContext] Session check failed:', error instanceof Error ? error.message : 'Unknown error');
           circuitBreaker.recordFailure(AUTH_OPERATION_ID);
           
           setSession(null);
@@ -442,7 +442,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
 
       } catch (error) {
-        console.error('[AuthContext] Auth initialization failed:', error instanceof Error ? error.message : 'Unknown error');
+        if (import.meta.env.DEV) console.error('[AuthContext] Auth initialization failed:', error instanceof Error ? error.message : 'Unknown error');
         circuitBreaker.recordFailure(AUTH_OPERATION_ID);
         
         if (mounted) {
@@ -460,7 +460,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Force completion after maximum timeout
     const forceCompleteTimeout = setTimeout(() => {
       if (mounted && !initializationComplete) {
-        console.warn('[AuthContext] Force completing auth initialization due to timeout');
+        if (import.meta.env.DEV) console.warn('[AuthContext] Force completing auth initialization due to timeout');
         setLoading(false);
         setAuthReady(true);
         initializationComplete = true;

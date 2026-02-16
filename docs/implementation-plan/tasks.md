@@ -172,3 +172,16 @@ Gennemført 2026-02-16.
 - [x] Tilføjet `department_id` og `sub_department_id` til duty-insert i `useDutyActions.ts`
 - [x] Ændret `useDutyData.ts` query til defensiv `.or()` filter der inkluderer `NULL department_id`
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 10: Sikkerhedspanel-oprydning ✅
+
+Gennemført 2026-02-16.
+
+- [x] Tilføjet `SET search_path = public` til 4 SECURITY DEFINER funktioner
+- [x] Tilføjet CHECK constraints på `assignment_messages` (max 5000) og `assignment_files` kommentarer (max 2000)
+- [x] Strammet storage bucket policy for `assignment-files` (kun tildelte/ansvarlige/admins)
+- [x] Tilføjet `CRON_SECRET` validering til 3 cron edge functions
+- [x] Wrappet 80+ uguardede console.log/warn/error i `import.meta.env.DEV` guard (14 filer)
+- [x] Klient-side længdevalidering i useAssignmentMessages og useAssignmentFiles
+- [x] Markeret acceptable findings som ignoreret med begrundelse
+- [x] Dokumenteret i CHANGELOG.md

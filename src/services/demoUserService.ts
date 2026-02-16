@@ -60,7 +60,7 @@ export class DemoUserService {
       try {
         this.operationHistory = JSON.parse(stored);
       } catch (error) {
-        console.warn('Failed to load demo operation history:', error);
+        if (import.meta.env.DEV) console.warn('Failed to load demo operation history:', error);
         this.operationHistory = [];
       }
     }
@@ -70,7 +70,7 @@ export class DemoUserService {
     try {
       sessionStorage.setItem('demo-operations', JSON.stringify(this.operationHistory));
     } catch (error) {
-      console.warn('Failed to save demo operation history:', error);
+      if (import.meta.env.DEV) console.warn('Failed to save demo operation history:', error);
     }
   }
 
@@ -114,7 +114,7 @@ export class DemoUserService {
     this.operationHistory.push(demoOp);
     this.saveOperationHistory();
     
-    console.log(`[Demo] Tracked ${operation} operation on ${table}:`, recordId);
+    if (import.meta.env.DEV) console.log(`[Demo] Tracked ${operation} operation on ${table}:`, recordId);
   }
 
   // Employee storage helpers
@@ -130,7 +130,7 @@ export class DemoUserService {
     };
     employees.push(record);
     sessionStorage.setItem('demo-employees', JSON.stringify(employees));
-    console.log('[DemoUserService] Stored demo employee:', record.id);
+    if (import.meta.env.DEV) console.log('[DemoUserService] Stored demo employee:', record.id);
   }
 
   updateDemoEmployee(id: string, updates: any): void {
@@ -143,7 +143,7 @@ export class DemoUserService {
         updated_at: new Date().toISOString() 
       };
       sessionStorage.setItem('demo-employees', JSON.stringify(employees));
-      console.log('[DemoUserService] Updated demo employee:', id);
+      if (import.meta.env.DEV) console.log('[DemoUserService] Updated demo employee:', id);
     }
   }
 
@@ -151,7 +151,7 @@ export class DemoUserService {
     const employees = this.getDemoEmployees();
     const filtered = employees.filter((e: any) => e.id !== id);
     sessionStorage.setItem('demo-employees', JSON.stringify(filtered));
-    console.log('[DemoUserService] Deleted demo employee:', id);
+    if (import.meta.env.DEV) console.log('[DemoUserService] Deleted demo employee:', id);
   }
 
   getDemoEmployees(): any[] {
@@ -159,10 +159,10 @@ export class DemoUserService {
     if (!stored) return [];
     try {
       const parsed = JSON.parse(stored);
-      console.log('[DemoUserService] Loaded', parsed.length, 'demo employees from storage');
+      if (import.meta.env.DEV) console.log('[DemoUserService] Loaded', parsed.length, 'demo employees from storage');
       return parsed;
     } catch (e) {
-      console.warn('[DemoUserService] Failed to parse demo employees from storage', e);
+      if (import.meta.env.DEV) console.warn('[DemoUserService] Failed to parse demo employees from storage', e);
       return [];
     }
   }
@@ -185,7 +185,7 @@ export class DemoUserService {
     };
     demoAssignments.push(record);
     sessionStorage.setItem('demo-assignments', JSON.stringify(demoAssignments));
-    console.log('[DemoUserService] Stored demo assignment:', record.id, 'Total:', demoAssignments.length);
+    if (import.meta.env.DEV) console.log('[DemoUserService] Stored demo assignment:', record.id, 'Total:', demoAssignments.length);
   }
 
   // Update demo assignment in session storage
@@ -209,15 +209,15 @@ export class DemoUserService {
   getDemoAssignments(): any[] {
     const stored = sessionStorage.getItem('demo-assignments');
     if (!stored) {
-      console.log('[DemoUserService] No demo assignments in storage');
+      if (import.meta.env.DEV) console.log('[DemoUserService] No demo assignments in storage');
       return [];
     }
     try {
       const parsed = JSON.parse(stored);
-      console.log('[DemoUserService] Loaded', parsed.length, 'demo assignments from storage');
+      if (import.meta.env.DEV) console.log('[DemoUserService] Loaded', parsed.length, 'demo assignments from storage');
       return parsed;
     } catch (error) {
-      console.warn('[DemoUserService] Failed to load demo assignments:', error);
+      if (import.meta.env.DEV) console.warn('[DemoUserService] Failed to load demo assignments:', error);
       return [];
     }
   }
@@ -256,7 +256,7 @@ export class DemoUserService {
     try {
       return JSON.parse(stored);
     } catch (e) {
-      console.warn('Failed to parse demo cars from storage', e);
+      if (import.meta.env.DEV) console.warn('Failed to parse demo cars from storage', e);
       return [];
     }
   }
@@ -281,7 +281,7 @@ export class DemoUserService {
   
   // Clean up all demo data using schema-based cleanup (preserves baseline data)
   async cleanupAllDemoUserData(): Promise<{ success: boolean; errors: string[]; deletedCounts: Record<string, number> }> {
-    console.log('[Demo] Starting cleanup of session data (preserving baseline)...');
+    if (import.meta.env.DEV) console.log('[Demo] Starting cleanup of session data (preserving baseline)...');
     const errors: string[] = [];
     const deletedCounts: Record<string, number> = {};
     
@@ -310,7 +310,7 @@ export class DemoUserService {
       sessionStorage.removeItem('demo-cars');
       sessionStorage.removeItem('demo-employees');
       sessionStorage.removeItem('demo-vacations');
-      console.log('[Demo] Cleared local virtual demo data from sessionStorage');
+      if (import.meta.env.DEV) console.log('[Demo] Cleared local virtual demo data from sessionStorage');
       
       // Clear session storage (but keep session ID for continuity)
       sessionStorage.removeItem('demo-operations');
@@ -318,12 +318,12 @@ export class DemoUserService {
       this.saveOperationHistory();
       
       const totalDeleted = Object.values(deletedCounts).reduce((sum, count) => sum + count, 0);
-      console.log(`[Demo] Cleanup completed. Total deleted: ${totalDeleted}, Baseline data preserved.`);
+      if (import.meta.env.DEV) console.log(`[Demo] Cleanup completed. Total deleted: ${totalDeleted}, Baseline data preserved.`);
       
       return { success: true, errors: [], deletedCounts };
     } catch (error) {
       const errorMsg = `Cleanup failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
-      console.error('[Demo]', errorMsg);
+      if (import.meta.env.DEV) console.error('[Demo]', errorMsg);
       errors.push(errorMsg);
       return { success: false, errors, deletedCounts };
     }
@@ -373,7 +373,7 @@ export class DemoUserService {
             deletePromise = supabase.from('assignments_employees').delete().in('assignment_id', batch);
             break;
           default:
-            console.warn(`[Demo] Unknown table for cleanup: ${table}`);
+            if (import.meta.env.DEV) console.warn(`[Demo] Unknown table for cleanup: ${table}`);
             continue;
         }
         
@@ -383,10 +383,10 @@ export class DemoUserService {
           throw error;
         }
         
-        console.log(`[Demo] Deleted ${batch.length} records from ${table}`);
+        if (import.meta.env.DEV) console.log(`[Demo] Deleted ${batch.length} records from ${table}`);
       }
     } catch (error) {
-      console.error(`[Demo] Error cleaning up ${table}:`, error);
+      if (import.meta.env.DEV) console.error(`[Demo] Error cleaning up ${table}:`, error);
       throw error;
     }
   }
