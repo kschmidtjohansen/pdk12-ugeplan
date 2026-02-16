@@ -332,7 +332,7 @@ const planner = {
   casePostcode: 'Sagens postnummer',
   casePostcodePlaceholder: 'f.eks. 7000',
   proximityExact: 'Nærmest',
-  proximityRegion: 'Region',
+  proximityAlternative: 'Alternativ',
 
   // DAWA Address
   addressSearch: 'Søg adresse...',
