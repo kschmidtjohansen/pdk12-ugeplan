@@ -1,53 +1,69 @@
 
 
-## Tre forbedringer til adresse-haandtering i Planner
+## Fix: Naerheds-sortering ved redigering + fjern adresse-felt fra medarbejder
 
-### Oversigt
+### Problem 1: Naerheds-sortering virker ikke ved redigering
 
-1. **Fuld adresse-visning**: Vis adressen med postnummer og by i planner-listen (f.eks. "Julianelund 8, 7120 Vejle Ost")
-2. **Samlet adresse-felt**: Fjern det separate postnummer-felt og integrer det i autocomplete-feltet
-3. **"Alternativ" i stedet for "Region"**: Aendr label og farve for medarbejdere der ikke er i samme postnummer
+Naar man aabner en eksisterende opgave til redigering, initialiseres `casePostcode` fra `zipCode` (som kommer fra `formData.zip_code`). Men for opgaver oprettet foer zip_code-kolonnen blev tilfojet, er denne vaerdi tom. Desuden udtraekkes postnummeret ikke fra den eksisterende `location`-streng ved opstart.
 
----
+**Fix i `AssignmentFormFields.tsx`**:
+- Ved initialisering: hvis `zipCode` er tom, forsoeges postnummeret udtrukket fra `location`-prop via regex (`/,\s*(\d{4})\s/`)
+- Tilfoej en `useEffect` der koerer ved mount og udtraekker postnummeret fra location hvis casePostcode er tomt
 
-### Trin 1: Fuld adresse-visning i planner-listen
+### Problem 2: Fjern adresse-felt fra medarbejder-formularen
 
-Naar en adresse vaelges via DAWA, gemmes `location` som den fulde streng inkl. postnummer og by.
+Jf. knowledge skal medarbejdere kun have `home_postcode` - ikke `home_address`. Adresse-feltet fjernes fra UI, men kolonnen beholdes i databasen for at undgaa breaking changes.
 
-**`src/components/Planner/AddressAutocomplete.tsx`**:
-- Aendr `handleSelect` saa `address` bliver `"Julianelund 8, 7120 Vejle Ost"` i stedet for kun `"Julianelund 8"`
-- Format: `{vejnavn} {husnr}, {postnr} {postnrnavn}`
-
-Dette goer at alle visninger (AssignmentCard, CompactAssignmentRow, AssignmentDetails) automatisk viser den fulde adresse, da de alle laeser fra `assignment.location`.
-
----
-
-### Trin 2: Samlet adresse-felt (fjern separat postnummer)
-
-**`src/components/Planner/AssignmentFormFields.tsx`**:
-- Fjern det separate `casePostcode` Input-felt og `grid-cols-[120px_1fr]` layoutet
-- Lad AddressAutocomplete staa alene som et enkelt felt
-- Naar en DAWA-adresse vaelges, udtraek postnummeret automatisk og opdater `casePostcode` internt (til naerheds-sortering af medarbejdere) samt `zipCode`/`city` til databasen
-- Postnummeret styres nu udelukkende via autocomplete-valg eller automatisk parsing af manuelt indtastet tekst
+**Fix i `EmployeeFormDialog.tsx`** (linje 246-274):
+- Fjern `home_address` Input-feltet
+- Behold kun `home_postcode` Input-feltet
+- Fjern grid-layoutet (`grid-cols-[100px_1fr]`) og lad postnummer-feltet staa alene
+- Label aendres fra "Hjemmeadresse" til "Postnummer"
 
 ---
 
-### Trin 3: "Alternativ" label med ny farve
+### Tekniske detaljer
 
-**`src/components/Planner/EmployeeSelector.tsx`**:
-- For `proximityLevel === 1` (regionalt match, foerste 2 cifre ens): vis "Alternativ" i stedet for "Region"
-- Aendr badge-farven fra groen nuance (`bg-emerald-50 text-emerald-600`) til en tydelig alternativ farve (`bg-amber-50 text-amber-600 border-amber-200`)
+**Fil 1: `src/components/Planner/AssignmentFormFields.tsx`**
 
-**Oversaettelser** (`da/planner.ts` og `en/planner.ts`):
-- Omdoeb `proximityRegion` til `proximityAlternative`
-- Dansk: `'Alternativ'`
-- Engelsk: `'Alternative'`
+Aendr initialiseringen af `casePostcode` (linje 85):
+```text
+// Nuvaerende:
+const [casePostcode, setCasePostcode] = useState(zipCode || '');
 
----
+// Ny logik: fallback til extraction fra location
+const extractPostcode = (loc: string) => {
+  const match = loc.match(/,\s*(\d{4})\s/);
+  return match ? match[1] : '';
+};
+const [casePostcode, setCasePostcode] = useState(zipCode || extractPostcode(location) || '');
+```
 
-### Teknisk detalje: Postnummer-extraction fra manuelt input
+Tilfoej ogsaa en `useEffect` der synkroniserer `casePostcode` naar `location` aendres udefra (ved edit-load):
+```text
+useEffect(() => {
+  if (!casePostcode && location) {
+    const extracted = extractPostcode(location);
+    if (extracted) {
+      setCasePostcode(extracted);
+      setZipCode(extracted);
+    }
+  }
+}, [location]);
+```
 
-Naar brugeren taster manuelt (uden at vaelge fra DAWA), forsoeges postnummeret udtrukket fra strengen via regex (f.eks. `/, (\d{4})/`). Hvis det lykkes, opdateres naerheds-sorteringen automatisk.
+**Fil 2: `src/components/Employees/EmployeeFormDialog.tsx`**
+
+Erstat linje 246-274 (Home Address sektionen):
+- Fjern `home_address` Input
+- Fjern `grid-cols-[100px_1fr]` layout
+- Behold kun postnummer-feltet med label "Postnummer" / "Postcode"
+
+**Fil 3: Oversaettelser** (hvis noedvendigt):
+- Tilfoej/opdater `employees.homePostcode` key i `da/employees.ts` og `en/employees.ts`
+
+**Fil 4: `CHANGELOG.md`**:
+- Dokumenter begge aendringer
 
 ---
 
@@ -55,10 +71,15 @@ Naar brugeren taster manuelt (uden at vaelge fra DAWA), forsoeges postnummeret u
 
 | Fil | Aendring |
 |-----|----------|
-| `src/components/Planner/AddressAutocomplete.tsx` | Fuld adresse-format ved valg |
-| `src/components/Planner/AssignmentFormFields.tsx` | Fjern separat postnummer-felt, enkelt adresse-input |
-| `src/components/Planner/EmployeeSelector.tsx` | "Alternativ" label + amber farve for pl===1 |
-| `src/translations/da/planner.ts` | `proximityRegion` -> `proximityAlternative: 'Alternativ'` |
-| `src/translations/en/planner.ts` | `proximityRegion` -> `proximityAlternative: 'Alternative'` |
+| `src/components/Planner/AssignmentFormFields.tsx` | Postnummer-extraction fra location ved edit |
+| `src/components/Employees/EmployeeFormDialog.tsx` | Fjern adresse-felt, behold kun postnummer |
+| `src/translations/da/employees.ts` | Tilfoej `homePostcode` key |
+| `src/translations/en/employees.ts` | Tilfoej `homePostcode` key |
 | `CHANGELOG.md` | Dokumenter aendringerne |
 
+### Kvalitetstjek
+
+- Ingen foelsom data eksponeres (postnummer er ikke PII jf. tekniske specs)
+- Adresse-kolonnen beholdes i DB for backward compatibility
+- Naerheds-sortering virker baade ved oprettelse og redigering
+- UI fungerer i baade Standard, Kompakt og Gitter-visning
