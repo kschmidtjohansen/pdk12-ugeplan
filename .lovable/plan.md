@@ -1,101 +1,91 @@
 
 
-## UI/UX Refactoring: EmployeeSelector og CarSelector
+## Fix: Nærmeste-funktionen virker ikke ved redigering
 
-### Oversigt
+### Rodårsag
 
-Transformerer begge dropdown-selectors til et rent, moderne design med bedre visuelt hierarki, reduceret farvebrug, og luftigere layout.
+Alle opgaver i databasen har `lat = NULL, lng = NULL`. Selvom koden gemmer koordinater ved oprettelse, har **eksisterende opgaver aldrig fået koordinater**. Når man redigerer en opgave, starter `caseLat`/`caseLng` som `undefined`, og der er ingen logik der automatisk henter koordinater fra den eksisterende adresse/postnummer.
+
+Derudover viser den nuværende kode kun afstand som `text-muted-foreground` (grå tekst) for alle inden for 15 km. Brugeren ønsker at de **3 nærmeste** vises med **grøn tekst/status**.
 
 ---
 
-### Trin 1: EmployeeSelector refactoring
+### Trin 1: Auto-fetch koordinater i edit-mode
+
+**`src/components/Planner/AssignmentFormFields.tsx`**
+
+Tilføj en `useEffect` der kører når komponenten mountes i edit-mode:
+- Hvis `caseLat`/`caseLng` er `undefined` og der findes et `zipCode` eller et postnummer kan udtrækkes fra `location`
+- Kald `fetchPostnrCoords(postnummer)` for at hente koordinater
+- Opdater `caseLat`, `caseLng` og kald `onCoordsChange`
+
+Dette sikrer at proximity-beregningen fungerer med det samme ved redigering.
+
+---
+
+### Trin 2: Top-3 nærmeste med grøn tekst
 
 **`src/components/Planner/EmployeeSelector.tsx`**
 
-**Layout-aendringer per raekke:**
-- Venstre: Checkbox (uaendret)
-- Midte: Navn med `font-medium text-foreground`, under navnet en `text-xs text-muted-foreground` linje med afstand (f.eks. "MapPin 8,5 km vaek") i stedet for groen badge
-- Hoejre: Kun badges til kritiske advarsler ("Fuldt booket", "Expired", "Terminated")
-- Fravaerende/on-leave: Hele raekken faar `opacity-60` i stedet for separate badges
+Ændringer i distance-visning:
+- Beregn hvilke medarbejdere der er de 3 nærmeste (inden for 15 km radius)
+- De 3 nærmeste vises med **grøn tekst** (`text-green-600`) og MapPin-ikon i grøn
+- Øvrige inden for 15 km vises stadig med afstand, men i standard `text-muted-foreground`
+- Medarbejdere over 15 km eller uden koordinater: ingen afstandsvisning
 
-**Styling:**
-- Raekke-padding: `py-3 px-4` (luftigere)
-- Hover: `hover:bg-accent/50` (lys, neutral)
-- Valgt raekke: `bg-accent/30` (ingen blaa/roed border-l)
-- Separator: `border-b border-border/40` mellem raekker
-- Fjern `!bg-red-50 !border-l-4 !border-red-600` styling — brug i stedet en diskret badge for "Fuldt booket"
+---
 
-**Proximity-visning (ny):**
+### Trin 3: Dokumentation
+
+**`CHANGELOG.md`**: Dokumenter fix af edit-mode koordinater og grøn top-3 visning.
+
+---
+
+### Filer der ændres
+
+| Fil | Ændring |
+|-----|---------|
+| `src/components/Planner/AssignmentFormFields.tsx` | useEffect til auto-fetch koordinater fra postnummer i edit-mode |
+| `src/components/Planner/EmployeeSelector.tsx` | Top-3 nærmeste med grøn tekst, øvrige i grå |
+| `CHANGELOG.md` | Dokumenter ændringerne |
+
+### Tekniske detaljer
+
+**Auto-fetch logik (AssignmentFormFields)**:
 ```text
-Foer:  [Groen Badge: "Naermeste (8,4 km)"]
-Efter: Under navnet: "MapPin 8,5 km vaek" i text-xs text-muted-foreground
+useEffect(() => {
+  if (caseLat == null && caseLng == null) {
+    const postcode = zipCode || extractPostcode(location);
+    if (postcode) {
+      fetchPostnrCoords(postcode).then(coords => {
+        if (coords) {
+          setCaseLat(coords.lat);
+          setCaseLng(coords.lng);
+          onCoordsChange?.(coords.lat, coords.lng);
+        }
+      });
+    }
+  }
+}, []);  // Kører kun ved mount
 ```
 
----
-
-### Trin 2: CarSelector refactoring
-
-**`src/components/Planner/CarSelector.tsx`**
-
-**Layout-aendringer per raekke:**
-- Venstre: `Car`-ikon fra lucide-react i ensartet `text-muted-foreground` farve
-- Midte: Bilnavn med `font-medium`, nummerplade som `text-xs text-muted-foreground` sub-tekst under navnet
-- Hoejre: Kun badge for "I brug hele dagen" eller "Utilgaengelig"
-
-**Styling:**
-- Raekke-padding: `py-3 px-4`
-- Hover: `hover:bg-accent/50`
-- Valgt raekke: `bg-accent/30` (ingen blaa border-l)
-- Separator: `border-b border-border/40`
-- Fjern roed border-l og roed baggrund — brug diskret badge i stedet
-- Fjern "Valgt" badge — den aktive raekke vises via baggrundsfarveskift
-
----
-
-### Trin 3: Opdater design-system dokumentation
-
-**`docs/ui-guidelines/design-system.md`**
-
-Tilfoej en ny sektion "List Item komponenter" med retningslinjer:
-
+**Top-3 grøn logik (EmployeeSelector)**:
 ```text
-### List Item (Dropdown/Selector)
+// Find de 3 nærmeste inden for 15 km
+const nearbyIds = sortedEmployees
+  .filter(emp => distanceMap.get(emp.id) != null && distanceMap.get(emp.id) <= 15)
+  .slice(0, 3)
+  .map(emp => emp.id);
 
-Standardmoenstre for listevisning i dropdowns og selectors.
-
-Klasser:
-- Raekke: py-3 px-4, border-b border-border/40
-- Hover: hover:bg-accent/50, transition-colors
-- Valgt: bg-accent/30
-- Disabled: opacity-60, cursor-not-allowed
-- Navn: font-medium text-foreground
-- Sub-tekst: text-xs text-muted-foreground
-- Badges: Kun til kritiske statusser (fuldt booket, utilgaengelig)
-- Proximity: Vis som sub-tekst med MapPin-ikon, ikke som badge
+// Brug grøn tekst for top-3:
+const isTop3 = nearbyIds.includes(employee.id);
+// className: isTop3 ? "text-green-600" : "text-muted-foreground"
 ```
-
----
-
-### Trin 4: Dokumentation
-
-**`CHANGELOG.md`**: Log UI/UX refactoring af selectors
-
----
-
-### Filer der aendres
-
-| Fil | Aendring |
-|-----|----------|
-| `src/components/Planner/EmployeeSelector.tsx` | Nyt layout, proximity som sub-tekst, luftig padding, neutrale farver |
-| `src/components/Planner/CarSelector.tsx` | Car-ikon, nummerplade sub-tekst, neutrale farver, fjern roede rammer |
-| `docs/ui-guidelines/design-system.md` | Ny "List Item" sektion |
-| `CHANGELOG.md` | Dokumenter refactoring |
 
 ### Kvalitetstjek
 
-- Ingen hardcoded Tailwind gray-klasser (bruger semantiske tokens: accent, muted-foreground, border)
-- Fungerer i baade lys tilstand og med eksisterende tema-variabler
-- Proximity-info bevares men vises diskret som sub-tekst
-- Kritiske statusser (fuldt booket, utilgaengelig) forbliver synlige via badges
-- Fravaer markeres med opacity i stedet for ekstra badges
-
+- Auto-fetch kører kun ved mount og kun hvis koordinater mangler (idempotent)
+- Grøn visning er begrænset til top 3 inden for 15 km — ikke alle
+- Fallback til grå tekst for øvrige medarbejdere med afstand
+- Ingen ændring af sorteringslogik (stadig 15 km radius øverst)
+- Overholder UI guidelines: semantiske farver, ingen hardcoded grays
