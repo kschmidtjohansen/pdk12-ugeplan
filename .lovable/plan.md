@@ -1,130 +1,97 @@
 
+## Opgave: Brug DAWA-koordinater direkte fra autocomplete-svar
 
-## Opgave: GPS-koordinater til profiles og assignments
+### Nuvaerende situation
 
-### Oversigt
+Flowet er i dag:
+1. Bruger vaelger adresse fra DAWA autocomplete
+2. Postnummer udtraekkes
+3. Et **separat** API-kald til `fetchPostnrCoords` henter koordinater fra DAWA postnummer-endpoint
+4. Koordinater gemmes via `onCoordsChange` og sendes til databasen
 
-Tilfoej `lat` og `lng` kolonner til `profiles` og `assignments` tabellerne, og implementer automatisk koordinat-hentning fra DAWA API naar et postnummer gemmes paa en medarbejder.
+Problemet: DAWA autocomplete-API'et returnerer allerede koordinater i `adresse.adgangspunkt.koordinater` (format: `[lng, lat]`), men disse ignoreres. Det separate API-kald er unodvendigt.
 
----
+### Loesning
 
-### Trin 1: Database-migrering
-
-Opret en ny migration der tilfojer kolonnerne:
-
-```sql
--- profiles: GPS for medarbejderens hjemmepostnummer
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS lat float8;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS lng float8;
-
--- assignments: GPS for opgavens lokation
-ALTER TABLE assignments ADD COLUMN IF NOT EXISTS lat float8;
-ALTER TABLE assignments ADD COLUMN IF NOT EXISTS lng float8;
-```
-
-Ingen index nødvendigt endnu (bruges til klient-side sortering, ikke DB-queries).
+Udtraek koordinaterne direkte fra DAWA autocomplete-svaret og videregiv dem til formularen. Fjern det overflodige `fetchPostnrCoords`-kald ved adresse-valg.
 
 ---
 
-### Trin 2: Udvid dawa-proxy Edge Function
+### Trin 1: Udvid DawaSuggestion-typen
 
-Tilfoej en ny rute til `supabase/functions/dawa-proxy/index.ts` der haandterer postnummer-opslag:
+**`src/hooks/useDawaAutocomplete.ts`**:
+- Tilfoej `adgangspunkt` med `koordinater: [number, number]` til `adresse`-interfacet
+- DAWA returnerer allerede disse data — vi skal bare tilfoeje typen
 
-- Hvis query-parameter `postnr` er sat (f.eks. `?postnr=7120`), kald `https://api.dataforsyningen.dk/postnumre/{postnr}`
-- Returner hele DAWA-svaret (inkl. `visueltcenter` med `[lng, lat]`)
-- Eksisterende `?q=` autocomplete-logik forbliver uaendret
+### Trin 2: Udvid AddressAutocomplete callback
 
----
+**`src/components/Planner/AddressAutocomplete.tsx`**:
+- Udvid `onAddressSelect` callback til ogsaa at inkludere `lat` og `lng`
+- I `handleSelect`: udtraek koordinater fra `suggestion.adresse.adgangspunkt.koordinater` (swap `[lng, lat]` til `{ lat, lng }`)
+- Fallback: hvis koordinater mangler, send `undefined`
 
-### Trin 3: Hook til koordinat-hentning
-
-Opret `src/hooks/useDawaPostnrLookup.ts`:
-
-- Eksporter en funktion `fetchPostnrCoords(postnr: string): Promise<{lat: number, lng: number} | null>`
-- Kalder dawa-proxy med `?postnr={postnr}`
-- Udtraekker `visueltcenter` fra svaret (`[lng, lat]` — DAWA returnerer longitude foerst)
-- Returnerer `{ lat, lng }` eller `null` ved fejl
-
----
-
-### Trin 4: Integrer i medarbejder-gem (profiles)
-
-**`src/hooks/employee/useEmployeeActions.ts`** (updateEmployee):
-- Naar `home_postcode` aendres, kald `fetchPostnrCoords(home_postcode)`
-- Tilfoej `lat` og `lng` til updatePayload
-
-**`src/hooks/employee/useEmployeeCreation.ts`** (createEmployee):
-- Samme logik: hent koordinater fra DAWA foer profile insert/update
-- Tilfoej `lat` og `lng` til profile-data
-
-**`supabase/functions/admin-create-user/index.ts`**:
-- Tilfoej `home_postcode`, `home_address`, `lat`, `lng` til profile insert (linje 215-229)
-- Koordinat-hentning sker paa klient-siden, edge function gemmer blot vaerdierne
-
----
-
-### Trin 5: Integrer i opgave-gem (assignments)
+### Trin 3: Brug koordinater direkte i AssignmentFormFields
 
 **`src/components/Planner/AssignmentFormFields.tsx`**:
-- Naar DAWA-adresse vaelges og postnummer udtraekkes, kald ogsaa `fetchPostnrCoords`
-- Send `lat`/`lng` videre via nye props (eller tilfoej til formData)
+- I `onAddressSelect`-handleren: brug de modtagne `lat`/`lng` direkte via `onCoordsChange`
+- Fjern `fetchPostnrCoords`-kaldet ved adresse-valg (det er nu overflodigt)
+- Behold `fetchPostnrCoords` som fallback kun for manuelt indtastede adresser (hvor DAWA-koordinater ikke er tilgaengelige)
 
-**`src/hooks/assignment/useAssignmentActions.ts`**:
-- Tilfoej `lat` og `lng` til insert/update payloads (linje 112-126 og 288-300)
+### Trin 4: Dokumentation
 
----
-
-### Trin 6: Opdater TypeScript-typer
-
-**`src/types/employee.ts`**:
-- Tilfoej `lat?: number` og `lng?: number` til Employee-interface
-
-**`src/types/assignment.ts`**:
-- Tilfoej `lat?: number` og `lng?: number` til Assignment-interface
+**`CHANGELOG.md`**: Log optimeringen
 
 ---
 
-### Trin 7: Opdater data-fetching
+### Tekniske detaljer
 
-**`src/hooks/employee/useEmployeeData.ts`**:
-- Tilfoej `lat` og `lng` til SELECT-query (linje 73-76)
-- Tilfoej til transformedEmployees mapping
+**DawaSuggestion type (foer)**:
+```text
+adresse: {
+  vejnavn: string;
+  husnr: string;
+  postnr: string;
+  postnrnavn: string;
+}
+```
+
+**DawaSuggestion type (efter)**:
+```text
+adresse: {
+  vejnavn: string;
+  husnr: string;
+  postnr: string;
+  postnrnavn: string;
+  adgangspunkt?: {
+    koordinater: [number, number]; // [lng, lat]
+  };
+}
+```
+
+**AddressAutocomplete onAddressSelect (foer)**:
+```text
+onAddressSelect({ address, zipCode, city })
+```
+
+**AddressAutocomplete onAddressSelect (efter)**:
+```text
+onAddressSelect({ address, zipCode, city, lat, lng })
+```
 
 ---
 
-### Trin 8: Dokumentation
-
-**`docs/technical-specs/database-schema.md`**:
-- Tilfoej nyt afsnit "GPS-koordinater" med beskrivelse af `lat`/`lng` kolonner paa baade `profiles` og `assignments`
-- Dokumenter DAWA-integration og `visueltcenter`-feltet
-
-**`CHANGELOG.md`**:
-- Dokumenter de nye kolonner og automatisk koordinat-hentning
-
----
-
-### Filer der aendres/oprettes
+### Filer der aendres
 
 | Fil | Aendring |
 |-----|----------|
-| `supabase/migrations/[timestamp]_add_gps_coordinates.sql` | Ny migration |
-| `supabase/functions/dawa-proxy/index.ts` | Tilfoej `?postnr=` rute |
-| `src/hooks/useDawaPostnrLookup.ts` | Ny hook (koordinat-hentning) |
-| `src/types/employee.ts` | Tilfoej lat/lng |
-| `src/types/assignment.ts` | Tilfoej lat/lng |
-| `src/hooks/employee/useEmployeeActions.ts` | Koordinater ved update |
-| `src/hooks/employee/useEmployeeCreation.ts` | Koordinater ved create |
-| `src/hooks/employee/useEmployeeData.ts` | Hent lat/lng fra DB |
-| `src/hooks/assignment/useAssignmentActions.ts` | Gem lat/lng paa opgaver |
-| `src/components/Planner/AssignmentFormFields.tsx` | Hent koordinater ved adresse-valg |
-| `supabase/functions/admin-create-user/index.ts` | Gem home_postcode + lat/lng |
-| `docs/technical-specs/database-schema.md` | Dokumenter GPS-kolonner |
-| `CHANGELOG.md` | Log aendringerne |
+| `src/hooks/useDawaAutocomplete.ts` | Udvid DawaSuggestion med adgangspunkt.koordinater |
+| `src/components/Planner/AddressAutocomplete.tsx` | Udtraek og videregiv koordinater |
+| `src/components/Planner/AssignmentFormFields.tsx` | Brug direkte koordinater, fjern overflodigt API-kald |
+| `CHANGELOG.md` | Dokumenter aendringen |
 
 ### Kvalitetstjek
 
-- Ingen foelsom data logges (koordinater er offentlige postnummer-data)
-- Fallback: hvis DAWA fejler, gemmes lat/lng som NULL — ingen blokering af gem-flow
-- Eksisterende RLS-politikker daekker de nye kolonner automatisk
-- Backward compatible: alle nye kolonner er nullable
-
+- Ingen ekstra API-kald ved adresse-valg (koordinater kommer direkte fra autocomplete)
+- Fallback via `fetchPostnrCoords` beholdes for manuelt input
+- Ingen database-aendringer (lat/lng kolonner eksisterer allerede)
+- Backward compatible: alle felter er optional
