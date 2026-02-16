@@ -40,6 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed - 2026-02-16
+- **KRITISK FIX**: 10 opgaver med `department_id = NULL` (inkl. 12-013546 "Håndværkervej 23") var usynlige i planner — backfilled til afd. 12 - Fredericia
+- **KRITISK FIX**: Vagter (kørevagt/skadeledervagt) blev gemt uden `department_id` og var usynlige — `useDutyActions.ts` tilføjer nu `department_id`/`sub_department_id` ved oprettelse
+- **RPC-FIX**: `list_accessible_assignments_with_team` inkluderer nu opgaver med `NULL department_id` (defensiv `OR a.department_id IS NULL`)
+- **QUERY-FIX**: `useDutyData.ts` bruger nu `.or()` filter der inkluderer vagter med `NULL department_id`
+- 21 orphaned vagter backfilled med korrekt `department_id` baseret på opretterens afdeling
 - **AUTH FIX**: Synkroniseret `auth.users.email` med `profiles.email` for Petrie Rasmussen (vikar opgraderet til fast bruger havde stadig `@temp.local` email i auth)
 
 ### Demo-RPC migrering + Afdelingsvælger redesign (Fase 9e) - 2026-02-15

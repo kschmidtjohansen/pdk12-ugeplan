@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { useDutyNotifications } from '@/hooks/notifications/dutyNotifications';
 import { toast } from 'sonner';
@@ -12,6 +13,7 @@ import { format } from 'date-fns';
 
 export const useDutyActions = (onSuccess?: () => void) => {
   const { user } = useAuth();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
   const { createDutyAssignmentNotification } = useDutyNotifications(addNotification);
@@ -55,6 +57,8 @@ export const useDutyActions = (onSuccess?: () => void) => {
         duty_date: format(date, 'yyyy-MM-dd'),
         notes: notesWithManualName,
         created_by: user.id,
+        department_id: selectedDepartmentId || null,
+        sub_department_id: selectedSubDepartmentId || null,
         ...(isDemoMode && { is_demo: true }),
       }));
 
