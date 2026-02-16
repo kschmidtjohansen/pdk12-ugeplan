@@ -26,8 +26,8 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const canPerformActions = user?.role === 'administrator' || user?.role === 'skadeleder';
-  const canShowOnScreen = user?.role === 'administrator' || user?.role === 'skadeleder';
+  const canPerformActions = user?.role === 'administrator' || user?.role === 'skadeleder' || user?.role === 'super_admin';
+  const canShowOnScreen = user?.role === 'administrator' || user?.role === 'skadeleder' || user?.role === 'super_admin';
 
   if (!canPerformActions) {
     return null;
