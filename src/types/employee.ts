@@ -19,4 +19,6 @@ export interface Employee {
   has_forklift_license?: boolean;
   home_postcode?: string;
   home_address?: string;
+  lat?: number;
+  lng?: number;
 }

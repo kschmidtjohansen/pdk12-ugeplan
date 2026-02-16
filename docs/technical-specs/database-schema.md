@@ -190,6 +190,33 @@ Følgende kolonner er identificeret som ubrugte/redundante men fjernes **ikke** 
 
 ---
 
+## GPS-koordinater (Fase 5+)
+
+### `profiles.lat` / `profiles.lng`
+
+| Kolonne | Type | Nullable | Beskrivelse |
+|---------|------|----------|-------------|
+| `lat` | float8 | Ja | Breddegrad for medarbejderens hjemmepostnummer |
+| `lng` | float8 | Ja | Længdegrad for medarbejderens hjemmepostnummer |
+
+### `assignments.lat` / `assignments.lng`
+
+| Kolonne | Type | Nullable | Beskrivelse |
+|---------|------|----------|-------------|
+| `lat` | float8 | Ja | Breddegrad for opgavens lokation |
+| `lng` | float8 | Ja | Længdegrad for opgavens lokation |
+
+### DAWA-integration
+
+- Koordinater hentes fra DAWA API via `dawa-proxy` Edge Function (`?postnr={postnr}`)
+- DAWA returnerer `visueltcenter` som `[longitude, latitude]` — vi mapper til `{ lat, lng }`
+- Koordinat-hentning sker klient-side ved gem af medarbejder eller opgave
+- Fallback: hvis DAWA fejler, gemmes `lat`/`lng` som NULL — ingen blokering af gem-flow
+- Eksisterende RLS-politikker dækker de nye kolonner automatisk
+- Ingen index nødvendigt endnu (bruges til klient-side sortering, ikke DB-queries)
+
+---
+
 ## Log-tabeller
 
 ### Struktur

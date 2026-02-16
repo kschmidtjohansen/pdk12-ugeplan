@@ -18,6 +18,7 @@ import MultipleCarSelector from './MultipleCarSelector';
 import ResponsibleUserSelector from './ResponsibleUserSelector';
 import EmployeeSelector from './EmployeeSelector';
 import AddressAutocomplete from './AddressAutocomplete';
+import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
 
 interface AssignmentFormFieldsProps {
   title: string;
@@ -48,6 +49,7 @@ interface AssignmentFormFieldsProps {
   setZipCode: (value: string) => void;
   city: string;
   setCity: (value: string) => void;
+  onCoordsChange?: (lat: number | undefined, lng: number | undefined) => void;
 }
 
 const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
@@ -78,7 +80,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   zipCode,
   setZipCode,
   city,
-  setCity
+  setCity,
+  onCoordsChange
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
@@ -188,6 +191,10 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             if (match) {
               setCasePostcode(match[1]);
               setZipCode(match[1]);
+              // Fetch coords for the extracted postcode
+              fetchPostnrCoords(match[1]).then(coords => {
+                onCoordsChange?.(coords?.lat, coords?.lng);
+              });
             }
           }}
           onAddressSelect={(data) => {
@@ -195,6 +202,10 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             setCasePostcode(data.zipCode);
             setZipCode(data.zipCode);
             setCity(data.city);
+            // Fetch coords for the selected address postcode
+            fetchPostnrCoords(data.zipCode).then(coords => {
+              onCoordsChange?.(coords?.lat, coords?.lng);
+            });
           }}
           placeholder={t('planner.enterLocation')}
         />

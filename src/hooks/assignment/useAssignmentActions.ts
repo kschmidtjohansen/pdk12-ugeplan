@@ -122,6 +122,8 @@ export const useAssignmentActions = (
               created_at: new Date().toISOString(),
               zip_code: assignmentData.zip_code || null,
               city: assignmentData.city || null,
+              lat: assignmentData.lat ?? null,
+              lng: assignmentData.lng ?? null,
               ...(isDemoMode && { is_demo: true })
             })
             .select('id')
@@ -297,6 +299,8 @@ export const useAssignmentActions = (
           published: assignmentData.published,
           zip_code: assignmentData.zip_code || null,
           city: assignmentData.city || null,
+          lat: assignmentData.lat ?? null,
+          lng: assignmentData.lng ?? null,
           updated_at: new Date().toISOString()
         })
         .eq('id', id);
@@ -385,6 +389,8 @@ export const useAssignmentActions = (
             published: assignmentData.published || false,
             zip_code: assignmentData.zip_code || null,
             city: assignmentData.city || null,
+            lat: assignmentData.lat ?? null,
+            lng: assignmentData.lng ?? null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             ...(isDemoMode && { is_demo: true })

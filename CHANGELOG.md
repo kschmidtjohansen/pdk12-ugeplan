@@ -2,6 +2,15 @@
 
 ## Security Hardening - February 2026
 
+### Added - 2026-02-16
+- **GPS-koordinater**: Tilføjet `lat` og `lng` (float8) kolonner til `profiles` og `assignments` tabellerne
+- **DAWA postnummer-opslag**: `dawa-proxy` Edge Function understøtter nu `?postnr=7120` for at hente GPS-koordinater fra `visueltcenter`
+- **Automatisk koordinat-hentning**: Når en medarbejder gemmes med postnummer, hentes GPS-koordinater automatisk fra DAWA API
+- **Ny hook**: `useDawaPostnrLookup.ts` — `fetchPostnrCoords(postnr)` returnerer `{ lat, lng }` eller `null`
+- Opgaver gemmer nu `lat`/`lng` ved oprettelse og opdatering
+- `admin-create-user` Edge Function gemmer nu `home_postcode`, `home_address`, `lat`, `lng`
+- Dokumenteret i `docs/technical-specs/database-schema.md` under "GPS-koordinater"
+
 ### Changed - 2026-02-16
 - **Adresse-visning**: DAWA autocomplete viser nu fuld adresse inkl. postnummer og by (f.eks. "Julianelund 8, 7120 Vejle Øst")
 - **Samlet adresse-felt**: Fjernet separat postnummer-felt — postnummer udtrækkes automatisk fra adresse
