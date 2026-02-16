@@ -1,93 +1,61 @@
 
 
-## Fase 9e: Fix demo-data RPCs + afdelingsvaeIger-layout
+## Fix: Synkroniser auth.users email for Petrie Rasmussen
 
-### Problem
+### Rodaarsag
 
-Der er tre separate problemer:
+Petrie Rasmussen har to forskellige emails:
+- `profiles.email`: `petrie.rasmussen@polygongroup.com` (det du forsoejer at logge ind med)
+- `auth.users.email`: `vikar-1761309097683-f4a0216d@temp.local` (det Supabase Auth faktisk bruger)
 
-**Problem 1: Biler/medarbejdere/lager vises ikke efter oprettelse i demo-mode**
+Login bruger **altid** `auth.users.email` til autentificering. Passwordnulstilling virker korrekt mod `auth.users`, men da emailen der er en `@temp.local` adresse, kan du ikke logge ind med `petrie.rasmussen@polygongroup.com`.
 
-Rodaarsagen er at 6 demo-RPCs (`get_demo_cars_with_security`, `get_demo_profiles_admin_detailed`, `get_demo_warehouse_items`, `get_demo_duties_with_employee`, `get_demo_vacations`, `list_demo_assignments_with_team`) laeser fra `demo.*`-schemaet, mens alle CRUD-operationer nu skriver til `public.*`-schemaet med `is_demo: true`. Data skrives eet sted og laeses fra et andet.
-
-**Problem 2: Fejl naar man trykker paa Medarbejdere under afd. 02**
-
-Medarbejder-data i demo-mode hentes via `get_demo_profiles_admin_detailed` som laeser fra `demo.profiles`. Nye demo-medarbejdere oprettet via UI ligger i `public.profiles` med `is_demo: true`, og RPC'en finder dem ikke. Desuden kan RPC'en fejle hvis `demo.profiles` eller `demo.user_roles` tabellerne har aendret struktur.
-
-**Problem 3: Afdelingsvaelger-layout**
-
-Brugeren oensker at hovedafdeling og underafdeling vises side om side (to separate elementer) i stedet for i en enkelt dropdown.
-
----
+Brugeren har `last_sign_in_at = NULL` — dvs. har aldrig vaeret logget ind.
 
 ### Loesning
 
-#### Del 1: Opdater alle 6 demo-RPCs til at laese fra `public` schema med `is_demo = true`
+Opdater `auth.users.email` saa den matcher `profiles.email`. Dette kraever en SQL-migrering med `auth.admin` funktionalitet, da `auth.users` ikke kan opdateres direkte via RLS.
 
-Hver RPC skal aendres fra `FROM demo.<table>` til `FROM public.<table> WHERE is_demo = true`.
+**SQL-migrering:**
 
-| RPC | Nuvaerende kilde | Ny kilde |
-|-----|-----------------|----------|
-| `get_demo_cars_with_security` | `demo.cars` | `public.cars WHERE is_demo = true` |
-| `get_demo_profiles_admin_detailed` | `demo.profiles` + `demo.user_roles` | `public.profiles WHERE is_demo = true` + `public.user_roles` |
-| `get_demo_warehouse_items` | `demo.warehouse_items` | `public.warehouse_items WHERE is_demo = true` |
-| `get_demo_duties_with_employee` | `demo.on_call_duties` + `demo.profiles` | `public.on_call_duties WHERE is_demo = true` + `public.profiles` |
-| `get_demo_vacations` | `demo.vacations` | `public.vacations WHERE is_demo = true` |
-| `list_demo_assignments_with_team` | `demo.assignments` + `demo.assignments_employees` + `demo.profiles` | `public.assignments WHERE is_demo = true` + tilsvarende public joins |
+```sql
+-- Synkroniser auth.users email med profiles email for Petrie Rasmussen
+-- Bruger-ID: 892bcee4-9639-4809-a52f-2a9c5e20e063
+-- Fra: vikar-1761309097683-f4a0216d@temp.local
+-- Til: petrie.rasmussen@polygongroup.com
 
-Dette sikrer at nyoprettede demo-data (med `is_demo = true` i public) vises korrekt.
+UPDATE auth.users 
+SET email = 'petrie.rasmussen@polygongroup.com',
+    raw_user_meta_data = raw_user_meta_data || '{"name": "Petrie Rasmussen"}'::jsonb,
+    updated_at = now()
+WHERE id = '892bcee4-9639-4809-a52f-2a9c5e20e063'
+  AND email = 'vikar-1761309097683-f4a0216d@temp.local';
+```
 
-SQL-migrering: En enkelt migration-fil der erstatter alle 6 funktioner med `CREATE OR REPLACE FUNCTION`.
+### Forebyggelse
 
-#### Del 2: Fix realtime-schema i `useDutyData.ts`
+Derudover boer `admin-create-user` edge function og `UserFormDialog` sikre at naar en vikar opgraderes eller en bruger oprettes, bruges den rigtige email i baade `auth.users` og `profiles`.
 
-Linje 101-106: Realtime-subscription bruger stadig `schema: isDemoMode ? 'demo' : 'public'`. Skal aendres til altid at bruge `schema: 'public'`.
+Tjek om der er andre brugere med samme mismatch:
 
-Uguardede `console.log` paa linje 107-108 og 110-111 skal wraps i `import.meta.env.DEV`.
+```sql
+SELECT p.id, p.name, p.email as profile_email, u.email as auth_email
+FROM profiles p
+JOIN auth.users u ON u.id = p.id
+WHERE p.email != u.email AND p.is_demo = false;
+```
 
-#### Del 3: Redesign afdelingsvaelger til side-by-side layout
+Hvis der er flere, skal de ogsaa synkroniseres.
 
-**Fil**: `src/components/Layout/NavComponents/DepartmentSelector.tsx`
+### Trin
 
-Nuvaerende: En enkelt dropdown-knap med baade afdelinger og underafdelinger i samme menu.
-
-Ny: To separate elementer side om side:
-- **Venstre**: Hovedafdeling-dropdown (eller statisk label hvis kun en afdeling)
-- **Hoeyre**: Underafdeling-dropdown (eller statisk label hvis kun en underafdeling)
-
-Layout: `flex items-center gap-1` med en separator (`/` eller `>`) mellem de to.
-
-Eksempel-visning: `[Afd. 02 v]  >  [Fugt & Skimmel v]`
-
-Begge er individuelle dropdowns hvis der er flere valg, eller statiske labels hvis der kun er et valg.
-
-#### Del 4: Logging-oprydning
-
-| Fil | Linjer | Handling |
-|-----|--------|---------|
-| `useDutyData.ts` | 107-108, 110-111 | Wrap i `import.meta.env.DEV` |
-| `carSecurityService.ts` | 111, 187 | Wrap i `import.meta.env.DEV` |
-| `useCarFormState.ts` | 117, 133, 137, 157, 164, 180 | Wrap i `import.meta.env.DEV` |
-| `DepartmentContext.tsx` | 300, 307 | Wrap i `import.meta.env.DEV` |
-
-#### Del 5: Dokumentation
-
-- Opdater `CHANGELOG.md` med beskrivelse af RPC-fix, realtime-fix og afdelingsvaelger-redesign
-- Opdater `docs/implementation-plan/tasks.md` med ny fase 9e
-
-### Raekkefoelge
-
-1. SQL-migrering: Opdater alle 6 demo-RPCs til `public` schema
-2. Fix `useDutyData.ts` realtime-schema + logging
-3. Fix logging i `carSecurityService.ts`, `useCarFormState.ts`, `DepartmentContext.tsx`
-4. Redesign `DepartmentSelector.tsx` til side-by-side layout
-5. Opdater `CHANGELOG.md` og `tasks.md`
+1. Koer mismatch-query for at finde alle beroorte brugere
+2. Opret SQL-migrering der synkroniserer `auth.users.email` med `profiles.email` for alle beroorte
+3. Opdater `CHANGELOG.md`
+4. Verificer at Petrie kan logge ind efter migrering
 
 ### Kvalitetstjek
 
-- Live-brugere forbliver beskyttet: RESTRICTIVE RLS-politikker paa `public` schema sikrer at `is_demo = true` data er usynligt for alle andre end demo-brugeren
-- RPCs begraenset til demo-bruger via email-check (`test@polygongroup.com`)
-- Ingen foelsom data logges
-- Alle `console.log` i aendrede blokke wraps med `import.meta.env.DEV`
-- Afdelingsvaelger fungerer i baade Standard og Kompakt visning og er fuldt responsiv
-
+- Ingen foelsom data logges (kun bruger-ID og email i migrering-kommentarer)
+- Live-data pavirkes: ja, dette er en noedvendig fix for at brugeren kan logge ind
+- RLS-politikker uaendrede
