@@ -219,6 +219,8 @@ const planner = {
   casePostcodePlaceholder: 'e.g. 7000',
   proximityExact: 'Closest',
   proximityAlternative: 'Alternative',
+  proximityNear: 'Nearest',
+  proximityDistance: '{distance} km away',
 
   // DAWA Address
   addressSearch: 'Search address...',

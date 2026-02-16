@@ -227,3 +227,16 @@ Gennemført 2026-02-16.
 - [x] Tilføjet DA/EN oversættelser for casePostcode, proximityExact, proximityRegion
 - [x] Opdateret docs/product-roadmap/features.md med "Geografisk Optimering"
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 5, Del 4: 15 km Radius Optimering ✅
+
+Gennemført 2026-02-16.
+
+- [x] Oprettet `src/utils/haversine.ts` med Haversine-formel til GPS-afstandsberegning
+- [x] Erstattet postnummer-baseret sortering med præcis GPS-afstandsberegning i EmployeeSelector
+- [x] Medarbejdere inden for 15 km vises øverst med grøn badge og præcis afstand
+- [x] Koordinater sendes direkte fra AssignmentFormFields til EmployeeSelector
+- [x] Fallback til alfabetisk sortering hvis GPS-koordinater mangler
+- [x] Dansk komma-formatering af afstand (8,4 km)
+- [x] DA/EN oversættelser tilføjet (proximityNear, proximityDistance)
+- [x] Dokumenteret i CHANGELOG.md

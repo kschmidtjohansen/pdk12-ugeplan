@@ -3,6 +3,7 @@
 ## Security Hardening - February 2026
 
 ### Optimized - 2026-02-16
+- **15 km Radius Optimering**: Erstattet postnummer-baseret nærhedssortering med præcis GPS-afstandsberegning via Haversine-formlen. Medarbejdere inden for 15 km vises øverst med grøn badge og MapPin-ikon med præcis afstand (f.eks. "Nærmeste (8,4 km)"). Koordinater hentes direkte fra DAWA autocomplete-svaret.
 - **DAWA koordinater direkte**: Koordinater udtrækkes nu direkte fra DAWA autocomplete-svaret (`adgangspunkt.koordinater`) — fjerner overflødigt API-kald ved adresse-valg. Fallback via `fetchPostnrCoords` beholdes for manuelt input.
 
 ### Added - 2026-02-16

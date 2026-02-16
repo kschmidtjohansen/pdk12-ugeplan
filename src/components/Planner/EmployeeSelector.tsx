@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Users, MapPin } from 'lucide-react';
 import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus } from '@/utils/employeeAvailability';
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
+import { haversineDistanceKm } from '@/utils/haversine';
 
 interface EmployeeSelectorProps {
   employees: Employee[];
@@ -25,6 +26,8 @@ interface EmployeeSelectorProps {
   currentDate: string;
   assignments?: Assignment[];
   casePostcode?: string;
+  caseLat?: number;
+  caseLng?: number;
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -34,29 +37,43 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   vacations,
   currentDate,
   assignments = [],
-  casePostcode
+  casePostcode,
+  caseLat,
+  caseLng
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
 
-  const getProximityLevel = (emp: Employee, postcode: string): number => {
-    if (!emp.home_postcode) return 3;
-    if (emp.home_postcode === postcode) return 0;
-    if (emp.home_postcode.substring(0, 2) === postcode.substring(0, 2)) return 1;
-    return 2;
-  };
+  // Calculate distances from case to each employee using Haversine
+  const distanceMap = useMemo(() => {
+    const map = new Map<string, number>();
+    if (caseLat == null || caseLng == null) return map;
+    for (const emp of employees) {
+      if (emp.lat != null && emp.lng != null) {
+        map.set(emp.id, haversineDistanceKm(caseLat, caseLng, emp.lat, emp.lng));
+      }
+    }
+    return map;
+  }, [employees, caseLat, caseLng]);
 
   const sortedEmployees = useMemo(() => {
-    if (!casePostcode || casePostcode.length !== 4) {
-      return [...employees].sort((a, b) => a.name.localeCompare(b.name));
+    // If we have GPS coordinates, sort by distance (≤15km first)
+    if (caseLat != null && caseLng != null && distanceMap.size > 0) {
+      return [...employees].sort((a, b) => {
+        const distA = distanceMap.get(a.id);
+        const distB = distanceMap.get(b.id);
+        const aClose = distA != null && distA <= 15;
+        const bClose = distB != null && distB <= 15;
+        if (aClose && bClose) return distA! - distB!;
+        if (aClose) return -1;
+        if (bClose) return 1;
+        return a.name.localeCompare(b.name);
+      });
     }
-    return [...employees].sort((a, b) => {
-      const diff = getProximityLevel(a, casePostcode) - getProximityLevel(b, casePostcode);
-      return diff !== 0 ? diff : a.name.localeCompare(b.name);
-    });
-  }, [employees, casePostcode]);
+    return [...employees].sort((a, b) => a.name.localeCompare(b.name));
+  }, [employees, caseLat, caseLng, distanceMap]);
 
   const dateForComparison = (() => {
     try {
@@ -216,19 +233,19 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                       </span>
                     </div>
                     <div className="flex gap-1 ml-2 flex-shrink-0">
-                      {casePostcode?.length === 4 && employee.home_postcode && (() => {
-                        const pl = getProximityLevel(employee, casePostcode);
-                        if (pl === 0) return (
-                          <Badge className="text-xs bg-green-100 text-green-700 border-green-300">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {t('planner.proximityExact')}
-                          </Badge>
-                        );
-                        if (pl === 1) return (
-                          <Badge className="text-xs bg-amber-50 text-amber-600 border-amber-200">
-                            {t('planner.proximityAlternative')}
-                          </Badge>
-                        );
+                      {(() => {
+                        const dist = distanceMap.get(employee.id);
+                        if (dist != null && dist <= 15) {
+                          const formatted = currentLanguage === 'da'
+                            ? dist.toFixed(1).replace('.', ',')
+                            : dist.toFixed(1);
+                          return (
+                            <Badge className="text-xs bg-green-100 text-green-700 border-green-300">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {t('planner.proximityNear')} ({formatted} km)
+                            </Badge>
+                          );
+                        }
                         return null;
                       })()}
                       {isExpired && (
