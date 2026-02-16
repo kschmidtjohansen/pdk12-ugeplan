@@ -153,13 +153,23 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
       <div className="space-y-2">
         <Label htmlFor="location">{t('planner.location')}</Label>
-        <Input
-          id="location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder={t('planner.enterLocation')}
-          required
-        />
+        <div className="grid grid-cols-[120px_1fr] gap-2">
+          <Input
+            id="casePostcode"
+            value={casePostcode}
+            onChange={(e) => setCasePostcode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            placeholder={t('planner.casePostcodePlaceholder')}
+            maxLength={4}
+            inputMode="numeric"
+          />
+          <Input
+            id="location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder={t('planner.enterLocation')}
+            required
+          />
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -221,41 +231,6 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
             )}
           </div>
         )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="fromTime">{t('planner.startTime')}</Label>
-          <Input
-            id="fromTime"
-            type="time"
-            value={fromTime}
-            onChange={(e) => setFromTime(e.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="toTime">{t('planner.endTime')}</Label>
-          <Input
-            id="toTime"
-            type="time"
-            value={toTime}
-            onChange={(e) => setToTime(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="casePostcode">{t('planner.casePostcode')}</Label>
-        <Input
-          id="casePostcode"
-          value={casePostcode}
-          onChange={(e) => setCasePostcode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-          placeholder={t('planner.casePostcodePlaceholder')}
-          maxLength={4}
-          inputMode="numeric"
-        />
       </div>
 
       <EmployeeSelector

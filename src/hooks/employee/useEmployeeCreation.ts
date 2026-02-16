@@ -64,6 +64,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           has_trailer_license: userData.has_trailer_license || false,
           has_forklift_license: userData.has_forklift_license || false,
           home_postcode: userData.home_postcode || null,
+          home_address: userData.home_address || null,
           ...(isDemoMode && { is_demo: true })
         });
 
@@ -145,7 +146,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             has_asbestos_certificate: formData.has_asbestos_certificate || false,
             has_trailer_license: formData.has_trailer_license || false,
             has_forklift_license: formData.has_forklift_license || false,
-            home_postcode: formData.home_postcode || null
+            home_postcode: formData.home_postcode || null,
+            home_address: formData.home_address || null
           }
         };
         
@@ -214,6 +216,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
               has_trailer_license: formData.has_trailer_license || false,
               has_forklift_license: formData.has_forklift_license || false,
               home_postcode: formData.home_postcode || null,
+              home_address: formData.home_address || null,
               updated_at: new Date().toISOString()
             })
             .eq('id', userId);

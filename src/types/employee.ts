@@ -18,4 +18,5 @@ export interface Employee {
   has_trailer_license?: boolean;
   has_forklift_license?: boolean;
   home_postcode?: string;
+  home_address?: string;
 }
