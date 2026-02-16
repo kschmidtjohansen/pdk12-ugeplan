@@ -1,129 +1,151 @@
 
 
-## Fase 5, Del 1: Geografisk Grundlag - Tilfoej `home_postcode` til medarbejderprofiler
+## Fase 5, Del 2: Naerheds-baseret Booking-forslag
 
 ### Oversigt
 
-Tilfoej et nyt felt `home_postcode` (privat postnummer, 4-cifret dansk format) til profiles-tabellen og medarbejder-UI'en. Feltet er kun synligt og redigerbart for admin-brugere.
+Tilfoej et "Sagens postnummer"-felt til opgaveformularen. Naar et postnummer indtastes, sorteres medarbejderlisten automatisk efter naerhed og markeres med ikoner/badges. Inkluderer automatisk verifikation til sidst.
 
 ---
 
-### Trin 1: SQL-migrering
+### Trin 1: State i AssignmentFormFields
 
-Tilfoej kolonnen `home_postcode` til `profiles`-tabellen med en CHECK-constraint der sikrer dansk 4-cifret format:
+**`src/components/Planner/AssignmentFormFields.tsx`**:
+- Tilfoej lokal state: `const [casePostcode, setCasePostcode] = useState('')`
+- Tilfoej nyt input-felt lige foer `<EmployeeSelector>`:
 
 ```text
-ALTER TABLE profiles 
-ADD COLUMN home_postcode text;
-
-ALTER TABLE profiles 
-ADD CONSTRAINT postcode_format_check 
-CHECK (home_postcode IS NULL OR home_postcode ~ '^\d{4}$');
+<div className="space-y-2">
+  <Label htmlFor="casePostcode">{t('planner.casePostcode')}</Label>
+  <Input
+    id="casePostcode"
+    value={casePostcode}
+    onChange={(e) => setCasePostcode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+    placeholder={t('planner.casePostcodePlaceholder')}
+    maxLength={4}
+  />
+</div>
 ```
 
-Kolonnen er nullable (ikke alle medarbejdere har indtastet postnummer endnu).
+- Send `casePostcode` som ny prop til `<EmployeeSelector>`.
 
 ---
 
-### Trin 2: TypeScript-type opdatering
+### Trin 2: Proximity-logik i EmployeeSelector
 
-**`src/types/employee.ts`**: Tilfoej `home_postcode?: string` til `Employee` interface.
+**`src/components/Planner/EmployeeSelector.tsx`**:
 
----
+Tilfoej ny prop `casePostcode?: string` til `EmployeeSelectorProps`.
 
-### Trin 3: Form state
-
-**`src/hooks/employee/useEmployeeFormState.ts`**: 
-- Tilfoej `home_postcode: string` til `EmployeeFormData` interface
-- Tilfoej default-vaerdi `home_postcode: ''` i alle reset/prepare-funktioner
-- Map `employee.home_postcode || ''` i `prepareForEdit`
-
----
-
-### Trin 4: Data-lag
-
-**`src/hooks/employee/useEmployeeData.ts`**: 
-- Tilfoej `home_postcode` til SELECT-query (linje 73)
-- Map `home_postcode: profile.home_postcode || ''` i transform (linje 96-112)
-
-**`src/hooks/employee/useEmployeeActions.ts`**:
-- Tilfoej `home_postcode: formData.home_postcode || null` til updatePayload (linje 83-94)
-
-**`src/hooks/employee/useEmployeeCreation.ts`**:
-- Tilfoej `home_postcode` til profile insert og update payloads
-
----
-
-### Trin 5: Medarbejder-formular
-
-**`src/components/Employees/EmployeeFormDialog.tsx`**:
-- Tilfoej nyt felt efter "jobTitle" (kun synligt naar `isAdmin` er true):
+Erstat `const filteredEmployees = employees;` (linje 42) med en `useMemo`-baseret sortering:
 
 ```text
-{isAdmin && (
-  <div className="grid gap-2">
-    <Label htmlFor="home_postcode">{t("employees.homePostcode")}</Label>
-    <Input 
-      id="home_postcode" 
-      name="home_postcode" 
-      value={formData.home_postcode} 
-      onChange={handleInputChange}
-      maxLength={4}
-      pattern="\d{4}"
-      placeholder="f.eks. 7000"
-      disabled={isSubmitting}
-    />
-  </div>
+import { useMemo } from 'react';
+
+const sortedEmployees = useMemo(() => {
+  if (!casePostcode || casePostcode.length !== 4) {
+    return [...employees].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  const getProximityLevel = (emp: Employee): number => {
+    if (!emp.home_postcode) return 3;
+    if (emp.home_postcode === casePostcode) return 0;
+    if (emp.home_postcode.substring(0, 2) === casePostcode.substring(0, 2)) return 1;
+    return 2;
+  };
+
+  return [...employees].sort((a, b) => {
+    const diff = getProximityLevel(a) - getProximityLevel(b);
+    return diff !== 0 ? diff : a.name.localeCompare(b.name);
+  });
+}, [employees, casePostcode]);
+```
+
+Brug `sortedEmployees` i stedet for `filteredEmployees` i renderingen (linje 132).
+
+---
+
+### Trin 3: UI-markering med badges
+
+I render-loopet (linje 174-236) tilfoej proximity-badges i badge-omraadet (efter linje 200, sammen med eksisterende badges):
+
+```text
+// Beregn proximity inden return
+const proximityLevel = casePostcode?.length === 4 && employee.home_postcode
+  ? (employee.home_postcode === casePostcode ? 0
+    : employee.home_postcode.substring(0,2) === casePostcode.substring(0,2) ? 1 : 2)
+  : -1;
+
+// I badge-sektionen (linje 201-231):
+{proximityLevel === 0 && (
+  <Badge className="text-xs bg-green-100 text-green-700 border-green-300">
+    <MapPin className="h-3 w-3 mr-1" />
+    {t('planner.proximityExact')}
+  </Badge>
+)}
+{proximityLevel === 1 && (
+  <Badge className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200">
+    {t('planner.proximityRegion')}
+  </Badge>
 )}
 ```
 
-- Tilfoej klient-side validering i `handleFormSubmit`: Hvis `home_postcode` er udfyldt men ikke matcher `/^\d{4}$/`, vis fejl.
+Import `MapPin` fra `lucide-react`.
 
 ---
 
-### Trin 6: Tabel-visning (kun admin)
+### Trin 4: Oversaettelser
 
-**`src/components/Employees/EmployeesTable.tsx`**:
-- Tilfoej kolonne-header `{isAdmin && <TableHead>{t('employees.postcode')}</TableHead>}` efter "Certificates"
+**`src/translations/da/planner.ts`**:
+```text
+casePostcode: 'Sagens postnummer',
+casePostcodePlaceholder: 'f.eks. 7000',
+proximityExact: 'Naermest',
+proximityRegion: 'Region',
+```
 
-**`src/components/Employees/EmployeeTableRow.tsx`**:
-- Tilfoej `{isAdmin && <TableCell>{employee.home_postcode || '-'}</TableCell>}` efter certificates-cellen
-
-**`src/components/Employees/MobileEmployeeCard.tsx`**:
-- Vis postnummer i admin-sektionen (under rolle-badge)
-
----
-
-### Trin 7: Oversaettelser
-
-**`src/translations/da/employees.ts`**: Tilfoej:
-- `homePostcode: 'Postnummer'`
-- `postcode: 'Postnr.'`
-- `postcodeInvalid: 'Postnummer skal vaere 4 cifre'`
-
-**`src/translations/en/employees.ts`**: Tilfoej:
-- `homePostcode: 'Postcode'`
-- `postcode: 'Postcode'`
-- `postcodeInvalid: 'Postcode must be 4 digits'`
+**`src/translations/en/planner.ts`**:
+```text
+casePostcode: 'Case postcode',
+casePostcodePlaceholder: 'e.g. 7000',
+proximityExact: 'Closest',
+proximityRegion: 'Region',
+```
 
 ---
 
-### Trin 8: Dokumentation
+### Trin 5: Dokumentation
 
-**`docs/technical-specs/database-schema.md`**: Tilfoej `home_postcode` til profiles-dokumentation.
+**`docs/product-roadmap/features.md`**: Tilfoej sektion "Geografisk Optimering".
 
-**`docs/implementation-plan/tasks.md`**: Marker "Fase 5: Del 1" som faerdigt.
+**`docs/implementation-plan/tasks.md`**: Marker Fase 5 Del 2 som faerdigt.
 
-**`CHANGELOG.md`**: Tilfoej entry under ny sektion.
+**`CHANGELOG.md`**: Tilfoej entry.
+
+---
+
+### Trin 6: End-to-end verifikation
+
+Efter implementering udfoeeres foelgende tjek:
+
+1. **Naviger til /planner** og aaben "Ny opgave"-dialogen.
+2. **Bekraeft** at feltet "Sagens postnummer" vises over medarbejder-selectoren.
+3. **Indtast et postnummer** (f.eks. 7000) og aaben medarbejder-dropdown:
+   - Medarbejdere med matchende postnr. skal staa oeverst med groen "Naermest"-badge og MapPin-ikon.
+   - Medarbejdere med regional match (samme foerste 2 cifre) skal have "Region"-badge.
+   - Oevrige medarbejdere vises normalt nedenunder.
+4. **Slet postnummeret** og bekraeft at listen vender tilbage til alfabetisk sortering uden badges.
+5. **Tjek konsollen** for eventuelle fejl.
+6. **Tjek mobil-responsivitet** ved at verificere layout paa smal viewport.
 
 ---
 
 ### Kvalitetstjek
 
-- CHECK constraint paa databaseniveau forhindrer ugyldige postnumre
-- Klient-side validering med `pattern` og maxLength som ekstra lag
-- Kun admin-brugere kan se og redigere feltet (isAdmin guard)
+- Sortering sker i `useMemo` - ingen unoevendig genberegning
+- Kun numerisk input tillades via regex-filter
+- Tomt felt = normal alfabetisk sortering
+- Ingen database-aendringer (bruger eksisterende `home_postcode`)
+- Responsive: Standard Input-felt, fungerer paa alle skaermstoerrelser
 - Ingen foelsom data logges
-- Responsive: Vises i baade tabel og mobil-kort
-- RLS uaendret (eksisterende profile-policies daekker den nye kolonne)
 
