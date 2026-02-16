@@ -1,61 +1,85 @@
 
 
-## Fix: Synkroniser auth.users email for Petrie Rasmussen
+## Fase 9f: Fix manglende opgaver + vagter (NULL department_id)
 
-### Rodaarsag
+### Problem 1: Opgaver vises ikke i planner
 
-Petrie Rasmussen har to forskellige emails:
-- `profiles.email`: `petrie.rasmussen@polygongroup.com` (det du forsoejer at logge ind med)
-- `auth.users.email`: `vikar-1761309097683-f4a0216d@temp.local` (det Supabase Auth faktisk bruger)
+10 opgaver (inkl. 12-013546 "Haandvaerkervej 23") har `department_id = NULL` i databasen. RPC'en `list_accessible_assignments_with_team` filtrerer med `a.department_id = p_department_id`, og da `NULL != valgt_afdeling`, udelukkes disse opgaver.
 
-Login bruger **altid** `auth.users.email` til autentificering. Passwordnulstilling virker korrekt mod `auth.users`, men da emailen der er en `@temp.local` adresse, kan du ikke logge ind med `petrie.rasmussen@polygongroup.com`.
+Beroorte opgaver:
+| Titel | Dato | Publiceret |
+|-------|------|-----------|
+| 12-013281 | 17-20 feb | Ja |
+| 12-013486 | 18-19 feb | Nej |
+| 12-013546 | 16 feb | Ja |
+| 12-013519 | 16 feb | Ja |
+| 12-013517 | 16 feb | Ja |
+| 12-013127 | 13 feb | Ja |
 
-Brugeren har `last_sign_in_at = NULL` — dvs. har aldrig vaeret logget ind.
+### Problem 2: Vagter gemmes men vises ikke
+
+`useDutyActions.ts` indsaetter vagter uden `department_id`/`sub_department_id`. `useDutyData.ts` filtrerer med `.eq('department_id', selectedDepartmentId)`. Resultat: 21 af 194 vagter er usynlige.
+
+---
 
 ### Loesning
 
-Opdater `auth.users.email` saa den matcher `profiles.email`. Dette kraever en SQL-migrering med `auth.admin` funktionalitet, da `auth.users` ikke kan opdateres direkte via RLS.
+#### Trin 1: SQL-migrering (en samlet migrering)
 
-**SQL-migrering:**
+**1a) Backfill assignments:** Saet `department_id` paa de 10 orphaned opgaver til "12 - Fredericia" (`8c542620-9156-4155-b686-564b14a4ca62`):
 
-```sql
--- Synkroniser auth.users email med profiles email for Petrie Rasmussen
--- Bruger-ID: 892bcee4-9639-4809-a52f-2a9c5e20e063
--- Fra: vikar-1761309097683-f4a0216d@temp.local
--- Til: petrie.rasmussen@polygongroup.com
-
-UPDATE auth.users 
-SET email = 'petrie.rasmussen@polygongroup.com',
-    raw_user_meta_data = raw_user_meta_data || '{"name": "Petrie Rasmussen"}'::jsonb,
-    updated_at = now()
-WHERE id = '892bcee4-9639-4809-a52f-2a9c5e20e063'
-  AND email = 'vikar-1761309097683-f4a0216d@temp.local';
+```text
+UPDATE assignments
+SET department_id = '8c542620-9156-4155-b686-564b14a4ca62'
+WHERE department_id IS NULL AND is_demo = false;
 ```
 
-### Forebyggelse
+**1b) Opdater RPC** saa fremtidige NULL-vaerdier ogsaa vises. I begge grene (admin og servicemedarbejder) aendres:
 
-Derudover boer `admin-create-user` edge function og `UserFormDialog` sikre at naar en vikar opgraderes eller en bruger oprettes, bruges den rigtige email i baade `auth.users` og `profiles`.
+Fra:
+```text
+WHERE (p_department_id IS NULL OR a.department_id = p_department_id)
+  AND (p_sub_department_id IS NULL OR a.sub_department_id = p_sub_department_id)
+```
 
-Tjek om der er andre brugere med samme mismatch:
+Til:
+```text
+WHERE (p_department_id IS NULL OR a.department_id = p_department_id OR a.department_id IS NULL)
+  AND (p_sub_department_id IS NULL OR a.sub_department_id = p_sub_department_id OR a.sub_department_id IS NULL)
+```
 
-```sql
-SELECT p.id, p.name, p.email as profile_email, u.email as auth_email
+**1c) Backfill duties:** Synkroniser de 21 orphaned vagters department_id med deres opretters afdeling:
+
+```text
+UPDATE on_call_duties d
+SET department_id = p.department_id
 FROM profiles p
-JOIN auth.users u ON u.id = p.id
-WHERE p.email != u.email AND p.is_demo = false;
+WHERE d.created_by = p.id
+  AND d.department_id IS NULL
+  AND d.is_demo = false;
 ```
 
-Hvis der er flere, skal de ogsaa synkroniseres.
+#### Trin 2: Fix `useDutyActions.ts` - tilfoej department_id ved oprettelse
 
-### Trin
+Importér `useDepartment` og tilfoej `department_id` og `sub_department_id` til duty-insert objektet (linje 52-59).
 
-1. Koer mismatch-query for at finde alle beroorte brugere
-2. Opret SQL-migrering der synkroniserer `auth.users.email` med `profiles.email` for alle beroorte
-3. Opdater `CHANGELOG.md`
-4. Verificer at Petrie kan logge ind efter migrering
+#### Trin 3: Fix `useDutyData.ts` - defensiv query
+
+Aendr linje 66-68 fra `.eq('department_id', selectedDepartmentId)` til:
+
+```text
+query = query.or(`department_id.eq.${selectedDepartmentId},department_id.is.null`);
+```
+
+#### Trin 4: Dokumentation
+
+Opdater `CHANGELOG.md` og `docs/implementation-plan/tasks.md`.
 
 ### Kvalitetstjek
 
-- Ingen foelsom data logges (kun bruger-ID og email i migrering-kommentarer)
-- Live-data pavirkes: ja, dette er en noedvendig fix for at brugeren kan logge ind
-- RLS-politikker uaendrede
+- Ingen foelsom data logges
+- RLS-politikker uaendrede (kun RPC-logik og client-side query justeret)
+- Backfill pavirker kun orphaned records
+- Defensiv `OR IS NULL`-logik forebygger fremtidige problemer
+- Overholder tekniske specifikationer og UI-guidelines
+
