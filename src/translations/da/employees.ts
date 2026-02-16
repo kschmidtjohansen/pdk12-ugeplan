@@ -161,6 +161,8 @@ const employees = {
   homePostcode: 'Postnummer',
   postcode: 'Postnr.',
   postcodeInvalid: 'Postnummer skal være 4 cifre',
+  homeAddress: 'Adresse',
+  homeAddressPlaceholder: 'f.eks. Vestergade 12',
   
   // Vikar conversion
   convertToPermanent: 'Konverter til fast medarbejder',

@@ -161,6 +161,8 @@ const employees = {
   homePostcode: 'Postcode',
   postcode: 'Postcode',
   postcodeInvalid: 'Postcode must be 4 digits',
+  homeAddress: 'Address',
+  homeAddressPlaceholder: 'e.g. 12 Main Street',
   
   // Vikar conversion
   convertToPermanent: 'Convert to permanent employee',

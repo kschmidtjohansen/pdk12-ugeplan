@@ -47,6 +47,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Medarbejder-adresse og planner-layout (Fase 5, Del 3) - 2026-02-16
+- Tilføjet `home_address` kolonne til `profiles`-tabellen (fritekst)
+- Postnummer og adresse vises nu på samme linje i medarbejder-formularen (grid: 100px + 1fr)
+- Postnummer og adresse vises sammen i medarbejdertabel og mobilkort
+- Fix: `home_postcode` manglede i demo-data transform — nu inkluderet
+- Planner: Postnummer-felt flyttet op på samme linje som adresse (grid: 120px + 1fr)
+- DA/EN oversættelser tilføjet for `homeAddress` og `homeAddressPlaceholder`
+
 ### Nærhedsbaseret Booking-forslag (Fase 5, Del 2) - 2026-02-16
 - Tilføjet "Sagens postnummer"-felt i opgaveformularen (kun numerisk, max 4 cifre)
 - Medarbejderlisten sorteres automatisk efter nærhed når postnummer indtastes

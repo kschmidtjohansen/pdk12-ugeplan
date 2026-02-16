@@ -178,7 +178,13 @@ Følgende kolonner er identificeret som ubrugte/redundante men fjernes **ikke** 
 |---------|------|----------|------------|
 | `home_postcode` | TEXT | Ja | CHECK `~ '^\d{4}$'` (dansk 4-cifret format) |
 
-- Kun synlig og redigerbar for admin-brugere i UI
+### `profiles.home_address`
+
+| Kolonne | Type | Nullable | Constraint |
+|---------|------|----------|------------|
+| `home_address` | TEXT | Ja | Ingen |
+
+- Begge kun synlige og redigerbare for admin-brugere i UI
 - RLS dækkes af eksisterende `profiles`-politikker
 - Ingen index nødvendigt (bruges ikke til filtrering endnu)
 

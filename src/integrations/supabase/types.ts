@@ -758,6 +758,7 @@ export type Database = {
           has_drivers_license: boolean | null
           has_forklift_license: boolean
           has_trailer_license: boolean | null
+          home_address: string | null
           home_department_id: string | null
           home_postcode: string | null
           id: string
@@ -781,6 +782,7 @@ export type Database = {
           has_drivers_license?: boolean | null
           has_forklift_license?: boolean
           has_trailer_license?: boolean | null
+          home_address?: string | null
           home_department_id?: string | null
           home_postcode?: string | null
           id: string
@@ -804,6 +806,7 @@ export type Database = {
           has_drivers_license?: boolean | null
           has_forklift_license?: boolean
           has_trailer_license?: boolean | null
+          home_address?: string | null
           home_department_id?: string | null
           home_postcode?: string | null
           id?: string

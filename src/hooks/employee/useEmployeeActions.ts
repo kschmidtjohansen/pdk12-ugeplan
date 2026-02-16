@@ -91,6 +91,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         has_trailer_license: formData.has_trailer_license ?? false,
         has_forklift_license: formData.has_forklift_license ?? false,
         home_postcode: formData.home_postcode || null,
+        home_address: formData.home_address || null,
         updated_at: new Date().toISOString()
       };
 
