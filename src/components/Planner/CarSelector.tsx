@@ -4,7 +4,7 @@ import { Assignment } from '@/types/assignment';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/context/TranslationContext';
 import { Label } from '@/components/ui/label';
-import { X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown, Car as CarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -27,38 +27,23 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  console.log('[CarSelector] Rendering with:', {
-    selectedCarId,
-    carsCount: cars.length,
-    currentDate,
-    currentAssignmentId,
-    hasSelectedCar: selectedCarId && selectedCarId !== ''
-  });
-
-  // Improved time normalization function
   const normalizeTime = (time: string): string => {
     if (!time) return '';
-
-    // Remove seconds if present (HH:MM:SS -> HH:MM)
     if (time.length === 8 && time.includes(':')) {
       time = time.substring(0, 5);
     }
-
-    // Ensure we have HH:MM format
     if (time.length === 5 && time.includes(':')) {
       return time;
     }
     return time.trim();
   };
 
-  // Check if a car is in use with working hours logic
   const isCarInUse = (carId: string): {
     isAssigned: boolean;
     hasEndTimeAtWorkingHours: boolean;
     latestEndTime: string;
     isFullDay: boolean;
   } => {
-    // Convert currentDate to consistent YYYY-MM-DD format
     let targetDateStr: string;
     try {
       if (currentDate.includes('/')) {
@@ -70,16 +55,12 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
         targetDateStr = currentDate;
       }
     } catch (e) {
-      console.error(`[CarSelector] Error parsing currentDate: ${currentDate}`, e);
       targetDateStr = new Date().toISOString().split('T')[0];
     }
 
     const carAssignments = assignments.filter(assignment => {
-      if (currentAssignmentId && assignment.id === currentAssignmentId) {
-        return false;
-      }
+      if (currentAssignmentId && assignment.id === currentAssignmentId) return false;
 
-      // Normalize assignment date to YYYY-MM-DD format
       let assignmentDateStr: string;
       try {
         if (assignment.date.includes('T')) {
@@ -91,7 +72,6 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
           assignmentDateStr = assignment.date;
         }
       } catch (e) {
-        console.error(`[CarSelector] Error parsing assignment date: ${assignment.date}`, e);
         assignmentDateStr = assignment.date;
       }
 
@@ -100,7 +80,6 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       return isOnDate && isAssigned;
     });
 
-    // Get the latest end time for this car
     let latestEndTime = "00:00";
     carAssignments.forEach(assignment => {
       const normalizedTime = normalizeTime(assignment.toTime);
@@ -109,13 +88,11 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
       }
     });
 
-    // Determine working hours based on day of week
     const currentDateObj = new Date(targetDateStr);
-    const dayOfWeek = currentDateObj.getDay(); // 0 = Sunday, 1 = Monday, ..., 5 = Friday, 6 = Saturday
+    const dayOfWeek = currentDateObj.getDay();
     const isFriday = dayOfWeek === 5;
     const workingHoursEnd = isFriday ? "15:30" : "16:00";
 
-    // Check if car is used for full working day
     const hasEndTimeAtWorkingHours = carAssignments.some(assignment => {
       const normalizedEndTime = normalizeTime(assignment.toTime);
       return normalizedEndTime === workingHoursEnd;
@@ -123,62 +100,27 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
 
     const isFullDay = hasEndTimeAtWorkingHours;
 
-    return {
-      isAssigned: carAssignments.length > 0,
-      hasEndTimeAtWorkingHours,
-      latestEndTime,
-      isFullDay
-    };
+    return { isAssigned: carAssignments.length > 0, hasEndTimeAtWorkingHours, latestEndTime, isFullDay };
   };
 
-  // Get display text for selected car
   const getSelectedCarDisplay = () => {
-    console.log('[CarSelector] Getting display text for car:', {
-      selectedCarId,
-      isEmpty: !selectedCarId || selectedCarId === '',
-      carExists: cars.find(car => car.id === selectedCarId)
-    });
-    
-    if (!selectedCarId || selectedCarId === '') {
-      console.log('[CarSelector] No car selected, showing placeholder');
-      return t('cars.noCar');
-    }
-    
+    if (!selectedCarId || selectedCarId === '') return t('cars.noCar');
     const car = cars.find(car => car.id === selectedCarId);
-    const displayText = car ? car.name : t('cars.noCar');
-    console.log('[CarSelector] Display text:', displayText);
-    return displayText;
+    return car ? car.name : t('cars.noCar');
   };
 
-  // Handle car selection with enhanced debugging
   const handleCarSelect = (carId: string) => {
-    console.log('[CarSelector] ===== CAR SELECTION =====');
-    console.log('[CarSelector] Car selection triggered:', {
-      carId,
-      isNone: carId === 'none',
-      isEmpty: carId === '',
-      previousSelection: selectedCarId
-    });
-    
     if (carId === 'none') {
-      console.log('[CarSelector] Setting car to empty (no car selected)');
       onCarSelect('');
     } else {
-      console.log('[CarSelector] Setting car to:', carId);
       onCarSelect(carId);
     }
-    console.log('[CarSelector] ===== CAR SELECTION END =====');
   };
 
-  // Handle car removal
   const handleCarRemove = () => {
-    console.log('[CarSelector] ===== CAR REMOVAL =====');
-    console.log('[CarSelector] Removing selected car');
     onCarSelect('');
-    console.log('[CarSelector] ===== CAR REMOVAL END =====');
   };
 
-  // Check if we have a selected car for display purposes
   const hasSelectedCar = selectedCarId && selectedCarId !== '';
 
   return (
@@ -195,89 +137,81 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-80 p-0 z-[60] bg-white border shadow-lg" 
+          className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
           sideOffset={4}
           onPointerDownOutside={(event) => {
-            // Allow scrolling without closing the popover
             const target = event.target as Element;
             if (target.closest('[data-radix-popper-content-wrapper]')) {
               event.preventDefault();
             }
           }}
         >
-          {/* Scrollable container with proper wheel event handling */}
           <div 
             className="max-h-60 overflow-y-auto"
-            onWheel={(e) => {
-              // Prevent event from bubbling up to prevent popover from closing
-              e.stopPropagation();
-            }}
+            onWheel={(e) => e.stopPropagation()}
           >
-            <div className="p-2 space-y-1">
-              {/* No car option - ENHANCED */}
+            <div className="py-1">
+              {/* No car option */}
               <div
                 onClick={() => handleCarSelect('none')}
-                className={`flex items-center justify-between w-full space-x-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors ${
-                  !hasSelectedCar ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                className={`flex items-center gap-3 py-3 px-4 cursor-pointer transition-colors border-b border-border/40 ${
+                  !hasSelectedCar ? 'bg-accent/30' : 'hover:bg-accent/50'
                 }`}
               >
-                <span className={`font-medium ${!hasSelectedCar ? 'text-blue-700' : ''}`}>
+                <span className="font-medium text-foreground">
                   {t('cars.noCar')}
                 </span>
-                {!hasSelectedCar && (
-                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                    {t('common.selected')}
-                  </Badge>
-                )}
               </div>
               
-              {cars.filter(car => car.show_in_planner !== false).map(car => {
+              {cars.filter(car => car.show_in_planner !== false).map((car, index, filteredCars) => {
                 const isSelected = selectedCarId === car.id;
                 const isUnavailable = !car.is_available;
                 const carUsage = isCarInUse(car.id);
-                const hasRedStyling = carUsage.isFullDay;
                 
                 return (
                   <div
                     key={car.id}
                     onClick={() => !isUnavailable && handleCarSelect(car.id)}
-                    className={`flex items-center justify-between w-full space-x-2 p-2 rounded-md transition-colors cursor-pointer ${
-                      isUnavailable ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted/50'
-                    } ${hasRedStyling ? '!bg-red-50 !border-l-4 !border-red-600 hover:!bg-red-100' : ''} ${
-                      isSelected ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                    className={`flex items-center gap-3 py-3 px-4 transition-colors ${
+                      index < filteredCars.length - 1 ? 'border-b border-border/40' : ''
+                    } ${
+                      isUnavailable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
+                    } ${
+                      isSelected ? 'bg-accent/30' : ''
                     }`}
                   >
-                    <span className={`truncate ${
-                      hasRedStyling ? 'text-red-700 font-bold' : 
-                      isSelected ? 'text-blue-700 font-medium' : ''
-                    }`}>
-                      {car.name}
-                    </span>
-                    <div className="flex gap-1 flex-shrink-0">
-                      {isSelected && (
-                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                          {t('common.selected')}
-                        </Badge>
-                      )}
-                      {isUnavailable && (
-                        <Badge variant="outline" className="text-xs">
-                          {t('cars.unavailable')}
-                        </Badge>
-                      )}
-                      {carUsage.isAssigned && !isUnavailable && !isSelected && (
-                        <Badge 
-                          className={`text-xs font-medium ${
-                            hasRedStyling 
-                              ? 'bg-red-600 text-white border-red-700' 
-                              : 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                          }`}
-                        >
-                          {carUsage.isFullDay 
-                            ? (t('cars.inUseFullDay') || 'I brug hele dagen')
-                            : (t('cars.inUse', { time: carUsage.latestEndTime }) || `I brug til ${carUsage.latestEndTime}`)
-                          }
-                        </Badge>
-                      )}
+                    <CarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-medium text-foreground truncate">
+                            {car.name}
+                          </span>
+                          {car.number_plate && (
+                            <span className="text-xs text-muted-foreground mt-0.5">
+                              {car.number_plate}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0 ml-2">
+                          {isUnavailable && (
+                            <Badge variant="outline" size="sm">
+                              {t('cars.unavailable')}
+                            </Badge>
+                          )}
+                          {carUsage.isAssigned && !isUnavailable && (
+                            <Badge 
+                              variant={carUsage.isFullDay ? 'destructive' : 'warning'}
+                              size="sm"
+                            >
+                              {carUsage.isFullDay 
+                                ? (t('cars.inUseFullDay') || 'I brug hele dagen')
+                                : (t('cars.inUse', { time: carUsage.latestEndTime }) || `I brug til ${carUsage.latestEndTime}`)
+                              }
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -287,7 +221,6 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
         </PopoverContent>
       </Popover>
       
-      {/* Display selected car as removable chip - ENHANCED */}
       {hasSelectedCar && (
         <div className="flex flex-wrap gap-1">
           {(() => {
