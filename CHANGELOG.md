@@ -3,6 +3,7 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-17
+- **Cache-lækage ved brugerskift**: TanStack Query-cache, unifiedDataService, OptimizedAssignmentService og enhancedDataFetching ryddes nu eksplicit ved logout — forhindrer at cached data fra bruger A vises efter login som bruger B.
 - **Manglende tidsinput i opgaveformular**: Fra-tid og til-tid inputfelter tilføjet til AssignmentFormFields — props var modtaget men aldrig renderet i JSX.
 
 ### Fixed - 2026-02-17 (Login & Lager)
