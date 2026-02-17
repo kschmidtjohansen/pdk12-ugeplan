@@ -1194,6 +1194,9 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_auth_jwt: { Args: never; Returns: Json }
+      get_auth_role: { Args: never; Returns: string }
+      get_auth_uid: { Args: never; Returns: string }
       get_car_with_conditional_access: {
         Args: { car_row: Database["public"]["Tables"]["cars"]["Row"] }
         Returns: {
@@ -1423,6 +1426,7 @@ export type Database = {
         Returns: string[]
       }
       hmac_sha256: { Args: { data: string; key: string }; Returns: string }
+      is_admin_from_jwt: { Args: never; Returns: boolean }
       is_admin_or_skadeleder: { Args: never; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }
       is_current_user_admin: { Args: never; Returns: boolean }

@@ -306,6 +306,27 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         )}
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="fromTime">{t('planner.fromTime')}</Label>
+          <Input
+            id="fromTime"
+            type="time"
+            value={fromTime}
+            onChange={(e) => setFromTime(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="toTime">{t('planner.toTime')}</Label>
+          <Input
+            id="toTime"
+            type="time"
+            value={toTime}
+            onChange={(e) => setToTime(e.target.value)}
+          />
+        </div>
+      </div>
+
       <EmployeeSelector
         employees={employees}
         selectedEmployees={selectedEmployees}

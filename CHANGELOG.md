@@ -3,6 +3,9 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-17
+- **Manglende tidsinput i opgaveformular**: Fra-tid og til-tid inputfelter tilføjet til AssignmentFormFields — props var modtaget men aldrig renderet i JSX.
+
+### Fixed - 2026-02-17 (Login & Lager)
 - **Login afdelingsvisning**: Afdelingsnavn gemmes nu i localStorage ved afdelingsskift, så login-siden kan vise seneste afdeling uden RLS-blokeret DB-query. Fallback til "Internt Planlægningssystem" ved første login.
 - **Login-side semantiske farver**: Hardcoded gray-klasser erstattet med tema-tokens (bg-muted/50, text-foreground, text-muted-foreground).
 - **Lager adresse-autocomplete**: DAWA adresse-autocomplete tilføjet til lagerformularen (WarehouseFormDialog) — genbruger AddressAutocomplete-komponenten fra planlæggeren.
