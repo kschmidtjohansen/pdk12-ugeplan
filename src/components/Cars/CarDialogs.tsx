@@ -47,8 +47,6 @@ const CarDialogs: React.FC<CarDialogsProps> = ({
         onSubmit={onSubmit}
         isEditing={!!currentCar}
         canViewFuelCardCode={canViewFuelCardCode}
-        cars={cars}
-        currentCar={currentCar}
       />
 
       <DeleteConfirmDialog
