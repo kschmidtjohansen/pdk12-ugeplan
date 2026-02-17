@@ -1,68 +1,53 @@
 
-## Fix: Fejl ved biloprettelse - dobbelt fejlbesked og manglende fejlhaandtering
+
+## Fix: Duplikeret tom fuel_card_code blokerer oprettelse af anden bil
 
 ### Problem
-Naar Michael opretter en bil i afdeling 16, sker foelgende:
+Naar Michael opretter biler i afdeling 16, kan han kun oprette en enkelt bil. Derefter fejler alle efterfoelgende oprettelser med `duplicate key value violates unique constraint "unique_fuel_card_code_per_dept"`.
 
-1. Bilen oprettes korrekt i databasen via `CarSecurityService.createCar`
-2. Derefter forsoeges synkronisering af underafdelinger (car_sub_departments) - hvis dette fejler, returnerer `createCar` false
-3. `useCarFormState` ser `false`, kaster en NY fejl "Failed to create car using createCar function", som viser en ANDEN toast med den forkerte fejlbesked
-4. Dialogen forbliver aaben, brugeren proever igen, og nu rammer en duplikat-constraint fordi bilen allerede blev oprettet
-
-### Rodaarsag
-To fejl i fejlhaandteringskoden:
-- `useCarData.createCar` lader fejl i underafdelingssynkronisering afbryde hele operationen, selvom bilen allerede er oprettet
-- `useCarFormState.handleSubmit` kaster en ny fejl naar `createCar` returnerer `false`, hvilket giver en dobbelt fejlbesked (den rigtige fejl er allerede vist)
+Aarsagen: Michael har ikke rettighed til at se/udfylde braendstofkort-koden (`canViewFuelCardCode = false`). Derfor saettes `fuel_card_code` til tom streng `''` for alle hans biler. Databasens unique constraint `UNIQUE (fuel_card_code, department_id)` tillader kun en enkelt bil med tom fuel_card_code per afdeling.
 
 ### Loesning
+I `CarSecurityService.createCar()`: Naar brugeren ikke har adgang til fuel_card_code-feltet, generer en unik placeholder-vaerdi i stedet for tom streng. Dette sikrer at unique constraint ikke blokerer.
 
-**Fil 1: `src/hooks/car/useCarData.ts`**
+### Aendringer
 
-I `createCar`-funktionen (linje 143-151): Wrap underafdelingssynkroniseringen i en try-catch saa den ikke afbryder hele operationen. Bilen er allerede oprettet, saa vi logger en advarsel men returnerer `true`.
+**`src/services/carSecurityService.ts`** (linje 90-94)
 
+Erstat:
 ```text
-// Sync sub-department assignments via junction table
-if (!isDemoMode) {
-  try {
-    const subDeptIds = (carData as any).sub_department_ids || [];
-    if (subDeptIds.length > 0) {
-      await supabase.from('car_sub_departments').insert(
-        subDeptIds.map((sdId: string) => ({ car_id: data.id, sub_department_id: sdId }))
-      );
-    }
-  } catch (syncErr) {
-    if (import.meta.env.DEV) console.warn('[useCarData] Sub-department sync warning:', syncErr);
-  }
+if ((canViewFuel || canViewFuelCardCode) && carData.fuel_card_code) {
+  insertData.fuel_card_code = carData.fuel_card_code;
+} else {
+  insertData.fuel_card_code = carData.fuel_card_code || '';
 }
 ```
 
-**Fil 2: `src/hooks/car/useCarFormState.ts`**
-
-I `handleSubmit` (linje 158-162): Naar `createCar` returnerer `false`, luk dialogen IKKE men kast heller ikke en ny fejl (den rigtige fejl er allerede vist via toast). Bare returner tidligt.
-
+Med:
 ```text
-if (createCar) {
-  const success = await createCar(formData);
-  if (!success) {
-    return; // Fejl er allerede vist via toast i createCar
-  }
+if ((canViewFuel || canViewFuelCardCode) && carData.fuel_card_code) {
+  insertData.fuel_card_code = carData.fuel_card_code;
+} else if (!carData.fuel_card_code || carData.fuel_card_code.trim() === '') {
+  // Generate unique placeholder to avoid unique constraint violation
+  insertData.fuel_card_code = `AUTO-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+} else {
+  insertData.fuel_card_code = carData.fuel_card_code;
 }
 ```
 
-**Fil 3: `CHANGELOG.md`** - Dokumenter rettelsen.
+**`CHANGELOG.md`** - Dokumenter rettelsen.
 
 ### Filer der aendres
 
 | Fil | Aendring |
 |-----|---------|
-| `src/hooks/car/useCarData.ts` | Graceful haandtering af sub-dept sync fejl |
-| `src/hooks/car/useCarFormState.ts` | Fjern dobbelt fejlbesked ved mislykket oprettelse |
+| `src/services/carSecurityService.ts` | Unik placeholder for tom fuel_card_code |
 | `CHANGELOG.md` | Dokumenter fix |
 
 ### Kvalitetstjek
-- Bilen oprettes korrekt og vises i listen
-- Underafdelingsfejl logger en advarsel men afbryder ikke oprettelsen
-- Kun en enkelt fejlbesked vises (ikke dobbelt toast)
-- Dialogen lukker ved succes, forbliver aaben ved reel fejl
+- Flere biler kan oprettes i samme afdeling uden fuel_card_code
+- Eksisterende biler med tom fuel_card_code paavirkes ikke (kun nye)
+- Brugere med fuel_card_code-adgang kan stadig angive koder manuelt
 - Ingen console.log uden DEV-guard
-- Ingen hardcoded gray-farver tilfojes
+- Overholder tekniske specifikationer for database-constraints
+
