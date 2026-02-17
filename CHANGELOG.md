@@ -2,6 +2,16 @@
 
 ## [Unreleased] - 2026-02-17
 
+### Changed — Login UI-renovering + Favicon
+- **SVG Favicon**: Nyt `public/favicon.svg` med kun ikon-delen af Polygon-logoet (grå ydre form + blå gradient-cirkel, uden "POLYGON"-tekst). Giver skarpt favicon i alle størrelser.
+- **Login-baggrund**: Subtil gradient fra `background` til `muted/30` erstatter flad `bg-muted/50`.
+- **Login-tekst**: "Velkommen tilbage" (text-2xl, semibold) + "Log ind på din ugeplan" (text-sm, muted). Afdelingsnavn vises diskret hvis tilgængeligt.
+- **Login-card**: `shadow-lg`, `rounded-xl`, `border-border/50` for moderne SaaS-look.
+- **Fade-in animation**: Container og fejlbeskeder bruger `animate-fade-in`.
+- **Fejlbeskeder**: Oversat forsøgs-advarsel (fjernet hardcoded engelsk). DEV-guard på `console.error`.
+- **Oversættelser**: Nye nøgler `loginSubtext` og `failedAttempts` i DA/EN.
+
+
 ### Added — Fase 12: Total Master Audit + Session-timeout
 - **Session-timeout (180 min)**: Brugere logges automatisk ud efter 180 minutters session. Cachen (TanStack Query, LocalStorage, SessionStorage, service-caches) ryddes fuldstændigt ved timeout — eliminerer databrud ved lange browsersessioner. Demo-brugere undtages. Toast-besked vises ved timeout.
 - **Oversættelsesnøgler**: `auth.sessionTimedOut` og `auth.sessionTimedOutDescription` tilføjet i DA/EN.

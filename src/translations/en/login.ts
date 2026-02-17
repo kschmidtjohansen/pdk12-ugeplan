@@ -9,8 +9,10 @@ const login = {
   failed: 'Invalid email or password. Please try again.',
   success: 'You are now logged in.',
   logoutSuccess: 'You have been logged out',
-  welcomeMessage: 'Ugeplan',
+  welcomeMessage: 'Welcome back',
+  loginSubtext: 'Log in to your weekly planner',
   internalSystem: '',
+  failedAttempts: '{count} failed attempt(s). {remaining} attempt(s) remaining.',
   invalidCredentials: 'Invalid email or password. Please try again.',
   tooManyRequests: 'Too many login attempts. Please wait before trying again.',
   passwordReset: {

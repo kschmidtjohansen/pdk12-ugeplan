@@ -9,8 +9,10 @@ const login = {
   failed: 'Ugyldig email eller adgangskode. Prøv igen.',
   success: 'Du er nu logget ind.',
   logoutSuccess: 'Du er nu logget ud',
-  welcomeMessage: 'Ugeplan',
+  welcomeMessage: 'Velkommen tilbage',
+  loginSubtext: 'Log ind på din ugeplan',
   internalSystem: '',
+  failedAttempts: '{count} mislykkede forsøg. {remaining} forsøg tilbage.',
   invalidCredentials: 'Ugyldig email eller adgangskode. Prøv igen.',
   tooManyRequests: 'For mange login-forsøg. Vent venligst før du prøver igen.',
   passwordReset: {
