@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { isValidUUID } from '@/utils/uuidValidation';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
 
@@ -13,6 +14,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
 
   const createUserDirectly = async (userData: any) => {
     if (import.meta.env.DEV) console.log('[useEmployeeCreation] Attempting direct database user creation');
@@ -255,6 +257,31 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
               
             if (roleError) {
               console.warn('[useEmployeeCreation] Role update warning:', roleError);
+            }
+          }
+
+          // Tilknyt medarbejder til aktiv afdeling
+          if (selectedDepartmentId) {
+            const accessRecord: any = {
+              user_id: userId,
+              department_id: selectedDepartmentId,
+            };
+            if (selectedSubDepartmentId) {
+              accessRecord.sub_department_id = selectedSubDepartmentId;
+            }
+            const { error: accessError } = await client
+              .from('user_access')
+              .insert(accessRecord);
+            if (accessError && import.meta.env.DEV) {
+              console.warn('[useEmployeeCreation] user_access insert warning:', accessError);
+            }
+
+            const { error: homeDeptError } = await client
+              .from('profiles')
+              .update({ home_department_id: selectedDepartmentId })
+              .eq('id', userId);
+            if (homeDeptError && import.meta.env.DEV) {
+              console.warn('[useEmployeeCreation] home_department_id update warning:', homeDeptError);
             }
           }
         }
