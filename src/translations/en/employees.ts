@@ -169,6 +169,11 @@ const employees = {
   convertToPermanentNote: 'This will remove the expiration date and make the employee permanent',
   currentlyVikar: 'This employee is registered as a temporary worker',
   vikarExpiresInfo: 'Expires: {date}',
+  
+  // Badge status labels
+  statusExpired: 'Expired',
+  statusTerminated: 'Terminated',
+  statusInactive: 'Inactive',
 };
 
 export default employees;

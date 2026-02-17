@@ -44,7 +44,7 @@ export class SupabaseIssuesAuditor {
   }
 
   async runComprehensiveAudit(): Promise<AuditReport> {
-    console.log(`[SupabaseIssuesAuditor] Starting comprehensive audit: ${this.auditId}`);
+    if (import.meta.env.DEV) console.log(`[SupabaseIssuesAuditor] Starting comprehensive audit: ${this.auditId}`);
     
     const services = {
       authentication: await this.auditAuthenticationService(),
@@ -63,7 +63,7 @@ export class SupabaseIssuesAuditor {
     const recommendations = this.generateRecommendations(services);
     const nextActions = this.generateNextActions(services);
 
-    console.log(`[SupabaseIssuesAuditor] Audit complete: ${totalIssues} issues found (${criticalIssues} critical)`);
+    if (import.meta.env.DEV) console.log(`[SupabaseIssuesAuditor] Audit complete: ${totalIssues} issues found (${criticalIssues} critical)`);
 
     return {
       totalIssues,

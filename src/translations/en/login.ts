@@ -9,8 +9,8 @@ const login = {
   failed: 'Invalid email or password. Please try again.',
   success: 'You are now logged in.',
   logoutSuccess: 'You have been logged out',
-  welcomeMessage: 'Welcome to Polygon Weekly Planner',
-  internalSystem: 'Internal planning system',
+  welcomeMessage: 'Welcome to Ugeplan',
+  internalSystem: '',
   invalidCredentials: 'Invalid email or password. Please try again.',
   tooManyRequests: 'Too many login attempts. Please wait before trying again.',
   passwordReset: {

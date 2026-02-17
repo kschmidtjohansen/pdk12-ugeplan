@@ -258,12 +258,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                     <div className="flex gap-1 ml-2 flex-shrink-0">
                       {isExpired && (
                         <Badge variant="destructive" size="sm">
-                          Expired
+                          {t('employees.statusExpired')}
                         </Badge>
                       )}
                       {(employee.status === 'terminated' || employee.status === 'inactive') && (
                         <Badge variant="outline" size="sm" className="text-destructive border-destructive/30">
-                          {employee.status === 'terminated' ? 'Terminated' : 'Inactive'}
+                          {employee.status === 'terminated' ? t('employees.statusTerminated') : t('employees.statusInactive')}
                         </Badge>
                       )}
                       {vacationStatus.isOnVacation && vacationStatus.vacationType === 'partial_day' && (
