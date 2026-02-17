@@ -168,7 +168,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const { data: queryData, isLoading, error: queryError, refetch: queryRefetch } = useQuery({
     queryKey,
     queryFn: fetchAssignmentsFn,
-    enabled: authReady && isAuthenticated && !!user?.id && !!user?.role,
+    enabled: authReady && isAuthenticated && !!user?.id && !!user?.role && (user?.email === 'test@polygongroup.com' || !!selectedDepartmentId),
     staleTime: 5 * 60 * 1000, // 5 min
     gcTime: 10 * 60 * 1000, // 10 min
   });

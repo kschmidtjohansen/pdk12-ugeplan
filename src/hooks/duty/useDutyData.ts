@@ -64,7 +64,7 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
         .order('duty_date', { ascending: true });
 
       if (selectedDepartmentId && !isDemoMode) {
-        query = query.or(`department_id.eq.${selectedDepartmentId},department_id.is.null`);
+        query = query.eq('department_id', selectedDepartmentId);
       }
       if (startDateStr) query = query.gte('duty_date', startDateStr);
       if (endDateStr) query = query.lte('duty_date', endDateStr);
@@ -90,7 +90,7 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
   const { data: duties = [], isLoading: loading, isFetching, error, refetch } = useQuery({
     queryKey,
     queryFn: fetchDutiesFn,
-    enabled: !!user,
+    enabled: !!user && (isDemoMode || !!selectedDepartmentId),
     staleTime: 5 * 60 * 1000,
   });
 

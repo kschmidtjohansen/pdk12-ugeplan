@@ -243,12 +243,12 @@ export class EnhancedDataFetching {
         
         // Filter by department if provided
         if (departmentId) {
-          query = query.or(`department_id.eq.${departmentId},department_id.is.null`);
+          query = query.eq('department_id', departmentId);
         }
         
         // Filter by sub-department if provided (for skadeledere)
         if (subDepartmentId) {
-          query = query.or(`sub_department_id.eq.${subDepartmentId},sub_department_id.is.null`);
+          query = query.eq('sub_department_id', subDepartmentId);
         }
         
         const { data, error } = await query;

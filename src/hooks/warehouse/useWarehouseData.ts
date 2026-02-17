@@ -46,7 +46,7 @@ export const useWarehouseData = () => {
   const { data: items = [], isLoading: loading, error: queryError, refetch } = useQuery({
     queryKey,
     queryFn: fetchItemsFn,
-    enabled: userDataLoaded && !!user,
+    enabled: userDataLoaded && !!user && (isDemoMode || !!selectedDepartmentId),
     staleTime: 5 * 60 * 1000,
   });
 

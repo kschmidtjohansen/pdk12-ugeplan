@@ -2,6 +2,13 @@
 
 ## Security Hardening - February 2026
 
+### Fixed - 2026-02-17 (Multi-Tenant Isolation)
+- **Gennemgribende afdelingsfiltrering**: Alle data-hooks (medarbejdere, lager, opgaver, ferie, vagter) venter nu på at `selectedDepartmentId` er sat, før queries køres. Forhindrer data-lækage ved appstart.
+- **Fjernet NULL-lækage på ferie**: `department_id IS NULL`-inkludering fjernet fra ferieforespørgsler — ferier vises nu kun i den afdeling de eksplicit tilhører.
+- **Fjernet NULL-lækage på vagter**: `department_id IS NULL`-inkludering fjernet fra vagtforespørgsler — vagter isoleret strengt per afdeling.
+- **Demo-tilstand**: Demo-brugeren bypasser afdelingsventetid korrekt og bruger sin egen isolerede logik.
+
+
 ### Fixed - 2026-02-17
 - **Afdelingsfiltrering på biler**: Car-query venter nu på `selectedDepartmentId` før den køres — afdeling 14 ser kun sine egne biler, ikke alle biler på tværs af afdelinger.
 - **Dynamiske lagerlokationer**: Hardkodede "Hal 1"/"Sort Hal" erstattet med dynamiske lokationer fra localStorage per afdeling. Formularen viser en Select-dropdown med afdelingens lokationer. Tabel og mobilkort slår lokationsnavne op dynamisk.
