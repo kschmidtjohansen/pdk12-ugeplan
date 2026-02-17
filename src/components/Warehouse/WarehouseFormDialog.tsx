@@ -24,7 +24,11 @@ const useLocations = (departmentId: string | null): LocationItem[] => {
       const raw = localStorage.getItem(`location-data-${departmentId}`);
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((item: any) => ({
+        id: item.key || item.id,
+        name: item.label || item.name,
+      }));
     } catch {
       return [];
     }

@@ -13,8 +13,8 @@ const useLocationLabel = (hallId: string | null, departmentId: string | null): s
       const raw = localStorage.getItem(`location-data-${departmentId}`);
       if (!raw) return hallId;
       const locations = JSON.parse(raw);
-      const found = Array.isArray(locations) ? locations.find((l: any) => l.id === hallId) : null;
-      return found ? found.name : hallId;
+      const found = Array.isArray(locations) ? locations.find((l: any) => (l.key || l.id) === hallId) : null;
+      return found ? (found.label || found.name) : hallId;
     } catch {
       return hallId;
     }
