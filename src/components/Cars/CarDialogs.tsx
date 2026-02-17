@@ -17,6 +17,7 @@ interface CarDialogsProps {
   currentCar: CarData | null;
   canViewFuelCardCode: boolean;
   onConfirmDelete: (forceDelete?: boolean) => void;
+  cars?: CarData[];
 }
 
 const CarDialogs: React.FC<CarDialogsProps> = ({
@@ -31,7 +32,8 @@ const CarDialogs: React.FC<CarDialogsProps> = ({
   onSubmit,
   currentCar,
   canViewFuelCardCode,
-  onConfirmDelete
+  onConfirmDelete,
+  cars = []
 }) => {
   return (
     <>
@@ -45,6 +47,8 @@ const CarDialogs: React.FC<CarDialogsProps> = ({
         onSubmit={onSubmit}
         isEditing={!!currentCar}
         canViewFuelCardCode={canViewFuelCardCode}
+        cars={cars}
+        currentCar={currentCar}
       />
 
       <DeleteConfirmDialog

@@ -117,6 +117,9 @@ export class CarSecurityService {
       const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
       const { data: canViewFuel } = await supabase.rpc('can_view_fuel_codes');
       
+      // VIGTIGT: department_id medtages IKKE i updateData.
+      // CarFormData indeholder ikke department_id, og vi må aldrig overskrive
+      // den eksisterende værdi med NULL. department_id sættes kun ved oprettelse.
       const updateData: any = {
         name: carData.name,
         car_number: carData.car_number,
@@ -128,7 +131,6 @@ export class CarSecurityService {
         towing_capacity_with_brakes: carData.towing_capacity_with_brakes,
         towing_capacity_without_brakes: carData.towing_capacity_without_brakes,
         total_weight: carData.total_weight,
-        department_id: (carData as any).department_id || null,
         updated_at: new Date().toISOString()
       };
 
