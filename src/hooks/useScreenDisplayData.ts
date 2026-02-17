@@ -10,7 +10,7 @@ interface UseScreenDisplayDataResult {
   refetch: () => Promise<void>;
 }
 
-export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult => {
+export const useScreenDisplayData = (date: string, departmentId?: string | null, subDepartmentId?: string | null): UseScreenDisplayDataResult => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -46,11 +46,11 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
       
       let data;
       if (!date) {
-        if (import.meta.env.DEV) console.log('[useScreenDisplayData] 🚀 FETCHING ALL published assignments (no date filter)');
-        data = await OptimizedAssignmentService.fetchAllPublishedAssignments();
+        if (import.meta.env.DEV) console.log('[useScreenDisplayData] 🚀 FETCHING ALL published assignments (no date filter)', { departmentId, subDepartmentId });
+        data = await OptimizedAssignmentService.fetchAllPublishedAssignments(undefined, departmentId, subDepartmentId);
       } else {
-        if (import.meta.env.DEV) console.log('[useScreenDisplayData] 🚀 FETCHING published assignments for date:', date);
-        data = await OptimizedAssignmentService.fetchPublishedAssignmentsByDate(date);
+        if (import.meta.env.DEV) console.log('[useScreenDisplayData] 🚀 FETCHING published assignments for date:', date, { departmentId, subDepartmentId });
+        data = await OptimizedAssignmentService.fetchPublishedAssignmentsByDate(date, undefined, departmentId, subDepartmentId);
       }
       
       if (import.meta.env.DEV) console.log('[useScreenDisplayData] 📋 RAW DATA:', {
@@ -90,7 +90,7 @@ export const useScreenDisplayData = (date: string): UseScreenDisplayDataResult =
     } finally {
       setLoading(false);
     }
-  }, [date]);
+  }, [date, departmentId, subDepartmentId]);
 
   useEffect(() => {
     fetchData();
