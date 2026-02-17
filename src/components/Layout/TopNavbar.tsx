@@ -83,11 +83,8 @@ const TopNavbar: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      toast({
-        title: t('common.success'),
-        description: t('login.logoutSuccess')
-      });
-      navigate('/login', { replace: true });
+      // Fuld page reload så alle contexts starter forfra
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
       toast({
