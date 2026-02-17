@@ -3,6 +3,7 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-17
+- **Streng afdelingsfiltrering på biler**: Fjernet `department_id IS NULL`-inkludering fra bilforespørgsel — biler vises nu kun i den afdeling de eksplicit tilhører. Biler uden afdeling skal tildeles via admin.
 - **Brændstofkortkode valgfri og ikke-unik**: `fuel_card_code` er nu nullable med default NULL. Unique constraint `unique_fuel_card_code_per_dept` er fjernet. Feltet er ikke længere påkrævet i formularen. Eksisterende AUTO-placeholders er konverteret til NULL.
 - **Duplikeret fuel_card_code blokerer biloprettelse**: Brugere uden adgang til brændstofkort-feltet fik tom streng som fuel_card_code, hvilket udløste unique constraint-fejl ved oprettelse af anden bil i samme afdeling. Genererer nu en unik placeholder-værdi (AUTO-...) i stedet.
 - **Biloprettelse fejlhåndtering**: Sub-department sync-fejl afbryder ikke længere hele oprettelsen (bilen var allerede gemt). Fjernet dobbelt fejlbesked — kun én toast vises nu ved fejl.

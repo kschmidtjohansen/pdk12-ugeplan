@@ -10,7 +10,7 @@ export class CarSecurityService {
       let query = client.from('cars').select('*').order('name');
       
       if (!isDemoMode && departmentId) {
-        query = query.or(`department_id.eq.${departmentId},department_id.is.null`);
+        query = query.eq('department_id', departmentId);
       }
       if (!isDemoMode && subDepartmentId) {
         const { data: carSubDepts } = await supabase
