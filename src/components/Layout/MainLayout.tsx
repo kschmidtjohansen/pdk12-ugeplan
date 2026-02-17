@@ -21,7 +21,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const handlePullRefresh = useCallback(async () => {
     window.location.reload();
   }, []);
-  console.log('[MainLayout] SESSION EXPIRATION FIX - Render state:', {
+  if (import.meta.env.DEV) console.log('[MainLayout] SESSION EXPIRATION FIX - Render state:', {
     path: location.pathname,
     isAuthenticated,
     authReady,
@@ -31,7 +31,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // SESSION EXPIRATION FIX: Active redirect when not authenticated
   useEffect(() => {
     if (authReady && !isAuthenticated) {
-      console.log('[MainLayout] SESSION EXPIRATION FIX - User not authenticated, redirecting to login');
+      if (import.meta.env.DEV) console.log('[MainLayout] SESSION EXPIRATION FIX - User not authenticated, redirecting to login');
       navigate('/login', { replace: true });
     }
   }, [authReady, isAuthenticated, navigate]);
@@ -63,11 +63,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-muted/50 to-muted">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
             <p className="text-muted-foreground">{loadingText}</p>
-            <div className="text-xs text-gray-400">
+            <div className="text-xs text-muted-foreground/60">
               Translation: {isInitialized ? 'Ready' : 'Loading'} | Auth: {authReady ? 'Ready' : 'Initializing'}
             </div>
           </div>
@@ -82,7 +82,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-muted/50 to-muted">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
             <p className="text-muted-foreground">Redirecting to login...</p>
@@ -101,7 +101,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <TopNavbar />
         <RealtimeChangeNotifier />
         
-        <main className="flex-1 w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 pt-20">
+        <main className="flex-1 w-full bg-gradient-to-br from-muted/20 via-background to-muted/30 pt-20">
           <PullToRefresh onRefresh={handlePullRefresh}>
             <div className="animate-fade-in-up w-full">
               <SecurityErrorBoundary>

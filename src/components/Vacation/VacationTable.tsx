@@ -90,7 +90,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
   
   if (vacations.length === 0) {
     return (
-      <div className="text-center py-16 text-gray-500">
+      <div className="text-center py-16 text-muted-foreground">
         <p>{t("vacation.noRequests")}</p>
       </div>
     );

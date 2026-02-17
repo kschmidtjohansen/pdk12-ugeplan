@@ -2,6 +2,12 @@
 
 ## Security Hardening - February 2026
 
+### Fixed - 2026-02-17
+- **360-graders Gennemgang — Pilot-klar Uge 10**:
+  - **LOGGING**: DEV-guard på ~50 uguardede `console.log/error` i 14 filer — forhindrer PII-lækage i produktion (MainLayout, useScreenDisplayData, MineOpgaver, AssignmentActionButtons, useEmployeeStatus, useVacationCleanup, VacationCleanupHandler, PasswordResetDebugger, SecurityErrorBoundary, useEmployeeData, ProfilePictureDialog, useAssignmentHelpers, useDemoTracking)
+  - **UI**: Erstattet ~30 hardcoded `gray-*` Tailwind-klasser med semantiske tema-tokens (`text-muted-foreground`, `bg-muted`, `border-border`, `hover:bg-accent`) i 10 filer (EmployeesTable, VacationPage, VacationTable, password-input, secure-input, status-badge, SecurityErrorBoundary, PasswordResetDebugger, DemoRoleSwitcher, ImageCropper)
+  - **DOCS**: tasks.md opdateret med lokationsisolering (Fase 10c) og 360-graders gennemgang (Fase 11)
+
 ### Fixed - 2026-02-16
 - **Manglende oversættelser for lokationsstyring**: Tilføjet `addPlaceholder`, `add`, `alreadyExists` og `added` nøgler til `admin.locations` i både da/en sprogfiler. Beskrivelsen opdateret til at reflektere per-afdeling-scope.
 - **Lokationer fuldt isoleret per afdeling**: Hardcodede default-lokationer fjernet. Hver afdeling starter nu med en tom liste og lokationer oprettes eksplicit via "Tilføj lokation"-knap. Lokationer gemmes i localStorage per afdeling, så Afd. 16 ikke arver lokationer fra Afd. 12.

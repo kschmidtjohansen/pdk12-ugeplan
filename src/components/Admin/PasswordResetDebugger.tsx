@@ -13,7 +13,7 @@ const PasswordResetDebugger: React.FC = () => {
   const { toast } = useToast();
 
   const addResult = (message: string) => {
-    console.log('[PasswordResetDebugger]', message);
+    if (import.meta.env.DEV) console.log('[PasswordResetDebugger]', message);
     setResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
@@ -186,7 +186,7 @@ const PasswordResetDebugger: React.FC = () => {
         </div>
         
         {results.length > 0 && (
-          <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+          <div className="bg-muted/50 p-4 rounded-lg max-h-96 overflow-y-auto">
             <h3 className="font-semibold mb-2">Diagnostic Results:</h3>
             <div className="font-mono text-sm space-y-1">
               {results.map((result, index) => (

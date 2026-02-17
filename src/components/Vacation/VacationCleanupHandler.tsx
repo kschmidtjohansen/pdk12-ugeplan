@@ -20,16 +20,14 @@ const VacationCleanupHandler: React.FC = () => {
   const { user } = useAuth();
   
   useEffect(() => {
-    // Log when the component is mounted
-    console.log('[VacationCleanupHandler] Component mounted', { 
-      lastCleanupDate,
-      userId: user?.id
+    if (import.meta.env.DEV) console.log('[VacationCleanupHandler] Component mounted', { 
+      lastCleanupDate, userId: user?.id
     });
     
     // Check if user is admin using the optimized function
     const checkAdminStatus = async () => {
       if (!user?.id) {
-        console.log('[VacationCleanupHandler] No user logged in');
+        if (import.meta.env.DEV) console.log('[VacationCleanupHandler] No user logged in');
         return;
       }
 
@@ -37,19 +35,19 @@ const VacationCleanupHandler: React.FC = () => {
         const { data: isAdmin, error } = await supabase.rpc('is_admin_user');
         
         if (error) {
-          console.error('[VacationCleanupHandler] Error checking admin status:', error);
+          if (import.meta.env.DEV) console.error('[VacationCleanupHandler] Error checking admin status:', error);
           return;
         }
         
         if (isAdmin) {
-          console.log('[VacationCleanupHandler] Administrator logged in, vacation cleanup system enabled');
+          if (import.meta.env.DEV) console.log('[VacationCleanupHandler] Admin cleanup enabled');
           // The cleanup system is now automatically handled by the hook
           // No need to manually trigger cleanup here as it's handled by the scheduling system
         } else {
-          console.log('[VacationCleanupHandler] Non-admin user, cleanup system disabled');
+          if (import.meta.env.DEV) console.log('[VacationCleanupHandler] Non-admin, cleanup disabled');
         }
       } catch (err) {
-        console.error('[VacationCleanupHandler] Error in admin status check:', err);
+        if (import.meta.env.DEV) console.error('[VacationCleanupHandler] Error in admin status check:', err);
       }
     };
     

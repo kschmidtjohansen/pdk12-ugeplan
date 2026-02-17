@@ -240,3 +240,20 @@ Gennemført 2026-02-16.
 - [x] Dansk komma-formatering af afstand (8,4 km)
 - [x] DA/EN oversættelser tilføjet (proximityNear, proximityDistance)
 - [x] Dokumenteret i CHANGELOG.md
+
+## Fase 10c: Lokationsisolering per afdeling ✅
+
+Gennemført 2026-02-16.
+
+- [x] Lokationer fuldt isoleret per afdeling (localStorage scoped per department)
+- [x] Hardcodede default-lokationer fjernet — hver afdeling starter med tom liste
+- [x] Manglende oversættelser for lokationsstyring tilføjet (da/en)
+
+## Fase 11: 360-graders Gennemgang ✅
+
+Gennemført 2026-02-17.
+
+- [x] DEV-guard på ~50 uguardede console.log i 14 filer (MainLayout, useScreenDisplayData, MineOpgaver, AssignmentActionButtons, useEmployeeStatus, useVacationCleanup, VacationCleanupHandler, PasswordResetDebugger, SecurityErrorBoundary, useEmployeeData, ProfilePictureDialog, useAssignmentHelpers, useDemoTracking)
+- [x] Erstattet ~30 hardcoded gray-farver med semantiske tema-tokens i 10 filer (EmployeesTable, VacationPage, VacationTable, password-input, secure-input, status-badge, SecurityErrorBoundary, PasswordResetDebugger, DemoRoleSwitcher, ImageCropper)
+- [x] useEmployeeStatus: gray-100/gray-800 → muted/foreground
+- [x] tasks.md opdateret med lokationsisolering og 360-graders gennemgang

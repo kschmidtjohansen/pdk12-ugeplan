@@ -44,7 +44,7 @@ export class SecurityErrorBoundary extends Component<Props, State> {
       );
     }
     
-    console.error('[SecurityErrorBoundary] Error caught:', error, errorInfo);
+    if (import.meta.env.DEV) console.error('[SecurityErrorBoundary] Error caught:', error, errorInfo);
   }
 
   private isSecurityRelatedError(error: Error): boolean {
@@ -77,7 +77,7 @@ export class SecurityErrorBoundary extends Component<Props, State> {
       const isSecurityError = this.state.error && this.isSecurityRelatedError(this.state.error);
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
           <div className="max-w-md w-full space-y-4">
             <Alert variant={isSecurityError ? "destructive" : "default"}>
               <AlertTriangle className="h-4 w-4" />
@@ -93,7 +93,7 @@ export class SecurityErrorBoundary extends Component<Props, State> {
                     }
                   </p>
                   {process.env.NODE_ENV === 'development' && this.state.error && (
-                    <details className="text-xs bg-gray-100 p-2 rounded mt-2">
+                    <details className="text-xs bg-muted p-2 rounded mt-2">
                       <summary className="cursor-pointer">Error Details</summary>
                       <pre className="mt-2 whitespace-pre-wrap">
                         {this.state.error.message}

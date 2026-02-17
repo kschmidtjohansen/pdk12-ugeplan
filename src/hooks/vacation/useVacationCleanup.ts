@@ -15,16 +15,14 @@ export const useVacationCleanup = () => {
   const retryCountRef = useRef(0);
   const maxRetries = 3;
 
-  // Check if cleanup is needed today (system-wide check using optimized function)
   const checkCleanupNeeded = useCallback(async (): Promise<boolean> => {
     if (!user?.id) return false;
     
     try {
-      // Use the new optimized function instead of checking role manually
       const { data: isAdmin, error: roleError } = await supabase.rpc('is_admin_user');
       
       if (roleError) {
-        console.error('Error checking user role:', roleError);
+        if (import.meta.env.DEV) console.error('Error checking user role:', roleError);
         return false;
       }
       
@@ -37,24 +35,23 @@ export const useVacationCleanup = () => {
         .single();
       
       if (error) {
-        console.error('Error checking cleanup tracking:', error);
-        return true; // If we can't check, assume cleanup is needed
+        if (import.meta.env.DEV) console.error('Error checking cleanup tracking:', error);
+        return true;
       }
       
       const today = new Date().toISOString().split('T')[0];
       const lastRunDate = data?.last_run_date;
       
-      console.log(`[useVacationCleanup] Cleanup check: today=${today}, lastRun=${lastRunDate}`);
+      if (import.meta.env.DEV) console.log(`[useVacationCleanup] Cleanup check: today=${today}, lastRun=${lastRunDate}`);
       
       setLastCleanupDate(lastRunDate);
       return lastRunDate !== today;
     } catch (err) {
-      console.error('Error in cleanup check:', err);
-      return true; // If we can't check, assume cleanup is needed
+      if (import.meta.env.DEV) console.error('Error in cleanup check:', err);
+      return true;
     }
   }, [user?.id]);
 
-  // Update cleanup tracking with better error handling
   const updateCleanupTracking = useCallback(async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -69,70 +66,61 @@ export const useVacationCleanup = () => {
         });
       
       if (error) {
-        console.error('Error updating cleanup tracking:', error);
+        if (import.meta.env.DEV) console.error('Error updating cleanup tracking:', error);
       } else {
         setLastCleanupDate(today);
-        console.log('[useVacationCleanup] Cleanup tracking updated successfully');
+        if (import.meta.env.DEV) console.log('[useVacationCleanup] Cleanup tracking updated successfully');
       }
     } catch (err) {
-      console.error('Error updating cleanup tracking:', err);
+      if (import.meta.env.DEV) console.error('Error updating cleanup tracking:', err);
     }
   }, []);
 
-  // Function to perform the cleanup with retry logic and optimized permissions
   const performCleanupWithRetry = useCallback(async () => {
     if (cleaningUpRef.current || !user?.id) return;
     
     try {
-      // Double-check admin status using the optimized function
       const { data: isAdmin, error: roleError } = await supabase.rpc('is_admin_user');
       
       if (roleError || !isAdmin) {
-        console.log('[useVacationCleanup] User is not admin, skipping cleanup');
+        if (import.meta.env.DEV) console.log('[useVacationCleanup] User is not admin, skipping cleanup');
         return;
       }
       
       cleaningUpRef.current = true;
-      console.log(`[useVacationCleanup] Starting cleanup attempt ${retryCountRef.current + 1}/${maxRetries}`);
+      if (import.meta.env.DEV) console.log(`[useVacationCleanup] Starting cleanup attempt ${retryCountRef.current + 1}/${maxRetries}`);
       
-      // Call the database function to clean up rejected and expired vacations
       const { error } = await supabase.rpc('delete_old_rejected_vacations');
       
       if (error) {
         throw new Error(`Cleanup failed: ${error.message}`);
       }
       
-      // Update tracking to prevent multiple runs
       await updateCleanupTracking();
-      
-      // Reset retry count on success
       retryCountRef.current = 0;
       
-      console.log('[useVacationCleanup] Vacation cleanup completed successfully');
+      if (import.meta.env.DEV) console.log('[useVacationCleanup] Vacation cleanup completed successfully');
       
-      // Show success toast for admins
       toast({
         title: t('vacation.cleanupComplete'),
         description: t('vacation.cleanupCompleteDescription'),
       });
     } catch (err) {
-      console.error(`[useVacationCleanup] Cleanup attempt ${retryCountRef.current + 1} failed:`, err);
+      if (import.meta.env.DEV) console.error(`[useVacationCleanup] Cleanup attempt ${retryCountRef.current + 1} failed:`, err);
       
       retryCountRef.current++;
       
       if (retryCountRef.current < maxRetries) {
-        // Exponential backoff: 5s, 25s, 125s
         const retryDelay = Math.pow(5, retryCountRef.current) * 1000;
-        console.log(`[useVacationCleanup] Retrying cleanup in ${retryDelay / 1000} seconds...`);
+        if (import.meta.env.DEV) console.log(`[useVacationCleanup] Retrying cleanup in ${retryDelay / 1000} seconds...`);
         
         setTimeout(() => {
           performCleanupWithRetry();
         }, retryDelay);
       } else {
-        console.error('[useVacationCleanup] Max retry attempts reached, cleanup failed permanently');
-        retryCountRef.current = 0; // Reset for next day
+        if (import.meta.env.DEV) console.error('[useVacationCleanup] Max retry attempts reached');
+        retryCountRef.current = 0;
         
-        // Show error toast for critical failure
         toast({
           title: 'Cleanup Failed',
           description: 'Vacation cleanup failed after multiple attempts. Please contact support.',
@@ -144,53 +132,44 @@ export const useVacationCleanup = () => {
     }
   }, [user?.id, toast, t, updateCleanupTracking]);
 
-  // Function to perform the cleanup of rejected vacations
   const cleanupRejectedVacations = useCallback(async () => {
-    console.log('[useVacationCleanup] Manual cleanup requested - checking if needed...');
+    if (import.meta.env.DEV) console.log('[useVacationCleanup] Manual cleanup requested');
     
     const cleanupNeeded = await checkCleanupNeeded();
     if (cleanupNeeded) {
       await performCleanupWithRetry();
     } else {
-      console.log('[useVacationCleanup] Cleanup already performed today, skipping');
+      if (import.meta.env.DEV) console.log('[useVacationCleanup] Cleanup already performed today, skipping');
     }
   }, [checkCleanupNeeded, performCleanupWithRetry]);
 
-  // Function to clean up expired approved vacations (now included in main cleanup)
   const cleanupExpiredVacations = useCallback(async () => {
-    // This is now handled by the combined cleanup function
-    console.log('[useVacationCleanup] Expired vacation cleanup is now handled by main cleanup function');
+    if (import.meta.env.DEV) console.log('[useVacationCleanup] Expired vacation cleanup handled by main function');
   }, []);
 
-  // Function to schedule the next cleanup with better timing
   const scheduleNextCleanup = useCallback(() => {
-    // Clear any existing timeout
     if (cleanupTimeoutRef.current) {
       clearTimeout(cleanupTimeoutRef.current);
     }
     
-    // Schedule cleanup for 2 AM the next day (when traffic is typically low)
     const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(2, 0, 0, 0); // 2:00 AM
+    tomorrow.setHours(2, 0, 0, 0);
     
     const timeUntilNextCleanup = tomorrow.getTime() - now.getTime();
     
-    console.log(`[useVacationCleanup] Scheduling next cleanup in ${Math.floor(timeUntilNextCleanup / 1000 / 60 / 60)} hours and ${Math.floor((timeUntilNextCleanup / 1000 / 60) % 60)} minutes (at 2 AM)`);
+    if (import.meta.env.DEV) console.log(`[useVacationCleanup] Next cleanup in ${Math.floor(timeUntilNextCleanup / 1000 / 60 / 60)}h`);
     
     cleanupTimeoutRef.current = setTimeout(async () => {
       const cleanupNeeded = await checkCleanupNeeded();
       if (cleanupNeeded) {
         await performCleanupWithRetry();
       }
-      
-      // Schedule the next cleanup
       scheduleNextCleanup();
     }, timeUntilNextCleanup);
   }, [checkCleanupNeeded, performCleanupWithRetry]);
 
-  // Clean up the timeout on component unmount
   useEffect(() => {
     return () => {
       if (cleanupTimeoutRef.current) {
@@ -199,36 +178,31 @@ export const useVacationCleanup = () => {
     };
   }, []);
 
-  // Initialize cleanup system with optimized role checking
   useEffect(() => {
     if (!user?.id) return;
     
     const initializeCleanup = async () => {
-      console.log('[useVacationCleanup] Initializing cleanup system...');
+      if (import.meta.env.DEV) console.log('[useVacationCleanup] Initializing cleanup system...');
       
-      // Use optimized function to check if user is admin
       const { data: isAdmin, error } = await supabase.rpc('is_admin_user');
       
       if (error) {
-        console.error('[useVacationCleanup] Error checking admin status:', error);
+        if (import.meta.env.DEV) console.error('[useVacationCleanup] Error checking admin status:', error);
         return;
       }
       
       if (!isAdmin) {
-        console.log('[useVacationCleanup] User is not admin, cleanup system disabled');
+        if (import.meta.env.DEV) console.log('[useVacationCleanup] Non-admin, cleanup disabled');
         return;
       }
       
-      console.log('[useVacationCleanup] Admin user detected, enabling cleanup system');
+      if (import.meta.env.DEV) console.log('[useVacationCleanup] Admin detected, enabling cleanup');
       
-      // Check if cleanup is needed and run if so
       const cleanupNeeded = await checkCleanupNeeded();
       if (cleanupNeeded) {
-        console.log('[useVacationCleanup] Running initial cleanup check');
         await performCleanupWithRetry();
       }
       
-      // Schedule future cleanups
       scheduleNextCleanup();
     };
     

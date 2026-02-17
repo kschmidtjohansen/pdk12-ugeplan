@@ -13,7 +13,7 @@ export const useAssignmentHelpers = () => {
       .single();
     
     if (error || !data) {
-      console.error('Error getting car ID by name:', error);
+      if (import.meta.env.DEV) console.error('Error getting car ID by name:', error);
       return null;
     }
     
@@ -31,7 +31,7 @@ export const useAssignmentHelpers = () => {
       .single();
     
     if (error || !data) {
-      console.error('Error getting employee ID by name:', error);
+      if (import.meta.env.DEV) console.error('Error getting employee ID by name:', error);
       return null;
     }
     
