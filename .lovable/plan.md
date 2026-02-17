@@ -1,35 +1,54 @@
 
 
-## Fix: Ryd TanStack Query-cache og service-caches ved logout
+## Fix: Ny medarbejder faar ikke afdelingstilknytning ved oprettelse
 
 ### Problem
-Naar bruger A (Kasper Johansen, Super Admin) logger ud og bruger B (Michael Rattenborg) logger ind, vises stadig cached data fra bruger A's session. Dette sker fordi:
+Naar en medarbejder oprettes fra Medarbejder-siden, oprettes kun en `profiles`-raekke og en `user_roles`-raekke. Der oprettes ALDRIG en `user_access`-record, som er den tabel der styrer afdelingstilknytning. Filtreringen i `useEmployeeData` (linje 127-144) bruger `user_access` til at bestemme hvilke medarbejdere der hoerer til den valgte afdeling. Uden en `user_access`-record vises den nye medarbejder derfor som "Uden afdeling".
 
-1. `queryClient` er oprettet som en modul-singleton i `App.tsx` (linje 46) og ryddes ALDRIG ved logout
-2. `logout()` i `AuthContext.tsx` (linje 617-640) rydder kun `sessionStorage` - ikke React Query-cachen
-3. Service-caches (`unifiedDataService`, `OptimizedAssignmentService`, `enhancedDataFetching`) ryddes heller ikke
+### Rodaarsag
+Hverken `useEmployeeCreation.ts` (frontend) eller `admin-create-user` edge function opretter `user_access`-records. Til sammenligning goer `UserFormDialog.tsx` (admin-panelet) dette korrekt via `saveUserAccess()` (linje 156-178).
 
 ### Loesning
-Ryd ALLE caches ved logout: TanStack Query-cache, unifiedDataService, OptimizedAssignmentService og enhancedDataFetching.
+Tilfoej `user_access`-oprettelse i `useEmployeeCreation.ts` efter succesfuld medarbejderoprettelse. Brug den aktive `selectedDepartmentId` og `selectedSubDepartmentId` fra `DepartmentContext`. Saet ogsaa `home_department_id` paa profilen.
 
 ### Aendringer
 
-**`src/context/AuthContext.tsx`**
+**`src/hooks/employee/useEmployeeCreation.ts`**
 
-1. Importer `useQueryClient` fra `@tanstack/react-query`
-2. Importer service-caches:
-   - `unifiedDataService` fra `@/services/data/unifiedDataService`
-   - `OptimizedAssignmentService` fra `@/services/optimizedAssignmentService`
-   - `enhancedDataFetching` fra `@/services/enhancedDataFetching`
-3. Hent `queryClient` via `useQueryClient()` i AuthProvider
-4. I `logout`-funktionen (efter `supabase.auth.signOut()`), tilfoej:
+1. Importer `useDepartment` fra `@/context/DepartmentContext`
+2. Hent `selectedDepartmentId` og `selectedSubDepartmentId` i hook'en
+3. Efter succesfuld oprettelse (linje 220-260), tilfoej:
+   - Indsaet en `user_access`-record med `user_id`, `department_id` (= selectedDepartmentId), og eventuelt `sub_department_id`
+   - Opdater `profiles.home_department_id` til `selectedDepartmentId`
+
+Kode der tilfojes (efter linje 259, foer toast):
 
 ```text
-// Ryd alle data-caches for at undgaa data-laekning mellem brugere
-queryClient.clear();
-unifiedDataService.clearCache();
-OptimizedAssignmentService.clearCache();
-enhancedDataFetching.clearCache();
+// Tilknyt medarbejder til aktiv afdeling
+if (selectedDepartmentId && userId) {
+  const accessRecord: any = {
+    user_id: userId,
+    department_id: selectedDepartmentId,
+  };
+  if (selectedSubDepartmentId) {
+    accessRecord.sub_department_id = selectedSubDepartmentId;
+  }
+  const { error: accessError } = await client
+    .from('user_access')
+    .insert(accessRecord);
+  if (accessError && import.meta.env.DEV) {
+    console.warn('[useEmployeeCreation] user_access insert warning:', accessError);
+  }
+
+  // Saet home_department_id paa profilen
+  const { error: homeDeptError } = await client
+    .from('profiles')
+    .update({ home_department_id: selectedDepartmentId })
+    .eq('id', userId);
+  if (homeDeptError && import.meta.env.DEV) {
+    console.warn('[useEmployeeCreation] home_department_id update warning:', homeDeptError);
+  }
+}
 ```
 
 **`CHANGELOG.md`** - Dokumenter rettelsen.
@@ -38,13 +57,13 @@ enhancedDataFetching.clearCache();
 
 | Fil | Aendring |
 |-----|---------|
-| `src/context/AuthContext.tsx` | Ryd queryClient + service-caches ved logout |
+| `src/hooks/employee/useEmployeeCreation.ts` | Tilfoej user_access + home_department_id ved oprettelse |
 | `CHANGELOG.md` | Dokumenter fix |
 
 ### Kvalitetstjek
-- Ingen cached data fra bruger A vises efter login som bruger B
-- `queryClient.clear()` fjerner baade aktive og inaktive queries
-- Service-caches ryddes eksplicit for at undgaa stale data
+- Ny medarbejder vises straks i den aktive afdeling efter oprettelse
+- `user_access`-record oprettes med korrekt department_id og sub_department_id
+- `home_department_id` saettes paa profilen
+- RLS tillader insert i `user_access` for admin/super_admin (bekraeftet i schema)
 - Ingen console.log uden DEV-guard
-- Ingen hardcoded gray-farver tilfojes
-
+- Eksisterende admin-panel oprettelse (UserFormDialog) paavirkes ikke
