@@ -13,8 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { AlertTriangle } from 'lucide-react';
-import { CarFormData, CarData } from './types';
+import { CarFormData } from './types';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 
@@ -28,8 +27,6 @@ interface CarFormDialogProps {
   isEditing: boolean;
   canViewFuelCardCode: boolean;
   setFormData?: React.Dispatch<React.SetStateAction<CarFormData>>;
-  cars?: CarData[];
-  currentCar?: CarData | null;
 }
 
 const CarFormDialog: React.FC<CarFormDialogProps> = ({
@@ -42,20 +39,9 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
   isEditing,
   canViewFuelCardCode,
   setFormData,
-  cars = [],
-  currentCar
 }) => {
   const { t } = useTranslation();
   const { userSubDepartments } = useDepartment();
-
-  // Duplikat-check: er brændstofkortkoden allerede i brug af en anden bil?
-  const isDuplicateFuelCode = canViewFuelCardCode
-    && !!formData.fuel_card_code
-    && formData.fuel_card_code.trim() !== ''
-    && cars.some(
-      car => car.fuel_card_code === formData.fuel_card_code?.trim()
-        && car.id !== currentCar?.id
-    );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -119,17 +105,9 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
                 name="fuel_card_code"
                 value={formData.fuel_card_code ?? ''}
                 onChange={onInputChange}
-                className={isDuplicateFuelCode ? 'border-destructive focus-visible:ring-destructive' : ''}
               />
-              {isDuplicateFuelCode && (
-                <div className="flex items-center gap-1.5 text-sm text-destructive">
-                  <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                  <span>Denne brændstofkortkode bruges allerede af en anden bil</span>
-                </div>
-              )}
             </div>
           )}
-
 
           {userSubDepartments.length > 0 && (
             <div className="space-y-2">
@@ -249,10 +227,7 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             </Button>
             <Button 
               type="submit"
-              disabled={
-                isDuplicateFuelCode ||
-                (userSubDepartments.length > 0 && (!formData.sub_department_ids || formData.sub_department_ids.length === 0))
-              }
+              disabled={userSubDepartments.length > 0 && (!formData.sub_department_ids || formData.sub_department_ids.length === 0)}
               className="bg-polygon-blue hover:bg-polygon-darkblue"
             >
               {isEditing ? t('common.save') : t('common.add')}

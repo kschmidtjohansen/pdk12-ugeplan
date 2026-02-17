@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased] - 2026-02-17
+
+### Changed
+- **Fjernet duplikat-validering på brændstofkortkoder**: Valideringen der blokerede for at gemme en bil, hvis `fuel_card_code` allerede var i brug af en anden bil, er fjernet. I Afdeling 14 (Asnæs) er det en gyldig forretningsregel at alle biler deler samme kortkode. Feltet er nu et simpelt fritekstfelt uden begrænsninger.
+- **Oprydning i `CarFormDialog`**: `cars`- og `currentCar`-props fjernet fra `CarFormDialog` da de udelukkende tjente duplikat-tjekket.
+
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-17 (Bil forsvinder ved redigering — department_id nulstilles)
