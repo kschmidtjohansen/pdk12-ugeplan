@@ -3,6 +3,11 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-17
+- **Login afdelingsvisning**: Afdelingsnavn gemmes nu i localStorage ved afdelingsskift, så login-siden kan vise seneste afdeling uden RLS-blokeret DB-query. Fallback til "Internt Planlægningssystem" ved første login.
+- **Login-side semantiske farver**: Hardcoded gray-klasser erstattet med tema-tokens (bg-muted/50, text-foreground, text-muted-foreground).
+- **Lager adresse-autocomplete**: DAWA adresse-autocomplete tilføjet til lagerformularen (WarehouseFormDialog) — genbruger AddressAutocomplete-komponenten fra planlæggeren.
+
+### Fixed - 2026-02-17
 - **360-graders Gennemgang — Pilot-klar Uge 10**:
   - **LOGGING**: DEV-guard på ~50 uguardede `console.log/error` i 14 filer — forhindrer PII-lækage i produktion (MainLayout, useScreenDisplayData, MineOpgaver, AssignmentActionButtons, useEmployeeStatus, useVacationCleanup, VacationCleanupHandler, PasswordResetDebugger, SecurityErrorBoundary, useEmployeeData, ProfilePictureDialog, useAssignmentHelpers, useDemoTracking)
   - **UI**: Erstattet ~30 hardcoded `gray-*` Tailwind-klasser med semantiske tema-tokens (`text-muted-foreground`, `bg-muted`, `border-border`, `hover:bg-accent`) i 10 filer (EmployeesTable, VacationPage, VacationTable, password-input, secure-input, status-badge, SecurityErrorBoundary, PasswordResetDebugger, DemoRoleSwitcher, ImageCropper)
