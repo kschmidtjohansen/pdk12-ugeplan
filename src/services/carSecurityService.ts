@@ -20,10 +20,10 @@ export class CarSecurityService {
         
         const carIds = (carSubDepts || []).map(r => (r as any).car_id);
         if (carIds.length > 0) {
-          query = query.in('id', carIds);
-        } else {
-          return [];
+          query = query.or(`id.in.(${carIds.join(',')}),sub_department_id.is.null`);
         }
+        // Hvis ingen biler er specifikt tilknyttet underafdelingen,
+        // vis alle i hovedafdelingen (allerede filtreret via department_id)
       }
       
       const { data, error } = await query;

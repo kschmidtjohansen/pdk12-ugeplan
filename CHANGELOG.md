@@ -2,6 +2,10 @@
 
 ## Security Hardening - February 2026
 
+### Fixed - 2026-02-17 (Usynlige biler i Afdeling 14)
+- **5 biler med manglende department_id rettet**: Bil 08, 09, 02, 03 og Test i Afdeling 14 havde `department_id = NULL` og var derfor usynlige. Rettet via database-opdatering.
+- **Forbedret underafdelingsfiltrering**: Biler uden specifik underafdeling vises nu også når man ser en underafdeling (hierarkisk arv). Tidligere returnerede systemet en tom liste.
+
 ### Fixed - 2026-02-17 (Skærmvisning afdelingsfilter)
 - **Skærmvisning viste data fra forkert afdeling**: "Vis på skærm"-knappen sendte ikke `departmentId` med i URL'en, så `ScreenDisplayPage` hentede opgaver fra alle afdelinger. Nu sendes `departmentId` og `subDepartmentId` via URL-parametre og filtreres korrekt i servicelaget.
 
