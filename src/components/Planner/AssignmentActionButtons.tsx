@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { Assignment } from '@/types/assignment';
 import { Edit3, Trash2, Eye, Copy, Monitor, Loader2 } from 'lucide-react';
 
@@ -25,6 +26,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
 }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
 
   const canPerformActions = user?.role === 'administrator' || user?.role === 'skadeleder' || user?.role === 'super_admin';
   const canShowOnScreen = user?.role === 'administrator' || user?.role === 'skadeleder' || user?.role === 'super_admin';
@@ -59,7 +61,14 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
     if (isLoading) return;
     try {
       const timestamp = Date.now();
-      const url = `/screen-display?date=${assignment.date}&t=${timestamp}&source=button`;
+      const params = new URLSearchParams({
+        date: assignment.date,
+        t: String(timestamp),
+        source: 'button',
+      });
+      if (selectedDepartmentId) params.set('departmentId', selectedDepartmentId);
+      if (selectedSubDepartmentId) params.set('subDepartmentId', selectedSubDepartmentId);
+      const url = `/screen-display?${params.toString()}`;
       
       if (import.meta.env.DEV) console.log('[AssignmentActionButtons] Opening screen display:', url);
       

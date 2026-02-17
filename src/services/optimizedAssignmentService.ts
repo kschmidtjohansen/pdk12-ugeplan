@@ -744,7 +744,7 @@ export class OptimizedAssignmentService {
     );
   }
 
-  static async fetchPublishedAssignmentsByDate(date: string, userEmail?: string): Promise<OptimizedAssignmentData[]> {
+  static async fetchPublishedAssignmentsByDate(date: string, userEmail?: string, departmentId?: string | null, subDepartmentId?: string | null): Promise<OptimizedAssignmentData[]> {
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
     if (isDemoMode) {
@@ -754,7 +754,7 @@ export class OptimizedAssignmentService {
       return this.convertDemoAssignments(data.filter((a: any) => a.published && a.assignment_date === date));
     }
     
-    const allPublished = await this.fetchAllPublishedAssignments(userEmail);
+    const allPublished = await this.fetchAllPublishedAssignments(userEmail, departmentId, subDepartmentId);
     return allPublished.filter(a => a.assignment_date === date);
   }
 

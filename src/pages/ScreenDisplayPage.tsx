@@ -33,12 +33,18 @@ const ScreenDisplayPage: React.FC = () => {
     return new Date();
   };
 
+  const getUrlParam = (name: string): string | null => {
+    return new URLSearchParams(window.location.search).get(name);
+  };
+
   const shouldShowAllAssignments = () => {
     return false;
   };
 
   const [selectedDate, setSelectedDate] = useState(getInitialDate);
   const [showAllAssignments] = useState(shouldShowAllAssignments);
+  const departmentId = getUrlParam('departmentId');
+  const subDepartmentId = getUrlParam('subDepartmentId');
   
   const selectedDateStr = showAllAssignments ? '' : format(selectedDate, 'yyyy-MM-dd');
   
@@ -46,11 +52,13 @@ const ScreenDisplayPage: React.FC = () => {
     console.log('[ScreenDisplayPage] DATA FETCHING:', {
       selectedDateStr,
       showAllAssignments,
+      departmentId,
+      subDepartmentId,
       timestamp: new Date().toISOString()
     });
   }
   
-  const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr);
+  const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr, departmentId, subDepartmentId);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -100,6 +108,8 @@ const ScreenDisplayPage: React.FC = () => {
   const updateUrlDate = (date: Date) => {
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set('date', format(date, 'yyyy-MM-dd'));
+    if (departmentId) newUrl.searchParams.set('departmentId', departmentId);
+    if (subDepartmentId) newUrl.searchParams.set('subDepartmentId', subDepartmentId);
     window.history.replaceState({}, '', newUrl.toString());
   };
 

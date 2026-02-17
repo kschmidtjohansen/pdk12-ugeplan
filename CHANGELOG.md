@@ -2,6 +2,9 @@
 
 ## Security Hardening - February 2026
 
+### Fixed - 2026-02-17 (Skærmvisning afdelingsfilter)
+- **Skærmvisning viste data fra forkert afdeling**: "Vis på skærm"-knappen sendte ikke `departmentId` med i URL'en, så `ScreenDisplayPage` hentede opgaver fra alle afdelinger. Nu sendes `departmentId` og `subDepartmentId` via URL-parametre og filtreres korrekt i servicelaget.
+
 ### Fixed - 2026-02-17 (Lokation property-mismatch)
 - **Lokationer usynlige i lagermodulet**: `LocationManagement` gemmer lokationer som `{ key, label }`, men lagerkomponenterne læste `{ id, name }`. Rettet mapping i `WarehouseFormDialog`, `WarehouseTableRow` og `MobileWarehouseCard` så begge formater understøttes.
 
