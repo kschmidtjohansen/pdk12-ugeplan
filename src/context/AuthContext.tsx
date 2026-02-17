@@ -2,11 +2,15 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useRe
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { User, Session } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { DemoUserService } from '@/services/demoUserService';
 import { circuitBreaker } from '@/services/circuitBreakerService';
 import { TranslationContext } from './TranslationContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
+import { unifiedDataService } from '@/services/data/unifiedDataService';
+import { OptimizedAssignmentService } from '@/services/optimizedAssignmentService';
+import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 
 // Define user roles
 export type UserRole = 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
@@ -111,6 +115,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const manualLogoutRef = useRef(false);
   
   // Safe translation hook with fallback
@@ -628,6 +633,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setSession(null);
       setSessionExpired(false);
+      
+      // Ryd alle data-caches for at undgå data-lækage mellem brugere
+      queryClient.clear();
+      unifiedDataService.clearCache();
+      OptimizedAssignmentService.clearCache();
+      enhancedDataFetching.clearCache();
       
       sessionStorage.clear();
       
