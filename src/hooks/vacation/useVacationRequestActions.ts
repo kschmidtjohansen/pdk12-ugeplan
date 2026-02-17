@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
 import { VacationRequestType } from '@/types/vacation';
@@ -14,6 +15,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
   const { toast } = useToast();
   const { t, currentLanguage } = useTranslation();
   const { addNotification } = useNotifications();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
 
   const submitVacationRequest = async (
@@ -107,7 +109,9 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         end_time: requestType === 'partial_day' ? endTime : null,
         is_same_day: isSameDay,
         reason: reason,
-        status: 'pending' as const
+        status: 'pending' as const,
+        department_id: selectedDepartmentId || null,
+        sub_department_id: selectedSubDepartmentId || null,
       };
       
       const { data, error } = await supabase
