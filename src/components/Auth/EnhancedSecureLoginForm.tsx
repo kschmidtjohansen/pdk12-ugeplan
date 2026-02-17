@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,7 +86,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
       }
     } catch (error) {
       clearTimeout(loginTimeoutId);
-      console.error('[LoginForm] Login error:', error);
+      if (import.meta.env.DEV) console.error('[LoginForm] Login error:', error);
       setAttempts(prev => prev + 1);
       setError(t('login.unexpectedError'));
     } finally {
@@ -101,16 +101,12 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="space-y-1">
-        <CardDescription>
-          {t('login.description')}
-        </CardDescription>
-      </CardHeader>
+    <Card className="w-full max-w-md mx-auto shadow-lg rounded-xl border-border/50">
+      <CardHeader className="pb-2" />
       
       <CardContent className="space-y-4">
         {isBlocked && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="animate-fade-in">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               {t('login.tooManyAttemptsLock')}
@@ -119,7 +115,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         )}
 
         {loginTimeout && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="animate-fade-in">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               {t('login.timeoutMessage')}
@@ -173,18 +169,17 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
           </div>
 
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="animate-fade-in">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {attempts > 0 && !isBlocked && (
-            <Alert>
+            <Alert className="animate-fade-in">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                {attempts} failed attempt{attempts > 1 ? 's' : ''}. 
-                {maxAttempts - attempts} attempt{maxAttempts - attempts > 1 ? 's' : ''} remaining.
+                {t('login.failedAttempts', { count: String(attempts), remaining: String(maxAttempts - attempts) })}
               </AlertDescription>
             </Alert>
           )}

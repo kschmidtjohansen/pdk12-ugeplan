@@ -15,7 +15,6 @@ const LoginPage = () => {
   const { t } = useTranslation();
   const departmentName = localStorage.getItem('selected_department_name');
 
-  // Only redirect if auth is ready, user is authenticated, and user data is loaded
   useEffect(() => {
     if (import.meta.env.DEV) {
       console.log('[LoginPage] Auth state:', { isAuthenticated, authReady, session: !!session, userDataLoaded });
@@ -29,7 +28,8 @@ const LoginPage = () => {
     // Navigation will be handled by the useEffect above when session is available
   };
 
-  return <div className="min-h-screen flex items-center justify-center bg-muted/50 py-12 px-4 sm:px-6 lg:px-8">
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="mb-6">
@@ -42,16 +42,22 @@ const LoginPage = () => {
             />
           </div>
           
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+          <h1 className="text-2xl font-semibold text-foreground mb-1">
             {t('login.welcomeMessage')}
           </h1>
-          <p className="text-muted-foreground">
-            {departmentName || t('login.internalSystem')}
+          <p className="text-sm text-muted-foreground">
+            {t('login.loginSubtext')}
           </p>
+          {departmentName && (
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              {departmentName}
+            </p>
+          )}
         </div>
         
         <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
       </div>
-    </div>;
+    </div>
+  );
 };
 export default LoginPage;
