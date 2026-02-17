@@ -36,9 +36,9 @@ const LoginPage = () => {
             <img 
               src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
               alt="Polygon Logo" 
-              className="h-12 mx-auto mb-4"
-              width="180"
-              height="48"
+              className="h-20 mx-auto mb-4"
+              width="300"
+              height="80"
             />
           </div>
           

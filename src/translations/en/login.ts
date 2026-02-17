@@ -9,7 +9,7 @@ const login = {
   failed: 'Invalid email or password. Please try again.',
   success: 'You are now logged in.',
   logoutSuccess: 'You have been logged out',
-  welcomeMessage: 'Welcome to Ugeplan',
+  welcomeMessage: 'Ugeplan',
   internalSystem: '',
   invalidCredentials: 'Invalid email or password. Please try again.',
   tooManyRequests: 'Too many login attempts. Please wait before trying again.',

@@ -7,7 +7,8 @@
 - **Oversættelsesnøgler**: `auth.sessionTimedOut` og `auth.sessionTimedOutDescription` tilføjet i DA/EN.
 
 ### Changed — Fase 12
-- **Login-tekst**: "Velkommen til Polygon Ugeplan" → "Velkommen til Ugeplan". "Internt planlægningssystem" fjernet (tom streng).
+- **Login-tekst**: Overskrift ændret til "Ugeplan" (uden "Velkommen til"). "Internt planlægningssystem" fjernet.
+- **Login-logo**: Polygon-logo forstørret fra h-12 til h-20 på login-siden.
 - **EmployeeSelector statuslabels**: Hardcodede engelske 'Expired'/'Terminated'/'Inactive' erstattet med `t()` oversættelsesnøgler.
 - **Realtime schema-fix**: `useVacationRequestsStatus` lytter nu altid på `schema: 'public'` (fjernet ugyldig `demo`-schema routing).
 - **DEV-guards**: Wrappet uguardede `console.log/warn/error` i 6 filer: `useVacationRequestsStatus`, `useCarDataHandler`, `enhancedDataFetching`, `enhancedUnifiedDataService`, `supabaseIssuesAuditor`, `use-toast`.
