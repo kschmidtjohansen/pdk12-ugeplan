@@ -6,11 +6,30 @@ import AddressAutocomplete from '@/components/Planner/AddressAutocomplete';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useTranslation } from '@/context/TranslationContext';
 import { useForm } from 'react-hook-form';
 import { WarehouseItemFormData } from '@/types/warehouse';
 import { WarehouseFormDialogProps } from './types';
+import { useDepartment } from '@/context/DepartmentContext';
+
+interface LocationItem {
+  id: string;
+  name: string;
+}
+
+const useLocations = (departmentId: string | null): LocationItem[] => {
+  return React.useMemo(() => {
+    if (!departmentId) return [];
+    try {
+      const raw = localStorage.getItem(`location-data-${departmentId}`);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [departmentId]);
+};
 
 const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
   open,
@@ -20,6 +39,8 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
   loading,
 }) => {
   const { t } = useTranslation();
+  const { selectedDepartmentId } = useDepartment();
+  const locations = useLocations(selectedDepartmentId);
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<WarehouseItemFormData>({
     defaultValues: editingItem ? {
       address: editingItem.address,
@@ -119,20 +140,23 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
 
           <div className="space-y-2">
             <Label>{t('warehouse.fields.hall')}</Label>
-            <RadioGroup value={hall || ''} onValueChange={(value) => setValue('hall', value as 'hal_1' | 'sort_hal' | undefined)}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="hal_1" id="hal_1" />
-                <Label htmlFor="hal_1" className="cursor-pointer font-normal">
-                  {t('warehouse.halls.hal1')}
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="sort_hal" id="sort_hal" />
-                <Label htmlFor="sort_hal" className="cursor-pointer font-normal">
-                  {t('warehouse.halls.sortHal')}
-                </Label>
-              </div>
-            </RadioGroup>
+            {locations.length > 0 ? (
+              <Select value={hall || '__none__'} onValueChange={(value) => setValue('hall', value === '__none__' ? undefined : value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('warehouse.fields.hall')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">-</SelectItem>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {t('warehouse.noLocations', { fallback: 'Ingen lokationer oprettet for denne afdeling' })}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
