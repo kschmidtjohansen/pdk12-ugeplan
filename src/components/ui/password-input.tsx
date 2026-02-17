@@ -96,16 +96,16 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
-              <EyeOff className="h-4 w-4 text-gray-500" />
+              <EyeOff className="h-4 w-4 text-muted-foreground" />
             ) : (
-              <Eye className="h-4 w-4 text-gray-500" />
+              <Eye className="h-4 w-4 text-muted-foreground" />
             )}
           </Button>
         </div>
 
         {showStrengthIndicator && value && (
-          <div className="space-y-1 p-3 bg-gray-50 rounded-md">
-            <p className="text-xs font-medium text-gray-700 mb-2">Password must contain:</p>
+          <div className="space-y-1 p-3 bg-muted/50 rounded-md">
+            <p className="text-xs font-medium text-foreground mb-2">Password must contain:</p>
             <ValidationItem isValid={validation.length} text="At least 8 characters" />
             <ValidationItem isValid={validation.uppercase} text="One uppercase letter" />
             <ValidationItem isValid={validation.lowercase} text="One lowercase letter" />

@@ -38,12 +38,8 @@ const MineOpgaver: React.FC = () => {
     const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
     const currentWeekDates = getWeekDates(currentWeek, currentYear);
     
-    console.log('[MineOpgaver] COMPREHENSIVE FIX - Filtering assignments:', {
-      userName: user.name,
-      userId: user.id,
-      totalAssignments: assignments.length,
-      currentWeek,
-      currentYear
+    if (import.meta.env.DEV) console.log('[MineOpgaver] Filtering assignments:', {
+      userId: user.id, totalAssignments: assignments.length, currentWeek, currentYear
     });
     
     const userTasks = assignments.filter(assignment => {
@@ -58,19 +54,8 @@ const MineOpgaver: React.FC = () => {
       
       const isUserInvolved = isAssignedViaNew || isAssignedViaLegacy || isResponsible;
       
-      console.log(`[MineOpgaver] Assignment "${assignment.title}":`, {
-        currentUserId: user.id,
-        currentUserName: user.name,
-        isAssignedViaNew,
-        isAssignedViaLegacy,
-        isResponsible,
-        isInCurrentWeek,
-        isUserInvolved,
-        published: assignment.published,
-        assignedEmployeeIds: assignment.assignedEmployees?.map(e => e.id),
-        assignedEmployeeNames: assignment.assignedEmployees?.map(e => e.name),
-        legacyEmployees: assignment.employees,
-        responsibleUserId: assignment.responsibleUser?.id
+      if (import.meta.env.DEV) console.log(`[MineOpgaver] Assignment "${assignment.title}":`, {
+        isAssignedViaNew, isAssignedViaLegacy, isResponsible, isInCurrentWeek, isUserInvolved
       });
       
       return isUserInvolved && isInCurrentWeek; // FIXED: Removed published filter so servicemedarbejder can see all assignments they're involved in
@@ -161,13 +146,7 @@ const MineOpgaver: React.FC = () => {
   };
 
 
-  console.log(`[MineOpgaver] PHASE 3 FIX - User assignments:`, {
-    userName: user?.name,
-    totalAssignments: assignments.length,
-    userAssignments: userAssignments.length,
-    assignmentsWithResponsible: userAssignments.filter(a => a.responsibleUser).length,
-    assignmentsWithFullEmployeeData: userAssignments.filter(a => a.assignedEmployees?.length).length
-  });
+  if (import.meta.env.DEV) console.log(`[MineOpgaver] User assignments: ${userAssignments.length}/${assignments.length}`);
 
   if (loading) {
     return (

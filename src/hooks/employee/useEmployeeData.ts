@@ -92,7 +92,7 @@ export const useEmployeeData = () => {
         .from('user_roles')
         .select('user_id, role');
 
-      if (rolesError) console.error('[useEmployeeData] User roles fetch error:', rolesError);
+      if (rolesError && import.meta.env.DEV) console.error('[useEmployeeData] User roles fetch error:', rolesError);
 
       const rolesMap = new Map<string, string>();
       if (userRoles && Array.isArray(userRoles)) {
@@ -129,7 +129,7 @@ export const useEmployeeData = () => {
           .select('user_id')
           .eq('department_id', selectedDepartmentId);
 
-        if (accessError) console.error('[useEmployeeData] user_access fetch error:', accessError);
+        if (accessError && import.meta.env.DEV) console.error('[useEmployeeData] user_access fetch error:', accessError);
 
         const departmentUserIds = new Set((accessData || []).map(a => a.user_id));
 

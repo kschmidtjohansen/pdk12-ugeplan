@@ -131,9 +131,9 @@ export const SecureInput = forwardRef<HTMLInputElement, SecureInputProps>(
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4 text-gray-500" />
+                <EyeOff className="h-4 w-4 text-muted-foreground" />
               ) : (
-                <Eye className="h-4 w-4 text-gray-500" />
+                <Eye className="h-4 w-4 text-muted-foreground" />
               )}
             </Button>
           )}
@@ -142,13 +142,13 @@ export const SecureInput = forwardRef<HTMLInputElement, SecureInputProps>(
         {showPasswordStrength && validatePasswordStrength && (
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-2">
+              <div className="flex-1 bg-muted rounded-full h-2">
                 <div 
                   className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(passwordStrength)}`}
                   style={{ width: `${Math.min(100, (passwordStrength / 6) * 100)}%` }}
                 />
               </div>
-              <span className="text-xs text-gray-600">
+              <span className="text-xs text-muted-foreground">
                 {getPasswordStrengthText(passwordStrength)}
               </span>
             </div>

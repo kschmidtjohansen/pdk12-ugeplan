@@ -122,7 +122,7 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
       onAvatarUpdate(data.publicUrl);
       onOpenChange(false);
     } catch (error: any) {
-      console.error('Error uploading avatar:', error);
+      if (import.meta.env.DEV) console.error('Error uploading avatar:', error);
       toast({
         title: t('common.error'),
         description: error.message || t('profile.profilePictureError'),
@@ -170,7 +170,7 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
       onAvatarUpdate(null);
       onOpenChange(false);
     } catch (error: any) {
-      console.error('Error removing avatar:', error);
+      if (import.meta.env.DEV) console.error('Error removing avatar:', error);
       toast({
         title: t('common.error'),
         description: error.message || t('profile.profilePictureError'),

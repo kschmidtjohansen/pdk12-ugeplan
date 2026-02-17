@@ -44,8 +44,8 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   if (loading) {
     return <div className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
-          <Users className="h-5 w-5 text-gray-400" />
-          <span className="text-sm text-gray-500">
+          <Users className="h-5 w-5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
             {t('common.loading') || 'Loading employees...'}
           </span>
         </div>
@@ -91,11 +91,11 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   // Show empty state
   if (employees.length === 0) {
     return <div className="text-center py-8">
-        <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-600 mb-2">
+        <Users className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-2">
           {t('employees.noEmployees') || 'No employees found'}
         </h3>
-        <p className="text-gray-500 mb-4">
+        <p className="text-muted-foreground mb-4">
           {t('employees.noEmployeesDescription') || 'No employee records were found in the system.'}
         </p>
         <Button onClick={onRetry} variant="outline" size="sm">

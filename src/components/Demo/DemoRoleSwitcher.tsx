@@ -74,12 +74,12 @@ export const DemoRoleSwitcher: React.FC = () => {
             className={`cursor-pointer p-3 ${
               currentRole === roleOption.role 
                 ? 'bg-amber-50 text-amber-900 font-medium' 
-                : 'hover:bg-gray-50'
+                : 'hover:bg-accent'
             }`}
           >
             <div className="flex flex-col">
               <div className="font-medium">{roleOption.label}</div>
-              <div className="text-xs text-gray-500">{roleOption.description}</div>
+              <div className="text-xs text-muted-foreground">{roleOption.description}</div>
             </div>
           </DropdownMenuItem>
         ))}

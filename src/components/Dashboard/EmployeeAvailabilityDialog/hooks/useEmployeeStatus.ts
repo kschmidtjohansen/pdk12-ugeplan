@@ -22,7 +22,7 @@ export const useEmployeeStatus = ({
 }: UseEmployeeStatusProps) => {
   const { t } = useTranslation();
 
-  console.log(`[EmployeeStatus] === CHECKING EMPLOYEE: ${employee.name} for ${viewedDate} ===`);
+  if (import.meta.env.DEV) console.log(`[EmployeeStatus] Checking: ${employee.name} for ${viewedDate}`);
   
   const availabilityInfo = getEmployeeAvailabilityStatus(
     employee,
@@ -32,7 +32,7 @@ export const useEmployeeStatus = ({
     t
   );
   
-  console.log(`[EmployeeStatus] Employee ${employee.name} status: ${availabilityInfo.status}, text: "${availabilityInfo.statusText}"`);
+  if (import.meta.env.DEV) console.log(`[EmployeeStatus] ${employee.name}: ${availabilityInfo.status}`);
   
   // Map the status to appropriate labels and colors for the dialog using standardized translation keys
   switch (availabilityInfo.status) {
@@ -75,14 +75,14 @@ export const useEmployeeStatus = ({
       return {
         status: 'leave',
         label: t('employees.status.onLeave'),
-        color: 'bg-gray-100 text-gray-800 border-gray-200',
+        color: 'bg-muted text-foreground border-border',
         hasEndTimeAtSixteen: false
       };
     default:
       return {
         status: 'unknown',
         label: t('employees.status.unknown'),
-        color: 'bg-gray-100 text-gray-800 border-gray-200',
+        color: 'bg-muted text-foreground border-border',
         hasEndTimeAtSixteen: false
       };
   }

@@ -40,14 +40,14 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
 
   const handleEditClick = () => {
     if (isLoading) return;
-    console.log('[AssignmentActionButtons] Edit button clicked for assignment:', assignment.id);
+    if (import.meta.env.DEV) console.log('[AssignmentActionButtons] Edit clicked:', assignment.id);
     onEdit(assignment);
   };
 
   const handlePublishClick = async () => {
     if (isLoading || assignment.published) return;
     
-    console.log('[AssignmentActionButtons] Publish button clicked for assignment:', assignment.id);
+    if (import.meta.env.DEV) console.log('[AssignmentActionButtons] Publish clicked:', assignment.id);
     try {
       await onPublish(assignment.id);
     } catch (error) {
@@ -61,12 +61,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
       const timestamp = Date.now();
       const url = `/screen-display?date=${assignment.date}&t=${timestamp}&source=button`;
       
-      console.log('[AssignmentActionButtons] 🚀 Opening screen display:', {
-        assignment: assignment.title,
-        date: assignment.date,
-        url,
-        timestamp
-      });
+      if (import.meta.env.DEV) console.log('[AssignmentActionButtons] Opening screen display:', url);
       
       // Open window with specific features for better control
       const newWindow = window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
@@ -82,13 +77,13 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
 
   const handleDeleteClick = () => {
     if (isLoading) return;
-    console.log('[AssignmentActionButtons] Delete button clicked for assignment:', assignment.id);
+    if (import.meta.env.DEV) console.log('[AssignmentActionButtons] Delete clicked:', assignment.id);
     onDelete(assignment.id);
   };
 
   const handleCopyClick = () => {
     if (isLoading) return;
-    console.log('[AssignmentActionButtons] Copy button clicked for assignment:', assignment.id);
+    if (import.meta.env.DEV) console.log('[AssignmentActionButtons] Copy clicked:', assignment.id);
     onCopy(assignment);
   };
 

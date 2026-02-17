@@ -10,7 +10,7 @@ const VacationPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+    <div className="min-h-screen w-full bg-gradient-to-br from-muted/20 via-background to-muted/30">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
         {/* Enhanced Header with Glassmorphism */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-2xl animate-fade-in-up">
@@ -36,7 +36,7 @@ const VacationPage: React.FC = () => {
         </div>
 
         {/* Vacation Content */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="bg-card rounded-xl border border-border shadow-sm">
           <div className="p-6">
             <VacationPageContainer headerComponent={null} />
           </div>
