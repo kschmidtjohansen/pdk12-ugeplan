@@ -1,69 +1,68 @@
 
-
-## Fix: Ny medarbejder faar ikke afdelingstilknytning ved oprettelse
+## Fix: Fejl ved biloprettelse - dobbelt fejlbesked og manglende fejlhaandtering
 
 ### Problem
-Naar en medarbejder oprettes fra Medarbejder-siden, oprettes kun en `profiles`-raekke og en `user_roles`-raekke. Der oprettes ALDRIG en `user_access`-record, som er den tabel der styrer afdelingstilknytning. Filtreringen i `useEmployeeData` (linje 127-144) bruger `user_access` til at bestemme hvilke medarbejdere der hoerer til den valgte afdeling. Uden en `user_access`-record vises den nye medarbejder derfor som "Uden afdeling".
+Naar Michael opretter en bil i afdeling 16, sker foelgende:
+
+1. Bilen oprettes korrekt i databasen via `CarSecurityService.createCar`
+2. Derefter forsoeges synkronisering af underafdelinger (car_sub_departments) - hvis dette fejler, returnerer `createCar` false
+3. `useCarFormState` ser `false`, kaster en NY fejl "Failed to create car using createCar function", som viser en ANDEN toast med den forkerte fejlbesked
+4. Dialogen forbliver aaben, brugeren proever igen, og nu rammer en duplikat-constraint fordi bilen allerede blev oprettet
 
 ### Rodaarsag
-Hverken `useEmployeeCreation.ts` (frontend) eller `admin-create-user` edge function opretter `user_access`-records. Til sammenligning goer `UserFormDialog.tsx` (admin-panelet) dette korrekt via `saveUserAccess()` (linje 156-178).
+To fejl i fejlhaandteringskoden:
+- `useCarData.createCar` lader fejl i underafdelingssynkronisering afbryde hele operationen, selvom bilen allerede er oprettet
+- `useCarFormState.handleSubmit` kaster en ny fejl naar `createCar` returnerer `false`, hvilket giver en dobbelt fejlbesked (den rigtige fejl er allerede vist)
 
 ### Loesning
-Tilfoej `user_access`-oprettelse i `useEmployeeCreation.ts` efter succesfuld medarbejderoprettelse. Brug den aktive `selectedDepartmentId` og `selectedSubDepartmentId` fra `DepartmentContext`. Saet ogsaa `home_department_id` paa profilen.
 
-### Aendringer
+**Fil 1: `src/hooks/car/useCarData.ts`**
 
-**`src/hooks/employee/useEmployeeCreation.ts`**
-
-1. Importer `useDepartment` fra `@/context/DepartmentContext`
-2. Hent `selectedDepartmentId` og `selectedSubDepartmentId` i hook'en
-3. Efter succesfuld oprettelse (linje 220-260), tilfoej:
-   - Indsaet en `user_access`-record med `user_id`, `department_id` (= selectedDepartmentId), og eventuelt `sub_department_id`
-   - Opdater `profiles.home_department_id` til `selectedDepartmentId`
-
-Kode der tilfojes (efter linje 259, foer toast):
+I `createCar`-funktionen (linje 143-151): Wrap underafdelingssynkroniseringen i en try-catch saa den ikke afbryder hele operationen. Bilen er allerede oprettet, saa vi logger en advarsel men returnerer `true`.
 
 ```text
-// Tilknyt medarbejder til aktiv afdeling
-if (selectedDepartmentId && userId) {
-  const accessRecord: any = {
-    user_id: userId,
-    department_id: selectedDepartmentId,
-  };
-  if (selectedSubDepartmentId) {
-    accessRecord.sub_department_id = selectedSubDepartmentId;
-  }
-  const { error: accessError } = await client
-    .from('user_access')
-    .insert(accessRecord);
-  if (accessError && import.meta.env.DEV) {
-    console.warn('[useEmployeeCreation] user_access insert warning:', accessError);
-  }
-
-  // Saet home_department_id paa profilen
-  const { error: homeDeptError } = await client
-    .from('profiles')
-    .update({ home_department_id: selectedDepartmentId })
-    .eq('id', userId);
-  if (homeDeptError && import.meta.env.DEV) {
-    console.warn('[useEmployeeCreation] home_department_id update warning:', homeDeptError);
+// Sync sub-department assignments via junction table
+if (!isDemoMode) {
+  try {
+    const subDeptIds = (carData as any).sub_department_ids || [];
+    if (subDeptIds.length > 0) {
+      await supabase.from('car_sub_departments').insert(
+        subDeptIds.map((sdId: string) => ({ car_id: data.id, sub_department_id: sdId }))
+      );
+    }
+  } catch (syncErr) {
+    if (import.meta.env.DEV) console.warn('[useCarData] Sub-department sync warning:', syncErr);
   }
 }
 ```
 
-**`CHANGELOG.md`** - Dokumenter rettelsen.
+**Fil 2: `src/hooks/car/useCarFormState.ts`**
+
+I `handleSubmit` (linje 158-162): Naar `createCar` returnerer `false`, luk dialogen IKKE men kast heller ikke en ny fejl (den rigtige fejl er allerede vist via toast). Bare returner tidligt.
+
+```text
+if (createCar) {
+  const success = await createCar(formData);
+  if (!success) {
+    return; // Fejl er allerede vist via toast i createCar
+  }
+}
+```
+
+**Fil 3: `CHANGELOG.md`** - Dokumenter rettelsen.
 
 ### Filer der aendres
 
 | Fil | Aendring |
 |-----|---------|
-| `src/hooks/employee/useEmployeeCreation.ts` | Tilfoej user_access + home_department_id ved oprettelse |
+| `src/hooks/car/useCarData.ts` | Graceful haandtering af sub-dept sync fejl |
+| `src/hooks/car/useCarFormState.ts` | Fjern dobbelt fejlbesked ved mislykket oprettelse |
 | `CHANGELOG.md` | Dokumenter fix |
 
 ### Kvalitetstjek
-- Ny medarbejder vises straks i den aktive afdeling efter oprettelse
-- `user_access`-record oprettes med korrekt department_id og sub_department_id
-- `home_department_id` saettes paa profilen
-- RLS tillader insert i `user_access` for admin/super_admin (bekraeftet i schema)
+- Bilen oprettes korrekt og vises i listen
+- Underafdelingsfejl logger en advarsel men afbryder ikke oprettelsen
+- Kun en enkelt fejlbesked vises (ikke dobbelt toast)
+- Dialogen lukker ved succes, forbliver aaben ved reel fejl
 - Ingen console.log uden DEV-guard
-- Eksisterende admin-panel oprettelse (UserFormDialog) paavirkes ikke
+- Ingen hardcoded gray-farver tilfojes
