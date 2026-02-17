@@ -89,8 +89,11 @@ export class CarSecurityService {
 
       if ((canViewFuel || canViewFuelCardCode) && carData.fuel_card_code) {
         insertData.fuel_card_code = carData.fuel_card_code;
+      } else if (!carData.fuel_card_code || carData.fuel_card_code.trim() === '') {
+        // Generate unique placeholder to avoid unique constraint violation
+        insertData.fuel_card_code = `AUTO-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       } else {
-        insertData.fuel_card_code = carData.fuel_card_code || '';
+        insertData.fuel_card_code = carData.fuel_card_code;
       }
 
       const dbClient = getSchemaClient(isDemoMode);
