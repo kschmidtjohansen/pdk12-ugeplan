@@ -161,7 +161,7 @@ export const useEmployeeData = () => {
   const { data: employees = [], isLoading: loading, error: queryError, refetch } = useQuery({
     queryKey,
     queryFn: fetchEmployeesFn,
-    enabled: userDataLoaded && !!user,
+    enabled: userDataLoaded && !!user && (isDemoMode || !!selectedDepartmentId),
     staleTime: 5 * 60 * 1000,
   });
 

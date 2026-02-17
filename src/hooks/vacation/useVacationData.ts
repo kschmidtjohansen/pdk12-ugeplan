@@ -95,7 +95,7 @@ export const useVacationData = () => {
   const { data: vacations = [], isLoading: loading, error: queryError, refetch } = useQuery({
     queryKey,
     queryFn: fetchVacationsFn,
-    enabled: userDataLoaded && !!user,
+    enabled: userDataLoaded && !!user && (isDemoMode || !!selectedDepartmentId),
     staleTime: 5 * 60 * 1000,
   });
 
