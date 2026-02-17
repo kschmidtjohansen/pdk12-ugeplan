@@ -1,14 +1,54 @@
 
 
-## Kombineret plan: Login afdelingsvisning + Lager autocomplete + Gray-farver — ✅ UDFØRT
+## Fix: Manglende tidsinput i opgaveformularen
 
-### Del 1: Login-side - Fix afdelingsvisning ✅
-- DepartmentContext gemmer nu afdelingsnavn i localStorage ved skift
-- LoginPage læser fra localStorage i stedet for DB-query (undgår RLS-blokering)
-- Gray-farver erstattet med semantiske tokens
+### Problem
+`AssignmentFormFields.tsx` modtager `fromTime`, `setFromTime`, `toTime` og `setToTime` som props (linje 63-66), men renderer aldrig nogen tid-inputfelter i JSX'en. Tidsfelterne er simpelthen udeladt fra formularen.
 
-### Del 2: Lager adresse-autocomplete ✅
-- AddressAutocomplete integreret i WarehouseFormDialog
+### Loesning
+Tilfoej to `<Input type="time">` felter mellem dato-sektionen og medarbejder-sektionen i `AssignmentFormFields.tsx`.
 
-### Del 3: Dokumentation ✅
-- CHANGELOG.md opdateret
+### Aendringer
+
+**`src/components/Planner/AssignmentFormFields.tsx`**
+
+Indsaet foelgende mellem dato-sektionen (linje 307) og `<EmployeeSelector>` (linje 309):
+
+```text
+<div className="grid grid-cols-2 gap-4">
+  <div className="space-y-2">
+    <Label htmlFor="fromTime">{t('planner.fromTime')}</Label>
+    <Input
+      id="fromTime"
+      type="time"
+      value={fromTime}
+      onChange={(e) => setFromTime(e.target.value)}
+    />
+  </div>
+  <div className="space-y-2">
+    <Label htmlFor="toTime">{t('planner.toTime')}</Label>
+    <Input
+      id="toTime"
+      type="time"
+      value={toTime}
+      onChange={(e) => setToTime(e.target.value)}
+    />
+  </div>
+</div>
+```
+
+**`CHANGELOG.md`** - Dokumenter rettelsen.
+
+### Filer der aendres
+
+| Fil | Aendring |
+|-----|---------|
+| `src/components/Planner/AssignmentFormFields.tsx` | Tilfoej fra/til tidsinput-felter |
+| `CHANGELOG.md` | Dokumenter fix |
+
+### Kvalitetstjek
+- Tid vises korrekt i baade opret- og redigeringstilstand
+- Validering (fromTime < toTime) er allerede haandteret i `AssignmentForm.tsx` linje 93-95
+- Responsivt: `grid-cols-2` giver side-by-side paa alle skaermstoerrelser
+- Ingen console.log uden DEV-guard
+- Ingen hardcoded gray-farver
