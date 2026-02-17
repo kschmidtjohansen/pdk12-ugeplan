@@ -2,6 +2,11 @@
 
 ## Security Hardening - February 2026
 
+### Fixed - 2026-02-17 (Bil forsvinder ved redigering — department_id nulstilles)
+- **`department_id` fjernet fra `updateCar`-payload**: `CarSecurityService.updateCar` overskrev tidligere altid `department_id` med `NULL` ved redigering, fordi `CarFormData` ikke indeholder dette felt. Feltet er nu fjernet fuldstændigt fra `updateData`, så databasen altid bevarer den eksisterende værdi.
+- **Bil 04 (Asnæs, afd. 14) rettet i databasen**: Migration har gendannet korrekt `department_id` på bil 04.
+- **Duplikat-validering for brændstofkortkode**: `CarFormDialog` viser nu en rød advarsel og disabler Gem-knappen hvis `fuel_card_code` allerede bruges af en anden bil i afdelingen.
+
 ### Fixed - 2026-02-17 (Total Isolation Audit)
 - **Ferie-oprettelse injicerer nu department_id**: Nye ferieansøgninger får automatisk `department_id` og `sub_department_id` fra den aktive session. Forhindrer ferier med `NULL`-afdeling der potentielt kan lække på tværs af centre.
 - **PlannerPage "Vis på skærm" sender departmentId**: Knappen videresender nu `departmentId` og `subDepartmentId` via URL-parametre til skærmvisningen, så den kun viser opgaver for den aktive afdeling.

@@ -124,6 +124,7 @@ const CarsPage: React.FC = () => {
             currentCar={currentCar}
             canViewFuelCardCode={canViewFuelCardCode}
             onConfirmDelete={confirmDelete}
+            cars={cars}
           />
           
           <CarMarkUnavailableDialog
