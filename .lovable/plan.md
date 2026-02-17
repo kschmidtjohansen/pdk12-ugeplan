@@ -1,40 +1,35 @@
 
 
-## Fix: Manglende tidsinput i opgaveformularen
+## Fix: Ryd TanStack Query-cache og service-caches ved logout
 
 ### Problem
-`AssignmentFormFields.tsx` modtager `fromTime`, `setFromTime`, `toTime` og `setToTime` som props (linje 63-66), men renderer aldrig nogen tid-inputfelter i JSX'en. Tidsfelterne er simpelthen udeladt fra formularen.
+Naar bruger A (Kasper Johansen, Super Admin) logger ud og bruger B (Michael Rattenborg) logger ind, vises stadig cached data fra bruger A's session. Dette sker fordi:
+
+1. `queryClient` er oprettet som en modul-singleton i `App.tsx` (linje 46) og ryddes ALDRIG ved logout
+2. `logout()` i `AuthContext.tsx` (linje 617-640) rydder kun `sessionStorage` - ikke React Query-cachen
+3. Service-caches (`unifiedDataService`, `OptimizedAssignmentService`, `enhancedDataFetching`) ryddes heller ikke
 
 ### Loesning
-Tilfoej to `<Input type="time">` felter mellem dato-sektionen og medarbejder-sektionen i `AssignmentFormFields.tsx`.
+Ryd ALLE caches ved logout: TanStack Query-cache, unifiedDataService, OptimizedAssignmentService og enhancedDataFetching.
 
 ### Aendringer
 
-**`src/components/Planner/AssignmentFormFields.tsx`**
+**`src/context/AuthContext.tsx`**
 
-Indsaet foelgende mellem dato-sektionen (linje 307) og `<EmployeeSelector>` (linje 309):
+1. Importer `useQueryClient` fra `@tanstack/react-query`
+2. Importer service-caches:
+   - `unifiedDataService` fra `@/services/data/unifiedDataService`
+   - `OptimizedAssignmentService` fra `@/services/optimizedAssignmentService`
+   - `enhancedDataFetching` fra `@/services/enhancedDataFetching`
+3. Hent `queryClient` via `useQueryClient()` i AuthProvider
+4. I `logout`-funktionen (efter `supabase.auth.signOut()`), tilfoej:
 
 ```text
-<div className="grid grid-cols-2 gap-4">
-  <div className="space-y-2">
-    <Label htmlFor="fromTime">{t('planner.fromTime')}</Label>
-    <Input
-      id="fromTime"
-      type="time"
-      value={fromTime}
-      onChange={(e) => setFromTime(e.target.value)}
-    />
-  </div>
-  <div className="space-y-2">
-    <Label htmlFor="toTime">{t('planner.toTime')}</Label>
-    <Input
-      id="toTime"
-      type="time"
-      value={toTime}
-      onChange={(e) => setToTime(e.target.value)}
-    />
-  </div>
-</div>
+// Ryd alle data-caches for at undgaa data-laekning mellem brugere
+queryClient.clear();
+unifiedDataService.clearCache();
+OptimizedAssignmentService.clearCache();
+enhancedDataFetching.clearCache();
 ```
 
 **`CHANGELOG.md`** - Dokumenter rettelsen.
@@ -43,12 +38,13 @@ Indsaet foelgende mellem dato-sektionen (linje 307) og `<EmployeeSelector>` (lin
 
 | Fil | Aendring |
 |-----|---------|
-| `src/components/Planner/AssignmentFormFields.tsx` | Tilfoej fra/til tidsinput-felter |
+| `src/context/AuthContext.tsx` | Ryd queryClient + service-caches ved logout |
 | `CHANGELOG.md` | Dokumenter fix |
 
 ### Kvalitetstjek
-- Tid vises korrekt i baade opret- og redigeringstilstand
-- Validering (fromTime < toTime) er allerede haandteret i `AssignmentForm.tsx` linje 93-95
-- Responsivt: `grid-cols-2` giver side-by-side paa alle skaermstoerrelser
+- Ingen cached data fra bruger A vises efter login som bruger B
+- `queryClient.clear()` fjerner baade aktive og inaktive queries
+- Service-caches ryddes eksplicit for at undgaa stale data
 - Ingen console.log uden DEV-guard
-- Ingen hardcoded gray-farver
+- Ingen hardcoded gray-farver tilfojes
+
