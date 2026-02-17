@@ -2,6 +2,10 @@
 
 ## Security Hardening - February 2026
 
+### Fixed - 2026-02-17 (Total Isolation Audit)
+- **Ferie-oprettelse injicerer nu department_id**: Nye ferieansøgninger får automatisk `department_id` og `sub_department_id` fra den aktive session. Forhindrer ferier med `NULL`-afdeling der potentielt kan lække på tværs af centre.
+- **PlannerPage "Vis på skærm" sender departmentId**: Knappen videresender nu `departmentId` og `subDepartmentId` via URL-parametre til skærmvisningen, så den kun viser opgaver for den aktive afdeling.
+
 ### Fixed - 2026-02-17 (Global State Reset ved Logout)
 - **LocalStorage ryddes ved logout**: Nøgler som `selected_department_id`, `selected_sub_department_id`, `selected_department_name`, `selected_view` og dynamiske `location-data-*` fjernes nu ved logout. Theme-indstilling (`ui-theme`) bevares.
 - **Fuld page reload efter logout**: `window.location.href` bruges i stedet for React Router `navigate()`, så alle Contexts (DepartmentContext, NotificationContext osv.) geninitialiseres fra scratch. Forhindrer data-lækage mellem brugere.

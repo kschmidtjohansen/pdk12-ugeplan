@@ -7,6 +7,7 @@ import { useEmployees } from '../hooks/useEmployees';
 import { useCars } from '../hooks/car';
 import { useVacations } from '../hooks/useVacations';
 import { useAuth } from '../context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
 import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, ChevronsUpDown } from 'lucide-react';
@@ -342,9 +343,18 @@ const PlannerPage: React.FC = () => {
     });
   }, []);
 
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
+
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
-    const screenUrl = `/screen-display?date=${today}&t=${Date.now()}&source=button`;
+    const params = new URLSearchParams({
+      date: today,
+      t: String(Date.now()),
+      source: 'button',
+    });
+    if (selectedDepartmentId) params.set('departmentId', selectedDepartmentId);
+    if (selectedSubDepartmentId) params.set('subDepartmentId', selectedSubDepartmentId);
+    const screenUrl = `/screen-display?${params.toString()}`;
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
 
