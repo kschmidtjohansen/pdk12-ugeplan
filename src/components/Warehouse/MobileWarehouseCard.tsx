@@ -4,9 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Pencil, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { MobileWarehouseCardProps } from './types';
+import { useDepartment } from '@/context/DepartmentContext';
+
+const useLocationLabel = (hallId: string | null, departmentId: string | null): string | null => {
+  return React.useMemo(() => {
+    if (!hallId || !departmentId) return null;
+    try {
+      const raw = localStorage.getItem(`location-data-${departmentId}`);
+      if (!raw) return hallId;
+      const locations = JSON.parse(raw);
+      const found = Array.isArray(locations) ? locations.find((l: any) => l.id === hallId) : null;
+      return found ? found.name : hallId;
+    } catch {
+      return hallId;
+    }
+  }, [hallId, departmentId]);
+};
 
 const MobileWarehouseCard: React.FC<MobileWarehouseCardProps> = ({ item, onEdit, onDelete, canEdit }) => {
   const { t } = useTranslation();
+  const { selectedDepartmentId } = useDepartment();
+  const locationLabel = useLocationLabel(item.hall, selectedDepartmentId);
 
   return (
     <Card className="overflow-hidden">
@@ -42,12 +60,10 @@ const MobileWarehouseCard: React.FC<MobileWarehouseCardProps> = ({ item, onEdit,
             </div>
           </div>
           
-          {item.hall && (
+          {locationLabel && (
             <div>
               <p className="text-sm font-medium text-muted-foreground">{t('warehouse.fields.hall')}</p>
-              <p className="text-base">
-                {item.hall === 'hal_1' ? t('warehouse.halls.hal1') : t('warehouse.halls.sortHal')}
-              </p>
+              <p className="text-base">{locationLabel}</p>
             </div>
           )}
           

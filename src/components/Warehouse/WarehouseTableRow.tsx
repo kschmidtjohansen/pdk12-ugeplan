@@ -5,9 +5,27 @@ import { Pencil, Trash2, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WarehouseTableRowProps } from './types';
+import { useDepartment } from '@/context/DepartmentContext';
+
+const useLocationLabel = (hallId: string | null, departmentId: string | null): string | null => {
+  return React.useMemo(() => {
+    if (!hallId || !departmentId) return null;
+    try {
+      const raw = localStorage.getItem(`location-data-${departmentId}`);
+      if (!raw) return hallId;
+      const locations = JSON.parse(raw);
+      const found = Array.isArray(locations) ? locations.find((l: any) => l.id === hallId) : null;
+      return found ? found.name : hallId;
+    } catch {
+      return hallId;
+    }
+  }, [hallId, departmentId]);
+};
 
 const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onDelete, canEdit }) => {
   const { t } = useTranslation();
+  const { selectedDepartmentId } = useDepartment();
+  const locationLabel = useLocationLabel(item.hall, selectedDepartmentId);
 
   return (
     <TableRow>
@@ -23,10 +41,8 @@ const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onD
         </span>
       </TableCell>
       <TableCell>
-        {item.hall ? (
-          <span className="text-sm">
-            {item.hall === 'hal_1' ? t('warehouse.halls.hal1') : t('warehouse.halls.sortHal')}
-          </span>
+        {locationLabel ? (
+          <span className="text-sm">{locationLabel}</span>
         ) : (
           <span className="text-sm text-muted-foreground">-</span>
         )}

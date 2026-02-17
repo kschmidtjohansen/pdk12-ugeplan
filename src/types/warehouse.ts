@@ -5,7 +5,7 @@ export interface WarehouseItem {
   is_cleaned: 'ja' | 'nej' | 'ikke_noedvendigt';
   quantity: number;
   notes: string | null;
-  hall: 'hal_1' | 'sort_hal' | null;
+  hall: string | null;
   sub_department_id?: string | null;
   created_at: string;
   updated_at: string;
@@ -17,6 +17,6 @@ export interface WarehouseItemFormData {
   case_number?: string;
   is_cleaned: 'ja' | 'nej' | 'ikke_noedvendigt';
   quantity: number;
-  hall?: 'hal_1' | 'sort_hal';
+  hall?: string;
   notes?: string;
 }

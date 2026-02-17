@@ -3,6 +3,10 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-17
+- **Afdelingsfiltrering på biler**: Car-query venter nu på `selectedDepartmentId` før den køres — afdeling 14 ser kun sine egne biler, ikke alle biler på tværs af afdelinger.
+- **Dynamiske lagerlokationer**: Hardkodede "Hal 1"/"Sort Hal" erstattet med dynamiske lokationer fra localStorage per afdeling. Formularen viser en Select-dropdown med afdelingens lokationer. Tabel og mobilkort slår lokationsnavne op dynamisk.
+
+### Fixed - 2026-02-17
 - **Streng afdelingsfiltrering på biler**: Fjernet `department_id IS NULL`-inkludering fra bilforespørgsel — biler vises nu kun i den afdeling de eksplicit tilhører. Biler uden afdeling skal tildeles via admin.
 - **Brændstofkortkode valgfri og ikke-unik**: `fuel_card_code` er nu nullable med default NULL. Unique constraint `unique_fuel_card_code_per_dept` er fjernet. Feltet er ikke længere påkrævet i formularen. Eksisterende AUTO-placeholders er konverteret til NULL.
 - **Duplikeret fuel_card_code blokerer biloprettelse**: Brugere uden adgang til brændstofkort-feltet fik tom streng som fuel_card_code, hvilket udløste unique constraint-fejl ved oprettelse af anden bil i samme afdeling. Genererer nu en unik placeholder-værdi (AUTO-...) i stedet.

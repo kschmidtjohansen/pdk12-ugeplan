@@ -61,7 +61,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
   const { data: cars = [], isLoading: loading, error: queryError, refetch } = useQuery({
     queryKey,
     queryFn: fetchCarsFn,
-    enabled: userDataLoaded && !!user,
+    enabled: userDataLoaded && !!user && (isDemoMode || !!selectedDepartmentId),
     staleTime: 5 * 60 * 1000,
   });
 
