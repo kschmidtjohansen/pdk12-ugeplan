@@ -158,7 +158,7 @@ export const useCarFormState = ({
         if (createCar) {
           const success = await createCar(formData);
           if (!success) {
-            throw new Error('Failed to create car using createCar function');
+            return; // Fejl er allerede vist via toast i createCar
           }
         } else {
           if (import.meta.env.DEV) console.log('[useCarFormState] Using fallback security service');

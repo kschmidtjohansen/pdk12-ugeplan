@@ -142,11 +142,15 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       
       // Sync sub-department assignments via junction table (skip in demo mode)
       if (!isDemoMode) {
-        const subDeptIds = (carData as any).sub_department_ids || [];
-        if (subDeptIds.length > 0) {
-          await supabase.from('car_sub_departments').insert(
-            subDeptIds.map((sdId: string) => ({ car_id: data.id, sub_department_id: sdId }))
-          );
+        try {
+          const subDeptIds = (carData as any).sub_department_ids || [];
+          if (subDeptIds.length > 0) {
+            await supabase.from('car_sub_departments').insert(
+              subDeptIds.map((sdId: string) => ({ car_id: data.id, sub_department_id: sdId }))
+            );
+          }
+        } catch (syncErr) {
+          if (import.meta.env.DEV) console.warn('[useCarData] Sub-department sync warning:', syncErr);
         }
       }
       
