@@ -1,103 +1,130 @@
 
 
-## Global State Reset ved Logout
+## Total Isolation Audit: Sikring af afdelingsfiltrering paa tvaers af alle moduler
 
-### Problem
-Ved logout ryddes TanStack Query cache og sessionStorage, men localStorage-noegler som `selected_department_id`, `selected_sub_department_id`, `selected_department_name` og diverse view-preferences overlever. Naar en ny bruger logger ind, laeser `DepartmentContext` den forrige brugers afdeling fra localStorage og viser forkerte data.
+### Audit-resultat
 
-### Loesning
+Efter gennemgang af alle moduler er her status og noedvendige rettelser:
 
-#### 1. `src/context/AuthContext.tsx` -- Udvid logout-funktionen (linje 622-651)
+### Modul-status (Laesning / Select)
 
-Tilfoej rydning af alle app-specifikke localStorage-noegler og tving en fuld page reload efter logout:
+| Modul | Fil | department_id filter | Status |
+|-------|-----|---------------------|--------|
+| Biler | `useCarData.ts` -> `CarSecurityService` | Ja, `.eq('department_id', departmentId)` | OK |
+| Medarbejdere | `useEmployeeData.ts` | Ja, via `user_access` join | OK |
+| Opgaver | `useOptimizedAssignments.ts` -> `OptimizedAssignmentService` | Ja, sendes som parameter | OK |
+| Lager | `useWarehouseData.ts` | Ja, `.eq('department_id', selectedDepartmentId)` | OK |
+| Ferie | `useVacationData.ts` -> `enhancedDataFetching` | Ja, `.eq('department_id', departmentId)` | OK |
+| Vagt | `useDutyData.ts` | Ja, `.eq('department_id', selectedDepartmentId)` | OK |
+| Dashboard | `useDashboardMetrics.ts` | Indirekte via sub-hooks | OK |
+| Skaermvisning | `useScreenDisplayData.ts` | Ja (rettet i forrige session) | OK |
+
+### Fundne problemer
+
+#### Problem 1: Ferie-oprettelse mangler department_id og sub_department_id
+**Fil:** `src/hooks/vacation/useVacationRequestActions.ts` (linje 101-111)
+
+Naar en ferieansogning oprettes, saettes `department_id` og `sub_department_id` IKKE paa `vacationData`-objektet. Det betyder at ferier oprettes med `department_id = NULL`, og de kan potentielt vaere synlige i andre afdelinger (afhaengigt af RLS).
+
+**Fix:** Import `useDepartment`, og tilfoej `department_id` og `sub_department_id` til insert-payload.
+
+#### Problem 2: PlannerPage "Vis paa skaerm"-knap mangler departmentId
+**Fil:** `src/pages/PlannerPage.tsx` (linje 345-349)
+
+Den forrige godkendte plan for dette er endnu ikke implementeret. Titel-knappen aabner stadig `/screen-display?date=...` uden afdelings-parametre.
+
+**Fix:** Import `useDepartment`, tilfoej `departmentId` og `subDepartmentId` til URL.
+
+#### Problem 3: Dashboard `useEnhancedUnifiedData` henter data UDEN afdelingsfilter
+**Fil:** `src/hooks/useEnhancedUnifiedData.ts` og `src/services/enhancedUnifiedDataService.ts`
+
+`enhancedUnifiedDataService.fetchEmployees/fetchAssignments/fetchCars` modtager kun `user?.email` -- IKKE `selectedDepartmentId`. Denne service bruges af `DashboardPage` og henter data fra ALLE afdelinger. Dashboard-metrics (via `useDashboardMetrics`) er dog OK, fordi de bruger de korrekte sub-hooks (`useEmployeeData`, `useCarData` osv.) direkte.
+
+`useEnhancedUnifiedData` bruges kun til pull-to-refresh og `lastRefresh` indicator i `DashboardPage` -- men den fejlagtige data den henter vises ikke direkte. Ingen aendring noedvendig her, da `DashboardMetrics` bruger de korrekte hooks.
+
+### Aendringer
+
+#### 1. `src/hooks/vacation/useVacationRequestActions.ts`
+
+Tilfoej department_id og sub_department_id til ferie-insert:
 
 ```typescript
-const logout = async () => {
-  try {
-    manualLogoutRef.current = true;
+// Tilfoej import:
+import { useDepartment } from '@/context/DepartmentContext';
 
-    if (isDemoMode) {
-      await demoService.cleanupDemoData();
-    }
+// I funktionen:
+const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
 
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setSessionExpired(false);
-
-    // 1. TanStack Query -- ryd al cached data
-    queryClient.clear();
-
-    // 2. Service-caches
-    unifiedDataService.clearCache();
-    OptimizedAssignmentService.clearCache();
-    enhancedDataFetching.clearCache();
-
-    // 3. SessionStorage -- ryd alt
-    sessionStorage.clear();
-
-    // 4. LocalStorage -- ryd app-specifikke noegler (bevar theme)
-    const keysToRemove = [
-      'selected_department_id',
-      'selected_department_name',
-      'selected_sub_department_id',
-      'selected_view',
-      'last-redirect-time',
-      'redirect-attempts',
-    ];
-    // Ryd ogsaa alle location-data noegler (dynamiske pr. afdeling)
-    const allKeys = Object.keys(localStorage);
-    for (const key of allKeys) {
-      if (keysToRemove.includes(key) || key.startsWith('location-data-')) {
-        localStorage.removeItem(key);
-      }
-    }
-
-  } catch (error) {
-    console.error('[AuthProvider] Logout error:', error instanceof Error ? error.message : 'Unknown error');
-    setUser(null);
-    setSession(null);
-    setSessionExpired(false);
-  }
+// Linje ~101-111, udvid vacationData:
+const vacationData = {
+  user_id: requestEmployeeId,
+  start_date: startDateFormatted,
+  end_date: endDateFormatted,
+  request_type: requestType,
+  start_time: requestType === 'partial_day' ? startTime : null,
+  end_time: requestType === 'partial_day' ? endTime : null,
+  is_same_day: isSameDay,
+  reason: reason,
+  status: 'pending' as const,
+  department_id: selectedDepartmentId || null,       // NY
+  sub_department_id: selectedSubDepartmentId || null, // NY
 };
 ```
 
-#### 2. `src/components/Layout/TopNavbar.tsx` -- Tving fuld page reload efter logout (linje 83-98)
+#### 2. `src/pages/PlannerPage.tsx`
 
-Aendr `handleLogout` til at bruge `window.location.href` i stedet for `navigate()`, saa alle Contexts (DepartmentContext, NotificationContext osv.) geninitialiseres fra scratch:
+Tilfoej departmentId til skaermvisnings-URL:
 
 ```typescript
-const handleLogout = async () => {
-  try {
-    await logout();
-    // Fuld page reload saa alle contexts starter forfra
-    window.location.href = '/login';
-  } catch (error) {
-    console.error('Logout error:', error);
-    toast({
-      title: t('common.error'),
-      description: t('auth.logoutFailed'),
-      variant: 'destructive'
-    });
-  }
+// Tilfoej import:
+import { useDepartment } from '@/context/DepartmentContext';
+
+// I komponenten:
+const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
+
+// Ret handleShowOnScreen (linje 345-349):
+const handleShowOnScreen = () => {
+  const today = new Date().toISOString().split('T')[0];
+  const params = new URLSearchParams({
+    date: today,
+    t: String(Date.now()),
+    source: 'button',
+  });
+  if (selectedDepartmentId) params.set('departmentId', selectedDepartmentId);
+  if (selectedSubDepartmentId) params.set('subDepartmentId', selectedSubDepartmentId);
+  const screenUrl = `/screen-display?${params.toString()}`;
+  window.open(screenUrl, '_blank', 'fullscreen=yes');
 };
 ```
 
 #### 3. `CHANGELOG.md`
 
-Dokumenter den globale state reset.
+Dokumenter isolations-audit og rettelser.
+
+### Allerede korrekt (ingen aendring noedvendig)
+
+- **Biler (Create):** `useCarData.createCar` injicerer `selectedDepartmentId` automatisk (linje 139)
+- **Lager (Create):** `useWarehouseActions.createItem` injicerer `selectedDepartmentId` og `selectedSubDepartmentId` (linje 45-46, 93-94)
+- **Vagt (Create):** `useDutyActions.assignDuty` injicerer `selectedDepartmentId` og `selectedSubDepartmentId` (linje 60-61)
+- **Opgaver (Create):** `useOptimizedAssignments.createAssignment` injicerer `selectedDepartmentId` og `selectedSubDepartmentId` (linje 273-274)
+- **Medarbejdere (Create):** `useEmployeeCreation` tilknytter via `user_access` med `selectedDepartmentId` og `selectedSubDepartmentId` (linje 264-286)
+- **Alle Select-queries** venter paa `selectedDepartmentId` via `enabled: isDemoMode || !!selectedDepartmentId`
+
+### RLS-vurdering
+
+RLS-politikkerne paa databaserne filtrerer IKKE paa department_id -- de verificerer kun brugerens autentificering og rolle. Afdelingsisolering sker paa applikationsniveau via frontend-queries. Dette er designet saadan, fordi en super_admin skal kunne skifte afdeling. RLS blokerer korrekt for uautoriserede brugere, mens frontend-filteret sikrer den rigtige afdelings-scope.
 
 ### Filer der aendres
 
 | Fil | Aendring |
 |-----|---------|
-| `src/context/AuthContext.tsx` | Ryd localStorage app-noegler ved logout |
-| `src/components/Layout/TopNavbar.tsx` | Brug window.location.href i stedet for navigate |
-| `CHANGELOG.md` | Dokumenter global state reset |
+| `src/hooks/vacation/useVacationRequestActions.ts` | Tilfoej department_id og sub_department_id til ferie-insert |
+| `src/pages/PlannerPage.tsx` | Tilfoej departmentId til skaermvisnings-URL |
+| `CHANGELOG.md` | Dokumenter isolations-audit |
 
 ### Kvalitetstjek
-- Ingen departmentId overlever logout (tjek localStorage i DevTools)
-- Ny bruger ser kun sine egne afdelinger, ikke den forrige brugers
-- Theme-indstilling (ui-theme) bevares paa tvaers af logout
-- Ingen uendelig redirect-loop efter logout
+- Nye ferieansogninger faar automatisk department_id fra aktiv session
+- PlannerPage titel-knap sender departmentId med til skaermvisning
+- Alle moduler filtrerer korrekt paa selectedDepartmentId
+- Ingen moduler tillader manuel valg af afdeling (undtagen super_admin afdelingsskifter)
 
