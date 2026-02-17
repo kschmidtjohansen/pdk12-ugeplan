@@ -4,7 +4,7 @@ export interface Car {
   name: string;
   car_number: string;
   number_plate: string;
-  fuel_card_code: string;
+  fuel_card_code: string | null;
   is_available: boolean;
   has_trailer_hitch?: boolean;
   show_in_planner?: boolean;

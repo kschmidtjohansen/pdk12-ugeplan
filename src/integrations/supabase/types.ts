@@ -307,7 +307,7 @@ export type Database = {
           car_number: string
           created_at: string
           department_id: string | null
-          fuel_card_code: string
+          fuel_card_code: string | null
           has_trailer_hitch: boolean | null
           id: string
           is_available: boolean
@@ -326,7 +326,7 @@ export type Database = {
           car_number: string
           created_at?: string
           department_id?: string | null
-          fuel_card_code: string
+          fuel_card_code?: string | null
           has_trailer_hitch?: boolean | null
           id?: string
           is_available?: boolean
@@ -345,7 +345,7 @@ export type Database = {
           car_number?: string
           created_at?: string
           department_id?: string | null
-          fuel_card_code?: string
+          fuel_card_code?: string | null
           has_trailer_hitch?: boolean | null
           id?: string
           is_available?: boolean

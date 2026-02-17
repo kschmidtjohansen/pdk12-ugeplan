@@ -66,10 +66,6 @@ export class CarSecurityService {
         throw new Error('Name, car number, and number plate are required');
       }
 
-      if (canViewFuel && !carData.fuel_card_code) {
-        throw new Error('Fuel card code is required for administrators');
-      }
-
       const insertData: any = {
         name: carData.name,
         car_number: carData.car_number,
@@ -87,14 +83,7 @@ export class CarSecurityService {
 
       if (import.meta.env.DEV) console.log('[CarSecurityService] Creating car with data:', insertData);
 
-      if ((canViewFuel || canViewFuelCardCode) && carData.fuel_card_code) {
-        insertData.fuel_card_code = carData.fuel_card_code;
-      } else if (!carData.fuel_card_code || carData.fuel_card_code.trim() === '') {
-        // Generate unique placeholder to avoid unique constraint violation
-        insertData.fuel_card_code = `AUTO-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      } else {
-        insertData.fuel_card_code = carData.fuel_card_code;
-      }
+      insertData.fuel_card_code = carData.fuel_card_code?.trim() || null;
 
       const dbClient = getSchemaClient(isDemoMode);
       const { data, error } = await dbClient.from('cars').insert(insertData).select().single();
