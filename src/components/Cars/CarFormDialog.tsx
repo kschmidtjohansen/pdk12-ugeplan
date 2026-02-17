@@ -105,7 +105,6 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
                 name="fuel_card_code"
                 value={formData.fuel_card_code}
                 onChange={onInputChange}
-                required
               />
             </div>
           )}
