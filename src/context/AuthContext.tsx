@@ -634,13 +634,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(null);
       setSessionExpired(false);
       
-      // Ryd alle data-caches for at undgå data-lækage mellem brugere
+      // 1. TanStack Query -- ryd al cached data
       queryClient.clear();
+
+      // 2. Service-caches
       unifiedDataService.clearCache();
       OptimizedAssignmentService.clearCache();
       enhancedDataFetching.clearCache();
-      
+
+      // 3. SessionStorage -- ryd alt
       sessionStorage.clear();
+
+      // 4. LocalStorage -- ryd app-specifikke noegler (bevar theme)
+      const keysToRemove = [
+        'selected_department_id',
+        'selected_department_name',
+        'selected_sub_department_id',
+        'selected_view',
+        'last-redirect-time',
+        'redirect-attempts',
+      ];
+      const allKeys = Object.keys(localStorage);
+      for (const key of allKeys) {
+        if (keysToRemove.includes(key) || key.startsWith('location-data-')) {
+          localStorage.removeItem(key);
+        }
+      }
       
     } catch (error) {
       console.error('[AuthProvider] Logout error:', error instanceof Error ? error.message : 'Unknown error');

@@ -2,6 +2,10 @@
 
 ## Security Hardening - February 2026
 
+### Fixed - 2026-02-17 (Global State Reset ved Logout)
+- **LocalStorage ryddes ved logout**: Nøgler som `selected_department_id`, `selected_sub_department_id`, `selected_department_name`, `selected_view` og dynamiske `location-data-*` fjernes nu ved logout. Theme-indstilling (`ui-theme`) bevares.
+- **Fuld page reload efter logout**: `window.location.href` bruges i stedet for React Router `navigate()`, så alle Contexts (DepartmentContext, NotificationContext osv.) geninitialiseres fra scratch. Forhindrer data-lækage mellem brugere.
+
 ### Fixed - 2026-02-17 (Usynlige biler i Afdeling 14)
 - **5 biler med manglende department_id rettet**: Bil 08, 09, 02, 03 og Test i Afdeling 14 havde `department_id = NULL` og var derfor usynlige. Rettet via database-opdatering.
 - **Forbedret underafdelingsfiltrering**: Biler uden specifik underafdeling vises nu også når man ser en underafdeling (hierarkisk arv). Tidligere returnerede systemet en tom liste.
