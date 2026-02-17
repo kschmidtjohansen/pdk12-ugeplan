@@ -2,6 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import AddressAutocomplete from '@/components/Planner/AddressAutocomplete';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -65,7 +66,8 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
   }, [open, editingItem, reset]);
 
   const handleFormSubmit = async (data: WarehouseItemFormData) => {
-    await onSubmit(data);
+    if (!watch('address')?.trim()) return;
+    await onSubmit({ ...data, address: watch('address') });
     reset();
   };
 
@@ -81,12 +83,11 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="address">{t('warehouse.fields.address')} *</Label>
-            <Input
-              id="address"
+            <AddressAutocomplete
+              value={watch('address')}
+              onChange={(val) => setValue('address', val, { shouldValidate: true })}
+              onAddressSelect={(data) => setValue('address', data.address, { shouldValidate: true })}
               placeholder={t('warehouse.placeholders.address')}
-              {...register('address', { 
-                required: t('warehouse.validation.addressRequired') 
-              })}
             />
             {errors.address && (
               <p className="text-sm text-destructive">{errors.address.message}</p>

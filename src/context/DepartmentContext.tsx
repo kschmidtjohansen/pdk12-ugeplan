@@ -283,10 +283,15 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     setSelectedDepartmentIdState(id);
     if (id) {
       localStorage.setItem('selected_department_id', id);
+      const dept = [...userDepartments, ...departments].find(d => d.id === id);
+      if (dept) {
+        localStorage.setItem('selected_department_name', dept.name);
+      }
     } else {
       localStorage.removeItem('selected_department_id');
+      localStorage.removeItem('selected_department_name');
     }
-  }, []);
+  }, [userDepartments, departments]);
 
   const setSelectedSubDepartmentId = useCallback((id: string | null) => {
     setSelectedSubDepartmentIdState(id);
@@ -303,9 +308,13 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
   const switchDepartment = useCallback((id: string) => {
     setSelectedDepartmentIdState(id);
     localStorage.setItem('selected_department_id', id);
+    const dept = [...userDepartments, ...departments].find(d => d.id === id);
+    if (dept) {
+      localStorage.setItem('selected_department_name', dept.name);
+    }
     unifiedDataService.clearCache();
     if (import.meta.env.DEV) console.log('[DepartmentContext] Switched department to:', id);
-  }, []);
+  }, [userDepartments, departments]);
 
   const selectedDepartment = (userDepartments.length > 0 ? userDepartments : departments)
     .find(d => d.id === selectedDepartmentId) || null;
