@@ -3,6 +3,7 @@
 ## Security Hardening - February 2026
 
 ### Fixed - 2026-02-17
+- **Duplikeret fuel_card_code blokerer biloprettelse**: Brugere uden adgang til brændstofkort-feltet fik tom streng som fuel_card_code, hvilket udløste unique constraint-fejl ved oprettelse af anden bil i samme afdeling. Genererer nu en unik placeholder-værdi (AUTO-...) i stedet.
 - **Biloprettelse fejlhåndtering**: Sub-department sync-fejl afbryder ikke længere hele oprettelsen (bilen var allerede gemt). Fjernet dobbelt fejlbesked — kun én toast vises nu ved fejl.
 
 - **Medarbejder afdelingstilknytning**: Nye medarbejdere oprettes nu med `user_access`-record og `home_department_id` baseret på den aktive afdeling — vises straks i korrekt afdeling i stedet for "Uden afdeling".
