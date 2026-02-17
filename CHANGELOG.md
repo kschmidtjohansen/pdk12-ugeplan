@@ -2,6 +2,9 @@
 
 ## Security Hardening - February 2026
 
+### Fixed - 2026-02-17 (Lokation property-mismatch)
+- **Lokationer usynlige i lagermodulet**: `LocationManagement` gemmer lokationer som `{ key, label }`, men lagerkomponenterne læste `{ id, name }`. Rettet mapping i `WarehouseFormDialog`, `WarehouseTableRow` og `MobileWarehouseCard` så begge formater understøttes.
+
 ### Fixed - 2026-02-17 (Multi-Tenant Isolation)
 - **Gennemgribende afdelingsfiltrering**: Alle data-hooks (medarbejdere, lager, opgaver, ferie, vagter) venter nu på at `selectedDepartmentId` er sat, før queries køres. Forhindrer data-lækage ved appstart.
 - **Fjernet NULL-lækage på ferie**: `department_id IS NULL`-inkludering fjernet fra ferieforespørgsler — ferier vises nu kun i den afdeling de eksplicit tilhører.
