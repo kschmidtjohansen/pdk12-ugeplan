@@ -1,53 +1,62 @@
 
 
-## Fix: Duplikeret tom fuel_card_code blokerer oprettelse af anden bil
+## Goer fuel_card_code valgfri og ikke-unik
 
 ### Problem
-Naar Michael opretter biler i afdeling 16, kan han kun oprette en enkelt bil. Derefter fejler alle efterfoelgende oprettelser med `duplicate key value violates unique constraint "unique_fuel_card_code_per_dept"`.
-
-Aarsagen: Michael har ikke rettighed til at se/udfylde braendstofkort-koden (`canViewFuelCardCode = false`). Derfor saettes `fuel_card_code` til tom streng `''` for alle hans biler. Databasens unique constraint `UNIQUE (fuel_card_code, department_id)` tillader kun en enkelt bil med tom fuel_card_code per afdeling.
+`fuel_card_code` er i dag `NOT NULL` med en `UNIQUE (fuel_card_code, department_id)` constraint. Det kraever at feltet udfyldes, og man kan ikke have to biler uden braendstofkort i samme afdeling.
 
 ### Loesning
-I `CarSecurityService.createCar()`: Naar brugeren ikke har adgang til fuel_card_code-feltet, generer en unik placeholder-vaerdi i stedet for tom streng. Dette sikrer at unique constraint ikke blokerer.
 
-### Aendringer
+#### 1. Database-migration
+- Fjern `unique_fuel_card_code_per_dept` constraint
+- Goer `fuel_card_code` nullable med default `NULL`
+- Opdater eksisterende AUTO-placeholder-vaerdier til NULL
 
-**`src/services/carSecurityService.ts`** (linje 90-94)
-
-Erstat:
 ```text
-if ((canViewFuel || canViewFuelCardCode) && carData.fuel_card_code) {
-  insertData.fuel_card_code = carData.fuel_card_code;
-} else {
-  insertData.fuel_card_code = carData.fuel_card_code || '';
-}
+ALTER TABLE cars DROP CONSTRAINT IF EXISTS unique_fuel_card_code_per_dept;
+ALTER TABLE cars ALTER COLUMN fuel_card_code DROP NOT NULL;
+ALTER TABLE cars ALTER COLUMN fuel_card_code SET DEFAULT NULL;
+UPDATE cars SET fuel_card_code = NULL WHERE fuel_card_code LIKE 'AUTO-%';
 ```
 
-Med:
+#### 2. `src/services/carSecurityService.ts`
+- Fjern validation der kraever fuel_card_code for administratorer (linje 69-71)
+- Forenkl fuel_card_code logik: brug vaerdien hvis den er givet, ellers `null` (linje 90-97)
+- Fjern AUTO-placeholder generering
+
+Foer:
 ```text
-if ((canViewFuel || canViewFuelCardCode) && carData.fuel_card_code) {
-  insertData.fuel_card_code = carData.fuel_card_code;
-} else if (!carData.fuel_card_code || carData.fuel_card_code.trim() === '') {
-  // Generate unique placeholder to avoid unique constraint violation
-  insertData.fuel_card_code = `AUTO-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-} else {
-  insertData.fuel_card_code = carData.fuel_card_code;
+if (canViewFuel && !carData.fuel_card_code) {
+  throw new Error('Fuel card code is required for administrators');
 }
+...
+insertData.fuel_card_code = `AUTO-${Date.now()}-...`;
 ```
 
-**`CHANGELOG.md`** - Dokumenter rettelsen.
+Efter:
+```text
+// Ingen validation — feltet er valgfrit
+...
+insertData.fuel_card_code = carData.fuel_card_code?.trim() || null;
+```
+
+#### 3. `src/components/Cars/CarFormDialog.tsx`
+- Fjern `required` fra fuel_card_code input (linje 108)
+
+#### 4. `src/types/car.ts` og `src/components/Cars/types.ts`
+- Aendr `fuel_card_code: string` til `fuel_card_code: string | null` i begge interfaces
+
+#### 5. `CHANGELOG.md`
+- Dokumenter aendringen
 
 ### Filer der aendres
 
 | Fil | Aendring |
 |-----|---------|
-| `src/services/carSecurityService.ts` | Unik placeholder for tom fuel_card_code |
-| `CHANGELOG.md` | Dokumenter fix |
-
-### Kvalitetstjek
-- Flere biler kan oprettes i samme afdeling uden fuel_card_code
-- Eksisterende biler med tom fuel_card_code paavirkes ikke (kun nye)
-- Brugere med fuel_card_code-adgang kan stadig angive koder manuelt
-- Ingen console.log uden DEV-guard
-- Overholder tekniske specifikationer for database-constraints
+| Database migration | Fjern unique constraint, goer kolonne nullable |
+| `src/services/carSecurityService.ts` | Fjern krav og placeholder-logik |
+| `src/components/Cars/CarFormDialog.tsx` | Fjern `required` paa fuel_card_code |
+| `src/types/car.ts` | `fuel_card_code` nullable |
+| `src/components/Cars/types.ts` | `fuel_card_code` nullable |
+| `CHANGELOG.md` | Dokumenter aendring |
 
