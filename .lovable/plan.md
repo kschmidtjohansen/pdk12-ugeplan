@@ -1,57 +1,46 @@
 
-
-## Fix: Lokationer vises ikke pga. property-navn mismatch
+## Fix: Skærmvisning viser data fra forkert afdeling
 
 ### Problem
-`LocationManagement` gemmer lokationer i localStorage med properties `{ key, label }`, men `WarehouseFormDialog` laeser dem som `{ id, name }`. De to interfaces matcher ikke, saa lokationerne er usynlige.
+Naar man trykker "Vis paa skaerm" i afdeling 14, aabnes et nyt vindue med `ScreenDisplayPage`. Denne side bruger `useScreenDisplayData`, som kalder `OptimizedAssignmentService.fetchPublishedAssignmentsByDate(date)` UDEN at sende `departmentId`. Servicen kalder derefter `fetchAllPublishedAssignments()` ogsaa uden department-filter, hvilket returnerer publicerede opgaver fra ALLE afdelinger.
+
+### Aarsag
+`ScreenDisplayPage` aabnes i et nyt vindue og bruger ikke `DepartmentContext`. Den har derfor ingen viden om hvilken afdeling brugeren kommer fra. Department-ID skal sendes med via URL-parameteren.
 
 ### Loesning
-Ret `useLocations`-hooket i `WarehouseFormDialog.tsx` til at mappe fra det korrekte format (`key`/`label`) til det forventede format (`id`/`name`). Samme rettelse i `WarehouseTableRow.tsx` og `MobileWarehouseCard.tsx`.
 
-### Aendringer
+#### 1. Find hvor "Vis paa skaerm"-knappen aabner vinduet
+Tilfoej `departmentId` og `subDepartmentId` som URL-parametre naar vinduet aabnes.
 
-#### 1. `src/components/Warehouse/WarehouseFormDialog.tsx` (linje 20-31)
-Ret `useLocations`-hooket til at mappe properties korrekt:
+#### 2. `src/pages/ScreenDisplayPage.tsx`
+- Laes `departmentId` og `subDepartmentId` fra URL-parametre
+- Send dem videre til `useScreenDisplayData`
 
-```typescript
-const useLocations = (departmentId: string | null): LocationItem[] => {
-  return React.useMemo(() => {
-    if (!departmentId) return [];
-    try {
-      const raw = localStorage.getItem(`location-data-${departmentId}`);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return [];
-      return parsed.map((item: any) => ({
-        id: item.key || item.id,
-        name: item.label || item.name,
-      }));
-    } catch {
-      return [];
-    }
-  }, [departmentId]);
-};
-```
+#### 3. `src/hooks/useScreenDisplayData.ts`
+- Modtag `departmentId` og `subDepartmentId` som parametre
+- Send dem videre til `OptimizedAssignmentService.fetchPublishedAssignmentsByDate()` og `fetchAllPublishedAssignments()`
 
-#### 2. `src/components/Warehouse/WarehouseTableRow.tsx`
-Ret den lokale lokations-lookup til at bruge `key`/`label` i stedet for `id`/`name` (eller mappe dem korrekt).
+#### 4. `src/services/optimizedAssignmentService.ts`
+- `fetchPublishedAssignmentsByDate` (linje 747): Tilfoej `departmentId` og `subDepartmentId` parametre og send dem videre til `fetchAllPublishedAssignments`
+- Metoden kalder allerede `fetchAllPublishedAssignments` som accepterer disse parametre, men de bliver ikke sendt med
 
-#### 3. `src/components/Warehouse/MobileWarehouseCard.tsx`
-Samme rettelse som i WarehouseTableRow.
+#### 5. Find og opdater knappen der aabner skaermvisningen
+Knappen skal inkludere `departmentId` i URL'en: `/screen-display?date=2026-02-17&departmentId=xxx&subDepartmentId=yyy`
 
-#### 4. `CHANGELOG.md`
-Dokumenter fix af property-mismatch.
+#### 6. `CHANGELOG.md`
+Dokumenter rettelsen.
 
 ### Filer der aendres
 
 | Fil | Aendring |
 |-----|---------|
-| `src/components/Warehouse/WarehouseFormDialog.tsx` | Map `key`/`label` til `id`/`name` i useLocations |
-| `src/components/Warehouse/WarehouseTableRow.tsx` | Samme mapping-fix |
-| `src/components/Warehouse/MobileWarehouseCard.tsx` | Samme mapping-fix |
+| Knap-komponent (skal identificeres) | Tilfoej departmentId til URL |
+| `src/pages/ScreenDisplayPage.tsx` | Laes departmentId fra URL |
+| `src/hooks/useScreenDisplayData.ts` | Modtag og videresend departmentId |
+| `src/services/optimizedAssignmentService.ts` | Send departmentId i fetchPublishedAssignmentsByDate |
 | `CHANGELOG.md` | Dokumenter rettelsen |
 
 ### Kvalitetstjek
-- Lokationer oprettet i LocationManagement (admin) vises korrekt i lagerformularen
-- Lokationsnavne vises korrekt i tabel og mobilkort
-- Afdeling 14 ser kun sine egne lokationer, ikke afdeling 12s
+- Skaermvisning i afdeling 14 viser KUN opgaver fra afdeling 14
+- Skaermvisning i afdeling 12 viser KUN opgaver fra afdeling 12
+- Department-ID bevares ved dato-navigation i skaermvisningen
