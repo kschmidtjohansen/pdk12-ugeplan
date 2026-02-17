@@ -16,5 +16,7 @@ export const auth = {
   tooManyAttempts: 'Too many login attempts. Please try again later.',
   loginAttempts: '{count} failed attempts. {count} attempts remaining.',
   loginSuccess: 'Login successful. Redirecting...',
-  logoutFailed: 'Logout failed. Please try again.'
+  logoutFailed: 'Logout failed. Please try again.',
+  sessionTimedOut: 'Session timed out',
+  sessionTimedOutDescription: 'Your session was automatically ended after 180 minutes. Please log in again.'
 };

@@ -55,7 +55,7 @@ class EnhancedUnifiedDataService {
 
       return { data: employees, error: null, fromCache: result.fromCache || false, healthCheck: true };
     } catch (error) {
-      console.error('[EnhancedUnifiedDataService] Employee fetch error:', error);
+      if (import.meta.env.DEV) console.error('[EnhancedUnifiedDataService] Employee fetch error:', error);
       
       const serializedError = enhancedErrorHandler.serializeError(error);
       const category = enhancedErrorHandler.categorizeError(serializedError);
@@ -124,7 +124,7 @@ class EnhancedUnifiedDataService {
 
       return { data: assignments, error: null, fromCache: result.fromCache || false, healthCheck: true };
     } catch (error) {
-      console.error('[EnhancedUnifiedDataService] Assignment fetch error:', error);
+      if (import.meta.env.DEV) console.error('[EnhancedUnifiedDataService] Assignment fetch error:', error);
       
       const serializedError = enhancedErrorHandler.serializeError(error);
       const category = enhancedErrorHandler.categorizeError(serializedError);
@@ -149,7 +149,7 @@ class EnhancedUnifiedDataService {
 
       return { data: cars, error: null, fromCache: result.fromCache || false, healthCheck: true };
     } catch (error) {
-      console.error('[EnhancedUnifiedDataService] Car fetch error:', error);
+      if (import.meta.env.DEV) console.error('[EnhancedUnifiedDataService] Car fetch error:', error);
       
       const serializedError = enhancedErrorHandler.serializeError(error);
       const category = enhancedErrorHandler.categorizeError(serializedError);

@@ -2,6 +2,16 @@
 
 ## [Unreleased] - 2026-02-17
 
+### Added — Fase 12: Total Master Audit + Session-timeout
+- **Session-timeout (180 min)**: Brugere logges automatisk ud efter 180 minutters session. Cachen (TanStack Query, LocalStorage, SessionStorage, service-caches) ryddes fuldstændigt ved timeout — eliminerer databrud ved lange browsersessioner. Demo-brugere undtages. Toast-besked vises ved timeout.
+- **Oversættelsesnøgler**: `auth.sessionTimedOut` og `auth.sessionTimedOutDescription` tilføjet i DA/EN.
+
+### Changed — Fase 12
+- **Login-tekst**: "Velkommen til Polygon Ugeplan" → "Velkommen til Ugeplan". "Internt planlægningssystem" fjernet (tom streng).
+- **EmployeeSelector statuslabels**: Hardcodede engelske 'Expired'/'Terminated'/'Inactive' erstattet med `t()` oversættelsesnøgler.
+- **Realtime schema-fix**: `useVacationRequestsStatus` lytter nu altid på `schema: 'public'` (fjernet ugyldig `demo`-schema routing).
+- **DEV-guards**: Wrappet uguardede `console.log/warn/error` i 6 filer: `useVacationRequestsStatus`, `useCarDataHandler`, `enhancedDataFetching`, `enhancedUnifiedDataService`, `supabaseIssuesAuditor`, `use-toast`.
+
 ### Changed
 - **Fjernet duplikat-validering på brændstofkortkoder**: Valideringen der blokerede for at gemme en bil, hvis `fuel_card_code` allerede var i brug af en anden bil, er fjernet. I Afdeling 14 (Asnæs) er det en gyldig forretningsregel at alle biler deler samme kortkode. Feltet er nu et simpelt fritekstfelt uden begrænsninger.
 - **Oprydning i `CarFormDialog`**: `cars`- og `currentCar`-props fjernet fra `CarFormDialog` da de udelukkende tjente duplikat-tjekket.

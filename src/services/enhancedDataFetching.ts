@@ -73,7 +73,7 @@ export class EnhancedDataFetching {
     
     if (circuit.failures >= this.CIRCUIT_BREAKER_THRESHOLD) {
       circuit.isOpen = true;
-      console.warn(`[EnhancedDataFetching] Circuit breaker opened for ${operationName}`);
+      if (import.meta.env.DEV) console.warn(`[EnhancedDataFetching] Circuit breaker opened for ${operationName}`);
     }
     
     this.circuitBreaker.set(operationName, circuit);
@@ -109,7 +109,7 @@ export class EnhancedDataFetching {
     
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        console.log(`[EnhancedDataFetching] ${operationName} - Attempt ${attempt}/${retries}`);
+        if (import.meta.env.DEV) console.log(`[EnhancedDataFetching] ${operationName} - Attempt ${attempt}/${retries}`);
         
         // Add timeout to the operation
         const timeoutPromise = new Promise((_, reject) =>
@@ -129,7 +129,7 @@ export class EnhancedDataFetching {
         this.recordSuccess(operationName);
 
         if (attempt > 1) {
-          console.log(`[EnhancedDataFetching] ${operationName} succeeded on retry ${attempt}`);
+          if (import.meta.env.DEV) console.log(`[EnhancedDataFetching] ${operationName} succeeded on retry ${attempt}`);
         }
 
         return { 
@@ -140,7 +140,7 @@ export class EnhancedDataFetching {
         };
         
       } catch (error) {
-        console.warn(`[EnhancedDataFetching] ${operationName} failed on attempt ${attempt}:`, error);
+        if (import.meta.env.DEV) console.warn(`[EnhancedDataFetching] ${operationName} failed on attempt ${attempt}:`, error);
         
         const serializedError = enhancedErrorHandler.serializeError(error);
         const category = enhancedErrorHandler.categorizeError(serializedError);
@@ -168,7 +168,7 @@ export class EnhancedDataFetching {
         // Check if we should retry this error
         if (!enhancedErrorHandler.shouldRetry(serializedError, category, attempt - 1, retries) ||
             skipRetryFor.includes(category)) {
-          console.log(`[EnhancedDataFetching] Skipping retry for ${operationName} due to error category: ${category}`);
+          if (import.meta.env.DEV) console.log(`[EnhancedDataFetching] Skipping retry for ${operationName} due to error category: ${category}`);
           this.recordFailure(operationName);
           return { 
             data: null, 
@@ -385,21 +385,21 @@ export class EnhancedDataFetching {
     }
 
     const result = await this.fetchWithEnhancedErrorHandling(async () => {
-      console.log('[Enhanced Data Fetching] Starting assignments fetch...', isDemoMode ? 'DEMO MODE' : 'PRODUCTION');
+      if (import.meta.env.DEV) console.log('[Enhanced Data Fetching] Starting assignments fetch...', isDemoMode ? 'DEMO MODE' : 'PRODUCTION');
       
       if (isDemoMode) {
         // Use demo RPC for demo users
         const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
         
         if (error) {
-          console.error('[Enhanced Data Fetching] Demo assignments fetch error:', error);
+          if (import.meta.env.DEV) console.error('[Enhanced Data Fetching] Demo assignments fetch error:', error);
           throw Object.assign(error, {
             context: 'demo_assignment_fetch',
             operation: 'demo_rpc_call'
           });
         }
 
-        console.log('[Enhanced Data Fetching] Demo assignments:', data?.length || 0);
+        if (import.meta.env.DEV) console.log('[Enhanced Data Fetching] Demo assignments:', data?.length || 0);
         
         // Transform demo data to match production shape for dashboard metrics
         const transformedData = (data || []).map((assignment: any) => {
@@ -432,7 +432,7 @@ export class EnhancedDataFetching {
         .rpc('list_accessible_assignments_with_team', { p_department_id: null, p_sub_department_id: null });
       
       if (error) {
-        console.error('[Enhanced Data Fetching] Assignments fetch error:', error);
+        if (import.meta.env.DEV) console.error('[Enhanced Data Fetching] Assignments fetch error:', error);
         throw Object.assign(error, {
           context: 'assignment_fetch',
           table: 'assignments',
@@ -440,7 +440,7 @@ export class EnhancedDataFetching {
         });
       }
 
-      console.log('[Enhanced Data Fetching] Raw assignments data:', data?.length || 0);
+      if (import.meta.env.DEV) console.log('[Enhanced Data Fetching] Raw assignments data:', data?.length || 0);
       
       return { data, error: null };
     }, 'fetchAssignmentsEnhanced', {

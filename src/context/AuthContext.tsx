@@ -117,6 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const manualLogoutRef = useRef(false);
+  const sessionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
   // Safe translation hook with fallback
   const translationContext = useContext(TranslationContext);
@@ -325,6 +326,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (event === 'SIGNED_IN' && newSession) {
               setSession(newSession);
               setSessionExpired(false);
+              // Record login time for 180-min session timeout
+              sessionStorage.setItem('session_start_time', String(Date.now()));
               return;
             }
             
@@ -503,7 +506,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       sessionStorage.removeItem('demo-role');
     }
   }, [isDemoMode, user?.id]);
-  
+
+  // 180-minute session timeout — auto-logout with cache clearing
+  const SESSION_TIMEOUT_MS = 180 * 60 * 1000; // 180 minutes
+
+  useEffect(() => {
+    // Only for authenticated non-demo users
+    if (!session || !user || isDemoMode) {
+      // Clear any existing timer
+      if (sessionTimerRef.current) {
+        clearInterval(sessionTimerRef.current);
+        sessionTimerRef.current = null;
+      }
+      return;
+    }
+
+    // Record login time if not already set
+    if (!sessionStorage.getItem('session_start_time')) {
+      sessionStorage.setItem('session_start_time', String(Date.now()));
+    }
+
+    // Check every 60 seconds if session has exceeded 180 minutes
+    sessionTimerRef.current = setInterval(() => {
+      const startTime = Number(sessionStorage.getItem('session_start_time'));
+      if (startTime && Date.now() - startTime >= SESSION_TIMEOUT_MS) {
+        if (import.meta.env.DEV) console.log('[AuthContext] 180-minute session timeout reached — logging out');
+        
+        toast({
+          title: t('auth.sessionTimedOut') || 'Session udløbet',
+          description: t('auth.sessionTimedOutDescription') || 'Din session er automatisk afsluttet efter 180 minutter.',
+          variant: 'destructive',
+        });
+
+        // Use the existing logout which clears all caches
+        logout();
+      }
+    }, 60_000);
+
+    return () => {
+      if (sessionTimerRef.current) {
+        clearInterval(sessionTimerRef.current);
+        sessionTimerRef.current = null;
+      }
+    };
+  }, [session, user, isDemoMode]);
+
   // Handle demo role changes
   const handleSetDemoRole = (role: UserRole) => {
     if (isDemoMode && user) {

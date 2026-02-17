@@ -257,3 +257,15 @@ Gennemført 2026-02-17.
 - [x] Erstattet ~30 hardcoded gray-farver med semantiske tema-tokens i 10 filer (EmployeesTable, VacationPage, VacationTable, password-input, secure-input, status-badge, SecurityErrorBoundary, PasswordResetDebugger, DemoRoleSwitcher, ImageCropper)
 - [x] useEmployeeStatus: gray-100/gray-800 → muted/foreground
 - [x] tasks.md opdateret med lokationsisolering og 360-graders gennemgang
+
+## Fase 12: Total Master Audit + Session-timeout ✅
+
+Gennemført 2026-02-17.
+
+- [x] 180-minutters session-timeout med automatisk logout og cache-rydning (AuthContext.tsx)
+- [x] Login-tekst rettet: "Velkommen til Ugeplan" (fjernet Polygon-branding og undertekst)
+- [x] DEV-guard på uguardede console.log i 6 filer (useVacationRequestsStatus, useCarDataHandler, enhancedDataFetching, enhancedUnifiedDataService, supabaseIssuesAuditor, use-toast)
+- [x] Realtime schema-fix i useVacationRequestsStatus (hardcoded 'public' i stedet for 'demo')
+- [x] EmployeeSelector statuslabels oversat via t() (Expired, Terminated, Inactive)
+- [x] Oversættelsesnøgler tilføjet: auth.sessionTimedOut, employees.statusExpired/statusTerminated/statusInactive
+- [x] CHANGELOG.md og tasks.md opdateret

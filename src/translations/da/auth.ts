@@ -16,5 +16,7 @@ export const auth = {
   tooManyAttempts: 'For mange login-forsøg. Prøv venligst igen senere.',
   loginAttempts: '{count} forkerte forsøg. {count} forsøg tilbage.',
   loginSuccess: 'Login lykkedes! Omdirigerer til side...',
-  logoutFailed: 'Logout mislykkedes. Prøv venligst igen.'
+  logoutFailed: 'Logout mislykkedes. Prøv venligst igen.',
+  sessionTimedOut: 'Session udløbet',
+  sessionTimedOutDescription: 'Din session er automatisk afsluttet efter 180 minutter. Log venligst ind igen.'
 };
