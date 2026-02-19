@@ -4,6 +4,7 @@
 
 ### Fixed — Mobilvisning: Scroll i opgavedetaljer
 - **AssignmentDetailsDialog**: Fjernet nestede scroll-containere (ScrollArea + overflow-y-auto) på mobil, så beskrivelsen og alle sektioner kan scrolles korrekt. Desktop-layout uændret.
+- **AssignmentDetailsDialog**: Besked-panelet overlappede beskrivelsen på mobil — tilføjet `border-t`, `min-h-[300px]`, `relative` og `overflow-hidden` så beskeder stakker korrekt under detaljerne.
 
 ## [Unreleased] - 2026-02-17
 
