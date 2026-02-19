@@ -142,9 +142,9 @@ import { useDepartment } from '@/context/DepartmentContext';
          </DialogHeader>
  
         {/* Main content: 2-column layout */}
-         <div className="lg:flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden">
+         <div className="lg:flex-1 flex flex-col lg:flex-row lg:min-h-0 lg:overflow-hidden">
           {/* Left column: Details */}
-           <div className={`lg:flex-1 ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col min-h-0`}>
+           <div className={`h-auto flex-shrink-0 lg:flex-1 lg:flex-shrink ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col lg:min-h-0`}>
              <div className="lg:flex-1 lg:overflow-y-auto">
                 <div className="p-4 sm:p-8 space-y-6">
                 {/* Title */}
@@ -215,8 +215,8 @@ import { useDepartment } from '@/context/DepartmentContext';
 
                    {/* Description - shown after details */}
                    {assignment.description && (
-                     <div className="space-y-2.5">
-                       <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('planner.description')}</h4>
+                      <div className="space-y-2.5 pb-4">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('planner.description')}</h4>
                        <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap break-words">{assignment.description}</p>
                      </div>
                    )}
