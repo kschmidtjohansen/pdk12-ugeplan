@@ -1,58 +1,32 @@
 
 
-## Fix: Beskrivelse kan ikke scrolles på mobil i AssignmentDetailsDialog
+## Fix: Beskeder overlapper beskrivelsen på mobil
 
 ### Problem
 
-I `src/components/Dashboard/AssignmentDetailsDialog.tsx` er der tre nestede scroll-containere pa mobil:
+På mobil vises besked-panelet (højre kolonne) oven på beskrivelsen i stedet for at stakke under detalje-kolonnen. Dette skyldes at besked-containeren (linje 325) mangler en fast højde-begrænsning på mobil, og `AssignmentMessagesPanel` sandsynligvis bruger absolut positionering internt, som flyder over detalje-indholdet.
 
-1. `DialogContent` (linje 112): `max-h-[95dvh] overflow-y-auto`
-2. Indre flex-div (linje 145): `overflow-y-auto`
-3. `ScrollArea` (linje 148): Radix scroll-container
-
-Nar alle tre er aktive samtidig pa mobil, kan ingen af dem scrolle korrekt — indholdet (inkl. beskrivelsen) bliver utilgaengeligt.
-
-### Loesning
-
-Forenkl scroll-hierarkiet sa kun EN container haandterer scroll pa mobil:
+### Løsning
 
 **`src/components/Dashboard/AssignmentDetailsDialog.tsx`:**
 
-- **Linje 148**: Erstat `ScrollArea` med en almindelig `<div>` — pa mobil haandterer DialogContent allerede scroll via `overflow-y-auto`. ScrollArea er kun noedvendig pa desktop (lg+) hvor den indre kolonne har fast hoejde
-- Alternativt: brug `ScrollArea` kun pa `lg:` og en plain div pa mobil via conditional rendering
-- Fjern `overflow-y-auto` fra den indre flex-div (linje 145) pa mobil, sa kun DialogContent scroller
+- Tilføj `border-t` og en fast min-height på mobil til besked-containeren (linje 325), så den stakker korrekt under detaljerne:
+  - Ændr klassen til: `lg:w-2/5 flex flex-col min-h-[300px] lg:min-h-0 border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20`
+- Sørg for at besked-panelet ikke overlapper ved at give den en `relative` position og `overflow-hidden` på mobil
 
-Konkret aendring pa linje 145:
-```
-// Fra:
-className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-y-auto lg:overflow-hidden"
-// Til:
-className="flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden"
-```
+**`CHANGELOG.md`:**
+- Dokumentér fix af besked-overlap på mobilvisning
 
-Og pa linje 148:
-```
-// Fra:
-<ScrollArea className="flex-1">
-// Til:
-<div className="flex-1 lg:overflow-y-auto">
-```
+### Filer der ændres
 
-Plus opdater lukning fra `</ScrollArea>` til `</div>` pa linje 250.
-
-Dette sikrer at pa mobil scroller hele dialogen som en samlet enhed (via DialogContent), mens desktop beholder kolonne-baseret scroll.
-
-### Filer der aendres
-
-| Fil | Aendring |
+| Fil | Ændring |
 |-----|---------|
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Fjern nested scroll-containere pa mobil |
-| `CHANGELOG.md` | Dokumenter fix af scroll-problem i mobilvisning |
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Tilføj mobil-specifikke layout-begrænsninger til besked-panelet |
+| `CHANGELOG.md` | Dokumentér fix |
 
 ### Kvalitetstjek
-
-- Beskrivelse og alle sektioner er tilgaengelige via scroll pa mobil
-- Desktop-layout (2-kolonne med chat) fungerer uaendret
-- Ingen content clipping eller afskaret tekst
-- Opgave 12-013477 og lignende kan ses fuldt ud pa mobil
+- Beskeder stakker under beskrivelsen på mobil (ingen overlap)
+- Desktop 2-kolonne layout uændret
+- Besked-input felt forbliver synligt og brugbart
+- Overholder semantiske farvetokens og UI-guidelines
 
