@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased] - 2026-02-19
+
+### Fixed — Mobilvisning: Scroll i opgavedetaljer
+- **AssignmentDetailsDialog**: Fjernet nestede scroll-containere (ScrollArea + overflow-y-auto) på mobil, så beskrivelsen og alle sektioner kan scrolles korrekt. Desktop-layout uændret.
+
 ## [Unreleased] - 2026-02-17
 
 ### Changed — Login UI-renovering + Favicon
