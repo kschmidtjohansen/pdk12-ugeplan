@@ -480,7 +480,7 @@ const PlannerPage: React.FC = () => {
           />
           
           {/* View Mode Toggle */}
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2">
             <span className="text-sm text-muted-foreground hidden sm:inline">
               {currentLanguage === 'da' ? 'Visning:' : 'View:'}
             </span>
