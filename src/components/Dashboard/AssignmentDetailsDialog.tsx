@@ -322,7 +322,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 
           {/* Right column: Messages sidebar */}
           {isChatEnabled && (
-           <div className="lg:w-2/5 flex flex-col min-h-0 bg-gradient-to-b from-muted/40 to-muted/20">
+           <div className="lg:w-2/5 flex flex-col relative min-h-[300px] lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20">
              <div className="px-3 sm:px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-2.5 text-sm font-semibold">
