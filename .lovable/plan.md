@@ -1,32 +1,37 @@
 
-
-## Fix: Beskeder overlapper beskrivelsen på mobil
+## Fix: Beskrivelse overlapper med beskeder på mobil
 
 ### Problem
 
-På mobil vises besked-panelet (højre kolonne) oven på beskrivelsen i stedet for at stakke under detalje-kolonnen. Dette skyldes at besked-containeren (linje 325) mangler en fast højde-begrænsning på mobil, og `AssignmentMessagesPanel` sandsynligvis bruger absolut positionering internt, som flyder over detalje-indholdet.
+I `AssignmentDetailsDialog.tsx` bruger begge kolonner `flex-1` på mobil, hvilket tvinger dem til at dele pladsen ligeligt. Detalje-kolonnen (med beskrivelsen) får ikke nok plads og dens indhold flyder bag besked-panelet.
 
-### Løsning
+### Loesning
 
 **`src/components/Dashboard/AssignmentDetailsDialog.tsx`:**
 
-- Tilføj `border-t` og en fast min-height på mobil til besked-containeren (linje 325), så den stakker korrekt under detaljerne:
-  - Ændr klassen til: `lg:w-2/5 flex flex-col min-h-[300px] lg:min-h-0 border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20`
-- Sørg for at besked-panelet ikke overlapper ved at give den en `relative` position og `overflow-hidden` på mobil
+1. **Venstre kolonne (linje 147)**: Fjern `flex-1` på mobil, så den tager sin naturlige hoejde. Brug kun `flex-1` på desktop (`lg:flex-1`):
+   - Fra: `flex-1 ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col min-h-0`
+   - Til: `lg:flex-1 ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col min-h-0`
 
-**`CHANGELOG.md`:**
-- Dokumentér fix af besked-overlap på mobilvisning
+2. **Hoejre kolonne / besked-panel (linje 325)**: Giv en fast hoejde på mobil i stedet for at konkurrere om flex-plads:
+   - Fra: `lg:w-2/5 flex flex-col relative min-h-[300px] lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20`
+   - Til: `lg:w-2/5 flex flex-col relative h-[350px] lg:h-auto lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20`
 
-### Filer der ændres
+Disse to aendringer sikrer at:
+- Mobil: Detaljer vises fuldt ud med naturlig hoejde, beskeder får en fast hoejde nedenunder, og hele dialogen scroller via `DialogContent`
+- Desktop: Uaendret 2-kolonne layout med uafhaengig scroll
 
-| Fil | Ændring |
+**`CHANGELOG.md`:** Dokumenter fix.
+
+### Filer der aendres
+
+| Fil | Aendring |
 |-----|---------|
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Tilføj mobil-specifikke layout-begrænsninger til besked-panelet |
-| `CHANGELOG.md` | Dokumentér fix |
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Fjern `flex-1` på mobil fra venstre kolonne, fast hoejde på besked-panel |
+| `CHANGELOG.md` | Dokumenter fix |
 
 ### Kvalitetstjek
-- Beskeder stakker under beskrivelsen på mobil (ingen overlap)
-- Desktop 2-kolonne layout uændret
-- Besked-input felt forbliver synligt og brugbart
-- Overholder semantiske farvetokens og UI-guidelines
-
+- Beskrivelse er fuldt synlig og laesbar på mobil
+- Beskeder stakker under beskrivelsen uden overlap
+- Desktop 2-kolonne layout uaendret
+- Overholder UI-guidelines (responsive, semantiske tokens)
