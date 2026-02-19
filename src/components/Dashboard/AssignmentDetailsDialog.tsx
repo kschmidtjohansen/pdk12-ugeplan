@@ -144,7 +144,7 @@ import { useDepartment } from '@/context/DepartmentContext';
         {/* Main content: 2-column layout */}
          <div className="flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden">
           {/* Left column: Details */}
-           <div className={`flex-1 ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col min-h-0`}>
+           <div className={`lg:flex-1 ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col min-h-0`}>
              <div className="flex-1 lg:overflow-y-auto">
                 <div className="p-4 sm:p-8 space-y-6">
                 {/* Title */}
@@ -322,7 +322,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 
           {/* Right column: Messages sidebar */}
           {isChatEnabled && (
-           <div className="lg:w-2/5 flex flex-col relative min-h-[300px] lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20">
+           <div className="lg:w-2/5 flex flex-col relative h-[350px] lg:h-auto lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20">
              <div className="px-3 sm:px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-2.5 text-sm font-semibold">
