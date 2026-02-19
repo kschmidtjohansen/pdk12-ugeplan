@@ -1,69 +1,58 @@
 
 
-## Favicon-opdatering + Login UI-renovering
+## Fix: Beskrivelse kan ikke scrolles på mobil i AssignmentDetailsDialog
 
-### Aendringer
+### Problem
 
-#### 1. Nyt SVG-favicon: `public/favicon.svg`
+I `src/components/Dashboard/AssignmentDetailsDialog.tsx` er der tre nestede scroll-containere pa mobil:
 
-Opretter en ny fil med kun ikon-delen af Polygon-logoet (den geometriske figur med graa og blaa gradient — uden "POLYGON"-teksten). SVG-formatet giver skarpt favicon i alle stoerrelser.
+1. `DialogContent` (linje 112): `max-h-[95dvh] overflow-y-auto`
+2. Indre flex-div (linje 145): `overflow-y-auto`
+3. `ScrollArea` (linje 148): Radix scroll-container
 
-Ikonet bestar af tre SVG-paths:
-- Graa ydre form (tre bueformede elementer)
-- Blaa gradient-cirkel/trekant (det centrale ikon)
+Nar alle tre er aktive samtidig pa mobil, kan ingen af dem scrolle korrekt — indholdet (inkl. beskrivelsen) bliver utilgaengeligt.
 
-ViewBox tilpasses til `0 0 64 64` sa ikonet fylder hele faviconet.
+### Loesning
 
-#### 2. `index.html`
+Forenkl scroll-hierarkiet sa kun EN container haandterer scroll pa mobil:
 
-Opdater favicon-referencen fra `.ico` til `.svg`:
+**`src/components/Dashboard/AssignmentDetailsDialog.tsx`:**
+
+- **Linje 148**: Erstat `ScrollArea` med en almindelig `<div>` — pa mobil haandterer DialogContent allerede scroll via `overflow-y-auto`. ScrollArea er kun noedvendig pa desktop (lg+) hvor den indre kolonne har fast hoejde
+- Alternativt: brug `ScrollArea` kun pa `lg:` og en plain div pa mobil via conditional rendering
+- Fjern `overflow-y-auto` fra den indre flex-div (linje 145) pa mobil, sa kun DialogContent scroller
+
+Konkret aendring pa linje 145:
 ```
-<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+// Fra:
+className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-y-auto lg:overflow-hidden"
+// Til:
+className="flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden"
 ```
 
-Behold `apple-touch-icon` med den nye SVG (eller behold `.ico` som fallback).
+Og pa linje 148:
+```
+// Fra:
+<ScrollArea className="flex-1">
+// Til:
+<div className="flex-1 lg:overflow-y-auto">
+```
 
-#### 3. Login UI-renovering (fra den godkendte plan)
+Plus opdater lukning fra `</ScrollArea>` til `</div>` pa linje 250.
 
-Implementeres samtidig:
+Dette sikrer at pa mobil scroller hele dialogen som en samlet enhed (via DialogContent), mens desktop beholder kolonne-baseret scroll.
 
-**`src/pages/LoginPage.tsx`:**
-- Subtil gradient-baggrund (fra `background` til `muted/30`)
-- `animate-fade-in` pa containeren
-- Tekst-hierarki: "Velkommen tilbage" (text-2xl, semibold) + "Log ind pa din ugeplan" (text-sm, muted)
-
-**`src/components/Auth/EnhancedSecureLoginForm.tsx`:**
-- Card: `shadow-lg rounded-xl border-border/50`
-- Fjern `CardDescription` (teksten flyttes til LoginPage)
-- `animate-fade-in` pa fejl-alerts
-- DEV-guard pa `console.error` linje 89
-- Oversat forsoegs-tekst (erstat hardcoded engelsk)
-
-**Oversaettelser:**
-- `da/login.ts`: `welcomeMessage` -> `'Velkommen tilbage'`, ny `loginSubtext`
-- `en/login.ts`: `welcomeMessage` -> `'Welcome back'`, ny `loginSubtext`
-- Begge: `failedAttempts` noegle for oversat forsoegs-advarsel
-
-#### 4. `CHANGELOG.md`
-
-Dokumenter favicon-opdatering og login UI-renovering.
-
-### Filer der aendres/oprettes
+### Filer der aendres
 
 | Fil | Aendring |
 |-----|---------|
-| `public/favicon.svg` | NY — standalone Polygon-ikon SVG |
-| `index.html` | Opdater favicon-reference til SVG |
-| `src/pages/LoginPage.tsx` | Gradient-baggrund, fade-in, nyt tekst-hierarki |
-| `src/components/Auth/EnhancedSecureLoginForm.tsx` | Card-styling, fjern CardDescription, fade-in pa fejl, DEV-guard |
-| `src/translations/da/login.ts` | `welcomeMessage`, `loginSubtext` |
-| `src/translations/en/login.ts` | `welcomeMessage`, `loginSubtext` |
-| `CHANGELOG.md` | Dokumenter aendringerne |
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Fjern nested scroll-containere pa mobil |
+| `CHANGELOG.md` | Dokumenter fix af scroll-problem i mobilvisning |
 
 ### Kvalitetstjek
-- Favicon viser kun ikon-delen (ingen "POLYGON" tekst)
-- SVG-format giver skarpt favicon pa alle skaermstoerrelser
-- Login-siden har moderne SaaS-look med gradient, card-shadow og fade-in
-- Alle tekster er oversatte (ingen hardcoded engelsk)
-- Responsivt design fungerer pa 320px-1920px
+
+- Beskrivelse og alle sektioner er tilgaengelige via scroll pa mobil
+- Desktop-layout (2-kolonne med chat) fungerer uaendret
+- Ingen content clipping eller afskaret tekst
+- Opgave 12-013477 og lignende kan ses fuldt ud pa mobil
 
