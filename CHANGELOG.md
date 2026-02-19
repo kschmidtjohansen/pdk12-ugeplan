@@ -5,6 +5,7 @@
 ### Fixed — Mobilvisning: Scroll i opgavedetaljer
 - **AssignmentDetailsDialog**: Fjernet nestede scroll-containere (ScrollArea + overflow-y-auto) på mobil, så beskrivelsen og alle sektioner kan scrolles korrekt. Desktop-layout uændret.
 - **AssignmentDetailsDialog**: Besked-panelet overlappede beskrivelsen på mobil — fjernet `flex-1` på mobil fra ydre wrapper og indre detalje-container (bruger nu `lg:flex-1`), tilføjet `whitespace-pre-wrap break-words` på beskrivelsestekst. Mobil: naturlig højde på alle sektioner, scroll via DialogContent. Desktop uændret.
+- **AssignmentDetailsDialog**: Endelig robust fix — fjernet `min-h-0` på mobil (kun `lg:min-h-0`), tilføjet `h-auto flex-shrink-0` på venstre kolonne så den aldrig krympes, og `pb-4` på beskrivelses-container for luft. Sikrer fuld læsbarhed af lange beskrivelser uden overlap.
 
 ## [Unreleased] - 2026-02-17
 
