@@ -142,10 +142,10 @@ import { useDepartment } from '@/context/DepartmentContext';
          </DialogHeader>
  
         {/* Main content: 2-column layout */}
-         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-y-auto lg:overflow-hidden">
+         <div className="flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden">
           {/* Left column: Details */}
            <div className={`flex-1 ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col min-h-0`}>
-             <ScrollArea className="flex-1">
+             <div className="flex-1 lg:overflow-y-auto">
                 <div className="p-4 sm:p-8 space-y-6">
                 {/* Title */}
                  <div>
@@ -247,7 +247,7 @@ import { useDepartment } from '@/context/DepartmentContext';
                    </div>
                  </div>
               </div>
-            </ScrollArea>
+            </div>
 
             {/* Files section - collapsible at the bottom of left column */}
             {isFilesEnabled && (
