@@ -65,11 +65,13 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     defaultValues: formData
   });
 
-  // Handle form submission with comprehensive debugging and validation
+  // Handle form submission with comprehensive validation
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
-    console.log('[AssignmentForm] Form data at submission:', formData);
+    if (import.meta.env.DEV) {
+      console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
+      console.log('[AssignmentForm] Form data at submission:', formData);
+    }
 
     // Enhanced validation with translated error messages
     const validationErrors: string[] = [];
@@ -79,7 +81,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     if (!formData.location?.trim()) {
       validationErrors.push(t('planner.validation.locationRequired'));
     }
-    if (!formData.date) {
+    // FIX: Valider mod både formData.date OG dates-arrayet (multi-dag support)
+    if (!formData.date && !((formData as any).dates?.length > 0)) {
       validationErrors.push(t('planner.validation.dateRequired'));
     }
     if (!formData.fromTime) {
@@ -94,8 +97,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       validationErrors.push(t('planner.validation.timeOrderRequired'));
     }
     if (validationErrors.length > 0) {
-      console.error('[AssignmentForm] Validation failed:', validationErrors);
-      // Show validation errors to user via toast
+      if (import.meta.env.DEV) console.error('[AssignmentForm] Validation failed:', validationErrors);
       validationErrors.forEach(error => {
         toast({
           title: t('common.error'),
@@ -107,64 +109,47 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
     setIsSubmitting(true);
     try {
-      console.log('[AssignmentForm] Validation passed, calling onSubmit with data:', formData);
+      if (import.meta.env.DEV) console.log('[AssignmentForm] Validation passed, calling onSubmit with data:', formData);
       await onSubmit({ ...formData, zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng });
-      console.log('[AssignmentForm] onSubmit completed successfully');
+      if (import.meta.env.DEV) console.log('[AssignmentForm] onSubmit completed successfully');
     } catch (error) {
-      console.error('[AssignmentForm] Error in form submission:', error);
-      console.error('[AssignmentForm] Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        type: typeof error,
-        error
-      });
+      if (import.meta.env.DEV) {
+        console.error('[AssignmentForm] Error in form submission:', error);
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
   const handleDeleteClick = () => {
-    console.log('[AssignmentForm] Delete clicked for assignment:', currentAssignment?.id);
+    if (import.meta.env.DEV) console.log('[AssignmentForm] Delete clicked for assignment:', currentAssignment?.id);
     if (currentAssignment?.id) {
       onDelete(currentAssignment.id);
     }
   };
   const handlePublishClick = () => {
-    console.log('[AssignmentForm] ===== PUBLISH BUTTON CLICKED =====');
-    console.log('[AssignmentForm] Publishing assignment:', currentAssignment?.id);
-    console.log('[AssignmentForm] Current published status:', currentAssignment?.published);
-    console.log('[AssignmentForm] Can publish tasks:', canPublishTasks);
-    if (currentAssignment?.id) {
-      console.log('[AssignmentForm] Calling onPublish function...');
-      onPublish(currentAssignment.id);
-    } else {
-      console.error('[AssignmentForm] No assignment ID found for publishing');
+    if (import.meta.env.DEV) {
+      console.log('[AssignmentForm] Publishing assignment:', currentAssignment?.id);
+      console.log('[AssignmentForm] Current published status:', currentAssignment?.published);
     }
-    console.log('[AssignmentForm] ===== PUBLISH BUTTON END =====');
+    if (currentAssignment?.id) {
+      onPublish(currentAssignment.id);
+    }
   };
   const handlePublishDayClick = () => {
-    console.log('[AssignmentForm] Publish day clicked for date:', selectedDay);
     if (selectedDay) {
       onPublishDay(selectedDay);
     }
   };
 
   // Helper function to get car ID as string
-  const getCarId = (car: string | {
-    id: string;
-    name: string;
-  } | null): string => {
-    console.log('[AssignmentForm] Getting car ID from:', car, 'type:', typeof car);
+  const getCarId = (car: string | { id: string; name: string } | null): string => {
     if (typeof car === 'string') return car;
     if (car && typeof car === 'object' && 'id' in car) return car.id;
     return '';
   };
 
   // Helper function to get responsible user ID as string
-  const getResponsibleUserId = (user: {
-    id: string;
-    name: string;
-  } | null): string => {
-    // Prefer explicit responsibleUserId if present
-    // Fallback to object-based user id
+  const getResponsibleUserId = (user: { id: string; name: string } | null): string => {
     if (formData.responsibleUserId) return formData.responsibleUserId as string;
     if (user && typeof user === 'object' && 'id' in user) return user.id;
     return '';
@@ -172,95 +157,55 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   // Helper function to set responsible user as object
   const setResponsibleUserById = (userId: string) => {
-    console.log('[AssignmentForm] Setting responsible user ID:', userId);
     if (userId) {
-      // Find the user in employees to get their name
       const user = employees.find(emp => emp.id === userId);
       const userName = user ? user.name : '';
-      console.log('[AssignmentForm] Found user for ID:', {
-        userId,
-        userName,
-        user: user?.name
-      });
-      const updatedData = {
+      setFormData({
         ...formData,
-        responsibleUser: {
-          id: userId,
-          name: userName
-        },
-        responsibleUserId: userId // FIX: Also set the responsibleUserId field
-      };
-      console.log('[AssignmentForm] Updated form data with responsible user:', updatedData);
-      setFormData(updatedData);
+        responsibleUser: { id: userId, name: userName },
+        responsibleUserId: userId
+      });
     } else {
-      console.log('[AssignmentForm] Clearing responsible user');
       setFormData({
         ...formData,
         responsibleUser: null,
-        responsibleUserId: null // FIX: Use null instead of empty string
+        responsibleUserId: null
       });
     }
   };
 
   // Helper function to handle employees as array of strings
   const handleEmployeesChange = (employees: string[]) => {
-    console.log('[AssignmentForm] Employees changed to:', employees);
-    const updatedData = {
-      ...formData,
-      employees
-    };
-    console.log('[AssignmentForm] Updated form data with employees:', updatedData);
-    setFormData(updatedData);
+    setFormData({ ...formData, employees });
   };
 
   // Helper function to update assignment's single car (backward compatibility)
   const handleCarChange = (carId: string) => {
-    const updatedData = {
-      ...formData,
-      car: carId === '' ? null : carId
-    };
-    setFormData(updatedData);
+    setFormData({ ...formData, car: carId === '' ? null : carId });
   };
 
   // Helper function to update assignment's multiple cars
   const handleCarsChange = (carIds: string[]) => {
-    console.log('[AssignmentForm] Cars changed to:', carIds);
-    const updatedData = {
+    if (import.meta.env.DEV) console.log('[AssignmentForm] Cars changed to:', carIds);
+    setFormData({
       ...formData,
       cars: carIds,
-      // Also update the legacy car field for backward compatibility
       car: carIds.length > 0 ? carIds[0] : ''
-    };
-    console.log('[AssignmentForm] Updated form data with cars:', updatedData);
-    setFormData(updatedData);
+    });
   };
 
-  // FIXED: Handle multiple dates for create mode, single date for edit mode
+  // Handle multiple dates for create mode, single date for edit mode
   const handleDatesChange = (dates: Date[]) => {
     if (dates && dates.length > 0) {
       const dateStrings = dates.map(date => format(date, 'yyyy-MM-dd'));
-      console.log('[AssignmentForm] ===== DATES CHANGED =====');
-      console.log('[AssignmentForm] Date objects received:', dates);
-      console.log('[AssignmentForm] Date strings formatted:', dateStrings);
-      console.log('[AssignmentForm] Number of dates:', dateStrings.length);
-      
-      // Store dates in a way that doesn't conflict with Assignment type
-      const updatedData = {
-        ...formData,
-        date: dateStrings[0], // Keep first date for backward compatibility
-      } as any;
-      
-      // Add dates array for multi-date support
+      if (import.meta.env.DEV) {
+        console.log('[AssignmentForm] Dates changed:', dateStrings);
+      }
+      const updatedData = { ...formData, date: dateStrings[0] } as any;
       updatedData.dates = dateStrings;
-      
-      console.log('[AssignmentForm] Updated form data with dates:', updatedData);
       setFormData(updatedData);
     } else {
-      console.log('[AssignmentForm] No dates selected, clearing');
-      const clearedData = {
-        ...formData,
-        date: ''
-      } as any;
+      const clearedData = { ...formData, date: '' } as any;
       clearedData.dates = [];
       setFormData(clearedData);
     }
@@ -291,7 +236,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               location: value
             });
           }} 
-          selectedDates={(formData as any).dates?.map((d: string) => new Date(d)) || (formData.date ? [new Date(formData.date)] : [])} 
+          selectedDates={(formData as any).dates?.map((d: string) => { const [y,m,day] = d.split('-').map(Number); return new Date(y, m-1, day); }) || (formData.date ? (() => { const [y,m,day] = formData.date!.split('-').map(Number); return [new Date(y, m-1, day)]; })() : [])} 
           setSelectedDates={handleDatesChange}
           isEditMode={!!currentAssignment}
           fromTime={formData.fromTime || '08:00'} 
