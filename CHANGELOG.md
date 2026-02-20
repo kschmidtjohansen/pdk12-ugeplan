@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased] - 2026-02-20
+
+### Fixed — Security: Multi-tenant isolation (kritisk)
+- **Database (data-fix)**: Opgave `14-000686` (ID: `792649a1-...`) havde `department_id = NULL`, hvilket medførte at den var synlig i alle afdelinger. Rettet til korrekt afdeling 14 - Asnæs (`63d46993-...`).
+- **RPC `list_accessible_assignments_with_team`**: Fjernet `OR a.department_id IS NULL` fra WHERE-betingelsen i begge grene (administrator/skadeleder og servicemedarbejder). Opgaver uden `department_id` vises nu kun når ingen specifik afdeling er valgt. Forhindrer fremtidige cross-tenant lækager.
+- **Frontend guard** (`useOptimizedAssignments.createAssignment`): Kast fejl hvis `selectedDepartmentId` er null og brugeren ikke er i demo-mode. Forhindrer stiltiende gemning af opgaver med `department_id: null`.
+
+### Fixed — UI: View-toggle skjult på mobil
+- **PlannerPage**: Standard/Kompakt/Gitter-view-toggle vises nu kun fra `sm`-breakpoint.
+
 ## [Unreleased] - 2026-02-19
 
 ### Fixed — Mobilvisning: Scroll i opgavedetaljer
