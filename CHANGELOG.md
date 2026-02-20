@@ -2,6 +2,11 @@
 
 ## [Unreleased] - 2026-02-20
 
+### Fixed — Planner: Multi-dag opgaveoprettelse
+- **AssignmentForm (timezone-fix)**: `selectedDates`-mapping brugte `new Date(d)` der fortolker ISO-datostrenge som UTC midnat, hvilket forårsagede et dag-offset på europæiske browsere (UTC+1). Rettet til lokal dato-konstruktion: `new Date(y, m-1, day)`.
+- **AssignmentForm (valideringsfix)**: Datovalidering ved submit tjekkede kun `formData.date` og ignorerede `dates`-arrayet. Opdateret til at tjekke begge — konsistent med multi-dag forventninger.
+- **AssignmentForm (kodekvalitet)**: Alle `console.log`/`console.error` wrappet i `import.meta.env.DEV`-guard jf. tekniske specs.
+
 ### Fixed — Security: Multi-tenant isolation (kritisk)
 - **Database (data-fix)**: Opgave `14-000686` (ID: `792649a1-...`) havde `department_id = NULL`, hvilket medførte at den var synlig i alle afdelinger. Rettet til korrekt afdeling 14 - Asnæs (`63d46993-...`).
 - **RPC `list_accessible_assignments_with_team`**: Fjernet `OR a.department_id IS NULL` fra WHERE-betingelsen i begge grene (administrator/skadeleder og servicemedarbejder). Opgaver uden `department_id` vises nu kun når ingen specifik afdeling er valgt. Forhindrer fremtidige cross-tenant lækager.
