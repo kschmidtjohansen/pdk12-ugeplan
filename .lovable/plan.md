@@ -1,47 +1,56 @@
 
+## Rodårsag: Opgave med department_id = NULL vises på tværs af alle afdelinger
 
-## Fix: Beskrivelse overlapper med beskeder - endelig robust loesning
+### Hvad der er sket (detektivarbejde)
 
-### Problemanalyse
+Opgave `14-000686` (ID: `792649a1-3507-4106-a8b4-7fc855310000`) er oprettet af **Michael Rattenborg** (Afd. 14 - Asnæs) d. 18. feb 2026 og har **`department_id = NULL`** i databasen.
 
-Layoutet har fortsat problemer fordi:
-1. **Linje 145**: Ydre wrapper har `min-h-0` som tillader flex-children at krympe under deres naturlige hoejde
-2. **Linje 147**: Venstre kolonne har `min-h-0` som ogsaa tillader krympning
-3. **Linje 325**: Besked-panelet har `relative` og `overflow-hidden` men ogsaa en fast `h-[350px]` pa mobil - dette er korrekt, men problemet er at venstre kolonne stadig krympes
-4. Beskrivelsens container mangler `pb-4` for luft
+**Årsagen til `department_id = NULL`**: Det er et teknisk edge-case: Opgaven er blevet oprettet på et tidspunkt, hvor `selectedDepartmentId` i DepartmentContext **ikke var klar** (null/undefined) — fx ved hurtig navigation eller session-genoprettelse. Koden sender da `department_id: selectedDepartmentId || null` — og dette null gemmes i databasen.
 
-### Loesning
+### Den kritiske fejl i RPC-funktionen
 
-Tre aendringer i `src/components/Dashboard/AssignmentDetailsDialog.tsx`:
+`list_accessible_assignments_with_team` indeholder denne WHERE-betingelse for administratorer/skadeledere:
 
-1. **Linje 145 - Ydre wrapper**: Fjern `min-h-0` pa mobil, tilfoej kun pa desktop
-   - Fra: `lg:flex-1 flex flex-col lg:flex-row min-h-0 lg:overflow-hidden`
-   - Til: `lg:flex-1 flex flex-col lg:flex-row lg:min-h-0 lg:overflow-hidden`
+```sql
+WHERE (p_department_id IS NULL OR a.department_id = p_department_id OR a.department_id IS NULL)
+```
 
-2. **Linje 147 - Venstre kolonne**: Fjern `min-h-0` pa mobil, tilfoej `h-auto` og `flex-shrink-0` sa den aldrig krympes
-   - Fra: `` lg:flex-1 ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col min-h-0 ``
-   - Til: `` h-auto flex-shrink-0 lg:flex-1 lg:flex-shrink ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col lg:min-h-0 ``
+Betingelsen `a.department_id IS NULL` betyder: **"vis opgaven, uanset hvilken afdeling der er valgt"**. Det var tænkt som en sikkerhed for generelle opgaver, men det medfører, at en opgave fra Afd. 14 (der bare mangler department_id) vises for alle afdelinger — inkl. Afd. 12 - Fredericia.
 
-3. **Linje 217-222 - Beskrivelses-container**: Tilfoej `pb-4` for padding i bunden
-   - Fra: `<div className="space-y-2.5">`
-   - Til: `<div className="space-y-2.5 pb-4">`
+Samme fejl gælder for servicemedarbejdere (samme mønster i ELSE-grenen).
 
-Disse aendringer sikrer:
-- **Mobil**: Venstre kolonne vokser med indholdet (`h-auto`, `flex-shrink-0`). Beskrivelsen vises fuldt ud. Besked-panelet stakker nedenunder med sin faste hoejde. Hele dialogen scroller via `DialogContent` (linje 112: `overflow-y-auto`).
-- **Desktop**: Uaendret. `lg:flex-1` og `lg:min-h-0` sikrer 2-kolonne layout med uafhaengig scroll.
+### Løsning (tre lag)
 
-**`CHANGELOG.md`**: Dokumenter endelig fix.
+**Lag 1 - Ret den eksisterende NULL-opgave (data-fix)**  
+Sæt `department_id = '63d46993-31cb-4921-bb3d-5934984ab6b3'` (14 - Asnæs) på opgave `792649a1-...` da den klart tilhører Afd. 14 (responsible user er Michael Rattenborg fra Afd. 14, alle tilknyttede medarbejdere er fra Afd. 14).
 
-### Filer der aendres
+**Lag 2 - Ret RPC-funktionen (forhindrer fremtidige lækager)**  
+Fjern `OR a.department_id IS NULL` fra WHERE-betingelsen. Opgaver uden department_id skal kun vises, når der *ikke* er valgt en specifik afdeling (`p_department_id IS NULL`):
 
-| Fil | Aendring |
+```sql
+-- FØR (fejlagtig):
+WHERE (p_department_id IS NULL OR a.department_id = p_department_id OR a.department_id IS NULL)
+
+-- EFTER (korrekt):
+WHERE (p_department_id IS NULL OR a.department_id = p_department_id)
+```
+
+Dette gælder begge grene (administrator/skadeleder og servicemedarbejder) i funktionen.
+
+**Lag 3 - Frontend-guard (forhindrer NULL-oprettelse)**  
+I `useOptimizedAssignments.ts` skal `createAssignment` afvise kald, hvis `selectedDepartmentId` er null og brugeren ikke er i demo-mode — i stedet for stiltiende at gemme `department_id: null`.
+
+### Filer der ændres
+
+| Fil | Ændring |
 |-----|---------|
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Fjern `min-h-0` pa mobil, tilfoej `h-auto` og `flex-shrink-0` pa venstre kolonne, `pb-4` pa beskrivelse |
-| `CHANGELOG.md` | Dokumenter fix |
+| Database migration | Fix NULL department_id på opgave 792649a1 + ret RPC-funktion |
+| `src/hooks/useOptimizedAssignments.ts` | Guard mod oprettelse uden department_id |
+| `CHANGELOG.md` | Dokumenter security-fix |
 
 ### Kvalitetstjek
-- Beskrivelsestekst er fuldt laesbar uanset laengde pa mobil
-- Ingen sektioner overlapper
-- Hele dialogen scroller pa mobil
-- Desktop 2-kolonne layout uaendret
-- Overholder UI-guidelines (semantiske tokens, responsive design)
+- Opgave 14-000686 vises ikke længere i Fredericia
+- Alle fremtidige opgaver tildeles korrekt department_id ved oprettelse
+- RPC returnerer kun opgaver tilhørende den valgte afdeling
+- Ingen ændring i oplevelsen for Afd. 14 - Asnæs brugere
+- Overholder tekniske specs (multi-tenant isolation, afdeling-baseret dataadgang)
