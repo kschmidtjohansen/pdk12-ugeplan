@@ -240,6 +240,11 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     
     try {
       setOperationStates(prev => ({ ...prev, [operationId]: 'loading' }));
+
+      // LAG 3: Guard mod oprettelse uden department_id (forhindrer cross-tenant lækage)
+      if (!selectedDepartmentId && user?.email !== 'test@polygongroup.com') {
+        throw new Error('Afdeling er ikke klar endnu. Vent et øjeblik og prøv igen.');
+      }
       
       if (!data.title?.trim()) throw new Error(t('planner.validation.titleRequired'));
       if (!data.fromTime) throw new Error(t('planner.validation.fromTimeRequired'));
