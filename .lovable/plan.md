@@ -1,56 +1,68 @@
 
-## Rodårsag: Opgave med department_id = NULL vises på tværs af alle afdelinger
+## Fix: Multi-dag opgaveoprettelse - timezone-offset og datovalideringslogik
 
-### Hvad der er sket (detektivarbejde)
+### Problemanalyse
 
-Opgave `14-000686` (ID: `792649a1-3507-4106-a8b4-7fc855310000`) er oprettet af **Michael Rattenborg** (Afd. 14 - Asnæs) d. 18. feb 2026 og har **`department_id = NULL`** i databasen.
+Der er to fejl i multi-dag oprettelsesflowet:
 
-**Årsagen til `department_id = NULL`**: Det er et teknisk edge-case: Opgaven er blevet oprettet på et tidspunkt, hvor `selectedDepartmentId` i DepartmentContext **ikke var klar** (null/undefined) — fx ved hurtig navigation eller session-genoprettelse. Koden sender da `department_id: selectedDepartmentId || null` — og dette null gemmes i databasen.
+**Fejl 1 (Kritisk): Timezone-offset ved dato-konvertering**
 
-### Den kritiske fejl i RPC-funktionen
-
-`list_accessible_assignments_with_team` indeholder denne WHERE-betingelse for administratorer/skadeledere:
-
-```sql
-WHERE (p_department_id IS NULL OR a.department_id = p_department_id OR a.department_id IS NULL)
+I `AssignmentForm.tsx` linje 294:
+```tsx
+selectedDates={(formData as any).dates?.map((d: string) => new Date(d)) || ...}
 ```
 
-Betingelsen `a.department_id IS NULL` betyder: **"vis opgaven, uanset hvilken afdeling der er valgt"**. Det var tænkt som en sikkerhed for generelle opgaver, men det medfører, at en opgave fra Afd. 14 (der bare mangler department_id) vises for alle afdelinger — inkl. Afd. 12 - Fredericia.
+`new Date('2026-02-25')` fortolkes som **UTC midnat** af JavaScript. På europæiske browsere (UTC+1 om vinteren) bliver dette kl. 01:00 lokal tid den 25. feb — men `format(date, 'yyyy-MM-dd')` formaterer korrekt. Det omvendte problem opstår i `AssignmentFormFields.tsx` linje ~162:
 
-Samme fejl gælder for servicemedarbejdere (samme mønster i ELSE-grenen).
-
-### Løsning (tre lag)
-
-**Lag 1 - Ret den eksisterende NULL-opgave (data-fix)**  
-Sæt `department_id = '63d46993-31cb-4921-bb3d-5934984ab6b3'` (14 - Asnæs) på opgave `792649a1-...` da den klart tilhører Afd. 14 (responsible user er Michael Rattenborg fra Afd. 14, alle tilknyttede medarbejdere er fra Afd. 14).
-
-**Lag 2 - Ret RPC-funktionen (forhindrer fremtidige lækager)**  
-Fjern `OR a.department_id IS NULL` fra WHERE-betingelsen. Opgaver uden department_id skal kun vises, når der *ikke* er valgt en specifik afdeling (`p_department_id IS NULL`):
-
-```sql
--- FØR (fejlagtig):
-WHERE (p_department_id IS NULL OR a.department_id = p_department_id OR a.department_id IS NULL)
-
--- EFTER (korrekt):
-WHERE (p_department_id IS NULL OR a.department_id = p_department_id)
+```tsx
+const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 ```
 
-Dette gælder begge grene (administrator/skadeleder og servicemedarbejder) i funktionen.
+Dette er korrekt inde i `formatDateDisplay`, men `handleDateSelect` (linje ~171) laver lokale dates — og disse sendes korrekt videre. Problemet er, at den _omvendte vej_ (fra `formData.dates` til `selectedDates` prop) bruger `new Date(d)` uden lokal-justering.
 
-**Lag 3 - Frontend-guard (forhindrer NULL-oprettelse)**  
-I `useOptimizedAssignments.ts` skal `createAssignment` afvise kald, hvis `selectedDepartmentId` er null og brugeren ikke er i demo-mode — i stedet for stiltiende at gemme `department_id: null`.
+**Fejl 2 (Validering): `formData.date` er tom-streng ved multi-dato**
+
+Når brugeren vælger dage i kalenderen og fjerner dem igen (clearDates), sættes `date: ''`. `handleDatesChange` sætter `date: dateStrings[0]` korrekt — men submit-valideringen i `AssignmentForm.tsx` linje 82-84 tjekker kun `formData.date` og **ikke** `(formData as any).dates`:
+
+```tsx
+if (!formData.date) {  // ← Ser ikke på dates-array
+  validationErrors.push(t('planner.validation.dateRequired'));
+}
+```
+
+Dette er ikke det store problem (da `date` altid sættes til første valgte dato), men valideringslogikken er inkonsistent med multi-dag forventninger.
+
+**Fejl 3 (Logik): `console.log` i produktion**
+
+`AssignmentForm.tsx` har mange `console.log()` uden `import.meta.env.DEV`-guard — jf. tekniske specs skal disse fjernes fra produktion.
+
+### Løsning
+
+**`src/components/Planner/AssignmentForm.tsx`** (3 ændringer):
+
+1. **Linje 294** — Fix timezone-offset i `selectedDates`-mapping:
+   - Fra: `(formData as any).dates?.map((d: string) => new Date(d))`
+   - Til: `(formData as any).dates?.map((d: string) => { const [y,m,day] = d.split('-').map(Number); return new Date(y, m-1, day); })`
+
+2. **Linje 82-84** — Opdater datovalidering til at respektere multi-dato-arrayet:
+   - Fra: `if (!formData.date) { ... }`
+   - Til: `if (!formData.date && !((formData as any).dates?.length > 0)) { ... }`
+
+3. **Console.log rydning** — Omslut alle `console.log` i `import.meta.env.DEV`-guard jf. tekniske specs (dette er en stor kodekvalitetsforbedring).
+
+**`CHANGELOG.md`**: Dokumenter fix.
 
 ### Filer der ændres
 
 | Fil | Ændring |
 |-----|---------|
-| Database migration | Fix NULL department_id på opgave 792649a1 + ret RPC-funktion |
-| `src/hooks/useOptimizedAssignments.ts` | Guard mod oprettelse uden department_id |
-| `CHANGELOG.md` | Dokumenter security-fix |
+| `src/components/Planner/AssignmentForm.tsx` | Fix timezone-offset i dato-konvertering, opdater datovalidering, fjern produktions-logging |
+| `CHANGELOG.md` | Dokumenter fix |
 
 ### Kvalitetstjek
-- Opgave 14-000686 vises ikke længere i Fredericia
-- Alle fremtidige opgaver tildeles korrekt department_id ved oprettelse
-- RPC returnerer kun opgaver tilhørende den valgte afdeling
-- Ingen ændring i oplevelsen for Afd. 14 - Asnæs brugere
-- Overholder tekniske specs (multi-tenant isolation, afdeling-baseret dataadgang)
+- Multi-dag oprettelse virker korrekt — alle valgte dage oprettes i databasen
+- Ingen timezone-offset — valgte dato-badges viser korrekte datoer
+- Validering fungerer for både enkelt-dato og multi-dato
+- Ingen console.log i produktion jf. tekniske specs
+- Desktop og mobil understøttet
+- Overholder UI-guidelines (ingen visuelle ændringer)
