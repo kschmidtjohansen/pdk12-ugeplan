@@ -2,6 +2,10 @@
 
 ## [Unreleased] - 2026-02-23
 
+### Fixed — Desktop scroll i selectors (modal Popover)
+- **EmployeeSelector, MultipleCarSelector, CarSelector, ResponsibleUserSelector**: Desktop Popover ændret fra `modal={false}` til `modal={true}`. Løser scroll-blokering inde i Dialog-kontekst ved at lade Radix Popover neste sin `RemoveScroll` korrekt med Dialogens `RemoveScroll`. `onPointerDownOutside`-handler fjernet (unødvendig med `modal={true}`).
+- **Beskrivelse for alle roller**: Verificeret at `AssignmentDetailsDialog` ikke har rolle-baserede begrænsninger på beskrivelsen — alle roller (Servicemedarbejder, Skadeleder, Administrator) kan se beskrivelsen fuldt ud.
+
 ### Fixed — PullToRefresh: Ignorerer touch i Drawers/Dialogs
 - **PullToRefresh.tsx**: `handleTouchStart` tjekker nu om touch stammer fra `[data-vaul-drawer]`, `[data-vaul-overlay]` eller `[role="dialog"]` og ignorerer i så fald eventet. Forhindrer at swipe-ned i en åben Drawer/Dialog udløser pull-to-refresh.
 
