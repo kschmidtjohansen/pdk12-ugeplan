@@ -221,15 +221,13 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                   >
                     <input
                       type="checkbox"
-                      id={`car-${car.id}`}
                       checked={isSelected}
-                      onChange={(e) => { e.stopPropagation(); handleCarClick(car); }}
+                      readOnly
                       disabled={!canSelect}
-                      className="rounded border-border text-primary focus:ring-primary"
+                      className="rounded border-border text-primary focus:ring-primary pointer-events-none"
                     />
-                    <label
-                      htmlFor={`car-${car.id}`}
-                      className={`flex-1 text-sm cursor-pointer ${
+                    <div
+                      className={`flex-1 text-sm ${
                         !canSelect ? 'text-muted-foreground' : ''
                       }`}
                     >
@@ -259,7 +257,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                           )}
                         </div>
                       </div>
-                    </label>
+                    </div>
                   </div>
                 );
               })}

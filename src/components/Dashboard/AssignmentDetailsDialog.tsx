@@ -215,7 +215,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 
                    {/* Description - shown after details */}
                    {assignment.description && (
-                      <div className="space-y-2.5 pb-4">
+                      <div className="space-y-2.5 pb-4 flex-shrink-0">
                         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('planner.description')}</h4>
                        <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap break-words">{assignment.description}</p>
                      </div>
@@ -322,7 +322,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 
           {/* Right column: Messages sidebar */}
           {isChatEnabled && (
-           <div className="lg:w-2/5 flex flex-col relative h-[350px] lg:h-auto lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20">
+           <div className="lg:w-2/5 flex flex-col relative min-h-[300px] max-h-[50dvh] lg:h-auto lg:max-h-none lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20">
              <div className="px-3 sm:px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-2.5 text-sm font-semibold">
