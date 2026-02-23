@@ -27,6 +27,11 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   const PULL_THRESHOLD = 80; // Pixels to pull before triggering refresh
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    // Skip if touch originates inside a Drawer, overlay, or dialog
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-vaul-drawer]') || target.closest('[data-vaul-overlay]') || target.closest('[role="dialog"]')) {
+      return;
+    }
     if (window.scrollY === 0) {
       startY.current = e.touches[0].clientY;
       setIsPulling(true);
