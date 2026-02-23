@@ -127,7 +127,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     <div className="space-y-2">
       <Label>{t('planner.selectCar')}</Label>
       
-      <Popover>
+      <Popover modal={false}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="w-full justify-between p-2">
             <span className={`truncate px-[15px] ${!hasSelectedCar ? 'text-muted-foreground' : ''}`}>

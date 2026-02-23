@@ -2,6 +2,16 @@
 
 ## [Unreleased] - 2026-02-23
 
+### Fixed — Planner: Bil-valg, Scroll og Mobil-overlap (Afd. 14)
+- **MultipleCarSelector (double-toggle fix)**: Fjernet `htmlFor` fra `<label>` og `onChange` fra checkbox — klik på hele bil-rækken toggler nu korrekt én gang i stedet for to (som annullerede hinanden).
+- **EmployeeSelector (scroll-fix)**: Erstattet `DropdownMenu` med `Popover modal={false}` — fjerner Radix focus-trapping der blokerede scroll i Dialog-kontekst. Native scroll med `onWheel stopPropagation` virker nu på både desktop og mobil.
+- **CarSelector (single)**: Tilføjet `modal={false}` på Popover — matcher MultipleCarSelector-fix.
+- **AssignmentDetailsDialog (mobil-overlap)**: Ændret besked-panel fra `h-[350px]` til `min-h-[300px] max-h-[50dvh]` for fleksibel højde. Tilføjet `flex-shrink-0` på beskrivelses-sektion.
+- **AssignmentForm (DEV-guard)**: Console.log på title/location/time/description-handlers wrappet i `import.meta.env.DEV`-guard.
+- **EmployeeSelector (DEV-guard)**: Console.error i catch-blokke wrappet i `import.meta.env.DEV`-guard.
+
+## [Unreleased] - 2026-02-23
+
 ### Fixed — Planner: Car Selector lukker uden at vælge bil
 - **MultipleCarSelector (Popover-i-Dialog fix)**: Tilføjet `modal={false}` på Popover og `e.stopPropagation()` på klik-handlers, så Radix Dialog ikke lukker Popover ved bilvalg.
 - **MultipleCarSelector (design-system)**: Hardcoded farver (`bg-white`, `bg-gray-50`, `text-gray-400`, `border-gray-200`) erstattet med semantiske tokens (`bg-popover`, `bg-muted`, `text-muted-foreground`, `border-border`). Dark mode-varianter tilføjet på status-badges.

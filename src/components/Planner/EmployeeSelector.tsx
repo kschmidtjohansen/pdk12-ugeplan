@@ -6,12 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Users, MapPin } from 'lucide-react';
 import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus } from '@/utils/employeeAvailability';
@@ -43,7 +38,6 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
 
   // Calculate distances from case to each employee using Haversine
@@ -98,7 +92,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       }
       return new Date(dateStr + 'T12:00:00');
     } catch (e) {
-      console.error('Error parsing date for vacation check:', e);
+      if (import.meta.env.DEV) console.error('Error parsing date for vacation check:', e);
       return new Date();
     }
   })();
@@ -160,8 +154,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         </div>
       )}
       
-      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-        <DropdownMenuTrigger asChild>
+      <Popover modal={false}>
+        <PopoverTrigger asChild>
           <Button 
             variant="outline" 
             className="w-full justify-between h-11 px-4 py-2"
@@ -171,128 +165,144 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               <span className="truncate">{getDisplayText()}</span>
             </div>
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-popover border shadow-md">
-          {sortedEmployees.map((employee, index) => {
-            try {
-              if (!employee || !employee.id || !employee.name) {
-                console.error('[EmployeeSelector] Invalid employee object:', employee);
-                return null;
-              }
-
-              const isSelected = selectedEmployees.includes(employee.id);
-              
-              const isExpired = employee.is_temporary && employee.expires_at 
-                ? new Date(employee.expires_at) < new Date() 
-                : false;
-              
-              let vacationStatus;
-              try {
-                vacationStatus = getEmployeeVacationStatus(employee.id, dateForComparison, vacations);
-              } catch (err) {
-                console.error(`[EmployeeSelector] Error getting vacation status for ${employee.name}:`, err);
-                vacationStatus = { isOnVacation: false, vacationType: 'none' };
-              }
-              
-              const isManuallyOnLeave = employee.onLeave || false;
-              
-              let availabilityInfo;
-              try {
-                availabilityInfo = getEmployeeAvailabilityStatus(employee, dateForComparison, assignments, vacations, t);
-              } catch (err) {
-                console.error(`[EmployeeSelector] Error getting availability status for ${employee.name}:`, err);
-                availabilityInfo = { status: 'available', statusText: '', badgeColor: '' };
-              }
-              
-              const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') 
-                || isManuallyOnLeave 
-                || isExpired
-                || employee.status === 'terminated'
-                || employee.status === 'inactive';
-              
-              const isFullyBooked = availabilityInfo.status === 'fullyBooked';
-
-              // Distance info
-              const dist = distanceMap.get(employee.id);
-              const isNearby = dist != null && dist <= 15;
-              const isTop3 = top3NearbyIds.includes(employee.id);
-              const formattedDist = dist != null
-                ? (currentLanguage === 'da' ? dist.toFixed(1).replace('.', ',') : dist.toFixed(1))
-                : null;
-              
-              return (
-              <DropdownMenuItem
-                key={employee.id}
-                className={`flex items-center gap-2 py-3 px-4 transition-colors ${
-                  index < sortedEmployees.length - 1 ? 'border-b border-border/40' : ''
-                } ${
-                  isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
-                } ${
-                  isSelected ? 'bg-accent/30' : ''
-                }`}
-                onSelect={(e) => {
-                  e.preventDefault();
-                  if (!isDisabled) {
-                    onToggle(employee.id);
-                  }
-                }}
-              >
-                <Checkbox
-                  checked={isSelected}
-                  onChange={() => !isDisabled && onToggle(employee.id)}
-                  disabled={isDisabled}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-medium text-foreground truncate">
-                        {employee.name}
-                      </span>
-                      {isNearby && formattedDist && (
-                        <span className={`text-xs flex items-center gap-1 mt-0.5 ${isTop3 ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
-                          <MapPin className={`h-3 w-3 ${isTop3 ? 'text-green-600' : ''}`} />
-                          {formattedDist} km {currentLanguage === 'da' ? 'væk' : 'away'}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-1 ml-2 flex-shrink-0">
-                      {isExpired && (
-                        <Badge variant="destructive" size="sm">
-                          {t('employees.statusExpired')}
-                        </Badge>
-                      )}
-                      {(employee.status === 'terminated' || employee.status === 'inactive') && (
-                        <Badge variant="outline" size="sm" className="text-destructive border-destructive/30">
-                          {employee.status === 'terminated' ? t('employees.statusTerminated') : t('employees.statusInactive')}
-                        </Badge>
-                      )}
-                      {vacationStatus.isOnVacation && vacationStatus.vacationType === 'partial_day' && (
-                        <Badge variant="warning" size="sm">
-                          {availabilityInfo.statusText}
-                        </Badge>
-                      )}
-                      {isFullyBooked && !isDisabled && (
-                        <Badge variant="destructive" size="sm">
-                          {availabilityInfo.statusText}
-                        </Badge>
-                      )}
-                      {availabilityInfo.status !== 'available' && !isFullyBooked && !vacationStatus.isOnVacation && !isDisabled && (
-                        <Badge variant="warning" size="sm">
-                          {availabilityInfo.statusText}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </DropdownMenuItem>
-            );
-            } catch (err) {
-              console.error(`[EmployeeSelector] Error rendering employee ${employee?.name || 'unknown'}:`, err);
-              return null;
+        </PopoverTrigger>
+        <PopoverContent 
+          className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
+          sideOffset={4}
+          onPointerDownOutside={(event) => {
+            const target = event.target as Element;
+            if (target.closest('[data-radix-popper-content-wrapper]')) {
+              event.preventDefault();
             }
-          })}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          }}
+        >
+          <div 
+            className="max-h-64 overflow-y-auto"
+            onWheel={(e) => e.stopPropagation()}
+          >
+            <div className="py-1">
+              {sortedEmployees.map((employee, index) => {
+                try {
+                  if (!employee || !employee.id || !employee.name) {
+                    if (import.meta.env.DEV) console.error('[EmployeeSelector] Invalid employee object:', employee);
+                    return null;
+                  }
+
+                  const isSelected = selectedEmployees.includes(employee.id);
+                  
+                  const isExpired = employee.is_temporary && employee.expires_at 
+                    ? new Date(employee.expires_at) < new Date() 
+                    : false;
+                  
+                  let vacationStatus;
+                  try {
+                    vacationStatus = getEmployeeVacationStatus(employee.id, dateForComparison, vacations);
+                  } catch (err) {
+                    if (import.meta.env.DEV) console.error(`[EmployeeSelector] Error getting vacation status for ${employee.name}:`, err);
+                    vacationStatus = { isOnVacation: false, vacationType: 'none' };
+                  }
+                  
+                  const isManuallyOnLeave = employee.onLeave || false;
+                  
+                  let availabilityInfo;
+                  try {
+                    availabilityInfo = getEmployeeAvailabilityStatus(employee, dateForComparison, assignments, vacations, t);
+                  } catch (err) {
+                    if (import.meta.env.DEV) console.error(`[EmployeeSelector] Error getting availability status for ${employee.name}:`, err);
+                    availabilityInfo = { status: 'available', statusText: '', badgeColor: '' };
+                  }
+                  
+                  const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') 
+                    || isManuallyOnLeave 
+                    || isExpired
+                    || employee.status === 'terminated'
+                    || employee.status === 'inactive';
+                  
+                  const isFullyBooked = availabilityInfo.status === 'fullyBooked';
+
+                  // Distance info
+                  const dist = distanceMap.get(employee.id);
+                  const isNearby = dist != null && dist <= 15;
+                  const isTop3 = top3NearbyIds.includes(employee.id);
+                  const formattedDist = dist != null
+                    ? (currentLanguage === 'da' ? dist.toFixed(1).replace('.', ',') : dist.toFixed(1))
+                    : null;
+                  
+                  return (
+                    <div
+                      key={employee.id}
+                      className={`flex items-center gap-3 py-3 px-4 transition-colors ${
+                        index < sortedEmployees.length - 1 ? 'border-b border-border/40' : ''
+                      } ${
+                        isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
+                      } ${
+                        isSelected ? 'bg-accent/30' : ''
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isDisabled) {
+                          onToggle(employee.id);
+                        }
+                      }}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        disabled={isDisabled}
+                        className="pointer-events-none"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-medium text-foreground truncate">
+                              {employee.name}
+                            </span>
+                            {isNearby && formattedDist && (
+                              <span className={`text-xs flex items-center gap-1 mt-0.5 ${isTop3 ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
+                                <MapPin className={`h-3 w-3 ${isTop3 ? 'text-green-600' : ''}`} />
+                                {formattedDist} km {currentLanguage === 'da' ? 'væk' : 'away'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-1 ml-2 flex-shrink-0">
+                            {isExpired && (
+                              <Badge variant="destructive" size="sm">
+                                {t('employees.statusExpired')}
+                              </Badge>
+                            )}
+                            {(employee.status === 'terminated' || employee.status === 'inactive') && (
+                              <Badge variant="outline" size="sm" className="text-destructive border-destructive/30">
+                                {employee.status === 'terminated' ? t('employees.statusTerminated') : t('employees.statusInactive')}
+                              </Badge>
+                            )}
+                            {vacationStatus.isOnVacation && vacationStatus.vacationType === 'partial_day' && (
+                              <Badge variant="warning" size="sm">
+                                {availabilityInfo.statusText}
+                              </Badge>
+                            )}
+                            {isFullyBooked && !isDisabled && (
+                              <Badge variant="destructive" size="sm">
+                                {availabilityInfo.statusText}
+                              </Badge>
+                            )}
+                            {availabilityInfo.status !== 'available' && !isFullyBooked && !vacationStatus.isOnVacation && !isDisabled && (
+                              <Badge variant="warning" size="sm">
+                                {availabilityInfo.statusText}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                } catch (err) {
+                  if (import.meta.env.DEV) console.error(`[EmployeeSelector] Error rendering employee ${employee?.name || 'unknown'}:`, err);
+                  return null;
+                }
+              })}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };

@@ -222,7 +222,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         <AssignmentFormFields 
           title={formData.title || ''} 
           setTitle={value => {
-            console.log('[AssignmentForm] Title updated:', value);
+            if (import.meta.env.DEV) console.log('[AssignmentForm] Title updated:', value);
             setFormData({
               ...formData,
               title: value
@@ -230,7 +230,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           }} 
           location={formData.location || ''} 
           setLocation={value => {
-            console.log('[AssignmentForm] Location updated:', value);
+            if (import.meta.env.DEV) console.log('[AssignmentForm] Location updated:', value);
             setFormData({
               ...formData,
               location: value
@@ -241,7 +241,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           isEditMode={!!currentAssignment}
           fromTime={formData.fromTime || '08:00'} 
           setFromTime={value => {
-            console.log('[AssignmentForm] From time updated:', value);
+            if (import.meta.env.DEV) console.log('[AssignmentForm] From time updated:', value);
             setFormData({
               ...formData,
               fromTime: value
@@ -249,7 +249,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           }} 
           toTime={formData.toTime || '16:00'} 
           setToTime={value => {
-            console.log('[AssignmentForm] To time updated:', value);
+            if (import.meta.env.DEV) console.log('[AssignmentForm] To time updated:', value);
             setFormData({
               ...formData,
               toTime: value
@@ -257,7 +257,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           }} 
           description={formData.description || ''} 
           setDescription={value => {
-            console.log('[AssignmentForm] Description updated:', value);
+            if (import.meta.env.DEV) console.log('[AssignmentForm] Description updated:', value);
             setFormData({
               ...formData,
               description: value
