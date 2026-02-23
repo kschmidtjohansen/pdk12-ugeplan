@@ -1,36 +1,79 @@
 
 
-## Fix: Car Selector lukker uden at vælge bil
+## Fix: Kritiske fejl i Afd. 14 -- Selektion, Scroll og Mobil-overlap
 
 ### Problemanalyse
 
-`MultipleCarSelector` bruger en Radix `Popover` inde i en Radix `Dialog`. Radix Dialog lytter efter pointer-events udenfor sit content og lukker nested popovers, fordi den opfatter klikket som "outside interaction". Resultatet: brugeren klikker pa en bil, Popover lukker, men `onClick` nar aldrig at fire.
+**Problem 1: MultipleCarSelector double-toggle (bil-valg virker ikke)**
+I `MultipleCarSelector.tsx` har `<label htmlFor="car-{id}">` (linje 230-231) en native kobling til checkbox-inputtet. Naar brugeren klikker paa bil-raekken:
+1. `div onClick` (linje 220) kalder `handleCarClick()` -- toggler bilen
+2. `<label htmlFor>` sender automatisk et klik til checkbox
+3. Checkbox `onChange` (linje 226) kalder `handleCarClick()` igen -- toggler bilen TILBAGE
 
-### Losning
+Resultatet: bilen toggles to gange og ender i samme tilstand. Kun direkte klik paa checkbox virker.
 
-**`src/components/Planner/MultipleCarSelector.tsx`** (4 rettelser):
+**Problem 2: EmployeeSelector scroll-blokering**
+`EmployeeSelector` bruger Radix `DropdownMenu` inde i en `Dialog`. DropdownMenu har aggressiv focus-trapping der blokerer native scroll.
 
-1. **Tilf0j `modal={false}`** pa Popover-komponenten -- dette forhindrer Radix i at "fange" focus og pointer-events, sa Dialog ikke interfererer med klik inde i Popover.
+**Problem 3: CarSelector (single) mangler `modal={false}`**
+`CarSelector.tsx` bruger `<Popover>` uden `modal={false}`, hvilket foraarsager at Dialog intercepter klik.
 
-2. **Tilf0j `e.stopPropagation()`** pa alle klik-handlers for bil-elementer (bade div onClick og checkbox onChange) -- dette forhindrer klik-events fra at boble op til Dialog.
+**Problem 4: Tekst-overlap paa mobil**
+`AssignmentDetailsDialog.tsx` linje 325 har `h-[350px]` paa besked-panelet. Naar beskrivelsen er lang, overlapper den besked-sektionen.
 
-3. **Ret `bg-white` til `bg-popover`** pa PopoverContent -- overholder UI-guidelines for dark mode support.
+**Problem 5: Console.log i produktion**
+`AssignmentForm.tsx` har `console.log` paa linje 225, 233, 244, 253, 261 uden `import.meta.env.DEV`-guard.
 
-4. **Ret hardcoded farver** (`bg-gray-50`, `text-gray-400`, `border-gray-200`, etc.) til Tailwind semantic tokens (`bg-muted`, `text-muted-foreground`, `border-border`, etc.) -- overholder design-system guidelines.
+### Loesning
 
-**`CHANGELOG.md`**: Dokumenter fix.
+#### Fil 1: `src/components/Planner/MultipleCarSelector.tsx`
+
+**Fjern `htmlFor`** fra `<label>` (linje 230-231) og **fjern `onChange`** fra checkbox (linje 226). Goer checkbox til `readOnly` saa kun div's `onClick` haandterer valg. Dette sikrer at et klik paa hele raekken (inkl. label-tekst, badge, bilnavn) toggler bilen praecis en gang.
+
+- Linje 226: `onChange={(e) => { e.stopPropagation(); handleCarClick(car); }}` erstattes med ingenting (fjern onChange, tilfoej `readOnly`)
+- Linje 230-231: `<label htmlFor={...}>` erstattes med `<div>` (fjern htmlFor-kobling)
+
+#### Fil 2: `src/components/Planner/EmployeeSelector.tsx`
+
+Erstat `DropdownMenu`/`DropdownMenuContent`/`DropdownMenuItem` med `Popover`/`PopoverContent`/`PopoverTrigger` (samme moenster som MultipleCarSelector). Tilfoej `modal={false}` og native scroll med `onWheel={e.stopPropagation()}`. Tilfoej `e.stopPropagation()` paa klik-handlers. Al eksisterende funktionalitet bevares (afstandsberegning, vacation-check, auto-remove, badges).
+
+#### Fil 3: `src/components/Planner/CarSelector.tsx`
+
+Tilfoej `modal={false}` paa `<Popover>` (linje 130 i original).
+
+#### Fil 4: `src/components/Dashboard/AssignmentDetailsDialog.tsx`
+
+Aendr linje 325 fra `h-[350px]` til `min-h-[300px] max-h-[50dvh]` for fleksibel hoejde paa mobil. Tilfoej `flex-shrink-0` paa description-sektionen.
+
+#### Fil 5: `src/components/Planner/AssignmentForm.tsx`
+
+Omslut `console.log` paa linje 225, 233, 244, 253, 261 med `if (import.meta.env.DEV)` guard.
+
+#### Fil 6: `CHANGELOG.md`
+
+Dokumenter alle fixes.
 
 ### Filer der aendres
 
 | Fil | AEndring |
 |-----|---------|
-| `src/components/Planner/MultipleCarSelector.tsx` | `modal={false}`, `e.stopPropagation()`, semantic farver |
-| `CHANGELOG.md` | Dokumenter fix |
+| `src/components/Planner/MultipleCarSelector.tsx` | Fjern `htmlFor` fra label, goer checkbox `readOnly`, fjern `onChange` |
+| `src/components/Planner/EmployeeSelector.tsx` | Erstat DropdownMenu med Popover + scroll-fix + stopPropagation |
+| `src/components/Planner/CarSelector.tsx` | Tilfoej `modal={false}` paa Popover |
+| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Fix mobil tekst-overlap med fleksibel hoejde |
+| `src/components/Planner/AssignmentForm.tsx` | DEV-guard paa console.log |
+| `CHANGELOG.md` | Dokumenter fixes |
+
+### RLS-vurdering
+
+RLS-politikkerne for `assignments`, `cars` og `profiles` er korrekte for administratorer. `is_admin_or_skadeleder()` giver fuld adgang til CRUD-operationer. Problemet er udelukkende frontend-komponenternes interaktions-haandtering (double-toggle, scroll-blokering, Popover/Dialog-konflikt). Ingen database-aendringer er noedvendige.
 
 ### Kvalitetstjek
-- Klik pa bil i car selector vaelger bilen korrekt uden at lukke popover
-- Popover lukker kun ved klik udenfor eller explicit lukning
-- Fungerer korrekt bade i lys og mork tema
-- Fungerer i Dialog-kontekst (opret/rediger opgave)
+- Klik paa bil-raekken (udenfor checkbox) vaelger/fravaelger bilen korrekt (en enkelt toggle)
+- Klik direkte paa checkbox virker ogsaa korrekt
+- Scroll virker i bil- og medarbejder-lister paa baade desktop og mobil
+- Popover lukker ikke ved valg
+- Beskrivelse og Beskeder overlapper ikke paa mobil
 - Ingen console.log i produktion
-
+- Overholder UI-guidelines (semantic farver, responsive design)
+- Overholder tekniske specs (ingen produktions-logging)
