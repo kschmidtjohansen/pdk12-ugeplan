@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Car } from '@/types/car';
 import { Assignment } from '@/types/assignment';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { X, ChevronDown, Car as CarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CarSelectorProps {
   cars: Car[];
@@ -26,6 +28,8 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
   currentAssignmentId
 }) => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
 
   const normalizeTime = (time: string): string => {
     if (!time) return '';
@@ -115,6 +119,7 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
     } else {
       onCarSelect(carId);
     }
+    setOpen(false);
   };
 
   const handleCarRemove = () => {
@@ -123,105 +128,129 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
 
   const hasSelectedCar = selectedCarId && selectedCarId !== '';
 
+  const renderCarList = () => (
+    <div className="py-1">
+      <div
+        onClick={() => handleCarSelect('none')}
+        className={`flex items-center gap-3 py-3 px-4 cursor-pointer transition-colors border-b border-border/40 ${
+          !hasSelectedCar ? 'bg-accent/30' : 'hover:bg-accent/50'
+        }`}
+      >
+        <span className="font-medium text-foreground">
+          {t('cars.noCar')}
+        </span>
+      </div>
+      
+      {cars.filter(car => car.show_in_planner !== false).map((car, index, filteredCars) => {
+        const isSelected = selectedCarId === car.id;
+        const isUnavailable = !car.is_available;
+        const carUsage = isCarInUse(car.id);
+        
+        return (
+          <div
+            key={car.id}
+            onClick={() => !isUnavailable && handleCarSelect(car.id)}
+            className={`flex items-center gap-3 py-3 px-4 transition-colors ${
+              index < filteredCars.length - 1 ? 'border-b border-border/40' : ''
+            } ${
+              isUnavailable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
+            } ${
+              isSelected ? 'bg-accent/30' : ''
+            }`}
+          >
+            <CarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col min-w-0">
+                  <span className="font-medium text-foreground truncate">
+                    {car.name}
+                  </span>
+                  {car.number_plate && (
+                    <span className="text-xs text-muted-foreground mt-0.5">
+                      {car.number_plate}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-1 flex-shrink-0 ml-2">
+                  {isUnavailable && (
+                    <Badge variant="outline" size="sm">
+                      {t('cars.unavailable')}
+                    </Badge>
+                  )}
+                  {carUsage.isAssigned && !isUnavailable && (
+                    <Badge 
+                      variant={carUsage.isFullDay ? 'destructive' : 'warning'}
+                      size="sm"
+                    >
+                      {carUsage.isFullDay 
+                        ? (t('cars.inUseFullDay') || 'I brug hele dagen')
+                        : (t('cars.inUse', { time: carUsage.latestEndTime }) || `I brug til ${carUsage.latestEndTime}`)
+                      }
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const triggerButton = (
+    <Button variant="outline" className="w-full justify-between p-2">
+      <span className={`truncate px-[15px] ${!hasSelectedCar ? 'text-muted-foreground' : ''}`}>
+        {getSelectedCarDisplay()}
+      </span>
+      <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+    </Button>
+  );
+
   return (
     <div className="space-y-2">
       <Label>{t('planner.selectCar')}</Label>
       
-      <Popover modal={false}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-between p-2">
-            <span className={`truncate px-[15px] ${!hasSelectedCar ? 'text-muted-foreground' : ''}`}>
-              {getSelectedCarDisplay()}
-            </span>
-            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent 
-          className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
-          sideOffset={4}
-          onPointerDownOutside={(event) => {
-            const target = event.target as Element;
-            if (target.closest('[data-radix-popper-content-wrapper]')) {
-              event.preventDefault();
-            }
-          }}
-        >
-          <div 
-            className="max-h-60 overflow-y-auto overscroll-contain touch-pan-y"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-            onWheel={(e) => e.stopPropagation()}
-            onTouchMove={(e) => e.stopPropagation()}
-          >
-            <div className="py-1">
-              {/* No car option */}
-              <div
-                onClick={() => handleCarSelect('none')}
-                className={`flex items-center gap-3 py-3 px-4 cursor-pointer transition-colors border-b border-border/40 ${
-                  !hasSelectedCar ? 'bg-accent/30' : 'hover:bg-accent/50'
-                }`}
-              >
-                <span className="font-medium text-foreground">
-                  {t('cars.noCar')}
-                </span>
-              </div>
-              
-              {cars.filter(car => car.show_in_planner !== false).map((car, index, filteredCars) => {
-                const isSelected = selectedCarId === car.id;
-                const isUnavailable = !car.is_available;
-                const carUsage = isCarInUse(car.id);
-                
-                return (
-                  <div
-                    key={car.id}
-                    onClick={() => !isUnavailable && handleCarSelect(car.id)}
-                    className={`flex items-center gap-3 py-3 px-4 transition-colors ${
-                      index < filteredCars.length - 1 ? 'border-b border-border/40' : ''
-                    } ${
-                      isUnavailable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
-                    } ${
-                      isSelected ? 'bg-accent/30' : ''
-                    }`}
-                  >
-                    <CarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-col min-w-0">
-                          <span className="font-medium text-foreground truncate">
-                            {car.name}
-                          </span>
-                          {car.number_plate && (
-                            <span className="text-xs text-muted-foreground mt-0.5">
-                              {car.number_plate}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex gap-1 flex-shrink-0 ml-2">
-                          {isUnavailable && (
-                            <Badge variant="outline" size="sm">
-                              {t('cars.unavailable')}
-                            </Badge>
-                          )}
-                          {carUsage.isAssigned && !isUnavailable && (
-                            <Badge 
-                              variant={carUsage.isFullDay ? 'destructive' : 'warning'}
-                              size="sm"
-                            >
-                              {carUsage.isFullDay 
-                                ? (t('cars.inUseFullDay') || 'I brug hele dagen')
-                                : (t('cars.inUse', { time: carUsage.latestEndTime }) || `I brug til ${carUsage.latestEndTime}`)
-                              }
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+      {isMobile ? (
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerTrigger asChild>
+            {triggerButton}
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{t('planner.selectCar')}</DrawerTitle>
+            </DrawerHeader>
+            <div 
+              className="max-h-[60dvh] overflow-y-auto px-4 pb-4"
+              style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+            >
+              {renderCarList()}
             </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Popover modal={false}>
+          <PopoverTrigger asChild>
+            {triggerButton}
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
+            sideOffset={4}
+            onPointerDownOutside={(event) => {
+              const target = event.target as Element;
+              if (target.closest('[data-radix-popper-content-wrapper]')) {
+                event.preventDefault();
+              }
+            }}
+          >
+            <div 
+              className="max-h-60 overflow-y-auto"
+              onWheel={(e) => e.stopPropagation()}
+            >
+              {renderCarList()}
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
       
       {hasSelectedCar && (
         <div className="flex flex-wrap gap-1">
