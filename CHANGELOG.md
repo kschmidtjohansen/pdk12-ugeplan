@@ -1,6 +1,10 @@
 # Changelog
 
-## [Unreleased] - 2026-02-20
+## [Unreleased] - 2026-02-23
+
+### Fixed — Planner: Car Selector lukker uden at vælge bil
+- **MultipleCarSelector (Popover-i-Dialog fix)**: Tilføjet `modal={false}` på Popover og `e.stopPropagation()` på klik-handlers, så Radix Dialog ikke lukker Popover ved bilvalg.
+- **MultipleCarSelector (design-system)**: Hardcoded farver (`bg-white`, `bg-gray-50`, `text-gray-400`, `border-gray-200`) erstattet med semantiske tokens (`bg-popover`, `bg-muted`, `text-muted-foreground`, `border-border`). Dark mode-varianter tilføjet på status-badges.
 
 ### Fixed — Planner: Multi-dag opgaveoprettelse
 - **AssignmentForm (timezone-fix)**: `selectedDates`-mapping brugte `new Date(d)` der fortolker ISO-datostrenge som UTC midnat, hvilket forårsagede et dag-offset på europæiske browsere (UTC+1). Rettet til lokal dato-konstruktion: `new Date(y, m-1, day)`.

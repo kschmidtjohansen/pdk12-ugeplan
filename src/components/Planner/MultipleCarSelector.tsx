@@ -164,7 +164,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       )}
 
       {/* Car selector dropdown */}
-      <Popover>
+      <Popover modal={false}>
         <PopoverTrigger asChild>
           <Button
             type="button"
@@ -178,7 +178,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-80 p-0 z-[60] bg-white border shadow-lg" 
+          className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
           sideOffset={4}
           onPointerDownOutside={(event) => {
             // Allow scrolling without closing the popover
@@ -189,7 +189,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
           }}
         >
           {/* Header with padding */}
-          <div className="p-3 pb-2 border-b border-gray-100">
+          <div className="p-3 pb-2 border-b border-border">
             <h4 className="font-medium text-sm">{t('planner.selectCars')}</h4>
           </div>
           
@@ -211,26 +211,26 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                 // Only block generally unavailable cars - occupied cars CAN be selected
                 const canSelect = isGenerallyAvailable;
                 
-                return (
+                  return (
                   <div
                     key={car.id}
-                    className={`flex items-center space-x-3 p-3 rounded-md hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-200 ${
+                    className={`flex items-center space-x-3 p-3 rounded-md hover:bg-accent/50 cursor-pointer transition-colors border border-transparent hover:border-border ${
                       !canSelect ? 'opacity-60' : ''
                     }`}
-                    onClick={() => handleCarClick(car)}
+                    onClick={(e) => { e.stopPropagation(); handleCarClick(car); }}
                   >
                     <input
                       type="checkbox"
                       id={`car-${car.id}`}
                       checked={isSelected}
-                      onChange={() => handleCarClick(car)}
+                      onChange={(e) => { e.stopPropagation(); handleCarClick(car); }}
                       disabled={!canSelect}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-border text-primary focus:ring-primary"
                     />
                     <label
                       htmlFor={`car-${car.id}`}
                       className={`flex-1 text-sm cursor-pointer ${
-                        !canSelect ? 'text-gray-400' : ''
+                        !canSelect ? 'text-muted-foreground' : ''
                       }`}
                     >
                       <div className="flex items-center justify-between w-full">
@@ -238,22 +238,22 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                           <Car className="h-4 w-4 flex-shrink-0" />
                           <span className="font-medium truncate">{car.name}</span>
                           {car.car_number && (
-                            <span className="text-gray-500 text-xs">({car.car_number})</span>
+                            <span className="text-muted-foreground text-xs">({car.car_number})</span>
                           )}
                         </div>
                         <div className="flex gap-1 flex-shrink-0 ml-2">
                           {!isGenerallyAvailable ? (
-                            <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
+                            <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                               {t('cars.unavailable')}
                             </Badge>
                           ) : !isBookingAvailable ? (
-                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800">
                               {bookingStatus.endTime 
                                 ? t('cars.inUse', { time: bookingStatus.endTime })
                                 : t('planner.inUseToday')}
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
                               {t('cars.available')}
                             </Badge>
                           )}
