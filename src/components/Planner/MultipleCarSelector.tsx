@@ -2,11 +2,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Badge } from '@/components/ui/badge';
 import { X, Car, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Car as CarType } from '../../types/car';
 import { Assignment } from '../../types/assignment';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +38,8 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   currentAssignmentId
 }) => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
   
   // State for confirmation dialog
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -46,20 +50,15 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     endTime?: string;
   } | null>(null);
 
-  // Check if a car is available for the current date and time
   const getCarBookingStatus = (carId: string): { isAvailable: boolean; endTime?: string } => {
     if (!currentDate) return { isAvailable: true };
     
-    // Filter out current assignment when checking availability
     const otherAssignments = currentAssignmentId 
       ? assignments.filter(a => a.id !== currentAssignmentId)
       : assignments;
     
-    // Check if car is assigned to any other assignment on the same date
     const carAssignments = otherAssignments.filter(assignment => {
       if (assignment.date !== currentDate) return false;
-      
-      // Check both old car field and new cars array for compatibility
       const assignmentCarIds = assignment.cars || (assignment.car ? [typeof assignment.car === 'string' ? assignment.car : assignment.car.id] : []);
       return assignmentCarIds.includes(carId);
     });
@@ -68,7 +67,6 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       return { isAvailable: true };
     }
     
-    // Find the latest end time and format it to HH:MM
     let latestEndTime = '';
     carAssignments.forEach(assignment => {
       if (assignment.toTime > latestEndTime) {
@@ -82,13 +80,9 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     };
   };
 
-  // Get selected cars for display
   const selectedCars = cars.filter(car => selectedCarIds.includes(car.id));
-
-  // Count how many cars are selected
   const selectedCount = selectedCarIds.length;
 
-  // Get button display text
   const getButtonText = () => {
     if (selectedCount === 0) {
       return t('planner.selectCars');
@@ -99,23 +93,19 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     }
   };
 
-  // Handle car click with confirmation for occupied cars
   const handleCarClick = (car: CarType) => {
-    if (!car.is_available) return; // Generally unavailable
+    if (!car.is_available) return;
     
     const isSelected = selectedCarIds.includes(car.id);
     
-    // If deselecting, allow without dialog
     if (isSelected) {
       onCarToggle(car.id);
       return;
     }
     
-    // Check if car is in use
     const bookingStatus = getCarBookingStatus(car.id);
     
     if (!bookingStatus.isAvailable) {
-      // Find conflicting assignments
       const conflictingAssignments = assignments
         .filter(a => {
           if (a.id === currentAssignmentId) return false;
@@ -125,7 +115,6 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         })
         .map(a => a.title || a.case_number || t('planner.assignment'));
       
-      // Show confirmation dialog
       setConfirmDialog({
         isOpen: true,
         carId: car.id,
@@ -136,15 +125,89 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       return;
     }
     
-    // No conflict - select directly
     onCarToggle(car.id);
   };
+
+  const renderCarList = () => (
+    <>
+      <div className={isMobile ? "pb-2 border-b border-border" : "p-3 pb-2 border-b border-border"}>
+        <h4 className="font-medium text-sm">{t('planner.selectCars')}</h4>
+      </div>
+      <div className={isMobile ? "space-y-1 pt-2" : "p-3 space-y-1"}>
+        {cars.filter(car => car.show_in_planner !== false).map((car) => {
+          const isSelected = selectedCarIds.includes(car.id);
+          const bookingStatus = getCarBookingStatus(car.id);
+          const isGenerallyAvailable = car.is_available;
+          const isBookingAvailable = bookingStatus.isAvailable;
+          const canSelect = isGenerallyAvailable;
+          
+          return (
+            <div
+              key={car.id}
+              className={`flex items-center space-x-3 p-3 rounded-md hover:bg-accent/50 cursor-pointer transition-colors border border-transparent hover:border-border ${
+                !canSelect ? 'opacity-60' : ''
+              }`}
+              onClick={(e) => { e.stopPropagation(); handleCarClick(car); }}
+            >
+              <input
+                type="checkbox"
+                checked={isSelected}
+                readOnly
+                disabled={!canSelect}
+                className="rounded border-border text-primary focus:ring-primary pointer-events-none"
+              />
+              <div className={`flex-1 text-sm ${!canSelect ? 'text-muted-foreground' : ''}`}>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <Car className="h-4 w-4 flex-shrink-0" />
+                    <span className="font-medium truncate">{car.name}</span>
+                    {car.car_number && (
+                      <span className="text-muted-foreground text-xs">({car.car_number})</span>
+                    )}
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0 ml-2">
+                    {!isGenerallyAvailable ? (
+                      <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
+                        {t('cars.unavailable')}
+                      </Badge>
+                    ) : !isBookingAvailable ? (
+                      <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800">
+                        {bookingStatus.endTime 
+                          ? t('cars.inUse', { time: bookingStatus.endTime })
+                          : t('planner.inUseToday')}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
+                        {t('cars.available')}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+
+  const triggerButton = (
+    <Button
+      type="button"
+      variant="outline"
+      className="w-full justify-between h-11 px-4 py-2"
+    >
+      <div className="flex items-center gap-2">
+        <Car className="h-4 w-4" />
+        <span>{getButtonText()}</span>
+      </div>
+    </Button>
+  );
 
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">{t('planner.cars')}</label>
       
-      {/* Selected cars display */}
       {selectedCount > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedCars.map((car) => (
@@ -163,109 +226,48 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         </div>
       )}
 
-      {/* Car selector dropdown */}
-      <Popover modal={false}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full justify-between h-11 px-4 py-2"
-          >
-            <div className="flex items-center gap-2">
-              <Car className="h-4 w-4" />
-              <span>{getButtonText()}</span>
+      {isMobile ? (
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerTrigger asChild>
+            {triggerButton}
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{t('planner.cars')}</DrawerTitle>
+            </DrawerHeader>
+            <div 
+              className="max-h-[60dvh] overflow-y-auto px-4 pb-4"
+              style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+            >
+              {renderCarList()}
             </div>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent 
-          className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
-          sideOffset={4}
-          onPointerDownOutside={(event) => {
-            // Allow scrolling without closing the popover
-            const target = event.target as Element;
-            if (target.closest('[data-radix-popper-content-wrapper]')) {
-              event.preventDefault();
-            }
-          }}
-        >
-          {/* Header with padding */}
-          <div className="p-3 pb-2 border-b border-border">
-            <h4 className="font-medium text-sm">{t('planner.selectCars')}</h4>
-          </div>
-          
-          {/* Scrollable cars list using native scrolling */}
-          <div 
-            className="max-h-64 overflow-y-auto overscroll-contain touch-pan-y"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-            onWheel={(e) => e.stopPropagation()}
-            onTouchMove={(e) => e.stopPropagation()}
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Popover modal={false}>
+          <PopoverTrigger asChild>
+            {triggerButton}
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
+            sideOffset={4}
+            onPointerDownOutside={(event) => {
+              const target = event.target as Element;
+              if (target.closest('[data-radix-popper-content-wrapper]')) {
+                event.preventDefault();
+              }
+            }}
           >
-            <div className="p-3 space-y-1">
-              {cars.filter(car => car.show_in_planner !== false).map((car) => {
-                const isSelected = selectedCarIds.includes(car.id);
-                const bookingStatus = getCarBookingStatus(car.id);
-                const isGenerallyAvailable = car.is_available;
-                const isBookingAvailable = bookingStatus.isAvailable;
-                
-                // Only block generally unavailable cars - occupied cars CAN be selected
-                const canSelect = isGenerallyAvailable;
-                
-                  return (
-                  <div
-                    key={car.id}
-                    className={`flex items-center space-x-3 p-3 rounded-md hover:bg-accent/50 cursor-pointer transition-colors border border-transparent hover:border-border ${
-                      !canSelect ? 'opacity-60' : ''
-                    }`}
-                    onClick={(e) => { e.stopPropagation(); handleCarClick(car); }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      readOnly
-                      disabled={!canSelect}
-                      className="rounded border-border text-primary focus:ring-primary pointer-events-none"
-                    />
-                    <div
-                      className={`flex-1 text-sm ${
-                        !canSelect ? 'text-muted-foreground' : ''
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <Car className="h-4 w-4 flex-shrink-0" />
-                          <span className="font-medium truncate">{car.name}</span>
-                          {car.car_number && (
-                            <span className="text-muted-foreground text-xs">({car.car_number})</span>
-                          )}
-                        </div>
-                        <div className="flex gap-1 flex-shrink-0 ml-2">
-                          {!isGenerallyAvailable ? (
-                            <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
-                              {t('cars.unavailable')}
-                            </Badge>
-                          ) : !isBookingAvailable ? (
-                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800">
-                              {bookingStatus.endTime 
-                                ? t('cars.inUse', { time: bookingStatus.endTime })
-                                : t('planner.inUseToday')}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
-                              {t('cars.available')}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div 
+              className="max-h-64 overflow-y-auto"
+              onWheel={(e) => e.stopPropagation()}
+            >
+              {renderCarList()}
             </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+          </PopoverContent>
+        </Popover>
+      )}
 
-      {/* Confirmation dialog for occupied cars */}
       <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
