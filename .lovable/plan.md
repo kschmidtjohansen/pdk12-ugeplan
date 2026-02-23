@@ -1,80 +1,50 @@
 
 
-## Fix: Mobil-scroll i Selectors -- Drawer-baseret loesning
+## Fix: PullToRefresh blokerer scroll i Drawers
 
-### Problemanalyse
+### Problem
 
-Den forrige loesning med `modal={false}` + `onTouchMove stopPropagation` virker ikke paa mobil fordi:
+`PullToRefresh`-komponenten lytter paa `touchStart`/`touchMove` paa hele `<main>` og tjekker kun `window.scrollY === 0`. Naar en Drawer er aaben, er siden stadig scrollet til toppen, saa PullToRefresh aktiveres og "stjeler" swipe-ned-bevaegelsen fra Draweren.
 
-1. **`modal={false}`** opretter ingen overlay -- touch-events lækker direkte til PullToRefresh og browser pull-to-refresh
-2. **`e.stopPropagation()`** stopper kun React synthetic events, ikke native browser touch-handling
-3. **CSS `overscroll-behavior: contain`** virker kun naar elementet allerede har scroll-focus, men paa mobil faar browseren touch-eventet foerst
+### Loesning
 
-### Loesning: Drawer paa mobil, Popover paa desktop
+Ret `PullToRefresh.tsx` saa den ignorerer touch-events der starter inde i en Drawer eller et overlay:
 
-Den mest stabile loesning er at bruge `Drawer` (vaul) paa mobil og beholde `Popover` paa desktop. Drawers haandterer mobil-scroll korrekt "out of the box" fordi de bruger en fuld overlay og native scroll-container.
+**I `handleTouchStart`** (linje 29-34): Tilfoej et tjek paa touch-target:
+
+```typescript
+const handleTouchStart = (e: React.TouchEvent) => {
+  // Skip if touch originates inside a Drawer or overlay
+  const target = e.target as HTMLElement;
+  if (target.closest('[data-vaul-drawer]') || target.closest('[data-vaul-overlay]') || target.closest('[role="dialog"]')) {
+    return;
+  }
+  if (window.scrollY === 0) {
+    startY.current = e.touches[0].clientY;
+    setIsPulling(true);
+  }
+};
+```
+
+Dette bruger vaul's egne `data-vaul-drawer` og `data-vaul-overlay` attributter samt den generelle `[role="dialog"]` selector til at detektere om brugeren interagerer med en overlay-komponent.
 
 ### Filer der aendres
 
 | Fil | AEndring |
 |-----|---------|
-| `src/components/Planner/EmployeeSelector.tsx` | Drawer paa mobil, Popover paa desktop |
-| `src/components/Planner/MultipleCarSelector.tsx` | Drawer paa mobil, Popover paa desktop |
-| `src/components/Planner/CarSelector.tsx` | Drawer paa mobil, Popover paa desktop |
-| `src/components/Planner/ResponsibleUserSelector.tsx` | Drawer paa mobil, Popover paa desktop |
-| `CHANGELOG.md` | Dokumenter Drawer-fix |
+| `src/components/shared/PullToRefresh.tsx` | Tilfoej `closest()` check i `handleTouchStart` |
+| `CHANGELOG.md` | Dokumenter fix |
 
-### Teknisk implementering
+### Hvorfor dette virker
 
-For hver selector:
-
-1. Import `useIsMobile` fra `@/hooks/use-mobile`
-2. Import `Drawer`, `DrawerContent`, `DrawerHeader`, `DrawerTitle`, `DrawerTrigger` fra `@/components/ui/drawer`
-3. Tilfoej `const isMobile = useIsMobile()` og en `open`/`setOpen` state
-4. Render betinget:
-   - **Mobil**: `Drawer` med `DrawerContent` der indeholder listen med `overflow-y-auto` og forced inline styles (`touchAction: 'pan-y'`, `overscrollBehavior: 'contain'`, `WebkitOverflowScrolling: 'touch'`)
-   - **Desktop**: Eksisterende `Popover` med `modal={false}` (uaendret)
-5. Listen-indholdet (items) deles i en faelles variabel/funktion saa det ikke duplikeres
-
-### Eksempel-struktur (EmployeeSelector)
-
-```text
-if (isMobile) {
-  <Drawer open={open} onOpenChange={setOpen}>
-    <DrawerTrigger asChild>
-      <Button>...</Button>
-    </DrawerTrigger>
-    <DrawerContent>
-      <DrawerHeader>
-        <DrawerTitle>Vaelg medarbejdere</DrawerTitle>
-      </DrawerHeader>
-      <div 
-        className="max-h-[60dvh] overflow-y-auto px-4 pb-4"
-        style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
-      >
-        {renderEmployeeList()}
-      </div>
-    </DrawerContent>
-  </Drawer>
-} else {
-  <Popover modal={false}>
-    ... (eksisterende desktop-kode)
-  </Popover>
-}
-```
-
-### Fordele
-
-- Drawer bruger fuld-skaerms overlay -- ingen touch-leak til baggrunden
-- Native scroll inde i DrawerContent virker perfekt paa iOS og Android
-- PullToRefresh kan aldrig trigges fordi Drawer har sin egen overlay
-- Desktop-oplevelsen er uaendret (Popover)
-- Ingen hacky CSS overrides noedvendige
+- `data-vaul-drawer` saettes automatisk af vaul-biblioteket paa alle Drawer-elementer
+- `data-vaul-overlay` saettes paa overlay-baggrunden
+- `role="dialog"` dækker ogsaa Radix Dialog og andre modale komponenter
+- Naar brugeren swiper inde i en Drawer, returnerer `handleTouchStart` tidligt og PullToRefresh aktiveres aldrig
+- Desktop og normal mobil-scroll er upaavirkede
 
 ### Kvalitetstjek
-- Swipe op/ned i bil-listen scroller listen flydende paa mobil
-- PullToRefresh aktiveres IKKE naar Drawer er aaben
-- Desktop-scroll (mousewheel) virker stadig korrekt via Popover
-- Ingen `pointer-events: none` eller `user-select: none` paa scrollbare elementer
-- Overholder UI-guidelines (responsive design, semantic farver)
+- Swipe ned i en Drawer scroller listen -- IKKE pull-to-refresh
+- Swipe ned paa selve ugeplanen (uden Drawer) aktiverer stadig pull-to-refresh som forventet
+- Alle tre selectors (Employee, Car, Responsible) virker korrekt paa mobil
 
