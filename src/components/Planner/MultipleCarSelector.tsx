@@ -195,11 +195,10 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
           
           {/* Scrollable cars list using native scrolling */}
           <div 
-            className="max-h-64 overflow-y-auto"
-            onWheel={(e) => {
-              // Prevent event from bubbling up to prevent popover from closing
-              e.stopPropagation();
-            }}
+            className="max-h-64 overflow-y-auto overscroll-contain touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
           >
             <div className="p-3 space-y-1">
               {cars.filter(car => car.show_in_planner !== false).map((car) => {

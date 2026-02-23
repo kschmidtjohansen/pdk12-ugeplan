@@ -177,8 +177,10 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           }}
         >
           <div 
-            className="max-h-64 overflow-y-auto"
+            className="max-h-64 overflow-y-auto overscroll-contain touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
             onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
           >
             <div className="py-1">
               {sortedEmployees.map((employee, index) => {

@@ -2,6 +2,11 @@
 
 ## [Unreleased] - 2026-02-23
 
+### Fixed — Planner: Mobil-scroll i selectors (EmployeeSelector, CarSelector, ResponsibleSelector)
+- **Touch-scroll fix**: Tilføjet `overscroll-contain`, `touch-pan-y` og `onTouchMove={e.stopPropagation()}` til alle tre selectors — forhindrer at swipe-events lækker til browser/PullToRefresh.
+- **ResponsibleUserSelector refaktoreret**: Konverteret fra `DropdownMenu` til `Popover modal={false}` — eliminerer Radix focus-trapping der blokerede scroll på mobil. Hardcoded `indigo-*` farver erstattet med semantic tokens (`border-border`, `text-primary`, `hover:bg-accent/50`).
+- **iOS smooth scroll**: `-webkit-overflow-scrolling: touch` tilføjet inline for iOS inertia-scroll.
+
 ### Fixed — Planner: Bil-valg, Scroll og Mobil-overlap (Afd. 14)
 - **MultipleCarSelector (double-toggle fix)**: Fjernet `htmlFor` fra `<label>` og `onChange` fra checkbox — klik på hele bil-rækken toggler nu korrekt én gang i stedet for to (som annullerede hinanden).
 - **EmployeeSelector (scroll-fix)**: Erstattet `DropdownMenu` med `Popover modal={false}` — fjerner Radix focus-trapping der blokerede scroll i Dialog-kontekst. Native scroll med `onWheel stopPropagation` virker nu på både desktop og mobil.
