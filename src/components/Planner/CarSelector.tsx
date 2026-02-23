@@ -147,8 +147,10 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
           }}
         >
           <div 
-            className="max-h-60 overflow-y-auto"
+            className="max-h-60 overflow-y-auto overscroll-contain touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
             onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
           >
             <div className="py-1">
               {/* No car option */}

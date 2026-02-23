@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { UserCheck } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
 
@@ -19,6 +19,7 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
   const { user, isDemoMode } = useAuth();
+  const [open, setOpen] = useState(false);
 
   if (import.meta.env.DEV) {
     console.log('[ResponsibleUserSelector] Debug:', {
@@ -69,43 +70,73 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
         {t('planner.responsibleUser')}
       </Label>
       
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-full justify-between h-11 px-4 py-2 border-indigo-200 hover:border-indigo-300 focus:border-indigo-400">
+      <Popover modal={false} open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full justify-between h-11 px-4 py-2 border-border hover:border-border">
             <div className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4 text-indigo-600" />
+              <UserCheck className="h-4 w-4 text-primary" />
               <span className="truncate">{getSelectedUserDisplay()}</span>
             </div>
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-full min-w-[300px] max-h-60 overflow-y-auto z-50 bg-popover border shadow-md">
-          <DropdownMenuItem onClick={() => handleUserSelect('none')} className="cursor-pointer p-2 hover:bg-muted/50">
-            <div className="flex items-center justify-between w-full space-x-2">
-              <div className="flex items-center gap-2">
+        </PopoverTrigger>
+        <PopoverContent 
+          className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
+          sideOffset={4}
+          onPointerDownOutside={(event) => {
+            const target = event.target as Element;
+            if (target.closest('[data-radix-popper-content-wrapper]')) {
+              event.preventDefault();
+            }
+          }}
+        >
+          <div 
+            className="max-h-60 overflow-y-auto overscroll-contain touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
+            <div className="py-1">
+              {/* No responsible user option */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleUserSelect('none');
+                }}
+                className={`flex items-center gap-3 py-3 px-4 cursor-pointer transition-colors border-b border-border/40 ${
+                  !selectedUserId || selectedUserId === '' ? 'bg-accent/30' : 'hover:bg-accent/50'
+                }`}
+              >
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
-                <span>{t('planner.noResponsibleUser')}</span>
+                <span className="font-medium text-foreground">{t('planner.noResponsibleUser')}</span>
               </div>
-            </div>
-          </DropdownMenuItem>
-          
-          {eligibleUsers.length === 0 ? (
-            <DropdownMenuItem disabled className="p-2">
-              <div className="text-muted-foreground text-sm">
-                <div>{t('employees.noResponsibleUsersFound')}</div>
-              </div>
-            </DropdownMenuItem>
-          ) : (
-            eligibleUsers.map(user => (
-              <DropdownMenuItem key={user.id} onClick={() => handleUserSelect(user.id)} className="cursor-pointer p-2 hover:bg-indigo-50">
-                <div className="flex items-center gap-2">
-                  <UserCheck className="h-4 w-4 text-indigo-600" />
-                  <span className="truncate font-medium">{user.name}</span>
+              
+              {eligibleUsers.length === 0 ? (
+                <div className="p-4 text-muted-foreground text-sm">
+                  {t('employees.noResponsibleUsersFound')}
                 </div>
-              </DropdownMenuItem>
-            ))
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              ) : (
+                eligibleUsers.map((eligibleUser, index) => (
+                  <div
+                    key={eligibleUser.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUserSelect(eligibleUser.id);
+                    }}
+                    className={`flex items-center gap-3 py-3 px-4 cursor-pointer transition-colors ${
+                      index < eligibleUsers.length - 1 ? 'border-b border-border/40' : ''
+                    } ${
+                      selectedUserId === eligibleUser.id ? 'bg-accent/30' : 'hover:bg-accent/50'
+                    }`}
+                  >
+                    <UserCheck className="h-4 w-4 text-primary" />
+                    <span className="truncate font-medium text-foreground">{eligibleUser.name}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
