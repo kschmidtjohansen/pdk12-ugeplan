@@ -228,19 +228,13 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
           </DrawerContent>
         </Drawer>
       ) : (
-        <Popover modal={false}>
+        <Popover modal={true} open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             {triggerButton}
           </PopoverTrigger>
           <PopoverContent 
             className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
             sideOffset={4}
-            onPointerDownOutside={(event) => {
-              const target = event.target as Element;
-              if (target.closest('[data-radix-popper-content-wrapper]')) {
-                event.preventDefault();
-              }
-            }}
           >
             <div 
               className="max-h-60 overflow-y-auto"
