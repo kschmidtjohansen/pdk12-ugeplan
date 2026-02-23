@@ -2,6 +2,9 @@
 
 ## [Unreleased] - 2026-02-23
 
+### Fixed — PullToRefresh: Ignorerer touch i Drawers/Dialogs
+- **PullToRefresh.tsx**: `handleTouchStart` tjekker nu om touch stammer fra `[data-vaul-drawer]`, `[data-vaul-overlay]` eller `[role="dialog"]` og ignorerer i så fald eventet. Forhindrer at swipe-ned i en åben Drawer/Dialog udløser pull-to-refresh.
+
 ### Fixed — Planner: Mobil-scroll i selectors (Drawer-løsning)
 - **Drawer på mobil**: EmployeeSelector, MultipleCarSelector, CarSelector og ResponsibleUserSelector bruger nu `Drawer` (vaul) på mobil i stedet for `Popover`. Drawer har fuld overlay og native scroll — eliminerer pull-to-refresh og touch-leak fuldstændigt.
 - **Desktop uændret**: Popover med `modal={false}` beholdt på desktop.
