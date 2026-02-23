@@ -1,79 +1,103 @@
 
 
-## Fix: Kritiske fejl i Afd. 14 -- Selektion, Scroll og Mobil-overlap
+## Fix: Kritisk scroll-fejl paa mobil i EmployeeSelector, CarSelector og ResponsibleSelector
 
 ### Problemanalyse
 
-**Problem 1: MultipleCarSelector double-toggle (bil-valg virker ikke)**
-I `MultipleCarSelector.tsx` har `<label htmlFor="car-{id}">` (linje 230-231) en native kobling til checkbox-inputtet. Naar brugeren klikker paa bil-raekken:
-1. `div onClick` (linje 220) kalder `handleCarClick()` -- toggler bilen
-2. `<label htmlFor>` sender automatisk et klik til checkbox
-3. Checkbox `onChange` (linje 226) kalder `handleCarClick()` igen -- toggler bilen TILBAGE
+Alle tre selectors har scroll-problemer paa mobil af forskellige aarsager:
 
-Resultatet: bilen toggles to gange og ender i samme tilstand. Kun direkte klik paa checkbox virker.
+**EmployeeSelector & MultipleCarSelector**: Bruger `Popover` med `onWheel={e.stopPropagation()}`, men `onWheel` virker kun med mus/trackpad. Paa mobil bruger browseren touch-events, som ikke fanges af `onWheel`. Mangler:
+- `touch-action: pan-y` (fortaeller browseren: "kun vertikal scroll her")
+- `overscroll-behavior: contain` (forhindrer scroll fra at laekke ud til parent/browser)
+- `-webkit-overflow-scrolling: touch` (smooth scroll paa iOS)
 
-**Problem 2: EmployeeSelector scroll-blokering**
-`EmployeeSelector` bruger Radix `DropdownMenu` inde i en `Dialog`. DropdownMenu har aggressiv focus-trapping der blokerer native scroll.
+**CarSelector**: Samme problem som ovenfor.
 
-**Problem 3: CarSelector (single) mangler `modal={false}`**
-`CarSelector.tsx` bruger `<Popover>` uden `modal={false}`, hvilket foraarsager at Dialog intercepter klik.
+**ResponsibleUserSelector**: Bruger stadig `DropdownMenu` (ikke Popover), som har aggressiv focus-trapping der blokerer native scroll paa mobil. Skal konverteres til Popover ligesom EmployeeSelector.
 
-**Problem 4: Tekst-overlap paa mobil**
-`AssignmentDetailsDialog.tsx` linje 325 har `h-[350px]` paa besked-panelet. Naar beskrivelsen er lang, overlapper den besked-sektionen.
-
-**Problem 5: Console.log i produktion**
-`AssignmentForm.tsx` har `console.log` paa linje 225, 233, 244, 253, 261 uden `import.meta.env.DEV`-guard.
+**PullToRefresh interference**: `PullToRefresh` lytter paa `window.scrollY === 0` og kan intercepte touch-events fra popover-lister naar siden er scrollet til toppen.
 
 ### Loesning
 
-#### Fil 1: `src/components/Planner/MultipleCarSelector.tsx`
+#### Fil 1: `src/components/Planner/EmployeeSelector.tsx`
 
-**Fjern `htmlFor`** fra `<label>` (linje 230-231) og **fjern `onChange`** fra checkbox (linje 226). Goer checkbox til `readOnly` saa kun div's `onClick` haandterer valg. Dette sikrer at et klik paa hele raekken (inkl. label-tekst, badge, bilnavn) toggler bilen praecis en gang.
+Tilfoej touch-venlige CSS-klasser paa scroll-containeren (linje 180):
 
-- Linje 226: `onChange={(e) => { e.stopPropagation(); handleCarClick(car); }}` erstattes med ingenting (fjern onChange, tilfoej `readOnly`)
-- Linje 230-231: `<label htmlFor={...}>` erstattes med `<div>` (fjern htmlFor-kobling)
+```
+className="max-h-64 overflow-y-auto overscroll-contain touch-pan-y"
+```
 
-#### Fil 2: `src/components/Planner/EmployeeSelector.tsx`
+Tilfoej `onTouchMove` handler for at stoppe propagation til PullToRefresh:
 
-Erstat `DropdownMenu`/`DropdownMenuContent`/`DropdownMenuItem` med `Popover`/`PopoverContent`/`PopoverTrigger` (samme moenster som MultipleCarSelector). Tilfoej `modal={false}` og native scroll med `onWheel={e.stopPropagation()}`. Tilfoej `e.stopPropagation()` paa klik-handlers. Al eksisterende funktionalitet bevares (afstandsberegning, vacation-check, auto-remove, badges).
+```
+onTouchMove={(e) => e.stopPropagation()}
+```
+
+#### Fil 2: `src/components/Planner/MultipleCarSelector.tsx`
+
+Samme rettelse paa scroll-containeren (linje 198):
+
+```
+className="max-h-64 overflow-y-auto overscroll-contain touch-pan-y"
+```
+
+Tilfoej `onTouchMove` handler.
 
 #### Fil 3: `src/components/Planner/CarSelector.tsx`
 
-Tilfoej `modal={false}` paa `<Popover>` (linje 130 i original).
+Samme rettelse paa scroll-containeren (linje 150):
 
-#### Fil 4: `src/components/Dashboard/AssignmentDetailsDialog.tsx`
+```
+className="max-h-60 overflow-y-auto overscroll-contain touch-pan-y"
+```
 
-Aendr linje 325 fra `h-[350px]` til `min-h-[300px] max-h-[50dvh]` for fleksibel hoejde paa mobil. Tilfoej `flex-shrink-0` paa description-sektionen.
+Tilfoej `onTouchMove` handler.
 
-#### Fil 5: `src/components/Planner/AssignmentForm.tsx`
+#### Fil 4: `src/components/Planner/ResponsibleUserSelector.tsx`
 
-Omslut `console.log` paa linje 225, 233, 244, 253, 261 med `if (import.meta.env.DEV)` guard.
+Konverter fra `DropdownMenu` til `Popover` med `modal={false}`:
+- Erstat imports: `DropdownMenu` -> `Popover`, `DropdownMenuContent` -> `PopoverContent`, `DropdownMenuTrigger` -> `PopoverTrigger`, fjern `DropdownMenuItem`
+- Tilfoej `modal={false}` paa Popover
+- Brug native div-elementer med onClick i stedet for DropdownMenuItem
+- Tilfoej scroll-container med `max-h-60 overflow-y-auto overscroll-contain touch-pan-y`
+- Tilfoej `onWheel` og `onTouchMove` stopPropagation
+- Ret hardcoded farver (`border-indigo-200`, `hover:bg-indigo-50`) til semantic tokens (`border-border`, `hover:bg-accent/50`)
+
+#### Fil 5: `src/index.css`
+
+Tilfoej utility-klasse for `overscroll-behavior: contain` og `-webkit-overflow-scrolling: touch` hvis ikke allerede tilgaengelig via Tailwind:
+
+```css
+.overscroll-contain {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+```
+
+(Tailwind v3 har `overscroll-contain` built-in, men `-webkit-overflow-scrolling` kraever custom CSS)
 
 #### Fil 6: `CHANGELOG.md`
 
-Dokumenter alle fixes.
+Dokumenter mobil-scroll-fix for alle tre selectors.
 
 ### Filer der aendres
 
 | Fil | AEndring |
 |-----|---------|
-| `src/components/Planner/MultipleCarSelector.tsx` | Fjern `htmlFor` fra label, goer checkbox `readOnly`, fjern `onChange` |
-| `src/components/Planner/EmployeeSelector.tsx` | Erstat DropdownMenu med Popover + scroll-fix + stopPropagation |
-| `src/components/Planner/CarSelector.tsx` | Tilfoej `modal={false}` paa Popover |
-| `src/components/Dashboard/AssignmentDetailsDialog.tsx` | Fix mobil tekst-overlap med fleksibel hoejde |
-| `src/components/Planner/AssignmentForm.tsx` | DEV-guard paa console.log |
-| `CHANGELOG.md` | Dokumenter fixes |
-
-### RLS-vurdering
-
-RLS-politikkerne for `assignments`, `cars` og `profiles` er korrekte for administratorer. `is_admin_or_skadeleder()` giver fuld adgang til CRUD-operationer. Problemet er udelukkende frontend-komponenternes interaktions-haandtering (double-toggle, scroll-blokering, Popover/Dialog-konflikt). Ingen database-aendringer er noedvendige.
+| `src/components/Planner/EmployeeSelector.tsx` | Tilfoej `overscroll-contain touch-pan-y` + `onTouchMove` |
+| `src/components/Planner/MultipleCarSelector.tsx` | Tilfoej `overscroll-contain touch-pan-y` + `onTouchMove` |
+| `src/components/Planner/CarSelector.tsx` | Tilfoej `overscroll-contain touch-pan-y` + `onTouchMove` |
+| `src/components/Planner/ResponsibleUserSelector.tsx` | Konverter DropdownMenu til Popover + scroll-fix |
+| `src/index.css` | Tilfoej `-webkit-overflow-scrolling: touch` utility |
+| `CHANGELOG.md` | Dokumenter mobil-scroll-fix |
 
 ### Kvalitetstjek
-- Klik paa bil-raekken (udenfor checkbox) vaelger/fravaelger bilen korrekt (en enkelt toggle)
-- Klik direkte paa checkbox virker ogsaa korrekt
-- Scroll virker i bil- og medarbejder-lister paa baade desktop og mobil
-- Popover lukker ikke ved valg
-- Beskrivelse og Beskeder overlapper ikke paa mobil
+- Swipe op/ned i bil-listen scroller listen flydende paa mobil
+- Swipe op/ned i medarbejder-listen scroller listen flydende paa mobil
+- Swipe op/ned i ansvarlig-listen scroller listen flydende paa mobil
+- PullToRefresh aktiveres IKKE naar man scroller inde i en selector
+- Popover lukker ikke ved scroll
+- Desktop-scroll (mousewheel) virker stadig korrekt
+- Overholder UI-guidelines (semantic farver)
 - Ingen console.log i produktion
-- Overholder UI-guidelines (semantic farver, responsive design)
-- Overholder tekniske specs (ingen produktions-logging)
+
