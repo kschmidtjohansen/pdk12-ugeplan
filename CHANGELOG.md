@@ -2,6 +2,10 @@
 
 ## [Unreleased] - 2026-02-24
 
+### Fixed — Lagerlokation viser ID + manglende oversættelse i Biler
+- **Warehouse location fallback**: `useLocationLabel` i `WarehouseTableRow` og `MobileWarehouseCard` viser nu formaterede navne (f.eks. "Hal 1") i stedet for rå nøgler (f.eks. "hal_1") når localStorage-data ikke er tilgængelig.
+- **Oversættelser**: Tilføjet manglende `common.showMore` og `common.showLess` til både dansk og engelsk.
+
 ### Audit — Total 360-graders Audit (Fase 13)
 - **Kode-hygiejne**: Alle uguardede `console.log`/`console.error` i produktionskode wrappet i `import.meta.env.DEV` guard (notificationCreate, notificationFetching, dutyNotifications, AuthContext, PullToRefresh).
 - **Mobil UX**: Verificeret — selectors bruger Drawer på mobil, Popover modal på desktop. Ingen overlap i opgavevisning.
