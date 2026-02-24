@@ -1,150 +1,69 @@
 
 
-## Total 360-graders Audit -- pdk12-ugeplan
+## Fix: Lagerlokation viser ID + manglende oversaettelse i Biler
 
-### Sammenfattende status
+### Problem 1: Lagerlokation viser ID i stedet for navn
 
-Efter gennemgang af hele kodebasen, /docs, RLS-politikker, og alle moduler er her en samlet plan med konkrete rettelser. Planen er opdelt i de 5 hovedkategorier fra opgaven.
+`WarehouseTableRow` og `MobileWarehouseCard` har begge en `useLocationLabel`-hook der laeser fra localStorage. Hooken matcher korrekt paa `l.key === hallId` og returnerer `l.label`. Hvis localStorage-data ikke er tilgaengelig (f.eks. anden browser, ryddet cache, eller localStorage-data endnu ikke oprettet), falder den tilbage til at vise raa `hallId` (f.eks. `hal_1` i stedet for `Hal 1`).
 
----
+**Rodaarsag**: localStorage er ikke reaktiv -- aendringer fra `LocationManagement` triggerer ikke re-render i warehouse-komponenterne. Desuden er localStorage per-browser, saa hvis en admin opretter lokationer paa en enhed, ser andre brugere dem ikke.
 
-### 1. Mobil UX (Kritisk)
+**Loesning**: Da lokationsdata gemmes i localStorage (jf. Knowledge/memory), og vi ikke aendrer denne arkitektur, sikrer vi at:
+1. Hook-logikken er korrekt (den er allerede)
+2. Vi tilbyder en mere robust fallback -- viser hall-vaerdien formateret (erstatter underscore med mellemrum og capitalize) i stedet for den raa noegle
 
-**1a. Scroll i selectors: ALLEREDE RETTET**
+### Problem 2: `common.showMore` mangler i oversaettelser
 
-Alle fire selectors (EmployeeSelector, CarSelector, MultipleCarSelector, ResponsibleUserSelector) bruger allerede:
-- **Mobil**: `Drawer` (vaul bottom sheet) med `touch-action: pan-y`, `overscroll-behavior: contain`
-- **Desktop**: `Popover modal={true}` med `onWheel stopPropagation`
-- **PullToRefresh**: Ignorerer touch events fra `[data-vaul-drawer]`, `[data-vaul-overlay]`, `[role="dialog"]`
-
-Ingen yderligere aendringer noedvendige her.
-
-**1b. Overlap Beskrivelse/Beskeder: ALLEREDE RETTET**
-
-`AssignmentDetailsDialog` bruger `h-auto flex-shrink-0` paa detalje-kolonnen og `whitespace-pre-wrap break-words` paa beskrivelsen. Mobil stakker vertikalt. Ingen overlap fundet.
+`MobileCarCard.tsx` (linje 206) bruger `t('common.showMore')` med fallback `'Vis detaljer'`. Men `showMore` og `showLess` eksisterer KUN i `planner`-oversaettelserne, ikke i `common`. Tilsvarende mangler `common.showLess`.
 
 ---
 
-### 2. Data-isolation og Sikkerhed
+### AEndringer
 
-**2a. department_id filter -- verificeret per modul:**
+#### Fil 1: `src/translations/da/common.ts`
+Tilfoej manglende noeger:
+```
+showMore: "Vis detaljer",
+showLess: "Skjul detaljer",
+```
 
-| Modul | Filtreret? | Fil |
-|-------|-----------|-----|
-| Dashboard (metrics) | Ja, via useEmployeeData/useCarData/etc. som alle filtrerer | useDashboardMetrics.ts |
-| Planner (assignments) | Ja, via `list_accessible_assignments_with_team` RPC | optimizedAssignmentService.ts |
-| Employees | Ja, `.eq('department_id', selectedDepartmentId)` | useEmployeeData.ts |
-| Cars | Ja, `.eq('department_id', selectedDepartmentId)` | useCarData.ts |
-| Vacation | Ja, via `useVacationData` + nu ogsaa notifikationer | useVacationData.ts |
-| Duty | Ja, `.eq('department_id', selectedDepartmentId)` | useDutyData.ts |
-| Warehouse | Ja, `.eq('department_id', selectedDepartmentId)` | useWarehouseData.ts |
+#### Fil 2: `src/translations/en/common.ts`
+Tilfoej manglende noeger:
+```
+showMore: "Show details",
+showLess: "Hide details",
+```
 
-**2b. Automatisk department_id tagging -- verificeret:**
+#### Fil 3: `src/components/Warehouse/WarehouseTableRow.tsx`
+Forbedre `useLocationLabel` fallback: Naar lokationsdata ikke kan findes i localStorage, formater `hallId` laesevenligt (capitalize, erstatter `_` med mellemrum) i stedet for at vise den raa noegle.
 
-Alle create-funktioner nedarver `selectedDepartmentId` automatisk. Guard i assignment-oprettelse afviser kald uden afdelings-ID.
+```typescript
+// Forbedret fallback i stedet for raa hallId:
+const formatFallback = (id: string) => 
+  id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+```
 
-**2c. RLS Policies -- gennemgaaet:**
+#### Fil 4: `src/components/Warehouse/MobileWarehouseCard.tsx`
+Samme forbedring af `useLocationLabel` fallback.
 
-Alle tabeller har RLS aktiveret. `can_access_vacation()`, `can_view_assignment_optimized()`, og `is_admin_or_skadeleder()` er korrekt implementeret som SECURITY DEFINER funktioner.
-
-Ingen kritiske RLS-mangler fundet.
-
----
-
-### 3. Cache og Session Management
-
-**3a. Logout logic -- verificeret korrekt:**
-
-`AuthContext.logout()` (linje 669-716) udforer:
-1. `queryClient.clear()` -- rydder al TanStack Query cache
-2. `unifiedDataService.clearCache()`, `OptimizedAssignmentService.clearCache()`, `enhancedDataFetching.clearCache()`
-3. `sessionStorage.clear()`
-4. Fjerner app-specifikke localStorage-noegler (department_id, view, location-data)
-
-Navigation via `window.location.href = '/login'` tvinger fuld React-reinitialisering.
-
-**3b. State reset -- verificeret:**
-
-180-minutters session-timeout med automatisk logout er implementeret. DepartmentContext nulstilles ved fuld page reload.
+#### Fil 5: `CHANGELOG.md`
+Dokumenter begge rettelser.
 
 ---
 
-### 4. Funktionel Test af Kerne-moduler
+### Tekniske detaljer
 
-**4a. Haversine 15km radius**: Implementeret korrekt i `src/utils/haversine.ts`. EmployeeSelector bruger GPS-koordinater fra DAWA API og sorterer medarbejdere med top-3 inden for 15km markeret med groen tekst.
+| Fil | AEndring |
+|-----|---------|
+| `src/translations/da/common.ts` | Tilfoej `showMore`, `showLess` |
+| `src/translations/en/common.ts` | Tilfoej `showMore`, `showLess` |
+| `src/components/Warehouse/WarehouseTableRow.tsx` | Forbedret location-fallback formatering |
+| `src/components/Warehouse/MobileWarehouseCard.tsx` | Forbedret location-fallback formatering |
+| `CHANGELOG.md` | Dokumenter rettelser |
 
-**4b. Warehouse isolation**: Bekraeftet -- filtrerer paa `department_id` og `sub_department_id`.
-
-**4c. Duty/Vacation filtrering**: Bekraeftet -- begge filtrerer paa `selectedDepartmentId`.
-
----
-
-### 5. Kode-hygiejne -- RETTELSER NOEDVENDIGE
-
-**5a. Uguardede console.log i produktion**
-
-Foelgende filer har console.log/warn UDEN `import.meta.env.DEV` guard:
-
-| Fil | Antal uguardede | Type |
-|-----|-----------------|------|
-| `src/hooks/notifications/notificationCreate.ts` | 5 stk | console.log (linje 66, 70, 90, 107) |
-| `src/hooks/notifications/notificationFetching.ts` | 1 stk | console.log (linje 28) |
-| `src/hooks/notifications/dutyNotifications.ts` | 1 stk | console.log (linje 49) |
-| `src/context/AuthContext.tsx` | 3 stk | console.error (linje 580, 652, 663, 712) |
-| `src/components/shared/PullToRefresh.tsx` | 1 stk | console.error (linje 60) |
-| `src/context/TranslationContext.tsx` | 1 stk | console.warn (linje 33, men dette er en catch-blok -- acceptabel) |
-
-**Plan**: Wrap alle ovenstaaende i `import.meta.env.DEV` guard. Behold `console.error` i catch-blokke som er kritiske for fejlhaandtering (TranslationContext, ErrorBoundary) men guard resten.
-
-**5b. search_path paa database-funktioner**
-
-Allerede rettet i Fase 10 -- 4 SECURITY DEFINER funktioner har `SET search_path = public`. Ingen nye funktioner tilfojet siden.
-
-**5c. UI konsistens**
-
-Allerede gennemgaaet i Fase 4, 8, 9, 11. Alle hardcoded gray-farver erstattet med tema-tokens. EmptyState-komponenter standardiseret.
-
----
-
-### Konkret implementeringsplan
-
-#### Fil 1: `src/hooks/notifications/notificationCreate.ts`
-- Linje 66: Wrap `console.log('Similar notification...')` i DEV guard
-- Linje 70: Wrap `console.log('Creating notification...')` i DEV guard
-- Linje 90: Wrap `console.log('This is likely due to RLS...')` i DEV guard
-- Linje 107: Wrap `console.log('Notification created...')` i DEV guard
-
-#### Fil 2: `src/hooks/notifications/notificationFetching.ts`
-- Linje 28: Wrap `console.log('No user found...')` i DEV guard
-
-#### Fil 3: `src/hooks/notifications/dutyNotifications.ts`
-- Linje 49: Wrap `console.log('Duty notification created...')` i DEV guard
-
-#### Fil 4: `src/context/AuthContext.tsx`
-- Linje 580: Wrap `console.error('[AuthContext] Failed to refresh...')` i DEV guard
-- Linje 652: Wrap `console.error('[AuthProvider] Login error...')` i DEV guard
-- Linje 663: Wrap `console.error('[AuthProvider] Login exception...')` i DEV guard
-- Linje 712: Wrap `console.error('[AuthProvider] Logout error...')` i DEV guard
-
-#### Fil 5: `src/components/shared/PullToRefresh.tsx`
-- Linje 60: Wrap `console.error('Refresh failed:')` i DEV guard
-
-#### Fil 6: `CHANGELOG.md`
-- Dokumenter 360-graders audit og alle rettelser
-
-#### Fil 7: `docs/implementation-plan/tasks.md`
-- Tilfoej ny fase: "Fase 13: Total 360-graders Audit"
-
----
-
-### Resultat efter implementering
-
-- 0 uguardede console.log/warn i produktionskode
-- Alle moduler verificeret for afdelingsfiltrering
-- Logout rydder al cached data korrekt
-- Haversine-beregning fungerer med DAWA-koordinater
-- Selectors scroller korrekt paa baade mobil (Drawer) og desktop (modal Popover)
-- Ingen overlap i opgavevisning
-- RLS-politikker korrekte og komplette
-- Dokumentation opdateret
+### Kvalitetstjek
+- Lagerlokationer viser laesbare navne (fra localStorage hvis tilgaengelig, ellers formateret fallback)
+- `common.showMore` og `showLess` oversat korrekt paa baade dansk og engelsk
+- Overholder UI-guidelines (ingen visuelle brud)
+- Overholder tekniske specifikationer (ingen foelsom logging)
 
