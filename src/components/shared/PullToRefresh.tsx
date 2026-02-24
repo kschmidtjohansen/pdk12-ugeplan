@@ -57,7 +57,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       try {
         await onRefresh();
       } catch (error) {
-        console.error('Refresh failed:', error);
+        if (import.meta.env.DEV) console.error('Refresh failed:', error);
       }
       setIsRefreshing(false);
     }

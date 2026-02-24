@@ -46,7 +46,7 @@ export const useDutyNotifications = (
         link: '/duty',
       });
 
-      console.log('Duty notification created for employee:', employeeId);
+      if (import.meta.env.DEV) console.log('Duty notification created for employee:', employeeId);
     } catch (error) {
       console.error('Error creating duty notification:', error);
     }
