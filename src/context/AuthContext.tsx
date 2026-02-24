@@ -577,7 +577,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserDataLoaded(true);
       }
     } catch (error) {
-      console.error('[AuthContext] Failed to refresh user data:', error instanceof Error ? error.message : 'Unknown error');
+      if (import.meta.env.DEV) console.error('[AuthContext] Failed to refresh user data:', error instanceof Error ? error.message : 'Unknown error');
     }
   };
 
@@ -649,7 +649,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       if (error) {
-        console.error('[AuthProvider] Login error:', error.message);
+        if (import.meta.env.DEV) console.error('[AuthProvider] Login error:', error.message);
         return { error: error.message };
       }
       
@@ -660,7 +660,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       return { error: null };
     } catch (error: any) {
-      console.error('[AuthProvider] Login exception:', error instanceof Error ? error.message : 'Unknown error');
+      if (import.meta.env.DEV) console.error('[AuthProvider] Login exception:', error instanceof Error ? error.message : 'Unknown error');
       return { error: 'An unexpected error occurred during login.' };
     }
   };
@@ -709,7 +709,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
     } catch (error) {
-      console.error('[AuthProvider] Logout error:', error instanceof Error ? error.message : 'Unknown error');
+      if (import.meta.env.DEV) console.error('[AuthProvider] Logout error:', error instanceof Error ? error.message : 'Unknown error');
       setUser(null);
       setSession(null);
       setSessionExpired(false);

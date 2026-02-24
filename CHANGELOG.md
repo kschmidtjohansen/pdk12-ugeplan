@@ -2,6 +2,15 @@
 
 ## [Unreleased] - 2026-02-24
 
+### Audit — Total 360-graders Audit (Fase 13)
+- **Kode-hygiejne**: Alle uguardede `console.log`/`console.error` i produktionskode wrappet i `import.meta.env.DEV` guard (notificationCreate, notificationFetching, dutyNotifications, AuthContext, PullToRefresh).
+- **Mobil UX**: Verificeret — selectors bruger Drawer på mobil, Popover modal på desktop. Ingen overlap i opgavevisning.
+- **Data-isolation**: Verificeret — alle 7 moduler (Dashboard, Planner, Employees, Cars, Vacation, Duty, Warehouse) filtrerer på `department_id`.
+- **RLS Policies**: Verificeret — alle tabeller har RLS aktiveret med korrekte SECURITY DEFINER funktioner.
+- **Session Management**: Verificeret — logout rydder queryClient, service-caches, sessionStorage og app-specifikke localStorage-nøgler.
+- **Haversine**: Verificeret — 15km radius-beregning fungerer korrekt med DAWA-koordinater.
+- **search_path**: Verificeret — alle SECURITY DEFINER funktioner har `SET search_path = public`.
+
 ### Fixed — Afdelingsfiltrering på ferie-notifikationer og rød label
 - **useVacationRequestsStatus**: Tilføjet `department_id`-filter fra `useDepartment()` — rød prik på "Fridage" i navbar vises nu KUN for pending ansøgninger i den valgte afdeling.
 - **vacationNotifications**: Tilføjet `department_id`-filter — notifikationer oprettes nu KUN for pending ansøgninger i den valgte afdeling. Guard tilføjet så notifikationer springes over hvis ingen afdeling er valgt.

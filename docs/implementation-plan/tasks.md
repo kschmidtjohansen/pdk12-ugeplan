@@ -269,3 +269,18 @@ Gennemført 2026-02-17.
 - [x] EmployeeSelector statuslabels oversat via t() (Expired, Terminated, Inactive)
 - [x] Oversættelsesnøgler tilføjet: auth.sessionTimedOut, employees.statusExpired/statusTerminated/statusInactive
 - [x] CHANGELOG.md og tasks.md opdateret
+
+## Fase 13: Total 360-graders Audit ✅
+
+Gennemført 2026-02-24.
+
+- [x] Mobil UX verificeret: Selectors bruger Drawer (mobil) + modal Popover (desktop). Ingen overlap i opgavevisning.
+- [x] Data-isolation verificeret: Alle 7 moduler filtrerer på department_id. Create-funktioner tagger automatisk.
+- [x] RLS Policies verificeret: Alle tabeller har RLS. SECURITY DEFINER funktioner korrekte.
+- [x] Cache/Session verificeret: Logout rydder queryClient, service-caches, sessionStorage, localStorage.
+- [x] Haversine 15km radius verificeret med DAWA-koordinater.
+- [x] Warehouse isolation verificeret (department_id + sub_department_id).
+- [x] Duty/Vacation filtrering verificeret inkl. nye afdelingsfiltre på notifikationer.
+- [x] Uguardede console.log/error wrappet i DEV guard (5 filer, 11 statements).
+- [x] search_path på SECURITY DEFINER funktioner verificeret korrekt.
+- [x] CHANGELOG.md og tasks.md opdateret

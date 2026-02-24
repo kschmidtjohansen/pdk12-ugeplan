@@ -63,11 +63,11 @@ export const useNotificationCreate = (
       
       // Check if we've already created this notification
       if (createdNotificationsRef.current.has(notificationHash)) {
-        console.log('Similar notification already created, skipping:', notification);
+        if (import.meta.env.DEV) console.log('Similar notification already created, skipping:', notification);
         return null;
       }
       
-      console.log(`Creating notification for user ${userId}:`, notification);
+      if (import.meta.env.DEV) console.log(`Creating notification for user ${userId}:`, notification);
       
       const { data, error } = await supabase
         .from('notifications')
@@ -87,7 +87,7 @@ export const useNotificationCreate = (
         // Specific handling for RLS policy violations
         if (error.message?.includes('violates row-level security policy')) {
           console.error('Permission denied: You do not have permission to create notifications for this user.');
-          console.log('This is likely due to RLS policies. Please check that you have the correct permissions.');
+          if (import.meta.env.DEV) console.log('This is likely due to RLS policies. Please check that you have the correct permissions.');
           
           // Only show toast for user-facing operations, not background processes
           if (!notification.targetUserId || notification.targetUserId === user.id) {
@@ -104,7 +104,7 @@ export const useNotificationCreate = (
         return null;
       }
       
-      console.log('Notification created successfully:', data);
+      if (import.meta.env.DEV) console.log('Notification created successfully:', data);
       
       // Track that we've created this notification
       createdNotificationsRef.current.add(notificationHash);

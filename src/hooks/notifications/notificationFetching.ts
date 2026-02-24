@@ -25,7 +25,7 @@ export const useNotificationFetching = (user: any | null) => {
   // Fetch notifications from Supabase
   const fetchNotifications = useCallback(async () => {
     if (!user) {
-      console.log('No user found, skipping notification fetch');
+      if (import.meta.env.DEV) console.log('No user found, skipping notification fetch');
       setLoading(false);
       return;
     }
