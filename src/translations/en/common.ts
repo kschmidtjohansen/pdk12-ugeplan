@@ -151,5 +151,7 @@ export const common = {
   subDepartment: "Sub-department",
   selectSubDepartment: "Select sub-department",
   and: "and",
-  or: "or"
+  or: "or",
+  showMore: "Show details",
+  showLess: "Hide details"
 };

@@ -154,5 +154,7 @@ export const common = {
   subDepartment: "Underafdeling",
   selectSubDepartment: "Vælg underafdeling",
   and: "og",
-  or: "eller"
+  or: "eller",
+  showMore: "Vis detaljer",
+  showLess: "Skjul detaljer"
 };

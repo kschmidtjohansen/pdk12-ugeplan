@@ -7,17 +7,20 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { WarehouseTableRowProps } from './types';
 import { useDepartment } from '@/context/DepartmentContext';
 
+const formatLocationFallback = (id: string) =>
+  id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
 const useLocationLabel = (hallId: string | null, departmentId: string | null): string | null => {
   return React.useMemo(() => {
     if (!hallId || !departmentId) return null;
     try {
       const raw = localStorage.getItem(`location-data-${departmentId}`);
-      if (!raw) return hallId;
+      if (!raw) return formatLocationFallback(hallId);
       const locations = JSON.parse(raw);
       const found = Array.isArray(locations) ? locations.find((l: any) => (l.key || l.id) === hallId) : null;
-      return found ? (found.label || found.name) : hallId;
+      return found ? (found.label || found.name) : formatLocationFallback(hallId);
     } catch {
-      return hallId;
+      return formatLocationFallback(hallId);
     }
   }, [hallId, departmentId]);
 };
