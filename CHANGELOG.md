@@ -1,6 +1,12 @@
 # Changelog
 
-## [Unreleased] - 2026-02-23
+## [Unreleased] - 2026-02-24
+
+### Fixed — Afdelingsfiltrering på ferie-notifikationer og rød label
+- **useVacationRequestsStatus**: Tilføjet `department_id`-filter fra `useDepartment()` — rød prik på "Fridage" i navbar vises nu KUN for pending ansøgninger i den valgte afdeling.
+- **vacationNotifications**: Tilføjet `department_id`-filter — notifikationer oprettes nu KUN for pending ansøgninger i den valgte afdeling. Guard tilføjet så notifikationer springes over hvis ingen afdeling er valgt.
+
+## [Previous] - 2026-02-23
 
 ### Fixed — Desktop scroll i selectors (modal Popover)
 - **EmployeeSelector, MultipleCarSelector, CarSelector, ResponsibleUserSelector**: Desktop Popover ændret fra `modal={false}` til `modal={true}`. Løser scroll-blokering inde i Dialog-kontekst ved at lade Radix Popover neste sin `RemoveScroll` korrekt med Dialogens `RemoveScroll`. `onPointerDownOutside`-handler fjernet (unødvendig med `modal={true}`).

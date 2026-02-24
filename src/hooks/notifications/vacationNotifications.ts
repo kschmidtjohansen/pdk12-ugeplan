@@ -1,20 +1,23 @@
 
+
 import { useEffect, useCallback, useRef } from 'react';
 import { format } from 'date-fns';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { safeProperty } from '@/utils/dbHelpers';
+import { useDepartment } from '@/context/DepartmentContext';
 
 export const useVacationNotifications = (
   user: any | null,
   addNotification: (notification: any) => Promise<string | null>
 ) => {
   const { t, currentLanguage } = useTranslation();
+  const { selectedDepartmentId } = useDepartment();
   
   // Create notifications for pending vacation requests
   const createNotificationsForPendingRequests = useCallback(async () => {
-    // Only run for administrators
-    if (!user || user.role !== 'administrator') {
+    // Only run for administrators with a selected department
+    if (!user || user.role !== 'administrator' || !selectedDepartmentId) {
       return;
     }
     
@@ -30,7 +33,8 @@ export const useVacationNotifications = (
           reason,
           status
         `)
-        .eq('status', 'pending');
+        .eq('status', 'pending')
+        .eq('department_id', selectedDepartmentId);
         
       if (error) {
         console.error('Error fetching pending vacations:', error);
@@ -122,7 +126,7 @@ export const useVacationNotifications = (
     } catch (err) {
       console.error('Error checking for pending vacation requests:', err);
     }
-  }, [user, t, currentLanguage, addNotification]);
+  }, [user, t, currentLanguage, addNotification, selectedDepartmentId]);
 
   // Run when user becomes an admin
   useEffect(() => {

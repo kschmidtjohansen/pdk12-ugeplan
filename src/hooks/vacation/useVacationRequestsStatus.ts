@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 
 export const useVacationRequestsStatus = () => {
   const { isEffectiveAdmin, userDataLoaded, isDemoMode } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const [hasPendingRequests, setHasPendingRequests] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
-    // Only fetch for admins and wait for user data to be loaded
-    if (!isEffectiveAdmin || !userDataLoaded) {
+    // Only fetch for admins, wait for user data and department selection
+    if (!isEffectiveAdmin || !userDataLoaded || (!isDemoMode && !selectedDepartmentId)) {
       setHasPendingRequests(false);
       setPendingCount(0);
       return;
@@ -27,7 +29,8 @@ export const useVacationRequestsStatus = () => {
           const { data, error } = await supabase
             .from('vacations')
             .select('id', { count: 'exact', head: false })
-            .eq('status', 'pending');
+            .eq('status', 'pending')
+            .eq('department_id', selectedDepartmentId);
           if (error) throw error;
           const count = data?.length || 0;
           setPendingCount(count);
@@ -68,7 +71,7 @@ export const useVacationRequestsStatus = () => {
       supabase.removeChannel(channel);
       clearInterval(pollInterval);
     };
-  }, [isEffectiveAdmin, userDataLoaded, isDemoMode]);
+  }, [isEffectiveAdmin, userDataLoaded, isDemoMode, selectedDepartmentId]);
 
   return { hasPendingRequests, pendingCount };
 };
