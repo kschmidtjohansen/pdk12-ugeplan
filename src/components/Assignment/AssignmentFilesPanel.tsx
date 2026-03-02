@@ -123,6 +123,8 @@ const AssignmentFilesPanel: React.FC<AssignmentFilesPanelProps> = ({
       await uploadFile(file, folderToUse);
     }
     setUploading(false);
+    // Reset filter so newly uploaded file is visible
+    setFilterFolder('__all__');
   };
 
   const handleUploadWithComments = async () => {
@@ -140,6 +142,8 @@ const AssignmentFilesPanel: React.FC<AssignmentFilesPanelProps> = ({
 
     setPendingUploads([]);
     setUploading(false);
+    // Reset filter so newly uploaded files are visible
+    setFilterFolder('__all__');
   };
 
   const handleCancelUpload = () => {
