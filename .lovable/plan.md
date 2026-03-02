@@ -1,59 +1,35 @@
 
 
-## Fix: PDF-upload fejler stille — sandsynligvis specialtegn i filnavn
+## Fix: Udvid filnavn-sanitering til at haandtere alle ikke-ASCII tegn
 
 ### Analyse
 
-Filen "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" er hverken i Supabase Storage eller i `assignment_files`-tabellen. Uploaden fejler altsaa helt, men ingen fejlbesked vises.
+Filen "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" fejler stadig efter foerste sanitering. Den nuvaerende regex fjerner kun specifikke specialtegn, men **ikke danske bogstaver** som æ, ø, å. Storage-stien indeholder stadig "dækningsberettet" med "æ", som sandsynligvis foraarsager den stille fejl.
 
-Sammenligning af alle eksisterende filer i storage viser at **ingen filer har parenteser i navnet**. Filnavnet indeholder `(udkald)` som sandsynligvis foraarsager en stille fejl i Supabase Storage upload.
+Bekraeftet: Alle eksisterende filer i storage har rene ASCII-navne (f.eks. "Formaldehyd.png").
 
 ### Loesning
 
-#### 1. `src/hooks/assignment/useAssignmentFiles.ts` — Sanitize filnavn i storage-path
+#### 1. `src/hooks/assignment/useAssignmentFiles.ts` — Erstat sanitering med streng ASCII-only tilgang
 
-Erstat specialtegn (parenteser, #, %, osv.) i filnavnet naar storage-path konstrueres, men bevar det originale filnavn i DB-recorden:
+I stedet for at blockliste specifikke tegn, brug en allowlist-tilgang der kun beholder ASCII-sikre tegn:
 
 ```typescript
-// Sanitize filename for storage path (keep original in DB)
 const sanitizedName = file.name
-  .replace(/[()#%&{}\\<>*?/$!'":@+`|=]/g, '_')
-  .replace(/\s+/g, '_');
-const filePath = `${assignmentId}/${folderName || 'general'}/${timestamp}-${sanitizedName}`;
+  .normalize('NFD')                    // Dekomponér æ → ae, ø → o, å → a (via Unicode)
+  .replace(/[\u0300-\u036f]/g, '')     // Fjern combining diacritical marks
+  .replace(/[^a-zA-Z0-9._-]/g, '_')   // Behold kun alfanumerisk, punktum, bindestreg, underscore
+  .replace(/_+/g, '_');                // Kollapser multiple underscores
 ```
 
-DB-feltet `file_name` beholder det originale filnavn saa brugeren ser den rigtige fil.
+Dette konverterer "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" til "Aftaleseddl_ved_ikke_daekningsberettet_skade__udkald_.pdf" — ren ASCII.
 
-#### 2. Mere synlig fejlhaandtering
-
-Goer error-toasts persistent (laengere varighed) saa brugeren ikke overser dem:
-
-```typescript
-toast.error('Upload fejlede: ...', { duration: 8000 });
-```
-
-#### 3. Verification efter upload
-
-Tilfoej et simpelt tjek efter DB-insert for at bekraefte at filen faktisk blev gemt, saa vi fanger edge cases:
-
-```typescript
-// Verify file was saved
-const { count } = await supabase
-  .from('assignment_files')
-  .select('id', { count: 'exact', head: true })
-  .eq('file_path', filePath);
-
-if (!count) {
-  toast.error('Filen blev ikke gemt korrekt', { duration: 8000 });
-}
-```
-
-#### 4. `CHANGELOG.md` — Dokumenter
+#### 2. `CHANGELOG.md` — Dokumenter
 
 ### Filer der aendres
 
 | Fil | AEndring |
 |-----|---------|
-| `src/hooks/assignment/useAssignmentFiles.ts` | Sanitize filnavne, persistent fejl-toasts, upload-verifikation |
+| `src/hooks/assignment/useAssignmentFiles.ts` | Udvid sanitering til ASCII-only med NFD-normalisering |
 | `CHANGELOG.md` | Dokumenter fix |
 
