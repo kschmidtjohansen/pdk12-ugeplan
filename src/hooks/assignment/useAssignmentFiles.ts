@@ -131,8 +131,12 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       }
 
       // Create a unique path for the file
+      // Sanitize filename for storage path (keep original in DB for display)
       const timestamp = Date.now();
-      const filePath = `${assignmentId}/${folderName || 'general'}/${timestamp}-${file.name}`;
+      const sanitizedName = file.name
+        .replace(/[()#%&{}\\<>*?/$!'":@+`|=]/g, '_')
+        .replace(/\s+/g, '_');
+      const filePath = `${assignmentId}/${folderName || 'general'}/${timestamp}-${sanitizedName}`;
 
       // Fallback mime_type if browser doesn't provide one (e.g. some PDFs)
       const mimeType = file.type || 'application/octet-stream';
@@ -143,7 +147,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
         .upload(filePath, file);
 
       if (uploadError) {
-        toast.error(`Upload fejlede: ${uploadError.message}`);
+        toast.error(`Upload fejlede: ${uploadError.message}`, { duration: 8000 });
         return;
       }
 
@@ -162,9 +166,20 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
         });
 
       if (dbError) {
-        toast.error(`Kunne ikke gemme fil: ${dbError.message}`);
+        toast.error(`Kunne ikke gemme fil: ${dbError.message}`, { duration: 8000 });
         // Clean up orphaned storage file
         await supabase.storage.from('assignment-files').remove([filePath]);
+        return;
+      }
+
+      // Verify file was actually saved
+      const { count } = await supabase
+        .from('assignment_files')
+        .select('id', { count: 'exact', head: true })
+        .eq('file_path', filePath);
+
+      if (!count) {
+        toast.error('Filen blev ikke gemt korrekt — prøv igen', { duration: 8000 });
         return;
       }
 
@@ -172,7 +187,7 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       toast.success(`${file.name} uploadet`);
     } catch (error: any) {
       if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error uploading file:', error);
-      toast.error(`Kunne ikke uploade fil: ${error?.message || 'Ukendt fejl'}`);
+      toast.error(`Kunne ikke uploade fil: ${error?.message || 'Ukendt fejl'}`, { duration: 8000 });
     }
   }, [assignmentId, fetchFiles]);
 
