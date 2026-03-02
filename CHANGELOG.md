@@ -2,6 +2,13 @@
 
 ## [Unreleased] - 2026-03-02
 
+### Fixed — Filuploads (PDF) vises ikke + automatisk UI-opdatering
+- **Upload fejlhåndtering**: Viser nu den faktiske fejlbesked fra Supabase i stedet for generisk "Kunne ikke uploade fil". Orphaned storage-filer ryddes op hvis DB-insert fejler.
+- **Mime-type fallback**: Hvis browseren ikke angiver mime_type (f.eks. visse PDF-filer), bruges `application/octet-stream` som fallback.
+- **Auto-refresh efter upload**: Filter nulstilles til "Alle filer" efter upload, så den nyuploadede fil altid er synlig uden at lukke og genåbne opgaven.
+- **Supabase-own-action dispatch**: Upload dispatcher `supabase-own-action` event for at undgå global RealtimeChangeNotifier-banner ved egne handlinger.
+- **Storage policies for super_admin**: `storage.objects` DELETE/UPDATE policies bruger nu `is_admin_or_skadeleder()` som inkluderer `super_admin`-rollen.
+
 ### Fixed — Vagtoprettelse fejler for super_admin + fejlhåndtering
 - **RLS Policy**: `on_call_duties` politikken "Admin and skadeleder can manage all duties" bruger nu `is_admin_or_skadeleder()` i stedet for inline role-check der manglede `super_admin`.
 - **RLS Policy**: `planner_change_log` politikken "Admin and Skadeleder can view logs" opdateret tilsvarende.

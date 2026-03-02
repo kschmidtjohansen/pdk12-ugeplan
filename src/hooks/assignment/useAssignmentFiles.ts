@@ -121,6 +121,9 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
     }
 
     try {
+      // Suppress global RealtimeChangeNotifier for own action
+      window.dispatchEvent(new Event('supabase-own-action'));
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Du skal være logget ind for at uploade filer');
@@ -128,16 +131,21 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       }
 
       // Create a unique path for the file
-      const fileExt = file.name.split('.').pop();
       const timestamp = Date.now();
       const filePath = `${assignmentId}/${folderName || 'general'}/${timestamp}-${file.name}`;
+
+      // Fallback mime_type if browser doesn't provide one (e.g. some PDFs)
+      const mimeType = file.type || 'application/octet-stream';
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('assignment-files')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        toast.error(`Upload fejlede: ${uploadError.message}`);
+        return;
+      }
 
       // Create database record with comment
       const { error: dbError } = await supabase
@@ -149,17 +157,22 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
           file_path: filePath,
           folder_name: folderName || null,
           file_size: file.size,
-          mime_type: file.type,
+          mime_type: mimeType,
           comment: comment || null
         });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        toast.error(`Kunne ikke gemme fil: ${dbError.message}`);
+        // Clean up orphaned storage file
+        await supabase.storage.from('assignment-files').remove([filePath]);
+        return;
+      }
 
       await fetchFiles();
-      toast.success('Fil uploadet');
-    } catch (error) {
+      toast.success(`${file.name} uploadet`);
+    } catch (error: any) {
       if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error uploading file:', error);
-      toast.error('Kunne ikke uploade fil');
+      toast.error(`Kunne ikke uploade fil: ${error?.message || 'Ukendt fejl'}`);
     }
   }, [assignmentId, fetchFiles]);
 
