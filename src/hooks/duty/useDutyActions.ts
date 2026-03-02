@@ -79,9 +79,9 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error assigning duty:', err);
-      const errorMessage = err instanceof Error ? err.message : '';
+      const errorMessage = (err as any)?.message || '';
       
-      if (errorMessage.includes('skadeleder') || errorMessage.includes('administrator')) {
+      if (errorMessage.includes('row-level security') || errorMessage.includes('skadeleder') || errorMessage.includes('administrator')) {
         toast.error(t('duty.assignFailed'));
       } else {
         toast.error(errorMessage || t('duty.assignFailedGeneric'));
@@ -116,10 +116,10 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error updating duty:', err);
-      const errorMessage = err instanceof Error ? err.message : '';
+      const errorMessage = (err as any)?.message || '';
       
       // Check for role validation error
-      if (errorMessage.includes('skadeleder') || errorMessage.includes('administrator')) {
+      if (errorMessage.includes('row-level security') || errorMessage.includes('skadeleder') || errorMessage.includes('administrator')) {
         toast.error(t('duty.roleValidationFailed'));
       } else {
         toast.error(errorMessage || t('duty.updateFailed'));
@@ -151,7 +151,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error removing duty:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to remove duty');
+      toast.error((err as any)?.message || 'Failed to remove duty');
       return false;
     } finally {
       setLoading(false);
@@ -244,7 +244,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (error) {
       if (import.meta.env.DEV) console.error('Error swapping duties:', error);
-      toast.error(error instanceof Error ? error.message : t('duty.swapFailed'));
+      toast.error((error as any)?.message || t('duty.swapFailed'));
       return false;
     } finally {
       setLoading(false);
