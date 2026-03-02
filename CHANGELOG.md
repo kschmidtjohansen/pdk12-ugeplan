@@ -7,6 +7,7 @@
 - **RLS Policy**: `planner_change_log` politikken "Admin and Skadeleder can view logs" opdateret tilsvarende.
 - **Fejlhåndtering**: `useDutyActions.ts` håndterer nu PostgrestError korrekt (`.message` udtrækkes uden `instanceof Error`).
 - **DutyEmployeeSelector**: `super_admin` inkluderet i filteret for skadeledervagt, så brugere med super_admin-rolle nu vises korrekt.
+- **DB Trigger**: `validate_duty_assignment` trigger-funktionen inkluderer nu `super_admin` i rolle-tjekket for skadeledervagt, så super_admins kan tildeles vagter.
 
 ## [Unreleased] - 2026-02-24
 
