@@ -1,85 +1,59 @@
 
 
-## Fix: Filuploads (PDF) vises ikke + automatisk UI-opdatering
+## Fix: PDF-upload fejler stille — sandsynligvis specialtegn i filnavn
 
 ### Analyse
 
-Jeg har undersaegt problemet grundigt:
+Filen "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" er hverken i Supabase Storage eller i `assignment_files`-tabellen. Uploaden fejler altsaa helt, men ingen fejlbesked vises.
 
-1. **PDF-filer GEmmes korrekt** i bade storage og database (bekraeftet via DB-query — seneste PDF fra i dag, 9.5MB).
-2. **Problemet er UI-opdatering**: Efter upload vises filen ikke umiddelbart. Brugeren skal lukke og genabne opgaven.
-3. **Fejlhaandtering er for generisk**: Hvis upload fejler, vises kun "Kunne ikke uploade fil" uden den faktiske fejlbesked fra Supabase.
-4. **Storage DELETE/UPDATE policies mangler super_admin** — kan blokere filstyring for super_admins.
+Sammenligning af alle eksisterende filer i storage viser at **ingen filer har parenteser i navnet**. Filnavnet indeholder `(udkald)` som sandsynligvis foraarsager en stille fejl i Supabase Storage upload.
 
-### Rodaarsag for UI-problem
+### Loesning
 
-- `useAssignmentFiles` hooken kalder `fetchFiles()` efter upload, men fejlhaandteringen swallower detaljerne
-- Hvis DB-insert fejler (f.eks. RLS), forbliver filen i storage men uden DB-record — filen "forsvinder"
-- Hvis mime_type er tom/undefined for PDFs, kan det pavirke visning
-- Den globale `RealtimeChangeNotifier` kan interferere med brugerens egne uploads
+#### 1. `src/hooks/assignment/useAssignmentFiles.ts` — Sanitize filnavn i storage-path
 
-### AEndringer
-
-#### 1. `src/hooks/assignment/useAssignmentFiles.ts` — Forbedret upload med fejlhaandtering
-
-- **Dispatch `supabase-own-action`** event foer upload for at undgaa global notifier-banner
-- **Vis den faktiske fejlbesked** fra Supabase i toast (baade storage og DB fejl)
-- **Ryd op i orphaned storage-filer** hvis DB-insert fejler (upload lykkedes men record blev ikke gemt)
-- **Fallback mime_type** til `application/octet-stream` hvis `file.type` er tom
-- **Vis filnavn i success-toast** saa brugeren ved praecis hvilken fil der blev uploadet
+Erstat specialtegn (parenteser, #, %, osv.) i filnavnet naar storage-path konstrueres, men bevar det originale filnavn i DB-recorden:
 
 ```typescript
-// Foer upload:
-window.dispatchEvent(new Event('supabase-own-action'));
-
-// Bedre fejlhaandtering:
-if (uploadError) {
-  toast.error(`Upload fejlede: ${uploadError.message}`);
-  return;
-}
-
-if (dbError) {
-  toast.error(`Kunne ikke gemme fil: ${dbError.message}`);
-  // Clean up orphaned storage file
-  await supabase.storage.from('assignment-files').remove([filePath]);
-  return;
-}
-
-// Bedre success-besked:
-toast.success(`${file.name} uploadet`);
+// Sanitize filename for storage path (keep original in DB)
+const sanitizedName = file.name
+  .replace(/[()#%&{}\\<>*?/$!'":@+`|=]/g, '_')
+  .replace(/\s+/g, '_');
+const filePath = `${assignmentId}/${folderName || 'general'}/${timestamp}-${sanitizedName}`;
 ```
 
-#### 2. `src/components/Assignment/AssignmentFilesPanel.tsx` — Reset filter efter upload
+DB-feltet `file_name` beholder det originale filnavn saa brugeren ser den rigtige fil.
 
-- Naar en fil uploades, saet `filterFolder` til `__all__` saa den nyuploadede fil altid er synlig
-- Tilfoej en callback saa panelet kan signalere til parent at filer er aendret
+#### 2. Mere synlig fejlhaandtering
 
-#### 3. SQL Migration — Fix storage.objects policies for super_admin
+Goer error-toasts persistent (laengere varighed) saa brugeren ikke overser dem:
 
-Erstat inline role-check med `is_admin_or_skadeleder()` (som inkluderer `super_admin`):
-
-```sql
-DROP POLICY IF EXISTS "Admin and Skadeleder can delete assignment files" ON storage.objects;
-CREATE POLICY "Admin and Skadeleder can delete assignment files" ON storage.objects
-  FOR DELETE USING (
-    bucket_id = 'assignment-files' AND is_admin_or_skadeleder()
-  );
-
-DROP POLICY IF EXISTS "Admin and Skadeleder can update assignment files" ON storage.objects;
-CREATE POLICY "Admin and Skadeleder can update assignment files" ON storage.objects
-  FOR UPDATE USING (
-    bucket_id = 'assignment-files' AND is_admin_or_skadeleder()
-  );
+```typescript
+toast.error('Upload fejlede: ...', { duration: 8000 });
 ```
 
-#### 4. `CHANGELOG.md` — Dokumenter rettelser
+#### 3. Verification efter upload
+
+Tilfoej et simpelt tjek efter DB-insert for at bekraefte at filen faktisk blev gemt, saa vi fanger edge cases:
+
+```typescript
+// Verify file was saved
+const { count } = await supabase
+  .from('assignment_files')
+  .select('id', { count: 'exact', head: true })
+  .eq('file_path', filePath);
+
+if (!count) {
+  toast.error('Filen blev ikke gemt korrekt', { duration: 8000 });
+}
+```
+
+#### 4. `CHANGELOG.md` — Dokumenter
 
 ### Filer der aendres
 
 | Fil | AEndring |
 |-----|---------|
-| `src/hooks/assignment/useAssignmentFiles.ts` | Forbedret fejlhaandtering, supabase-own-action dispatch, orphan cleanup |
-| `src/components/Assignment/AssignmentFilesPanel.tsx` | Reset filter til __all__ efter upload |
-| Ny SQL migration | Fix storage.objects DELETE/UPDATE policies for super_admin |
-| `CHANGELOG.md` | Dokumenter rettelser |
+| `src/hooks/assignment/useAssignmentFiles.ts` | Sanitize filnavne, persistent fejl-toasts, upload-verifikation |
+| `CHANGELOG.md` | Dokumenter fix |
 
