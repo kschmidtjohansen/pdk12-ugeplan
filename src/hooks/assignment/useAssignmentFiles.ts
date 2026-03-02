@@ -134,8 +134,10 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
       // Sanitize filename for storage path (keep original in DB for display)
       const timestamp = Date.now();
       const sanitizedName = file.name
-        .replace(/[()#%&{}\\<>*?/$!'":@+`|=]/g, '_')
-        .replace(/\s+/g, '_');
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9._-]/g, '_')
+        .replace(/_+/g, '_');
       const filePath = `${assignmentId}/${folderName || 'general'}/${timestamp}-${sanitizedName}`;
 
       // Fallback mime_type if browser doesn't provide one (e.g. some PDFs)
