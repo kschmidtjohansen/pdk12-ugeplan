@@ -1,69 +1,60 @@
 
 
-## Fix: Lagerlokation viser ID + manglende oversaettelse i Biler
+## Fix: Vagtoprettelse fejler + RLS mangler super_admin
 
-### Problem 1: Lagerlokation viser ID i stedet for navn
+### Rodaarsag
 
-`WarehouseTableRow` og `MobileWarehouseCard` har begge en `useLocationLabel`-hook der laeser fra localStorage. Hooken matcher korrekt paa `l.key === hallId` og returnerer `l.label`. Hvis localStorage-data ikke er tilgaengelig (f.eks. anden browser, ryddet cache, eller localStorage-data endnu ikke oprettet), falder den tilbage til at vise raa `hallId` (f.eks. `hal_1` i stedet for `Hal 1`).
+Knappen "Tildel" klikker korrekt, men INSERT i databasen blokeres af RLS-politikken paa `on_call_duties`. Politikken "Admin and skadeleder can manage all duties" tjekker KUN for `administrator` og `skadeleder` -- den mangler `super_admin`.
 
-**Rodaarsag**: localStorage er ikke reaktiv -- aendringer fra `LocationManagement` triggerer ikke re-render i warehouse-komponenterne. Desuden er localStorage per-browser, saa hvis en admin opretter lokationer paa en enhed, ser andre brugere dem ikke.
+Funktionen `is_admin_or_skadeleder()` inkluderer korrekt `super_admin`, men `on_call_duties`-politikken bruger IKKE denne funktion -- den har en inline check.
 
-**Loesning**: Da lokationsdata gemmes i localStorage (jf. Knowledge/memory), og vi ikke aendrer denne arkitektur, sikrer vi at:
-1. Hook-logikken er korrekt (den er allerede)
-2. Vi tilbyder en mere robust fallback -- viser hall-vaerdien formateret (erstatter underscore med mellemrum og capitalize) i stedet for den raa noegle
+Derudover viser fejlhaandteringen i `useDutyActions.ts` ikke fejlen korrekt, fordi PostgrestError ikke er `instanceof Error`, saa fejlbeskeden bliver tom.
 
-### Problem 2: `common.showMore` mangler i oversaettelser
+### Beroorte RLS-politikker (inline check uden super_admin)
 
-`MobileCarCard.tsx` (linje 206) bruger `t('common.showMore')` med fallback `'Vis detaljer'`. Men `showMore` og `showLess` eksisterer KUN i `planner`-oversaettelserne, ikke i `common`. Tilsvarende mangler `common.showLess`.
+| Tabel | Policy | Problem |
+|-------|--------|---------|
+| `on_call_duties` | "Admin and skadeleder can manage all duties" | Mangler super_admin -- **blokerer insert** |
+| `planner_change_log` | "Admin and Skadeleder can view logs" | Mangler super_admin |
+| `storage.objects` | "Admin and Skadeleder can delete/update assignment files" | Mangler super_admin |
 
----
+### Loesning
 
-### AEndringer
+#### 1. SQL Migration: Opdater on_call_duties RLS policy
 
-#### Fil 1: `src/translations/da/common.ts`
-Tilfoej manglende noeger:
-```
-showMore: "Vis detaljer",
-showLess: "Skjul detaljer",
-```
+Erstat inline role-check med `is_admin_or_skadeleder()` funktionen (som allerede inkluderer super_admin):
 
-#### Fil 2: `src/translations/en/common.ts`
-Tilfoej manglende noeger:
-```
-showMore: "Show details",
-showLess: "Hide details",
+```sql
+DROP POLICY IF EXISTS "Admin and skadeleder can manage all duties" ON on_call_duties;
+CREATE POLICY "Admin and skadeleder can manage all duties" ON on_call_duties
+  FOR ALL TO authenticated
+  USING (is_admin_or_skadeleder())
+  WITH CHECK (is_admin_or_skadeleder());
 ```
 
-#### Fil 3: `src/components/Warehouse/WarehouseTableRow.tsx`
-Forbedre `useLocationLabel` fallback: Naar lokationsdata ikke kan findes i localStorage, formater `hallId` laesevenligt (capitalize, erstatter `_` med mellemrum) i stedet for at vise den raa noegle.
+Tilsvarende for `planner_change_log` og `storage.objects`.
+
+#### 2. `src/hooks/duty/useDutyActions.ts` -- Fix fejlhaandtering
+
+PostgrestError har `.message` men er ikke `instanceof Error`. AEndr:
 
 ```typescript
-// Forbedret fallback i stedet for raa hallId:
-const formatFallback = (id: string) => 
-  id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+// Foer:
+const errorMessage = err instanceof Error ? err.message : '';
+
+// Efter:
+const errorMessage = (err as any)?.message || '';
 ```
 
-#### Fil 4: `src/components/Warehouse/MobileWarehouseCard.tsx`
-Samme forbedring af `useLocationLabel` fallback.
-
-#### Fil 5: `CHANGELOG.md`
-Dokumenter begge rettelser.
+#### 3. `CHANGELOG.md` -- Dokumenter
 
 ---
 
-### Tekniske detaljer
+### Filer der aendres
 
 | Fil | AEndring |
 |-----|---------|
-| `src/translations/da/common.ts` | Tilfoej `showMore`, `showLess` |
-| `src/translations/en/common.ts` | Tilfoej `showMore`, `showLess` |
-| `src/components/Warehouse/WarehouseTableRow.tsx` | Forbedret location-fallback formatering |
-| `src/components/Warehouse/MobileWarehouseCard.tsx` | Forbedret location-fallback formatering |
-| `CHANGELOG.md` | Dokumenter rettelser |
-
-### Kvalitetstjek
-- Lagerlokationer viser laesbare navne (fra localStorage hvis tilgaengelig, ellers formateret fallback)
-- `common.showMore` og `showLess` oversat korrekt paa baade dansk og engelsk
-- Overholder UI-guidelines (ingen visuelle brud)
-- Overholder tekniske specifikationer (ingen foelsom logging)
+| Ny SQL migration | Fix 3 RLS policies til at bruge `is_admin_or_skadeleder()` |
+| `src/hooks/duty/useDutyActions.ts` | Fix PostgrestError message extraction |
+| `CHANGELOG.md` | Dokumenter fix |
 
