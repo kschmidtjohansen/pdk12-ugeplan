@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased] - 2026-03-02
+
+### Fixed — Vagtoprettelse fejler for super_admin + fejlhåndtering
+- **RLS Policy**: `on_call_duties` politikken "Admin and skadeleder can manage all duties" bruger nu `is_admin_or_skadeleder()` i stedet for inline role-check der manglede `super_admin`.
+- **RLS Policy**: `planner_change_log` politikken "Admin and Skadeleder can view logs" opdateret tilsvarende.
+- **Fejlhåndtering**: `useDutyActions.ts` håndterer nu PostgrestError korrekt (`.message` udtrækkes uden `instanceof Error`).
+
 ## [Unreleased] - 2026-02-24
 
 ### Fixed — Lagerlokation viser ID + manglende oversættelse i Biler
