@@ -2,6 +2,11 @@
 
 ## [Unreleased] - 2026-03-02
 
+### Fixed — PDF-upload fejler stille ved specialtegn i filnavn
+- **Filnavn-sanitering**: Specialtegn (parenteser, #, %, m.fl.) i filnavne erstattes med `_` i storage-stien, mens det originale filnavn bevares i databasen. Løser at filer som `(udkald).pdf` fejlede stille.
+- **Persistent fejl-toasts**: Upload-fejl vises nu i 8 sekunder så brugeren ikke overser dem.
+- **Upload-verifikation**: Efter DB-insert verificeres det at filen faktisk blev gemt, med fejlbesked hvis ikke.
+
 ### Fixed — Filuploads (PDF) vises ikke + automatisk UI-opdatering
 - **Upload fejlhåndtering**: Viser nu den faktiske fejlbesked fra Supabase i stedet for generisk "Kunne ikke uploade fil". Orphaned storage-filer ryddes op hvis DB-insert fejler.
 - **Mime-type fallback**: Hvis browseren ikke angiver mime_type (f.eks. visse PDF-filer), bruges `application/octet-stream` som fallback.
