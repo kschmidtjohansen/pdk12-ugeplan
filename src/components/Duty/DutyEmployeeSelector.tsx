@@ -27,7 +27,7 @@ export const DutyEmployeeSelector = ({
   // Filter employees based on duty type
   const filteredEmployees = dutyType === 'skadeleder_vagt'
     ? employees.filter(emp => 
-        emp.role === 'administrator' || emp.role === 'skadeleder'
+        emp.role === 'super_admin' || emp.role === 'administrator' || emp.role === 'skadeleder'
       )
     : employees;
 
