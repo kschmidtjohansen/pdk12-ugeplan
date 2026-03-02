@@ -3,7 +3,7 @@
 ## [Unreleased] - 2026-03-02
 
 ### Fixed — PDF-upload fejler stille ved specialtegn i filnavn
-- **Filnavn-sanitering**: Specialtegn (parenteser, #, %, m.fl.) i filnavne erstattes med `_` i storage-stien, mens det originale filnavn bevares i databasen. Løser at filer som `(udkald).pdf` fejlede stille.
+- **Filnavn-sanitering**: Udvidet til ASCII-only med NFD-normalisering — danske tegn (æ, ø, å) og alle ikke-ASCII tegn konverteres nu korrekt. Løser at filer med danske bogstaver i navnet fejlede stille i Supabase Storage.
 - **Persistent fejl-toasts**: Upload-fejl vises nu i 8 sekunder så brugeren ikke overser dem.
 - **Upload-verifikation**: Efter DB-insert verificeres det at filen faktisk blev gemt, med fejlbesked hvis ikke.
 
