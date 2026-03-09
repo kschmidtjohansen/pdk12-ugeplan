@@ -1,35 +1,42 @@
 
 
-## Fix: Udvid filnavn-sanitering til at haandtere alle ikke-ASCII tegn
+## Plan: Notifikation ved >50% ferie i samme uge
 
-### Analyse
+### Beskrivelse
 
-Filen "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" fejler stadig efter foerste sanitering. Den nuvaerende regex fjerner kun specifikke specialtegn, men **ikke danske bogstaver** som æ, ø, å. Storage-stien indeholder stadig "dækningsberettet" med "æ", som sandsynligvis foraarsager den stille fejl.
+Udvid `useVacationNotifications` med en ny funktion der tjekker om mere end 50% af servicemedarbejderne i den valgte afdeling har godkendt ferie i samme uge — for de kommende 8 uger. Hvis ja, oprettes en notifikation til administratoren.
 
-Bekraeftet: Alle eksisterende filer i storage har rene ASCII-navne (f.eks. "Formaldehyd.png").
+### Implementering
 
-### Loesning
+#### 1. `src/hooks/notifications/vacationNotifications.ts` — Ny funktion
 
-#### 1. `src/hooks/assignment/useAssignmentFiles.ts` — Erstat sanitering med streng ASCII-only tilgang
+Tilfoej `checkHighVacationWeeks` i hooken:
+- Henter godkendte ferier for de naeste 8 uger fra `vacations` (status = 'approved', department_id = selectedDepartmentId)
+- Henter antal aktive servicemedarbejdere i afdelingen (via `user_roles` + `user_access` + `profiles`)
+- Beregner per uge: antal unikke medarbejdere paa ferie vs. total
+- Hvis >50%: tjek om der allerede findes en ulæst notifikation for den uge (matcher paa ugenummer i besked)
+- Hvis nej: opret notifikation med type 'vacation', link til '/admin' (vacationCalendar-fanen)
 
-I stedet for at blockliste specifikke tegn, brug en allowlist-tilgang der kun beholder ASCII-sikre tegn:
+Kaldes i samme `useEffect` som `createNotificationsForPendingRequests`.
 
-```typescript
-const sanitizedName = file.name
-  .normalize('NFD')                    // Dekomponér æ → ae, ø → o, å → a (via Unicode)
-  .replace(/[\u0300-\u036f]/g, '')     // Fjern combining diacritical marks
-  .replace(/[^a-zA-Z0-9._-]/g, '_')   // Behold kun alfanumerisk, punktum, bindestreg, underscore
-  .replace(/_+/g, '_');                // Kollapser multiple underscores
-```
+#### 2. Oversaettelser
 
-Dette konverterer "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" til "Aftaleseddl_ved_ikke_daekningsberettet_skade__udkald_.pdf" — ren ASCII.
+**da/notifications.ts:**
+- `vacationHighCoverage`: "Advarsel: Uge {week} har mere end 50% af servicemedarbejderne på ferie ({count}/{total})"
+- `vacationHighCoverageTitle`: "Høj feriedækning"
 
-#### 2. `CHANGELOG.md` — Dokumenter
+**en/notifications.ts:**
+- `vacationHighCoverage`: "Warning: Week {week} has more than 50% of service employees on vacation ({count}/{total})"
+- `vacationHighCoverageTitle`: "High vacation coverage"
+
+#### 3. `CHANGELOG.md` — Dokumenter
 
 ### Filer der aendres
 
 | Fil | AEndring |
 |-----|---------|
-| `src/hooks/assignment/useAssignmentFiles.ts` | Udvid sanitering til ASCII-only med NFD-normalisering |
-| `CHANGELOG.md` | Dokumenter fix |
+| `src/hooks/notifications/vacationNotifications.ts` | Tilfoej `checkHighVacationWeeks` |
+| `src/translations/da/notifications.ts` | Tilfoej oversaettelser |
+| `src/translations/en/notifications.ts` | Tilfoej oversaettelser |
+| `CHANGELOG.md` | Dokumenter feature |
 
