@@ -19,7 +19,9 @@ const notifications = {
   dutyAssigned: 'New duty assigned',
   dutyAssignedMessage: 'You have been assigned to {dutyType} on {date}',
   newMessage: 'New message on assignment',
-  newMessageDescription: '{sender} wrote: "{preview}"'
+  newMessageDescription: '{sender} wrote: "{preview}"',
+  vacationHighCoverageTitle: 'High vacation coverage',
+  vacationHighCoverage: 'Warning: Week {week} has more than 50% of service employees on vacation ({count}/{total})'
 };
 
 export default notifications;
