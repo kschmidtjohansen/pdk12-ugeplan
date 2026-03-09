@@ -80,10 +80,12 @@ const cars = {
   selectAtLeastOneSubDepartment: 'Select at least one sub-department',
   
   // Falck
-  falckSubscription: 'Falck Subscription',
+  falckSubscription: 'Falck Vejhjælp',
   falckSubscriptionNumber: 'Subscription Number',
   falckSubscriptionEmpty: 'No subscription number registered',
   falckSubscriptionUpdated: 'Subscription number updated',
+  falckPhoneLabel: 'Emergency Phone',
+  falckPhoneNumber: '70 10 20 30',
 };
 
 export default cars;

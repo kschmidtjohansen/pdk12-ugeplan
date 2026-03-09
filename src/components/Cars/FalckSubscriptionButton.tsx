@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Shield, Pencil, Check, X } from 'lucide-react';
+import { Shield, Pencil, Check, X, Phone } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,8 +42,6 @@ const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdm
   const mutation = useMutation({
     mutationFn: async (value: string) => {
       if (!selectedDepartmentId) return;
-      
-      // Try upsert
       const { error } = await supabase
         .from('department_settings' as any)
         .upsert(
@@ -97,37 +95,56 @@ const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdm
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <label className="text-sm font-medium text-muted-foreground">
-              {t('cars.falckSubscriptionNumber')}
-            </label>
+            {/* Phone number */}
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">
+                {t('cars.falckPhoneLabel')}
+              </label>
+              <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/30 mt-1">
+                <Phone className="h-4 w-4 text-primary" />
+                <a
+                  href="tel:70102030"
+                  className="text-lg font-mono text-primary hover:underline"
+                >
+                  {t('cars.falckPhoneNumber')}
+                </a>
+              </div>
+            </div>
 
-            {editing ? (
-              <div className="flex items-center gap-2">
-                <Input
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  placeholder="F.eks. 123456789"
-                  autoFocus
-                />
-                <Button size="icon" variant="ghost" onClick={handleSave} disabled={mutation.isPending}>
-                  <Check className="h-4 w-4 text-green-600" />
-                </Button>
-                <Button size="icon" variant="ghost" onClick={() => setEditing(false)}>
-                  <X className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
-                <span className={`text-lg font-mono ${!subscriptionNumber ? 'text-muted-foreground italic text-sm' : ''}`}>
-                  {subscriptionNumber || t('cars.falckSubscriptionEmpty')}
-                </span>
-                {isAdmin && (
-                  <Button size="icon" variant="ghost" onClick={handleStartEdit}>
-                    <Pencil className="h-4 w-4" />
+            {/* Subscription number */}
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">
+                {t('cars.falckSubscriptionNumber')}
+              </label>
+
+              {editing ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    placeholder="F.eks. 123456789"
+                    autoFocus
+                  />
+                  <Button size="icon" variant="ghost" onClick={handleSave} disabled={mutation.isPending}>
+                    <Check className="h-4 w-4 text-green-600" />
                   </Button>
-                )}
-              </div>
-            )}
+                  <Button size="icon" variant="ghost" onClick={() => setEditing(false)}>
+                    <X className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30 mt-1">
+                  <span className={`text-lg font-mono ${!subscriptionNumber ? 'text-muted-foreground italic text-sm' : ''}`}>
+                    {subscriptionNumber || t('cars.falckSubscriptionEmpty')}
+                  </span>
+                  {isAdmin && (
+                    <Button size="icon" variant="ghost" onClick={handleStartEdit}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -80,10 +80,12 @@ const cars = {
   selectAtLeastOneSubDepartment: 'Vælg mindst én underafdeling',
   
   // Falck
-  falckSubscription: 'Falck Abonnement',
+  falckSubscription: 'Falck Vejhjælp',
   falckSubscriptionNumber: 'Abonnementsnummer',
   falckSubscriptionEmpty: 'Intet abonnementsnummer registreret',
   falckSubscriptionUpdated: 'Abonnementsnummer opdateret',
+  falckPhoneLabel: 'Vagttelefon',
+  falckPhoneNumber: '70 10 20 30',
 };
 
 export default cars;

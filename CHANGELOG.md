@@ -12,9 +12,9 @@
 - Klikbar dag viser hvilke medarbejdere der har ferie.
 - Ugeoversigt viser antal tilgængelige servicemedarbejdere med farvekodning (grøn/gul/rød).
 
-### Added — Falck Abonnementsnummer på /cars
-- **Ny knap "Falck Abonnement"** i /cars header.
-- Dialog viser abonnementsnummer; admin kan redigere det.
+### Added — Falck Vejhjælp på /cars
+- **Ny knap "Falck Vejhjælp"** i /cars header.
+- Dialog viser Falcks vagttelefon (70 10 20 30) med klikbart telefon-link samt abonnementsnummer; admin kan redigere nummeret.
 - Ny `department_settings`-tabel i databasen (generisk nøgle-værdi per afdeling).
 
 ## [Unreleased] - 2026-03-02
