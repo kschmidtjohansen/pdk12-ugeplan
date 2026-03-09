@@ -12,6 +12,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Car, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
+import FalckSubscriptionButton from '@/components/Cars/FalckSubscriptionButton';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
