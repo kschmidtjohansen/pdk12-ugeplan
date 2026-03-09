@@ -2,6 +2,11 @@
 
 ## [Unreleased] - 2026-03-09
 
+### Added — Notifikation ved høj feriedækning
+- **Automatisk advarsel** til administratorer når mere end 50% af servicemedarbejderne har godkendt ferie i samme uge (tjekker de kommende 8 uger).
+- Notifikationen linker til Admin-ferieoversigten.
+- Duplikattjek: opretter ikke en ny notifikation hvis der allerede findes en ulæst advarsel for samme uge.
+
 ### Added — Ferieoversigt i Admin
 - **Ny fane "Ferieoversigt"** i Admin-panelet med kalendervisning over godkendte ferier.
 - Klikbar dag viser hvilke medarbejdere der har ferie.

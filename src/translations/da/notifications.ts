@@ -20,7 +20,9 @@ const notifications = {
   dutyAssigned: 'Ny vagt tildelt',
   dutyAssignedMessage: 'Du er blevet tildelt {dutyType} den {date}',
   newMessage: 'Ny besked på sag',
-  newMessageDescription: '{sender} skrev: "{preview}"'
+  newMessageDescription: '{sender} skrev: "{preview}"',
+  vacationHighCoverageTitle: 'Høj feriedækning',
+  vacationHighCoverage: 'Advarsel: Uge {week} har mere end 50% af servicemedarbejderne på ferie ({count}/{total})'
 };
 
 export default notifications;
