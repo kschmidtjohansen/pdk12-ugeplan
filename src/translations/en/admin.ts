@@ -14,7 +14,8 @@ export const admin = {
     departments: 'Main Departments',
     subDepartments: 'Sub-departments',
     features: 'Features',
-    locations: 'Locations'
+    locations: 'Locations',
+    vacationCalendar: 'Vacation Overview'
   },
   dashboard: {
     title: 'Admin Dashboard',

@@ -136,6 +136,10 @@ const AdminPage: React.FC = () => {
               <LocationManagement />
             </TabsContent>
           )}
+
+          <TabsContent value="vacationCalendar" className="animate-fade-in">
+            <VacationCalendarOverview />
+          </TabsContent>
         </Tabs>
       </div>
     </div>

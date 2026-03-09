@@ -68,6 +68,7 @@ const CarsPage: React.FC = () => {
                 </p>
               </div>
               <div className="flex items-center gap-4">
+                <FalckSubscriptionButton isAdmin={isAdmin} />
                 {isAdmin && (
                   <Button 
                     onClick={handleCreateNew}
