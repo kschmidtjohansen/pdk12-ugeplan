@@ -78,6 +78,12 @@ const cars = {
   fetchError: 'Failed to fetch vehicles. Please try again.',
   noCarsInSubDepartment: 'No cars assigned to this sub-department',
   selectAtLeastOneSubDepartment: 'Select at least one sub-department',
+  
+  // Falck
+  falckSubscription: 'Falck Subscription',
+  falckSubscriptionNumber: 'Subscription Number',
+  falckSubscriptionEmpty: 'No subscription number registered',
+  falckSubscriptionUpdated: 'Subscription number updated',
 };
 
 export default cars;

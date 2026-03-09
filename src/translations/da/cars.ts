@@ -78,6 +78,12 @@ const cars = {
   fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.',
   noCarsInSubDepartment: 'Der er ingen biler tilknyttet denne underafdeling',
   selectAtLeastOneSubDepartment: 'Vælg mindst én underafdeling',
+  
+  // Falck
+  falckSubscription: 'Falck Abonnement',
+  falckSubscriptionNumber: 'Abonnementsnummer',
+  falckSubscriptionEmpty: 'Intet abonnementsnummer registreret',
+  falckSubscriptionUpdated: 'Abonnementsnummer opdateret',
 };
 
 export default cars;

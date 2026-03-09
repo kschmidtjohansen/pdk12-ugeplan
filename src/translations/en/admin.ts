@@ -329,5 +329,14 @@ export const admin = {
     skadelederDesc: 'Can manage assignments and approve tasks',
     servicemedarbejderDesc: 'Can view assigned tasks and request vacation',
     vikarDesc: 'Temporary access for substitutes'
+  },
+  vacationCalendar: {
+    title: 'Vacation Overview',
+    description: 'Overview of approved vacations and employee availability',
+    availableEmployees: 'Available service employees',
+    totalServiceEmployees: 'service employees total',
+    onVacation: 'on vacation',
+    week: 'Week',
+    noVacations: 'No vacations'
   }
 };
