@@ -6,12 +6,13 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, Building2, Layers, Settings, MapPin } from 'lucide-react';
+import { Shield, Users, Building2, Layers, Settings, MapPin, CalendarDays } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import DepartmentManagement from '@/components/Admin/DepartmentManagement';
 import SubDepartmentManagement from '@/components/Admin/SubDepartmentManagement';
 import FeatureToggleManagement from '@/components/Admin/FeatureToggleManagement';
 import LocationManagement from '@/components/Admin/LocationManagement';
+import VacationCalendarOverview from '@/components/Admin/VacationCalendarOverview';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -91,6 +92,10 @@ const AdminPage: React.FC = () => {
                 {t('admin.tabs.locations') || 'Lokationer'}
               </TabsTrigger>
             )}
+            <TabsTrigger value="vacationCalendar" className="gap-2">
+              <CalendarDays className="h-4 w-4" />
+              {t('admin.tabs.vacationCalendar')}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="animate-fade-in">
@@ -131,6 +136,10 @@ const AdminPage: React.FC = () => {
               <LocationManagement />
             </TabsContent>
           )}
+
+          <TabsContent value="vacationCalendar" className="animate-fade-in">
+            <VacationCalendarOverview />
+          </TabsContent>
         </Tabs>
       </div>
     </div>

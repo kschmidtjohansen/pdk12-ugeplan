@@ -12,6 +12,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Car, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
+import FalckSubscriptionButton from '@/components/Cars/FalckSubscriptionButton';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
@@ -67,6 +68,7 @@ const CarsPage: React.FC = () => {
                 </p>
               </div>
               <div className="flex items-center gap-4">
+                <FalckSubscriptionButton isAdmin={isAdmin} />
                 {isAdmin && (
                   <Button 
                     onClick={handleCreateNew}

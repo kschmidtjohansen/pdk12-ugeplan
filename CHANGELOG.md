@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased] - 2026-03-09
+
+### Added — Ferieoversigt i Admin
+- **Ny fane "Ferieoversigt"** i Admin-panelet med kalendervisning over godkendte ferier.
+- Klikbar dag viser hvilke medarbejdere der har ferie.
+- Ugeoversigt viser antal tilgængelige servicemedarbejdere med farvekodning (grøn/gul/rød).
+
+### Added — Falck Abonnementsnummer på /cars
+- **Ny knap "Falck Abonnement"** i /cars header.
+- Dialog viser abonnementsnummer; admin kan redigere det.
+- Ny `department_settings`-tabel i databasen (generisk nøgle-værdi per afdeling).
+
 ## [Unreleased] - 2026-03-02
 
 ### Fixed — PDF-upload fejler stille ved specialtegn i filnavn

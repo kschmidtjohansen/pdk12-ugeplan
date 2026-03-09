@@ -14,7 +14,8 @@ export const admin = {
     departments: 'Hovedafdelinger',
     subDepartments: 'Underafdelinger',
     features: 'Funktioner',
-    locations: 'Lokationer'
+    locations: 'Lokationer',
+    vacationCalendar: 'Ferieoversigt'
   },
   dashboard: {
     title: 'Administrationspanel',
@@ -332,5 +333,14 @@ export const admin = {
     skadelederDesc: 'Kan administrere opgaver og godkende opgaver',
     servicemedarbejderDesc: 'Kan se tildelte opgaver og anmode om ferie',
     vikarDesc: 'Vikarer med midlertidig adgang'
+  },
+  vacationCalendar: {
+    title: 'Ferieoversigt',
+    description: 'Oversigt over godkendte ferier og medarbejdertilgængelighed',
+    availableEmployees: 'Tilgængelige servicemedarbejdere',
+    totalServiceEmployees: 'servicemedarbejdere i alt',
+    onVacation: 'på ferie',
+    week: 'Uge',
+    noVacations: 'Ingen ferier'
   }
 };
