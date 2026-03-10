@@ -39,15 +39,21 @@ const VacationTable: React.FC<VacationTableProps> = ({
   
   const canApprove = isEffectiveAdmin;
 
+  const formatDateWithWeek = (date: Date) => {
+    const locale = currentLanguage === 'da' ? da : undefined;
+    const weekday = format(date, 'EEEE', { locale });
+    const capitalized = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    const dateStr = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+    const week = getISOWeek(date);
+    const weekLabel = currentLanguage === 'da' ? 'Uge' : 'Week';
+    return `${capitalized} ${dateStr} (${weekLabel} ${week})`;
+  };
+
   const formatDateRange = (startDate: Date, endDate: Date) => {
-    const locale = currentLanguage === 'da' ? 'da-DK' : 'en-GB';
-    const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' };
-    
     if (startDate.toDateString() === endDate.toDateString()) {
-      return startDate.toLocaleDateString(locale, options);
+      return formatDateWithWeek(startDate);
     }
-    
-    return `${startDate.toLocaleDateString(locale, options)} - ${endDate.toLocaleDateString(locale, options)}`;
+    return `${formatDateWithWeek(startDate)} - ${formatDateWithWeek(endDate)}`;
   };
 
   const formatRequestType = (vacation: Vacation) => {

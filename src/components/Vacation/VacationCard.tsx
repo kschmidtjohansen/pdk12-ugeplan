@@ -35,9 +35,19 @@ const VacationCard: React.FC<VacationCardProps> = ({
     return null;
   }
 
-  const dateFormat = currentLanguage === 'da' ? 'EEEE dd.MM.yyyy' : 'EEEE MM/dd/yyyy';
-  const startDate = format(new Date(vacation.start_date), dateFormat);
-  const endDate = format(new Date(vacation.end_date), dateFormat);
+  const formatDateWithWeek = (dateString: string) => {
+    const date = new Date(dateString);
+    const locale = currentLanguage === 'da' ? da : undefined;
+    const weekday = format(date, 'EEEE', { locale });
+    const capitalized = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    const dateStr = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+    const week = getISOWeek(date);
+    const weekLabel = currentLanguage === 'da' ? 'Uge' : 'Week';
+    return `${capitalized} ${dateStr} (${weekLabel} ${week})`;
+  };
+
+  const startDate = formatDateWithWeek(vacation.start_date);
+  const endDate = formatDateWithWeek(vacation.end_date);
 
   const getStatusIcon = () => {
     switch (vacation.status) {

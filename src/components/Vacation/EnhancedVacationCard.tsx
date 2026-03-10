@@ -31,7 +31,12 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
     try {
       const date = new Date(dateString + 'T00:00:00');
       const locale = currentLanguage === 'da' ? da : undefined;
-      return format(date, 'EEEE dd/MM/yyyy', { locale });
+      const weekday = format(date, 'EEEE', { locale });
+      const capitalized = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+      const dateStr = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+      const week = getISOWeek(date);
+      const weekLabel = currentLanguage === 'da' ? 'Uge' : 'Week';
+      return `${capitalized} ${dateStr} (${weekLabel} ${week})`;
     } catch (e) {
       return dateString;
     }
