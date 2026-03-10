@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { format } from 'date-fns';
+import { format, getISOWeek } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { Calendar, Clock, User, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
