@@ -133,7 +133,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
 
         {/* Request Date */}
         <div className="text-xs text-muted-foreground">
-          {t('vacation.requestedOn')}: {format(new Date(vacation.created_at), dateFormat)}
+          {t('vacation.requestedOn')}: {formatDateWithWeek(vacation.created_at)}
         </div>
       </CardContent>
 
