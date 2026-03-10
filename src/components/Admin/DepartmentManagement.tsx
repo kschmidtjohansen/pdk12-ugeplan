@@ -81,19 +81,32 @@ const DepartmentManagement: React.FC = () => {
     if (!deleteTarget) return;
     setDeleting(true);
 
-    await supabase.from('user_access').delete().eq('department_id', deleteTarget.id);
-    await supabase.from('sub_departments').delete().eq('department_id', deleteTarget.id);
+    try {
+      // Nullify FK references in tables without CASCADE
+      await supabase.from('profiles').update({ home_department_id: null }).eq('home_department_id', deleteTarget.id);
+      await supabase.from('assignments').update({ department_id: null }).eq('department_id', deleteTarget.id);
+      await supabase.from('vacations').update({ department_id: null }).eq('department_id', deleteTarget.id);
+      await supabase.from('on_call_duties').update({ department_id: null }).eq('department_id', deleteTarget.id);
+      await supabase.from('cars').update({ department_id: null }).eq('department_id', deleteTarget.id);
+      await supabase.from('warehouse_items').update({ department_id: null }).eq('department_id', deleteTarget.id);
 
-    const { error } = await supabase
-      .from('departments')
-      .delete()
-      .eq('id', deleteTarget.id);
+      // These have CASCADE but we delete explicitly for safety
+      await supabase.from('user_access').delete().eq('department_id', deleteTarget.id);
+      await supabase.from('sub_departments').delete().eq('department_id', deleteTarget.id);
 
-    if (error) {
-      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: t('common.success'), description: t('admin.departments.deleted') });
-      fetchDepartments();
+      const { error } = await supabase
+        .from('departments')
+        .delete()
+        .eq('id', deleteTarget.id);
+
+      if (error) {
+        toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: t('common.success'), description: t('admin.departments.deleted') });
+        fetchDepartments();
+      }
+    } catch (err: any) {
+      toast({ title: t('common.error'), description: err?.message || 'Unknown error', variant: 'destructive' });
     }
     setDeleteTarget(null);
     setDeleting(false);
