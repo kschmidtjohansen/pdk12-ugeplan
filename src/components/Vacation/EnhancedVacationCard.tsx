@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format } from 'date-fns';
+import { format, getISOWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
