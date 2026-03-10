@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased] - 2026-03-10
+
+### Changed — Ugedage i ferielisten
+- Datoer på `/vacation` viser nu ugedagsnavn (f.eks. "mandag 14/07/2025") i både desktop-tabel og mobilkort.
+
 ## [Unreleased] - 2026-03-09
 
 ### Added — Notifikation ved høj feriedækning

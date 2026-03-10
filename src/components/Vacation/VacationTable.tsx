@@ -39,12 +39,13 @@ const VacationTable: React.FC<VacationTableProps> = ({
 
   const formatDateRange = (startDate: Date, endDate: Date) => {
     const locale = currentLanguage === 'da' ? 'da-DK' : 'en-GB';
+    const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' };
     
     if (startDate.toDateString() === endDate.toDateString()) {
-      return startDate.toLocaleDateString(locale);
+      return startDate.toLocaleDateString(locale, options);
     }
     
-    return `${startDate.toLocaleDateString(locale)} - ${endDate.toLocaleDateString(locale)}`;
+    return `${startDate.toLocaleDateString(locale, options)} - ${endDate.toLocaleDateString(locale, options)}`;
   };
 
   const formatRequestType = (vacation: Vacation) => {

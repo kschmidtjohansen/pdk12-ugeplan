@@ -31,7 +31,7 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
     try {
       const date = new Date(dateString + 'T00:00:00');
       const locale = currentLanguage === 'da' ? da : undefined;
-      return format(date, 'dd/MM/yyyy', { locale });
+      return format(date, 'EEEE dd/MM/yyyy', { locale });
     } catch (e) {
       return dateString;
     }
