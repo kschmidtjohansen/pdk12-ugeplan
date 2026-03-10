@@ -1,4 +1,6 @@
 import React from 'react';
+import { format, getISOWeek } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
