@@ -1,35 +1,39 @@
 
 
-## Fix: Udvid filnavn-sanitering til at haandtere alle ikke-ASCII tegn
+## Plan: Datoformat med ugenummer i ferielisten
 
-### Analyse
+Opdater datoformatet i alle tre feriekomponenter til: **Fredag 25.3.2026 (Uge 11)** — stor begyndelsesbogstav, punktum-separeret dato, og ugenummer i parentes.
 
-Filen "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" fejler stadig efter foerste sanitering. Den nuvaerende regex fjerner kun specifikke specialtegn, men **ikke danske bogstaver** som æ, ø, å. Storage-stien indeholder stadig "dækningsberettet" med "æ", som sandsynligvis foraarsager den stille fejl.
+### Ændringer
 
-Bekraeftet: Alle eksisterende filer i storage har rene ASCII-navne (f.eks. "Formaldehyd.png").
-
-### Loesning
-
-#### 1. `src/hooks/assignment/useAssignmentFiles.ts` — Erstat sanitering med streng ASCII-only tilgang
-
-I stedet for at blockliste specifikke tegn, brug en allowlist-tilgang der kun beholder ASCII-sikre tegn:
-
+#### 1. `src/components/Vacation/VacationTable.tsx`
+Erstat `Intl.DateTimeFormat` med `date-fns` for konsistent formatering:
 ```typescript
-const sanitizedName = file.name
-  .normalize('NFD')                    // Dekomponér æ → ae, ø → o, å → a (via Unicode)
-  .replace(/[\u0300-\u036f]/g, '')     // Fjern combining diacritical marks
-  .replace(/[^a-zA-Z0-9._-]/g, '_')   // Behold kun alfanumerisk, punktum, bindestreg, underscore
-  .replace(/_+/g, '_');                // Kollapser multiple underscores
+import { format, getISOWeek } from 'date-fns';
+import { da } from 'date-fns/locale';
+
+const formatDateWithWeek = (date: Date) => {
+  const locale = currentLanguage === 'da' ? da : undefined;
+  const weekday = format(date, 'EEEE', { locale });
+  const capitalized = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  const dateStr = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+  const week = getISOWeek(date);
+  const weekLabel = currentLanguage === 'da' ? 'Uge' : 'Week';
+  return `${capitalized} ${dateStr} (${weekLabel} ${week})`;
+};
 ```
 
-Dette konverterer "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" til "Aftaleseddl_ved_ikke_daekningsberettet_skade__udkald_.pdf" — ren ASCII.
+#### 2. `src/components/Vacation/EnhancedVacationCard.tsx`
+Samme formatlogik i `formatDate`.
 
-#### 2. `CHANGELOG.md` — Dokumenter
+#### 3. `src/components/Vacation/VacationCard.tsx`
+Samme formatlogik for `startDate`/`endDate` og `created_at`.
 
-### Filer der aendres
+### Filer der ændres
 
-| Fil | AEndring |
+| Fil | Ændring |
 |-----|---------|
-| `src/hooks/assignment/useAssignmentFiles.ts` | Udvid sanitering til ASCII-only med NFD-normalisering |
-| `CHANGELOG.md` | Dokumenter fix |
+| `src/components/Vacation/VacationTable.tsx` | Nyt datoformat med ugenummer |
+| `src/components/Vacation/EnhancedVacationCard.tsx` | Nyt datoformat med ugenummer |
+| `src/components/Vacation/VacationCard.tsx` | Nyt datoformat med ugenummer |
 
