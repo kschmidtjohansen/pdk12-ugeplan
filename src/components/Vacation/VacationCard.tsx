@@ -34,7 +34,7 @@ const VacationCard: React.FC<VacationCardProps> = ({
     return null;
   }
 
-  const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+  const dateFormat = currentLanguage === 'da' ? 'EEEE dd.MM.yyyy' : 'EEEE MM/dd/yyyy';
   const startDate = format(new Date(vacation.start_date), dateFormat);
   const endDate = format(new Date(vacation.end_date), dateFormat);
 
