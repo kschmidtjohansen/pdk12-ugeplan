@@ -5,29 +5,13 @@ import { Pencil, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { MobileWarehouseCardProps } from './types';
 import { useDepartment } from '@/context/DepartmentContext';
-
-const formatLocationFallback = (id: string) =>
-  id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-const useLocationLabel = (hallId: string | null, departmentId: string | null): string | null => {
-  return React.useMemo(() => {
-    if (!hallId || !departmentId) return null;
-    try {
-      const raw = localStorage.getItem(`location-data-${departmentId}`);
-      if (!raw) return formatLocationFallback(hallId);
-      const locations = JSON.parse(raw);
-      const found = Array.isArray(locations) ? locations.find((l: any) => (l.key || l.id) === hallId) : null;
-      return found ? (found.label || found.name) : formatLocationFallback(hallId);
-    } catch {
-      return formatLocationFallback(hallId);
-    }
-  }, [hallId, departmentId]);
-};
+import { useLocations } from '@/hooks/warehouse/useLocations';
 
 const MobileWarehouseCard: React.FC<MobileWarehouseCardProps> = ({ item, onEdit, onDelete, canEdit }) => {
   const { t } = useTranslation();
   const { selectedDepartmentId } = useDepartment();
-  const locationLabel = useLocationLabel(item.hall, selectedDepartmentId);
+  const { getLocationLabel } = useLocations(selectedDepartmentId);
+  const locationLabel = getLocationLabel(item.hall);
 
   return (
     <Card className="overflow-hidden">

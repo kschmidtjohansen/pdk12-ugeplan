@@ -9,44 +9,96 @@ import { MapPin, Edit, Check, X, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useDepartment } from '@/context/DepartmentContext';
-
-interface LocationItem {
-  key: string;
-  label: string;
-}
+import { LocationItem } from '@/hooks/warehouse/useLocations';
 
 const LocationManagement: React.FC = () => {
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
   const { toast } = useToast();
   const { selectedDepartmentId } = useDepartment();
-  
-  const storageKey = `location-data-${selectedDepartmentId || 'default'}`;
 
   const [locations, setLocations] = useState<LocationItem[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [deleteKey, setDeleteKey] = useState<string | null>(null);
   const [newLocationName, setNewLocationName] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Load locations from localStorage – scoped per department
+  // Load locations from department_settings
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setLocations(Array.isArray(parsed) ? parsed : []);
-      } else {
-        setLocations([]);
-      }
-    } catch {
+    if (!selectedDepartmentId) {
       setLocations([]);
+      return;
     }
-  }, [storageKey]);
 
-  const saveLocations = (updated: LocationItem[]) => {
+    const fetchLocations = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('department_settings')
+          .select('setting_value')
+          .eq('department_id', selectedDepartmentId)
+          .eq('setting_key', 'locations')
+          .maybeSingle();
+
+        if (error) {
+          if (import.meta.env.DEV) console.error('Error fetching locations:', error);
+          setLocations([]);
+          return;
+        }
+
+        if (data?.setting_value) {
+          try {
+            const parsed = JSON.parse(data.setting_value);
+            setLocations(Array.isArray(parsed) ? parsed : []);
+          } catch {
+            setLocations([]);
+          }
+        } else {
+          setLocations([]);
+        }
+      } catch {
+        setLocations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLocations();
+  }, [selectedDepartmentId]);
+
+  const saveLocations = async (updated: LocationItem[]) => {
+    if (!selectedDepartmentId) return;
+
     setLocations(updated);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    try {
+      // Check if record exists
+      const { data: existing } = await supabase
+        .from('department_settings')
+        .select('id')
+        .eq('department_id', selectedDepartmentId)
+        .eq('setting_key', 'locations')
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('department_settings')
+          .update({ setting_value: JSON.stringify(updated), updated_at: new Date().toISOString() })
+          .eq('department_id', selectedDepartmentId)
+          .eq('setting_key', 'locations');
+      } else {
+        await supabase
+          .from('department_settings')
+          .insert({
+            department_id: selectedDepartmentId,
+            setting_key: 'locations',
+            setting_value: JSON.stringify(updated),
+          });
+      }
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Error saving locations:', err);
+    }
   };
 
   const handleAddLocation = () => {

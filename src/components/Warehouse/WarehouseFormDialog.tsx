@@ -11,29 +11,7 @@ import { useForm } from 'react-hook-form';
 import { WarehouseItemFormData } from '@/types/warehouse';
 import { WarehouseFormDialogProps } from './types';
 import { useDepartment } from '@/context/DepartmentContext';
-
-interface LocationItem {
-  id: string;
-  name: string;
-}
-
-const useLocations = (departmentId: string | null): LocationItem[] => {
-  return React.useMemo(() => {
-    if (!departmentId) return [];
-    try {
-      const raw = localStorage.getItem(`location-data-${departmentId}`);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return [];
-      return parsed.map((item: any) => ({
-        id: item.key || item.id,
-        name: item.label || item.name,
-      }));
-    } catch {
-      return [];
-    }
-  }, [departmentId]);
-};
+import { useLocations } from '@/hooks/warehouse/useLocations';
 
 const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
   open,
@@ -44,7 +22,7 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const { selectedDepartmentId } = useDepartment();
-  const locations = useLocations(selectedDepartmentId);
+  const { locations } = useLocations(selectedDepartmentId);
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = useForm<WarehouseItemFormData>({
     defaultValues: editingItem ? {
       address: editingItem.address,
@@ -152,7 +130,7 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
                 <SelectContent>
                   <SelectItem value="__none__">-</SelectItem>
                   {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
+                    <SelectItem key={loc.key} value={loc.key}>{loc.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
