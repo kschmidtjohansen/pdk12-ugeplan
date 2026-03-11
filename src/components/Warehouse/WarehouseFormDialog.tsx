@@ -136,7 +136,7 @@ const WarehouseFormDialog: React.FC<WarehouseFormDialogProps> = ({
               </Select>
             ) : (
               <p className="text-sm text-muted-foreground">
-                {t('warehouse.noLocations', { fallback: 'Ingen lokationer oprettet for denne afdeling' })}
+                {t('warehouse.noLocations')}
               </p>
             )}
           </div>

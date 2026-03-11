@@ -70,33 +70,30 @@ const LocationManagement: React.FC = () => {
   const saveLocations = async (updated: LocationItem[]) => {
     if (!selectedDepartmentId) return;
 
+    const previous = locations;
     setLocations(updated);
 
     try {
-      // Check if record exists
-      const { data: existing } = await supabase
+      const { error } = await supabase
         .from('department_settings')
-        .select('id')
-        .eq('department_id', selectedDepartmentId)
-        .eq('setting_key', 'locations')
-        .maybeSingle();
-
-      if (existing) {
-        await supabase
-          .from('department_settings')
-          .update({ setting_value: JSON.stringify(updated), updated_at: new Date().toISOString() })
-          .eq('department_id', selectedDepartmentId)
-          .eq('setting_key', 'locations');
-      } else {
-        await supabase
-          .from('department_settings')
-          .insert({
+        .upsert(
+          {
             department_id: selectedDepartmentId,
             setting_key: 'locations',
             setting_value: JSON.stringify(updated),
-          });
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'department_id,setting_key' }
+        );
+
+      if (error) {
+        setLocations(previous);
+        toast({ title: t('common.error') || 'Fejl', description: error.message, variant: 'destructive' });
+        if (import.meta.env.DEV) console.error('Error saving locations:', error);
       }
     } catch (err) {
+      setLocations(previous);
+      toast({ title: t('common.error') || 'Fejl', variant: 'destructive' });
       if (import.meta.env.DEV) console.error('Error saving locations:', err);
     }
   };

@@ -70,5 +70,7 @@ export const warehouse = {
   halls: {
     hal1: "Hall 1",
     sortHal: "Black Hall"
-  }
+  },
+
+  noLocations: "No locations created for this department. Create them under Administration → Locations."
 };
