@@ -703,7 +703,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       ];
       const allKeys = Object.keys(localStorage);
       for (const key of allKeys) {
-        if (keysToRemove.includes(key) || key.startsWith('location-data-')) {
+        if (keysToRemove.includes(key)) {
           localStorage.removeItem(key);
         }
       }

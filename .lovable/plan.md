@@ -1,49 +1,35 @@
 
 
-## Plan: Flyt lokationer fra localStorage til database
+## Fix: Udvid filnavn-sanitering til at haandtere alle ikke-ASCII tegn
 
-### Problem
-Lokationer gemmes i `localStorage`, som er browser-lokalt. Hvis admin opretter lokationer i én browser, kan andre brugere (eller samme bruger på anden enhed) ikke se dem. Det er derfor lokationsvalget er tomt i lagerformularen.
+### Analyse
 
-### Løsning
-Brug den eksisterende `department_settings`-tabel til at gemme lokationer per afdeling med `setting_key = 'locations'` og `setting_value` som JSON-array.
+Filen "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" fejler stadig efter foerste sanitering. Den nuvaerende regex fjerner kun specifikke specialtegn, men **ikke danske bogstaver** som æ, ø, å. Storage-stien indeholder stadig "dækningsberettet" med "æ", som sandsynligvis foraarsager den stille fejl.
 
-### Ændringer
+Bekraeftet: Alle eksisterende filer i storage har rene ASCII-navne (f.eks. "Formaldehyd.png").
 
-#### 1. Ny shared hook: `src/hooks/warehouse/useLocations.ts`
-- Henter lokationer fra `department_settings` hvor `setting_key = 'locations'` og `department_id` matcher
-- Returnerer `{ locations, loading }` med den parsede JSON-array
-- Bruges af alle komponenter der behøver lokationsdata
+### Loesning
 
-#### 2. `src/components/Admin/LocationManagement.tsx`
-- Erstat localStorage read/write med Supabase queries mod `department_settings`
-- `saveLocations()` → upsert til `department_settings` med `setting_key = 'locations'`
-- `useEffect` load → select fra `department_settings`
-- Behold samme UI og funktionalitet
+#### 1. `src/hooks/assignment/useAssignmentFiles.ts` — Erstat sanitering med streng ASCII-only tilgang
 
-#### 3. `src/components/Warehouse/WarehouseFormDialog.tsx`
-- Erstat `useLocations` (localStorage) med den nye shared hook
-- Dropdown viser nu lokationer fra databasen
+I stedet for at blockliste specifikke tegn, brug en allowlist-tilgang der kun beholder ASCII-sikre tegn:
 
-#### 4. `src/components/Warehouse/WarehouseTableRow.tsx`
-- Erstat `useLocationLabel` (localStorage) med den nye shared hook
+```typescript
+const sanitizedName = file.name
+  .normalize('NFD')                    // Dekomponér æ → ae, ø → o, å → a (via Unicode)
+  .replace(/[\u0300-\u036f]/g, '')     // Fjern combining diacritical marks
+  .replace(/[^a-zA-Z0-9._-]/g, '_')   // Behold kun alfanumerisk, punktum, bindestreg, underscore
+  .replace(/_+/g, '_');                // Kollapser multiple underscores
+```
 
-#### 5. `src/components/Warehouse/MobileWarehouseCard.tsx`
-- Erstat `useLocationLabel` (localStorage) med den nye shared hook
+Dette konverterer "Aftaleseddl ved ikke dækningsberettet skade (udkald).pdf" til "Aftaleseddl_ved_ikke_daekningsberettet_skade__udkald_.pdf" — ren ASCII.
 
-#### 6. `src/context/AuthContext.tsx`
-- Fjern `location-data-` cleanup fra logout (ikke længere nødvendigt)
+#### 2. `CHANGELOG.md` — Dokumenter
 
-### Filer der ændres
+### Filer der aendres
 
-| Fil | Ændring |
+| Fil | AEndring |
 |-----|---------|
-| `src/hooks/warehouse/useLocations.ts` | **Ny** — shared hook til at hente lokationer fra DB |
-| `src/components/Admin/LocationManagement.tsx` | Erstat localStorage med Supabase |
-| `src/components/Warehouse/WarehouseFormDialog.tsx` | Brug ny hook |
-| `src/components/Warehouse/WarehouseTableRow.tsx` | Brug ny hook |
-| `src/components/Warehouse/MobileWarehouseCard.tsx` | Brug ny hook |
-| `src/context/AuthContext.tsx` | Fjern localStorage cleanup for lokationer |
-
-Ingen database-migrering nødvendig — `department_settings`-tabellen eksisterer allerede med passende RLS-policies.
+| `src/hooks/assignment/useAssignmentFiles.ts` | Udvid sanitering til ASCII-only med NFD-normalisering |
+| `CHANGELOG.md` | Dokumenter fix |
 

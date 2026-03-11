@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased] - 2026-03-11
+
+### Fixed — Lokationer migreret fra localStorage til database
+- Lokationer gemmes nu i `department_settings`-tabellen i stedet for `localStorage`
+- Alle brugere og enheder kan nu se og vælge lokationer oprettet af admin
+- Ny shared hook `useLocations` bruges af alle lagerkomponenter
+- Fjernet localStorage cleanup for lokationer ved logout
+
+
 ## [Unreleased] - 2026-03-10
 
 ### Changed — Ugedage i ferielisten
