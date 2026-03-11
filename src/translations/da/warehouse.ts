@@ -70,5 +70,7 @@ export const warehouse = {
   halls: {
     hal1: "Hal 1",
     sortHal: "Sort Hal"
-  }
+  },
+
+  noLocations: "Ingen lokationer oprettet for denne afdeling. Opret dem under Administration → Lokationer."
 };
