@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased] - 2026-03-12
+
+### Added — Onboarding-dokumentation
+- Oprettet `ONBOARDING.md` med komplet dansk vejledning til IT-kollegaer og supportmedarbejdere
+- Dækker alle administrative funktioner: roller, afdelinger, feature toggles, lokationer, brugere, vikarer, ferie, vagtplan, planlægger, biler og lager
+- Inkluderer anbefalet opsætningsrækkefølge og FAQ/fejlsøgning
+
 ## [Unreleased] - 2026-03-11
 
 ### Fixed — Lokationer migreret fra localStorage til database
