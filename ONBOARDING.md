@@ -45,10 +45,10 @@ Systemet har 5 roller med stigende adgangsniveau:
 
 | Rolle | Hvem | Kan | Kan ikke |
 |-------|------|-----|----------|
-| **Super Admin** | IT-ansvarlig / projektleder | Alt i alle afdelinger. Oprette afdelinger, feature toggles, brugerstyring, se brændstofkoder. | – |
-| **Administrator** | Afdelingschef / driftsleder | Alt inden for egne afdelinger. Godkende ferie, oprette opgaver, brugerstyring. | Oprette nye afdelinger, ændre feature toggles. |
-| **Skadeleder** | Formand / teamleder | Oprette og redigere opgaver, tildele medarbejdere/biler, administrere vagtplan, se brændstofkoder. | Godkende ferie, oprette brugere. |
-| **Servicemedarbejder** | Håndværker / tekniker | Se egne opgaver, ansøge om ferie, se vagtplan (kun visning), redigere egen profil. | Oprette/redigere opgaver, se brændstofkoder, administrere biler/lager. |
+| **Super Admin** | IT-ansvarlig / IT-support | Alt i alle afdelinger. Oprette afdelinger, feature toggles, brugerstyring, se brændstofkoder. | – |
+| **Administrator** | Afdelingschef / Afdelingsleder / Driftsansvarlig | Alt inden for egne afdelinger. Godkende ferie, oprette opgaver, brugerstyring. | Oprette nye afdelinger, ændre feature toggles. |
+| **Skadeleder** | Skadeleder/Projektleder | Oprette og redigere opgaver, tildele medarbejdere/biler, administrere vagtplan, se brændstofkoder. | Godkende ferie, oprette brugere. |
+| **Servicemedarbejder** | Tekniker / Servicemedarbejder | Se egne opgaver, ansøge om ferie, se vagtplan (kun visning), redigere egen profil. | Oprette/redigere opgaver, se brændstofkoder, administrere biler/lager. |
 | **Vikar** | Midlertidig medarbejder | Samme som Servicemedarbejder, men med udløbsdato. | Samme begrænsninger som Servicemedarbejder. |
 
 > **Vigtigt:** Roller gemmes i en separat `user_roles`-tabel og kontrolleres via server-side sikkerhedsfunktioner (RLS). Roller kan **aldrig** ændres fra browseren — kun via Admin-panelet af en Super Admin eller Administrator.
@@ -203,7 +203,7 @@ Hvis en afdeling har eksisterende lagervarer med hal-værdier, men ingen konfigu
 | **Adgangskode** | Midlertidig adgangskode (min. 8 tegn) | ✅ |
 | **Rolle** | Vælg én af de 5 roller | ✅ |
 | **Telefon** | Mobilnummer | Valgfrit |
-| **Stilling** | Jobtitel (f.eks. "Tømrer", "Kontorassistent") | Valgfrit |
+| **Stilling** | Jobtitel (f.eks. "Skadeleder", "Projektleder", "Skadeleder/Fugttekniker", "Servicemedarbejder") | Valgfrit |
 | **Hovedafdeling** | Hvilken by/afdeling brugeren tilhører | ✅ |
 | **Underafdelinger** | Hvilke teams brugeren har adgang til | Valgfrit |
 
