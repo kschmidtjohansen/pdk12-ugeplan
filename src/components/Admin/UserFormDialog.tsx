@@ -252,8 +252,8 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         return;
       }
 
-      if (selectedDeptIds.length === 0) {
-        setErrorMessage('Vælg mindst én afdeling for brugeren');
+      if (!skipDepartment && selectedDeptIds.length === 0) {
+        setErrorMessage(t('admin.userManagement.selectAtLeastOneDept'));
         setIsSubmitting(false);
         return;
       }
