@@ -2,6 +2,12 @@
 
 ## [Unreleased] - 2026-03-12
 
+### Added — "Uden afdeling" ved medarbejderoprettelse
+- Ny checkbox "Uden afdeling (IT-support)" i medarbejderformularen, synlig når rollen Super Admin vælges
+- IT-supportere og Super Admins kan nu oprettes uden afdelingstilknytning
+- Automatisk aktiveret ved valg af Super Admin-rollen
+- Opdateret ONBOARDING.md med vejledning til oprettelse af afdelingsløse brugere
+
 ### Added — Onboarding-dokumentation
 - Oprettet `ONBOARDING.md` med komplet dansk vejledning til IT-kollegaer og supportmedarbejdere
 - Dækker alle administrative funktioner: roller, afdelinger, feature toggles, lokationer, brugere, vikarer, ferie, vagtplan, planlægger, biler og lager
