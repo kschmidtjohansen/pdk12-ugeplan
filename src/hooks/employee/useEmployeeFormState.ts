@@ -19,6 +19,7 @@ export interface EmployeeFormData {
   has_forklift_license: boolean;
   home_postcode: string;
   home_address: string;
+  skip_department: boolean;
 }
 
 export type CreationType = 'employee' | 'vikar' | 'edit';
@@ -41,7 +42,8 @@ export const useEmployeeFormState = () => {
     has_trailer_license: false,
     has_forklift_license: false,
     home_postcode: '',
-    home_address: ''
+    home_address: '',
+    skip_department: false
   });
 
   const resetFormData = () => {
@@ -60,7 +62,8 @@ export const useEmployeeFormState = () => {
       has_trailer_license: false,
       has_forklift_license: false,
       home_postcode: '',
-      home_address: ''
+      home_address: '',
+      skip_department: false
     });
   };
 
@@ -82,7 +85,8 @@ export const useEmployeeFormState = () => {
       has_trailer_license: false,
       has_forklift_license: false,
       home_postcode: '',
-      home_address: ''
+      home_address: '',
+      skip_department: false
     };
     setFormData(defaultFormData);
     return defaultFormData;
@@ -106,7 +110,8 @@ export const useEmployeeFormState = () => {
       has_trailer_license: employee.has_trailer_license || false,
       has_forklift_license: employee.has_forklift_license || false,
       home_postcode: employee.home_postcode || '',
-      home_address: employee.home_address || ''
+      home_address: employee.home_address || '',
+      skip_department: false
     };
     setFormData(newFormData);
     return newFormData;
@@ -133,7 +138,8 @@ export const useEmployeeFormState = () => {
       has_trailer_license: false,
       has_forklift_license: false,
       home_postcode: '',
-      home_address: ''
+      home_address: '',
+      skip_department: false
     };
     
     setFormData(vikarFormData);

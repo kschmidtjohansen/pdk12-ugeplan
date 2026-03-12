@@ -174,6 +174,10 @@ const employees = {
   statusExpired: 'Udløbet',
   statusTerminated: 'Opsagt',
   statusInactive: 'Inaktiv',
+
+  // Skip department
+  skipDepartment: 'Uden afdeling (IT-support)',
+  skipDepartmentNote: 'Brugeren oprettes uden afdelingstilknytning. Vælg dette for IT-supportere og andre brugere, der ikke tilhører en driftsafdeling.',
 };
 
 export default employees;

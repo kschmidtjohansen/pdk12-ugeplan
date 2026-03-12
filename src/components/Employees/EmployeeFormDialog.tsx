@@ -435,7 +435,14 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                 <Select 
                   name="role" 
                   value={formData.is_temporary && !convertToPermanent ? 'vikar' : formData.role} 
-                  onValueChange={(formData.is_temporary && !convertToPermanent) ? undefined : handleSelectChange} 
+                  onValueChange={(value: string) => {
+                    if (formData.is_temporary && !convertToPermanent) return;
+                    handleSelectChange(value);
+                    // Auto-enable skip_department when super_admin is selected
+                    if (value === 'super_admin') {
+                      onCheckboxChange('skip_department', true);
+                    }
+                  }} 
                   disabled={isSubmitting || (formData.is_temporary && !convertToPermanent)}
                 >
                   <SelectTrigger>
@@ -455,6 +462,26 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                     {t('employees.vikarAutoRole')}
                   </p>}
               </div>
+
+              {/* Skip department checkbox - visible when role is super_admin */}
+              {formData.role === 'super_admin' && !formData.is_temporary && (
+                <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="skip_department" 
+                      checked={formData.skip_department} 
+                      onCheckedChange={checked => onCheckboxChange('skip_department', checked as boolean)} 
+                      disabled={isSubmitting} 
+                    />
+                    <Label htmlFor="skip_department" className="text-sm font-medium cursor-pointer">
+                      {t('employees.skipDepartment')}
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground pl-6">
+                    {t('employees.skipDepartmentNote')}
+                  </p>
+                </div>
+              )}
               
               {(!formData.is_temporary || convertToPermanent) && <div className="flex items-center space-x-2 mt-4">
                   <Checkbox id="onLeave" checked={formData.onLeave} onCheckedChange={checked => onCheckboxChange('onLeave', checked === true)} disabled={isSubmitting} />

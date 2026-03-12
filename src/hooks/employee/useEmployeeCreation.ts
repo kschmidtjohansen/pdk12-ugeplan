@@ -260,8 +260,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             }
           }
 
-          // Tilknyt medarbejder til aktiv afdeling
-          if (selectedDepartmentId) {
+          // Tilknyt medarbejder til aktiv afdeling (spring over hvis skip_department)
+          if (selectedDepartmentId && !formData.skip_department) {
             const accessRecord: any = {
               user_id: userId,
               department_id: selectedDepartmentId,
