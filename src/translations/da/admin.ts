@@ -288,7 +288,10 @@ export const admin = {
     selectDepartment: 'Vælg hovedafdeling',
     selectDepartments: 'Vælg hovedafdelinger',
     selectSubDepartments: 'Vælg underafdelinger',
-    totalCount: '{count} brugere i alt'
+    totalCount: '{count} brugere i alt',
+    skipDepartment: 'Uden afdeling (IT-support)',
+    skipDepartmentNote: 'Brugeren oprettes uden tilknytning til en afdeling. Velegnet til IT-supportere med Super Admin-rolle.',
+    selectAtLeastOneDept: 'Vælg mindst én afdeling for brugeren'
   },
   passwords: {
     changePassword: 'Skift adgangskode',

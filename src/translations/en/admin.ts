@@ -284,7 +284,10 @@ export const admin = {
     selectDepartment: 'Select main department',
     selectDepartments: 'Select departments',
     selectSubDepartments: 'Select sub-departments',
-    totalCount: '{count} users total'
+    totalCount: '{count} users total',
+    skipDepartment: 'No department (IT support)',
+    skipDepartmentNote: 'User is created without department affiliation. Suitable for IT support with Super Admin role.',
+    selectAtLeastOneDept: 'Select at least one department for the user'
   },
   passwords: {
     changePassword: 'Change password',
