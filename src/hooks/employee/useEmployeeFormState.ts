@@ -138,7 +138,8 @@ export const useEmployeeFormState = () => {
       has_trailer_license: false,
       has_forklift_license: false,
       home_postcode: '',
-      home_address: ''
+      home_address: '',
+      skip_department: false
     };
     
     setFormData(vikarFormData);

@@ -216,6 +216,17 @@ Hvis en afdeling har eksisterende lagervarer med hal-værdier, men ingen konfigu
 - Rollen bestemmer, hvad brugeren kan se og gøre (se [Roller og adgangsniveauer](#2-roller-og-adgangsniveauer)).
 - E-mailen bruges som login og kan ikke ændres efter oprettelse.
 
+### Opret IT-support / Super Admin uden afdeling
+
+Hvis du opretter en bruger til IT-support, der ikke tilhører en driftsafdeling:
+
+1. Vælg rollen **Super Admin** i formularen.
+2. En ny mulighed dukker op: **"Uden afdeling (IT-support)"** — sæt flueben her.
+3. Brugeren oprettes uden tilknytning til nogen afdeling eller underafdeling.
+4. Brugeren har stadig fuld adgang til alle afdelinger via sin Super Admin-rolle.
+
+> **Bemærk:** Checkboxen "Uden afdeling" vises kun, når rollen **Super Admin** er valgt. Den er automatisk aktiveret ved valg af Super Admin, men kan slås fra, hvis brugeren alligevel skal tilknyttes en afdeling.
+
 ---
 
 ## 9. Rediger og slet brugere
