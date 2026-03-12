@@ -85,11 +85,9 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const isSuperAdmin = authUser?.role === 'super_admin';
   const canSkipDepartment = formData.role === 'super_admin';
 
-  // Auto-toggle skipDepartment when role changes
+  // Reset skipDepartment when role changes away from super_admin
   useEffect(() => {
-    if (formData.role === 'super_admin') {
-      setSkipDepartment(true);
-    } else {
+    if (formData.role !== 'super_admin') {
       setSkipDepartment(false);
     }
   }, [formData.role]);
