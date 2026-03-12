@@ -159,6 +159,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       if (data && data.length > 0) {
         const deptIds = [...new Set(data.map(a => a.department_id))];
         setSelectedDeptIds(deptIds);
+        setSkipDepartment(false);
         
         const subMap: Record<string, string[]> = {};
         for (const row of data) {
@@ -168,6 +169,9 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           }
         }
         setSelectedSubDeptMap(subMap);
+      } else if (currentUser.role === 'super_admin') {
+        // Existing super_admin with no departments = skip department
+        setSkipDepartment(true);
       }
     };
     fetchAccess();
