@@ -110,7 +110,8 @@ export const useEmployeeFormState = () => {
       has_trailer_license: employee.has_trailer_license || false,
       has_forklift_license: employee.has_forklift_license || false,
       home_postcode: employee.home_postcode || '',
-      home_address: employee.home_address || ''
+      home_address: employee.home_address || '',
+      skip_department: false
     };
     setFormData(newFormData);
     return newFormData;
