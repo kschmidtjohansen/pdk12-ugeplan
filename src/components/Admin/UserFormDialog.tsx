@@ -70,6 +70,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [skipDepartment, setSkipDepartment] = useState(false);
   
   // Multi-department state
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -82,6 +83,16 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const { user: authUser } = useAuth();
   const { selectedDepartmentId } = useDepartment();
   const isSuperAdmin = authUser?.role === 'super_admin';
+  const canSkipDepartment = formData.role === 'super_admin';
+
+  // Auto-toggle skipDepartment when role changes
+  useEffect(() => {
+    if (formData.role === 'super_admin') {
+      setSkipDepartment(true);
+    } else {
+      setSkipDepartment(false);
+    }
+  }, [formData.role]);
 
   // Pre-select active department when creating a new user
   useEffect(() => {
