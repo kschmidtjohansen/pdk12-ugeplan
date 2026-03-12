@@ -70,6 +70,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [skipDepartment, setSkipDepartment] = useState(false);
   
   // Multi-department state
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -82,6 +83,16 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   const { user: authUser } = useAuth();
   const { selectedDepartmentId } = useDepartment();
   const isSuperAdmin = authUser?.role === 'super_admin';
+  const canSkipDepartment = formData.role === 'super_admin';
+
+  // Auto-toggle skipDepartment when role changes
+  useEffect(() => {
+    if (formData.role === 'super_admin') {
+      setSkipDepartment(true);
+    } else {
+      setSkipDepartment(false);
+    }
+  }, [formData.role]);
 
   // Pre-select active department when creating a new user
   useEffect(() => {
@@ -148,6 +159,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       if (data && data.length > 0) {
         const deptIds = [...new Set(data.map(a => a.department_id))];
         setSelectedDeptIds(deptIds);
+        setSkipDepartment(false);
         
         const subMap: Record<string, string[]> = {};
         for (const row of data) {
@@ -157,6 +169,9 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           }
         }
         setSelectedSubDeptMap(subMap);
+      } else if (currentUser.role === 'super_admin') {
+        // Existing super_admin with no departments = skip department
+        setSkipDepartment(true);
       }
     };
     fetchAccess();
@@ -188,10 +203,19 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   };
 
   const saveUserAccess = async (userId: string) => {
-    if (selectedDeptIds.length === 0) return;
-
     // Delete existing access
     await supabase.from('user_access').delete().eq('user_id', userId);
+
+    if (skipDepartment) {
+      // Clear home_department_id for department-less users
+      await supabase
+        .from('profiles')
+        .update({ home_department_id: null })
+        .eq('id', userId);
+      return;
+    }
+
+    if (selectedDeptIds.length === 0) return;
 
     // Insert new access records
     const records: { user_id: string; department_id: string; sub_department_id?: string }[] = [];
@@ -232,8 +256,8 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         return;
       }
 
-      if (selectedDeptIds.length === 0) {
-        setErrorMessage('Vælg mindst én afdeling for brugeren');
+      if (!skipDepartment && selectedDeptIds.length === 0) {
+        setErrorMessage(t('admin.userManagement.selectAtLeastOneDept'));
         setIsSubmitting(false);
         return;
       }
@@ -406,46 +430,76 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             </Select>
           </div>
 
-          {/* Hovedafdelinger (multi-select checkboxes) */}
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label className="text-right pt-1">{t('admin.userManagement.departments')}</Label>
-            <div className="col-span-3 space-y-1 max-h-[200px] overflow-y-auto border rounded-md p-2">
-              {departments.length === 0 && (
-                <p className="text-sm text-muted-foreground">{t('admin.departments.empty')}</p>
-              )}
-              {departments.map(dept => (
-                <div key={dept.id}>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`dept-${dept.id}`}
-                      checked={selectedDeptIds.includes(dept.id)}
-                      onCheckedChange={() => toggleDept(dept.id)}
-                    />
-                    <Label htmlFor={`dept-${dept.id}`} className="font-medium cursor-pointer text-sm">
-                      {dept.name}
-                    </Label>
-                  </div>
-                  {/* Sub-departments for this dept */}
-                  {selectedDeptIds.includes(dept.id) && (allSubDepartments[dept.id] || []).length > 0 && (
-                    <div className="ml-6 mt-1 mb-2 space-y-1">
-                      {(allSubDepartments[dept.id] || []).map(sub => (
-                        <div key={sub.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`sub-${sub.id}`}
-                            checked={(selectedSubDeptMap[dept.id] || []).includes(sub.id)}
-                            onCheckedChange={() => toggleSubDept(dept.id, sub.id)}
-                          />
-                          <Label htmlFor={`sub-${sub.id}`} className="font-normal cursor-pointer text-sm">
-                            {sub.name}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+          {/* Skip department checkbox for super_admin */}
+          {canSkipDepartment && (
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-1" />
+              <div className="col-span-3 space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="skip-department"
+                    checked={skipDepartment}
+                    onCheckedChange={(checked) => {
+                      setSkipDepartment(!!checked);
+                      if (checked) {
+                        setSelectedDeptIds([]);
+                        setSelectedSubDeptMap({});
+                      }
+                    }}
+                  />
+                  <Label htmlFor="skip-department" className="font-medium cursor-pointer text-sm">
+                    {t('admin.userManagement.skipDepartment')}
+                  </Label>
                 </div>
-              ))}
+                <p className="text-xs text-muted-foreground ml-6">
+                  {t('admin.userManagement.skipDepartmentNote')}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Hovedafdelinger (multi-select checkboxes) */}
+          {!skipDepartment && (
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-1">{t('admin.userManagement.departments')}</Label>
+              <div className="col-span-3 space-y-1 max-h-[200px] overflow-y-auto border rounded-md p-2">
+                {departments.length === 0 && (
+                  <p className="text-sm text-muted-foreground">{t('admin.departments.empty')}</p>
+                )}
+                {departments.map(dept => (
+                  <div key={dept.id}>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`dept-${dept.id}`}
+                        checked={selectedDeptIds.includes(dept.id)}
+                        onCheckedChange={() => toggleDept(dept.id)}
+                      />
+                      <Label htmlFor={`dept-${dept.id}`} className="font-medium cursor-pointer text-sm">
+                        {dept.name}
+                      </Label>
+                    </div>
+                    {/* Sub-departments for this dept */}
+                    {selectedDeptIds.includes(dept.id) && (allSubDepartments[dept.id] || []).length > 0 && (
+                      <div className="ml-6 mt-1 mb-2 space-y-1">
+                        {(allSubDepartments[dept.id] || []).map(sub => (
+                          <div key={sub.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`sub-${sub.id}`}
+                              checked={(selectedSubDeptMap[dept.id] || []).includes(sub.id)}
+                              onCheckedChange={() => toggleSubDept(dept.id, sub.id)}
+                            />
+                            <Label htmlFor={`sub-${sub.id}`} className="font-normal cursor-pointer text-sm">
+                              {sub.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           {!currentUser && (
             <div className="grid grid-cols-4 items-start gap-4">
