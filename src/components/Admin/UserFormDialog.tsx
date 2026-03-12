@@ -199,10 +199,19 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   };
 
   const saveUserAccess = async (userId: string) => {
-    if (selectedDeptIds.length === 0) return;
-
     // Delete existing access
     await supabase.from('user_access').delete().eq('user_id', userId);
+
+    if (skipDepartment) {
+      // Clear home_department_id for department-less users
+      await supabase
+        .from('profiles')
+        .update({ home_department_id: null })
+        .eq('id', userId);
+      return;
+    }
+
+    if (selectedDeptIds.length === 0) return;
 
     // Insert new access records
     const records: { user_id: string; department_id: string; sub_department_id?: string }[] = [];
