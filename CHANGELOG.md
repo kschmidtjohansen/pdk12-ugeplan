@@ -2,6 +2,12 @@
 
 ## [Unreleased] - 2026-03-12
 
+### Fixed — "Uden afdeling" i Admin → Brugere
+- Tilføjet "Uden afdeling (IT-support)" checkbox i Admin brugerformularen (UserFormDialog)
+- Valideringsfejlen "Vælg mindst én afdeling" blokerer ikke længere Super Admin-oprettelse
+- Checkbox vises kun ved Super Admin-rollen og er automatisk aktiveret
+- Ved redigering af eksisterende Super Admin uden afdelinger detekteres skipDepartment automatisk
+
 ### Added — "Uden afdeling" ved medarbejderoprettelse
 - Ny checkbox "Uden afdeling (IT-support)" i medarbejderformularen, synlig når rollen Super Admin vælges
 - IT-supportere og Super Admins kan nu oprettes uden afdelingstilknytning
