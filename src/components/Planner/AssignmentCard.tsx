@@ -141,7 +141,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-white rounded-md shadow-sm animate-pulse hover:animate-none transition-all cursor-help">
+              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg shadow-sm transition-all cursor-help">
                 <Package className="h-5 w-5" />
                 <span className="text-sm font-bold">{warehouseItemCount}</span>
               </div>
