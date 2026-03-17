@@ -48,10 +48,10 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
   
   return (
     <div className="mt-8">
-      <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider border-b border-border/30 pb-2 mb-4">
+      <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
         {t("planner.previousDays")}
       </h2>
-      <div className="space-y-2">
+      <div className="space-y-6">
         {pastDates.map(dateKey => (
           <DaySection 
             key={dateKey}
