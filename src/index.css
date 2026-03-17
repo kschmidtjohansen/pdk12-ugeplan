@@ -497,7 +497,7 @@ a:focus-visible,
 
 /* Component-specific enhancements */
 .modern-card {
-  @apply bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300;
+  @apply bg-card border border-border/40 rounded-xl shadow-sm hover:shadow-md transition-all duration-200;
 }
 
 .modern-button {
