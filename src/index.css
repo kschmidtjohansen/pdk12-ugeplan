@@ -391,15 +391,19 @@ a:focus-visible,
   }
 
   .hover-lift {
-    @apply transition-all duration-300 hover:translate-y-[-4px] hover:shadow-lg;
+    @apply transition-all duration-300 hover:translate-y-[-2px] hover:shadow-md;
   }
 
   .hover-glow {
-    @apply transition-all duration-300 hover:shadow-2xl hover:ring-2 hover:ring-primary/20;
+    @apply transition-all duration-300 hover:shadow-xl hover:ring-2 hover:ring-primary/20;
   }
 
   .interactive-scale {
-    @apply transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98];
+    @apply transition-transform duration-200 active:scale-[0.98];
+  }
+
+  .card-interactive {
+    @apply transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md;
   }
 
   .border-gradient {

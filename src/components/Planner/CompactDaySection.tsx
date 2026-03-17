@@ -69,11 +69,7 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
         }}
       >
         <div className="flex items-center gap-3">
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          )}
+          <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
           <h3 className="font-semibold text-sm">{formattedDate}</h3>
           <Badge variant="secondary" className="text-xs">
             {assignmentsCount} {currentLanguage === 'da' ? (assignmentsCount === 1 ? 'opgave' : 'opgaver') : (assignmentsCount === 1 ? 'task' : 'tasks')}
