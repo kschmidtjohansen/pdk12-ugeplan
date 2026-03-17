@@ -573,7 +573,7 @@ const PlannerPage: React.FC = () => {
           assignments={sortedWeekAssignments} 
           onEmployeeToggle={handleEmployeeToggle} 
         />
-      </div>
+        </div>{/* end overlapping content */}
     </div>
     </DataFetchErrorBoundary>
   );
