@@ -5,7 +5,7 @@ import { Car } from '@/types/car';
 import { formatDateWithCapital } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Send, ChevronDown, ChevronRight } from 'lucide-react';
+import { Send, ChevronRight } from 'lucide-react';
 import CompactAssignmentRow from './CompactAssignmentRow';
 
 interface CompactDaySectionProps {
