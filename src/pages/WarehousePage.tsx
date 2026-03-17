@@ -143,6 +143,7 @@ const WarehousePage = () => {
           loading={actionLoading}
         />
       </div>
+      </div>
     </div>
     </DataFetchErrorBoundary>
   );
