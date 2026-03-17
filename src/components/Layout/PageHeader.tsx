@@ -13,7 +13,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   children
 }) => {
   return (
-    <div className="bg-card rounded-2xl border border-border/50 p-6 shadow-md mb-6">
+    <div className="bg-card rounded-2xl border border-border/40 p-6 shadow-sm mb-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
