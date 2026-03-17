@@ -134,14 +134,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   return (
     <Card 
-      className={`relative w-full p-4 border border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:border-primary/30 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all duration-150 ${isLoading ? 'opacity-60' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+      className={`relative w-full p-4 bg-card hover:border-polygon-purple hover:shadow-xl transition-all duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
     >
       {warehouseItemCount > 0 && (
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full shadow-sm transition-all cursor-help dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
+              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-white rounded-md shadow-sm animate-pulse hover:animate-none transition-all cursor-help">
                 <Package className="h-5 w-5" />
                 <span className="text-sm font-bold">{warehouseItemCount}</span>
               </div>
@@ -162,7 +162,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <div className="flex items-center gap-2 flex-1">
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-base tracking-tight">{assignment.title || t('planner.titleLabel')}</h3>
+              <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
               {operationState && (
                 <span className="text-xs text-blue-600 font-medium animate-pulse">
                   {getOperationText(operationState)}
