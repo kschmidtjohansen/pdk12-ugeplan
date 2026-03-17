@@ -470,8 +470,11 @@ const PlannerPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Overlapping content area */}
+        <div className="-mt-10 relative z-10 mx-auto max-w-5xl px-4 sm:px-6 space-y-4">
+
         {/* Search and View Toggle Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card rounded-lg border p-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card/90 backdrop-blur-md rounded-2xl border border-border/40 p-3 shadow-sm">
           {/* Search Filter */}
           <PlannerSearchFilter 
             searchQuery={searchQuery}
