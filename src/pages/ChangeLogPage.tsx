@@ -130,18 +130,16 @@ const ChangeLogPage: React.FC = () => {
   // Role-gate: Only admin and skadeleder can access
   if (!isEffectiveAdmin && !isEffectiveSkadeleder) {
     return (
-      <MainLayout>
-        <div className="container mx-auto p-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('accessDenied.title')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">{t('accessDenied.restricted')}</p>
-            </CardContent>
-          </Card>
-        </div>
-      </MainLayout>
+      <div className="w-full px-3 sm:px-4 lg:px-8 py-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('accessDenied.title')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">{t('accessDenied.restricted')}</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
