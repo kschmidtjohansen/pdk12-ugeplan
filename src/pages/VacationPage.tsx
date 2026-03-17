@@ -10,10 +10,10 @@ const VacationPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-gradient-to-br from-muted/20 via-background to-muted/30">
+    <div className="min-h-screen w-full bg-muted/10">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
-        {/* Enhanced Header with Glassmorphism */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-2xl animate-fade-in-up">
+        {/* Enhanced Header */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-lg animate-fade-in-up">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
