@@ -152,7 +152,7 @@ const TopNavbar: React.FC = () => {
             <div className="flex md:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-xl text-foreground hover:text-foreground hover:bg-muted focus:outline-none transition-colors duration-200"
+                className="inline-flex items-center justify-center p-2 rounded-xl text-foreground hover:text-foreground hover:bg-muted focus:outline-none transition-colors duration-200 min-h-[44px] min-w-[44px]"
               >
                 {mobileMenuOpen ? (
                   <X className="h-6 w-6" aria-hidden="true" />
