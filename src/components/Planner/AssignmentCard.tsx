@@ -162,7 +162,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <div className="flex items-center gap-2 flex-1">
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
+              <h3 className="font-semibold text-base tracking-tight">{assignment.title || t('planner.titleLabel')}</h3>
               {operationState && (
                 <span className="text-xs text-blue-600 font-medium animate-pulse">
                   {getOperationText(operationState)}

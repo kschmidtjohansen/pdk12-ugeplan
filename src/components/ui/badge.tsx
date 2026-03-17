@@ -26,9 +26,9 @@ const badgeVariants = cva(
           "border-transparent bg-gradient-to-r from-primary to-primary/80 text-primary-foreground",
       },
       size: {
-        default: "px-3 py-1 text-xs",
-        sm: "px-2 py-0.5 text-xs",
-        lg: "px-4 py-1.5 text-sm",
+        default: "px-2.5 py-0.5 text-[11px]",
+        sm: "px-2 py-0.5 text-[11px]",
+        lg: "px-3.5 py-1 text-xs",
       },
     },
     defaultVariants: {
