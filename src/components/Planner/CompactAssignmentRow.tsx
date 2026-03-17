@@ -68,7 +68,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
 
   return (
     <tr 
-      className={`hover:bg-muted/50 border-b group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
+      className={`hover:bg-muted/50 border-b group transition-colors duration-200 cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
       onClick={onViewDetails}
     >
       {/* Time */}
