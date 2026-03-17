@@ -50,51 +50,45 @@ const CarsPage: React.FC = () => {
     <DataFetchErrorBoundary>
     <PullToRefresh onRefresh={async () => { await fetchCars(); }}>
     <TooltipProvider>
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
-          {/* Enhanced Header with Glassmorphism */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white shadow-2xl animate-fade-in-up">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
-            
-            <div className="relative z-10 flex items-center justify-between">
-              <div className="space-y-3">
-                <h1 className="text-3xl font-bold tracking-tight">
-                  {t("navigation.cars")}
-                </h1>
-                <p className="text-blue-100 text-lg font-medium">
-                  {t("cars.pageDescription")}
-                </p>
+      <div className="min-h-screen w-full bg-background">
+        <div className="w-full px-3 sm:px-4 lg:px-8 py-6 space-y-6">
+          {/* Clean Card Header */}
+          <div className="bg-card rounded-xl border border-border/40 shadow-sm p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Car className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+                    {t("navigation.cars")}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {t("cars.pageDescription")}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <FalckSubscriptionButton isAdmin={isAdmin} />
                 {isAdmin && (
-                  <Button 
-                    onClick={handleCreateNew}
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg"
-                    variant="outline"
-                  >
+                  <Button onClick={handleCreateNew} size="sm">
                     <Plus className="mr-2 h-4 w-4" />
                     {t('cars.addNewCar')}
                   </Button>
                 )}
-                <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
-                  <Car className="h-6 w-6 text-white" />
-                </div>
               </div>
             </div>
           </div>
 
           {/* Cars Content */}
-          <div className="bg-card rounded-xl border border-border shadow-sm">
+          <div className="bg-card rounded-xl border border-border/40 shadow-sm">
             {loading ? (
               <div className="flex justify-center items-center p-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
               </div>
             ) : error ? (
               <div className="p-6">
-                <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+                <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg">
                   {error}
                 </div>
               </div>
