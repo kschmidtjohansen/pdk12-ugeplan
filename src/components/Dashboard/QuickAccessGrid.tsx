@@ -69,7 +69,7 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {items.map((item, index) => (
         <Link key={index} to={item.link} className="block group">
-          <Card className="h-full border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 animate-scale-in" style={{ animationDelay: `${index * 50}ms` }}>
+          <Card className="h-full border border-border/40 hover:border-primary/30 transition-all duration-300 hover:shadow-md hover:-translate-y-[2px] animate-scale-in" style={{ animationDelay: `${index * 50}ms` }}>
             <CardContent className="p-4 py-[12px] px-[20px]">
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-3 rounded-2xl ${

@@ -134,14 +134,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   return (
     <Card 
-      className={`relative w-full p-4 bg-card hover:border-polygon-purple hover:shadow-xl transition-all duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+      className={`relative w-full p-4 rounded-2xl border-l-4 border-l-primary bg-card border border-border/40 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition-all duration-300 ease-out ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer active:scale-[0.98]' : ''}`}
       onClick={handleCardClick}
     >
       {warehouseItemCount > 0 && (
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-white rounded-md shadow-sm animate-pulse hover:animate-none transition-all cursor-help">
+              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg shadow-sm cursor-help">
                 <Package className="h-5 w-5" />
                 <span className="text-sm font-bold">{warehouseItemCount}</span>
               </div>
