@@ -2,21 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out forwards;
-}
-
 /* Font is now loaded in index.html for better performance */
 
 /* Global accessibility improvements */
@@ -38,7 +23,7 @@ a:focus-visible,
     --background: 0 0% 100%;
     --foreground: 215 25% 27%;
 
-    --card: 0 0% 100%;
+    --card: 210 20% 98%;
     --card-foreground: 215 25% 27%;
 
     --popover: 0 0% 100%;
@@ -72,36 +57,13 @@ a:focus-visible,
     --info: 199 89% 48%;
     --info-foreground: 0 0% 98%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Enhanced color palette */
-    --gray-25: 210 40% 98%;
-    --gray-50: 210 40% 96%;
-    --gray-100: 220 14.3% 95.9%;
-    --gray-200: 220 13% 91%;
-    --gray-300: 216 12% 84%;
-    --gray-400: 218 11% 65%;
-    --gray-500: 220 9% 46%;
-    --gray-600: 215 14% 34%;
-    --gray-700: 215 25% 27%;
-    --gray-800: 217 33% 17%;
-    --gray-900: 222 84% 5%;
-
-    /* Gradient colors using polygon blue */
-    --gradient-primary-start: 197 100% 47%;
-    --gradient-primary-end: 197 100% 40%;
-    --gradient-secondary-start: 210 40% 98%;
-    --gradient-secondary-end: 220 13% 91%;
-
-    /* Enhanced shadows */
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-    --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
-
   }
 
   .dark {
@@ -159,275 +121,153 @@ a:focus-visible,
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Enhanced Typography */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight text-balance;
-  }
-
-  h1 {
-    @apply text-4xl lg:text-5xl font-bold tracking-tight;
-    line-height: 1.1;
-  }
-
-  h2 {
-    @apply text-3xl lg:text-4xl font-bold tracking-tight;
-    line-height: 1.2;
-  }
-
-  h3 {
-    @apply text-2xl lg:text-3xl font-semibold tracking-tight;
-    line-height: 1.25;
-  }
-
-  h4 {
-    @apply text-xl lg:text-2xl font-semibold tracking-tight;
-    line-height: 1.3;
-  }
-
-  h5 {
-    @apply text-lg lg:text-xl font-medium tracking-tight;
-    line-height: 1.4;
-  }
-
-  h6 {
-    @apply text-base lg:text-lg font-medium tracking-tight;
-    line-height: 1.5;
+    letter-spacing: -0.025em;
   }
 
   p {
-    @apply leading-relaxed text-pretty;
+    @apply leading-relaxed;
   }
 
-  /* Enhanced focus styles */
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
-  /* Improved scrollbars */
+  /* Scrollbar */
   ::-webkit-scrollbar {
-    @apply w-2 h-2;
+    width: 5px;
+    height: 5px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-muted/50 rounded-full;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50;
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40;
   }
 
-  /* Selection styles */
   ::selection {
     @apply bg-primary/20 text-primary-foreground;
   }
 }
 
-/* Modern gradient backgrounds using polygon blue */
-.gradient-primary {
-  background: linear-gradient(135deg, hsl(var(--gradient-primary-start)) 0%, hsl(var(--gradient-primary-end)) 100%);
+/* ============================================================
+   Mesh Background — animated floating blobs
+   ============================================================ */
+.mesh-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-.gradient-secondary {
-  background: linear-gradient(135deg, hsl(var(--gradient-secondary-start)) 0%, hsl(var(--gradient-secondary-end)) 100%);
+.mesh-bg .blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
 }
 
-.gradient-radial {
-  background: radial-gradient(ellipse at center, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, transparent 100%);
+.mesh-bg .blob-1 {
+  width: 500px;
+  height: 500px;
+  background: hsl(var(--primary) / 0.15);
+  top: -10%;
+  right: -5%;
+  animation: mesh-float-1 25s ease-in-out infinite;
 }
 
-/* Enhanced glass effect */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.1);
+.mesh-bg .blob-2 {
+  width: 400px;
+  height: 400px;
+  background: hsl(var(--primary) / 0.1);
+  bottom: -10%;
+  left: -5%;
+  animation: mesh-float-2 30s ease-in-out infinite;
+}
+
+.mesh-bg .blob-3 {
+  width: 350px;
+  height: 350px;
+  background: hsl(var(--primary) / 0.08);
+  top: 40%;
+  left: 30%;
+  animation: mesh-float-3 28s ease-in-out infinite;
+}
+
+.dark .mesh-bg .blob {
+  opacity: 0.12;
+}
+
+@keyframes mesh-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, 60px) scale(1.05); }
+  66% { transform: translate(30px, -40px) scale(0.95); }
+}
+
+@keyframes mesh-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(50px, -30px) scale(1.08); }
+  66% { transform: translate(-30px, 50px) scale(0.92); }
+}
+
+@keyframes mesh-float-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-60px, -40px) scale(1.1); }
+  66% { transform: translate(40px, 30px) scale(0.9); }
+}
+
+/* ============================================================
+   Glass Utilities
+   ============================================================ */
+.glass {
+  background: hsl(var(--background) / 0.8);
   backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
-.dark .glass-effect {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+.dark .glass {
+  background: hsl(var(--background) / 0.7);
 }
 
-/* Enhanced shadows */
-.shadow-xs { box-shadow: var(--shadow-xs); }
-.shadow-sm { box-shadow: var(--shadow-sm); }
-.shadow-md { box-shadow: var(--shadow-md); }
-.shadow-lg { box-shadow: var(--shadow-lg); }
-.shadow-xl { box-shadow: var(--shadow-xl); }
-.shadow-2xl { box-shadow: var(--shadow-2xl); }
-.shadow-inner { box-shadow: var(--shadow-inner); }
-
-/* Modern animations and keyframes */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.glass-card {
+  background: hsl(var(--card) / 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.dark .glass-card {
+  background: hsl(var(--card) / 0.8);
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.card-hover-glow {
+  transition: all 0.3s ease;
 }
 
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.card-hover-glow:hover {
+  border-color: hsl(var(--primary) / 0.3);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.1), 0 4px 12px hsl(var(--primary) / 0.08);
+  transform: translateY(-1px) scale(1.005);
 }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.section-accent {
+  border-left: 3px solid hsl(var(--primary));
+  padding-left: 1rem;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 5px hsl(var(--primary)), 0 0 10px hsl(var(--primary)), 0 0 15px hsl(var(--primary));
-  }
-  50% {
-    box-shadow: 0 0 20px hsl(var(--primary)), 0 0 30px hsl(var(--primary)), 0 0 40px hsl(var(--primary));
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.3s ease-out;
-}
-
-.animate-fade-in-down {
-  animation: fadeInDown 0.3s ease-out;
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 0.3s ease-out;
-}
-
-.animate-slide-in-left {
-  animation: slideInLeft 0.3s ease-out;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.4s ease-out;
-}
-
-/* Spin animation for spinners */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s linear infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Enhanced page container */
-.page-container {
-  @apply px-4 py-8 md:px-6 lg:px-8 xl:px-12 2xl:px-16;
-  background: linear-gradient(180deg, hsl(var(--gray-25)) 0%, hsl(var(--gray-50)) 100%);
-  min-height: 100vh;
-}
-
-.dark .page-container {
-  background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(217 33% 17%) 100%);
-}
-
-/* Enhanced utility classes */
+/* ============================================================
+   Gradient Text
+   ============================================================ */
 @layer utilities {
-  .text-gradient {
-    background: linear-gradient(135deg, hsl(var(--gradient-primary-start)) 0%, hsl(var(--gradient-primary-end)) 100%);
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(197 100% 40%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .hover-lift {
-    @apply transition-all duration-300 hover:translate-y-[-2px] hover:shadow-md;
-  }
-
-  .hover-glow {
-    @apply transition-all duration-300 hover:shadow-xl hover:ring-2 hover:ring-primary/20;
-  }
-
-  .interactive-scale {
-    @apply transition-transform duration-200 active:scale-[0.98];
-  }
-
-  .card-interactive {
-    @apply transition-all duration-200 hover:-translate-y-[1px] hover:shadow-md;
-  }
-
-  .border-gradient {
-    position: relative;
-    background: linear-gradient(hsl(var(--background)), hsl(var(--background))) padding-box,
-                linear-gradient(135deg, hsl(var(--primary)), hsl(var(--gradient-primary-end))) border-box;
-    border: 2px solid transparent;
-  }
-
-  .shimmer-effect {
-    background: linear-gradient(90deg, 
-      transparent 0%, 
-      rgba(255, 255, 255, 0.4) 50%, 
-      transparent 100%);
-    background-size: 200px 100%;
-    background-repeat: no-repeat;
-  }
-
-  .blur-backdrop {
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-  }
-
-  /* Typography utilities */
   .text-balance {
     text-wrap: balance;
   }
@@ -436,80 +276,66 @@ a:focus-visible,
     text-wrap: pretty;
   }
 
-  /* Enhanced spacing utilities */
-  .space-y-fluid > * + * {
-    margin-top: clamp(1rem, 2vw, 2rem);
-  }
-
-  .space-x-fluid > * + * {
-    margin-left: clamp(0.5rem, 1vw, 1rem);
-  }
-
-  /* Performance optimizations */
   .performance-contain {
     contain: layout style paint;
   }
 }
 
-/* Reduced motion support for accessibility */
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes fade-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   Reduced motion
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .mesh-bg .blob { animation: none !important; }
 }
 
-/* Component-specific enhancements */
-.modern-card {
-  @apply bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300;
-}
-
-.modern-button {
-  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-}
-
-.modern-input {
-  @apply flex h-12 w-full rounded-xl border border-input bg-background/50 backdrop-blur-sm px-4 py-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
-}
-
-.modern-table {
-  @apply w-full border-collapse border-spacing-0 text-sm;
-}
-
-.modern-table th {
-  @apply h-12 px-4 text-left align-middle font-semibold text-muted-foreground border-b border-border/50 bg-muted/30;
-}
-
-.modern-table td {
-  @apply h-14 px-4 align-middle border-b border-border/30 transition-colors hover:bg-muted/50;
-}
-
-/* Responsive breakpoints enhancement */
-@media (max-width: 640px) {
-  .mobile-optimized {
-    @apply px-4 py-6;
-  }
-}
-
-@media (min-width: 1024px) {
-  .desktop-enhanced {
-    @apply px-8 py-12;
-  }
-}
-
-/* Print styles */
+/* ============================================================
+   Print & high contrast
+   ============================================================ */
 @media print {
-  .no-print {
-    display: none !important;
-  }
-  
-  .print-only {
-    display: block !important;
-  }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .mesh-bg { display: none !important; }
 }
 
 @media (prefers-contrast: high) {
@@ -517,4 +343,9 @@ a:focus-visible,
     --border: 0 0% 20%;
     --ring: 220 91% 40%;
   }
+}
+
+/* Navbar height helper */
+.navbar-height {
+  height: 3rem;
 }

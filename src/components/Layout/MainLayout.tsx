@@ -28,7 +28,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     translationInitialized: isInitialized
   });
 
-  // SESSION EXPIRATION FIX: Active redirect when not authenticated
   useEffect(() => {
     if (authReady && !isAuthenticated) {
       if (import.meta.env.DEV) console.log('[MainLayout] SESSION EXPIRATION FIX - User not authenticated, redirecting to login');
@@ -36,8 +35,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     }
   }, [authReady, isAuthenticated, navigate]);
 
-
-  // Don't show layout for login page or password reset page
   if (location.pathname === "/login" || location.pathname === "/password-reset") {
     return (
       <SecurityErrorBoundary>
@@ -47,10 +44,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     );
   }
 
-
-  // Show loading state if translation is not initialized or auth is not ready
   if (!isInitialized || !authReady) {
-    // Use browser language detection for loading screen
     const getBrowserLanguage = () => {
       const lang = navigator.language || (navigator as any).userLanguage || '';
       return lang.startsWith('da') ? 'da' : 'en';
@@ -63,47 +57,47 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-muted/50 to-muted">
+        <div className="flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground">{loadingText}</p>
-            <div className="text-xs text-muted-foreground/60">
-              Translation: {isInitialized ? 'Ready' : 'Loading'} | Auth: {authReady ? 'Ready' : 'Initializing'}
-            </div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground text-sm">{loadingText}</p>
           </div>
         </div>
       </SecurityErrorBoundary>
     );
   }
 
-
-  // SESSION EXPIRATION FIX: Remove infinite redirect state - if auth is ready and not authenticated, the useEffect will handle redirect
   if (!isAuthenticated) {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-muted/50 to-muted">
+        <div className="flex items-center justify-center min-h-screen">
           <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground">Redirecting to login...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground text-sm">Redirecting to login...</p>
           </div>
         </div>
       </SecurityErrorBoundary>
     );
   }
 
-
-  // Show main layout for authenticated users
   return (
     <SecurityErrorBoundary>
       <SecurityHeaders />
-      <div className="flex flex-col min-h-screen w-full">
+      {/* Animated mesh background */}
+      <div className="mesh-bg">
+        <div className="blob blob-1" />
+        <div className="blob blob-2" />
+        <div className="blob blob-3" />
+      </div>
+      
+      <div className="flex flex-col min-h-screen w-full relative z-10">
         <TopNavbar />
         <RealtimeChangeNotifier />
         
-        <main className="flex-1 w-full bg-muted/10 pt-20">
+        <main className="flex-1 w-full pt-12">
           <PullToRefresh onRefresh={handlePullRefresh}>
-            <div className="animate-fade-in-up w-full">
+            <div className="max-w-7xl mx-auto p-4 lg:p-6">
               <SecurityErrorBoundary>
                 {children}
               </SecurityErrorBoundary>
