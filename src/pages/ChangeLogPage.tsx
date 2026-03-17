@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format, subDays } from 'date-fns';
 import { FileEdit, FilePlus, FileX, Upload, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import MainLayout from '@/components/Layout/MainLayout';
 import { formatDateForDisplay } from '@/utils/dateUtils';
 import {
   Table,
@@ -130,18 +129,16 @@ const ChangeLogPage: React.FC = () => {
   // Role-gate: Only admin and skadeleder can access
   if (!isEffectiveAdmin && !isEffectiveSkadeleder) {
     return (
-      <MainLayout>
-        <div className="container mx-auto p-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('accessDenied.title')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">{t('accessDenied.restricted')}</p>
-            </CardContent>
-          </Card>
-        </div>
-      </MainLayout>
+      <div className="py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('accessDenied.title')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">{t('accessDenied.restricted')}</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
