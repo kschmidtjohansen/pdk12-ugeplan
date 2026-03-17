@@ -395,10 +395,9 @@ const PlannerPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-      <div className="min-h-screen w-full bg-muted/10">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
-          {/* Enhanced Header with Responsive Design */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 lg:p-8 text-white shadow-lg animate-fade-in-up">
+      <div className="min-h-screen w-full bg-slate-50/50 dark:bg-background">
+        {/* Vibrant Hero Header */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/80 rounded-b-[2rem] pb-20 pt-6 px-4 sm:px-6 lg:px-8 xl:px-12 text-white shadow-md animate-fade-in-up">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
           <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
@@ -471,8 +470,11 @@ const PlannerPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Overlapping content area */}
+        <div className="-mt-10 relative z-10 mx-auto max-w-5xl px-4 sm:px-6 space-y-4">
+
         {/* Search and View Toggle Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card rounded-lg border p-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card/90 backdrop-blur-md rounded-2xl border border-border/40 p-3 shadow-sm">
           {/* Search Filter */}
           <PlannerSearchFilter 
             searchQuery={searchQuery}
@@ -571,7 +573,7 @@ const PlannerPage: React.FC = () => {
           assignments={sortedWeekAssignments} 
           onEmployeeToggle={handleEmployeeToggle} 
         />
-      </div>
+        </div>{/* end overlapping content */}
     </div>
     </DataFetchErrorBoundary>
   );

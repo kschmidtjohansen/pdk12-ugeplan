@@ -1,16 +1,16 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
 import { Car } from '../../types/car';
 import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
-import AssignmentDetails from './AssignmentDetails';
 import { useTranslation } from '@/context/TranslationContext';
-import { UserCheck, Package } from 'lucide-react';
+import { UserCheck, Package, Car as CarIcon } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { filterDisplayNames } from '@/utils/people';
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -47,171 +47,203 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     : { count: 0, totalQuantity: 0 };
   const warehouseItemCount = warehouseData.totalQuantity;
 
-  if (import.meta.env.DEV) {
-    console.log(`[AssignmentCard] Assignment: ${assignment.title || assignment.location}`);
-    console.log(`[AssignmentCard] Employee data:`, {
-      hasAssignedEmployees: !!assignment.assignedEmployees?.length,
-      assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
-      hasLegacyEmployees: !!assignment.employees?.length,
-      legacyEmployees: assignment.employees,
-      responsibleUserId: assignment.responsibleUserId || assignment.responsibleUser?.id
-    });
-  }
+  // Get employee display names
+  const getDisplayEmployees = (): string[] => {
+    const names: string[] = [];
+    if (assignment.assignedEmployees?.length) {
+      names.push(...assignment.assignedEmployees.map(emp => emp.name || emp.email || ''));
+    }
+    if (assignment.employees?.length) {
+      names.push(...assignment.employees);
+    }
+    return filterDisplayNames(names);
+  };
+
+  const displayEmployees = getDisplayEmployees();
+
+  // Get initials from name
+  const getInitials = (name: string): string => {
+    return name
+      .split(' ')
+      .map(part => part.charAt(0))
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  // Get car names
+  const getCarNames = (): string[] => {
+    const carIds: string[] = [];
+    if (assignment.cars?.length) {
+      carIds.push(...assignment.cars.filter(Boolean));
+    } else if (assignment.car) {
+      if (typeof assignment.car === 'string') carIds.push(assignment.car);
+      else if (assignment.car.id) carIds.push(assignment.car.id);
+    }
+    return carIds
+      .map(id => cars.find(c => c.id === id)?.name)
+      .filter(Boolean) as string[];
+  };
+
+  const carNames = getCarNames();
   
   const getResponsibleUserInfo = () => {
     const responsibleId = assignment.responsibleUserId || assignment.responsibleUser?.id;
-    
     if (!responsibleId) return null;
-
-    if (assignment.responsibleUser?.name) {
-      return {
-        id: assignment.responsibleUser.id,
-        name: assignment.responsibleUser.name,
-        role: assignment.responsibleUser.role || 'unknown'
-      };
-    }
-
-    const responsibleEmployee = employees.find(emp => emp.id === responsibleId);
-    if (responsibleEmployee) {
-      return {
-        id: responsibleEmployee.id,
-        name: responsibleEmployee.name,
-        role: responsibleEmployee.role
-      };
-    }
-
-    if (import.meta.env.DEV) {
-      console.warn('[AssignmentCard] Responsible user not found:', responsibleId);
-    }
+    if (assignment.responsibleUser?.name) return assignment.responsibleUser;
+    const emp = employees.find(e => e.id === responsibleId);
+    if (emp) return { id: emp.id, name: emp.name, role: emp.role };
     return null;
   };
 
   const responsibleUserInfo = getResponsibleUserInfo();
-
-  const handleEditClick = (assignment: Assignment) => {
-    onEdit(assignment);
-  };
-
-  const handleCopyClick = () => {
-    if (onCopy) onCopy();
-  };
-
-  const handlePublishClick = async (assignmentId: string) => {
-    if (onPublish) {
-      try {
-        await onPublish();
-      } catch (error) {
-        console.error('[AssignmentCard] Error in onPublish:', error);
-      }
-    }
-  };
-
   const isPublished = assignment.published === true;
   const isLoading = operationState !== null;
 
   const getOperationText = (state: 'publishing' | 'deleting' | 'updating') => {
     switch (state) {
-      case 'publishing':
-        return t('planner.operations.publishing') + '...';
-      case 'deleting':
-        return t('planner.operations.deleting') + '...';
-      case 'updating':
-        return t('planner.operations.updating') + '...';
-      default:
-        return t('planner.operations.processing') + '...';
+      case 'publishing': return t('planner.operations.publishing') + '...';
+      case 'deleting': return t('planner.operations.deleting') + '...';
+      case 'updating': return t('planner.operations.updating') + '...';
+      default: return t('planner.operations.processing') + '...';
     }
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a') || target.closest('[role="button"]')) {
-      return;
-    }
-    if (onViewDetails) {
-      onViewDetails();
-    }
+    if (target.closest('button') || target.closest('a') || target.closest('[role="button"]')) return;
+    if (onViewDetails) onViewDetails();
   };
 
+  const fromTime = assignment.fromTime ? assignment.fromTime.substring(0, 5) : '00:00';
+  const toTime = assignment.toTime ? assignment.toTime.substring(0, 5) : '00:00';
+
   return (
-    <Card 
-      className={`relative w-full p-4 rounded-2xl border-l-4 border-l-primary bg-card border border-border/40 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition-all duration-300 ease-out ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer active:scale-[0.98]' : ''}`}
+    <div
+      className={`group relative bg-white/80 dark:bg-card/80 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:scale-[1.01] hover:shadow-[0_10px_40px_rgb(0,0,0,0.08)] hover:bg-white dark:hover:bg-card transition-all duration-300 overflow-hidden ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
     >
-      {warehouseItemCount > 0 && (
-        <TooltipProvider delayDuration={100}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg shadow-sm cursor-help">
-                <Package className="h-5 w-5" />
-                <span className="text-sm font-bold">{warehouseItemCount}</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent 
-              side="left" 
-              align="end"
-              sideOffset={8}
-              className="max-w-xs z-[100]"
-            >
-              <p className="font-medium whitespace-normal">Der er {warehouseData.totalQuantity} møbelkasser/paller på lager</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-      
-      <div className="flex justify-between items-start gap-2 mb-2">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="flex flex-col flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
-              {operationState && (
-                <span className="text-xs text-blue-600 font-medium animate-pulse">
-                  {getOperationText(operationState)}
-                </span>
-              )}
-            </div>
-            {assignment.location && (
-              <p className="text-sm text-muted-foreground">{assignment.location}</p>
-            )}
-            {responsibleUserInfo?.name && (
-              <div className="flex items-center gap-1 mt-1">
-                <UserCheck className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-foreground font-medium">
-                  {t('planner.responsibleUser')}: {responsibleUserInfo.name}
-                </span>
-              </div>
-            )}
-            {import.meta.env.DEV && assignment.responsibleUserId && !responsibleUserInfo && (
-              <div className="flex items-center gap-1 mt-1">
-                <UserCheck className="h-3 w-3 text-yellow-600" />
-                <span className="text-xs text-yellow-600" title="Debug: Responsible user ID found but user data missing">
-                  Missing User Data (Check Roles)
-                </span>
-              </div>
+      {/* Top accent bar */}
+      <div className="h-0.5 bg-primary" />
+
+      <div className="flex min-h-[72px]">
+        {/* Left: Time column */}
+        <div className="w-20 flex-shrink-0 border-r border-border/20 dark:border-border/30 flex flex-col items-center justify-center py-3 px-2">
+          <span className="text-xs font-bold text-foreground">{fromTime}</span>
+          <div className="w-4 h-px bg-border my-1" />
+          <span className="text-xs text-muted-foreground">{toTime}</span>
+        </div>
+
+        {/* Middle: Details */}
+        <div className="flex-1 py-3 px-4 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <h3 className="text-sm font-bold text-foreground truncate">
+              {assignment.title || t('planner.titleLabel')}
+            </h3>
+            {operationState && (
+              <span className="text-xs text-blue-600 font-medium animate-pulse">
+                {getOperationText(operationState)}
+              </span>
             )}
           </div>
+
+          {assignment.location && (
+            <p className="text-xs text-muted-foreground truncate">{assignment.location}</p>
+          )}
+
+          {responsibleUserInfo?.name && (
+            <div className="flex items-center gap-1 mt-0.5">
+              <UserCheck className="h-3 w-3 text-primary" />
+              <span className="text-xs text-muted-foreground">
+                {responsibleUserInfo.name}
+              </span>
+            </div>
+          )}
+
+          {assignment.description && (
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{assignment.description}</p>
+          )}
+
+          {/* Inline pills: cars + warehouse */}
+          {(carNames.length > 0 || warehouseItemCount > 0) && (
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+              {carNames.map((name, i) => (
+                <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+                  <CarIcon className="h-2.5 w-2.5 mr-0.5" />
+                  {name}
+                </Badge>
+              ))}
+              {warehouseItemCount > 0 && (
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 cursor-help">
+                        <Package className="h-2.5 w-2.5 mr-0.5" />
+                        {warehouseItemCount}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="z-[100]">
+                      <p className="text-xs font-medium">
+                        {warehouseData.totalQuantity} møbelkasser/paller på lager
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+          )}
         </div>
-        
-        <div className="flex items-center gap-2 flex-shrink-0">
+
+        {/* Right: People & Status */}
+        <div className="w-24 flex-shrink-0 flex flex-col items-center justify-center py-3 px-2 gap-2">
+          {/* Overlapping avatar stack */}
+          {displayEmployees.length > 0 && (
+            <div className="flex -space-x-2">
+              {displayEmployees.slice(0, 3).map((name, i) => (
+                <div
+                  key={i}
+                  className="w-7 h-7 rounded-full bg-primary/15 dark:bg-primary/25 text-primary font-semibold text-[10px] flex items-center justify-center ring-2 ring-white dark:ring-card border border-primary/20"
+                  title={name}
+                >
+                  {getInitials(name)}
+                </div>
+              ))}
+              {displayEmployees.length > 3 && (
+                <div className="w-7 h-7 rounded-full bg-muted text-muted-foreground font-semibold text-[10px] flex items-center justify-center ring-2 ring-white dark:ring-card border border-border">
+                  +{displayEmployees.length - 3}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Status badge */}
           <AssignmentStatusBadge isPublished={isPublished} />
-          <AssignmentActionButtons
-          assignment={assignment}
-          onEdit={handleEditClick}
-          onDelete={onDelete}
-          onPublish={async (assignmentId: string) => {
-            await handlePublishClick(assignmentId);
-          }}
-          onCopy={handleCopyClick}
-            operationState={operationState}
-          />
+
+          {/* Action buttons on hover */}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 sm:block hidden">
+            <AssignmentActionButtons
+              assignment={assignment}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onPublish={onPublish ? async (id: string) => { await onPublish(); } : undefined}
+              onCopy={onCopy || undefined}
+              operationState={operationState}
+            />
+          </div>
+          {/* Always visible on mobile */}
+          <div className="sm:hidden">
+            <AssignmentActionButtons
+              assignment={assignment}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onPublish={onPublish ? async (id: string) => { await onPublish(); } : undefined}
+              onCopy={onCopy || undefined}
+              operationState={operationState}
+            />
+          </div>
         </div>
       </div>
-      
-      {assignment.description && (
-        <p className="text-muted-foreground mb-3 text-sm line-clamp-3">{assignment.description}</p>
-      )}
-      
-      <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
-    </Card>
+    </div>
   );
 };
 

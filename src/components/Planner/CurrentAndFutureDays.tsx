@@ -44,7 +44,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   if (dates.length === 0) return null;
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {dates.map(dateKey => (
         <DaySection 
           key={dateKey}
