@@ -1,19 +1,5 @@
 # Changelog
 
-## [Unreleased] - 2026-03-17
-
-### Changed — Global Mobile-First UI Overhaul
-- Standardiseret alle base UI-komponenter (Card, Badge, Button, Input, Dialog, StatusBadge) med konsistent styling
-- Fjernet aggressive scale/lift animationer og tunge gradient overlays fra alle komponenter
-- Erstattet gradient hero-bannere på Planner, Cars, Vacation, Dashboard og Warehouse med clean card-baserede headers
-- Tilføjet 44px minimum touch targets på alle interaktive elementer for mobil tilgængelighed
-- Input felter bruger nu 16px tekst (text-base) for at undgå iOS auto-zoom
-- Reduceret navbar højde fra h-20 til h-14/h-16 for mere kompakt layout
-- Standardiseret padding til px-3 sm:px-4 lg:px-8 på alle sider
-- Fjernet dobbelt MainLayout wrapping fra ChangeLogPage
-- MetricCard og InteractiveMetricCard bruger nu subtile hover-effekter
-- Warehouse indicator på AssignmentCard bruger nu statisk badge
-
 ## [Unreleased] - 2026-03-12
 
 ### Fixed — "Uden afdeling" i Admin → Brugere

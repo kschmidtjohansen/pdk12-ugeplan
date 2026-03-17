@@ -57,7 +57,7 @@ const AdminPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="w-full px-3 sm:px-4 lg:px-8 py-6">
+    <div className="container mx-auto px-4 py-8">
       <VacationCleanupHandler />
 
       <div className="space-y-6">

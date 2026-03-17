@@ -395,71 +395,77 @@ const PlannerPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-background">
-      <div className="w-full px-3 sm:px-4 lg:px-8 py-6 space-y-6">
-        {/* Clean Card Header */}
-        <div className="bg-card rounded-xl border border-border/40 shadow-sm p-4 sm:p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            {/* Title Section */}
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Clock className="h-5 w-5 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
-                  {t("navigation.planner")}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {t('planner.weekView', {
-                    week: selectedWeek,
-                    year: selectedYear,
-                    start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                    end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
-                  })}
-                </p>
-              </div>
-            </div>
-
-            {/* Controls Section */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              {/* Week Navigation */}
-              <div className="flex items-center justify-center gap-2">
-                <Button variant="outline" size="sm" onClick={handlePreviousWeek} className="h-9 w-9 p-0">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                
-                <span className="font-semibold min-w-[100px] text-center text-foreground text-lg">
-                  {t('planner.week')} {selectedWeek}
-                </span>
-                
-                <Button variant="outline" size="sm" onClick={handleNextWeek} className="h-9 w-9 p-0">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+        {/* Enhanced Header with Responsive Design */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 lg:p-8 text-white shadow-2xl animate-fade-in-up">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
+          
+          <div className="relative z-10">
+            {/* Header Content - Responsive Layout */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              {/* Title Section */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <div className="space-y-1 lg:space-y-3">
+                  <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">
+                    {t("navigation.planner")}
+                  </h1>
+                  <p className="text-blue-100 text-sm lg:text-lg font-medium">
+                    {t('planner.weekView', {
+                      week: selectedWeek,
+                      year: selectedYear,
+                      start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                      end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+                    })}
+                  </p>
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                {canPublishTasks && (
-                  <Button 
-                    onClick={handleShowOnScreen} 
-                    size="sm" 
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <Monitor className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('planner.showOnScreen')}</span>
+              {/* Controls Section - Responsive */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:gap-4">
+                {/* Week Navigation */}
+                <div className="flex items-center justify-center gap-2">
+                  <Button variant="outline" size="sm" onClick={handlePreviousWeek} className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
+                    <ChevronLeft className="h-4 w-4" />
                   </Button>
-                )}
-                {canCreate && (
-                  <Button 
-                    onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} 
-                    size="sm" 
-                    className="flex items-center gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    {t('planner.newAssignment')}
+                  
+                  <span className="font-medium min-w-[100px] text-center text-white text-lg lg:text-xl">
+                    {t('planner.week')} {selectedWeek}
+                  </span>
+                  
+                  <Button variant="outline" size="sm" onClick={handleNextWeek} className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
-                )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  {canPublishTasks && (
+                    <Button 
+                      onClick={handleShowOnScreen} 
+                      size="sm" 
+                      className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                    >
+                      <Monitor className="h-4 w-4" />
+                      <span className="hidden sm:inline">{t('planner.showOnScreen')}</span>
+                    </Button>
+                  )}
+                  {canCreate && (
+                    <Button 
+                      onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} 
+                      size="sm" 
+                      className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                    >
+                      <Plus className="h-4 w-4" />
+                      {t('planner.newAssignment')}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

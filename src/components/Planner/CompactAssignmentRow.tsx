@@ -68,7 +68,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
 
   return (
     <tr 
-      className={`hover:bg-muted/50 border-b group transition-colors duration-200 cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
+      className={`hover:bg-muted/50 border-b group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
       onClick={onViewDetails}
     >
       {/* Time */}
@@ -152,7 +152,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       {/* Actions - visible on hover */}
       <td className="py-2.5 px-3 text-right">
         <div 
-          className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center justify-end gap-0.5"
+          className="invisible group-hover:visible flex items-center justify-end gap-0.5"
           onClick={(e) => e.stopPropagation()}
         >
           {canEdit && (
