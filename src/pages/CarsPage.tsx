@@ -60,7 +60,7 @@ const CarsPage: React.FC = () => {
             
             <div className="relative z-10 flex items-center justify-between">
               <div className="space-y-3">
-                <h1 className="text-3xl font-bold tracking-tight">
+                <h1 className="text-3xl font-bold tracking-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
                   {t("navigation.cars")}
                 </h1>
                 <p className="text-blue-100 text-lg font-medium">

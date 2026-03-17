@@ -97,7 +97,7 @@ const EmployeesPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-background">
+    <div className="min-h-screen w-full bg-muted/10">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Simple Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

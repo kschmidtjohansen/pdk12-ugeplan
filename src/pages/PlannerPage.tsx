@@ -412,7 +412,7 @@ const PlannerPage: React.FC = () => {
                   <Clock className="h-6 w-6 text-white" />
                 </div>
                 <div className="space-y-1 lg:space-y-3">
-                  <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">
+                  <h1 className="text-2xl lg:text-3xl font-bold tracking-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
                     {t("navigation.planner")}
                   </h1>
                   <p className="text-blue-100 text-sm lg:text-lg font-medium">

@@ -102,7 +102,7 @@ const WarehousePage = () => {
           </div>
         </div>
 
-      <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="space-y-6">
         {canEdit && (
           <div className="flex justify-end">
             <Button onClick={openAddDialog} className="gap-2">
