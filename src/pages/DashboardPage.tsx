@@ -31,32 +31,49 @@ const DashboardPage: React.FC = () => {
     setIsRefreshing(false);
   };
 
+  console.log(`[DashboardPage] ROLE-BASED - User: ${user?.name} (${user?.role}) - Effective Role: ${effectiveRole}`);
+
+  // Check if user is servicemedarbejder for specialized dashboard
   const isServicemedarbejder = effectiveRole === 'servicemedarbejder';
+  
+  // Check if user should see metrics (administrators and skadeledere)
   const shouldShowMetrics = effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder';
 
   return (
     <DataFetchErrorBoundary>
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="space-y-6">
-        {!isServicemedarbejder && (
-          <div className="flex justify-end">
-            <LastRefreshIndicator lastRefresh={lastRefresh} isRefreshing={isRefreshing} onRefresh={handleRefresh} />
-          </div>
-        )}
+      <div className="min-h-screen w-full bg-muted/10">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+          {/* Last Refresh Indicator */}
+          {!isServicemedarbejder && (
+            <div className="flex justify-end">
+              <LastRefreshIndicator 
+                lastRefresh={lastRefresh}
+                isRefreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            </div>
+          )}
 
-        {isDemoMode && <DemoDashboard />}
+          {/* Demo Dashboard - Only in demo mode */}
+          {isDemoMode && <DemoDashboard />}
 
-        <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
+          {/* Welcome Header */}
+          <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
 
-        {isServicemedarbejder ? (
-          <ServicemedarbejderDashboard />
-        ) : (
-          <>
-            <QuickAccessGrid userRole={effectiveRole} />
-            {shouldShowMetrics && <DashboardMetrics />}
-            {isUserInSelectedDepartment && <MineOpgaver />}
-          </>
-        )}
+          {/* Role-based Dashboard Content */}
+          {isServicemedarbejder ? (
+            /* Servicemedarbejder Dashboard - Specialized view */
+            <ServicemedarbejderDashboard />
+          ) : (
+            /* Administrator/Skadeleder Dashboard - Full view */
+            <>
+              <QuickAccessGrid userRole={effectiveRole} />
+              {shouldShowMetrics && <DashboardMetrics />}
+              {isUserInSelectedDepartment && <MineOpgaver />}
+            </>
+          )}
+        </div>
       </div>
     </PullToRefresh>
     </DataFetchErrorBoundary>

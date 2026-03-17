@@ -28,7 +28,9 @@ const AdminPage: React.FC = () => {
 
   useEffect(() => {
     const fetchUserCount = async () => {
-      const { count, error } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
       if (!error && count !== null) setUserCount(count);
     };
     fetchUserCount();
@@ -36,7 +38,7 @@ const AdminPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -44,7 +46,7 @@ const AdminPage: React.FC = () => {
 
   if (!user || (!isSuperAdmin && !isAdmin)) {
     return (
-      <div className="py-8">
+      <div className="container mx-auto px-4 py-8">
         <Alert variant="destructive">
           <Shield className="h-4 w-4" />
           <AlertDescription>{t('accessDenied.message')}</AlertDescription>
@@ -55,47 +57,48 @@ const AdminPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-      <div className="space-y-4">
-        <VacationCleanupHandler />
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+      <VacationCleanupHandler />
 
-        <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-primary" />
-          <h1 className="text-2xl font-semibold tracking-tight">{t('admin.title')}</h1>
+      <div className="space-y-6">
+        <div className="flex items-center space-x-2">
+          <Shield className="h-6 w-6 text-primary" />
+          <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
         </div>
 
         <Tabs defaultValue="users" className="w-full">
           <TabsList className="w-full justify-start flex-wrap h-auto gap-1 p-1">
-            <TabsTrigger value="users" className="gap-1.5 text-xs">
-              <Users className="h-3.5 w-3.5" />
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="h-4 w-4" />
               {t('admin.tabs.users')}
             </TabsTrigger>
             {isSuperAdmin && (
-              <TabsTrigger value="departments" className="gap-1.5 text-xs">
-                <Building2 className="h-3.5 w-3.5" />
+              <TabsTrigger value="departments" className="gap-2">
+                <Building2 className="h-4 w-4" />
                 {t('admin.tabs.departments')}
               </TabsTrigger>
             )}
-            <TabsTrigger value="subdepartments" className="gap-1.5 text-xs">
-              <Layers className="h-3.5 w-3.5" />
+            <TabsTrigger value="subdepartments" className="gap-2">
+              <Layers className="h-4 w-4" />
               {t('admin.tabs.subDepartments')}
             </TabsTrigger>
-            <TabsTrigger value="features" className="gap-1.5 text-xs">
-              <Settings className="h-3.5 w-3.5" />
+            <TabsTrigger value="features" className="gap-2">
+              <Settings className="h-4 w-4" />
               {t('admin.tabs.features')}
             </TabsTrigger>
             {isWarehouseEnabled && (isSuperAdmin || isAdmin) && (
-              <TabsTrigger value="locations" className="gap-1.5 text-xs">
-                <MapPin className="h-3.5 w-3.5" />
+              <TabsTrigger value="locations" className="gap-2">
+                <MapPin className="h-4 w-4" />
                 {t('admin.tabs.locations') || 'Lokationer'}
               </TabsTrigger>
             )}
-            <TabsTrigger value="vacationCalendar" className="gap-1.5 text-xs">
-              <CalendarDays className="h-3.5 w-3.5" />
+            <TabsTrigger value="vacationCalendar" className="gap-2">
+              <CalendarDays className="h-4 w-4" />
               {t('admin.tabs.vacationCalendar')}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="users">
+          <TabsContent value="users" className="animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle>{t('admin.userManagement.title')}</CardTitle>
@@ -115,16 +118,31 @@ const AdminPage: React.FC = () => {
           </TabsContent>
 
           {isSuperAdmin && (
-            <TabsContent value="departments"><DepartmentManagement /></TabsContent>
+            <TabsContent value="departments" className="animate-fade-in">
+              <DepartmentManagement />
+            </TabsContent>
           )}
-          <TabsContent value="subdepartments"><SubDepartmentManagement /></TabsContent>
-          <TabsContent value="features"><FeatureToggleManagement /></TabsContent>
+
+          <TabsContent value="subdepartments" className="animate-fade-in">
+            <SubDepartmentManagement />
+          </TabsContent>
+
+          <TabsContent value="features" className="animate-fade-in">
+            <FeatureToggleManagement />
+          </TabsContent>
+
           {isWarehouseEnabled && (isSuperAdmin || isAdmin) && (
-            <TabsContent value="locations"><LocationManagement /></TabsContent>
+            <TabsContent value="locations" className="animate-fade-in">
+              <LocationManagement />
+            </TabsContent>
           )}
-          <TabsContent value="vacationCalendar"><VacationCalendarOverview /></TabsContent>
+
+          <TabsContent value="vacationCalendar" className="animate-fade-in">
+            <VacationCalendarOverview />
+          </TabsContent>
         </Tabs>
       </div>
+    </div>
     </DataFetchErrorBoundary>
   );
 };

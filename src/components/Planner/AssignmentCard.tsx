@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
 import { Car } from '../../types/car';
 import AssignmentStatusBadge from './AssignmentStatusBadge';
@@ -25,8 +26,16 @@ interface AssignmentCardProps {
 }
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
-  assignment, cars, assignments = [], canEdit, onEdit, onDelete,
-  onPublish, onCopy, onViewDetails, operationState = null
+  assignment,
+  cars,
+  assignments = [],
+  canEdit,
+  onEdit,
+  onDelete,
+  onPublish,
+  onCopy,
+  onViewDetails,
+  operationState = null
 }) => {
   const { t } = useTranslation();
   const { employees } = useEmployees();
@@ -38,96 +47,171 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     : { count: 0, totalQuantity: 0 };
   const warehouseItemCount = warehouseData.totalQuantity;
 
+  if (import.meta.env.DEV) {
+    console.log(`[AssignmentCard] Assignment: ${assignment.title || assignment.location}`);
+    console.log(`[AssignmentCard] Employee data:`, {
+      hasAssignedEmployees: !!assignment.assignedEmployees?.length,
+      assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
+      hasLegacyEmployees: !!assignment.employees?.length,
+      legacyEmployees: assignment.employees,
+      responsibleUserId: assignment.responsibleUserId || assignment.responsibleUser?.id
+    });
+  }
+  
   const getResponsibleUserInfo = () => {
     const responsibleId = assignment.responsibleUserId || assignment.responsibleUser?.id;
+    
     if (!responsibleId) return null;
+
     if (assignment.responsibleUser?.name) {
-      return { id: assignment.responsibleUser.id, name: assignment.responsibleUser.name, role: assignment.responsibleUser.role || 'unknown' };
+      return {
+        id: assignment.responsibleUser.id,
+        name: assignment.responsibleUser.name,
+        role: assignment.responsibleUser.role || 'unknown'
+      };
     }
+
     const responsibleEmployee = employees.find(emp => emp.id === responsibleId);
     if (responsibleEmployee) {
-      return { id: responsibleEmployee.id, name: responsibleEmployee.name, role: responsibleEmployee.role };
+      return {
+        id: responsibleEmployee.id,
+        name: responsibleEmployee.name,
+        role: responsibleEmployee.role
+      };
+    }
+
+    if (import.meta.env.DEV) {
+      console.warn('[AssignmentCard] Responsible user not found:', responsibleId);
     }
     return null;
   };
 
   const responsibleUserInfo = getResponsibleUserInfo();
+
+  const handleEditClick = (assignment: Assignment) => {
+    onEdit(assignment);
+  };
+
+  const handleCopyClick = () => {
+    if (onCopy) onCopy();
+  };
+
+  const handlePublishClick = async (assignmentId: string) => {
+    if (onPublish) {
+      try {
+        await onPublish();
+      } catch (error) {
+        console.error('[AssignmentCard] Error in onPublish:', error);
+      }
+    }
+  };
+
   const isPublished = assignment.published === true;
   const isLoading = operationState !== null;
 
   const getOperationText = (state: 'publishing' | 'deleting' | 'updating') => {
     switch (state) {
-      case 'publishing': return t('planner.operations.publishing') + '...';
-      case 'deleting': return t('planner.operations.deleting') + '...';
-      case 'updating': return t('planner.operations.updating') + '...';
-      default: return t('planner.operations.processing') + '...';
+      case 'publishing':
+        return t('planner.operations.publishing') + '...';
+      case 'deleting':
+        return t('planner.operations.deleting') + '...';
+      case 'updating':
+        return t('planner.operations.updating') + '...';
+      default:
+        return t('planner.operations.processing') + '...';
     }
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a') || target.closest('[role="button"]')) return;
-    if (onViewDetails) onViewDetails();
+    if (target.closest('button') || target.closest('a') || target.closest('[role="button"]')) {
+      return;
+    }
+    if (onViewDetails) {
+      onViewDetails();
+    }
   };
 
   return (
-    <div 
-      className={`glass-card card-hover-glow rounded-lg border overflow-hidden ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+    <Card 
+      className={`relative w-full p-4 rounded-2xl border-l-4 border-l-primary bg-card border border-border/40 shadow-sm hover:-translate-y-[2px] hover:shadow-md transition-all duration-300 ease-out ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer active:scale-[0.98]' : ''}`}
       onClick={handleCardClick}
     >
-      <div className="p-4">
-        {/* Warehouse indicator */}
-        {warehouseItemCount > 0 && (
-          <TooltipProvider delayDuration={100}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="float-right ml-2 flex items-center gap-1 px-2 py-0.5 bg-warning/10 text-warning border border-warning/20 rounded-md text-xs font-medium cursor-help">
-                  <Package className="h-3.5 w-3.5" />
-                  <span>{warehouseItemCount}</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="left" className="z-[100]">
-                <p className="text-sm">Der er {warehouseData.totalQuantity} møbelkasser/paller på lager</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-
-        <div className="flex justify-between items-start gap-2 mb-2">
-          <div className="flex-1 min-w-0">
+      {warehouseItemCount > 0 && (
+        <TooltipProvider delayDuration={100}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg shadow-sm cursor-help">
+                <Package className="h-5 w-5" />
+                <span className="text-sm font-bold">{warehouseItemCount}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent 
+              side="left" 
+              align="end"
+              sideOffset={8}
+              className="max-w-xs z-[100]"
+            >
+              <p className="font-medium whitespace-normal">Der er {warehouseData.totalQuantity} møbelkasser/paller på lager</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+      
+      <div className="flex justify-between items-start gap-2 mb-2">
+        <div className="flex items-center gap-2 flex-1">
+          <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-sm truncate">{assignment.title || t('planner.titleLabel')}</h3>
+              <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
               {operationState && (
-                <span className="text-xs text-primary font-medium animate-pulse">{getOperationText(operationState)}</span>
+                <span className="text-xs text-blue-600 font-medium animate-pulse">
+                  {getOperationText(operationState)}
+                </span>
               )}
             </div>
-            {assignment.location && <p className="text-xs text-muted-foreground truncate">{assignment.location}</p>}
+            {assignment.location && (
+              <p className="text-sm text-muted-foreground">{assignment.location}</p>
+            )}
             {responsibleUserInfo?.name && (
-              <div className="flex items-center gap-1 mt-0.5">
-                <UserCheck className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs text-foreground font-medium">{t('planner.responsibleUser')}: {responsibleUserInfo.name}</span>
+              <div className="flex items-center gap-1 mt-1">
+                <UserCheck className="h-4 w-4 text-blue-600" />
+                <span className="text-sm text-foreground font-medium">
+                  {t('planner.responsibleUser')}: {responsibleUserInfo.name}
+                </span>
+              </div>
+            )}
+            {import.meta.env.DEV && assignment.responsibleUserId && !responsibleUserInfo && (
+              <div className="flex items-center gap-1 mt-1">
+                <UserCheck className="h-3 w-3 text-yellow-600" />
+                <span className="text-xs text-yellow-600" title="Debug: Responsible user ID found but user data missing">
+                  Missing User Data (Check Roles)
+                </span>
               </div>
             )}
           </div>
-          
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <AssignmentStatusBadge isPublished={isPublished} />
-            <AssignmentActionButtons
-              assignment={assignment} onEdit={(a) => onEdit(a)} onDelete={onDelete}
-              onPublish={async (id: string) => { if (onPublish) await onPublish(); }}
-              onCopy={() => { if (onCopy) onCopy(); }}
-              operationState={operationState}
-            />
-          </div>
         </div>
         
-        {assignment.description && (
-          <p className="text-muted-foreground mb-2 text-xs line-clamp-2">{assignment.description}</p>
-        )}
-        
-        <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <AssignmentStatusBadge isPublished={isPublished} />
+          <AssignmentActionButtons
+          assignment={assignment}
+          onEdit={handleEditClick}
+          onDelete={onDelete}
+          onPublish={async (assignmentId: string) => {
+            await handlePublishClick(assignmentId);
+          }}
+          onCopy={handleCopyClick}
+            operationState={operationState}
+          />
+        </div>
       </div>
-    </div>
+      
+      {assignment.description && (
+        <p className="text-muted-foreground mb-3 text-sm line-clamp-3">{assignment.description}</p>
+      )}
+      
+      <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
+    </Card>
   );
 };
 

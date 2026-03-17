@@ -130,7 +130,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
               </div>
 
               <div className="flex justify-end">
-                <Button size="sm" asChild className="w-full sm:w-auto">
+                <Button variant="gradient" size="sm" asChild className="shadow-lg w-full sm:w-auto">
                   <Link to="/planner" className="flex items-center justify-center gap-2">
                     <span>{t('dashboard.viewAll')}</span>
                     <ArrowRight className="h-4 w-4" />

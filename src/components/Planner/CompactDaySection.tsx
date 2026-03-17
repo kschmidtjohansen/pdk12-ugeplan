@@ -54,10 +54,10 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
   };
 
   return (
-    <div className="glass-card rounded-lg border overflow-hidden">
+    <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
       {/* Day Header - Compact */}
       <div 
-        className="flex items-center justify-between px-4 py-2 bg-muted/40 border-b cursor-pointer hover:bg-muted/60 transition-colors"
+        className="flex items-center justify-between px-4 py-2.5 bg-muted/30 border-b cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={() => onToggleExpansion(dateKey)}
         role="button"
         tabIndex={0}
