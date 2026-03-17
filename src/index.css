@@ -408,8 +408,8 @@ a:focus-visible,
 
 /* Enhanced page container */
 .page-container {
-  @apply px-4 py-8 md:px-6 lg:px-8 xl:px-12 2xl:px-16;
-  background: linear-gradient(180deg, hsl(var(--gray-25)) 0%, hsl(var(--gray-50)) 100%);
+  @apply px-3 sm:px-4 lg:px-8 py-6;
+  background: hsl(var(--background));
   min-height: 100vh;
 }
 
