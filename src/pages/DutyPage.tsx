@@ -113,7 +113,7 @@ export default function DutyPage() {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="w-full px-3 sm:px-4 lg:px-8 py-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-3xl font-bold">{t('duty.title')}</h1>

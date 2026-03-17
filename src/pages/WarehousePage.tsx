@@ -53,7 +53,7 @@ const WarehousePage = () => {
 
   if (!isWarehouseEnabled) {
     return (
-      <div className="container mx-auto py-16 text-center">
+      <div className="w-full px-3 sm:px-4 lg:px-8 py-16 text-center">
         <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
         <p className="text-lg text-muted-foreground">{t('admin.features.featureDisabled')}</p>
       </div>
@@ -81,29 +81,27 @@ const WarehousePage = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b border-border/50 px-4 py-8">
-        <div className="container mx-auto">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-xl">
-              <Package className="h-8 w-8 text-primary" />
+    <div className="min-h-screen bg-background">
+      <div className="w-full px-3 sm:px-4 lg:px-8 py-6 space-y-6">
+        {/* Clean Card Header */}
+        <div className="bg-card rounded-xl border border-border/40 shadow-sm p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-semibold text-foreground">
+                {t('warehouse.title')}
+              </h1>
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
-              {t('warehouse.title')}
-            </h1>
+            {canEdit && (
+              <Button onClick={openAddDialog} size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                {t('warehouse.addNew')}
+              </Button>
+            )}
           </div>
         </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        {canEdit && (
-          <div className="flex justify-end">
-            <Button onClick={openAddDialog} className="gap-2">
-              <Plus className="h-4 w-4" />
-              {t('warehouse.addNew')}
-            </Button>
-          </div>
-        )}
 
         {items.length === 0 ? (
           <EmptyState
