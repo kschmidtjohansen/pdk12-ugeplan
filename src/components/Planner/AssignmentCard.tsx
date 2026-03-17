@@ -134,7 +134,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   return (
     <Card 
-      className={`relative w-full p-4 bg-card hover:border-polygon-purple hover:shadow-xl transition-all duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+      className={`relative w-full p-4 border border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:border-primary/30 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all duration-150 ${isLoading ? 'opacity-60' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
     >
       {warehouseItemCount > 0 && (
