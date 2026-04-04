@@ -2,6 +2,13 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Added — Medarbejder-konflikttjek ved opgaveoprettelse
+- Ny konfliktkontrol i `AssignmentForm.tsx` der kører før indsendelse
+- Tjekker for overlappende bookinger, godkendt ferie (hel-/deldag) og orlov for alle valgte medarbejdere × datoer
+- Viser en advarselsdialog med konflikter — brugeren kan vælge at fortsætte alligevel eller annullere
+- Oversættelser tilføjet i DA og EN (`planner.conflicts.*`)
+
+
 ### Fixed — Produktions-audit: Console log guards
 - Alle ~430 uguardede `console.log`/`console.warn`/`console.error` statements er nu wrapped i `import.meta.env.DEV` guards
 - Fjernet inline `console.log` i JSX i `DesktopNavigation.tsx` (blev eksekveret ved hvert render)
