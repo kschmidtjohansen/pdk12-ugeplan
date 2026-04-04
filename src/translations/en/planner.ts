@@ -371,6 +371,9 @@ const planner = {
     delete: 'Delete',
     duplicate: 'Duplicate',
   },
+
+  // Undo
+  undo: 'Undo',
 };
 
 export default planner;

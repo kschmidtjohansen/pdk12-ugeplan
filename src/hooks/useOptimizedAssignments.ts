@@ -5,12 +5,14 @@ import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/
 import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { resolveEmployeeDisplayName } from '@/utils/people';
 import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
 import { supabase } from '@/integrations/supabase/client';
+import React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
@@ -497,30 +499,45 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [toast, t, setOperationState, refetch, setAssignments, allEmployees, assignments, user]);
 
   const deleteAssignment = useCallback(async (id: string) => {
-    setOperationState(id, 'loading');
     const originalAssignment = assignments.find(a => a.id === id);
-    
-    try {
-      setAssignments(prev => prev.filter(a => a.id !== id));
-      await OptimizedAssignmentService.deleteAssignment(id, user.email);
-      
-      const caseNumber = originalAssignment?.case_number || originalAssignment?.title;
-      toast({
-        title: t('planner.assignmentDeleted'),
-        description: originalAssignment?.case_number ? t('planner.assignmentDeletedMsgWithCase', { caseNumber }) : t('planner.assignmentDeletedMsg')
-      });
-      
-      setOperationState(id, 'success');
-      OptimizedAssignmentService.clearCache();
-      
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Delete failed:', error);
-      setOperationState(id, 'error');
-      if (originalAssignment) {
+    if (!originalAssignment) return;
+
+    // 1. Optimistic removal
+    setAssignments(prev => prev.filter(a => a.id !== id));
+    setOperationState(id, 'loading');
+
+    // 2. Delayed database deletion (5s grace period)
+    let cancelled = false;
+    const timeoutId = setTimeout(async () => {
+      if (cancelled) return;
+      try {
+        await OptimizedAssignmentService.deleteAssignment(id, user.email);
+        OptimizedAssignmentService.clearCache();
+        setOperationState(id, 'success');
+      } catch (error) {
+        if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Delete failed:', error);
+        setOperationState(id, 'error');
         setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+        toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorDeletingAssignment'), variant: "destructive" });
       }
-      toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorDeletingAssignment'), variant: "destructive" });
-    }
+    }, 5000);
+
+    // 3. Toast with Undo
+    const caseNumber = originalAssignment?.case_number || originalAssignment?.title;
+    toast({
+      title: t('planner.assignmentDeleted'),
+      description: originalAssignment?.case_number ? t('planner.assignmentDeletedMsgWithCase', { caseNumber }) : t('planner.assignmentDeletedMsg'),
+      duration: 6000,
+      action: React.createElement(ToastAction, {
+        altText: t('planner.undo'),
+        onClick: () => {
+          cancelled = true;
+          clearTimeout(timeoutId);
+          setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+          setOperationState(id, 'idle');
+        }
+      }, t('planner.undo')) as any,
+    });
   }, [toast, t, setOperationState, setAssignments, assignments, user]);
 
   const publishAssignment = useCallback(async (id: string) => {
@@ -557,35 +574,46 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   // Delete all assignments sharing a group_id
   const deleteAssignmentsByGroupId = useCallback(async (groupId: string) => {
-    try {
-      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Deleting series with group_id:', groupId);
+    if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Deleting series with group_id:', groupId);
 
-      // Optimistic: remove all matching assignments
-      const idsToRemove = assignments.filter(a => a.groupId === groupId).map(a => a.id);
-      setAssignments(prev => prev.filter(a => a.groupId !== groupId));
+    // 1. Optimistic: remove all matching assignments
+    const removedAssignments = assignments.filter(a => a.groupId === groupId);
+    const idsToRemove = removedAssignments.map(a => a.id);
+    setAssignments(prev => prev.filter(a => a.groupId !== groupId));
 
-      // Delete employee links for each assignment
-      for (const assignmentId of idsToRemove) {
-        await supabase.from('assignments_employees').delete().eq('assignment_id', assignmentId);
+    // 2. Delayed database deletion (5s grace period)
+    let cancelled = false;
+    const timeoutId = setTimeout(async () => {
+      if (cancelled) return;
+      try {
+        for (const assignmentId of idsToRemove) {
+          await supabase.from('assignments_employees').delete().eq('assignment_id', assignmentId);
+        }
+        const { error } = await supabase.from('assignments').delete().eq('group_id', groupId);
+        if (error) throw error;
+        OptimizedAssignmentService.clearCache();
+      } catch (error) {
+        if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Series delete failed:', error);
+        setAssignments(prev => [...prev, ...removedAssignments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+        toast({ title: t('common.error'), description: t('planner.errorDeletingAssignment'), variant: "destructive" });
       }
+    }, 5000);
 
-      // Delete all assignments in the group
-      const { error } = await supabase.from('assignments').delete().eq('group_id', groupId);
-      if (error) throw error;
-
-      toast({
-        title: t('planner.assignmentDeleted'),
-        description: t('planner.series.seriesDeleted'),
-      });
-
-      OptimizedAssignmentService.clearCache();
-      await refetch();
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Series delete failed:', error);
-      await refetch();
-      toast({ title: t('common.error'), description: t('planner.errorDeletingAssignment'), variant: "destructive" });
-    }
-  }, [toast, t, refetch, setAssignments, assignments]);
+    // 3. Toast with Undo
+    toast({
+      title: t('planner.assignmentDeleted'),
+      description: t('planner.series.seriesDeleted'),
+      duration: 6000,
+      action: React.createElement(ToastAction, {
+        altText: t('planner.undo'),
+        onClick: () => {
+          cancelled = true;
+          clearTimeout(timeoutId);
+          setAssignments(prev => [...prev, ...removedAssignments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+        }
+      }, t('planner.undo')) as any,
+    });
+  }, [toast, t, setAssignments, assignments]);
 
   // Detach a single assignment from its group
   const detachFromGroup = useCallback(async (id: string): Promise<boolean> => {
