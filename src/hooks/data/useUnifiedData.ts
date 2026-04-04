@@ -107,7 +107,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
         if (isMounted) {
           if (import.meta.env.DEV) console.log(`[useUnifiedData] Realtime change on ${table}, refetching...`);
           unifiedDataService.clearCache();
-          loadData().catch(console.error);
+          loadData().catch((err) => { if (import.meta.env.DEV) console.error(err); });
         }
       }, 1000);
     };
