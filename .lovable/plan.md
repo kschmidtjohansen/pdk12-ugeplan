@@ -1,91 +1,92 @@
 
 
-## Projekt-audit: Resultater og handlingsplan
+## Plan: Employee Conflict Check Before Assignment Submission
 
-### Overordnet status
+### Problem
+When creating/editing assignments with multiple employees across multiple dates, there is no pre-submission check for overlapping bookings, vacations, or absences. Users can unknowingly double-book employees.
 
-TypeScript kompilerer fejlfrit. Dev-serveren kører uden fejl. Runtime-fejlen ("Failed to fetch dynamically imported module: PlannerPage.tsx") er en **forbigående Vite HMR-fejl** der opstår ved hot-reload under kodeændringer — ikke en kodefejl. Den forsvinder ved en page refresh.
+### Solution
+Add a conflict detection layer in `AssignmentForm.tsx` that runs before calling `onSubmit`. If conflicts are found, store them in state and display a warning dialog — the user can then choose to proceed or cancel.
 
----
+### Architecture
 
-### Fund 1: 179 uguardede console.log/warn i produktion (KRITISK)
+```text
+AssignmentForm
+  ├─ handleFormSubmit()
+  │    ├─ validation (existing)
+  │    ├─ NEW: checkEmployeeConflicts()
+  │    │    ├─ For each employee × each date:
+  │    │    │   ├─ Check existing assignments (time overlap)
+  │    │    │   ├─ Check vacations (full_day or partial_day overlap)
+  │    │    │   └─ Check onLeave status
+  │    │    └─ Return ConflictInfo[]
+  │    ├─ If conflicts → set state, show dialog
+  │    └─ If no conflicts → call onSubmit()
+  └─ ConflictWarningDialog (inline AlertDialog)
+       ├─ Lists each conflict (employee name, date, reason)
+       ├─ "Opret alligevel" button → calls onSubmit()
+       └─ "Annuller" button → closes dialog
+```
 
-Ifølge knowledge (`production-readiness`, `technical-specs`) skal **alle** console.log/warn være wrapped i `import.meta.env.DEV`. Der er aktuelt 179 uguardede statements spredt over:
+### Files to change
 
-**Værst ramte filer (skal renses):**
+| File | Change |
+|------|--------|
+| `src/components/Planner/AssignmentForm.tsx` | Add `conflictDetails` state, `checkEmployeeConflicts()` function, conflict warning AlertDialog UI, modify `handleFormSubmit` to run check before submit |
+| `src/translations/da/planner.ts` | Add conflict-related keys (`conflictsFound`, `conflictBooking`, `conflictVacation`, `conflictLeave`, `proceedAnyway`, `conflictsTitle`) |
+| `src/translations/en/planner.ts` | Same keys in English |
+| `CHANGELOG.md` | Document the new conflict check feature |
 
-| Fil | Antal | Type |
-|-----|-------|------|
-| `src/hooks/useAssignmentFilters.ts` | 9 | Verbose debug-logging i hvert kald |
-| `src/components/Dashboard/ServicemedarbejderDashboard.tsx` | 7 | Debug med emojis |
-| `src/components/Dashboard/WeekNavigation.tsx` | 5 | Week calculation debug |
-| `src/components/Dashboard/EmployeeAvailabilityDialog/index.tsx` | 6 | Dialog debug |
-| `src/components/Planner/EmployeeSelector.tsx` | 8 | Debug logging |
-| `src/components/Planner/AssignmentForm.tsx` | 5 | Form submission debug |
-| `src/components/Planner/AssignmentCard.tsx` | 3 | Assignment data debug |
-| `src/components/Planner/AssignmentDetails.tsx` | 2 | Employee data debug |
-| `src/services/optimizedAssignmentService.ts` | 8 | Service debug |
-| `src/services/plannerChangeLogger.ts` | 6 | Change log debug |
-| `src/hooks/employee/useEmployeeCreation.ts` | 4 | Warnings uden guard |
-| `src/context/AuthContext.tsx` | 3 | Login debug |
-| `src/hooks/useNotifications.ts` | 2 | Filter debug |
-| `src/hooks/useDashboardMetrics.ts` | 1 | Metrics debug |
-| `src/hooks/useEmployees.ts` | 1 | Employee count |
-| `src/hooks/use-toast.ts` | 1 | Toast debug |
-| `src/components/AutoPublish/AutoPublishHandler.tsx` | 1 | Init log |
-| `src/components/Admin/UserManagement.tsx` | 3 | Profile/demo debug |
-| `src/components/Employees/EmployeeFormDialog.tsx` | 1 | Create log |
-| `src/components/Layout/NavComponents/DesktopNavigation.tsx` | 1 | Red dot render |
-| `src/components/Vacation/VacationFormDialog.tsx` | 1 | Dialog open debug |
-| `src/components/Vacation/VacationTabContent.tsx` | 2 | Filter debug |
-| `src/hooks/car/useCarData.ts` | 2 | Car data debug |
-| `src/hooks/car/useCarActions.ts` | 2 | Optimistic rollback |
-| `src/hooks/car/useCarFormState.ts` | 1 | Fetch warning |
-| `src/hooks/data/useUnifiedData.ts` | 2 | Realtime debug |
-| `src/hooks/assignment/useAssignmentFormState.ts` | 3 | Form state debug |
-| `src/services/circuitBreakerService.ts` | 3 | Circuit breaker |
-| `src/services/realtimeManager.ts` | 2 | Connection debug |
-| `src/services/systemHealthService.ts` | 2 | Health check |
-| Andre filer | ~15 | Diverse |
+### Conflict check logic (in AssignmentForm)
 
-**Fix:** Wrap hvert statement i `if (import.meta.env.DEV)` guard, eller fjern statements der kun er debug-rester (f.eks. de mange "CRITICAL FIX" logs i `useAssignmentFilters.ts`).
+```typescript
+interface EmployeeConflict {
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  reason: 'booking' | 'vacation' | 'partialVacation' | 'onLeave';
+  details: string; // e.g. "Booked 08:00-14:00 on Task X"
+}
 
----
+const checkEmployeeConflicts = (): EmployeeConflict[] => {
+  const conflicts: EmployeeConflict[] = [];
+  const selectedEmployeeIds = normalizeEmployees(formData.employees);
+  const dates = (formData as any).dates || [formData.date];
 
-### Fund 2: `process.env.NODE_ENV` brugt i stedet for `import.meta.env.DEV` (MINOR)
+  for (const empId of selectedEmployeeIds) {
+    const emp = employees.find(e => e.id === empId);
+    if (!emp) continue;
 
-`src/App.tsx` linje 66 bruger `process.env.NODE_ENV === 'development'`. I Vite-projekter fungerer dette kun fordi Vite erstatter det under build — men `import.meta.env.DEV` er den korrekte Vite-konvention. Samme i `TranslationContext.tsx`, `SecurityContext.tsx`, `GlobalErrorBoundary.tsx`, `SecurityErrorBoundary.tsx`. Disse filer virker, men bør standardiseres for konsistens.
+    for (const dateStr of dates) {
+      const dateObj = new Date(dateStr); // local parse
 
----
+      // 1. Check onLeave
+      if (emp.onLeave) → push conflict
 
-### Fund 3: `MutationCache` error handler er uguardet (MINOR)
+      // 2. Check vacations (reuse getEmployeeVacationStatus)
+      const vacStatus = getEmployeeVacationStatus(empId, dateObj, vacations);
+      if full_day → push conflict
+      if partial_day + time overlap → push conflict
 
-`src/App.tsx` linje 58: `console.error('[MutationCache] Unhandled mutation error:', error)` — denne bør wraps i DEV guard eller fjernes da den kan lække fejldetaljer i produktion.
+      // 3. Check existing assignments (exclude current if editing)
+      Filter assignments by date + employee, check time overlap
+      with formData.fromTime/toTime → push conflict with task title
+    }
+  }
+  return conflicts;
+};
+```
 
----
+### UI behavior
+- Conflicts stored in `useState<EmployeeConflict[]>([])`.
+- When conflicts exist, an `AlertDialog` opens listing each conflict.
+- User can dismiss (cancel) or proceed anyway ("Opret alligevel" / "Fortsæt alligevel").
+- Proceeding calls the original `onSubmit` flow unchanged.
 
-### Fund 4: Funktionel kode er intakt
-
-- **"Uden afdeling" feature**: Korrekt implementeret i `UserFormDialog.tsx` — checkbox vises for `super_admin`, default er `false`, department-sektionen vises normalt.
-- **Employee creation flow** (`useEmployeeCreation.ts`): `skip_department` check er korrekt (linje 264).
-- **Admin user creation** (`UserFormDialog.tsx`): `saveUserAccess` håndterer både med/uden afdeling korrekt.
-- **RLS-politikker**: Gennemgået — alle tabeller har passende policies.
-- **Routing**: Alle lazy-loadede sider er korrekt konfigureret i `App.tsx`.
-
----
-
-### Fund 5: `DesktopNavigation.tsx` har inline `console.log` i JSX (BUG)
-
-Linje 96: `{console.log('[DesktopNavigation] 🔴 RED DOT RENDERED', {...})}` — dette er en `console.log` der eksekveres som en JSX-expression i hvert render. Skal fjernes eller guards.
-
----
-
-### Handlingsplan
-
-1. **Rens alle 179 uguardede `console.log`/`console.warn` statements** — wrap i `if (import.meta.env.DEV)` guard
-2. **Fjern inline `console.log` i JSX** i `DesktopNavigation.tsx`
-3. **Guard `MutationCache` error handler** i `App.tsx`
-4. **Opdater `CHANGELOG.md`** med audit-resultater
-
-Estimeret omfang: ~35 filer ændres, udelukkende log-guards tilføjes. Ingen funktionel ændring.
+### Knowledge compliance
+- No new console.log without `import.meta.env.DEV` guard.
+- Translations in both DA and EN.
+- CHANGELOG updated.
+- Uses existing `getEmployeeVacationStatus` from `src/utils/employeeAvailability.ts`.
+- No database changes needed — all checks are client-side against already-loaded data.
 
