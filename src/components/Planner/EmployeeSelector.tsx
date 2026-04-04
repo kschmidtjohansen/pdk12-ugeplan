@@ -85,8 +85,49 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       .slice(0, 3)
       .map(emp => emp.id);
   }, [sortedEmployees, distanceMap]);
+  // Compute per-employee availability across all selected dates
+  const multiDateAvailability = useMemo(() => {
+    const map = new Map<string, MultiDateAvailability>();
+    if (allSelectedDates.length === 0) return map;
 
-  const dateForComparison = (() => {
+    for (const emp of employees) {
+      let unavailableCount = 0;
+      for (const date of allSelectedDates) {
+        try {
+          const vacStatus = getEmployeeVacationStatus(emp.id, date, vacations);
+          if (vacStatus.isOnVacation && vacStatus.vacationType === 'full_day') {
+            unavailableCount++;
+            continue;
+          }
+          if (emp.onLeave || emp.status === 'terminated' || emp.status === 'inactive') {
+            unavailableCount++;
+            continue;
+          }
+          if (emp.is_temporary && emp.expires_at && new Date(emp.expires_at) < new Date()) {
+            unavailableCount++;
+            continue;
+          }
+          const avail = getEmployeeAvailabilityStatus(emp, date, assignments, vacations, t);
+          if (avail.status === 'fullyBooked') {
+            unavailableCount++;
+          }
+        } catch {
+          // treat errors as available
+        }
+      }
+
+      if (unavailableCount === 0) {
+        map.set(emp.id, 'full');
+      } else if (unavailableCount >= allSelectedDates.length) {
+        map.set(emp.id, 'none');
+      } else {
+        map.set(emp.id, 'partial');
+      }
+    }
+    return map;
+  }, [employees, allSelectedDates, vacations, assignments, t]);
+
+
     try {
       let dateStr: string;
       if (currentDate.includes('/')) {
