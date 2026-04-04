@@ -2,6 +2,13 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Added — group_id til flerdags-opgaver
+- Ny `group_id` (UUID) kolonne i `assignments`-tabellen med partielt indeks
+- Når en opgave oprettes over flere dage, deler alle daglige poster samme `group_id`
+- Enkeltdags-opgaver har `group_id = null`
+- `groupId` er tilgængelig i `Assignment`-typen og data-converteren
+
+
 ### Added — Tilgængeligheds-indikatorer i medarbejderlisten
 - Farvede status-prikker (grøn/gul/rød) ved hvert medarbejdernavn i valgdropdown
 - Prikkerne beregnes dynamisk ud fra alle valgte datoer (ferie, fravær, fuld booking)

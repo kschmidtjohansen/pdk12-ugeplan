@@ -129,6 +129,7 @@ export type Database = {
           department_id: string | null
           description: string | null
           from_time: string
+          group_id: string | null
           id: string
           is_demo: boolean
           lat: number | null
@@ -157,6 +158,7 @@ export type Database = {
           department_id?: string | null
           description?: string | null
           from_time: string
+          group_id?: string | null
           id?: string
           is_demo?: boolean
           lat?: number | null
@@ -185,6 +187,7 @@ export type Database = {
           department_id?: string | null
           description?: string | null
           from_time?: string
+          group_id?: string | null
           id?: string
           is_demo?: boolean
           lat?: number | null

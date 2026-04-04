@@ -21,6 +21,7 @@ export interface Assignment {
   lng?: number;
   createdAt?: string;
   updatedAt?: string;
+  groupId?: string;
   responsibleUser?: {
     id: string;
     name: string;

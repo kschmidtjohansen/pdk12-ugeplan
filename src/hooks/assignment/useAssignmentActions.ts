@@ -63,6 +63,7 @@ export const useAssignmentActions = (
       
       const dates = (assignmentData as any).dates || [assignmentData.date];
       const isMultiDate = dates.length > 1;
+      const groupId = isMultiDate ? crypto.randomUUID() : null;
       
       if (import.meta.env.DEV) console.log("[useAssignmentActions] Multi-date creation:", { isMultiDate, dateCount: dates.length, dates });
       
@@ -124,7 +125,8 @@ export const useAssignmentActions = (
               city: assignmentData.city || null,
               lat: assignmentData.lat ?? null,
               lng: assignmentData.lng ?? null,
-              ...(isDemoMode && { is_demo: true })
+              ...(isDemoMode && { is_demo: true }),
+              ...(groupId && { group_id: groupId })
             })
             .select('id')
             .single();
@@ -255,6 +257,7 @@ export const useAssignmentActions = (
       
       const dates = (assignmentData as any).dates || [];
       const hasMultipleDates = dates.length > 1;
+      const updateGroupId = hasMultipleDates ? crypto.randomUUID() : null;
       
       if (import.meta.env.DEV) console.log("[useAssignmentActions] Multi-date check:", { dates, hasMultipleDates });
 
@@ -301,7 +304,8 @@ export const useAssignmentActions = (
           city: assignmentData.city || null,
           lat: assignmentData.lat ?? null,
           lng: assignmentData.lng ?? null,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          ...(updateGroupId && { group_id: updateGroupId })
         })
         .eq('id', id);
 
@@ -393,6 +397,7 @@ export const useAssignmentActions = (
             lng: assignmentData.lng ?? null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
+            ...(updateGroupId && { group_id: updateGroupId }),
             ...(isDemoMode && { is_demo: true })
           };
           
