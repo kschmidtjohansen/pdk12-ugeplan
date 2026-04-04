@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-slate-200/60 dark:bg-slate-900/80 dark:border-slate-700/60;
+  }
+}
+
 @keyframes fade-in {
   0% {
     opacity: 0;
