@@ -2,6 +2,12 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Added — Tilgængeligheds-indikatorer i medarbejderlisten
+- Farvede status-prikker (grøn/gul/rød) ved hvert medarbejdernavn i valgdropdown
+- Prikkerne beregnes dynamisk ud fra alle valgte datoer (ferie, fravær, fuld booking)
+- Grøn = fuldt ledig, Gul = delvist optaget, Rød = helt utilgængelig
+
+
 ### Added — Inline konflikbanner + "Book kun ledige dage"
 - Konflikttjek viser nu et inline advarselsbanner i formularen i stedet for en modal dialog
 - Ny "Book kun ledige dage"-knap fjerner automatisk konflikt-datoer og indsender kun de ledige dage
