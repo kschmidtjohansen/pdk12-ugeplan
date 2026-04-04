@@ -1,19 +1,5 @@
 # Changelog
 
-## [Unreleased] - 2026-03-17
-
-### Changed — Premium HR App Redesign
-- Komplet UI overhaul: renere base-komponenter (card, button, input, badge, dialog, status-badge)
-- Fjernet aggressive hover-animationer (scale, shadow-2xl) — erstattet med subtile lift-effekter
-- Vibrant gradient hero headers forfinet med text-shadow på alle sider
-- WarehousePage opgraderet til premium gradient hero
-- Alle sider bruger konsistent bg-muted/10 baggrund og ensartet padding
-- DaySection indpakket i card-containers med single-chevron rotation
-- AssignmentCard har nu border-l-4 accent og taktil hover-lift
-- MetricCard/InteractiveMetricCard renset for tunge effekter
-- TopNavbar højde reduceret (h-20 → h-16), ChangeLogPage double-wrapping fjernet
-- Tilføjet .card-interactive CSS utility, fjernet overflødige spacing-variabler
-
 ## [Unreleased] - 2026-03-12
 
 ### Fixed — "Uden afdeling" i Admin → Brugere

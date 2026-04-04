@@ -5,7 +5,7 @@ import { Car } from '@/types/car';
 import { formatDateWithCapital } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Send, ChevronRight } from 'lucide-react';
+import { Send, ChevronDown, ChevronRight } from 'lucide-react';
 import CompactAssignmentRow from './CompactAssignmentRow';
 
 interface CompactDaySectionProps {
@@ -57,7 +57,7 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
     <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
       {/* Day Header - Compact */}
       <div 
-        className="flex items-center justify-between px-4 py-2.5 bg-muted/30 border-b cursor-pointer hover:bg-muted/50 transition-colors"
+        className="flex items-center justify-between px-4 py-2.5 bg-primary/5 border-b cursor-pointer hover:bg-primary/10 transition-colors"
         onClick={() => onToggleExpansion(dateKey)}
         role="button"
         tabIndex={0}
@@ -69,7 +69,11 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
         }}
       >
         <div className="flex items-center gap-3">
-          <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          )}
           <h3 className="font-semibold text-sm">{formattedDate}</h3>
           <Badge variant="secondary" className="text-xs">
             {assignmentsCount} {currentLanguage === 'da' ? (assignmentsCount === 1 ? 'opgave' : 'opgaver') : (assignmentsCount === 1 ? 'task' : 'tasks')}

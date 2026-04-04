@@ -147,7 +147,8 @@ const ChangeLogPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <MainLayout>
+      <div className="container mx-auto p-6 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>{t('changeLog.title')}</CardTitle>
@@ -245,6 +246,7 @@ const ChangeLogPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+    </MainLayout>
     </DataFetchErrorBoundary>
   );
 };
