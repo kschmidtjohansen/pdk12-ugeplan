@@ -55,7 +55,7 @@ const queryClient = new QueryClient({
   },
   mutationCache: new MutationCache({
     onError: (error) => {
-      console.error('[MutationCache] Unhandled mutation error:', error);
+      if (import.meta.env.DEV) console.error('[MutationCache] Unhandled mutation error:', error);
     }
   })
 });
