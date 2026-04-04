@@ -304,7 +304,8 @@ export const useAssignmentActions = (
           city: assignmentData.city || null,
           lat: assignmentData.lat ?? null,
           lng: assignmentData.lng ?? null,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          ...(updateGroupId && { group_id: updateGroupId })
         })
         .eq('id', id);
 
