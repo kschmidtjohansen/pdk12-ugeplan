@@ -440,24 +440,21 @@ const PlannerPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
-        {/* Enhanced Header with Responsive Design */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 lg:p-8 text-white shadow-2xl animate-fade-in-up">
+    <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-slate-950">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 space-y-4">
+        {/* Compact Header */}
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-4 lg:p-5 text-white animate-fade-in-up">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl transform -translate-x-16 translate-y-16"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
           
           <div className="relative z-10">
-            {/* Header Content - Responsive Layout */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              {/* Title Section */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30">
-                  <Clock className="h-6 w-6 text-white" />
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30">
+                  <Clock className="h-5 w-5 text-white" />
                 </div>
-                <div className="space-y-1 lg:space-y-3">
-                  <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">
+                <div className="space-y-0.5">
+                  <h1 className="text-xl lg:text-2xl font-semibold tracking-tight">
                     {t("navigation.planner")}
                   </h1>
                   <p className="text-blue-100 text-sm lg:text-lg font-medium">
