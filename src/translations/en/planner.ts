@@ -364,7 +364,6 @@ const planner = {
   noDepartmentSelected: 'No department selected',
   selectDepartmentToViewData: 'Select a department to view data',
   departmentFilterActive: 'Showing data for {department}',
-  },
 
   // Context menu
   contextMenu: {
