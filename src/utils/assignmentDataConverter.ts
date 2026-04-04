@@ -15,6 +15,7 @@ export interface OptimizedAssignmentData {
   updated_at: string;
   car_id: string | null;
   car_ids: string[] | null;
+  group_id: string | null;
   responsible_user: {
     id: string;
     name: string;
