@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Camera, Lock, Crown } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown, Building2, Layers } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import PasswordChangeDialog from '../../Profile/PasswordChangeDialog';
 import ProfilePictureDialog from '../../Profile/ProfilePictureDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth, UserRole } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 
 interface UserMenuProps {
   user: any;
