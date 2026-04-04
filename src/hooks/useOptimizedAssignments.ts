@@ -499,30 +499,45 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [toast, t, setOperationState, refetch, setAssignments, allEmployees, assignments, user]);
 
   const deleteAssignment = useCallback(async (id: string) => {
-    setOperationState(id, 'loading');
     const originalAssignment = assignments.find(a => a.id === id);
-    
-    try {
-      setAssignments(prev => prev.filter(a => a.id !== id));
-      await OptimizedAssignmentService.deleteAssignment(id, user.email);
-      
-      const caseNumber = originalAssignment?.case_number || originalAssignment?.title;
-      toast({
-        title: t('planner.assignmentDeleted'),
-        description: originalAssignment?.case_number ? t('planner.assignmentDeletedMsgWithCase', { caseNumber }) : t('planner.assignmentDeletedMsg')
-      });
-      
-      setOperationState(id, 'success');
-      OptimizedAssignmentService.clearCache();
-      
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Delete failed:', error);
-      setOperationState(id, 'error');
-      if (originalAssignment) {
+    if (!originalAssignment) return;
+
+    // 1. Optimistic removal
+    setAssignments(prev => prev.filter(a => a.id !== id));
+    setOperationState(id, 'loading');
+
+    // 2. Delayed database deletion (5s grace period)
+    let cancelled = false;
+    const timeoutId = setTimeout(async () => {
+      if (cancelled) return;
+      try {
+        await OptimizedAssignmentService.deleteAssignment(id, user.email);
+        OptimizedAssignmentService.clearCache();
+        setOperationState(id, 'success');
+      } catch (error) {
+        if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Delete failed:', error);
+        setOperationState(id, 'error');
         setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+        toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorDeletingAssignment'), variant: "destructive" });
       }
-      toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorDeletingAssignment'), variant: "destructive" });
-    }
+    }, 5000);
+
+    // 3. Toast with Undo
+    const caseNumber = originalAssignment?.case_number || originalAssignment?.title;
+    toast({
+      title: t('planner.assignmentDeleted'),
+      description: originalAssignment?.case_number ? t('planner.assignmentDeletedMsgWithCase', { caseNumber }) : t('planner.assignmentDeletedMsg'),
+      duration: 6000,
+      action: React.createElement(ToastAction, {
+        altText: t('planner.undo'),
+        onClick: () => {
+          cancelled = true;
+          clearTimeout(timeoutId);
+          setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+          setOperationState(id, 'idle');
+        }
+      }, t('planner.undo')),
+    });
   }, [toast, t, setOperationState, setAssignments, assignments, user]);
 
   const publishAssignment = useCallback(async (id: string) => {
