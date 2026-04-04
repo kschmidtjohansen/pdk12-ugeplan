@@ -127,7 +127,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return map;
   }, [employees, allSelectedDates, vacations, assignments, t]);
 
-
+  const dateForComparison = (() => {
     try {
       let dateStr: string;
       if (currentDate.includes('/')) {
