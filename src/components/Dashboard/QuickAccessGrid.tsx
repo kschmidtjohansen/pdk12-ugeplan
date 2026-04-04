@@ -66,10 +66,10 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
   const items = getQuickAccessItems();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       {items.map((item, index) => (
         <Link key={index} to={item.link} className="block group">
-          <Card className="h-full border-2 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 animate-scale-in" style={{ animationDelay: `${index * 50}ms` }}>
+          <Card className="h-full border-0 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] animate-scale-in" style={{ animationDelay: `${index * 50}ms` }}>
             <CardContent className="p-4 py-[12px] px-[20px]">
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-3 rounded-2xl ${

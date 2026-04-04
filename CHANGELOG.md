@@ -2,6 +2,15 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Changed — Bento Box / Spatial UI Redesign
+- Globalt sidelayout opdateret til lys grå baggrund (slate-50) så hvide kort træder tydeligt frem
+- Alle kort bruger nu borderless bento-stil: rounded-3xl, blød diffus skygge, hvid baggrund
+- Knapper bruger hover-lift effekt (translate-y) i stedet for scale — bevarer blå brand-farve
+- Øget whitespace og padding i hele appen for et mere åbent, moderne look
+- Dashboard og Planner sider bruger space-y-8 for bedre luft mellem sektioner
+- DaySection-kort i planner indpakket i egne bento-containere
+- MetricCard og QuickAccessGrid opdateret til bento-stil uden hårde borders
+
 ### Changed — Multi-dato bilselektor
 - Bilvalg-dropdown er nu kontekst-bevidst over alle valgte datoer (ikke kun den første)
 - Viser grøn/gul/rød prik for fuld/delvis/ingen tilgængelighed på tværs af valgte datoer

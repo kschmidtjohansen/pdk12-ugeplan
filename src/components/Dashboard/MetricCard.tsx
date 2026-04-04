@@ -60,13 +60,11 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <Card className={cn(
-      'relative overflow-hidden transition-all duration-300 border-l-4 shadow-lg hover:shadow-2xl animate-scale-in bg-gradient-to-br from-card to-card/50 border-2 border-border/50',
+      'relative overflow-hidden transition-all duration-300 border-l-4 animate-scale-in bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0',
       classes.accent,
-      onClick && 'cursor-pointer hover:scale-[1.02]',
-      onClick && classes.hover,
+      onClick && 'cursor-pointer hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]',
       className
     )} onClick={onClick}>
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
       
       <CardContent className="p-4 relative z-10 py-[12px]">
         <div className="flex items-start justify-between">
