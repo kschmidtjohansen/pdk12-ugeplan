@@ -76,7 +76,7 @@ export const useCarFormState = ({
         .eq('car_id', car.id);
       subDeptIds = (data || []).map((r: any) => r.sub_department_id);
     } catch (e) {
-      console.warn('[useCarFormState] Failed to fetch car sub departments:', e);
+      if (import.meta.env.DEV) console.warn('[useCarFormState] Failed to fetch car sub departments:', e);
     }
 
     setFormData({
