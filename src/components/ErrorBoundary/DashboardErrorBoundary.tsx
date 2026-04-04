@@ -27,7 +27,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[DashboardErrorBoundary] Caught error:', error, errorInfo);
+    if (import.meta.env.DEV) console.error('[DashboardErrorBoundary] Caught error:', error, errorInfo);
     this.setState({ errorInfo });
     this.props.onError?.(error, errorInfo);
   }

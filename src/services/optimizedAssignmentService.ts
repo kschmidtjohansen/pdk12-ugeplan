@@ -137,7 +137,7 @@ export class OptimizedAssignmentService {
         .in('assignment_id', assignmentIds);
 
       if (employeeError) {
-        console.warn('[OptimizedAssignmentService] Assignment employees fetch error:', employeeError);
+        if (import.meta.env.DEV) console.warn('[OptimizedAssignmentService] Assignment employees fetch error:', employeeError);
         return [];
       }
 
@@ -162,11 +162,11 @@ export class OptimizedAssignmentService {
           break;
         }
         
-        console.warn(`[OptimizedAssignmentService] Profiles fetch error (attempt ${retryCount + 1}):`, profilesError);
+        if (import.meta.env.DEV) console.warn(`[OptimizedAssignmentService] Profiles fetch error (attempt ${retryCount + 1}):`, profilesError);
         retryCount++;
         
         if (retryCount >= maxRetries) {
-          console.error('[OptimizedAssignmentService] CRITICAL: Failed to fetch profiles after all retries.');
+          if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] CRITICAL: Failed to fetch profiles after all retries.');
           return assignmentEmployeeData.map(emp => ({
             assignment_id: emp.assignment_id,
             user_id: emp.user_id,
@@ -181,7 +181,7 @@ export class OptimizedAssignmentService {
         const profile = profilesData.find(profile => profile.id === emp.user_id);
         
         if (!profile) {
-          console.warn(`[OptimizedAssignmentService] Profile not found for user ID: ${emp.user_id}`);
+          if (import.meta.env.DEV) console.warn(`[OptimizedAssignmentService] Profile not found for user ID: ${emp.user_id}`);
           return {
             assignment_id: emp.assignment_id,
             user_id: emp.user_id,
@@ -200,7 +200,7 @@ export class OptimizedAssignmentService {
         };
       });
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error fetching assignment employees:', error);
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error fetching assignment employees:', error);
       return [];
     }
   }
@@ -215,13 +215,13 @@ export class OptimizedAssignmentService {
         .in('id', carIds);
 
       if (error) {
-        console.warn('[OptimizedAssignmentService] Cars fetch error:', error);
+        if (import.meta.env.DEV) console.warn('[OptimizedAssignmentService] Cars fetch error:', error);
         return [];
       }
       
       return data || [];
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error fetching cars:', error);
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error fetching cars:', error);
       return [];
     }
   }
@@ -295,7 +295,7 @@ export class OptimizedAssignmentService {
         const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
         
         if (error) {
-          console.error('[OptimizedAssignmentService] Demo RPC error:', error);
+          if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Demo RPC error:', error);
           return [];
         }
         
@@ -316,7 +316,7 @@ export class OptimizedAssignmentService {
         });
 
         if (error) {
-          console.error('[OptimizedAssignmentService] RPC error:', error);
+          if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] RPC error:', error);
           throw new Error(`RPC failed: ${error.message}`);
         }
 
@@ -360,7 +360,7 @@ export class OptimizedAssignmentService {
               assignment_cars: []
             };
           } catch (conversionError) {
-            console.error('[OptimizedAssignmentService] Error converting assignment:', conversionError);
+            if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error converting assignment:', conversionError);
             return {
               id: assignment.id || '',
               title: assignment.title || 'Unknown Assignment',
@@ -386,11 +386,11 @@ export class OptimizedAssignmentService {
 
         return convertedData;
       } catch (rpcError) {
-        console.warn('[OptimizedAssignmentService] RPC failed, falling back to direct query:', rpcError);
+        if (import.meta.env.DEV) console.warn('[OptimizedAssignmentService] RPC failed, falling back to direct query:', rpcError);
         return this.fetchAssignmentsFallback(role);
       }
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
       return [];
     }
   }
@@ -413,7 +413,7 @@ export class OptimizedAssignmentService {
       const { data: assignments, error } = await query;
 
       if (error) {
-        console.error('[OptimizedAssignmentService] Fallback query failed:', error);
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Fallback query failed:', error);
         return [];
       }
 
@@ -424,7 +424,7 @@ export class OptimizedAssignmentService {
       return await this.enrichAssignmentData(assignments);
       
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Fallback fetch failed:', error);
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Fallback fetch failed:', error);
       return [];
     }
   }
@@ -443,7 +443,7 @@ export class OptimizedAssignmentService {
         const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
         
         if (error) {
-          console.error('[OptimizedAssignmentService] Demo RPC error:', error);
+          if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Demo RPC error:', error);
           return [];
         }
         
@@ -464,7 +464,7 @@ export class OptimizedAssignmentService {
       });
 
       if (error) {
-        console.error('[OptimizedAssignmentService] Secure function error:', error);
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Secure function error:', error);
         throw new Error(`Secure function error: ${error.message}`);
       }
 
@@ -501,7 +501,7 @@ export class OptimizedAssignmentService {
       
       return convertedData;
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error fetching all published assignments:', error);
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error fetching all published assignments:', error);
       throw error;
     }
   }
@@ -526,7 +526,7 @@ export class OptimizedAssignmentService {
         .single();
 
       if (error) {
-        console.error('[OptimizedAssignmentService] Demo assignment DB insert error:', error);
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Demo assignment DB insert error:', error);
         throw error;
       }
 
@@ -534,7 +534,7 @@ export class OptimizedAssignmentService {
         const { error: linkError } = await supabase
           .from('assignments_employees')
           .insert(employeeIds.map((uid: string) => ({ assignment_id: data.id, user_id: uid, is_demo: true })));
-        if (linkError) console.error('[OptimizedAssignmentService] Demo employee link error:', linkError);
+        if (import.meta.env.DEV) if (linkError) console.error('[OptimizedAssignmentService] Demo employee link error:', linkError);
       }
 
       if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Demo assignment created in DB:', data.id);
@@ -550,12 +550,12 @@ export class OptimizedAssignmentService {
     
     if (import.meta.env.DEV) {
       console.log('[OptimizedAssignmentService] Insert payload:', assignmentInsert);
-      console.log('[OptimizedAssignmentService] Employee IDs:', employeeIds);
+      if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Employee IDs:', employeeIds);
     }
 
     const { data, error } = await supabase.from('assignments').insert(assignmentInsert).select().single();
     if (error) {
-      console.error('[OptimizedAssignmentService] Error creating assignment:', error);
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error creating assignment:', error);
       throw error;
     }
 
@@ -574,7 +574,7 @@ export class OptimizedAssignmentService {
         .insert(employeeLinks);
 
       if (linkError) {
-        console.error('[OptimizedAssignmentService] Failed to link employees:', linkError);
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Failed to link employees:', linkError);
         throw new Error(`Failed to link employees: ${linkError.message}`);
       }
     }
@@ -600,7 +600,7 @@ export class OptimizedAssignmentService {
         .single();
 
       if (error) {
-        console.error('[OptimizedAssignmentService] Demo update error:', error);
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Demo update error:', error);
         throw error;
       }
 
@@ -625,12 +625,12 @@ export class OptimizedAssignmentService {
     
     if (import.meta.env.DEV) {
       console.log('[OptimizedAssignmentService] Update payload:', updatePayload);
-      if (employeeIds !== null) console.log('[OptimizedAssignmentService] Employee IDs to relink:', employeeIds);
+      if (import.meta.env.DEV) if (employeeIds !== null) console.log('[OptimizedAssignmentService] Employee IDs to relink:', employeeIds);
     }
 
     const { data, error } = await supabase.from('assignments').update(updatePayload).eq('id', assignmentId).select().single();
     if (error) {
-      console.error('[OptimizedAssignmentService] Error updating assignment:', error);
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error updating assignment:', error);
       throw error;
     }
 
@@ -643,7 +643,7 @@ export class OptimizedAssignmentService {
         .eq('assignment_id', assignmentId);
 
       if (deleteError) {
-        console.error('[OptimizedAssignmentService] Failed to delete old employee links:', deleteError);
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Failed to delete old employee links:', deleteError);
         throw new Error(`Failed to unlink employees: ${deleteError.message}`);
       }
 
@@ -660,7 +660,7 @@ export class OptimizedAssignmentService {
           .insert(employeeLinks);
 
         if (linkError) {
-          console.error('[OptimizedAssignmentService] Failed to link employees:', linkError);
+          if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Failed to link employees:', linkError);
           throw new Error(`Failed to link employees: ${linkError.message}`);
         }
       }
@@ -682,7 +682,7 @@ export class OptimizedAssignmentService {
         .eq('id', assignmentId);
 
       if (error) {
-        console.error('[OptimizedAssignmentService] Demo delete error:', error);
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Demo delete error:', error);
         return false;
       }
 
@@ -699,14 +699,14 @@ export class OptimizedAssignmentService {
         .eq('id', assignmentId);
       
       if (error) {
-        console.error('[OptimizedAssignmentService] Error deleting assignment:', error);
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error deleting assignment:', error);
         return false;
       }
       
       this.clearCache();
       return true;
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error deleting assignment:', error);
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error deleting assignment:', error);
       return false;
     }
   }
@@ -775,14 +775,14 @@ export class OptimizedAssignmentService {
         .eq('assignment_date', date);
       
       if (error) {
-        console.error('[OptimizedAssignmentService] Error publishing assignments:', error);
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error publishing assignments:', error);
         return false;
       }
       
       this.clearCache();
       return true;
     } catch (error) {
-      console.error('[OptimizedAssignmentService] Error publishing assignments:', error);
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error publishing assignments:', error);
       return false;
     }
   }

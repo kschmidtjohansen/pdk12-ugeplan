@@ -50,7 +50,7 @@ export const useAssignmentActions = (
       
       return { valid: true };
     } catch (err) {
-      console.error('Exception validating employee:', err);
+      if (import.meta.env.DEV) console.error('Exception validating employee:', err);
       return { valid: false, error: `Error validating employee: ${err}` };
     }
   };
@@ -132,13 +132,13 @@ export const useAssignmentActions = (
           if (import.meta.env.DEV) console.log(`[useAssignmentActions] Assignment insert result for date ${dateStr}:`, { newAssignment, error });
           
           if (error) {
-            console.error(`[useAssignmentActions] Assignment insert FAILED for date ${dateStr}:`, error);
+            if (import.meta.env.DEV) console.error(`[useAssignmentActions] Assignment insert FAILED for date ${dateStr}:`, error);
             errors.push({ date: dateStr, error });
             continue;
           }
           
           if (!newAssignment?.id) {
-            console.error(`[useAssignmentActions] No assignment ID returned for date ${dateStr}`);
+            if (import.meta.env.DEV) console.error(`[useAssignmentActions] No assignment ID returned for date ${dateStr}`);
             errors.push({ date: dateStr, error: 'No ID returned' });
             continue;
           }
@@ -160,7 +160,7 @@ export const useAssignmentActions = (
               
               const validation = await validateEmployee(employeeId);
               if (!validation.valid) {
-                console.error(`Employee validation failed: ${validation.error}`);
+                if (import.meta.env.DEV) console.error(`Employee validation failed: ${validation.error}`);
                 validationErrors.push(validation.error || 'Unknown validation error');
                 continue;
               }
@@ -188,7 +188,7 @@ export const useAssignmentActions = (
                 .insert(employeeInserts);
                 
               if (employeeError) {
-                console.error('Error linking employees to assignment:', employeeError);
+                if (import.meta.env.DEV) console.error('Error linking employees to assignment:', employeeError);
                 throw new Error(`Failed to link employees: ${employeeError.message}`);
               }
             }
@@ -202,7 +202,7 @@ export const useAssignmentActions = (
             }
           }
         } catch (insertError) {
-          console.error(`[useAssignmentActions] Exception during insert for date ${dateStr}:`, insertError);
+          if (import.meta.env.DEV) console.error(`[useAssignmentActions] Exception during insert for date ${dateStr}:`, insertError);
           errors.push({ date: dateStr, error: insertError });
           continue;
         }
@@ -228,7 +228,7 @@ export const useAssignmentActions = (
           });
         }
       } else {
-        console.error('[useAssignmentActions] All assignments failed to create:', errors);
+        if (import.meta.env.DEV) console.error('[useAssignmentActions] All assignments failed to create:', errors);
         throw new Error(`No assignments were created. Errors: ${errors.map(e => e.date).join(', ')}`);
       }
       
@@ -237,7 +237,7 @@ export const useAssignmentActions = (
       await refetch();
       if (setIsDialogOpen) setIsDialogOpen(false);
     } catch (error: any) {
-      console.error('Error creating assignment:', error);
+      if (import.meta.env.DEV) console.error('Error creating assignment:', error);
       const errorMessage = error instanceof Error ? error.message : t('planner.errorCreatingAssignment');
       toast({
         title: t('common.error'),
@@ -314,7 +314,7 @@ export const useAssignmentActions = (
         .eq('assignment_id', id);
         
       if (deleteError) {
-        console.error('Error removing existing employee assignments:', deleteError);
+        if (import.meta.env.DEV) console.error('Error removing existing employee assignments:', deleteError);
       }
       
       // Link employees
@@ -331,7 +331,7 @@ export const useAssignmentActions = (
           
           const validation = await validateEmployee(employeeId);
           if (!validation.valid) {
-            console.error(`Employee validation failed: ${validation.error}`);
+            if (import.meta.env.DEV) console.error(`Employee validation failed: ${validation.error}`);
             validationErrors.push(validation.error || 'Unknown validation error');
             continue;
           }
@@ -358,7 +358,7 @@ export const useAssignmentActions = (
             .insert(employeeInserts);
             
           if (employeeError) {
-            console.error('Error linking employees to assignment:', employeeError);
+            if (import.meta.env.DEV) console.error('Error linking employees to assignment:', employeeError);
             throw new Error(`Failed to link employees: ${employeeError.message}`);
           }
         }
@@ -403,7 +403,7 @@ export const useAssignmentActions = (
             .single();
             
           if (createError) {
-            console.error(`Error creating assignment for date ${dates[i]}:`, createError);
+            if (import.meta.env.DEV) console.error(`Error creating assignment for date ${dates[i]}:`, createError);
             continue;
           }
           
@@ -439,7 +439,7 @@ export const useAssignmentActions = (
       if (setIsDialogOpen) setIsDialogOpen(false);
       return true;
     } catch (error: any) {
-      console.error('Error updating assignment:', error);
+      if (import.meta.env.DEV) console.error('Error updating assignment:', error);
       toast({
         title: t('common.error'),
         description: t('planner.errorUpdatingAssignment'),
@@ -466,7 +466,7 @@ export const useAssignmentActions = (
       await refetch();
       return true;
     } catch (error: any) {
-      console.error('Error deleting assignment:', error);
+      if (import.meta.env.DEV) console.error('Error deleting assignment:', error);
       toast({
         title: t('common.error'),
         description: t('planner.errorDeletingAssignment'),
@@ -499,7 +499,7 @@ export const useAssignmentActions = (
       await refetch();
       return true;
     } catch (error: any) {
-      console.error('Error publishing assignment:', error);
+      if (import.meta.env.DEV) console.error('Error publishing assignment:', error);
       toast({
         title: t('common.error'),
         description: t('planner.errorPublishingAssignment'),
@@ -529,7 +529,7 @@ export const useAssignmentActions = (
       await refetch();
       return true;
     } catch (error: any) {
-      console.error('Error publishing assignments by date:', error);
+      if (import.meta.env.DEV) console.error('Error publishing assignments by date:', error);
       toast({
         title: t('common.error'),
         description: t('planner.errorPublishingDay'),

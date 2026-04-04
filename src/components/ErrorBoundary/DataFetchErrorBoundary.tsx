@@ -27,7 +27,7 @@ export class DataFetchErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[DataFetchErrorBoundary] Caught error:', error, errorInfo);
+    if (import.meta.env.DEV) console.error('[DataFetchErrorBoundary] Caught error:', error, errorInfo);
     this.setState({ errorInfo });
     this.props.onError?.(error, errorInfo);
   }

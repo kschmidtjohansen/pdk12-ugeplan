@@ -65,7 +65,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
             .select('id');
           
           if (mainCarError) {
-            console.error('Error updating main car assignments:', mainCarError);
+            if (import.meta.env.DEV) console.error('Error updating main car assignments:', mainCarError);
             throw mainCarError;
           }
 
@@ -80,7 +80,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
             .contains('car_ids', [currentCar.id]);
           
           if (multiCarError) {
-            console.error('Error fetching multi-car assignments:', multiCarError);
+            if (import.meta.env.DEV) console.error('Error fetching multi-car assignments:', multiCarError);
             throw multiCarError;
           }
 
@@ -96,7 +96,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
                   .eq('id', assignment.id);
                 
                 if (updateError) {
-                  console.error('Error updating assignment car_ids:', updateError);
+                  if (import.meta.env.DEV) console.error('Error updating assignment car_ids:', updateError);
                   throw updateError;
                 }
                 
@@ -116,7 +116,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
             .limit(1);
           
           if (checkError) {
-            console.error('Error checking car assignments:', checkError);
+            if (import.meta.env.DEV) console.error('Error checking car assignments:', checkError);
             throw checkError;
           }
           
@@ -146,7 +146,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         
         if (error) {
           // Rollback on failure
-          console.log('[Optimistic] Rollback: restoring car', currentCar.id);
+          if (import.meta.env.DEV) console.log('[Optimistic] Rollback: restoring car', currentCar.id);
           setCars(previousCars);
           throw error;
         }
@@ -164,7 +164,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
         });
         queryClient.invalidateQueries({ queryKey: ['cars'] });
       } catch (err) {
-        console.error('Error deleting car:', err);
+        if (import.meta.env.DEV) console.error('Error deleting car:', err);
         
         // Check if it's a foreign key constraint error
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -257,9 +257,9 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       
       if (error) {
         // Rollback on failure
-        console.log('[Optimistic] Rollback: restoring previous car state', car.id);
+        if (import.meta.env.DEV) console.log('[Optimistic] Rollback: restoring previous car state', car.id);
         setCars(previousCars);
-        console.error("[useCarActions] Error updating car:", error);
+        if (import.meta.env.DEV) console.error("[useCarActions] Error updating car:", error);
         throw error;
       }
       
@@ -277,7 +277,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
       }
       queryClient.invalidateQueries({ queryKey: ['cars'] });
     } catch (err) {
-      console.error('Error updating car availability:', err);
+      if (import.meta.env.DEV) console.error('Error updating car availability:', err);
       toast({
         title: t('common.error'),
         description: err instanceof Error ? err.message : 'Error updating vehicle availability',

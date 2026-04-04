@@ -31,7 +31,7 @@ export const shouldRemoveEmployeeFromAssignment = (
 
     return isEmployeeOnVacation(employee.id, dateForComparison, vacations);
   } catch (e) {
-    console.error('Error parsing assignment date for employee availability check:', e);
+    if (import.meta.env.DEV) console.error('Error parsing assignment date for employee availability check:', e);
     return false;
   }
 };
@@ -52,7 +52,7 @@ export const filterAvailableEmployeesFromAssignment = (
   return normalizedEmployees.filter(employeeName => {
     const employee = employees.find(emp => emp.name === employeeName);
     if (!employee) {
-      console.warn(`Employee ${employeeName} not found in employee list`);
+      if (import.meta.env.DEV) console.warn(`Employee ${employeeName} not found in employee list`);
       return false;
     }
 

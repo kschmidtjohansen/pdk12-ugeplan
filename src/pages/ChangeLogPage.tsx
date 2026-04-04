@@ -45,7 +45,7 @@ const ChangeLogPage: React.FC = () => {
       const data = await fetchChangeLogsByDateRange(startDate, endDate);
       setLogs(data);
     } catch (error) {
-      console.error('Error loading logs:', error);
+      if (import.meta.env.DEV) console.error('Error loading logs:', error);
     } finally {
       setIsLoading(false);
     }

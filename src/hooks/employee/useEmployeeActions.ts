@@ -47,7 +47,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       await refreshEmployees();
       return true;
     } catch (err) {
-      console.error('[useEmployeeActions] Error:', err);
+      if (import.meta.env.DEV) console.error('[useEmployeeActions] Error:', err);
       toast({
         title: t('common.error'),
         description: t('employees.updateError'),
@@ -142,7 +142,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       await refreshEmployees();
       return true;
     } catch (err) {
-      console.error('[useEmployeeActions] Update error:', err);
+      if (import.meta.env.DEV) console.error('[useEmployeeActions] Update error:', err);
       const errorMessage = err instanceof Error ? err.message : t('employees.updateError');
       toast({
         title: t('common.error'),
@@ -197,7 +197,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       await refreshEmployees();
       return true;
     } catch (err) {
-      console.error('[useEmployeeActions] Delete error:', err);
+      if (import.meta.env.DEV) console.error('[useEmployeeActions] Delete error:', err);
       const errorMessage = err instanceof Error ? err.message : t('employees.deleteError');
       toast({
         title: t('common.error'),

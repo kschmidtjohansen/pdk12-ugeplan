@@ -88,7 +88,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
   // Create a new car with enhanced security validation
   const createCar = async (carData: Partial<CarData>) => {
     try {
-      console.log('[useCarData] Creating car with data:', carData);
+      if (import.meta.env.DEV) console.log('[useCarData] Creating car with data:', carData);
 
       if (isDemoMode) {
         const now = new Date().toISOString();
@@ -123,7 +123,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
           });
         
         if (insertError) {
-          console.error('[useCarData] Demo DB insert failed:', insertError);
+          if (import.meta.env.DEV) console.error('[useCarData] Demo DB insert failed:', insertError);
           toast({ title: t('common.error'), description: String(insertError.message), variant: 'destructive' });
           return false;
         }
@@ -159,7 +159,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       toast({ title: t('cars.vehicleAdded'), description: t('cars.vehicleAddedMsg', { name: carData.name }) });
       return true;
     } catch (err) {
-      console.error('[useCarData] Error creating car:', err);
+      if (import.meta.env.DEV) console.error('[useCarData] Error creating car:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create car';
       if (errorMessage.includes('logged in') || errorMessage.includes('Authentication required')) {
         toast({ title: t('auth.authenticationRequired'), description: t('auth.authenticationRequiredDescription'), variant: 'destructive' });
@@ -179,7 +179,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
     const channel = supabase
       .channel(`cars-changes-public`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, (payload) => {
-        console.log(`[useCarData] Realtime update received:`, payload);
+        if (import.meta.env.DEV) console.log(`[useCarData] Realtime update received:`, payload);
         queryClient.invalidateQueries({ queryKey: ['cars'] });
       })
       .subscribe();

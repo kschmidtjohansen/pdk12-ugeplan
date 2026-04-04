@@ -120,7 +120,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         .select();
       
       if (error) {
-        console.error("Error inserting vacation:", error);
+        if (import.meta.env.DEV) console.error("Error inserting vacation:", error);
         throw error;
       }
       
@@ -166,7 +166,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
             targetUserId: requestEmployeeId
           });
         } catch (notifErr) {
-          console.error("Error adding notification:", notifErr);
+          if (import.meta.env.DEV) console.error("Error adding notification:", notifErr);
         }
       } else {
         toast({
@@ -181,7 +181,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
       fetchVacations();
       return true;
     } catch (err) {
-      console.error('Error submitting vacation request:', err);
+      if (import.meta.env.DEV) console.error('Error submitting vacation request:', err);
       toast({
         title: t('common.error'),
         description: err instanceof Error ? err.message : t('vacation.requestError'),
@@ -208,7 +208,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
         .in('role', ['administrator', 'skadeleder']);
         
       if (adminError) {
-        console.error('Error fetching admin users:', adminError);
+        if (import.meta.env.DEV) console.error('Error fetching admin users:', adminError);
         return;
       }
       
@@ -252,7 +252,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
             if (import.meta.env.DEV) console.log(`Notification sent to admin: ${admin.user_id}`);
             return true;
           } catch (notifErr) {
-            console.error(`Error adding admin notification:`, notifErr);
+            if (import.meta.env.DEV) console.error(`Error adding admin notification:`, notifErr);
             return false;
           }
         });
@@ -261,7 +261,7 @@ export const useVacationRequestActions = (fetchVacations: () => Promise<void>) =
       const successful = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
       if (import.meta.env.DEV) console.log(`Successfully sent ${successful} admin notifications`);
     } catch (err) {
-      console.error('Error in admin notification process:', err);
+      if (import.meta.env.DEV) console.error('Error in admin notification process:', err);
     }
   };
 

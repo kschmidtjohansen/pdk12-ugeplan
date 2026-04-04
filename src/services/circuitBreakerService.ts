@@ -4,22 +4,20 @@ class CircuitBreakerService {
   private failures = new Map<string, number>();
   private lastFailure = new Map<string, number>();
   private readonly maxFailures = 3;
-  private readonly resetTimeoutMs = 30000; // 30 seconds
+  private readonly resetTimeoutMs = 30000;
 
   canProceed(operationId: string): boolean {
     const failures = this.failures.get(operationId) || 0;
     const lastFailure = this.lastFailure.get(operationId) || 0;
     const now = Date.now();
 
-    // Reset if enough time has passed
     if (now - lastFailure > this.resetTimeoutMs) {
       this.failures.set(operationId, 0);
       return true;
     }
 
-    // Check if we've exceeded max failures
     if (failures >= this.maxFailures) {
-      console.warn(`[CircuitBreaker] Operation ${operationId} is circuit broken (${failures} failures)`);
+      if (import.meta.env.DEV) console.warn(`[CircuitBreaker] Operation ${operationId} is circuit broken (${failures} failures)`);
       return false;
     }
 
@@ -31,12 +29,12 @@ class CircuitBreakerService {
     this.failures.set(operationId, failures);
     this.lastFailure.set(operationId, Date.now());
     
-    console.warn(`[CircuitBreaker] Recorded failure for ${operationId} (${failures}/${this.maxFailures})`);
+    if (import.meta.env.DEV) console.warn(`[CircuitBreaker] Recorded failure for ${operationId} (${failures}/${this.maxFailures})`);
   }
 
   recordSuccess(operationId: string): void {
     this.failures.set(operationId, 0);
-    console.log(`[CircuitBreaker] Recorded success for ${operationId}, resetting failure count`);
+    if (import.meta.env.DEV) console.log(`[CircuitBreaker] Recorded success for ${operationId}, resetting failure count`);
   }
 
   getStatus(operationId: string): { failures: number; isOpen: boolean; canRetry: boolean } {

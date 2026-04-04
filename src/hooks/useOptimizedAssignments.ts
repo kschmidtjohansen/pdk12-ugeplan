@@ -138,7 +138,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       try {
         return convertToAssignment(data, allEmployees);
       } catch (conversionError) {
-        console.error('[useOptimizedAssignments] Error converting assignment:', conversionError);
+        if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Error converting assignment:', conversionError);
         return {
           id: data.id || 'unknown',
           title: data.title || 'Unknown Assignment',
@@ -224,7 +224,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments_employees' }, handleRealtimeChange)
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR') {
-          console.warn('[useOptimizedAssignments] Realtime channel error');
+          if (import.meta.env.DEV) console.warn('[useOptimizedAssignments] Realtime channel error');
         }
       });
 
@@ -290,7 +290,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
               case_number: serviceData.case_number, employees: serviceData.employees, cars: serviceData.car_ids
             });
           } catch (err) {
-            console.error('[useOptimizedAssignments] Failed to create for', date, err);
+            if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Failed to create for', date, err);
             errors.push({ date, error: err });
           }
         }
@@ -357,7 +357,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           case_number: serviceData.case_number, employees: serviceData.employees, cars: serviceData.car_ids
         });
       } catch (logErr) {
-        console.error('[useOptimizedAssignments] Failed to log creation:', logErr);
+        if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Failed to log creation:', logErr);
       }
       
       // Replace optimistic with real
@@ -369,7 +369,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       toast({ title: t('planner.assignmentCreated'), description: t('planner.assignmentCreatedMsg', { title: serviceData.title }) });
 
     } catch (error) {
-      console.error('[useOptimizedAssignments] Create error:', error);
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Create error:', error);
       setAssignments(prev => prev.filter(a => !a.id.startsWith('temp-')));
       setOperationStates(prev => ({ ...prev, [operationId]: 'error' }));
       toast({ variant: 'destructive', title: t('common.error'), description: error instanceof Error ? error.message : t('common.error') });
@@ -417,7 +417,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
             const created = await OptimizedAssignmentService.createAssignment(newData, user.email);
             await PlannerChangeLogger.logCreate(created.id, { title: newData.title, date: dates[i], location: newData.location, fromTime: newData.from_time, toTime: newData.to_time, case_number: newData.case_number, employees: newData.employees, cars: newData.car_ids });
           } catch (err) {
-            console.error('[useOptimizedAssignments] Failed for', dates[i], err);
+            if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Failed for', dates[i], err);
             errors.push({ date: dates[i], error: err });
           }
         }
@@ -487,7 +487,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       setOperationState(id, 'success');
       
     } catch (error) {
-      console.error('[useOptimizedAssignments] Update error:', error);
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Update error:', error);
       setOperationState(id, 'error');
       await refetch();
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorUpdatingAssignment'), variant: "destructive" });
@@ -512,7 +512,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       OptimizedAssignmentService.clearCache();
       
     } catch (error) {
-      console.error('[useOptimizedAssignments] Delete failed:', error);
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Delete failed:', error);
       setOperationState(id, 'error');
       if (originalAssignment) {
         setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
@@ -531,7 +531,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       setOperationState(id, 'success');
       await refetch();
     } catch (error) {
-      console.error('[useOptimizedAssignments] Publish failed:', error);
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Publish failed:', error);
       setOperationState(id, 'error');
       await refetch();
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorPublishingAssignment'), variant: "destructive" });
@@ -547,7 +547,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       toast({ title: t('planner.dayPublished'), description: t('planner.dayPublishedMsg', { date }) });
       await refetch();
     } catch (error) {
-      console.error('[useOptimizedAssignments] Publish by date failed:', error);
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Publish by date failed:', error);
       await refetch();
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorPublishingDay'), variant: "destructive" });
     }

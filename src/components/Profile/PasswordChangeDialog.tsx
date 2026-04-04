@@ -98,7 +98,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       });
 
       if (updateError) {
-        console.error('[PasswordChangeDialog] Password update failed:', updateError);
+        if (import.meta.env.DEV) console.error('[PasswordChangeDialog] Password update failed:', updateError);
         
         // Enhanced error message handling
         let errorMessage = t('profile.passwordChangeError');
@@ -132,7 +132,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       onClose();
       
     } catch (error) {
-      console.error('[PasswordChangeDialog] Unexpected error:', error);
+      if (import.meta.env.DEV) console.error('[PasswordChangeDialog] Unexpected error:', error);
       toast({
         title: t('common.error'),
         description: t('profile.unexpectedError'),

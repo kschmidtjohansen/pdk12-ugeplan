@@ -233,12 +233,12 @@ const PlannerPage: React.FC = () => {
   };
 
   const handleSubmit = async (data: Partial<Assignment>) => {
-    console.log('[PlannerPage] Form submission started with data:', data);
+    if (import.meta.env.DEV) console.log('[PlannerPage] Form submission started with data:', data);
     try {
       if (currentAssignment?.id) {
-        console.log('[PlannerPage] Updating existing assignment:', currentAssignment.id);
+        if (import.meta.env.DEV) console.log('[PlannerPage] Updating existing assignment:', currentAssignment.id);
         await updateAssignment(currentAssignment.id, data);
-        console.log('[PlannerPage] Assignment updated successfully');
+        if (import.meta.env.DEV) console.log('[PlannerPage] Assignment updated successfully');
         setCurrentAssignment(null);
         setFormData({
           title: '',
@@ -253,9 +253,9 @@ const PlannerPage: React.FC = () => {
         });
         setIsDialogOpen(false);
       } else {
-        console.log('[PlannerPage] Creating new assignment');
+        if (import.meta.env.DEV) console.log('[PlannerPage] Creating new assignment');
         await createAssignment(data);
-        console.log('[PlannerPage] Assignment created successfully');
+        if (import.meta.env.DEV) console.log('[PlannerPage] Assignment created successfully');
         setFormData({
           title: '',
           description: '',
@@ -270,7 +270,7 @@ const PlannerPage: React.FC = () => {
         setIsDialogOpen(false);
       }
     } catch (error) {
-      console.error('[PlannerPage] Operation failed:', error);
+      if (import.meta.env.DEV) console.error('[PlannerPage] Operation failed:', error);
     }
   };
 
@@ -313,28 +313,28 @@ const PlannerPage: React.FC = () => {
   }, [publishAssignment]);
 
   const handleEmployeeToggle = useCallback((employeeId: string) => {
-    console.log('[PlannerPage] Employee toggled:', employeeId);
+    if (import.meta.env.DEV) console.log('[PlannerPage] Employee toggled:', employeeId);
     
     if (!employeeId || employeeId.trim() === '') {
-      console.warn('[PlannerPage] Invalid employee ID provided');
+      if (import.meta.env.DEV) console.warn('[PlannerPage] Invalid employee ID provided');
       return;
     }
 
     setFormData(prev => {
       const currentEmployees = prev.employees || [];
-      console.log('[PlannerPage] Current employees before toggle:', currentEmployees);
+      if (import.meta.env.DEV) console.log('[PlannerPage] Current employees before toggle:', currentEmployees);
       
       let newEmployees;
       
       if (currentEmployees.includes(employeeId)) {
         newEmployees = currentEmployees.filter(id => id !== employeeId);
-        console.log('[PlannerPage] Removing employee:', employeeId);
+        if (import.meta.env.DEV) console.log('[PlannerPage] Removing employee:', employeeId);
       } else {
         newEmployees = [...currentEmployees, employeeId];
-        console.log('[PlannerPage] Adding employee:', employeeId);
+        if (import.meta.env.DEV) console.log('[PlannerPage] Adding employee:', employeeId);
       }
       
-      console.log('[PlannerPage] New employees array:', newEmployees);
+      if (import.meta.env.DEV) console.log('[PlannerPage] New employees array:', newEmployees);
       
       return {
         ...prev,

@@ -66,7 +66,7 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
       setError(errorMessage);
       setHealthCheck(false);
-      console.error('[useEnhancedUnifiedData] Error:', err);
+      if (import.meta.env.DEV) console.error('[useEnhancedUnifiedData] Error:', err);
     } finally {
       setLoading(false);
     }

@@ -198,7 +198,7 @@ const UserManagement: React.FC = () => {
         if (rolesError.message?.includes('permission') || 
             rolesError.message?.includes('policy') || 
             rolesError.message?.includes('access denied')) {
-          console.warn('[UserManagement] User roles access restricted, using default roles');
+          if (import.meta.env.DEV) console.warn('[UserManagement] User roles access restricted, using default roles');
           if (import.meta.env.DEV) console.warn('[UserManagement] Details:', rolesError);
           addDebugInfo('FALLBACK: Using default servicemedarbejder role due to restricted access');
           // Continue with empty roles array - will default to servicemedarbejder
@@ -554,7 +554,7 @@ const UserManagement: React.FC = () => {
     if (isDemoMode) {
       // Use polling for demo mode
       const interval = setInterval(() => {
-        console.log('[UserManagement] Demo mode: polling for updates');
+        if (import.meta.env.DEV) console.log('[UserManagement] Demo mode: polling for updates');
         fetchUsers();
       }, 30000); // Poll every 30 seconds
       
@@ -566,7 +566,7 @@ const UserManagement: React.FC = () => {
         schema: 'public',
         table: 'profiles'
       }, payload => {
-        console.log('Profile change detected in admin:', payload.eventType);
+        if (import.meta.env.DEV) console.log('Profile change detected in admin:', payload.eventType);
         fetchUsers();
       }).subscribe();
       return () => {
@@ -636,7 +636,7 @@ const UserManagement: React.FC = () => {
       await fetchUsers();
       setStatusDialogOpen(false);
     } catch (err) {
-      console.error('[UserManagement] Error toggling user status:', err);
+      if (import.meta.env.DEV) console.error('[UserManagement] Error toggling user status:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       toast({
         title: t('common.error'),
@@ -662,7 +662,7 @@ const UserManagement: React.FC = () => {
       // Refresh the user list
       await fetchUsers();
     } catch (err) {
-      console.error('[UserManagement] Error deleting user:', err);
+      if (import.meta.env.DEV) console.error('[UserManagement] Error deleting user:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       toast({
         title: t('common.error'),
@@ -716,7 +716,7 @@ const UserManagement: React.FC = () => {
         description: currentUser ? t('admin.userManagement.updateSuccess') : t('admin.userManagement.createSuccess')
       });
     } catch (err) {
-      console.error('[UserManagement] Error saving user:', err);
+      if (import.meta.env.DEV) console.error('[UserManagement] Error saving user:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       toast({
         title: t('common.error'),

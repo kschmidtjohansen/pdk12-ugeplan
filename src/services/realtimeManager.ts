@@ -82,7 +82,7 @@ class RealtimeManager {
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           subscription.active = false;
           this.connectionStatus = 'disconnected';
-          console.warn(`[RealtimeManager] Connection failed for ${id}, status: ${status}`);
+          if (import.meta.env.DEV) console.warn(`[RealtimeManager] Connection failed for ${id}, status: ${status}`);
           this.handleConnectionError(id, callback);
         } else if (status === 'CLOSED') {
           subscription.active = false;
@@ -95,7 +95,7 @@ class RealtimeManager {
       return subscription;
 
     } catch (error) {
-      console.error(`[RealtimeManager] Error creating subscription ${id}:`, error);
+      if (import.meta.env.DEV) console.error(`[RealtimeManager] Error creating subscription ${id}:`, error);
       return null;
     }
   }
@@ -117,7 +117,7 @@ class RealtimeManager {
         }
       }, delay);
     } else {
-      console.warn(`[RealtimeManager] Max reconnection attempts reached for ${subscriptionId}, falling back to polling`);
+      if (import.meta.env.DEV) console.warn(`[RealtimeManager] Max reconnection attempts reached for ${subscriptionId}, falling back to polling`);
       this.startPolling(subscriptionId, callback);
     }
   }

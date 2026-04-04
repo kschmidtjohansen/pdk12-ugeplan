@@ -171,7 +171,7 @@ export const usePlannerPage = () => {
           setIsDialogOpen(false);
         }
       } catch (error) {
-        console.error('[usePlannerPage] Operation failed:', error);
+        if (import.meta.env.DEV) console.error('[usePlannerPage] Operation failed:', error);
       }
     },
     handlePublishDay: async (date: string) => {

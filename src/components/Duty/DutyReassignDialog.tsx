@@ -71,7 +71,7 @@ export const DutyReassignDialog: React.FC<DutyReassignDialogProps> = ({
       setReason('');
       onOpenChange(false);
     } catch (error) {
-      console.error('Error reassigning duty:', error);
+      if (import.meta.env.DEV) console.error('Error reassigning duty:', error);
     } finally {
       setIsSubmitting(false);
     }

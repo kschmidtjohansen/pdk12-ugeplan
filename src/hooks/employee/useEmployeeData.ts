@@ -35,7 +35,7 @@ export const useEmployeeData = () => {
       });
 
       if (rpcError) {
-        console.error('[useEmployeeData] Demo RPC error:', rpcError);
+        if (import.meta.env.DEV) console.error('[useEmployeeData] Demo RPC error:', rpcError);
         throw new Error(`Demo profiles fetch failed: ${rpcError.message}`);
       }
 

@@ -55,7 +55,7 @@ export const useAutoPublishAssignments = () => {
         }
       }
     } catch (err) {
-      console.error('Error in auto-publish:', err);
+      if (import.meta.env.DEV) console.error('Error in auto-publish:', err);
     } finally {
       publishingRef.current = false;
     }

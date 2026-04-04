@@ -38,7 +38,7 @@ export const useVacationSecurity = () => {
         setSkadelederSubDeptUserIds(userIds);
         if (import.meta.env.DEV) console.log(`[useVacationSecurity] Skadeleder has access to ${userIds.size} users in ${subDeptIds.length} sub-departments`);
       } catch (error) {
-        console.error('[useVacationSecurity] Failed to fetch sub-department users:', error);
+        if (import.meta.env.DEV) console.error('[useVacationSecurity] Failed to fetch sub-department users:', error);
       }
     };
 
@@ -64,7 +64,7 @@ export const useVacationSecurity = () => {
         'info'
       );
     } catch (error) {
-      console.error('Failed to log vacation security event:', error);
+      if (import.meta.env.DEV) console.error('Failed to log vacation security event:', error);
     }
   }, [user]);
 

@@ -76,7 +76,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
       setError(errorMessage);
-      console.error('[useUnifiedData] Error:', err);
+      if (import.meta.env.DEV) console.error('[useUnifiedData] Error:', err);
     } finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         if (isMounted) {
-          console.log(`[useUnifiedData] Realtime change on ${table}, refetching...`);
+          if (import.meta.env.DEV) console.log(`[useUnifiedData] Realtime change on ${table}, refetching...`);
           unifiedDataService.clearCache();
           loadData().catch(console.error);
         }
@@ -118,7 +118,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => handleRealtimeChange('profiles'))
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR') {
-          console.warn('[useUnifiedData] Realtime channel error, falling back to existing data');
+          if (import.meta.env.DEV) console.warn('[useUnifiedData] Realtime channel error, falling back to existing data');
         }
       });
 

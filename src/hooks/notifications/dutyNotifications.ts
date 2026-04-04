@@ -48,7 +48,7 @@ export const useDutyNotifications = (
 
       if (import.meta.env.DEV) console.log('Duty notification created for employee:', employeeId);
     } catch (error) {
-      console.error('Error creating duty notification:', error);
+      if (import.meta.env.DEV) console.error('Error creating duty notification:', error);
     }
   }, [addNotification, t, currentLanguage, locale]);
 

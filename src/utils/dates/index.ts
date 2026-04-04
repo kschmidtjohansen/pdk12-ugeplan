@@ -5,4 +5,4 @@ export * from './weekNavigation';
 export * from './weekFormatting';
 
 // Add console log to help debugging
-console.log("Date utilities loaded from src/utils/dates/index.ts");
+if (import.meta.env.DEV) console.log("Date utilities loaded from src/utils/dates/index.ts");

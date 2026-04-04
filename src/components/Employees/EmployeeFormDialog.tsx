@@ -110,7 +110,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           setIsSubmitting(false);
           return;
         }
-        console.log('[EmployeeFormDialog] Creating employee');
+        if (import.meta.env.DEV) console.log('[EmployeeFormDialog] Creating employee');
         // The actual creation will be handled by the parent component using formData (including password)
         await handleSubmit(e);
       } else {
@@ -118,7 +118,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         await handleSubmit(e);
       }
     } catch (error) {
-      console.error('[EmployeeFormDialog] Form submission error:', error);
+      if (import.meta.env.DEV) console.error('[EmployeeFormDialog] Form submission error:', error);
       let errorMsg = t('employees.unexpectedError');
       if (error instanceof Error) {
         errorMsg = error.message;

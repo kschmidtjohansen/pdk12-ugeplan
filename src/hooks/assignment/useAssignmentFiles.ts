@@ -559,13 +559,13 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
         .createSignedUrl(file.file_path, 3600); // 1 hour expiry
 
       if (error) {
-        console.error('[useAssignmentFiles] Error creating signed URL:', error);
+        if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error creating signed URL:', error);
         return null;
       }
 
       return data.signedUrl;
     } catch (error) {
-      console.error('[useAssignmentFiles] Error getting preview URL:', error);
+      if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error getting preview URL:', error);
       return null;
     }
   }, []);

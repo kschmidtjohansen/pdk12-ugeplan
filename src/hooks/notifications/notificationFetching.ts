@@ -41,7 +41,7 @@ export const useNotificationFetching = (user: any | null) => {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching notifications:', error);
+        if (import.meta.env.DEV) console.error('Error fetching notifications:', error);
         throw error;
       }
       
@@ -65,7 +65,7 @@ export const useNotificationFetching = (user: any | null) => {
         setUnreadCount(formattedNotifications.filter(n => !n.read).length);
       }
     } catch (err) {
-      console.error('Error fetching notifications:', err);
+      if (import.meta.env.DEV) console.error('Error fetching notifications:', err);
     } finally {
       setLoading(false);
     }

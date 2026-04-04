@@ -47,7 +47,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
           is_demo: true,
         });
         if (error) {
-          console.error('Error creating demo warehouse item:', error);
+          if (import.meta.env.DEV) console.error('Error creating demo warehouse item:', error);
           toast({ title: t('warehouse.messages.addError'), variant: 'destructive' });
           return;
         }
@@ -73,7 +73,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       };
       
       if (optimistic) {
-        console.log('[Optimistic] Adding temp warehouse item:', tempId);
+        if (import.meta.env.DEV) console.log('[Optimistic] Adding temp warehouse item:', tempId);
         optimistic.setItems(prev => [tempItem, ...prev]);
       }
       
@@ -97,7 +97,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       if (error) {
         // Rollback: remove temp item
         if (optimistic) {
-          console.log('[Optimistic] Rollback: removing temp item', tempId);
+          if (import.meta.env.DEV) console.log('[Optimistic] Rollback: removing temp item', tempId);
           optimistic.setItems(prev => prev.filter(i => i.id !== tempId));
         }
         throw error;
@@ -107,7 +107,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
       onSuccess?.();
     } catch (err) {
-      console.error('Error creating warehouse item:', err);
+      if (import.meta.env.DEV) console.error('Error creating warehouse item:', err);
       toast({ title: t('warehouse.messages.addError'), variant: 'destructive' });
       throw err;
     } finally {
@@ -130,7 +130,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
           notes: data.notes || null,
         }).eq('id', id);
         if (error) {
-          console.error('Error updating demo warehouse item:', error);
+          if (import.meta.env.DEV) console.error('Error updating demo warehouse item:', error);
           toast({ title: t('warehouse.messages.updateError'), variant: 'destructive' });
           return;
         }
@@ -144,7 +144,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       let previousItems: WarehouseItem[] | null = null;
       if (optimistic) {
         previousItems = [...optimistic.items];
-        console.log('[Optimistic] Updating warehouse item in UI:', id);
+        if (import.meta.env.DEV) console.log('[Optimistic] Updating warehouse item in UI:', id);
         optimistic.setItems(prev => prev.map(item =>
           item.id === id
             ? { ...item, address: data.address, case_number: data.case_number || null, is_cleaned: data.is_cleaned, quantity: data.quantity, hall: data.hall || null, notes: data.notes || null, updated_at: new Date().toISOString() }
@@ -169,7 +169,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       if (error) {
         // Rollback
         if (optimistic && previousItems) {
-          console.log('[Optimistic] Rollback: restoring warehouse items');
+          if (import.meta.env.DEV) console.log('[Optimistic] Rollback: restoring warehouse items');
           optimistic.setItems(previousItems);
         }
         throw error;
@@ -179,7 +179,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
       onSuccess?.();
     } catch (err) {
-      console.error('Error updating warehouse item:', err);
+      if (import.meta.env.DEV) console.error('Error updating warehouse item:', err);
       toast({ title: t('warehouse.messages.updateError'), variant: 'destructive' });
       throw err;
     } finally {
@@ -195,7 +195,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
         const client = getSchemaClient(isDemoMode);
         const { error } = await client.from('warehouse_items').delete().eq('id', id);
         if (error) {
-          console.error('Error deleting demo warehouse item:', error);
+          if (import.meta.env.DEV) console.error('Error deleting demo warehouse item:', error);
           toast({ title: t('warehouse.messages.deleteError'), variant: 'destructive' });
           return;
         }
@@ -209,7 +209,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       let previousItems: WarehouseItem[] | null = null;
       if (optimistic) {
         previousItems = [...optimistic.items];
-        console.log('[Optimistic] Removing warehouse item from UI:', id);
+        if (import.meta.env.DEV) console.log('[Optimistic] Removing warehouse item from UI:', id);
         optimistic.setItems(prev => prev.filter(item => item.id !== id));
       }
       
@@ -223,7 +223,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       if (error) {
         // Rollback
         if (optimistic && previousItems) {
-          console.log('[Optimistic] Rollback: restoring warehouse items');
+          if (import.meta.env.DEV) console.log('[Optimistic] Rollback: restoring warehouse items');
           optimistic.setItems(previousItems);
         }
         throw error;
@@ -233,7 +233,7 @@ export const useWarehouseActions = (onSuccess?: () => void, localHandlers?: Loca
       queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
       onSuccess?.();
     } catch (err) {
-      console.error('Error deleting warehouse item:', err);
+      if (import.meta.env.DEV) console.error('Error deleting warehouse item:', err);
       toast({ title: t('warehouse.messages.deleteError'), variant: 'destructive' });
       throw err;
     } finally {

@@ -145,7 +145,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
 
       return true;
     } catch (err) {
-      console.error('Error submitting vacation request:', err);
+      if (import.meta.env.DEV) console.error('Error submitting vacation request:', err);
       
       await logSecurityEvent(
         'vacation_submission_error',
@@ -243,7 +243,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
 
       return true;
     } catch (err) {
-      console.error('Error editing vacation:', err);
+      if (import.meta.env.DEV) console.error('Error editing vacation:', err);
       
       await logSecurityEvent(
         'vacation_edit_error',
@@ -314,7 +314,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
 
       return true;
     } catch (err) {
-      console.error('Error deleting vacation:', err);
+      if (import.meta.env.DEV) console.error('Error deleting vacation:', err);
       
       await logSecurityEvent(
         'vacation_delete_error',
@@ -419,7 +419,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
       
       return true;
     } catch (err) {
-      console.error('Error approving vacation:', err);
+      if (import.meta.env.DEV) console.error('Error approving vacation:', err);
       
       await logSecurityEvent(
         'vacation_approval_error',
@@ -533,7 +533,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
       
       return true;
     } catch (err) {
-      console.error('Error rejecting vacation:', err);
+      if (import.meta.env.DEV) console.error('Error rejecting vacation:', err);
       
       await logSecurityEvent(
         'vacation_rejection_error',

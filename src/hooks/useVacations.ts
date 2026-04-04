@@ -104,11 +104,11 @@ export const useVacations = () => {
   const handleEditVacation = (vacation: Vacation) => {
     // Security check before allowing edit
     if (!canEditVacation(vacation)) {
-      console.warn('User attempted to edit vacation without permission:', vacation.id);
+      if (import.meta.env.DEV) console.warn('User attempted to edit vacation without permission:', vacation.id);
       return;
     }
 
-    console.log("Setting up vacation for editing:", vacation);
+    if (import.meta.env.DEV) console.log("Setting up vacation for editing:", vacation);
     setSelectedVacation(vacation);
     
     // Clear existing date values first
@@ -121,7 +121,7 @@ export const useVacations = () => {
     const vacationStartDate = new Date(vacation.start_date);
     const vacationEndDate = new Date(vacation.end_date);
     
-    console.log("Setting dates for editing:", {
+    if (import.meta.env.DEV) console.log("Setting dates for editing:", {
       startDate: vacationStartDate.toISOString(),
       endDate: vacationEndDate.toISOString()
     });
@@ -151,7 +151,7 @@ export const useVacations = () => {
     
     // Security check before submitting edit
     if (!canEditVacation(selectedVacation)) {
-      console.warn('User attempted to submit edit for vacation without permission:', selectedVacation.id);
+      if (import.meta.env.DEV) console.warn('User attempted to submit edit for vacation without permission:', selectedVacation.id);
       return;
     }
     
@@ -160,7 +160,7 @@ export const useVacations = () => {
     const editEndDate = endDate || date.to;
     
     if (!editStartDate || !editEndDate) {
-      console.error("Missing start or end date when trying to edit vacation");
+      if (import.meta.env.DEV) console.error("Missing start or end date when trying to edit vacation");
       return;
     }
 
@@ -171,7 +171,7 @@ export const useVacations = () => {
     const endDateObj = editEndDate instanceof Date ? 
       editEndDate : new Date(editEndDate);
     
-    console.log("Submitting edit with dates and request type:", {
+    if (import.meta.env.DEV) console.log("Submitting edit with dates and request type:", {
       startDate: startDateObj instanceof Date ? startDateObj.toISOString() : "undefined",
       endDate: endDateObj instanceof Date ? endDateObj.toISOString() : "undefined",
       requestType,
@@ -200,11 +200,11 @@ export const useVacations = () => {
   const handleDeleteVacation = (vacation: Vacation) => {
     // Security check before allowing delete
     if (!canDeleteVacation(vacation)) {
-      console.warn('User attempted to delete vacation without permission:', vacation.id);
+      if (import.meta.env.DEV) console.warn('User attempted to delete vacation without permission:', vacation.id);
       return;
     }
 
-    console.log("Setting up vacation for deletion:", vacation.id);
+    if (import.meta.env.DEV) console.log("Setting up vacation for deletion:", vacation.id);
     setSelectedVacation(vacation);
     setDeleteDialogOpen(true);
   };
@@ -212,23 +212,23 @@ export const useVacations = () => {
   // Enhanced confirm delete handler with security validation
   const confirmDeleteVacation = async () => {
     if (!selectedVacation) {
-      console.error("No vacation selected for deletion");
+      if (import.meta.env.DEV) console.error("No vacation selected for deletion");
       return;
     }
     
     // Security check before confirming delete
     if (!canDeleteVacation(selectedVacation)) {
-      console.warn('User attempted to confirm delete for vacation without permission:', selectedVacation.id);
+      if (import.meta.env.DEV) console.warn('User attempted to confirm delete for vacation without permission:', selectedVacation.id);
       return;
     }
     
-    console.log("Confirming deletion of vacation:", selectedVacation.id);
+    if (import.meta.env.DEV) console.log("Confirming deletion of vacation:", selectedVacation.id);
     
     try {
       const success = await deleteVacation(selectedVacation);
       
       if (success) {
-        console.log("Vacation successfully deleted:", selectedVacation.id);
+        if (import.meta.env.DEV) console.log("Vacation successfully deleted:", selectedVacation.id);
         
         // Close the dialog and reset state
         setDeleteDialogOpen(false);
@@ -236,10 +236,10 @@ export const useVacations = () => {
 
         // The fetchVacations call is already handled in the deleteVacation function
       } else {
-        console.error("Failed to delete vacation");
+        if (import.meta.env.DEV) console.error("Failed to delete vacation");
       }
     } catch (err) {
-      console.error("Error in confirmDeleteVacation:", err);
+      if (import.meta.env.DEV) console.error("Error in confirmDeleteVacation:", err);
     }
   };
 

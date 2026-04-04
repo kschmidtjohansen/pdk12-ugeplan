@@ -31,7 +31,7 @@ const DashboardPage: React.FC = () => {
     setIsRefreshing(false);
   };
 
-  console.log(`[DashboardPage] ROLE-BASED - User: ${user?.name} (${user?.role}) - Effective Role: ${effectiveRole}`);
+  if (import.meta.env.DEV) console.log(`[DashboardPage] ROLE-BASED - User: ${user?.name} (${user?.role}) - Effective Role: ${effectiveRole}`);
 
   // Check if user is servicemedarbejder for specialized dashboard
   const isServicemedarbejder = effectiveRole === 'servicemedarbejder';

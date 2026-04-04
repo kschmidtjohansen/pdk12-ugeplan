@@ -27,7 +27,7 @@ export class PerformanceMonitor {
         });
         lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
       } catch (e) {
-        console.warn('LCP observer not supported');
+        if (import.meta.env.DEV) console.warn('LCP observer not supported');
       }
 
       // First Input Delay (FID)
@@ -39,7 +39,7 @@ export class PerformanceMonitor {
         });
         fidObserver.observe({ entryTypes: ['first-input'] });
       } catch (e) {
-        console.warn('FID observer not supported');
+        if (import.meta.env.DEV) console.warn('FID observer not supported');
       }
 
       // Cumulative Layout Shift (CLS)
@@ -55,7 +55,7 @@ export class PerformanceMonitor {
         });
         clsObserver.observe({ entryTypes: ['layout-shift'] });
       } catch (e) {
-        console.warn('CLS observer not supported');
+        if (import.meta.env.DEV) console.warn('CLS observer not supported');
       }
     }
   }
@@ -75,7 +75,7 @@ export class PerformanceMonitor {
     
     // Log significant metrics in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[Performance] ${name}: ${value.toFixed(2)}ms`);
+      if (import.meta.env.DEV) console.log(`[Performance] ${name}: ${value.toFixed(2)}ms`);
     }
   }
 
@@ -106,7 +106,7 @@ export class PerformanceMonitor {
       this.recordMetric(operationName, duration);
       
       if (duration > 2000 && process.env.NODE_ENV === 'development') {
-        console.warn(`[Performance] Slow operation: ${operationName} took ${duration.toFixed(2)}ms`);
+        if (import.meta.env.DEV) console.warn(`[Performance] Slow operation: ${operationName} took ${duration.toFixed(2)}ms`);
       }
     };
   }

@@ -59,7 +59,7 @@ export const useVacationApprovalActions = (
       
       return true;
     } catch (err) {
-      console.error('Error approving vacation request:', err);
+      if (import.meta.env.DEV) console.error('Error approving vacation request:', err);
       toast({
         title: t('common.error'),
         description: err instanceof Error ? err.message : 'Failed to approve vacation request',
@@ -111,7 +111,7 @@ export const useVacationApprovalActions = (
       
       return true;
     } catch (err) {
-      console.error('Error rejecting vacation request:', err);
+      if (import.meta.env.DEV) console.error('Error rejecting vacation request:', err);
       toast({
         title: t('common.error'),
         description: err instanceof Error ? err.message : 'Failed to reject vacation request',

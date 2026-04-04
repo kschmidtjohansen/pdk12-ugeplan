@@ -38,7 +38,7 @@ export const ScreenDisplayErrorBoundary: React.FC<ScreenDisplayErrorBoundaryProp
         </div>
       }
       onError={(error, errorInfo) => {
-        console.error('[ScreenDisplayErrorBoundary] Caught error:', {
+        if (import.meta.env.DEV) console.error('[ScreenDisplayErrorBoundary] Caught error:', {
           error,
           errorInfo,
           date,

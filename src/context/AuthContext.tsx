@@ -207,7 +207,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (import.meta.env.DEV) {
         console.log(`[AuthContext] Database queries completed in ${Date.now() - startTime}ms`);
-        console.log(`[AuthContext] Profile:`, profileResult?.data?.name, `Role:`, roleResult?.data?.role);
+        if (import.meta.env.DEV) console.log(`[AuthContext] Profile:`, profileResult?.data?.name, `Role:`, roleResult?.data?.role);
       }
 
       if (profileResult.error) {

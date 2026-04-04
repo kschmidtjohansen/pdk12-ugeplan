@@ -88,7 +88,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   } => {
     if (import.meta.env.DEV) {
       console.log('[AssignmentDetails] Processing employee data for assignment:', assignment.title);
-      console.log('[AssignmentDetails] Employee data available:', {
+      if (import.meta.env.DEV) console.log('[AssignmentDetails] Employee data available:', {
         hasAssignedEmployees: !!assignment.assignedEmployees?.length,
         assignedEmployees: assignment.assignedEmployees?.map(e => ({ id: e.id, name: e.name })),
         hasLegacyEmployees: !!assignment.employees?.length,

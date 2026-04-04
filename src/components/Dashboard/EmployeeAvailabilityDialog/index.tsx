@@ -44,11 +44,11 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
 
   if (import.meta.env.DEV) {
     console.log(`[EmployeeAvailabilityDialog] === DIALOG DEBUG INFO ===`);
-    console.log(`[EmployeeAvailabilityDialog] Dialog title: ${title}`);
-    console.log(`[EmployeeAvailabilityDialog] Initial selected date: ${selectedDate}`);
-    console.log(`[EmployeeAvailabilityDialog] Currently viewed date: ${viewedDate}`);
-    console.log(`[EmployeeAvailabilityDialog] Date changed: ${viewedDate !== selectedDate}`);
-    console.log(`[EmployeeAvailabilityDialog] Initial employees passed: ${initialEmployees.length}`);
+    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Dialog title: ${title}`);
+    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Initial selected date: ${selectedDate}`);
+    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Currently viewed date: ${viewedDate}`);
+    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Date changed: ${viewedDate !== selectedDate}`);
+    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Initial employees passed: ${initialEmployees.length}`);
   }
 
   return (

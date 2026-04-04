@@ -14,7 +14,7 @@ const getCreatedNotificationHashes = (): Set<string> => {
     const stored = localStorage.getItem(NOTIFICATION_CREATED_KEY);
     return stored ? new Set(JSON.parse(stored)) : new Set();
   } catch (err) {
-    console.error("Error reading created notification history from localStorage:", err);
+    if (import.meta.env.DEV) console.error("Error reading created notification history from localStorage:", err);
     return new Set();
   }
 };
@@ -26,7 +26,7 @@ const saveCreatedNotificationHash = (hash: string): void => {
     hashes.add(hash);
     localStorage.setItem(NOTIFICATION_CREATED_KEY, JSON.stringify(Array.from(hashes)));
   } catch (err) {
-    console.error("Error saving notification hash to localStorage:", err);
+    if (import.meta.env.DEV) console.error("Error saving notification hash to localStorage:", err);
   }
 };
 
@@ -50,7 +50,7 @@ export const useNotificationCreate = (
     notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }
   ) => {
     if (!user) {
-      console.error('Cannot add notification: No authenticated user');
+      if (import.meta.env.DEV) console.error('Cannot add notification: No authenticated user');
       return null;
     }
     
@@ -86,7 +86,7 @@ export const useNotificationCreate = (
       if (error) {
         // Specific handling for RLS policy violations
         if (error.message?.includes('violates row-level security policy')) {
-          console.error('Permission denied: You do not have permission to create notifications for this user.');
+          if (import.meta.env.DEV) console.error('Permission denied: You do not have permission to create notifications for this user.');
           if (import.meta.env.DEV) console.log('This is likely due to RLS policies. Please check that you have the correct permissions.');
           
           // Only show toast for user-facing operations, not background processes
@@ -99,7 +99,7 @@ export const useNotificationCreate = (
           }
           return null;
         } else {
-          console.error('Error inserting notification:', error);
+          if (import.meta.env.DEV) console.error('Error inserting notification:', error);
         }
         return null;
       }
@@ -138,7 +138,7 @@ export const useNotificationCreate = (
       
       return data?.[0]?.id;
     } catch (err) {
-      console.error('Error adding notification:', err);
+      if (import.meta.env.DEV) console.error('Error adding notification:', err);
       return null;
     }
   }, [user, toast, setNotifications, setUnreadCount]);
