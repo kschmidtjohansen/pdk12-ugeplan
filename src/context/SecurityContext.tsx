@@ -34,7 +34,7 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({ children }) 
     try {
       sessionStorage.setItem('csrf_token', newToken);
     } catch (error) {
-      console.warn('Unable to store CSRF token:', error);
+      if (import.meta.env.DEV) console.warn('Unable to store CSRF token:', error);
     }
   };
 
@@ -65,7 +65,7 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({ children }) 
   // Log security warnings for development
   useEffect(() => {
     if (process.env.NODE_ENV === 'development' && !isSecureContext) {
-      console.warn(
+      if (import.meta.env.DEV) console.warn(
         '[Security Warning] Not in secure context. HTTPS should be used in production.'
       );
     }

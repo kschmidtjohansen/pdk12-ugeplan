@@ -81,7 +81,7 @@ const normalizeTime = (time: string): string => {
   }
   
   if (time.length !== 5 || !time.includes(':')) {
-    console.warn(`[normalizeTime] Unexpected time format: "${time}"`);
+    if (import.meta.env.DEV) console.warn(`[normalizeTime] Unexpected time format: "${time}"`);
   }
   
   return time;

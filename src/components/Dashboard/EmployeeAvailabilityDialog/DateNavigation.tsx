@@ -25,14 +25,14 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({
     const previousDay = subDays(currentDate, 1);
     const previousDateStr = format(previousDay, 'yyyy-MM-dd');
     setViewedDate(previousDateStr);
-    console.log('[DateNavigation] Previous day:', previousDateStr);
+    if (import.meta.env.DEV) console.log('[DateNavigation] Previous day:', previousDateStr);
   };
 
   const handleNextDay = () => {
     const nextDay = addDays(currentDate, 1);
     const nextDateStr = format(nextDay, 'yyyy-MM-dd');
     setViewedDate(nextDateStr);
-    console.log('[DateNavigation] Next day:', nextDateStr);
+    if (import.meta.env.DEV) console.log('[DateNavigation] Next day:', nextDateStr);
   };
 
   // Format date for display
@@ -45,7 +45,7 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({
       }
       return dateStr;
     } catch (e) {
-      console.error("Error formatting date:", e);
+      if (import.meta.env.DEV) console.error("Error formatting date:", e);
       return format(date, 'PPP');
     }
   };

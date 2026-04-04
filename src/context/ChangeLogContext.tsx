@@ -108,7 +108,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       setChangeLogs(logs);
     } catch (error) {
-      console.error('[ChangeLogContext] Failed to fetch change logs:', error);
+      if (import.meta.env.DEV) console.error('[ChangeLogContext] Failed to fetch change logs:', error);
     } finally {
       setLoading(false);
     }
@@ -131,7 +131,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (error) throw error;
       return (data || []) as ChangeLogEntry[];
     } catch (error) {
-      console.error('[ChangeLogContext] Failed to fetch logs by date range:', error);
+      if (import.meta.env.DEV) console.error('[ChangeLogContext] Failed to fetch logs by date range:', error);
       return [];
     }
   };
@@ -152,7 +152,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (error) throw error;
       return (data || []) as ChangeLogEntry[];
     } catch (error) {
-      console.error('[ChangeLogContext] Failed to fetch logs by case number:', error);
+      if (import.meta.env.DEV) console.error('[ChangeLogContext] Failed to fetch logs by case number:', error);
       return [];
     }
   };
@@ -213,7 +213,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             }
           }
           
-          console.log('[ChangeLogContext] New change log entry:', newLog);
+          if (import.meta.env.DEV) console.log('[ChangeLogContext] New change log entry:', newLog);
           setChangeLogs(prev => [newLog, ...prev].slice(0, 50));
         }
       )

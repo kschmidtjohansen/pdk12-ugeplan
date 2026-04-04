@@ -17,7 +17,7 @@ import MainLayout from "./components/Layout/MainLayout";
 const lazyWithRetry = (importFn: () => Promise<any>) => {
   return lazy(() =>
     importFn().catch((error) => {
-      console.error('Failed to load module, retrying...', error);
+      if (import.meta.env.DEV) console.error('Failed to load module, retrying...', error);
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve(importFn());
@@ -65,10 +65,10 @@ const App = () => {
   useEffect(() => {
     if (import.meta.env.DEV) {
       import('./utils/performanceMonitor').then(({ performanceMonitor }) => {
-        console.log('[Performance] Monitoring initialized');
+        if (import.meta.env.DEV) console.log('[Performance] Monitoring initialized');
         setTimeout(() => {
           const metrics = performanceMonitor.getAllMetrics();
-          console.log('[Performance] Current metrics:', metrics);
+          if (import.meta.env.DEV) console.log('[Performance] Current metrics:', metrics);
         }, 10000);
       });
     }
@@ -107,7 +107,7 @@ const AppContent = () => {
     isInitialized = translationReady;
   } catch (error) {
     // Translation provider not ready yet
-    console.warn('Translation provider not ready:', error);
+    if (import.meta.env.DEV) console.warn('Translation provider not ready:', error);
     isInitialized = false;
   }
   

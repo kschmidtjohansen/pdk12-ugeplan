@@ -14,7 +14,7 @@ export const cleanupFalsePositiveSecurityLogs = async (): Promise<{ success: boo
       .select('id');
 
     if (error) {
-      console.error('[DatabaseCleanup] Error during cleanup:', error);
+      if (import.meta.env.DEV) console.error('[DatabaseCleanup] Error during cleanup:', error);
       return { success: false, deletedCount: 0, error: error.message };
     }
 
@@ -36,7 +36,7 @@ export const cleanupFalsePositiveSecurityLogs = async (): Promise<{ success: boo
     return { success: true, deletedCount };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error during cleanup';
-    console.error('[DatabaseCleanup] Unexpected error:', err);
+    if (import.meta.env.DEV) console.error('[DatabaseCleanup] Unexpected error:', err);
     
     return { success: false, deletedCount: 0, error: errorMessage };
   }
@@ -57,7 +57,7 @@ export const cleanupOldSecurityLogs = async (daysToKeep: number = 30): Promise<{
       .select('id');
 
     if (error) {
-      console.error('[DatabaseCleanup] Error during old logs cleanup:', error);
+      if (import.meta.env.DEV) console.error('[DatabaseCleanup] Error during old logs cleanup:', error);
       return { success: false, deletedCount: 0, error: error.message };
     }
 
@@ -80,7 +80,7 @@ export const cleanupOldSecurityLogs = async (daysToKeep: number = 30): Promise<{
     return { success: true, deletedCount };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error during cleanup';
-    console.error('[DatabaseCleanup] Unexpected error:', err);
+    if (import.meta.env.DEV) console.error('[DatabaseCleanup] Unexpected error:', err);
     
     return { success: false, deletedCount: 0, error: errorMessage };
   }
@@ -105,7 +105,7 @@ export const optimizeSecurityLogsTable = async (): Promise<{ success: boolean; e
     return { success: true };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error during optimization';
-    console.error('[DatabaseCleanup] Unexpected error:', err);
+    if (import.meta.env.DEV) console.error('[DatabaseCleanup] Unexpected error:', err);
     
     return { success: false, error: errorMessage };
   }

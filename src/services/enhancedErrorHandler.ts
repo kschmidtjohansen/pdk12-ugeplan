@@ -158,9 +158,9 @@ export class EnhancedErrorHandler {
 
     } catch (loggingError) {
       // Fallback to console logging if structured logging fails
-      console.error('[EnhancedErrorHandler] Failed to log error:', loggingError);
-      console.error('[EnhancedErrorHandler] Original error:', error);
-      console.error('[EnhancedErrorHandler] Context:', context);
+      if (import.meta.env.DEV) console.error('[EnhancedErrorHandler] Failed to log error:', loggingError);
+      if (import.meta.env.DEV) console.error('[EnhancedErrorHandler] Original error:', error);
+      if (import.meta.env.DEV) console.error('[EnhancedErrorHandler] Context:', context);
     }
   }
 

@@ -66,7 +66,7 @@ const PasswordResetPage: React.FC = () => {
               if (import.meta.env.DEV) console.log("✓ Set session from hash params");
               debugData.sessionSet = 'from_hash';
             } catch (err) {
-              console.error("✗ Failed to set session from hash:", err);
+              if (import.meta.env.DEV) console.error("✗ Failed to set session from hash:", err);
               debugData.hashSessionError = err instanceof Error ? err.message : String(err);
             }
           } else {
@@ -96,7 +96,7 @@ const PasswordResetPage: React.FC = () => {
                 if (import.meta.env.DEV) console.log("✓ Set session from query params");
                 debugData.sessionSet = 'from_query';
               } catch (err) {
-                console.error("✗ Failed to set session from query:", err);
+                if (import.meta.env.DEV) console.error("✗ Failed to set session from query:", err);
                 debugData.querySessionError = err instanceof Error ? err.message : String(err);
               }
             }
@@ -165,7 +165,7 @@ const PasswordResetPage: React.FC = () => {
         
         setProcessingToken(false);
       } catch (error) {
-        console.error("Error during password reset initialization:", error);
+        if (import.meta.env.DEV) console.error("Error during password reset initialization:", error);
         setTokenError(t('login.invalidOrExpiredToken'));
         setDebugInfo(prev => ({ 
           ...prev, 
@@ -223,7 +223,7 @@ const PasswordResetPage: React.FC = () => {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
-        console.error("Error getting session after update:", sessionError);
+        if (import.meta.env.DEV) console.error("Error getting session after update:", sessionError);
       }
       
       toast({
@@ -238,7 +238,7 @@ const PasswordResetPage: React.FC = () => {
         navigate('/login');
       }
     } catch (error) {
-      console.error('Error updating password:', error);
+      if (import.meta.env.DEV) console.error('Error updating password:', error);
       toast({
         title: t('login.passwordError'),
         description: error instanceof Error ? error.message : t('login.unexpectedError'),
@@ -274,7 +274,7 @@ const PasswordResetPage: React.FC = () => {
         navigate('/login');
       }, 2000);
     } catch (error) {
-      console.error('Error sending password reset email:', error);
+      if (import.meta.env.DEV) console.error('Error sending password reset email:', error);
       toast({
         title: t('common.error'),
         description: error instanceof Error ? error.message : t('login.passwordReset.emailError'),

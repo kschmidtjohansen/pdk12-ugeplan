@@ -41,7 +41,7 @@ export const useVacationData = () => {
     const profileResult = await enhancedDataFetching.fetchUserProfilesEnhanced(userIds, user?.email);
 
     if (profileResult.error) {
-      console.warn('[useVacationData] Profile fetch failed, continuing with vacation data only:', profileResult.error);
+      if (import.meta.env.DEV) console.warn('[useVacationData] Profile fetch failed, continuing with vacation data only:', profileResult.error);
     }
 
     const employeesResult = await enhancedDataFetching.fetchEmployeesEnhanced(user?.email);

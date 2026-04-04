@@ -53,7 +53,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
     try {
       await onPublish(assignment.id);
     } catch (error) {
-      console.error('[AssignmentActionButtons] Error in onPublish:', error);
+      if (import.meta.env.DEV) console.error('[AssignmentActionButtons] Error in onPublish:', error);
     }
   };
 
@@ -80,7 +80,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         newWindow.focus();
       }
     } catch (error) {
-      console.error('[AssignmentActionButtons] Error opening screen display:', error);
+      if (import.meta.env.DEV) console.error('[AssignmentActionButtons] Error opening screen display:', error);
     }
   };
 

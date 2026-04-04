@@ -139,7 +139,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       return format(localDate, "PPP", { locale });
     } catch (e) {
-      console.error("Error formatting date:", e);
+      if (import.meta.env.DEV) console.error("Error formatting date:", e);
       return format(date, "PPP");
     }
   };

@@ -38,16 +38,16 @@ export const getWeekDates = (weekNumber: number, year: number) => {
     const end = endOfISOWeek(dateWithWeek);
     
     // Debug output
-    console.log(`Week ${weekNumber}/${year} - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}) - Day: ${start.getDay()}`);
-    console.log(`Week ${weekNumber}/${year} - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')}) - Day: ${end.getDay()}`);
+    if (import.meta.env.DEV) console.log(`Week ${weekNumber}/${year} - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}) - Day: ${start.getDay()}`);
+    if (import.meta.env.DEV) console.log(`Week ${weekNumber}/${year} - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')}) - Day: ${end.getDay()}`);
     
     // Verify week boundaries - Monday(1) to Sunday(0)
     if (start.getDay() !== 1) {
-      console.error(`ERROR: Week start is not Monday! Got day ${start.getDay()} (${format(start, 'EEEE')})`);
+      if (import.meta.env.DEV) console.error(`ERROR: Week start is not Monday! Got day ${start.getDay()} (${format(start, 'EEEE')})`);
     }
     
     if (end.getDay() !== 0) {
-      console.error(`ERROR: Week end is not Sunday! Got day ${end.getDay()} (${format(end, 'EEEE')})`);
+      if (import.meta.env.DEV) console.error(`ERROR: Week end is not Sunday! Got day ${end.getDay()} (${format(end, 'EEEE')})`);
     }
     
     return {
@@ -57,7 +57,7 @@ export const getWeekDates = (weekNumber: number, year: number) => {
       year
     };
   } catch (err) {
-    console.error("Error in getWeekDates:", err);
+    if (import.meta.env.DEV) console.error("Error in getWeekDates:", err);
     throw err;
   }
 };

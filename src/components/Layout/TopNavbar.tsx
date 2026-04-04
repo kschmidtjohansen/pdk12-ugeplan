@@ -86,7 +86,7 @@ const TopNavbar: React.FC = () => {
       // Fuld page reload så alle contexts starter forfra
       window.location.href = '/login';
     } catch (error) {
-      console.error('Logout error:', error);
+      if (import.meta.env.DEV) console.error('Logout error:', error);
       toast({
         title: t('common.error'),
         description: t('auth.logoutFailed'),

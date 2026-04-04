@@ -30,7 +30,7 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setCurrentLanguage(savedLanguage);
       }
     } catch (error) {
-      console.warn('Failed to load language preference:', error);
+      if (import.meta.env.DEV) console.warn('Failed to load language preference:', error);
     }
     setIsInitialized(true);
   }, []);
@@ -46,13 +46,13 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       // Provide fallback if not initialized yet
       if (!isInitialized && process.env.NODE_ENV === 'development') {
-        console.warn(`Translation called before initialization: ${key}`);
+        if (import.meta.env.DEV) console.warn(`Translation called before initialization: ${key}`);
       }
       
       // Debug: Log translation lookup for employee status keys
       if (key.includes('employees.status') && process.env.NODE_ENV === 'development') {
-        console.log(`[Translation Debug] Looking up key: ${key} for language: ${currentLanguage}`);
-        console.log(`[Translation Debug] Available translations:`, translations[currentLanguage]);
+        if (import.meta.env.DEV) console.log(`[Translation Debug] Looking up key: ${key} for language: ${currentLanguage}`);
+        if (import.meta.env.DEV) console.log(`[Translation Debug] Available translations:`, translations[currentLanguage]);
       }
       
       // Use the imported translations object
@@ -68,7 +68,7 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         } else {
           // IMPROVED: Add development warnings for missing keys
           if (process.env.NODE_ENV === 'development') {
-            console.warn(`Translation key "${key}" not found for language "${currentLanguage}"`);
+            if (import.meta.env.DEV) console.warn(`Translation key "${key}" not found for language "${currentLanguage}"`);
           }
           return key;
         }
@@ -88,7 +88,7 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
               if (typeof value !== 'undefined' && value !== null) {
                 result = result.replace(new RegExp(placeholder, 'g'), String(value));
               } else if (process.env.NODE_ENV === 'development') {
-                console.warn(`Parameter "${paramKey}" is undefined for translation key "${key}"`);
+                if (import.meta.env.DEV) console.warn(`Parameter "${paramKey}" is undefined for translation key "${key}"`);
               }
             }
           }
@@ -99,13 +99,13 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       // IMPROVED: Better fallback handling
       if (process.env.NODE_ENV === 'development') {
-        console.warn(`Translation key "${key}" exists but is not a string for language "${currentLanguage}"`);
+        if (import.meta.env.DEV) console.warn(`Translation key "${key}" exists but is not a string for language "${currentLanguage}"`);
       }
       return key;
     } catch (error) {
       // IMPROVED: Better error logging in development
       if (process.env.NODE_ENV === 'development') {
-        console.error(`Error processing translation key "${key}":`, error);
+        if (import.meta.env.DEV) console.error(`Error processing translation key "${key}":`, error);
       }
       return key;
     }

@@ -16,7 +16,7 @@ export const useDemoTracking = () => {
         if (import.meta.env.DEV) console.log('[Demo] Running TTL cleanup via RPC');
         await supabase.rpc('cleanup_demo_data_ttl' as any);
       } catch (err) {
-        console.error('[Demo] TTL cleanup failed:', err);
+        if (import.meta.env.DEV) console.error('[Demo] TTL cleanup failed:', err);
       }
     };
     
@@ -29,7 +29,7 @@ export const useDemoTracking = () => {
       const { error } = await supabase.rpc('reset_demo_data' as any);
       if (error) throw error;
     } catch (err) {
-      console.error('[Demo] Manual cleanup failed:', err);
+      if (import.meta.env.DEV) console.error('[Demo] Manual cleanup failed:', err);
     }
   };
 

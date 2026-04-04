@@ -121,7 +121,7 @@ export const useDashboardMetrics = () => {
           return assignmentDate === todayStr;
         });
 
-        console.log('[useDashboardMetrics] COMPREHENSIVE METRICS DEBUG', {
+        if (import.meta.env.DEV) console.log('[useDashboardMetrics] COMPREHENSIVE METRICS DEBUG', {
           raw_data: {
             total_employees: safeEmployees.length,
             active_employees: totalEmployees,
@@ -162,7 +162,7 @@ export const useDashboardMetrics = () => {
         }
       };
     } catch (err) {
-      console.error('[useDashboardMetrics] Error computing metrics:', err);
+      if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
   }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr]);

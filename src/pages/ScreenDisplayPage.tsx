@@ -26,7 +26,7 @@ const ScreenDisplayPage: React.FC = () => {
         if (import.meta.env.DEV) console.log('[ScreenDisplayPage] PARSED DATE:', format(parsedDate, 'yyyy-MM-dd'));
         return parsedDate;
       } catch (error) {
-        console.error('[ScreenDisplayPage] Error parsing date from URL:', dateParam, error);
+        if (import.meta.env.DEV) console.error('[ScreenDisplayPage] Error parsing date from URL:', dateParam, error);
       }
     }
     

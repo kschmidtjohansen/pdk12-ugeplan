@@ -71,5 +71,5 @@ export const logNotification = (notification: NotificationType, prefix: string =
     date: notification.date ? notification.date.toISOString() : 'Invalid Date'
   };
   
-  console.log(`${prefix}Notification:`, safeNotification);
+  if (import.meta.env.DEV) console.log(`${prefix}Notification:`, safeNotification);
 };

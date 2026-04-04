@@ -138,12 +138,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   useEffect(() => {
     if (import.meta.env.DEV) {
       console.log("EmployeeSelector - Current date:", currentDate);
-      console.log("EmployeeSelector - Selected employees:", selectedEmployees);
-      console.log("EmployeeSelector - User role:", user?.role);
-      console.log("EmployeeSelector - Sorted employees count:", sortedEmployees.length);
-      console.log("EmployeeSelector - All assignments:", assignments);
-      console.log("EmployeeSelector - Date for comparison:", dateForComparison);
-      console.log("EmployeeSelector - Auto-removed employees:", autoRemovedEmployees);
+      if (import.meta.env.DEV) console.log("EmployeeSelector - Selected employees:", selectedEmployees);
+      if (import.meta.env.DEV) console.log("EmployeeSelector - User role:", user?.role);
+      if (import.meta.env.DEV) console.log("EmployeeSelector - Sorted employees count:", sortedEmployees.length);
+      if (import.meta.env.DEV) console.log("EmployeeSelector - All assignments:", assignments);
+      if (import.meta.env.DEV) console.log("EmployeeSelector - Date for comparison:", dateForComparison);
+      if (import.meta.env.DEV) console.log("EmployeeSelector - Auto-removed employees:", autoRemovedEmployees);
     }
   }, [currentDate, selectedEmployees, assignments, user?.role, sortedEmployees.length, dateForComparison, autoRemovedEmployees]);
 

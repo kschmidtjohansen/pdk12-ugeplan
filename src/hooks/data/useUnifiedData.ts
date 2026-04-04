@@ -76,7 +76,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
       setError(errorMessage);
-      console.error('[useUnifiedData] Error:', err);
+      if (import.meta.env.DEV) console.error('[useUnifiedData] Error:', err);
     } finally {
       setLoading(false);
     }

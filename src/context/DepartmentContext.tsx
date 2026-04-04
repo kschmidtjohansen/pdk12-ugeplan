@@ -92,7 +92,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
           .order('name');
 
         if (error) {
-          console.error('[DepartmentContext] Failed to fetch departments:', error);
+          if (import.meta.env.DEV) console.error('[DepartmentContext] Failed to fetch departments:', error);
         } else {
           setDepartments((data || []).map(d => ({
             id: d.id,
@@ -105,7 +105,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
           })));
         }
       } catch (err) {
-        console.error('[DepartmentContext] Error fetching departments:', err);
+        if (import.meta.env.DEV) console.error('[DepartmentContext] Error fetching departments:', err);
       }
     };
 
@@ -190,7 +190,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
           }
         }
       } catch (err) {
-        console.error('[DepartmentContext] Error fetching user departments:', err);
+        if (import.meta.env.DEV) console.error('[DepartmentContext] Error fetching user departments:', err);
       } finally {
         setLoading(false);
       }
@@ -272,7 +272,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
           }
         }
       } catch (err) {
-        console.error('[DepartmentContext] Error fetching sub-departments:', err);
+        if (import.meta.env.DEV) console.error('[DepartmentContext] Error fetching sub-departments:', err);
       }
     };
 

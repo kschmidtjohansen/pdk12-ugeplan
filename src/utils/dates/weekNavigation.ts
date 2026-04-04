@@ -6,11 +6,11 @@ import { getISOWeek, getISOWeekYear, lastDayOfYear, getWeek } from "date-fns";
  * Takes into account year boundaries
  */
 export const getPreviousWeekInfo = (weekNumber: number, year: number) => {
-  console.log(`Getting previous week from Week ${weekNumber}/${year}`);
+  if (import.meta.env.DEV) console.log(`Getting previous week from Week ${weekNumber}/${year}`);
   
   if (weekNumber > 1) {
     // Regular case - just decrease week number
-    console.log(`Previous week: ${weekNumber - 1}/${year}`);
+    if (import.meta.env.DEV) console.log(`Previous week: ${weekNumber - 1}/${year}`);
     return {
       week: weekNumber - 1,
       year
@@ -21,7 +21,7 @@ export const getPreviousWeekInfo = (weekNumber: number, year: number) => {
     const prevYearWeek = getISOWeek(prevYearDate);
     const prevYearISOYear = getISOWeekYear(prevYearDate);
     
-    console.log(`Previous week from Week 1, ${year} -> Week ${prevYearWeek}, ${prevYearISOYear}`);
+    if (import.meta.env.DEV) console.log(`Previous week from Week 1, ${year} -> Week ${prevYearWeek}, ${prevYearISOYear}`);
     
     return {
       week: prevYearWeek,
@@ -35,26 +35,26 @@ export const getPreviousWeekInfo = (weekNumber: number, year: number) => {
  * Takes into account year boundaries
  */
 export const getNextWeekInfo = (weekNumber: number, year: number) => {
-  console.log(`Getting next week from Week ${weekNumber}/${year}`);
+  if (import.meta.env.DEV) console.log(`Getting next week from Week ${weekNumber}/${year}`);
   
   // Get the last week number of the current year
   const lastDay = lastDayOfYear(new Date(year, 0, 1));
   const lastWeekOfYear = getISOWeek(lastDay);
   const isoYearOfLastWeek = getISOWeekYear(lastDay);
   
-  console.log(`Last week of ${year} is Week ${lastWeekOfYear} (ISO year: ${isoYearOfLastWeek})`);
+  if (import.meta.env.DEV) console.log(`Last week of ${year} is Week ${lastWeekOfYear} (ISO year: ${isoYearOfLastWeek})`);
   
   // Check if we're at the last week of the year
   if (weekNumber === lastWeekOfYear && isoYearOfLastWeek === year) {
     // We're at the last week of the year, go to first week of next year
-    console.log(`Next week from Week ${weekNumber}, ${year} -> Week 1, ${year + 1}`);
+    if (import.meta.env.DEV) console.log(`Next week from Week ${weekNumber}, ${year} -> Week 1, ${year + 1}`);
     return {
       week: 1,
       year: year + 1
     };
   } else {
     // Regular case - just increase week number
-    console.log(`Next week: ${weekNumber + 1}/${year}`);
+    if (import.meta.env.DEV) console.log(`Next week: ${weekNumber + 1}/${year}`);
     return {
       week: weekNumber + 1,
       year

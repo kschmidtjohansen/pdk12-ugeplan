@@ -22,13 +22,13 @@ export function safeGet<T>(data: any, path: string, defaultValue: T): T {
 // Handle proper error typing for Supabase join queries
 export function handleJoinQueryResult<T>(result: PostgrestSingleResponse<any>, defaultValue: T): T {
   if (result.error) {
-    console.error("Database query error:", result.error);
+    if (import.meta.env.DEV) console.error("Database query error:", result.error);
     return defaultValue;
   }
   
   // The data might be an error object if join relations aren't found
   if (result.data && typeof result.data === 'object' && 'message' in result.data) {
-    console.error("Join relation error:", result.data);
+    if (import.meta.env.DEV) console.error("Join relation error:", result.data);
     return defaultValue;
   }
   

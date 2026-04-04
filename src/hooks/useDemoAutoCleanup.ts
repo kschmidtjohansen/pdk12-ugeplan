@@ -32,7 +32,7 @@ export const useDemoAutoCleanup = () => {
       
       if (import.meta.env.DEV) console.log('[Demo Auto-Cleanup] Cleanup completed:', result);
     } catch (error) {
-      console.error('[Demo Auto-Cleanup] Cleanup failed:', error);
+      if (import.meta.env.DEV) console.error('[Demo Auto-Cleanup] Cleanup failed:', error);
       toast({
         title: "Nulstilling Mislykkedes",
         description: "Kunne ikke nulstille demo data.",

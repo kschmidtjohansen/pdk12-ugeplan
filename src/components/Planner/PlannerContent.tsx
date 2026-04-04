@@ -69,7 +69,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   // Generate dates array for the week
   const weekDateStrings = useMemo(() => {
     if (!weekDates?.start || !weekDates?.end) {
-      console.error("Missing week dates in PlannerContent");
+      if (import.meta.env.DEV) console.error("Missing week dates in PlannerContent");
       return [];
     }
     return getAllWeekDays({
@@ -92,7 +92,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       currentAndFutureDates: string[];
     }>((result, dateStr) => {
       if (typeof dateStr !== 'string') {
-        console.error(`Invalid date string: ${dateStr}`);
+        if (import.meta.env.DEV) console.error(`Invalid date string: ${dateStr}`);
         return result;
       }
       try {
@@ -103,7 +103,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
           result.currentAndFutureDates.push(dateStr);
         }
       } catch (error) {
-        console.error(`Error parsing date: ${dateStr}`, error);
+        if (import.meta.env.DEV) console.error(`Error parsing date: ${dateStr}`, error);
       }
       return result;
     }, { pastDates: [], currentAndFutureDates: [] });

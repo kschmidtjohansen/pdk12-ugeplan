@@ -70,7 +70,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     e.preventDefault();
     if (import.meta.env.DEV) {
       console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
-      console.log('[AssignmentForm] Form data at submission:', formData);
+      if (import.meta.env.DEV) console.log('[AssignmentForm] Form data at submission:', formData);
     }
 
     // Enhanced validation with translated error messages
@@ -129,7 +129,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const handlePublishClick = () => {
     if (import.meta.env.DEV) {
       console.log('[AssignmentForm] Publishing assignment:', currentAssignment?.id);
-      console.log('[AssignmentForm] Current published status:', currentAssignment?.published);
+      if (import.meta.env.DEV) console.log('[AssignmentForm] Current published status:', currentAssignment?.published);
     }
     if (currentAssignment?.id) {
       onPublish(currentAssignment.id);

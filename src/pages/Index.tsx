@@ -32,7 +32,7 @@ const Index = () => {
         sessionStorage.setItem('redirect-attempts', attempts.toString());
         
         if (attempts >= maxAttempts) {
-          console.error('[Index] SESSION EXPIRATION FIX - Redirect loop detected, showing debug info');
+          if (import.meta.env.DEV) console.error('[Index] SESSION EXPIRATION FIX - Redirect loop detected, showing debug info');
           setShowDebugInfo(true);
           return;
         }

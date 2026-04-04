@@ -167,9 +167,9 @@ export const useAssignmentFormState = (
     
     if (import.meta.env.DEV) {
       if (currentAssignment) {
-        console.log("Updating assignment:", updatedAssignment);
+        if (import.meta.env.DEV) console.log("Updating assignment:", updatedAssignment);
       } else {
-        console.log("Creating new assignment:", updatedAssignment);
+        if (import.meta.env.DEV) console.log("Creating new assignment:", updatedAssignment);
       }
     }
     

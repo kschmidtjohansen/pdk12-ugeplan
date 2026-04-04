@@ -22,7 +22,7 @@ export const useNotificationActions = (
         .eq('id', notificationId);
       
       if (error) {
-        console.error('Error marking notification as read:', error);
+        if (import.meta.env.DEV) console.error('Error marking notification as read:', error);
         throw error;
       }
       
@@ -39,7 +39,7 @@ export const useNotificationActions = (
       setUnreadCount((prev: number) => Math.max(0, prev - 1));
       
     } catch (err) {
-      console.error('Error marking notification as read:', err);
+      if (import.meta.env.DEV) console.error('Error marking notification as read:', err);
     }
   }, [user, setNotifications, setUnreadCount]);
   
@@ -57,7 +57,7 @@ export const useNotificationActions = (
         .eq('read', false);
       
       if (error) {
-        console.error('Error marking all notifications as read:', error);
+        if (import.meta.env.DEV) console.error('Error marking all notifications as read:', error);
         throw error;
       }
       
@@ -70,7 +70,7 @@ export const useNotificationActions = (
       setUnreadCount(0);
       
     } catch (err) {
-      console.error('Error marking all notifications as read:', err);
+      if (import.meta.env.DEV) console.error('Error marking all notifications as read:', err);
     }
   }, [user, setNotifications, setUnreadCount]);
   
@@ -87,7 +87,7 @@ export const useNotificationActions = (
         .eq('id', notificationId);
       
       if (error) {
-        console.error('Error deleting notification:', error);
+        if (import.meta.env.DEV) console.error('Error deleting notification:', error);
         throw error;
       }
       
@@ -103,7 +103,7 @@ export const useNotificationActions = (
       }
       
     } catch (err) {
-      console.error('Error deleting notification:', err);
+      if (import.meta.env.DEV) console.error('Error deleting notification:', err);
     }
   }, [user, notifications, setNotifications, setUnreadCount]);
 
@@ -120,7 +120,7 @@ export const useNotificationActions = (
         .eq('user_id', user.id);
       
       if (error) {
-        console.error('Error deleting all notifications:', error);
+        if (import.meta.env.DEV) console.error('Error deleting all notifications:', error);
         throw error;
       }
       
@@ -131,7 +131,7 @@ export const useNotificationActions = (
       setUnreadCount(0);
       
     } catch (err) {
-      console.error('Error deleting all notifications:', err);
+      if (import.meta.env.DEV) console.error('Error deleting all notifications:', err);
     }
   }, [user, setNotifications, setUnreadCount]);
 

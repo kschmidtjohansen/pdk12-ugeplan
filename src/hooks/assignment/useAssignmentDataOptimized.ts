@@ -95,7 +95,7 @@ export const useAssignmentDataOptimized = () => {
       setAssignments(transformedAssignments);
       
     } catch (err) {
-      console.error('[useAssignmentDataOptimized] ENHANCED - Error:', err);
+      if (import.meta.env.DEV) console.error('[useAssignmentDataOptimized] ENHANCED - Error:', err);
       
       const serializedError = enhancedErrorHandler.serializeError(err);
       const category = enhancedErrorHandler.categorizeError(serializedError);

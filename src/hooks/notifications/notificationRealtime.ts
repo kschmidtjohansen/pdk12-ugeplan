@@ -15,7 +15,7 @@ const getShownNotificationIds = (): Set<string> => {
     const stored = localStorage.getItem(NOTIFICATION_HISTORY_KEY);
     return stored ? new Set(JSON.parse(stored)) : new Set();
   } catch (err) {
-    console.error("Error reading notification history from localStorage:", err);
+    if (import.meta.env.DEV) console.error("Error reading notification history from localStorage:", err);
     return new Set();
   }
 };
@@ -27,7 +27,7 @@ const saveShownNotificationId = (id: string): void => {
     shownIds.add(id);
     localStorage.setItem(NOTIFICATION_HISTORY_KEY, JSON.stringify(Array.from(shownIds)));
   } catch (err) {
-    console.error("Error saving notification history to localStorage:", err);
+    if (import.meta.env.DEV) console.error("Error saving notification history to localStorage:", err);
   }
 };
 
@@ -45,7 +45,7 @@ const setActiveChannel = (channelId: string): void => {
   try {
     localStorage.setItem(NOTIFICATION_CHANNEL_KEY, channelId);
   } catch (err) {
-    console.error("Error saving notification channel to localStorage:", err);
+    if (import.meta.env.DEV) console.error("Error saving notification channel to localStorage:", err);
   }
 };
 
@@ -54,7 +54,7 @@ const clearActiveChannel = (): void => {
   try {
     localStorage.removeItem(NOTIFICATION_CHANNEL_KEY);
   } catch (err) {
-    console.error("Error removing notification channel from localStorage:", err);
+    if (import.meta.env.DEV) console.error("Error removing notification channel from localStorage:", err);
   }
 };
 

@@ -37,7 +37,7 @@ export const useDiagnostics = () => {
     const results: DiagnosticResult[] = [];
 
     try {
-      console.log('[useDiagnostics] Starting comprehensive diagnostics...');
+      if (import.meta.env.DEV) console.log('[useDiagnostics] Starting comprehensive diagnostics...');
 
       // Test 1: Database Connectivity
       try {
@@ -204,10 +204,10 @@ export const useDiagnostics = () => {
         lastRun: new Date()
       });
 
-      console.log('[useDiagnostics] Diagnostics completed:', { totalIssues, criticalIssues, warningIssues });
+      if (import.meta.env.DEV) console.log('[useDiagnostics] Diagnostics completed:', { totalIssues, criticalIssues, warningIssues });
 
     } catch (error) {
-      console.error('[useDiagnostics] Diagnostic run failed:', error);
+      if (import.meta.env.DEV) console.error('[useDiagnostics] Diagnostic run failed:', error);
       setDiagnostics(prev => ({
         ...prev,
         isLoading: false,

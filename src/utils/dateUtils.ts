@@ -16,7 +16,7 @@ export const parseYYYYMMDD = (dateStr: string): Date | null => {
     const date = parse(dateStr, 'yyyy-MM-dd', new Date());
     return isValid(date) ? date : null;
   } catch (e) {
-    console.error('Error parsing date:', e);
+    if (import.meta.env.DEV) console.error('Error parsing date:', e);
     return null;
   }
 };
@@ -29,7 +29,7 @@ export const formatDateForDisplay = (date: Date | string | null): string => {
     const dateObj = typeof date === 'string' ? parseISO(date) : date;
     return isValid(dateObj) ? format(dateObj, 'dd/MM/yyyy') : '';
   } catch (e) {
-    console.error('Error formatting date:', e);
+    if (import.meta.env.DEV) console.error('Error formatting date:', e);
     return '';
   }
 };
@@ -65,7 +65,7 @@ export const formatDateRangeWithWeeks = (
       return `${startFormatted} (${weekLabel} ${startWeek}) - ${endFormatted} (${weekLabel} ${endWeek})`;
     }
   } catch (e) {
-    console.error('Error formatting date range with weeks:', e);
+    if (import.meta.env.DEV) console.error('Error formatting date range with weeks:', e);
     return `${startDate} - ${endDate}`;
   }
 };
@@ -81,7 +81,7 @@ export const daysBetween = (startDate: Date | string, endDate: Date | string): n
     // Add 1 to include both start and end days
     return differenceInDays(end, start) + 1;
   } catch (e) {
-    console.error('Error calculating days between:', e);
+    if (import.meta.env.DEV) console.error('Error calculating days between:', e);
     return 0;
   }
 };
@@ -92,7 +92,7 @@ export const isWeekendDay = (date: Date | string): boolean => {
     const dateObj = typeof date === 'string' ? parseISO(date) : date;
     return isValid(dateObj) ? isWeekend(dateObj) : false;
   } catch (e) {
-    console.error('Error checking weekend:', e);
+    if (import.meta.env.DEV) console.error('Error checking weekend:', e);
     return false;
   }
 };
@@ -104,7 +104,7 @@ export const isFriday = (date: Date | string): boolean => {
     // Friday is day 5 in JavaScript's getDay (0 = Sunday, 1 = Monday, ..., 5 = Friday)
     return isValid(dateObj) ? getDay(dateObj) === 5 : false;
   } catch (e) {
-    console.error('Error checking if date is Friday:', e);
+    if (import.meta.env.DEV) console.error('Error checking if date is Friday:', e);
     return false;
   }
 };
@@ -120,7 +120,7 @@ export const getDefaultEndTime = (date: Date | string | null): string => {
     // If it's Friday, return 15:30, otherwise return 16:00
     return isFriday(dateObj) ? '15:30' : '16:00';
   } catch (e) {
-    console.error('Error getting default end time:', e);
+    if (import.meta.env.DEV) console.error('Error getting default end time:', e);
     return '16:00';
   }
 };
@@ -162,7 +162,7 @@ export const formatDateWithCapital = (dateString: string, language: string = 'en
       return format(date, 'EEEE, d MMMM', { locale });
     }
   } catch (e) {
-    console.error('Error formatting date with capital:', e);
+    if (import.meta.env.DEV) console.error('Error formatting date with capital:', e);
     return dateString;
   }
 };
@@ -182,7 +182,7 @@ export const getDateStatus = (dateString: string): 'past' | 'today' | 'future' =
     if (date.getTime() === today.getTime()) return 'today';
     return 'future';
   } catch (e) {
-    console.error('Error getting date status:', e);
+    if (import.meta.env.DEV) console.error('Error getting date status:', e);
     return 'past'; // Default to past on error
   }
 };

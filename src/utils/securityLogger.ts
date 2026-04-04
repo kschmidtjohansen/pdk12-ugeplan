@@ -24,14 +24,14 @@ export const logSecurityEvent = async (
     });
 
     if (error) {
-      console.error('[SecurityLogger] Failed to log security event:', error);
+      if (import.meta.env.DEV) console.error('[SecurityLogger] Failed to log security event:', error);
       // Fallback: log to console if database logging fails
-      console.log(`[SecurityEvent] ${eventType}: ${message}`, details);
+      if (import.meta.env.DEV) console.log(`[SecurityEvent] ${eventType}: ${message}`, details);
     }
   } catch (err) {
-    console.error('[SecurityLogger] Security logging error:', err);
+    if (import.meta.env.DEV) console.error('[SecurityLogger] Security logging error:', err);
     // Always ensure security events are visible in development
-    console.log(`[SecurityEvent] ${eventType}: ${message}`, details);
+    if (import.meta.env.DEV) console.log(`[SecurityEvent] ${eventType}: ${message}`, details);
   }
 };
 

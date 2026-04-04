@@ -27,7 +27,7 @@ export const useVacationNotifications = (
         .eq('department_id', selectedDepartmentId);
         
       if (error) {
-        console.error('Error fetching pending vacations:', error);
+        if (import.meta.env.DEV) console.error('Error fetching pending vacations:', error);
         return;
       }
       
@@ -42,7 +42,7 @@ export const useVacationNotifications = (
         .in('id', userIds);
         
       if (profilesError) {
-        console.error('Error fetching employee profiles:', profilesError);
+        if (import.meta.env.DEV) console.error('Error fetching employee profiles:', profilesError);
       }
       
       const profileNameMap = new Map();
@@ -60,7 +60,7 @@ export const useVacationNotifications = (
         .eq('read', false);
         
       if (notifError) {
-        console.error('Error checking existing notifications:', notifError);
+        if (import.meta.env.DEV) console.error('Error checking existing notifications:', notifError);
         return;
       }
       
@@ -92,12 +92,12 @@ export const useVacationNotifications = (
               link: '/vacation'
             });
           } catch (notifErr) {
-            console.error('Error creating notification for pending request:', notifErr);
+            if (import.meta.env.DEV) console.error('Error creating notification for pending request:', notifErr);
           }
         }
       }
     } catch (err) {
-      console.error('Error checking for pending vacation requests:', err);
+      if (import.meta.env.DEV) console.error('Error checking for pending vacation requests:', err);
     }
   }, [user, t, currentLanguage, addNotification, selectedDepartmentId]);
 
@@ -122,7 +122,7 @@ export const useVacationNotifications = (
         .gte('end_date', format(weekStart, 'yyyy-MM-dd'));
 
       if (vacError) {
-        console.error('Error fetching approved vacations for coverage check:', vacError);
+        if (import.meta.env.DEV) console.error('Error fetching approved vacations for coverage check:', vacError);
         return;
       }
 
@@ -133,7 +133,7 @@ export const useVacationNotifications = (
         .eq('role', 'servicemedarbejder');
 
       if (rolesError) {
-        console.error('Error fetching service roles:', rolesError);
+        if (import.meta.env.DEV) console.error('Error fetching service roles:', rolesError);
         return;
       }
 
@@ -148,7 +148,7 @@ export const useVacationNotifications = (
         .in('user_id', serviceUserIds);
 
       if (accessError) {
-        console.error('Error fetching user access:', accessError);
+        if (import.meta.env.DEV) console.error('Error fetching user access:', accessError);
         return;
       }
 
@@ -163,7 +163,7 @@ export const useVacationNotifications = (
         .eq('status', 'active');
 
       if (profileError) {
-        console.error('Error fetching active profiles:', profileError);
+        if (import.meta.env.DEV) console.error('Error fetching active profiles:', profileError);
         return;
       }
 
@@ -179,7 +179,7 @@ export const useVacationNotifications = (
         .eq('read', false);
 
       if (existNotifError) {
-        console.error('Error checking existing high-coverage notifications:', existNotifError);
+        if (import.meta.env.DEV) console.error('Error checking existing high-coverage notifications:', existNotifError);
         return;
       }
 
@@ -229,13 +229,13 @@ export const useVacationNotifications = (
                 link: '/admin'
               });
             } catch (err) {
-              console.error('Error creating high vacation coverage notification:', err);
+              if (import.meta.env.DEV) console.error('Error creating high vacation coverage notification:', err);
             }
           }
         }
       }
     } catch (err) {
-      console.error('Error in checkHighVacationWeeks:', err);
+      if (import.meta.env.DEV) console.error('Error in checkHighVacationWeeks:', err);
     }
   }, [user, t, currentLanguage, addNotification, selectedDepartmentId]);
 

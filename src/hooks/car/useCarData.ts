@@ -123,7 +123,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
           });
         
         if (insertError) {
-          console.error('[useCarData] Demo DB insert failed:', insertError);
+          if (import.meta.env.DEV) console.error('[useCarData] Demo DB insert failed:', insertError);
           toast({ title: t('common.error'), description: String(insertError.message), variant: 'destructive' });
           return false;
         }
@@ -159,7 +159,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       toast({ title: t('cars.vehicleAdded'), description: t('cars.vehicleAddedMsg', { name: carData.name }) });
       return true;
     } catch (err) {
-      console.error('[useCarData] Error creating car:', err);
+      if (import.meta.env.DEV) console.error('[useCarData] Error creating car:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create car';
       if (errorMessage.includes('logged in') || errorMessage.includes('Authentication required')) {
         toast({ title: t('auth.authenticationRequired'), description: t('auth.authenticationRequiredDescription'), variant: 'destructive' });

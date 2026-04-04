@@ -10,7 +10,7 @@ export const formatWeekDateRange = (weekDates: { start: Date; end: Date }, local
   try {
     if (import.meta.env.DEV) {
       console.log(`formatWeekDateRange - Start: ${format(weekDates.start, 'yyyy-MM-dd')} (${format(weekDates.start, 'EEEE')}) - Day: ${weekDates.start.getDay()}`);
-      console.log(`formatWeekDateRange - End: ${format(weekDates.end, 'yyyy-MM-dd')} (${format(weekDates.end, 'EEEE')}) - Day: ${weekDates.end.getDay()}`);
+      if (import.meta.env.DEV) console.log(`formatWeekDateRange - End: ${format(weekDates.end, 'yyyy-MM-dd')} (${format(weekDates.end, 'EEEE')}) - Day: ${weekDates.end.getDay()}`);
     }
     
     if (weekDates.start.getDay() !== 1) {
