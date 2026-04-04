@@ -63,6 +63,7 @@ export const useAssignmentActions = (
       
       const dates = (assignmentData as any).dates || [assignmentData.date];
       const isMultiDate = dates.length > 1;
+      const groupId = isMultiDate ? crypto.randomUUID() : null;
       
       if (import.meta.env.DEV) console.log("[useAssignmentActions] Multi-date creation:", { isMultiDate, dateCount: dates.length, dates });
       
