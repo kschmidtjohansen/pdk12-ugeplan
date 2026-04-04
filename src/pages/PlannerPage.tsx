@@ -429,7 +429,7 @@ const PlannerPage: React.FC = () => {
   
   if (error) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-red-600 mb-2">{t('common.error')}</h2>
           <p className="text-muted-foreground">{typeof error === 'string' ? error : 'An error occurred'}</p>
