@@ -83,7 +83,7 @@ function renderChangeSummary(details: any, t: any): React.ReactNode {
               <span className="font-medium">{label}:</span>{' '}
               {value.added?.length > 0 && <span className="text-destructive/70">+{value.added.join(', ')}</span>}
               {value.added?.length > 0 && value.removed?.length > 0 && ' / '}
-              {value.removed?.length > 0 && <span className="text-red-600">-{value.removed.join(', ')}</span>}
+              {value.removed?.length > 0 && <span className="text-destructive">-{value.removed.join(', ')}</span>}
             </li>
           );
         }
