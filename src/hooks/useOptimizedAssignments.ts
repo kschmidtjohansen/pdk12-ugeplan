@@ -26,6 +26,8 @@ interface UseOptimizedAssignmentsResult {
   createAssignment: (data: Partial<Assignment>) => Promise<void>;
   updateAssignment: (id: string, data: Partial<Assignment>) => Promise<void>;
   deleteAssignment: (id: string) => Promise<void>;
+  deleteAssignmentsByGroupId: (groupId: string) => Promise<void>;
+  detachFromGroup: (id: string) => Promise<boolean>;
   publishAssignment: (id: string) => Promise<void>;
   publishAssignmentsByDate: (date: string) => Promise<void>;
   setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
@@ -553,6 +555,60 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     }
   }, [toast, t, refetch, setAssignments, assignments, user]);
 
+  // Delete all assignments sharing a group_id
+  const deleteAssignmentsByGroupId = useCallback(async (groupId: string) => {
+    try {
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Deleting series with group_id:', groupId);
+
+      // Optimistic: remove all matching assignments
+      const idsToRemove = assignments.filter(a => a.groupId === groupId).map(a => a.id);
+      setAssignments(prev => prev.filter(a => a.groupId !== groupId));
+
+      // Delete employee links for each assignment
+      for (const assignmentId of idsToRemove) {
+        await supabase.from('assignments_employees').delete().eq('assignment_id', assignmentId);
+      }
+
+      // Delete all assignments in the group
+      const { error } = await supabase.from('assignments').delete().eq('group_id', groupId);
+      if (error) throw error;
+
+      toast({
+        title: t('planner.assignmentDeleted'),
+        description: t('planner.series.seriesDeleted'),
+      });
+
+      OptimizedAssignmentService.clearCache();
+      await refetch();
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Series delete failed:', error);
+      await refetch();
+      toast({ title: t('common.error'), description: t('planner.errorDeletingAssignment'), variant: "destructive" });
+    }
+  }, [toast, t, refetch, setAssignments, assignments]);
+
+  // Detach a single assignment from its group
+  const detachFromGroup = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Detaching from group:', id);
+
+      const { error } = await supabase
+        .from('assignments')
+        .update({ group_id: null, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update local state
+      setAssignments(prev => prev.map(a => a.id === id ? { ...a, groupId: undefined } : a));
+      OptimizedAssignmentService.clearCache();
+      return true;
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Detach failed:', error);
+      return false;
+    }
+  }, [setAssignments]);
+
   return {
     assignments,
     loading: isLoading,
@@ -562,6 +618,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     createAssignment,
     updateAssignment,
     deleteAssignment,
+    deleteAssignmentsByGroupId,
+    detachFromGroup,
     publishAssignment,
     publishAssignmentsByDate,
     setAssignments

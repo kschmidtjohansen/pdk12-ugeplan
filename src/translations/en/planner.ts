@@ -237,6 +237,17 @@ const planner = {
     timeOrderRequired: 'Start time must be before end time'
   },
 
+  // Series actions
+  series: {
+    editTitle: 'Edit series assignment',
+    editDescription: 'This assignment is part of a multi-day series. Do you want to edit only this day or the entire series?',
+    deleteTitle: 'Delete series assignment',
+    deleteDescription: 'This assignment is part of a multi-day series. Do you want to delete only this day or the entire series?',
+    onlyThisDay: 'Only this day',
+    entireSeries: 'Entire series',
+    seriesDeleted: 'The entire assignment series has been deleted',
+  },
+
   // Employee conflict check
   conflicts: {
     title: 'Conflicts Found',

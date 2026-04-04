@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
+import SeriesActionDialog from '../components/Planner/SeriesActionDialog';
 import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
@@ -50,6 +51,8 @@ const PlannerPage: React.FC = () => {
     createAssignment,
     updateAssignment,
     deleteAssignment,
+    deleteAssignmentsByGroupId,
+    detachFromGroup,
     publishAssignment,
     publishAssignmentsByDate
   } = useOptimizedAssignments('all');
@@ -115,6 +118,7 @@ const PlannerPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
+  const [seriesAction, setSeriesAction] = useState<{ assignment: Assignment; mode: 'edit' | 'delete' } | null>(null);
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
     description: '',
@@ -220,7 +224,7 @@ const PlannerPage: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const handleOpenEditDialog = (assignment: Assignment) => {
+  const openEditDialogDirect = (assignment: Assignment) => {
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     setFormData({
@@ -230,6 +234,14 @@ const PlannerPage: React.FC = () => {
       published: assignment.published
     });
     setIsDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (assignment: Assignment) => {
+    if (assignment.groupId) {
+      setSeriesAction({ assignment, mode: 'edit' });
+    } else {
+      openEditDialogDirect(assignment);
+    }
   };
 
   const handleSubmit = async (data: Partial<Assignment>) => {
@@ -305,8 +317,41 @@ const PlannerPage: React.FC = () => {
   }, [publishAssignmentsByDate]);
 
   const handleDeleteAssignment = useCallback(async (id: string) => {
-    await deleteAssignment(id);
-  }, [deleteAssignment]);
+    const assignment = assignments.find(a => a.id === id);
+    if (assignment?.groupId) {
+      setSeriesAction({ assignment, mode: 'delete' });
+    } else {
+      await deleteAssignment(id);
+    }
+  }, [deleteAssignment, assignments]);
+
+  // Series action handlers
+  const handleSeriesSingleDay = useCallback(async () => {
+    if (!seriesAction) return;
+    const { assignment, mode } = seriesAction;
+    setSeriesAction(null);
+
+    if (mode === 'delete') {
+      await deleteAssignment(assignment.id);
+    } else {
+      // Detach from group then open edit dialog
+      await detachFromGroup(assignment.id);
+      openEditDialogDirect({ ...assignment, groupId: undefined });
+    }
+  }, [seriesAction, deleteAssignment, detachFromGroup]);
+
+  const handleSeriesEntireSeries = useCallback(async () => {
+    if (!seriesAction) return;
+    const { assignment, mode } = seriesAction;
+    setSeriesAction(null);
+
+    if (mode === 'delete') {
+      await deleteAssignmentsByGroupId(assignment.groupId!);
+    } else {
+      // Open edit dialog for the clicked assignment (series link preserved)
+      openEditDialogDirect(assignment);
+    }
+  }, [seriesAction, deleteAssignmentsByGroupId]);
 
   const handlePublishAssignment = useCallback(async (id: string) => {
     await publishAssignment(id);
@@ -570,6 +615,15 @@ const PlannerPage: React.FC = () => {
           vacations={vacations} 
           assignments={sortedWeekAssignments} 
           onEmployeeToggle={handleEmployeeToggle} 
+        />
+
+        {/* Series Action Dialog */}
+        <SeriesActionDialog
+          open={!!seriesAction}
+          onOpenChange={(open) => { if (!open) setSeriesAction(null); }}
+          mode={seriesAction?.mode || 'edit'}
+          onSingleDay={handleSeriesSingleDay}
+          onEntireSeries={handleSeriesEntireSeries}
         />
       </div>
     </div>

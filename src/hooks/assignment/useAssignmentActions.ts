@@ -544,10 +544,87 @@ export const useAssignmentActions = (
     }
   }, [toast, t, refetch, user?.email, isDemoMode]);
 
+  // Delete all assignments sharing a group_id
+  const deleteAssignmentsByGroupId = useCallback(async (groupId: string) => {
+    try {
+      if (import.meta.env.DEV) console.log('[useAssignmentActions] Deleting series with group_id:', groupId);
+
+      const client = getSchemaClient(isDemoMode);
+
+      // First get all assignment IDs in the group
+      const { data: groupAssignments, error: fetchError } = await client
+        .from('assignments')
+        .select('id')
+        .eq('group_id', groupId);
+
+      if (fetchError) throw fetchError;
+
+      if (groupAssignments && groupAssignments.length > 0) {
+        const ids = groupAssignments.map(a => a.id);
+
+        // Delete employee links
+        for (const assignmentId of ids) {
+          await client
+            .from('assignments_employees')
+            .delete()
+            .eq('assignment_id', assignmentId);
+        }
+
+        // Delete the assignments
+        const { error: deleteError } = await client
+          .from('assignments')
+          .delete()
+          .eq('group_id', groupId);
+
+        if (deleteError) throw deleteError;
+      }
+
+      toast({
+        title: t('planner.assignmentDeleted'),
+        description: t('planner.series.seriesDeleted'),
+      });
+
+      enhancedDataFetching.clearCache('assignments');
+      await refetch();
+      return true;
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error deleting assignment series:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.errorDeletingAssignment'),
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [toast, t, refetch, isDemoMode]);
+
+  // Detach a single assignment from its group (set group_id to null)
+  const detachFromGroup = useCallback(async (id: string) => {
+    try {
+      if (import.meta.env.DEV) console.log('[useAssignmentActions] Detaching assignment from group:', id);
+
+      const client = getSchemaClient(isDemoMode);
+      const { error } = await client
+        .from('assignments')
+        .update({ group_id: null, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      enhancedDataFetching.clearCache('assignments');
+      return true;
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error detaching assignment from group:', error);
+      return false;
+    }
+  }, [isDemoMode]);
+
   return {
     createAssignment,
     updateAssignment,
     deleteAssignment,
+    deleteAssignmentsByGroupId,
+    detachFromGroup,
     publishAssignment,
     publishAssignmentsByDate
   };

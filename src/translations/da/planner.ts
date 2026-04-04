@@ -351,6 +351,17 @@ const planner = {
     timeOrderRequired: 'Starttid skal være før sluttid'
   },
 
+  // Series actions
+  series: {
+    editTitle: 'Rediger serieopgave',
+    editDescription: 'Denne opgave er del af en serie over flere dage. Vil du redigere kun denne dag eller hele serien?',
+    deleteTitle: 'Slet serieopgave',
+    deleteDescription: 'Denne opgave er del af en serie over flere dage. Vil du slette kun denne dag eller hele serien?',
+    onlyThisDay: 'Kun denne dag',
+    entireSeries: 'Hele serien',
+    seriesDeleted: 'Hele opgaveserien er blevet slettet',
+  },
+
   // Employee conflict check
   conflicts: {
     title: 'Konflikter fundet',
