@@ -176,6 +176,7 @@ const planner = {
   available: 'Available',
   bookedUntil: 'Booked until {time}',
   carNotAvailable: 'Not available',
+  partiallyBooked: 'Partially booked',
   
   // Employee-related translations
   onVacation: 'On Vacation',

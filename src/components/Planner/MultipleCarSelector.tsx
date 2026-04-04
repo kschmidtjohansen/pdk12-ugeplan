@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
@@ -9,6 +9,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Car as CarType } from '../../types/car';
 import { Assignment } from '../../types/assignment';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { format } from 'date-fns';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+type CarAvailability = 'full' | 'partial' | 'none';
+
 interface MultipleCarSelectorProps {
   cars: CarType[];
   selectedCarIds: string[];
@@ -27,6 +30,7 @@ interface MultipleCarSelectorProps {
   currentDate: string;
   assignments?: Assignment[];
   currentAssignmentId?: string;
+  allSelectedDates?: Date[];
 }
 
 const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
@@ -35,49 +39,72 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   onCarToggle,
   currentDate,
   assignments = [],
-  currentAssignmentId
+  currentAssignmentId,
+  allSelectedDates = []
 }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   
-  // State for confirmation dialog
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     carId: string;
     carName: string;
     conflictingAssignments: string[];
-    endTime?: string;
+    conflictDates?: string[];
   } | null>(null);
 
-  const getCarBookingStatus = (carId: string): { isAvailable: boolean; endTime?: string } => {
-    if (!currentDate) return { isAvailable: true };
-    
-    const otherAssignments = currentAssignmentId 
+  // Build list of date strings from allSelectedDates
+  const selectedDateStrings = useMemo(() => {
+    if (allSelectedDates.length > 0) {
+      return allSelectedDates.map(d => format(d, 'yyyy-MM-dd'));
+    }
+    return currentDate ? [currentDate] : [];
+  }, [allSelectedDates, currentDate]);
+
+  // Check if a car is booked on a specific date by other assignments
+  const isCarBookedOnDate = (carId: string, dateStr: string): boolean => {
+    const otherAssignments = currentAssignmentId
       ? assignments.filter(a => a.id !== currentAssignmentId)
       : assignments;
-    
-    const carAssignments = otherAssignments.filter(assignment => {
-      if (assignment.date !== currentDate) return false;
-      const assignmentCarIds = assignment.cars || (assignment.car ? [typeof assignment.car === 'string' ? assignment.car : assignment.car.id] : []);
-      return assignmentCarIds.includes(carId);
+
+    return otherAssignments.some(assignment => {
+      if (assignment.date !== dateStr) return false;
+      const carIds = assignment.cars || (assignment.car ? [typeof assignment.car === 'string' ? assignment.car : assignment.car.id] : []);
+      return carIds.includes(carId);
     });
-    
-    if (carAssignments.length === 0) {
-      return { isAvailable: true };
-    }
-    
-    let latestEndTime = '';
-    carAssignments.forEach(assignment => {
-      if (assignment.toTime > latestEndTime) {
-        latestEndTime = assignment.toTime;
+  };
+
+  // Compute per-car availability across all selected dates
+  const carAvailabilityMap = useMemo(() => {
+    const map = new Map<string, CarAvailability>();
+    if (selectedDateStrings.length === 0) return map;
+
+    for (const car of cars) {
+      if (!car.is_available) {
+        map.set(car.id, 'none');
+        continue;
       }
-    });
-    
-    return { 
-      isAvailable: false, 
-      endTime: latestEndTime ? latestEndTime.substring(0, 5) : undefined
-    };
+      let conflictCount = 0;
+      for (const dateStr of selectedDateStrings) {
+        if (isCarBookedOnDate(car.id, dateStr)) {
+          conflictCount++;
+        }
+      }
+      if (conflictCount === 0) {
+        map.set(car.id, 'full');
+      } else if (conflictCount < selectedDateStrings.length) {
+        map.set(car.id, 'partial');
+      } else {
+        map.set(car.id, 'none');
+      }
+    }
+    return map;
+  }, [cars, selectedDateStrings, assignments, currentAssignmentId]);
+
+  // Get conflict dates for a specific car
+  const getConflictDates = (carId: string): string[] => {
+    return selectedDateStrings.filter(dateStr => isCarBookedOnDate(carId, dateStr));
   };
 
   const selectedCars = cars.filter(car => selectedCarIds.includes(car.id));
@@ -97,19 +124,19 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     if (!car.is_available) return;
     
     const isSelected = selectedCarIds.includes(car.id);
-    
     if (isSelected) {
       onCarToggle(car.id);
       return;
     }
     
-    const bookingStatus = getCarBookingStatus(car.id);
+    const availability = carAvailabilityMap.get(car.id) || 'full';
     
-    if (!bookingStatus.isAvailable) {
-      const conflictingAssignments = assignments
+    if (availability !== 'full') {
+      const conflictDates = getConflictDates(car.id);
+      const conflictingAssignmentNames = assignments
         .filter(a => {
           if (a.id === currentAssignmentId) return false;
-          if (a.date !== currentDate) return false;
+          if (!conflictDates.includes(a.date)) return false;
           const carIds = a.cars || (a.car ? [typeof a.car === 'string' ? a.car : a.car.id] : []);
           return carIds.includes(car.id);
         })
@@ -119,13 +146,33 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         isOpen: true,
         carId: car.id,
         carName: car.name,
-        conflictingAssignments,
-        endTime: bookingStatus.endTime
+        conflictingAssignments: [...new Set(conflictingAssignmentNames)],
+        conflictDates,
       });
       return;
     }
     
     onCarToggle(car.id);
+  };
+
+  const getAvailabilityDot = (availability: CarAvailability) => {
+    switch (availability) {
+      case 'full':
+        return <span className="inline-block w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />;
+      case 'partial':
+        return <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" />;
+      case 'none':
+        return <span className="inline-block w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />;
+    }
+  };
+
+  const getAvailabilityLabel = (car: CarType, availability: CarAvailability): string => {
+    if (!car.is_available) return t('cars.unavailable');
+    switch (availability) {
+      case 'full': return t('cars.available');
+      case 'partial': return t('planner.partiallyBooked');
+      case 'none': return t('planner.carAlreadyInUse');
+    }
   };
 
   const renderCarList = () => (
@@ -136,9 +183,8 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       <div className={isMobile ? "space-y-1 pt-2" : "p-3 space-y-1"}>
         {cars.filter(car => car.show_in_planner !== false).map((car) => {
           const isSelected = selectedCarIds.includes(car.id);
-          const bookingStatus = getCarBookingStatus(car.id);
           const isGenerallyAvailable = car.is_available;
-          const isBookingAvailable = bookingStatus.isAvailable;
+          const availability = carAvailabilityMap.get(car.id) || 'full';
           const canSelect = isGenerallyAvailable;
           
           return (
@@ -160,6 +206,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <Car className="h-4 w-4 flex-shrink-0" />
+                    {isGenerallyAvailable && selectedDateStrings.length > 0 && getAvailabilityDot(availability)}
                     <span className="font-medium truncate">{car.name}</span>
                     {car.car_number && (
                       <span className="text-muted-foreground text-xs">({car.car_number})</span>
@@ -170,11 +217,15 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                       <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                         {t('cars.unavailable')}
                       </Badge>
-                    ) : !isBookingAvailable ? (
-                      <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800">
-                        {bookingStatus.endTime 
-                          ? t('cars.inUse', { time: bookingStatus.endTime })
-                          : t('planner.inUseToday')}
+                    ) : selectedDateStrings.length > 0 ? (
+                      <Badge variant="outline" className={`text-xs ${
+                        availability === 'full'
+                          ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800'
+                          : availability === 'partial'
+                          ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800'
+                          : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800'
+                      }`}>
+                        {getAvailabilityLabel(car, availability)}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
@@ -273,16 +324,22 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
               <div className="space-y-3">
                 <p>
                   <strong>{confirmDialog?.carName}</strong> {t('planner.carAlreadyInUse')}
-                  {confirmDialog?.endTime && ` ${t('planner.until')} ${confirmDialog.endTime}`}
                 </p>
-                <div>
-                  <p className="font-medium text-foreground mb-1">{t('planner.conflictingTasks')}:</p>
-                  <ul className="list-disc list-inside text-sm">
-                    {confirmDialog?.conflictingAssignments.map((task, i) => (
-                      <li key={i}>{task}</li>
-                    ))}
-                  </ul>
-                </div>
+                {confirmDialog?.conflictDates && confirmDialog.conflictDates.length > 0 && (
+                  <div>
+                    <p className="font-medium text-foreground mb-1">{t('planner.conflictingTasks')}:</p>
+                    <ul className="list-disc list-inside text-sm">
+                      {confirmDialog.conflictingAssignments.map((task, i) => (
+                        <li key={i}>{task}</li>
+                      ))}
+                    </ul>
+                    {confirmDialog.conflictDates.length > 1 && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        ({confirmDialog.conflictDates.length} {t('planner.datesSelected', { count: confirmDialog.conflictDates.length })})
+                      </p>
+                    )}
+                  </div>
+                )}
                 <p className="text-foreground">{t('planner.confirmDoubleBooking')}</p>
               </div>
             </AlertDialogDescription>

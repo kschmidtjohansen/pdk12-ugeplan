@@ -355,6 +355,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
           currentDate={currentDateStr}
           assignments={assignments}
           currentAssignmentId={assignmentId}
+          allSelectedDates={selectedDates}
         />
       </div>
 
