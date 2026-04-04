@@ -1,35 +1,50 @@
 
 
-## Plan: Audit Trail Timeline in Booking Edit Dialog
+## Plan: Context Menu Publish + Midnight Auto-Publish
 
-### Problem
-There is no per-booking history view. The `planner_change_log` table already stores CREATE/UPDATE/DELETE/PUBLISH events with `assignment_id`, timestamps, user names, and change details — but this data is not surfaced in the booking modal.
+### 4 requests identified
 
-### Solution
-Add a "Historik" (History) tab to the booking edit dialog that queries `planner_change_log` for the current assignment's ID (and its `group_id` siblings if part of a series) and displays entries as a chronological timeline.
+1. **Test multi-day booking series dialog** — Manual testing task; no code changes needed. The user should right-click or click Edit/Delete on a booking with a `groupId` to verify the `SeriesActionDialog` appears.
 
-### Changes
+2. **Verify context menu works** — Manual testing task; no code changes needed. Right-click a booking card in planner to see Edit/Duplicate/Delete.
+
+3. **Add "Publish" to context menu** — Code change needed.
+
+4. **Auto-publish at midnight (00:00) instead of 16:00** — Code change needed.
+
+---
+
+### Change 1: Add "Publicer" to context menu
 
 | File | Change |
 |------|--------|
-| `src/components/Planner/AssignmentHistoryTab.tsx` | **New.** Fetches `planner_change_log` entries where `assignment_id` matches the current assignment (or any assignment sharing its `group_id`). Renders a vertical timeline with timestamp, operation badge (color-coded), user name, and human-readable change summary. Uses existing Supabase client. |
-| `src/components/Planner/AssignmentDialogManager.tsx` | Wrap `AssignmentForm` + `AssignmentHistoryTab` in a `<Tabs>` component. Show "Detaljer" (Details) tab containing the form, and "Historik" (History) tab containing the timeline. Only show the History tab when editing (i.e. `currentAssignment` is not null). |
-| `src/translations/da/planner.ts` | Add keys: `history.tab`, `history.noEntries`, `history.created`, `history.updated`, `history.deleted`, `history.published`, `history.changedBy`, `history.fieldChanged` |
-| `src/translations/en/planner.ts` | Same keys in English |
-| `CHANGELOG.md` | Document the audit trail feature |
+| `src/components/Planner/AssignmentCard.tsx` | Add a "Publicer" `ContextMenuItem` (with `Send` icon) after Duplicate, only when `!assignment.published && onPublish && canEdit`. |
+| `src/components/Planner/CompactAssignmentRow.tsx` | Same change. |
+| `src/translations/da/planner.ts` | Add `contextMenu.publish: 'Publicer'` |
+| `src/translations/en/planner.ts` | Add `contextMenu.publish: 'Publish'` |
 
-### AssignmentHistoryTab details
+The menu item calls the existing `onPublish` prop (already available on both components).
 
-**Data fetching:** On mount, query `planner_change_log` filtered by `assignment_id = currentAssignment.id`. If the assignment has a `groupId`, also fetch logs for all sibling assignment IDs (query assignments table for matching `group_id`, then fetch logs for all those IDs). Results ordered by `created_at DESC`.
+### Change 2: Auto-publish at midnight (dagsskifte)
 
-**Timeline rendering:** Each entry renders as:
-- Timestamp (formatted with `date-fns`, locale-aware)
-- Color-coded operation badge (green=CREATE, blue=UPDATE, red=DELETE, orange=PUBLISH)
-- User first name (`changed_by_first_name`)
-- Change summary: parse `change_details.changes` to show field-level diffs (e.g. "Titel: 'A' → 'B'", "Medarbejdere: +Anders, -Marie")
+| File | Change |
+|------|--------|
+| `src/hooks/useAutoPublishAssignments.ts` | Change the publish trigger from 16:00 to **00:00**. At midnight, find all unpublished assignments where `assignment.date` equals **yesterday's date** (the day that just ended) and publish them. This ensures that e.g. Tuesday's assignments get published at midnight Tuesday→Wednesday if they weren't already. |
 
-**UI pattern:** Vertical timeline with a left border line and dots, using Tailwind utilities. Skeleton loading state while fetching. Empty state message when no history exists.
+Logic change:
+```
+// Current: publishes today's assignments at 16:00
+// New: at 00:00, publish previous day's assignments
+const yesterday = format(subDays(now, 1), 'yyyy-MM-dd');
+const unpublished = assignments.filter(a => a.date === yesterday && !a.published);
+```
 
-### No database changes needed
-The `planner_change_log` table already has all required columns (`assignment_id`, `operation`, `changed_by_first_name`, `change_details`, `created_at`) and appropriate RLS policies for admin/skadeleder access.
+### Change 3: Update CHANGELOG.md
+
+Document both changes.
+
+### Testing notes (items 1 & 2)
+These are manual verification tasks — no code changes. The user should:
+- Create a multi-day booking, then try to edit/delete one of the days to see the series dialog
+- Right-click a booking card to see the context menu
 
