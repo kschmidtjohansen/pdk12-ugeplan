@@ -2,6 +2,12 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Added — Serie-bevidst redigering og sletning
+- Ny `SeriesActionDialog` komponent der spørger "Kun denne dag" vs "Hele serien" ved redigering/sletning af flerdags-opgaver
+- `deleteAssignmentsByGroupId` sletter alle opgaver i en serie
+- `detachFromGroup` fjerner en enkelt opgave fra sin serie (sætter `group_id = null`)
+- Oversættelser tilføjet på dansk og engelsk for serie-handlinger
+
 ### Added — group_id til flerdags-opgaver
 - Ny `group_id` (UUID) kolonne i `assignments`-tabellen med partielt indeks
 - Når en opgave oprettes over flere dage, deler alle daglige poster samme `group_id`
