@@ -2,6 +2,15 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Added — Audit Trail / Historik-fane i booking-dialogen
+- Ny `AssignmentHistoryTab` komponent der viser en kronologisk tidslinje over alle ændringer (oprettelse, redigering, sletning, publicering) for en opgave
+- Henter data fra den eksisterende `planner_change_log` tabel — ingen database-ændringer nødvendige
+- Viser farvekodede badges for operationstype, brugerens navn, tidsstempel og feltspecifikke ændringer
+- Inkluderer serie-historik: viser også ændringer fra andre dage i samme serie (`group_id`)
+- Integreret som en "Historik"-fane i booking-redigeringsdialogen med `Tabs`-komponent
+- Kun synlig ved redigering af eksisterende opgaver (ikke ved oprettelse)
+- Oversættelser tilføjet på dansk og engelsk
+
 ### Added — Fortryd-sletning med 5 sekunders grace period
 - Sletning af opgaver (enkelt og serie) fjerner nu fra UI med det samme, men venter 5 sekunder før databasen opdateres
 - Toast-notifikation med "Fortryd"-knap giver brugeren mulighed for at annullere sletningen inden for 5 sekunder

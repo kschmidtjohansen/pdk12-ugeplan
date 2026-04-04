@@ -389,6 +389,17 @@ const planner = {
 
   // Undo
   undo: 'Fortryd',
+
+  // History / Audit trail
+  history: {
+    tab: 'Historik',
+    detailsTab: 'Detaljer',
+    noEntries: 'Ingen historik for denne opgave',
+    create: 'Oprettet',
+    update: 'Opdateret',
+    delete: 'Slettet',
+    publish: 'Publiceret',
+  },
 };
 
 export default planner;
