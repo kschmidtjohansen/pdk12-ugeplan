@@ -27,6 +27,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
 }) => {
   const { t } = useTranslation();
   const { isDemoMode, demoRole, setDemoRole, userDataLoaded } = useAuth();
+  const { userDepartments, selectedDepartmentId, switchDepartment, userSubDepartments, selectedSubDepartmentId, setSelectedSubDepartmentId } = useDepartment();
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
