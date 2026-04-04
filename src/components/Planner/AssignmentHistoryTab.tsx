@@ -116,11 +116,11 @@ const AssignmentHistoryTab: React.FC<AssignmentHistoryTabProps> = ({ assignment 
         // Collect all assignment IDs to query (include series siblings)
         let assignmentIds = [assignment.id];
 
-        if (assignment.group_id) {
+        if (assignment.groupId) {
           const { data: siblings } = await client
             .from('assignments')
             .select('id')
-            .eq('group_id', assignment.group_id);
+            .eq('group_id', assignment.groupId);
 
           if (siblings) {
             assignmentIds = [...new Set([...assignmentIds, ...siblings.map((s: any) => s.id)])];
