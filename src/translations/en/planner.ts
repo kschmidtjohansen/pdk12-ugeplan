@@ -374,6 +374,17 @@ const planner = {
 
   // Undo
   undo: 'Undo',
+
+  // History / Audit trail
+  history: {
+    tab: 'History',
+    detailsTab: 'Details',
+    noEntries: 'No history for this assignment',
+    create: 'Created',
+    update: 'Updated',
+    delete: 'Deleted',
+    publish: 'Published',
+  },
 };
 
 export default planner;
