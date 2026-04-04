@@ -125,7 +125,8 @@ export const useAssignmentActions = (
               city: assignmentData.city || null,
               lat: assignmentData.lat ?? null,
               lng: assignmentData.lng ?? null,
-              ...(isDemoMode && { is_demo: true })
+              ...(isDemoMode && { is_demo: true }),
+              ...(groupId && { group_id: groupId })
             })
             .select('id')
             .single();

@@ -87,6 +87,7 @@ export const convertOptimizedAssignmentToAssignment = (data: OptimizedAssignment
     cars: data.assignment_cars?.map((car: any) => car.name) || [],
     createdAt: data.created_at,
     updatedAt: data.updated_at,
+    groupId: data.group_id || undefined,
     responsibleUser: data.responsible_user ? {
       id: data.responsible_user.id,
       name: data.responsible_user.name
