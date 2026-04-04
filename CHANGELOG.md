@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased] - 2026-04-04
+
+### Fixed — Produktions-audit: Console log guards
+- Alle ~430 uguardede `console.log`/`console.warn`/`console.error` statements er nu wrapped i `import.meta.env.DEV` guards
+- Fjernet inline `console.log` i JSX i `DesktopNavigation.tsx` (blev eksekveret ved hvert render)
+- `MutationCache` error handler i `App.tsx` er nu guarded
+- `process.env.NODE_ENV` erstattet med `import.meta.env.DEV` i `App.tsx`
+- Verbose debug-logging fjernet fra `useAssignmentFilters.ts`, `WeekNavigation.tsx`, `AutoPublishHandler.tsx`
+- ~73 filer opdateret — ingen funktionel ændring, udelukkende produktionsoptimering
+
 ## [Unreleased] - 2026-03-12
 
 ### Fixed — "Uden afdeling" i Admin → Brugere
