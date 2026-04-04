@@ -49,7 +49,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   if (import.meta.env.DEV) {
     console.log(`[AssignmentCard] Assignment: ${assignment.title || assignment.location}`);
-    console.log(`[AssignmentCard] Employee data:`, {
+    if (import.meta.env.DEV) console.log(`[AssignmentCard] Employee data:`, {
       hasAssignedEmployees: !!assignment.assignedEmployees?.length,
       assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
       hasLegacyEmployees: !!assignment.employees?.length,
@@ -101,7 +101,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       try {
         await onPublish();
       } catch (error) {
-        console.error('[AssignmentCard] Error in onPublish:', error);
+        if (import.meta.env.DEV) console.error('[AssignmentCard] Error in onPublish:', error);
       }
     }
   };

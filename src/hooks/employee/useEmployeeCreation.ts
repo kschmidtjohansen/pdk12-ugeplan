@@ -38,7 +38,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         });
 
         if (authError) {
-          console.error('[useEmployeeCreation] Auth user creation failed:', authError);
+          if (import.meta.env.DEV) console.error('[useEmployeeCreation] Auth user creation failed:', authError);
           throw new Error(`${t('employees.edgeFunctionFailed')}: ${authError.message}`);
         }
 
@@ -82,7 +82,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         });
 
       if (profileError) {
-        console.error('[useEmployeeCreation] Profile creation failed:', profileError);
+        if (import.meta.env.DEV) console.error('[useEmployeeCreation] Profile creation failed:', profileError);
         throw new Error(`Profile creation failed: ${profileError.message}`);
       }
 
@@ -94,7 +94,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         });
 
       if (roleError) {
-        console.error('[useEmployeeCreation] Role assignment failed:', roleError);
+        if (import.meta.env.DEV) console.error('[useEmployeeCreation] Role assignment failed:', roleError);
         throw new Error(`Role assignment failed: ${roleError.message}`);
       }
 
@@ -102,7 +102,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       return { success: true, user: { id: userId } };
 
     } catch (err) {
-      console.error('[useEmployeeCreation] Direct creation failed:', err);
+      if (import.meta.env.DEV) console.error('[useEmployeeCreation] Direct creation failed:', err);
       throw err;
     }
   };
@@ -184,12 +184,12 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         });
         
         if (error) {
-          console.error('[useEmployeeCreation] Edge function error:', error);
+          if (import.meta.env.DEV) console.error('[useEmployeeCreation] Edge function error:', error);
           throw new Error(`${t('employees.edgeFunctionFailed')}: ${error.message}`);
         }
         
         if (data?.error) {
-          console.error('[useEmployeeCreation] Edge function returned error:', data.error);
+          if (import.meta.env.DEV) console.error('[useEmployeeCreation] Edge function returned error:', data.error);
           throw new Error(data.error);
         }
         
@@ -202,7 +202,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           result = data;
           method = 'edge-function';
         } else {
-          console.error('[useEmployeeCreation] Edge function returned unexpected data');
+          if (import.meta.env.DEV) console.error('[useEmployeeCreation] Edge function returned unexpected data');
           throw new Error(t('employees.edgeFunctionFailed'));
         }
       } catch (edgeError) {
@@ -214,7 +214,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           result = await createUserDirectly(directFormData);
           method = 'direct-database';
         } catch (directError) {
-          console.error('[useEmployeeCreation] Direct creation also failed:', directError);
+          if (import.meta.env.DEV) console.error('[useEmployeeCreation] Direct creation also failed:', directError);
           throw new Error(`${t('employees.allMethodsFailed')}. ${t('employees.edgeFunctionFailed')}: ${edgeError.message}. ${t('employees.directCreationFailed')}: ${directError.message}`);
         }
       }
@@ -245,7 +245,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             .eq('id', userId);
           
           if (profileError) {
-            console.warn('[useEmployeeCreation] Profile update warning:', profileError);
+            if (import.meta.env.DEV) console.warn('[useEmployeeCreation] Profile update warning:', profileError);
           }
 
           const targetRole = formData.is_temporary ? 'vikar' : formData.role;
@@ -256,7 +256,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
               .eq('user_id', userId);
               
             if (roleError) {
-              console.warn('[useEmployeeCreation] Role update warning:', roleError);
+              if (import.meta.env.DEV) console.warn('[useEmployeeCreation] Role update warning:', roleError);
             }
           }
 
@@ -299,7 +299,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       throw new Error(t('employees.userCreationFailed'));
       
     } catch (err) {
-      console.error('[useEmployeeCreation] Creation error:', err);
+      if (import.meta.env.DEV) console.error('[useEmployeeCreation] Creation error:', err);
       
       let errorMessage = t('employees.createError');
       if (err instanceof Error) {
