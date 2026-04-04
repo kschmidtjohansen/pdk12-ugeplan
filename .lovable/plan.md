@@ -1,71 +1,35 @@
 
 
-## Plan: Undo-able Delete with Delayed Database Deletion
+## Plan: Audit Trail Timeline in Booking Edit Dialog
 
 ### Problem
-Deletions are immediate and irreversible. The user wants a 5-second grace period with an "Undo" button in a toast notification.
+There is no per-booking history view. The `planner_change_log` table already stores CREATE/UPDATE/DELETE/PUBLISH events with `assignment_id`, timestamps, user names, and change details — but this data is not surfaced in the booking modal.
 
 ### Solution
-Modify `deleteAssignment` and `deleteAssignmentsByGroupId` in `useOptimizedAssignments.ts` to:
-1. Remove assignment(s) from UI immediately (optimistic)
-2. Show a toast with an "Undo" action button
-3. Set a 5-second timeout before executing the actual database deletion
-4. If "Undo" is clicked, cancel the timeout, restore the assignment(s) to local state, and dismiss the toast
+Add a "Historik" (History) tab to the booking edit dialog that queries `planner_change_log` for the current assignment's ID (and its `group_id` siblings if part of a series) and displays entries as a chronological timeline.
 
 ### Changes
 
 | File | Change |
 |------|--------|
-| `src/hooks/useOptimizedAssignments.ts` | Refactor `deleteAssignment` and `deleteAssignmentsByGroupId` to use a pending-delete pattern with `setTimeout` + undo |
-| `src/translations/da/planner.ts` | Add `undo` key |
-| `src/translations/en/planner.ts` | Add `undo` key |
-| `CHANGELOG.md` | Document the undo-delete feature |
+| `src/components/Planner/AssignmentHistoryTab.tsx` | **New.** Fetches `planner_change_log` entries where `assignment_id` matches the current assignment (or any assignment sharing its `group_id`). Renders a vertical timeline with timestamp, operation badge (color-coded), user name, and human-readable change summary. Uses existing Supabase client. |
+| `src/components/Planner/AssignmentDialogManager.tsx` | Wrap `AssignmentForm` + `AssignmentHistoryTab` in a `<Tabs>` component. Show "Detaljer" (Details) tab containing the form, and "Historik" (History) tab containing the timeline. Only show the History tab when editing (i.e. `currentAssignment` is not null). |
+| `src/translations/da/planner.ts` | Add keys: `history.tab`, `history.noEntries`, `history.created`, `history.updated`, `history.deleted`, `history.published`, `history.changedBy`, `history.fieldChanged` |
+| `src/translations/en/planner.ts` | Same keys in English |
+| `CHANGELOG.md` | Document the audit trail feature |
 
-### Technical detail
+### AssignmentHistoryTab details
 
-**`deleteAssignment` new flow:**
-```typescript
-const deleteAssignment = useCallback(async (id: string) => {
-  const original = assignments.find(a => a.id === id);
-  if (!original) return;
+**Data fetching:** On mount, query `planner_change_log` filtered by `assignment_id = currentAssignment.id`. If the assignment has a `groupId`, also fetch logs for all sibling assignment IDs (query assignments table for matching `group_id`, then fetch logs for all those IDs). Results ordered by `created_at DESC`.
 
-  // 1. Optimistic removal
-  setAssignments(prev => prev.filter(a => a.id !== id));
+**Timeline rendering:** Each entry renders as:
+- Timestamp (formatted with `date-fns`, locale-aware)
+- Color-coded operation badge (green=CREATE, blue=UPDATE, red=DELETE, orange=PUBLISH)
+- User first name (`changed_by_first_name`)
+- Change summary: parse `change_details.changes` to show field-level diffs (e.g. "Titel: 'A' → 'B'", "Medarbejdere: +Anders, -Marie")
 
-  // 2. Set up delayed deletion
-  let cancelled = false;
-  const timeoutId = setTimeout(async () => {
-    if (cancelled) return;
-    try {
-      await OptimizedAssignmentService.deleteAssignment(id, user.email);
-      OptimizedAssignmentService.clearCache();
-    } catch (error) {
-      // Restore on failure
-      setAssignments(prev => [...prev, original].sort(...));
-      toast({ variant: 'destructive', ... });
-    }
-  }, 5000);
+**UI pattern:** Vertical timeline with a left border line and dots, using Tailwind utilities. Skeleton loading state while fetching. Empty state message when no history exists.
 
-  // 3. Show toast with Undo
-  toast({
-    title: t('planner.assignmentDeleted'),
-    description: original.case_number ? ... : ...,
-    action: <ToastAction altText="Undo" onClick={() => {
-      cancelled = true;
-      clearTimeout(timeoutId);
-      setAssignments(prev => [...prev, original].sort(...));
-    }}>{t('planner.undo')}</ToastAction>,
-    duration: 6000,
-  });
-}, [...]);
-```
-
-**`deleteAssignmentsByGroupId` — same pattern** but stores all removed assignments and restores the full set on undo.
-
-**Toast duration**: Set to 6000ms (slightly longer than the 5s delete delay) so the Undo button remains visible for the full grace period. The existing `TOAST_AUTO_CLOSE_DELAY` (5000ms) in `use-toast.ts` will be overridden per-toast via the `duration` prop on `ToastPrimitives.Root` — Radix Toast already supports this prop natively.
-
-**No changes to `PlannerPage.tsx`** — the handlers there call `deleteAssignment` and `deleteAssignmentsByGroupId` which are being modified in-place.
-
-### Import needed
-`ToastAction` from `@/components/ui/toast` will be imported in `useOptimizedAssignments.ts` to create the Undo button element.
+### No database changes needed
+The `planner_change_log` table already has all required columns (`assignment_id`, `operation`, `changed_by_first_name`, `change_details`, `created_at`) and appropriate RLS policies for admin/skadeleder access.
 
