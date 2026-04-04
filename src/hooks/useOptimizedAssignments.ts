@@ -26,6 +26,8 @@ interface UseOptimizedAssignmentsResult {
   createAssignment: (data: Partial<Assignment>) => Promise<void>;
   updateAssignment: (id: string, data: Partial<Assignment>) => Promise<void>;
   deleteAssignment: (id: string) => Promise<void>;
+  deleteAssignmentsByGroupId: (groupId: string) => Promise<void>;
+  detachFromGroup: (id: string) => Promise<boolean>;
   publishAssignment: (id: string) => Promise<void>;
   publishAssignmentsByDate: (date: string) => Promise<void>;
   setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
