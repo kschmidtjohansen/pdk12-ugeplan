@@ -536,7 +536,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
           setOperationState(id, 'idle');
         }
-      }, t('planner.undo')),
+      }, t('planner.undo')) as any,
     });
   }, [toast, t, setOperationState, setAssignments, assignments, user]);
 
