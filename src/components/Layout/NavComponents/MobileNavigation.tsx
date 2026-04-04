@@ -11,7 +11,7 @@ import { NavigationItem } from '../../../types/navigation';
 import { useTranslation } from '@/context/TranslationContext';
 import { NotificationType } from '../../../types/notification';
 import { languageNames } from '../../../translations';
-import DepartmentSelector from './DepartmentSelector';
+
 
 interface MobileNavigationProps {
   items: NavigationItem[];
