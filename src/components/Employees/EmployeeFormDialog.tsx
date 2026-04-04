@@ -110,7 +110,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           setIsSubmitting(false);
           return;
         }
-        console.log('[EmployeeFormDialog] Creating employee');
+        if (import.meta.env.DEV) console.log('[EmployeeFormDialog] Creating employee');
         // The actual creation will be handled by the parent component using formData (including password)
         await handleSubmit(e);
       } else {
