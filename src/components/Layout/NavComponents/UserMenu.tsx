@@ -90,6 +90,42 @@ const UserMenu: React.FC<UserMenuProps> = ({
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+
+          {/* Department Selector */}
+          {userDepartments.length > 1 && (
+            <>
+              <DropdownMenuLabel className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                {t('common.department') || 'Afdeling'}
+              </DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={selectedDepartmentId || ''} onValueChange={(value) => switchDepartment(value)}>
+                {userDepartments.map((dept) => (
+                  <DropdownMenuRadioItem key={dept.id} value={dept.id} className="cursor-pointer">
+                    {dept.name}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+              {userSubDepartments.length > 1 && (
+                <>
+                  <DropdownMenuLabel className="flex items-center gap-2 pt-1">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                    {t('common.subDepartment') || 'Underafdeling'}
+                  </DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={selectedSubDepartmentId || ''} onValueChange={(value) => setSelectedSubDepartmentId(value || null)}>
+                    <DropdownMenuRadioItem value="" className="cursor-pointer">
+                      {t('common.all') || 'Alle'}
+                    </DropdownMenuRadioItem>
+                    {userSubDepartments.map((sub) => (
+                      <DropdownMenuRadioItem key={sub.id} value={sub.id} className="cursor-pointer">
+                        {sub.name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </>
+              )}
+              <DropdownMenuSeparator />
+            </>
+          )}
           
           {/* Demo Role Switching */}
           {isDemoMode && (

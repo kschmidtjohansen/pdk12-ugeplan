@@ -136,9 +136,6 @@ const TopNavbar: React.FC = () => {
           {/* Logo + Department Selector - Left */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <Logo />
-            <div className="hidden md:flex">
-              <DepartmentSelector />
-            </div>
           </div>
           
           {/* Desktop Navigation - Absolutely Centered */}
