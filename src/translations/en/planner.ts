@@ -370,6 +370,7 @@ const planner = {
     edit: 'Edit',
     delete: 'Delete',
     duplicate: 'Duplicate',
+    publish: 'Publish',
   },
 
   // Undo

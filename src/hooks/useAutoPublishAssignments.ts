@@ -25,17 +25,18 @@ export const useAutoPublishAssignments = () => {
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
       const currentDate = format(now, 'yyyy-MM-dd');
+      const yesterday = format(subDays(now, 1), 'yyyy-MM-dd');
       
-      // Check if it's 16:00 or later and we haven't published yet today
-      if ((currentHour === 16 && currentMinute === 0) || 
-          (currentHour > 16 && lastPublishedDate !== currentDate)) {
+      // Auto-publish at midnight (00:00) — publish yesterday's unpublished assignments
+      if ((currentHour === 0 && currentMinute === 0) || 
+          (currentHour === 0 && lastPublishedDate !== currentDate)) {
         
         // Mark as currently publishing to prevent duplicate calls
         publishingRef.current = true;
         
-        // Find unpublished assignments for today
+        // Find unpublished assignments for yesterday (the day that just ended)
         const unpublishedAssignments = assignments?.filter(a => 
-          a.date === currentDate && !a.published
+          a.date === yesterday && !a.published
         ) || [];
         
         if (unpublishedAssignments.length > 0) {
