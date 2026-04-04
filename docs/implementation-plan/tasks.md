@@ -284,3 +284,24 @@ Gennemført 2026-02-24.
 - [x] Uguardede console.log/error wrappet i DEV guard (5 filer, 11 statements).
 - [x] search_path på SECURITY DEFINER funktioner verificeret korrekt.
 - [x] CHANGELOG.md og tasks.md opdateret
+
+## Fase 14: Planner UX-forbedringer ✅
+
+Gennemført 2026-04-04.
+
+- [x] Serie-bevidst redigering/sletning med SeriesActionDialog (enkeltstående, serie, alle fremtidige)
+- [x] Højreklik-kontekstmenu på booking-kort (Rediger, Dupliker, Slet, Publicer)
+- [x] Undo-sletning med 5-sekunders fortrydelse via toast-notification
+- [x] Audit Trail / Historik-fane i booking-redigering (planner_change_log)
+- [x] Publicer-handling tilføjet til kontekstmenu
+- [x] Auto-publicering ved dagsskifte (midnat 00:00) i stedet for kl. 16:00
+
+## Fase 15: Global Audit & Oprydning ✅
+
+Gennemført 2026-04-04.
+
+- [x] DEV-guard på uguardet `console.error` i `useUnifiedData.ts`
+- [x] Rettet interval-churn i `useAutoPublishAssignments` (ref-baseret tilgang)
+- [x] Rettet forældet "16:00"-kommentar til "00:00"
+- [x] tasks.md opdateret med manglende feature-poster (Fase 14 + 15)
+- [x] Verificeret at alle øvrige 27 console-statements allerede var korrekt DEV-guarded

@@ -1,12 +1,11 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useOptimizedAssignments } from './useOptimizedAssignments';
 import { format, subDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 
 export const useAutoPublishAssignments = () => {
-  // FIXED: Use the correct filter for auto-publish functionality
   const { assignments, loading, publishAssignmentsByDate } = useOptimizedAssignments('unpublished');
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -14,10 +13,15 @@ export const useAutoPublishAssignments = () => {
   const publishTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const publishingRef = useRef(false);
 
-  // Function to check if it's time to publish
-  const checkAndPublish = async () => {
-    if (publishingRef.current || loading || !assignments?.length) {
-      return; // Skip if already publishing or assignments are still loading
+  // Use refs for assignments/loading so the interval doesn't restart on every change
+  const assignmentsRef = useRef(assignments);
+  const loadingRef = useRef(loading);
+  assignmentsRef.current = assignments;
+  loadingRef.current = loading;
+
+  const checkAndPublish = useCallback(async () => {
+    if (publishingRef.current || loadingRef.current || !assignmentsRef.current?.length) {
+      return;
     }
     
     try {
@@ -31,22 +35,17 @@ export const useAutoPublishAssignments = () => {
       if ((currentHour === 0 && currentMinute === 0) || 
           (currentHour === 0 && lastPublishedDate !== currentDate)) {
         
-        // Mark as currently publishing to prevent duplicate calls
         publishingRef.current = true;
         
-        // Find unpublished assignments for yesterday (the day that just ended)
-        const unpublishedAssignments = assignments?.filter(a => 
+        const unpublishedAssignments = assignmentsRef.current?.filter(a => 
           a.date === yesterday && !a.published
         ) || [];
         
         if (unpublishedAssignments.length > 0) {
-          // Publish all unpublished assignments for yesterday
           await publishAssignmentsByDate(yesterday);
           
-          // Record that we've published today
           setLastPublishedDate(currentDate);
           
-          // Show success notification
           toast({
             title: t('planner.autoPublishSuccess'),
             description: t('planner.autoPublishSuccessMsg', { 
@@ -60,23 +59,21 @@ export const useAutoPublishAssignments = () => {
     } finally {
       publishingRef.current = false;
     }
-  };
+  }, [lastPublishedDate, publishAssignmentsByDate, toast, t]);
 
-  // Set up timer to check every minute
+  // Set up timer to check every minute — stable interval that doesn't restart on data changes
   useEffect(() => {
-    // Initial check in case the app starts up after 16:00
+    // Initial check in case the app starts up after midnight (00:00)
     checkAndPublish();
     
-    // Set interval to check every minute
     publishTimeoutRef.current = setInterval(checkAndPublish, 60000);
     
-    // Clean up the interval on unmount
     return () => {
       if (publishTimeoutRef.current) {
         clearInterval(publishTimeoutRef.current);
       }
     };
-  }, [assignments, loading]);
+  }, [checkAndPublish]);
 
   return {
     lastPublishedDate,
