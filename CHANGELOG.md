@@ -2,6 +2,14 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Added — Publicer i kontekstmenu
+- Højreklik på en booking viser nu "Publicer" som valgmulighed (kun for upublicerede opgaver)
+- Tilgængelig i både standard- og kompaktvisning
+
+### Changed — Auto-publicering ved dagsskifte (midnat)
+- Auto-publicering sker nu kl. 00:00 i stedet for kl. 16:00
+- Ved midnat publiceres automatisk gårsdagens upublicerede opgaver
+
 ### Added — Audit Trail / Historik-fane i booking-dialogen
 - Ny `AssignmentHistoryTab` komponent der viser en kronologisk tidslinje over alle ændringer (oprettelse, redigering, sletning, publicering) for en opgave
 - Henter data fra den eksisterende `planner_change_log` tabel — ingen database-ændringer nødvendige
