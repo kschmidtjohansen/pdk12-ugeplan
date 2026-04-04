@@ -397,6 +397,7 @@ export const useAssignmentActions = (
             lng: assignmentData.lng ?? null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
+            ...(updateGroupId && { group_id: updateGroupId }),
             ...(isDemoMode && { is_demo: true })
           };
           
