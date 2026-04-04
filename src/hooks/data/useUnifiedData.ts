@@ -118,7 +118,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => handleRealtimeChange('profiles'))
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR') {
-          console.warn('[useUnifiedData] Realtime channel error, falling back to existing data');
+          if (import.meta.env.DEV) console.warn('[useUnifiedData] Realtime channel error, falling back to existing data');
         }
       });
 

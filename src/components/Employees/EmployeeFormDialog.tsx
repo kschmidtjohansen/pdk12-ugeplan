@@ -118,7 +118,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         await handleSubmit(e);
       }
     } catch (error) {
-      console.error('[EmployeeFormDialog] Form submission error:', error);
+      if (import.meta.env.DEV) console.error('[EmployeeFormDialog] Form submission error:', error);
       let errorMsg = t('employees.unexpectedError');
       if (error instanceof Error) {
         errorMsg = error.message;
