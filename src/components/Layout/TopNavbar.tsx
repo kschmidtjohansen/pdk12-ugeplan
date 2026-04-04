@@ -15,7 +15,7 @@ import { useVacationRequestsStatus } from '@/hooks/vacation/useVacationRequestsS
 import Logo from './NavComponents/Logo';
 import DesktopNavigation from './NavComponents/DesktopNavigation';
 import MobileNavigation from './NavComponents/MobileNavigation';
-import DepartmentSelector from './NavComponents/DepartmentSelector';
+
 import NotificationsDropdown from './NavComponents/NotificationsDropdown';
 import ChangeLogDropdown from './NavComponents/ChangeLogDropdown';
 import UserMenu from './NavComponents/UserMenu';
@@ -136,9 +136,6 @@ const TopNavbar: React.FC = () => {
           {/* Logo + Department Selector - Left */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <Logo />
-            <div className="hidden md:flex">
-              <DepartmentSelector />
-            </div>
           </div>
           
           {/* Desktop Navigation - Absolutely Centered */}

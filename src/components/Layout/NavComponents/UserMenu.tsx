@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Camera, Lock, Crown } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown, Building2, Layers } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import PasswordChangeDialog from '../../Profile/PasswordChangeDialog';
 import ProfilePictureDialog from '../../Profile/ProfilePictureDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth, UserRole } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 
 interface UserMenuProps {
   user: any;
@@ -26,6 +27,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
 }) => {
   const { t } = useTranslation();
   const { isDemoMode, demoRole, setDemoRole, userDataLoaded } = useAuth();
+  const { userDepartments, selectedDepartmentId, switchDepartment, userSubDepartments, selectedSubDepartmentId, setSelectedSubDepartmentId } = useDepartment();
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -88,6 +90,42 @@ const UserMenu: React.FC<UserMenuProps> = ({
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+
+          {/* Department Selector */}
+          {userDepartments.length > 1 && (
+            <>
+              <DropdownMenuLabel className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                {t('common.department') || 'Afdeling'}
+              </DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={selectedDepartmentId || ''} onValueChange={(value) => switchDepartment(value)}>
+                {userDepartments.map((dept) => (
+                  <DropdownMenuRadioItem key={dept.id} value={dept.id} className="cursor-pointer">
+                    {dept.name}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+              {userSubDepartments.length > 1 && (
+                <>
+                  <DropdownMenuLabel className="flex items-center gap-2 pt-1">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                    {t('common.subDepartment') || 'Underafdeling'}
+                  </DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={selectedSubDepartmentId || ''} onValueChange={(value) => setSelectedSubDepartmentId(value || null)}>
+                    <DropdownMenuRadioItem value="" className="cursor-pointer">
+                      {t('common.all') || 'Alle'}
+                    </DropdownMenuRadioItem>
+                    {userSubDepartments.map((sub) => (
+                      <DropdownMenuRadioItem key={sub.id} value={sub.id} className="cursor-pointer">
+                        {sub.name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </>
+              )}
+              <DropdownMenuSeparator />
+            </>
+          )}
           
           {/* Demo Role Switching */}
           {isDemoMode && (
