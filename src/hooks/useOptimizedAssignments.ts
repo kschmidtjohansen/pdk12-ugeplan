@@ -611,7 +611,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           clearTimeout(timeoutId);
           setAssignments(prev => [...prev, ...removedAssignments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
         }
-      }, t('planner.undo')),
+      }, t('planner.undo')) as any,
     });
   }, [toast, t, setAssignments, assignments]);
 
