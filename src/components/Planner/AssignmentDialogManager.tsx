@@ -5,7 +5,10 @@ import { Car } from '@/types/car';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from '@/context/TranslationContext';
 import AssignmentForm from './AssignmentForm';
+import AssignmentHistoryTab from './AssignmentHistoryTab';
 
 interface AssignmentDialogManagerProps {
   isDialogOpen: boolean;
