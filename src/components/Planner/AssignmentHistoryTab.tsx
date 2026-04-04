@@ -99,10 +99,10 @@ function renderChangeSummary(details: any, t: any): React.ReactNode {
 
 const AssignmentHistoryTab: React.FC<AssignmentHistoryTabProps> = ({ assignment }) => {
   const { user } = useAuth();
-  const { t, language } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const [logs, setLogs] = useState<ChangeLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const locale = language === 'da' ? da : enUS;
+  const locale = currentLanguage === 'da' ? da : enUS;
 
   useEffect(() => {
     const fetchHistory = async () => {
