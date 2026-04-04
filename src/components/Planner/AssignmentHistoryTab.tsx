@@ -144,7 +144,7 @@ const AssignmentHistoryTab: React.FC<AssignmentHistoryTabProps> = ({ assignment 
     };
 
     fetchHistory();
-  }, [assignment.id, assignment.group_id, user]);
+  }, [assignment.id, assignment.groupId, user]);
 
   if (loading) {
     return (
