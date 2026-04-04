@@ -2,6 +2,13 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Security — Supabase Hardening (5 rettelser)
+- **Profiles RLS**: Fjernet 2 overpermissive SELECT-policies (`Authenticated users can view profiles`, `Users can view all profiles`). Den strikkere `secure_profile_access_unified` policy håndhæver nu korrekt: egen profil + admin/skadeleder med audit-logging
+- **Realtime**: Begrænset `supabase_realtime` publication til kun 7 tabeller (assignments, cars, warehouse_items, profiles, on_call_duties, vacations, notifications). Alle øvrige tabeller er fjernet fra realtids-publicering
+- **Storage**: Fjernet overpermissiv `Authenticated users can view assignment files` policy. Den restriktive policy der tjekker admin/skadeleder/opgave-tilknytning forbliver aktiv
+- **Notifications**: Fjernet duplikeret INSERT-policy. Den tilbageværende policy håndhæver `user_id = auth.uid() OR is_admin_or_skadeleder()`
+- **Function search_path**: Rettet `get_auth_uid`, `get_auth_role`, `get_auth_jwt`, `is_admin_from_jwt` med `SET search_path = ''` for at forhindre search path hijacking
+
 ### Changed — Bento Box / Spatial UI Redesign
 - Globalt sidelayout opdateret til lys grå baggrund (slate-50) så hvide kort træder tydeligt frem
 - Alle kort bruger nu borderless bento-stil: rounded-3xl, blød diffus skygge, hvid baggrund
