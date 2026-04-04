@@ -12,16 +12,7 @@ import { Send, Trash2, Edit3, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
 import { getEmployeeVacationStatus } from '@/utils/employeeAvailability';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Card } from '@/components/ui/card';
 
 export interface EmployeeConflict {
   employeeId: string;
