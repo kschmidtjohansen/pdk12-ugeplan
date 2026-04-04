@@ -105,7 +105,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         if (isMounted) {
-          console.log(`[useUnifiedData] Realtime change on ${table}, refetching...`);
+          if (import.meta.env.DEV) console.log(`[useUnifiedData] Realtime change on ${table}, refetching...`);
           unifiedDataService.clearCache();
           loadData().catch(console.error);
         }
