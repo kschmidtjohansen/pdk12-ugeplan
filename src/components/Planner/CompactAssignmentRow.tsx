@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Send, Trash2, Copy, MapPin, Clock, Users, Car as CarIcon } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
 import AssignmentStatusBadge from './AssignmentStatusBadge';
 
 interface CompactAssignmentRowProps {
