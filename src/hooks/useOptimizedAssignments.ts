@@ -5,12 +5,14 @@ import { OptimizedAssignmentService, OptimizedAssignmentData } from '@/services/
 import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { resolveEmployeeDisplayName } from '@/utils/people';
 import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
 import { supabase } from '@/integrations/supabase/client';
+import React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
