@@ -88,7 +88,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
   // Create a new car with enhanced security validation
   const createCar = async (carData: Partial<CarData>) => {
     try {
-      console.log('[useCarData] Creating car with data:', carData);
+      if (import.meta.env.DEV) console.log('[useCarData] Creating car with data:', carData);
 
       if (isDemoMode) {
         const now = new Date().toISOString();
