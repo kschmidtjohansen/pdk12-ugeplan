@@ -224,7 +224,7 @@ const PlannerPage: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const handleOpenEditDialog = (assignment: Assignment) => {
+  const openEditDialogDirect = (assignment: Assignment) => {
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     setFormData({
@@ -234,6 +234,14 @@ const PlannerPage: React.FC = () => {
       published: assignment.published
     });
     setIsDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (assignment: Assignment) => {
+    if (assignment.groupId) {
+      setSeriesAction({ assignment, mode: 'edit' });
+    } else {
+      openEditDialogDirect(assignment);
+    }
   };
 
   const handleSubmit = async (data: Partial<Assignment>) => {
