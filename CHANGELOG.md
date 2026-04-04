@@ -2,6 +2,14 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Security — Public-Role RLS Fix (6 fund)
+- **Profiles**: 4 policies ændret fra `roles:{public}` til `TO authenticated` — uautoriserede brugere kan ikke længere læse profildata
+- **User roles**: Fjernet "Anyone can view user roles" policy med `USING (true)` — den autentificerede `user_roles_select_policy` forbliver aktiv
+- **Cars**: `hide_demo_data_cars` ændret fra public til authenticated
+- **Warehouse**: `hide_demo_data_warehouse` ændret fra public til authenticated
+- **Assignments_employees**: Strammet `assignments_employees_select_policy` — servicemedarbejdere ser nu kun egne tilknytninger, admin/skadeleder ser alle
+- **Realtime.messages**: Accepteret risiko — Supabase-reserveret skema, allerede mitigeret via begrænset publication (7 tabeller)
+
 ### Security — Supabase Hardening (5 rettelser)
 - **Profiles RLS**: Fjernet 2 overpermissive SELECT-policies (`Authenticated users can view profiles`, `Users can view all profiles`). Den strikkere `secure_profile_access_unified` policy håndhæver nu korrekt: egen profil + admin/skadeleder med audit-logging
 - **Realtime**: Begrænset `supabase_realtime` publication til kun 7 tabeller (assignments, cars, warehouse_items, profiles, on_call_duties, vacations, notifications). Alle øvrige tabeller er fjernet fra realtids-publicering
