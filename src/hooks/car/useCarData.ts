@@ -179,7 +179,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
     const channel = supabase
       .channel(`cars-changes-public`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, (payload) => {
-        console.log(`[useCarData] Realtime update received:`, payload);
+        if (import.meta.env.DEV) console.log(`[useCarData] Realtime update received:`, payload);
         queryClient.invalidateQueries({ queryKey: ['cars'] });
       })
       .subscribe();

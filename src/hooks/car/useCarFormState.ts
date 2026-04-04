@@ -181,7 +181,7 @@ export const useCarFormState = ({
       queryClient.invalidateQueries({ queryKey: ['cars'] });
       setDialogOpen(false);
     } catch (err) {
-      console.error('[useCarFormState] Error saving car:', err);
+      if (import.meta.env.DEV) console.error('[useCarFormState] Error saving car:', err);
       toast({
         title: t('common.error'),
         description: err instanceof Error ? err.message : 'Error saving vehicle',
