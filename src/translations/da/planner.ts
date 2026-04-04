@@ -379,6 +379,13 @@ const planner = {
     partialVacationDetails: 'Ferie fra {from} til {to}',
     bookingDetails: 'Optaget {from}–{to} ({title})',
   },
+
+  // Context menu
+  contextMenu: {
+    edit: 'Rediger',
+    delete: 'Slet',
+    duplicate: 'Dupliker',
+  },
 };
 
 export default planner;

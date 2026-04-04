@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Send, Trash2, Copy, MapPin, Clock, Users, Car as CarIcon } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
 import AssignmentStatusBadge from './AssignmentStatusBadge';
 
 interface CompactAssignmentRowProps {
@@ -67,10 +68,12 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   const timeDisplay = `${assignment.fromTime?.substring(0, 5) || ''} - ${assignment.toTime?.substring(0, 5) || ''}`;
 
   return (
-    <tr 
-      className={`hover:bg-muted/50 border-b group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
-      onClick={onViewDetails}
-    >
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <tr 
+          className={`hover:bg-muted/50 border-b group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
+          onClick={onViewDetails}
+        >
       {/* Time */}
       <td className="py-2.5 px-3 text-sm font-medium whitespace-nowrap text-foreground">
         <div className="flex items-center gap-1.5">
@@ -177,7 +180,30 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           )}
         </div>
       </td>
-    </tr>
+        </tr>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        {canEdit && (
+          <ContextMenuItem onClick={onEdit} className="gap-2">
+            <Pencil className="h-4 w-4" />
+            {t('planner.contextMenu.edit')}
+          </ContextMenuItem>
+        )}
+        {onCopy && (
+          <ContextMenuItem onClick={onCopy} className="gap-2">
+            <Copy className="h-4 w-4" />
+            {t('planner.contextMenu.duplicate')}
+          </ContextMenuItem>
+        )}
+        {canEdit && <ContextMenuSeparator />}
+        {canEdit && (
+          <ContextMenuItem onClick={onDelete} className="gap-2 text-destructive focus:text-destructive">
+            <Trash2 className="h-4 w-4" />
+            {t('planner.contextMenu.delete')}
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };
 

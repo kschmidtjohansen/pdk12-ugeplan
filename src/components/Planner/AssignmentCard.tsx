@@ -7,10 +7,11 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
 import { useTranslation } from '@/context/TranslationContext';
-import { UserCheck, Package } from 'lucide-react';
+import { UserCheck, Package, Pencil, Copy, Trash2 } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -133,10 +134,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   };
 
   return (
-    <Card 
-      className={`relative w-full p-4 bg-card hover:border-polygon-purple hover:shadow-xl transition-all duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
-      onClick={handleCardClick}
-    >
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <Card 
+          className={`relative w-full p-4 bg-card hover:border-polygon-purple hover:shadow-xl transition-all duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+          onClick={handleCardClick}
+        >
       {warehouseItemCount > 0 && (
         <TooltipProvider delayDuration={100}>
           <Tooltip>
@@ -211,7 +214,30 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       )}
       
       <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
-    </Card>
+        </Card>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        {canEdit && (
+          <ContextMenuItem onClick={() => onEdit(assignment)} className="gap-2">
+            <Pencil className="h-4 w-4" />
+            {t('planner.contextMenu.edit')}
+          </ContextMenuItem>
+        )}
+        {onCopy && (
+          <ContextMenuItem onClick={handleCopyClick} className="gap-2">
+            <Copy className="h-4 w-4" />
+            {t('planner.contextMenu.duplicate')}
+          </ContextMenuItem>
+        )}
+        {(canEdit) && <ContextMenuSeparator />}
+        {canEdit && (
+          <ContextMenuItem onClick={onDelete} className="gap-2 text-destructive focus:text-destructive">
+            <Trash2 className="h-4 w-4" />
+            {t('planner.contextMenu.delete')}
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };
 
