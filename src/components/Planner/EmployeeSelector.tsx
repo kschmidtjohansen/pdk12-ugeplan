@@ -15,6 +15,8 @@ import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUt
 import { haversineDistanceKm } from '@/utils/haversine';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+type MultiDateAvailability = 'full' | 'partial' | 'none';
+
 interface EmployeeSelectorProps {
   employees: Employee[];
   selectedEmployees: string[];
@@ -25,6 +27,7 @@ interface EmployeeSelectorProps {
   casePostcode?: string;
   caseLat?: number;
   caseLng?: number;
+  allSelectedDates?: Date[];
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({

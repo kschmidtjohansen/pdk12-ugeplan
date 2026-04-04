@@ -337,6 +337,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
         casePostcode={casePostcode}
         caseLat={caseLat}
         caseLng={caseLng}
+        allSelectedDates={selectedDates}
       />
 
       {canAssignResponsibleUser && (
