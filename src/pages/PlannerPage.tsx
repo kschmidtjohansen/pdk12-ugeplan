@@ -616,6 +616,15 @@ const PlannerPage: React.FC = () => {
           assignments={sortedWeekAssignments} 
           onEmployeeToggle={handleEmployeeToggle} 
         />
+
+        {/* Series Action Dialog */}
+        <SeriesActionDialog
+          open={!!seriesAction}
+          onOpenChange={(open) => { if (!open) setSeriesAction(null); }}
+          mode={seriesAction?.mode || 'edit'}
+          onSingleDay={handleSeriesSingleDay}
+          onEntireSeries={handleSeriesEntireSeries}
+        />
       </div>
     </div>
     </DataFetchErrorBoundary>
