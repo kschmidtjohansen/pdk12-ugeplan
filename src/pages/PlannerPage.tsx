@@ -418,7 +418,7 @@ const PlannerPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
           <p className="text-lg font-medium text-muted-foreground">{t('common.loading')}...</p>
@@ -429,7 +429,7 @@ const PlannerPage: React.FC = () => {
   
   if (error) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-red-600 mb-2">{t('common.error')}</h2>
           <p className="text-muted-foreground">{typeof error === 'string' ? error : 'An error occurred'}</p>
@@ -440,8 +440,8 @@ const PlannerPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
         {/* Enhanced Header with Responsive Design */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 lg:p-8 text-white shadow-2xl animate-fade-in-up">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
