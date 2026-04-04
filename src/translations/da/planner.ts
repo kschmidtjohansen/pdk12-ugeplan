@@ -176,6 +176,7 @@ const planner = {
   available: 'Tilgængelig',
   bookedUntil: 'Optaget til {time}',
   carNotAvailable: 'Ikke tilgængelig',
+  partiallyBooked: 'Delvist booket',
   
   // Employee-related translations
   onVacation: 'Fri/Ferie',

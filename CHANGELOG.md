@@ -2,6 +2,11 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Changed — Multi-dato bilselektor
+- Bilvalg-dropdown er nu kontekst-bevidst over alle valgte datoer (ikke kun den første)
+- Viser grøn/gul/rød prik for fuld/delvis/ingen tilgængelighed på tværs af valgte datoer
+- Konflikt-dialog viser nu alle berørte datoer ved dobbeltbooking
+
 ### Added — Publicer i kontekstmenu
 - Højreklik på en booking viser nu "Publicer" som valgmulighed (kun for upublicerede opgaver)
 - Tilgængelig i både standard- og kompaktvisning
