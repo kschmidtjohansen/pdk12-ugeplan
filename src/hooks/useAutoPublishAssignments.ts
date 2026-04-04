@@ -40,8 +40,8 @@ export const useAutoPublishAssignments = () => {
         ) || [];
         
         if (unpublishedAssignments.length > 0) {
-          // Publish all unpublished assignments for today
-          await publishAssignmentsByDate(currentDate);
+          // Publish all unpublished assignments for yesterday
+          await publishAssignmentsByDate(yesterday);
           
           // Record that we've published today
           setLastPublishedDate(currentDate);
