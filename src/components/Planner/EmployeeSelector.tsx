@@ -15,6 +15,8 @@ import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUt
 import { haversineDistanceKm } from '@/utils/haversine';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+type MultiDateAvailability = 'full' | 'partial' | 'none';
+
 interface EmployeeSelectorProps {
   employees: Employee[];
   selectedEmployees: string[];
@@ -25,6 +27,7 @@ interface EmployeeSelectorProps {
   casePostcode?: string;
   caseLat?: number;
   caseLng?: number;
+  allSelectedDates?: Date[];
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -36,7 +39,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   assignments = [],
   casePostcode,
   caseLat,
-  caseLng
+  caseLng,
+  allSelectedDates = []
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
@@ -81,6 +85,47 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       .slice(0, 3)
       .map(emp => emp.id);
   }, [sortedEmployees, distanceMap]);
+  // Compute per-employee availability across all selected dates
+  const multiDateAvailability = useMemo(() => {
+    const map = new Map<string, MultiDateAvailability>();
+    if (allSelectedDates.length === 0) return map;
+
+    for (const emp of employees) {
+      let unavailableCount = 0;
+      for (const date of allSelectedDates) {
+        try {
+          const vacStatus = getEmployeeVacationStatus(emp.id, date, vacations);
+          if (vacStatus.isOnVacation && vacStatus.vacationType === 'full_day') {
+            unavailableCount++;
+            continue;
+          }
+          if (emp.onLeave || emp.status === 'terminated' || emp.status === 'inactive') {
+            unavailableCount++;
+            continue;
+          }
+          if (emp.is_temporary && emp.expires_at && new Date(emp.expires_at) < new Date()) {
+            unavailableCount++;
+            continue;
+          }
+          const avail = getEmployeeAvailabilityStatus(emp, date, assignments, vacations, t);
+          if (avail.status === 'fullyBooked') {
+            unavailableCount++;
+          }
+        } catch {
+          // treat errors as available
+        }
+      }
+
+      if (unavailableCount === 0) {
+        map.set(emp.id, 'full');
+      } else if (unavailableCount >= allSelectedDates.length) {
+        map.set(emp.id, 'none');
+      } else {
+        map.set(emp.id, 'partial');
+      }
+    }
+    return map;
+  }, [employees, allSelectedDates, vacations, assignments, t]);
 
   const dateForComparison = (() => {
     try {
@@ -220,7 +265,18 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col min-w-0">
-                    <span className="font-medium text-foreground truncate">
+                    <span className="font-medium text-foreground truncate flex items-center gap-1.5">
+                      {allSelectedDates.length > 0 && multiDateAvailability.has(employee.id) && (
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
+                            multiDateAvailability.get(employee.id) === 'full'
+                              ? 'bg-green-500'
+                              : multiDateAvailability.get(employee.id) === 'partial'
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                          }`}
+                        />
+                      )}
                       {employee.name}
                     </span>
                     {isNearby && formattedDist && (
