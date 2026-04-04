@@ -1,45 +1,45 @@
 
 
-## Plan: Availability Status Dots in Employee Selector
+## Plan: Add `group_id` to Link Multi-Day Assignment Records
 
 ### Problem
-The `EmployeeSelector` currently checks availability against a single date (`currentDate` = the first selected date). When multiple dates are selected, the user has no visual indication of multi-day availability per employee.
+When a multi-day assignment is created, individual daily records are already generated — but there is no shared identifier linking them as part of the same task.
 
 ### Solution
-Add a colored dot next to each employee name that reflects their availability across **all** selected dates. The dot updates dynamically when dates change.
+1. Add a `group_id` (UUID, nullable) column to the `assignments` table via migration.
+2. When creating a multi-day assignment, generate one `group_id` (via `crypto.randomUUID()`) and write it to all daily records in that batch.
+3. Single-day assignments leave `group_id` as `null`.
+4. Expose `group_id` in the `Assignment` type so it's available downstream.
 
 ### Changes
 
-**1. `src/components/Planner/AssignmentFormFields.tsx`**
-- Pass the full `selectedDates` array to `EmployeeSelector` as a new prop `allSelectedDates`.
-
-**2. `src/components/Planner/EmployeeSelector.tsx`**
-- Accept new optional prop `allSelectedDates: Date[]`.
-- Add a `useMemo` that computes a per-employee availability summary across all selected dates:
-  - For each employee × each date: call `getEmployeeAvailabilityStatus` + `getEmployeeVacationStatus`
-  - Count how many dates are "unavailable" (full-day vacation, on leave, fully booked, terminated/expired)
-  - Result: `'full'` (0 conflicts), `'partial'` (some conflicts), `'none'` (all dates have conflicts)
-- Render a small dot (`w-2 h-2 rounded-full`) to the left of the employee name:
-  - Green (`bg-green-500`) = fully available
-  - Yellow (`bg-yellow-500`) = partially unavailable
-  - Red (`bg-red-500`) = completely unavailable
-- Dot only renders when `allSelectedDates.length > 0`.
-
-### UI placement
-The dot sits inline before the employee name, inside the existing `<span className="font-medium">` row. This keeps the list item design pattern intact (name + meta sub-text + right-aligned badges).
-
-```text
-[ ] 🟢 Anders Jensen
-       3,2 km væk
-[ ] 🟡 Ronnie Thomsen        [Delvis ferie]
-[ ] 🔴 Marie Larsen          [Fraværende]
-```
-
-### Files changed
 | File | Change |
 |------|--------|
-| `src/components/Planner/EmployeeSelector.tsx` | Add `allSelectedDates` prop, availability dot logic + rendering |
-| `src/components/Planner/AssignmentFormFields.tsx` | Pass `selectedDates` as `allSelectedDates` to `EmployeeSelector` |
+| **Migration** | `ALTER TABLE assignments ADD COLUMN group_id uuid DEFAULT NULL;` — nullable, no FK, indexed for future grouping queries. |
+| `src/types/assignment.ts` | Add `groupId?: string` to the `Assignment` interface. |
+| `src/hooks/assignment/useAssignmentActions.ts` | In `createAssignment`: generate `const groupId = dates.length > 1 ? crypto.randomUUID() : null;` before the loop, then include `group_id: groupId` in each `.insert()` call. In `updateAssignment`: same logic for the multi-date branch (lines 376-430) — generate a new `groupId` and include it in additional inserts, and update the original record's `group_id` too. |
+| `src/utils/assignmentDataConverter.ts` | Map `data.group_id` → `assignment.groupId` in the converter function. |
+| `CHANGELOG.md` | Document the new `group_id` column and multi-day linking. |
 
-No translation changes needed — dots are purely visual. CHANGELOG updated.
+### Technical details
+
+**Migration SQL:**
+```sql
+ALTER TABLE public.assignments ADD COLUMN group_id uuid DEFAULT NULL;
+CREATE INDEX idx_assignments_group_id ON public.assignments (group_id) WHERE group_id IS NOT NULL;
+```
+
+**createAssignment change (line ~64):**
+```typescript
+const groupId = dates.length > 1 ? crypto.randomUUID() : null;
+```
+Then in the insert object (line ~112-128), add:
+```typescript
+group_id: groupId,
+```
+
+**updateAssignment change (line ~376):**
+When creating additional assignments for extra dates, generate a shared `groupId`, update the original record's `group_id`, and include it in each new insert.
+
+No RLS changes needed — `group_id` is a data column, not an access control column.
 
