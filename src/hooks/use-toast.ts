@@ -68,7 +68,7 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout);
 };
 
-const addToAutoCloseQueue = (toastId: string) => {
+const addToAutoCloseQueue = (toastId: string, duration?: number) => {
   if (autoCloseTimeouts.has(toastId)) {
     return;
   }
@@ -79,7 +79,7 @@ const addToAutoCloseQueue = (toastId: string) => {
       toastId 
     });
     autoCloseTimeouts.delete(toastId);
-  }, TOAST_AUTO_CLOSE_DELAY);
+  }, duration ?? TOAST_AUTO_CLOSE_DELAY);
 
   autoCloseTimeouts.set(toastId, timeout);
 };
