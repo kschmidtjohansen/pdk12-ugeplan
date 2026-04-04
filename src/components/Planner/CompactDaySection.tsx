@@ -54,7 +54,9 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
   };
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
+    <div className={`bg-card rounded-xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden ${
+      new Date(dateKey).toDateString() === new Date().toDateString() ? 'border-t-2 border-t-primary' : ''
+    }`}>
       {/* Day Header - Compact */}
       <div 
         className="flex items-center justify-between px-4 py-2.5 bg-primary/5 border-b cursor-pointer hover:bg-primary/10 transition-colors"

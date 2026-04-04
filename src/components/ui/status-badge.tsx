@@ -10,15 +10,15 @@ interface StatusBadgeProps extends Omit<BadgeProps, 'variant'> {
 }
 
 const statusStyles: Record<StatusVariant, string> = {
-  default: "bg-muted text-foreground hover:bg-muted",
-  success: "bg-green-100 text-green-800 hover:bg-green-100",
-  warning: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
-  error: "bg-red-100 text-red-800 hover:bg-red-100",
-  info: "bg-blue-100 text-blue-800 hover:bg-blue-100",
-  pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
-  approved: "bg-green-100 text-green-800 hover:bg-green-100",
-  rejected: "bg-red-100 text-red-800 hover:bg-red-100",
-  destructive: "bg-red-100 text-red-800 hover:bg-red-100"
+  default: "bg-muted text-foreground hover:bg-muted text-xs px-1.5 py-0.5",
+  success: "bg-green-100 text-green-800 hover:bg-green-100 text-xs px-1.5 py-0.5",
+  warning: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-xs px-1.5 py-0.5",
+  error: "bg-red-100 text-red-800 hover:bg-red-100 text-xs px-1.5 py-0.5",
+  info: "bg-blue-100 text-blue-800 hover:bg-blue-100 text-xs px-1.5 py-0.5",
+  pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-xs px-1.5 py-0.5",
+  approved: "bg-green-100 text-green-800 hover:bg-green-100 text-xs px-1.5 py-0.5",
+  rejected: "bg-red-100 text-red-800 hover:bg-red-100 text-xs px-1.5 py-0.5",
+  destructive: "bg-red-100 text-red-800 hover:bg-red-100 text-xs px-1.5 py-0.5"
 };
 
 export function StatusBadge({ variant = "default", className, ...props }: StatusBadgeProps) {

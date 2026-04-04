@@ -137,7 +137,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <Card 
-          className={`relative w-full p-4 bg-card hover:border-polygon-purple hover:shadow-xl transition-all duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+          className={`relative w-full p-3 border-l-2 ${assignment.published ? 'border-l-green-500' : 'border-l-amber-400'} hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
           onClick={handleCardClick}
         >
       {warehouseItemCount > 0 && (
@@ -165,7 +165,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <div className="flex items-center gap-2 flex-1">
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-lg">{assignment.title || t('planner.titleLabel')}</h3>
+              <h3 className="font-medium text-sm">{assignment.title || t('planner.titleLabel')}</h3>
               {operationState && (
                 <span className="text-xs text-blue-600 font-medium animate-pulse">
                   {getOperationText(operationState)}

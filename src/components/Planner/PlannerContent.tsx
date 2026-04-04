@@ -112,10 +112,10 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const hasNoAssignments = Array.isArray(weekAssignments) && weekAssignments.length === 0;
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-4 pb-4">
       {/* Unassigned Resources and Duty Widget */}
       {(canEdit || canPublishTasks) && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="lg:col-span-2">
             <UnassignedResourcesSection
               assignments={weekAssignments}

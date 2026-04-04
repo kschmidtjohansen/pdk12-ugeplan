@@ -60,20 +60,20 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <Card className={cn(
-      'relative overflow-hidden transition-all duration-300 border-l-4 animate-scale-in bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0',
+      'relative overflow-hidden transition-colors duration-200 border-l-4 animate-scale-in',
       classes.accent,
-      onClick && 'cursor-pointer hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]',
+      onClick && 'cursor-pointer hover:bg-blue-50/50 dark:hover:bg-slate-800/50',
       className
     )} onClick={onClick}>
       
-      <CardContent className="p-4 relative z-10 py-[12px]">
+      <CardContent className="p-4 relative z-10 py-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 space-y-2">
             <p className="font-semibold text-muted-foreground uppercase tracking-wider text-xs">
               {title}
             </p>
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold tracking-tight">
+              <p className="text-2xl font-bold tracking-tight">
                 {value}
               </p>
               {trend && (
@@ -94,7 +94,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
             )}
           </div>
           <div className={cn(
-            'p-3 rounded-2xl border-2 transition-all duration-300 hover:scale-110',
+            'p-2 rounded-lg border transition-all duration-200',
             classes.icon
           )}>
             <Icon className="h-6 w-6" />

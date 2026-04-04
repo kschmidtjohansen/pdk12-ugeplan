@@ -7,6 +7,7 @@ import { formatDateWithCapital, getDateStatus } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Send, ChevronDown, ChevronRight, CalendarX2 } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
+import { cn } from '@/lib/utils';
 
 interface DaySectionProps {
   dateKey: string;
@@ -68,7 +69,10 @@ const DaySection: React.FC<DaySectionProps> = ({
   };
 
   return (
-    <div className="w-full bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 space-y-3">
+    <div className={cn(
+      "w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-700/60 p-4 space-y-3",
+      getDateStatus(dateKey) === 'today' && 'border-t-2 border-t-primary'
+    )}>
       <div className="flex items-center justify-between">
         <div 
           className="flex items-center cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors duration-200" 
@@ -90,7 +94,7 @@ const DaySection: React.FC<DaySectionProps> = ({
             <ChevronRight className="h-5 w-5 text-muted-foreground mr-2 transition-transform duration-200" />
           )}
           
-          <h3 className="text-lg font-medium select-none">
+          <h3 className="text-sm font-semibold tracking-tight select-none">
             {formattedDate}
           </h3>
           <div className="ml-2 text-sm text-muted-foreground select-none">
@@ -110,7 +114,7 @@ const DaySection: React.FC<DaySectionProps> = ({
       </div>
       
       {isExpanded && (
-        <div className={`w-full grid gap-4 animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
+        <div className={`w-full grid gap-3 animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
           {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
             dayAssignments.map((assignment) => (
               <AssignmentCard
@@ -128,8 +132,8 @@ const DaySection: React.FC<DaySectionProps> = ({
               />
             ))
           ) : (
-            <div className="py-8 px-4 rounded-2xl text-center text-muted-foreground bg-slate-50 dark:bg-slate-800/50">
-              <CalendarX2 className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+            <div className="py-4 px-4 rounded-lg text-center text-muted-foreground bg-slate-50 dark:bg-slate-800/50">
+              <CalendarX2 className="h-6 w-6 text-muted-foreground/50 mx-auto mb-1" />
               <p>{t("planner.nothingPlannedToday")}</p>
             </div>
           )}

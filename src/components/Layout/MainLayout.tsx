@@ -101,7 +101,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <TopNavbar />
         <RealtimeChangeNotifier />
         
-        <main className="flex-1 w-full bg-slate-50 dark:bg-slate-950 pt-20">
+        <main className="flex-1 w-full bg-[#f8fafc] dark:bg-slate-950 pt-14">
           <PullToRefresh onRefresh={handlePullRefresh}>
             <div className="animate-fade-in-up w-full">
               <SecurityErrorBoundary>
