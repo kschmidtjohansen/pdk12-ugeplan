@@ -118,6 +118,7 @@ const PlannerPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
+  const [seriesAction, setSeriesAction] = useState<{ assignment: Assignment; mode: 'edit' | 'delete' } | null>(null);
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
     description: '',
