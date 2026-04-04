@@ -68,10 +68,12 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   const timeDisplay = `${assignment.fromTime?.substring(0, 5) || ''} - ${assignment.toTime?.substring(0, 5) || ''}`;
 
   return (
-    <tr 
-      className={`hover:bg-muted/50 border-b group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
-      onClick={onViewDetails}
-    >
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <tr 
+          className={`hover:bg-muted/50 border-b group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
+          onClick={onViewDetails}
+        >
       {/* Time */}
       <td className="py-2.5 px-3 text-sm font-medium whitespace-nowrap text-foreground">
         <div className="flex items-center gap-1.5">
