@@ -68,7 +68,7 @@ const DaySection: React.FC<DaySectionProps> = ({
   };
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 space-y-3">
       <div className="flex items-center justify-between">
         <div 
           className="flex items-center cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors duration-200" 
