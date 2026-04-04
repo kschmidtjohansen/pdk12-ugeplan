@@ -51,6 +51,8 @@ const PlannerPage: React.FC = () => {
     createAssignment,
     updateAssignment,
     deleteAssignment,
+    deleteAssignmentsByGroupId,
+    detachFromGroup,
     publishAssignment,
     publishAssignmentsByDate
   } = useOptimizedAssignments('all');
