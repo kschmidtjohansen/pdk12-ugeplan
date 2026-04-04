@@ -265,7 +265,18 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col min-w-0">
-                    <span className="font-medium text-foreground truncate">
+                    <span className="font-medium text-foreground truncate flex items-center gap-1.5">
+                      {allSelectedDates.length > 0 && multiDateAvailability.has(employee.id) && (
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
+                            multiDateAvailability.get(employee.id) === 'full'
+                              ? 'bg-green-500'
+                              : multiDateAvailability.get(employee.id) === 'partial'
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                          }`}
+                        />
+                      )}
                       {employee.name}
                     </span>
                     {isNearby && formattedDist && (
