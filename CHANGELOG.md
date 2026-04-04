@@ -2,6 +2,20 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Changed — Kompakt Professionelt Dashboard Redesign
+- Global baggrund ændret til #f8fafc for lysere, renere udseende
+- Alle kort: rounded-3xl → rounded-xl, skygger fjernet, subtile borders (border-slate-200/60) tilføjet
+- Knapper: reduceret padding og størrelse (h-11 → h-9), skygger fjernet, rounded-xl → rounded-lg
+- Navbar: højde reduceret h-20 → h-14 med tynd border i stedet for skygge
+- Dashboard og Planner: reduceret spacing (space-y-8 → space-y-4/5, py-6 → py-4)
+- WelcomeHeader og PlannerHeader: komprimeret padding og font-størrelser
+- MetricCard: kompakt ikon-box (p-2 rounded-lg), hover skifter til bg-blue-50/50
+- QuickAccessGrid: hover-effekt er nu farveskift (bg-blue-50/50) i stedet for lift
+- DaySection: "I dag"-markering med blå top-border (border-t-2 border-t-primary)
+- AssignmentCard: vertikal farvekode-stribe (grøn=published, gul=draft) via border-l-2
+- CompactAssignmentRow: hover:bg-blue-50/50 + vertikal farvekode-stribe
+- StatusBadge: kompakte badges med text-xs px-1.5 py-0.5
+
 ### Security — Public-Role RLS Fix (6 fund)
 - **Profiles**: 4 policies ændret fra `roles:{public}` til `TO authenticated` — uautoriserede brugere kan ikke længere læse profildata
 - **User roles**: Fjernet "Anyone can view user roles" policy med `USING (true)` — den autentificerede `user_roles_select_policy` forbliver aktiv

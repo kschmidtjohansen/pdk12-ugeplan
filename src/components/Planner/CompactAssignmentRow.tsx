@@ -71,7 +71,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <tr 
-          className={`hover:bg-muted/50 border-b group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
+          className={`hover:bg-blue-50/50 dark:hover:bg-slate-800/50 border-b border-l-2 ${assignment.published ? 'border-l-green-500' : 'border-l-amber-400'} group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
           onClick={onViewDetails}
         >
       {/* Time */}

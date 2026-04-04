@@ -457,7 +457,7 @@ const PlannerPage: React.FC = () => {
                   <h1 className="text-xl lg:text-2xl font-semibold tracking-tight">
                     {t("navigation.planner")}
                   </h1>
-                  <p className="text-blue-100 text-sm lg:text-lg font-medium">
+                  <p className="text-blue-100 text-xs lg:text-sm font-medium">
                     {t('planner.weekView', {
                       week: selectedWeek,
                       year: selectedYear,

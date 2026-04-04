@@ -94,7 +94,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
             )}
           </div>
           <div className={cn(
-            'p-3 rounded-2xl border-2 transition-all duration-300 hover:scale-110',
+            'p-2 rounded-lg border transition-all duration-200',
             classes.icon
           )}>
             <Icon className="h-6 w-6" />

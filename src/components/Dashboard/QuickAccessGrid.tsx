@@ -66,13 +66,13 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
   const items = getQuickAccessItems();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {items.map((item, index) => (
         <Link key={index} to={item.link} className="block group">
-          <Card className="h-full border-0 bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] animate-scale-in" style={{ animationDelay: `${index * 50}ms` }}>
-            <CardContent className="p-4 py-[12px] px-[20px]">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-2xl ${
+          <Card className="h-full transition-colors duration-200 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 hover:border-primary/30 animate-scale-in" style={{ animationDelay: `${index * 50}ms` }}>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-2 rounded-lg ${
                   item.color === 'blue' ? 'bg-blue-50 text-blue-600' :
                   item.color === 'green' ? 'bg-green-50 text-green-600' :
                   item.color === 'purple' ? 'bg-purple-50 text-purple-600' :

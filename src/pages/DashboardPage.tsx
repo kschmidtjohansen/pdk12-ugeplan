@@ -42,8 +42,8 @@ const DashboardPage: React.FC = () => {
   return (
     <DataFetchErrorBoundary>
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-8">
+        <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-slate-950">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 space-y-5">
           {/* Last Refresh Indicator */}
           {!isServicemedarbejder && (
             <div className="flex justify-end">

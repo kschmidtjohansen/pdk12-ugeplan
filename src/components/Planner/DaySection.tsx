@@ -132,8 +132,8 @@ const DaySection: React.FC<DaySectionProps> = ({
               />
             ))
           ) : (
-            <div className="py-8 px-4 rounded-2xl text-center text-muted-foreground bg-slate-50 dark:bg-slate-800/50">
-              <CalendarX2 className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+            <div className="py-4 px-4 rounded-lg text-center text-muted-foreground bg-slate-50 dark:bg-slate-800/50">
+              <CalendarX2 className="h-6 w-6 text-muted-foreground/50 mx-auto mb-1" />
               <p>{t("planner.nothingPlannedToday")}</p>
             </div>
           )}
