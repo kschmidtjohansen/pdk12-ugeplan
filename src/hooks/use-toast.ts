@@ -193,7 +193,7 @@ function toast({ ...props }: Toast) {
   });
 
   // Add toast to auto-close queue
-  addToAutoCloseQueue(id);
+  addToAutoCloseQueue(id, props.duration);
 
   return {
     id,

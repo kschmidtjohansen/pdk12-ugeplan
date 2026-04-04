@@ -386,6 +386,9 @@ const planner = {
     delete: 'Slet',
     duplicate: 'Dupliker',
   },
+
+  // Undo
+  undo: 'Fortryd',
 };
 
 export default planner;
