@@ -195,6 +195,12 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
             {t('planner.contextMenu.duplicate')}
           </ContextMenuItem>
         )}
+        {!assignment.published && onPublish && canEdit && (
+          <ContextMenuItem onClick={onPublish} className="gap-2">
+            <Send className="h-4 w-4" />
+            {t('planner.contextMenu.publish')}
+          </ContextMenuItem>
+        )}
         {canEdit && <ContextMenuSeparator />}
         {canEdit && (
           <ContextMenuItem onClick={onDelete} className="gap-2 text-destructive focus:text-destructive">

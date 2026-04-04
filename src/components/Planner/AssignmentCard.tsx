@@ -7,7 +7,7 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
 import { useTranslation } from '@/context/TranslationContext';
-import { UserCheck, Package, Pencil, Copy, Trash2 } from 'lucide-react';
+import { UserCheck, Package, Pencil, Copy, Trash2, Send } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -227,6 +227,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <ContextMenuItem onClick={handleCopyClick} className="gap-2">
             <Copy className="h-4 w-4" />
             {t('planner.contextMenu.duplicate')}
+          </ContextMenuItem>
+        )}
+        {!assignment.published && onPublish && canEdit && (
+          <ContextMenuItem onClick={() => handlePublishClick(assignment.id)} className="gap-2">
+            <Send className="h-4 w-4" />
+            {t('planner.contextMenu.publish')}
           </ContextMenuItem>
         )}
         {(canEdit) && <ContextMenuSeparator />}

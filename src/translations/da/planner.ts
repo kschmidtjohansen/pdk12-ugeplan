@@ -385,6 +385,7 @@ const planner = {
     edit: 'Rediger',
     delete: 'Slet',
     duplicate: 'Dupliker',
+    publish: 'Publicer',
   },
 
   // Undo
