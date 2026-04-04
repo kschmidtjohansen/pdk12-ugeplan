@@ -236,6 +236,21 @@ const planner = {
     toTimeRequired: 'End time is required',
     timeOrderRequired: 'Start time must be before end time'
   },
+
+  // Employee conflict check
+  conflicts: {
+    title: 'Conflicts Found',
+    description: 'The following employees have overlapping bookings, vacations or absences in the selected period:',
+    proceedAnyway: 'Proceed anyway',
+    reasonBooking: 'Booking',
+    reasonVacation: 'Vacation',
+    reasonPartialVacation: 'Partial vacation',
+    reasonOnLeave: 'On leave',
+    onLeaveDetails: 'Employee is marked as absent',
+    fullDayVacation: 'Full-day vacation approved',
+    partialVacationDetails: 'Vacation from {from} to {to}',
+    bookingDetails: 'Booked {from}–{to} ({title})',
+  },
   
   // Operation status messages
   operations: {

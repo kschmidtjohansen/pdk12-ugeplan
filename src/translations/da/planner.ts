@@ -350,6 +350,21 @@ const planner = {
     toTimeRequired: 'Sluttid er påkrævet',
     timeOrderRequired: 'Starttid skal være før sluttid'
   },
+
+  // Employee conflict check
+  conflicts: {
+    title: 'Konflikter fundet',
+    description: 'Følgende medarbejdere har overlappende bookinger, ferie eller fravær i den valgte periode:',
+    proceedAnyway: 'Opret alligevel',
+    reasonBooking: 'Booking',
+    reasonVacation: 'Ferie',
+    reasonPartialVacation: 'Delvis ferie',
+    reasonOnLeave: 'Orlov',
+    onLeaveDetails: 'Medarbejderen er registreret som fraværende',
+    fullDayVacation: 'Heldagsferie godkendt',
+    partialVacationDetails: 'Ferie fra {from} til {to}',
+    bookingDetails: 'Optaget {from}–{to} ({title})',
+  },
 };
 
 export default planner;
