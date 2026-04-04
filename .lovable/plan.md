@@ -1,45 +1,37 @@
 
 
-## Plan: Add `group_id` to Link Multi-Day Assignment Records
+## Plan: Series-Aware Edit/Delete with Confirmation Modal
 
 ### Problem
-When a multi-day assignment is created, individual daily records are already generated — but there is no shared identifier linking them as part of the same task.
+Assignments with a shared `groupId` (multi-day series) are currently edited/deleted individually with no awareness of siblings. Users need to choose between modifying a single day or the entire series.
 
 ### Solution
-1. Add a `group_id` (UUID, nullable) column to the `assignments` table via migration.
-2. When creating a multi-day assignment, generate one `group_id` (via `crypto.randomUUID()`) and write it to all daily records in that batch.
-3. Single-day assignments leave `group_id` as `null`.
-4. Expose `group_id` in the `Assignment` type so it's available downstream.
+1. Create a new `SeriesActionDialog` component that asks "Only this day" vs "Entire series"
+2. Intercept edit and delete actions in `usePlannerPage` — when the target assignment has a `groupId`, show the dialog before proceeding
+3. Add a `deleteAssignmentsByGroupId` method to delete all records sharing a `group_id`
+4. On "Only this day" edit: clear `group_id` from that record (set to `null`) to make it independent, then open the edit dialog as normal
+5. On "Entire series" edit: open the edit dialog for the clicked assignment (future enhancement could apply changes to all, but for now it opens the standard edit form for the selected record — the key behavior is the detach-on-single-edit)
 
 ### Changes
 
 | File | Change |
 |------|--------|
-| **Migration** | `ALTER TABLE assignments ADD COLUMN group_id uuid DEFAULT NULL;` — nullable, no FK, indexed for future grouping queries. |
-| `src/types/assignment.ts` | Add `groupId?: string` to the `Assignment` interface. |
-| `src/hooks/assignment/useAssignmentActions.ts` | In `createAssignment`: generate `const groupId = dates.length > 1 ? crypto.randomUUID() : null;` before the loop, then include `group_id: groupId` in each `.insert()` call. In `updateAssignment`: same logic for the multi-date branch (lines 376-430) — generate a new `groupId` and include it in additional inserts, and update the original record's `group_id` too. |
-| `src/utils/assignmentDataConverter.ts` | Map `data.group_id` → `assignment.groupId` in the converter function. |
-| `CHANGELOG.md` | Document the new `group_id` column and multi-day linking. |
+| `src/components/Planner/SeriesActionDialog.tsx` | **New file.** AlertDialog with title, description, two action buttons ("Kun denne dag" / "Hele serien"), and a cancel button. Props: `open`, `onOpenChange`, `mode: 'edit' | 'delete'`, `onSingleDay()`, `onEntireSeries()`. |
+| `src/hooks/assignment/useAssignmentActions.ts` | Add `deleteAssignmentsByGroupId(groupId: string)` — queries all assignments with that `group_id`, deletes them and their `assignments_employees` rows. Add `detachFromGroup(id: string)` — updates `group_id = null` for one record. |
+| `src/hooks/usePlannerPage.ts` | Add state: `seriesAction: { assignment, mode } | null`. Wrap `handleOpenEditDialog` and `deleteAssignment` to check `assignment.groupId` — if present, set `seriesAction` state instead of proceeding directly. Add handlers `handleSeriesSingleDay` and `handleSeriesEntire` that dispatch to the correct action. Expose `seriesAction` and `setSeriesAction` for the page component. |
+| `src/pages/PlannerPage.tsx` | Render `SeriesActionDialog` using `seriesAction` state from the hook. |
+| `src/translations/da/planner.ts` | Add keys: `series.title`, `series.description`, `series.onlyThisDay`, `series.entireSeries`, `series.deleteTitle`, `series.deleteDescription`, `series.editTitle`, `series.editDescription` |
+| `src/translations/en/planner.ts` | Same keys in English |
+| `CHANGELOG.md` | Document the series-aware edit/delete feature |
 
-### Technical details
+### Delete flow
+- **"Only this day"**: calls existing `deleteAssignment(id)` — removes just that record
+- **"Entire series"**: calls new `deleteAssignmentsByGroupId(groupId)` — deletes all assignments + their employee links sharing that `group_id`
 
-**Migration SQL:**
-```sql
-ALTER TABLE public.assignments ADD COLUMN group_id uuid DEFAULT NULL;
-CREATE INDEX idx_assignments_group_id ON public.assignments (group_id) WHERE group_id IS NOT NULL;
-```
+### Edit flow
+- **"Only this day"**: calls `detachFromGroup(id)` (sets `group_id = null`), then opens the standard edit dialog
+- **"Entire series"**: opens the standard edit dialog without detaching — changes apply to the clicked record (series link preserved)
 
-**createAssignment change (line ~64):**
-```typescript
-const groupId = dates.length > 1 ? crypto.randomUUID() : null;
-```
-Then in the insert object (line ~112-128), add:
-```typescript
-group_id: groupId,
-```
-
-**updateAssignment change (line ~376):**
-When creating additional assignments for extra dates, generate a shared `groupId`, update the original record's `group_id`, and include it in each new insert.
-
-No RLS changes needed — `group_id` is a data column, not an access control column.
+### SeriesActionDialog UI
+Uses existing `AlertDialog` components. Two primary buttons side by side, styled distinctly. Delete mode uses destructive styling on "Entire series" button.
 
