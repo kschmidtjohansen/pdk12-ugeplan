@@ -214,7 +214,30 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       )}
       
       <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
-    </Card>
+        </Card>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        {canEdit && (
+          <ContextMenuItem onClick={() => onEdit(assignment)} className="gap-2">
+            <Pencil className="h-4 w-4" />
+            {t('planner.contextMenu.edit')}
+          </ContextMenuItem>
+        )}
+        {onCopy && (
+          <ContextMenuItem onClick={handleCopyClick} className="gap-2">
+            <Copy className="h-4 w-4" />
+            {t('planner.contextMenu.duplicate')}
+          </ContextMenuItem>
+        )}
+        {(canEdit) && <ContextMenuSeparator />}
+        {canEdit && (
+          <ContextMenuItem onClick={onDelete} className="gap-2 text-destructive focus:text-destructive">
+            <Trash2 className="h-4 w-4" />
+            {t('planner.contextMenu.delete')}
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };
 
