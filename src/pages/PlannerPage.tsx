@@ -317,8 +317,41 @@ const PlannerPage: React.FC = () => {
   }, [publishAssignmentsByDate]);
 
   const handleDeleteAssignment = useCallback(async (id: string) => {
-    await deleteAssignment(id);
-  }, [deleteAssignment]);
+    const assignment = assignments.find(a => a.id === id);
+    if (assignment?.groupId) {
+      setSeriesAction({ assignment, mode: 'delete' });
+    } else {
+      await deleteAssignment(id);
+    }
+  }, [deleteAssignment, assignments]);
+
+  // Series action handlers
+  const handleSeriesSingleDay = useCallback(async () => {
+    if (!seriesAction) return;
+    const { assignment, mode } = seriesAction;
+    setSeriesAction(null);
+
+    if (mode === 'delete') {
+      await deleteAssignment(assignment.id);
+    } else {
+      // Detach from group then open edit dialog
+      await detachFromGroup(assignment.id);
+      openEditDialogDirect({ ...assignment, groupId: undefined });
+    }
+  }, [seriesAction, deleteAssignment, detachFromGroup]);
+
+  const handleSeriesEntireSeries = useCallback(async () => {
+    if (!seriesAction) return;
+    const { assignment, mode } = seriesAction;
+    setSeriesAction(null);
+
+    if (mode === 'delete') {
+      await deleteAssignmentsByGroupId(assignment.groupId!);
+    } else {
+      // Open edit dialog for the clicked assignment (series link preserved)
+      openEditDialogDirect(assignment);
+    }
+  }, [seriesAction, deleteAssignmentsByGroupId]);
 
   const handlePublishAssignment = useCallback(async (id: string) => {
     await publishAssignment(id);
