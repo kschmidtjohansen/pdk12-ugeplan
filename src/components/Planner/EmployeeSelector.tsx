@@ -39,7 +39,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   assignments = [],
   casePostcode,
   caseLat,
-  caseLng
+  caseLng,
+  allSelectedDates = []
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
