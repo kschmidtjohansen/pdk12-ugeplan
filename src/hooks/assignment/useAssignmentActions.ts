@@ -257,6 +257,7 @@ export const useAssignmentActions = (
       
       const dates = (assignmentData as any).dates || [];
       const hasMultipleDates = dates.length > 1;
+      const updateGroupId = hasMultipleDates ? crypto.randomUUID() : null;
       
       if (import.meta.env.DEV) console.log("[useAssignmentActions] Multi-date check:", { dates, hasMultipleDates });
 
