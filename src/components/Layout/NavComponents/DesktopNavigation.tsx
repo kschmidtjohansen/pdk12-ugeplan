@@ -91,15 +91,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ items }) => {
             
             {/* Notification indicator */}
             {item.hasNotification && (
-              <>
-                <Badge className="absolute top-0 right-0 translate-x-1 -translate-y-1 h-3 w-3 p-0 bg-red-500 border-2 border-white z-[1] pointer-events-none" />
-                {console.log('[DesktopNavigation] 🔴 RED DOT RENDERED', {
-                  itemLabel: item.name,
-                  itemPath: item.path,
-                  hasNotification: item.hasNotification,
-                  timestamp: new Date().toISOString()
-                })}
-              </>
+              <Badge className="absolute top-0 right-0 translate-x-1 -translate-y-1 h-3 w-3 p-0 bg-red-500 border-2 border-white z-[1] pointer-events-none" />
             )}
           </Link>
         );

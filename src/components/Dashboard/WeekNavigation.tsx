@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
-import { getISOWeek } from 'date-fns';
 
 interface WeekNavigationProps {
   onPrevious: () => void;
@@ -17,16 +16,6 @@ const WeekNavigation: React.FC<WeekNavigationProps> = ({
   currentWeek 
 }) => {
   const { t } = useTranslation();
-  
-  // Debug: Verify current week calculation
-  const today = new Date();
-  const actualCurrentWeek = getISOWeek(today);
-  
-  console.log('[WeekNavigation] === WEEK CALCULATION DEBUG ===');
-  console.log(`[WeekNavigation] Today's date: ${today.toDateString()}`);
-  console.log(`[WeekNavigation] ISO Week from date-fns: ${actualCurrentWeek}`);
-  console.log(`[WeekNavigation] Current week prop: ${currentWeek}`);
-  console.log(`[WeekNavigation] Week calculation matches: ${actualCurrentWeek === currentWeek}`);
   
   return (
     <div className="flex items-center gap-1">

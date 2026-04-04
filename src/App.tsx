@@ -63,7 +63,7 @@ const queryClient = new QueryClient({
 const App = () => {
   // Initialize performance monitoring (dev only, dynamic import)
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       import('./utils/performanceMonitor').then(({ performanceMonitor }) => {
         console.log('[Performance] Monitoring initialized');
         setTimeout(() => {
