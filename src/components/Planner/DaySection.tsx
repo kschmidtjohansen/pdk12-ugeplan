@@ -94,7 +94,7 @@ const DaySection: React.FC<DaySectionProps> = ({
             <ChevronRight className="h-5 w-5 text-muted-foreground mr-2 transition-transform duration-200" />
           )}
           
-          <h3 className="text-lg font-medium select-none">
+          <h3 className="text-sm font-semibold tracking-tight select-none">
             {formattedDate}
           </h3>
           <div className="ml-2 text-sm text-muted-foreground select-none">
