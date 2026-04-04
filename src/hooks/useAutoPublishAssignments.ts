@@ -1,7 +1,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useOptimizedAssignments } from './useOptimizedAssignments';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 
