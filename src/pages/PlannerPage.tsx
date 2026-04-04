@@ -418,7 +418,7 @@ const PlannerPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
           <p className="text-lg font-medium text-muted-foreground">{t('common.loading')}...</p>
