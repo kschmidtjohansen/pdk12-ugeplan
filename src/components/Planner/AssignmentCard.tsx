@@ -137,7 +137,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <Card 
-          className={`relative w-full p-4 bg-card hover:border-polygon-purple hover:shadow-xl transition-all duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+          className={`relative w-full p-3 border-l-2 ${assignment.published ? 'border-l-green-500' : 'border-l-amber-400'} hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
           onClick={handleCardClick}
         >
       {warehouseItemCount > 0 && (
