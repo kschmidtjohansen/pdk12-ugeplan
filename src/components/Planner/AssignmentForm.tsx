@@ -12,16 +12,7 @@ import { Send, Trash2, Edit3, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
 import { getEmployeeVacationStatus } from '@/utils/employeeAvailability';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Card } from '@/components/ui/card';
 
 export interface EmployeeConflict {
   employeeId: string;
@@ -295,131 +286,152 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       default: return reason;
     }
   };
+  // "Book available days only" — remove dates where ANY employee has a conflict
+  const handleBookAvailableOnly = async () => {
+    const allDates: string[] = (formData as any).dates?.length > 0 ? (formData as any).dates : (formData.date ? [formData.date] : []);
+    const conflictDates = new Set(conflictDetails.map(c => c.date));
+    const safeDates = allDates.filter((d: string) => !conflictDates.has(d));
+
+    if (safeDates.length === 0) {
+      toast({ title: t('planner.conflicts.title'), description: t('planner.conflicts.allDatesConflict'), variant: 'destructive' });
+      setConflictDetails([]);
+      return;
+    }
+
+    // Update formData with only safe dates, then submit
+    const updatedData = { ...formData, date: safeDates[0], zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng } as any;
+    updatedData.dates = safeDates;
+    setConflictDetails([]);
+    setIsSubmitting(true);
+    try {
+      await onSubmit(updatedData);
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[AssignmentForm] Error in filtered submission:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <>
-      <form onSubmit={handleFormSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">
-            {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
-          </h2>
+    <form onSubmit={handleFormSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">
+          {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
+        </h2>
 
-          <AssignmentFormFields
-            title={formData.title || ''}
-            setTitle={value => {
-              if (import.meta.env.DEV) console.log('[AssignmentForm] Title updated:', value);
-              setFormData({ ...formData, title: value });
-            }}
-            location={formData.location || ''}
-            setLocation={value => {
-              if (import.meta.env.DEV) console.log('[AssignmentForm] Location updated:', value);
-              setFormData({ ...formData, location: value });
-            }}
-            selectedDates={(formData as any).dates?.map((d: string) => { const [y,m,day] = d.split('-').map(Number); return new Date(y, m-1, day); }) || (formData.date ? (() => { const [y,m,day] = formData.date!.split('-').map(Number); return [new Date(y, m-1, day)]; })() : [])}
-            setSelectedDates={handleDatesChange}
-            isEditMode={!!currentAssignment}
-            fromTime={formData.fromTime || '08:00'}
-            setFromTime={value => {
-              if (import.meta.env.DEV) console.log('[AssignmentForm] From time updated:', value);
-              setFormData({ ...formData, fromTime: value });
-            }}
-            toTime={formData.toTime || '16:00'}
-            setToTime={value => {
-              if (import.meta.env.DEV) console.log('[AssignmentForm] To time updated:', value);
-              setFormData({ ...formData, toTime: value });
-            }}
-            description={formData.description || ''}
-            setDescription={value => {
-              if (import.meta.env.DEV) console.log('[AssignmentForm] Description updated:', value);
-              setFormData({ ...formData, description: value });
-            }}
-            selectedCarIds={formData.cars || []}
-            setSelectedCarIds={handleCarsChange}
-            selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)}
-            setSelectedResponsibleUserId={setResponsibleUserById}
-            selectedEmployees={normalizeEmployees(formData.employees)}
-            onEmployeeToggle={onEmployeeToggle}
-            cars={cars}
-            employees={employees}
-            vacations={vacations}
-            assignmentId={currentAssignment?.id}
-            assignments={assignments}
-            zipCode={zipCode}
-            setZipCode={setZipCode}
-            city={city}
-            setCity={setCity}
-            onCoordsChange={(lat, lng) => {
-              setAssignmentLat(lat);
-              setAssignmentLng(lng);
-            }}
-            initialLat={formData.lat ?? undefined}
-            initialLng={formData.lng ?? undefined}
-          />
-        </div>
+        <AssignmentFormFields
+          title={formData.title || ''}
+          setTitle={value => {
+            if (import.meta.env.DEV) console.log('[AssignmentForm] Title updated:', value);
+            setFormData({ ...formData, title: value });
+          }}
+          location={formData.location || ''}
+          setLocation={value => {
+            if (import.meta.env.DEV) console.log('[AssignmentForm] Location updated:', value);
+            setFormData({ ...formData, location: value });
+          }}
+          selectedDates={(formData as any).dates?.map((d: string) => { const [y,m,day] = d.split('-').map(Number); return new Date(y, m-1, day); }) || (formData.date ? (() => { const [y,m,day] = formData.date!.split('-').map(Number); return [new Date(y, m-1, day)]; })() : [])}
+          setSelectedDates={handleDatesChange}
+          isEditMode={!!currentAssignment}
+          fromTime={formData.fromTime || '08:00'}
+          setFromTime={value => {
+            if (import.meta.env.DEV) console.log('[AssignmentForm] From time updated:', value);
+            setFormData({ ...formData, fromTime: value });
+          }}
+          toTime={formData.toTime || '16:00'}
+          setToTime={value => {
+            if (import.meta.env.DEV) console.log('[AssignmentForm] To time updated:', value);
+            setFormData({ ...formData, toTime: value });
+          }}
+          description={formData.description || ''}
+          setDescription={value => {
+            if (import.meta.env.DEV) console.log('[AssignmentForm] Description updated:', value);
+            setFormData({ ...formData, description: value });
+          }}
+          selectedCarIds={formData.cars || []}
+          setSelectedCarIds={handleCarsChange}
+          selectedResponsibleUserId={getResponsibleUserId(formData.responsibleUser)}
+          setSelectedResponsibleUserId={setResponsibleUserById}
+          selectedEmployees={normalizeEmployees(formData.employees)}
+          onEmployeeToggle={onEmployeeToggle}
+          cars={cars}
+          employees={employees}
+          vacations={vacations}
+          assignmentId={currentAssignment?.id}
+          assignments={assignments}
+          zipCode={zipCode}
+          setZipCode={setZipCode}
+          city={city}
+          setCity={setCity}
+          onCoordsChange={(lat, lng) => {
+            setAssignmentLat(lat);
+            setAssignmentLng(lng);
+          }}
+          initialLat={formData.lat ?? undefined}
+          initialLng={formData.lng ?? undefined}
+        />
+      </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-          <Button type="submit" disabled={isSubmitting} className="flex-1">
-            <Edit3 className="mr-2 h-4 w-4" />
-            {isSubmitting ? t('planner.operations.saving') : currentAssignment ? t('common.update') : t('common.create')}
-          </Button>
-
-          {currentAssignment && canEdit}
-
-          {canPublishAssignment && (
-            <Button type="button" variant="secondary" onClick={handlePublishClick} className="flex-none">
-              <Send className="mr-2 h-4 w-4" />
-              {t('planner.publish')}
-            </Button>
-          )}
-
-          {canPublishTasks && selectedDay}
-        </div>
-      </form>
-
-      {/* Conflict Warning Dialog */}
-      <AlertDialog open={conflictDetails.length > 0} onOpenChange={(open) => { if (!open) setConflictDetails([]); }}>
-        <AlertDialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              {t('planner.conflicts.title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>{t('planner.conflicts.description')}</p>
-                <div className="space-y-2">
-                  {conflictDetails.map((conflict, idx) => (
-                    <div key={idx} className="rounded-md border border-destructive/20 bg-destructive/5 p-3 text-sm">
-                      <div className="font-medium text-foreground">
-                        {conflict.employeeName} — {formatConflictDate(conflict.date)}
-                      </div>
-                      <div className="text-muted-foreground mt-1">
-                        <span className="inline-block rounded bg-destructive/10 px-1.5 py-0.5 text-xs font-medium text-destructive mr-2">
-                          {getConflictReasonLabel(conflict.reason)}
-                        </span>
-                        {conflict.details}
-                      </div>
-                    </div>
-                  ))}
+      {/* Inline Conflict Warning Banner */}
+      {conflictDetails.length > 0 && (
+        <Card className="rounded-2xl border-destructive/40 bg-destructive/5 p-4 space-y-3">
+          <div className="flex items-center gap-2 text-destructive font-semibold">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+            {t('planner.conflicts.title')}
+          </div>
+          <p className="text-sm text-muted-foreground">{t('planner.conflicts.description')}</p>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {conflictDetails.map((conflict, idx) => (
+              <div key={idx} className="rounded-md border border-destructive/20 bg-background p-3 text-sm">
+                <div className="font-medium text-foreground">
+                  {conflict.employeeName} {t('planner.conflicts.warningPrefix')} {formatConflictDate(conflict.date)}
+                </div>
+                <div className="text-muted-foreground mt-1">
+                  <span className="inline-block rounded bg-destructive/10 px-1.5 py-0.5 text-xs font-medium text-destructive mr-2">
+                    {getConflictReasonLabel(conflict.reason)}
+                  </span>
+                  {conflict.details}
                 </div>
               </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                setConflictDetails([]);
-                await executeSubmit();
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            ))}
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 pt-1">
+            <Button type="button" variant="outline" onClick={() => setConflictDetails([])} className="flex-1">
+              {t('common.cancel')}
+            </Button>
+            <Button type="button" variant="secondary" onClick={handleBookAvailableOnly} className="flex-1">
+              {t('planner.conflicts.bookAvailableOnly')}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={async () => { setConflictDetails([]); await executeSubmit(); }}
+              className="flex-1"
             >
               {t('planner.conflicts.proceedAnyway')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+        <Button type="submit" disabled={isSubmitting || conflictDetails.length > 0} className="flex-1">
+          <Edit3 className="mr-2 h-4 w-4" />
+          {isSubmitting ? t('planner.operations.saving') : currentAssignment ? t('common.update') : t('common.create')}
+        </Button>
+
+        {currentAssignment && canEdit}
+
+        {canPublishAssignment && (
+          <Button type="button" variant="secondary" onClick={handlePublishClick} className="flex-none">
+            <Send className="mr-2 h-4 w-4" />
+            {t('planner.publish')}
+          </Button>
+        )}
+
+        {canPublishTasks && selectedDay}
+      </div>
+    </form>
   );
 };
 export default AssignmentForm;

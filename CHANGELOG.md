@@ -2,6 +2,13 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Added — Inline konflikbanner + "Book kun ledige dage"
+- Konflikttjek viser nu et inline advarselsbanner i formularen i stedet for en modal dialog
+- Ny "Book kun ledige dage"-knap fjerner automatisk konflikt-datoer og indsender kun de ledige dage
+- Tre handlinger: Annuller, Book kun ledige dage, Opret alligevel
+- Submit-knap deaktiveres mens konflikter vises
+- Oversættelser opdateret i DA og EN (`planner.conflicts.bookAvailableOnly`, `warningPrefix`, `allDatesConflict`)
+
 ### Added — Medarbejder-konflikttjek ved opgaveoprettelse
 - Ny konfliktkontrol i `AssignmentForm.tsx` der kører før indsendelse
 - Tjekker for overlappende bookinger, godkendt ferie (hel-/deldag) og orlov for alle valgte medarbejdere × datoer
