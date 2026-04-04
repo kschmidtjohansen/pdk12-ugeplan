@@ -4,7 +4,6 @@ import { useEmployeeFormState } from './employee/useEmployeeFormState';
 import { useEmployeeActions } from './employee/useEmployeeActions';
 import { useEmployeeCreation } from './employee/useEmployeeCreation';
 
-// Main hook combining all employee-related functionality - now streamlined
 export const useEmployees = () => {
   const { employees, loading, error, fetchEmployees } = useEmployeeData();
   
@@ -18,7 +17,6 @@ export const useEmployees = () => {
 
   const { createEmployee: createEmployeeFromCreationHook } = useEmployeeCreation(fetchEmployees);
 
-  // Wrapper functions that use the current state from useEmployeeFormState
   const createEmployee = async () => {
     return await createEmployeeFromCreationHook(formState.formData);
   };
@@ -38,11 +36,12 @@ export const useEmployees = () => {
     return await toggleEmployeeLeaveAction(employee, setOnLeave, notes);
   };
 
-  // Separate regular employees from vikarer
   const regularEmployees = employees.filter(emp => emp.role !== 'vikar');
   const vikarer = employees.filter(emp => emp.role === 'vikar');
 
-  console.log(`[useEmployees] Providing ${employees.length} employees (${regularEmployees.length} regular, ${vikarer.length} vikarer)`);
+  if (import.meta.env.DEV) {
+    console.log(`[useEmployees] Providing ${employees.length} employees (${regularEmployees.length} regular, ${vikarer.length} vikarer)`);
+  }
 
   return {
     employees,

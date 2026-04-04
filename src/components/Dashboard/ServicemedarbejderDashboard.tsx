@@ -20,7 +20,6 @@ const ServicemedarbejderDashboard: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
-  // Update last refresh whenever assignments change
   useEffect(() => {
     if (assignments) {
       setLastRefresh(new Date());
@@ -29,24 +28,13 @@ const ServicemedarbejderDashboard: React.FC = () => {
 
   const today = new Date();
 
-  // For servicemedarbejder, filter to show assignments where they are assigned OR responsible, within current week
   const userAssignments = useMemo(() => {
     if (!user?.id || !assignments) {
-      console.log('[ServicemedarbejderDashboard] ❌ No user ID or assignments');
       return [];
     }
 
     const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
     const currentWeekDates = getWeekDates(currentWeek, currentYear);
-
-    console.log('[ServicemedarbejderDashboard] 🔍 Filtering assignments for user (current week):', {
-      userId: user.id,
-      userName: user.name,
-      userEmail: user.email,
-      totalAssignments: assignments.length,
-      currentWeek,
-      currentYear
-    });
 
     const filtered = assignments.filter(assignment => {
       const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id);
@@ -58,40 +46,17 @@ const ServicemedarbejderDashboard: React.FC = () => {
 
       const isUserInvolved = isAssignedViaNew || isAssignedViaLegacy || isResponsible;
 
-      if (isUserInvolved && isInCurrentWeek) {
-        console.log(`[ServicemedarbejderDashboard] ✅ Match found for "${assignment.title}":`, {
-          date: assignment.date,
-          isAssignedViaNew,
-          isAssignedViaLegacy,
-          isResponsible,
-          isInCurrentWeek,
-          assignedEmployees: assignment.assignedEmployees?.map(e => ({ id: e.id, name: e.name })),
-          legacyEmployees: assignment.employees,
-          responsibleUserId: assignment.responsibleUserId,
-          responsibleUserObj: assignment.responsibleUser
-        });
-      }
-
       return isUserInvolved && isInCurrentWeek;
     });
-
-    console.log(`[ServicemedarbejderDashboard] 📊 Filtered ${filtered.length} weekly user assignments`);
 
     return filtered;
   }, [assignments, user]);
 
-  // Week assignments are the user assignments already filtered to current week
   const weeklyAssignments = userAssignments;
 
-  // Today's assignments
   const todayAssignments = useMemo(() => {
     const todayStr = format(today, 'yyyy-MM-dd');
-    const filtered = userAssignments.filter(assignment => assignment.date === todayStr);
-    
-    console.log(`[ServicemedarbejderDashboard] 📍 Today filter (${todayStr}): ${filtered.length} assignments`);
-    console.log(`[ServicemedarbejderDashboard] Today assignments:`, filtered.map(a => ({ title: a.title, date: a.date })));
-    
-    return filtered;
+    return userAssignments.filter(assignment => assignment.date === todayStr);
   }, [userAssignments, today]);
 
   const handleManualRefresh = async () => {
@@ -111,7 +76,6 @@ const ServicemedarbejderDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Personal Stats */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-semibold">Mine Statistikker</CardTitle>
