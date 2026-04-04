@@ -2,6 +2,13 @@
 
 ## [Unreleased] - 2026-04-04
 
+### Added — Fortryd-sletning med 5 sekunders grace period
+- Sletning af opgaver (enkelt og serie) fjerner nu fra UI med det samme, men venter 5 sekunder før databasen opdateres
+- Toast-notifikation med "Fortryd"-knap giver brugeren mulighed for at annullere sletningen inden for 5 sekunder
+- Hvis "Fortryd" klikkes, gendannes opgaven i UI og databasesletningen annulleres
+- `use-toast.ts` understøtter nu per-toast `duration` til at styre auto-close timing
+
+
 ### Added — Serie-bevidst redigering og sletning
 - Ny `SeriesActionDialog` komponent der spørger "Kun denne dag" vs "Hele serien" ved redigering/sletning af flerdags-opgaver
 - `deleteAssignmentsByGroupId` sletter alle opgaver i en serie
