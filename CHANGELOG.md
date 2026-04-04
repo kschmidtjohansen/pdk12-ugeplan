@@ -2,7 +2,11 @@
 
 ## [Unreleased] - 2026-04-04
 
-### Changed — Kompakt Professionelt Dashboard Redesign
+### Changed — Afdelingsvælger flyttet til profilmenu
+- Afdelingsvælger (department selector) er flyttet fra navbar til profilmenuen (UserMenu dropdown), så den altid er tilgængelig uanset skærmstørrelse
+- Fjernet DepartmentSelector fra TopNavbar og MobileNavigation
+- Tilføjet oversættelsesnøgle `common.department` på dansk og engelsk
+
 - Global baggrund ændret til #f8fafc for lysere, renere udseende
 - Alle kort: rounded-3xl → rounded-xl, skygger fjernet, subtile borders (border-slate-200/60) tilføjet
 - Knapper: reduceret padding og størrelse (h-11 → h-9), skygger fjernet, rounded-xl → rounded-lg

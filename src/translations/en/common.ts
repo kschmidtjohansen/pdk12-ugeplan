@@ -148,6 +148,7 @@ export const common = {
     servicemedarbejder: "Service Employee",
     vikar: "Substitute"
   },
+  department: "Department",
   subDepartment: "Sub-department",
   selectSubDepartment: "Select sub-department",
   and: "and",
