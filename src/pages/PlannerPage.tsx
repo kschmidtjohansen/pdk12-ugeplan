@@ -50,6 +50,7 @@ const PlannerPage: React.FC = () => {
     refetch,
     createAssignment,
     updateAssignment,
+    updateSeriesAssignments,
     deleteAssignment,
     deleteAssignmentsByGroupId,
     detachFromGroup,
