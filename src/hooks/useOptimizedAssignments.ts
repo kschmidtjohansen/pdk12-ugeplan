@@ -27,6 +27,7 @@ interface UseOptimizedAssignmentsResult {
   refetch: () => Promise<void>;
   createAssignment: (data: Partial<Assignment>) => Promise<void>;
   updateAssignment: (id: string, data: Partial<Assignment>) => Promise<void>;
+  updateSeriesAssignments: (groupId: string, data: Partial<Assignment>) => Promise<void>;
   deleteAssignment: (id: string) => Promise<void>;
   deleteAssignmentsByGroupId: (groupId: string) => Promise<void>;
   detachFromGroup: (id: string) => Promise<boolean>;
