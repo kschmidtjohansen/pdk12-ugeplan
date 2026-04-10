@@ -604,6 +604,8 @@ const PlannerPage: React.FC = () => {
           isDialogOpen={isDialogOpen} 
           onClose={() => setIsDialogOpen(false)} 
           onSubmit={handleSubmit} 
+          onSubmitSeries={updateSeriesAssignments}
+          onDetachFromGroup={detachFromGroup}
           currentAssignment={currentAssignment} 
           selectedDay={selectedDay} 
           formData={formData} 
