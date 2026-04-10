@@ -2,6 +2,20 @@
 
 ## [Unreleased] - 2026-04-10
 
+### Fixed — Serie-dialog dobbelt-prompt fjernet
+- Når brugeren vælger "Hele serien" i SeriesActionDialog, åbnes redigeringsdialogen nu direkte i `series`-tilstand
+- Submit kalder automatisk `onSubmitSeries` uden at vise en ny serie-prompt
+- Tilføjet `editMode` prop (`'single' | 'series'`) til dialog-kæden
+
+### Fixed — Car/Employee selector popover for smal
+- Udvidet PopoverContent fra `w-80` (320px) til `w-96` (384px) i både MultipleCarSelector og EmployeeSelector
+- Bilnavne, nummerplader og status-badges er nu fuldt synlige
+
+### Fixed — Historik viser andre afdelingers data
+- ChangeLogContext filtrerer nu `planner_change_log` baseret på den aktive afdelings `department_id`
+- Logs genindlæses automatisk ved afdelingsskift
+
+
 ### Fixed — Dialog luk-knap forsvinder ved scroll
 - Luk-knappen i dialogbokse er nu fastgjort (sticky) og forbliver synlig når man scroller ned i indholdet
 - Scroll er flyttet til en indre wrapper mens close-knappen forbliver i top-laget
