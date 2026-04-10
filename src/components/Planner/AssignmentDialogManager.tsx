@@ -20,6 +20,7 @@ interface AssignmentDialogManagerProps {
   onSubmit: (data: Partial<Assignment>) => void;
   onSubmitSeries?: (groupId: string, data: Partial<Assignment>) => void;
   onDetachFromGroup?: (id: string) => Promise<boolean>;
+  editMode?: 'single' | 'series' | null;
   onDelete: (assignmentId: string) => void;
   onPublish: (assignmentId: string) => void;
   assignments: Assignment[];
@@ -40,6 +41,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   onSubmit,
   onSubmitSeries,
   onDetachFromGroup,
+  editMode,
   onDelete,
   onPublish,
   assignments,
@@ -57,9 +59,16 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   const [seriesDialogOpen, setSeriesDialogOpen] = useState(false);
   const [pendingSubmitData, setPendingSubmitData] = useState<Partial<Assignment> | null>(null);
 
-  // Intercept submit when editing a series assignment
+  // When editMode is set by PlannerPage, skip the series prompt
   const handleSubmit = (data: Partial<Assignment>) => {
-    if (isEditing && hasSeries && onSubmitSeries && onDetachFromGroup) {
+    if (editMode === 'series' && currentAssignment?.groupId && onSubmitSeries) {
+      // Directly submit as series update
+      onSubmitSeries(currentAssignment.groupId, data);
+    } else if (editMode === 'single' || !hasSeries) {
+      // Single day edit (already detached or no series)
+      onSubmit(data);
+    } else if (isEditing && hasSeries && onSubmitSeries && onDetachFromGroup) {
+      // Fallback: no editMode set, show series dialog (shouldn't happen normally)
       setPendingSubmitData(data);
       setSeriesDialogOpen(true);
     } else {

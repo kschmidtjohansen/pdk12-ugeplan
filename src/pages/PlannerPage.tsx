@@ -120,6 +120,7 @@ const PlannerPage: React.FC = () => {
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
   const [seriesAction, setSeriesAction] = useState<{ assignment: Assignment; mode: 'edit' | 'delete' } | null>(null);
+  const [editMode, setEditMode] = useState<'single' | 'series' | null>(null);
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
     description: '',
@@ -336,8 +337,9 @@ const PlannerPage: React.FC = () => {
     if (mode === 'delete') {
       await deleteAssignment(assignment.id);
     } else {
-      // Detach from group then open edit dialog
+      // Detach from group then open edit dialog as single
       await detachFromGroup(assignment.id);
+      setEditMode('single');
       openEditDialogDirect({ ...assignment, groupId: undefined });
     }
   }, [seriesAction, deleteAssignment, detachFromGroup]);
@@ -350,7 +352,8 @@ const PlannerPage: React.FC = () => {
     if (mode === 'delete') {
       await deleteAssignmentsByGroupId(assignment.groupId!);
     } else {
-      // Open edit dialog for the clicked assignment (series link preserved)
+      // Open edit dialog for the clicked assignment in series mode
+      setEditMode('series');
       openEditDialogDirect(assignment);
     }
   }, [seriesAction, deleteAssignmentsByGroupId]);
@@ -603,10 +606,11 @@ const PlannerPage: React.FC = () => {
         {/* Assignment Dialog */}
         <PlannerDialogContainer 
           isDialogOpen={isDialogOpen} 
-          onClose={() => setIsDialogOpen(false)} 
+          onClose={() => { setIsDialogOpen(false); setEditMode(null); }} 
           onSubmit={handleSubmit} 
           onSubmitSeries={updateSeriesAssignments}
           onDetachFromGroup={detachFromGroup}
+          editMode={editMode}
           currentAssignment={currentAssignment} 
           selectedDay={selectedDay} 
           formData={formData} 
