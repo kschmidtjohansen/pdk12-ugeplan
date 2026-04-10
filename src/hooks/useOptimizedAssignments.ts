@@ -638,6 +638,84 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     }
   }, [setAssignments]);
 
+  // Update all assignments sharing a group_id with shared fields (keeps individual dates)
+  const updateSeriesAssignments = useCallback(async (groupId: string, data: Partial<Assignment>) => {
+    try {
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Updating series with group_id:', groupId);
+
+      // Fetch all sibling IDs
+      const { data: siblings, error: fetchError } = await supabase
+        .from('assignments')
+        .select('id')
+        .eq('group_id', groupId);
+
+      if (fetchError) throw fetchError;
+      if (!siblings || siblings.length === 0) throw new Error('No assignments found in series');
+
+      const serviceData = {
+        title: data.title?.trim(),
+        description: data.description?.trim() || null,
+        from_time: data.fromTime,
+        to_time: data.toTime,
+        location: data.location?.trim(),
+        case_number: data.case_number || null,
+        published: data.published || false,
+        responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
+        car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
+        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
+      };
+
+      // Bulk update all siblings (keep each assignment's own date)
+      const { error: updateError } = await supabase
+        .from('assignments')
+        .update({
+          ...serviceData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('group_id', groupId);
+
+      if (updateError) throw updateError;
+
+      // Update employees for each sibling
+      const employees = data.employees || [];
+      for (const sibling of siblings) {
+        await supabase
+          .from('assignments_employees')
+          .delete()
+          .eq('assignment_id', sibling.id);
+
+        if (employees.length > 0) {
+          const inserts = employees
+            .filter(empId => typeof empId === 'string')
+            .map(empId => ({
+              assignment_id: sibling.id,
+              user_id: empId,
+            }))
+            .filter(ins => ins.user_id);
+
+          if (inserts.length > 0) {
+            await supabase
+              .from('assignments_employees')
+              .insert(inserts);
+          }
+        }
+      }
+
+      await refetch();
+      toast({
+        title: t('planner.assignmentUpdated'),
+        description: t('planner.series.seriesUpdated'),
+      });
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Series update error:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.series.seriesUpdateFailed'),
+        variant: 'destructive',
+      });
+    }
+  }, [toast, t, refetch, setAssignments]);
+
   return {
     assignments,
     loading: isLoading,
@@ -646,6 +724,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     refetch,
     createAssignment,
     updateAssignment,
+    updateSeriesAssignments,
     deleteAssignment,
     deleteAssignmentsByGroupId,
     detachFromGroup,
