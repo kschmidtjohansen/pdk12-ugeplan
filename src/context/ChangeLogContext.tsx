@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 
 export interface ChangeLogEntry {
@@ -42,6 +43,7 @@ const LAST_VIEWED_KEY = 'planner-changes-last-viewed';
 
 export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const [changeLogs, setChangeLogs] = useState<ChangeLogEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastViewedTime, setLastViewedTime] = useState<string | null>(
@@ -58,12 +60,33 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const isDemoMode = user.email === 'test@polygongroup.com';
       const client = getSchemaClient(isDemoMode);
       
-      // Fetch last 50 change logs
-      const { data, error } = await client
+      // Fetch last 50 change logs, filtered by department
+      let query = client
         .from('planner_change_log')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
+
+      // If we have a department selected and not demo, filter via assignment_id
+      // We need to get assignment IDs for this department first
+      if (selectedDepartmentId && !isDemoMode) {
+        const { data: deptAssignments } = await client
+          .from('assignments')
+          .select('id')
+          .eq('department_id', selectedDepartmentId);
+        
+        if (deptAssignments && deptAssignments.length > 0) {
+          const assignmentIds = deptAssignments.map(a => a.id);
+          query = query.in('assignment_id', assignmentIds);
+        } else {
+          // No assignments for this department, return empty
+          setChangeLogs([]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -169,10 +192,10 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return new Date(log.created_at) > new Date(lastViewedTime);
   }).length;
 
-  // Fetch on mount and when user changes
+  // Fetch on mount and when user/department changes
   useEffect(() => {
     fetchChangeLogs();
-  }, [user?.id, isAuthenticated]);
+  }, [user?.id, isAuthenticated, selectedDepartmentId]);
 
   // Set up real-time subscription
   useEffect(() => {
