@@ -15,6 +15,7 @@ interface PlannerDialogContainerProps {
   onSubmit: (data: Partial<Assignment>) => Promise<void>;
   onSubmitSeries?: (groupId: string, data: Partial<Assignment>) => Promise<void>;
   onDetachFromGroup?: (id: string) => Promise<boolean>;
+  editMode?: 'single' | 'series' | null;
   assignments: Assignment[];
   cars: Car[];
   employees: Employee[];
@@ -32,6 +33,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   onSubmit,
   onSubmitSeries,
   onDetachFromGroup,
+  editMode,
   assignments,
   cars,
   employees,
@@ -49,6 +51,7 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
       onSubmit={onSubmit}
       onSubmitSeries={onSubmitSeries}
       onDetachFromGroup={onDetachFromGroup}
+      editMode={editMode}
       onDelete={() => {}}
       onPublish={() => {}}
       assignments={assignments}

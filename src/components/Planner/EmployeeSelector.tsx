@@ -370,7 +370,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             {triggerButton}
           </PopoverTrigger>
           <PopoverContent 
-            className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
+            className="w-96 p-0 z-[60] bg-popover border shadow-lg" 
             sideOffset={4}
           >
             <div 
