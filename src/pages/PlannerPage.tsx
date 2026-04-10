@@ -50,6 +50,7 @@ const PlannerPage: React.FC = () => {
     refetch,
     createAssignment,
     updateAssignment,
+    updateSeriesAssignments,
     deleteAssignment,
     deleteAssignmentsByGroupId,
     detachFromGroup,
@@ -603,6 +604,8 @@ const PlannerPage: React.FC = () => {
           isDialogOpen={isDialogOpen} 
           onClose={() => setIsDialogOpen(false)} 
           onSubmit={handleSubmit} 
+          onSubmitSeries={updateSeriesAssignments}
+          onDetachFromGroup={detachFromGroup}
           currentAssignment={currentAssignment} 
           selectedDay={selectedDay} 
           formData={formData} 

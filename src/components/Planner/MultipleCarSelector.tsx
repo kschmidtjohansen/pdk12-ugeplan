@@ -218,7 +218,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                         {t('cars.unavailable')}
                       </Badge>
                     ) : selectedDateStrings.length > 0 ? (
-                      <Badge variant="outline" className={`text-xs ${
+                      <Badge variant="outline" className={`text-xs max-w-[120px] truncate ${
                         availability === 'full'
                           ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800'
                           : availability === 'partial'

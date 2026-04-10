@@ -619,12 +619,114 @@ export const useAssignmentActions = (
     }
   }, [isDemoMode]);
 
+  // Update all assignments in a series (same group_id) with shared fields
+  const updateSeriesAssignments = useCallback(async (groupId: string, assignmentData: Partial<Assignment>) => {
+    try {
+      if (import.meta.env.DEV) console.log('[useAssignmentActions] Updating series with group_id:', groupId);
+
+      const client = getSchemaClient(isDemoMode);
+
+      // Fetch all sibling assignments
+      const { data: siblings, error: fetchError } = await client
+        .from('assignments')
+        .select('id')
+        .eq('group_id', groupId);
+
+      if (fetchError) throw fetchError;
+      if (!siblings || siblings.length === 0) throw new Error('No assignments found in series');
+
+      // Format car information
+      let carId = null;
+      if (assignmentData.car) {
+        if (typeof assignmentData.car === 'string') {
+          carId = safeUUID(assignmentData.car);
+        } else if (typeof assignmentData.car === 'object') {
+          carId = safeUUID((assignmentData.car as Car).id);
+        }
+      }
+
+      // Format responsible user ID
+      let responsibleUserId = null;
+      if (assignmentData.responsibleUserId) {
+        responsibleUserId = safeUUID(assignmentData.responsibleUserId);
+      } else if (assignmentData.responsibleUser?.id) {
+        responsibleUserId = safeUUID(assignmentData.responsibleUser.id);
+      }
+
+      // Update shared fields on all siblings (keep each assignment's own date)
+      const { error: updateError } = await client
+        .from('assignments')
+        .update({
+          title: assignmentData.title,
+          description: assignmentData.description,
+          location: assignmentData.location,
+          from_time: assignmentData.fromTime,
+          to_time: assignmentData.toTime,
+          car_id: carId,
+          responsible_user_id: responsibleUserId,
+          published: assignmentData.published,
+          zip_code: assignmentData.zip_code || null,
+          city: assignmentData.city || null,
+          lat: assignmentData.lat ?? null,
+          lng: assignmentData.lng ?? null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('group_id', groupId);
+
+      if (updateError) throw updateError;
+
+      // Update employees for each sibling
+      for (const sibling of siblings) {
+        await client
+          .from('assignments_employees')
+          .delete()
+          .eq('assignment_id', sibling.id);
+
+        if (assignmentData.employees && assignmentData.employees.length > 0) {
+          const employeeInserts = assignmentData.employees
+            .filter(empId => typeof empId === 'string')
+            .map(empId => ({
+              assignment_id: sibling.id,
+              user_id: safeUUID(empId),
+              ...(isDemoMode && { is_demo: true })
+            }))
+            .filter(insert => insert.user_id !== null);
+
+          if (employeeInserts.length > 0) {
+            await client
+              .from('assignments_employees')
+              .insert(employeeInserts);
+          }
+        }
+      }
+
+      toast({
+        title: t('planner.assignmentUpdated'),
+        description: t('planner.series.seriesUpdated'),
+      });
+
+      enhancedDataFetching.clearCache('assignments');
+      await refetch();
+      if (setIsDialogOpen) setIsDialogOpen(false);
+      return true;
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error updating assignment series:', error);
+      toast({
+        title: t('common.error'),
+        description: t('planner.series.seriesUpdateFailed'),
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [toast, t, refetch, setIsDialogOpen, isDemoMode]);
+
   return {
     createAssignment,
     updateAssignment,
     deleteAssignment,
     deleteAssignmentsByGroupId,
     detachFromGroup,
+    updateSeriesAssignments,
     publishAssignment,
     publishAssignmentsByDate
   };

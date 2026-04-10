@@ -157,5 +157,6 @@ export const common = {
   and: "og",
   or: "eller",
   showMore: "Vis detaljer",
-  showLess: "Skjul detaljer"
+  showLess: "Skjul detaljer",
+  selectDate: "Vælg dato"
 };

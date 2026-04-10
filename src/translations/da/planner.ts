@@ -244,7 +244,7 @@ const planner = {
 
   // Car booking conflict dialog
   carBookingConflict: 'Bil allerede i brug',
-  carAlreadyInUse: 'er allerede i brug på denne dag.',
+  carAlreadyInUse: 'I brug',
   conflictingTasks: 'Bruges til følgende opgaver',
   confirmDoubleBooking: 'Vil du alligevel vælge denne bil?',
   useAnywayButton: 'Brug alligevel',
@@ -361,6 +361,8 @@ const planner = {
     onlyThisDay: 'Kun denne dag',
     entireSeries: 'Hele serien',
     seriesDeleted: 'Hele opgaveserien er blevet slettet',
+    seriesUpdated: 'Hele opgaveserien er blevet opdateret',
+    seriesUpdateFailed: 'Kunne ikke opdatere hele serien',
   },
 
   // Employee conflict check

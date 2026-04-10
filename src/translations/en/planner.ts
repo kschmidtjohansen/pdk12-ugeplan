@@ -247,6 +247,8 @@ const planner = {
     onlyThisDay: 'Only this day',
     entireSeries: 'Entire series',
     seriesDeleted: 'The entire assignment series has been deleted',
+    seriesUpdated: 'The entire assignment series has been updated',
+    seriesUpdateFailed: 'Could not update the entire series',
   },
 
   // Employee conflict check
@@ -281,7 +283,7 @@ const planner = {
 
   // Car booking conflict dialog
   carBookingConflict: 'Car already in use',
-  carAlreadyInUse: 'is already in use on this day.',
+  carAlreadyInUse: 'In use',
   conflictingTasks: 'Used for the following tasks',
   confirmDoubleBooking: 'Do you still want to select this car?',
   useAnywayButton: 'Use anyway',
