@@ -247,6 +247,8 @@ const planner = {
     onlyThisDay: 'Only this day',
     entireSeries: 'Entire series',
     seriesDeleted: 'The entire assignment series has been deleted',
+    seriesUpdated: 'The entire assignment series has been updated',
+    seriesUpdateFailed: 'Could not update the entire series',
   },
 
   // Employee conflict check

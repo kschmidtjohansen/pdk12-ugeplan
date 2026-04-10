@@ -361,6 +361,8 @@ const planner = {
     onlyThisDay: 'Kun denne dag',
     entireSeries: 'Hele serien',
     seriesDeleted: 'Hele opgaveserien er blevet slettet',
+    seriesUpdated: 'Hele opgaveserien er blevet opdateret',
+    seriesUpdateFailed: 'Kunne ikke opdatere hele serien',
   },
 
   // Employee conflict check
