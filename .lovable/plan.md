@@ -1,48 +1,47 @@
 
-Mål: rette 3 konkrete planner-fejl uden databaseændringer.
 
-1. Medarbejder-konflikttjek ved redigering/kopiering
-- Rodårsag: `AssignmentForm` checker kun mod `assignments`-listen den får ind, men `PlannerPage` sender kun `sortedWeekAssignments` til dialogen. Derfor opdages konflikter uden for den viste uge ikke altid ved edit/copy.
-- Fix:
-  - send hele assignment-datasættet ind i planner-dialogen til konfliktvalidering
-  - udvid konfliktcheck, så det kan ignorere den aktuelle post og evt. de poster der indgår i samme bulk-redigering
-  - ryd serie-kontekst ved kopiering (`groupId`/bulk-state), så en kopi behandles som en ny sag
-  - behold nuværende warning-banner, men verificér at det stadig viser medarbejder, sag og konkrete datoer korrekt
+## Plan: 3 Rettelser — Serie-dialog, Selector-bredde, Historik-isolering
 
-2. Luk-knap forsvinder når dialogen scrolles
-- Rodårsag: planner-dialogen bruger `overflow-y-auto` direkte på `DialogContent`, så close-knappen scroller væk med indholdet.
-- Fix:
-  - ændr planner-dialogen til `overflow-hidden`
-  - flyt scroll til en indre body-wrapper
-  - behold close-knappen i top-laget, så den altid er synlig mens formularen/history-tab kan scrolles
+### 1. Serie-dialog vises ikke ved redigering af 12-00000
 
-3. Bulk edit virker ikke / mangler valg “aktuel sag eller fremadrettet”
-- Rodårsag 1: serieinformation kommer ikke stabilt hele vejen til UI’et; `group_id` bliver ikke mappet korrekt i fetch/convert-laget, så sager fremstår som enkeltstående.
-- Rodårsag 2: nuværende flow er bygget som “hele serien”, men dit behov er “kun denne sag” eller “denne og fremadrettede dage”.
-- Fix:
-  - tilføj `group_id` i fetch/transform-laget og map det til `Assignment.groupId`
-  - ved redigering: find serieposter via `groupId`, og brug fallback på samme `case_number` fra valgt dato og frem hvis ældre data mangler `groupId`
-  - opdatér `SeriesActionDialog` til valgene “Kun denne dag” og “Denne og fremadrettede dage”
-  - bulk-update skal kun ramme poster fra den valgte dato og frem, ikke tidligere dage
-  - single-day edit skal fortsat afkoble den ene post fra serien
+**Problem**: I `PlannerPage.tsx` linje 240-246 tjekker `handleOpenEditDialog` om `assignment.groupId` eksisterer. Men `groupId` er korrekt mappet i data-laget (linje 95 i `useOptimizedAssignments.ts`). Problemet er sandsynligvis at `SeriesActionDialog` åbnes *før* edit-dialogen — og ved "Hele serien" (linje 354) åbnes edit-dialogen direkte *uden* at `AssignmentDialogManager` viser sin egen serie-dialog. Dvs. brugeren kan redigere, men ved submit intercepter `AssignmentDialogManager` (linje 62) KUN hvis `hasSeries` er true — men `handleSeriesEntireSeries` (linje 353) åbner dialogen med den originale assignment, som stadig har `groupId`, og derved trigger serie-dialogen *igen*.
 
-Filer der skal opdateres
-- `src/pages/PlannerPage.tsx`
-- `src/components/Planner/AssignmentDialogManager.tsx`
-- `src/components/Planner/PlannerDialogContainer.tsx`
-- `src/components/Planner/AssignmentForm.tsx`
-- `src/components/Planner/SeriesActionDialog.tsx`
-- `src/components/ui/dialog.tsx` og/eller planner-dialogens layout
-- `src/services/optimizedAssignmentService.ts`
-- `src/hooks/useOptimizedAssignments.ts`
-- `src/translations/da/planner.ts`
-- `src/translations/en/planner.ts`
-- `docs/implementation-plan/tasks.md`
-- `docs/technical-specs/data-models.md` hvis `group_id` skal dokumenteres
-- `CHANGELOG.md`
+Det reelle problem: Ved "Hele serien" bør ændringer automatisk gå til alle serieposter *uden* at spørge igen. Ved "Kun denne dag" detaches posten og åbnes som enkeltstående — korrekt.
 
-QA efter implementering
-- redigér en sag med medarbejdere som allerede er booket andre dage og bekræft advarsel
-- kopiér en sag til flere dage og bekræft advarsel med navn, sagsnummer og datoer
-- åbn sag `12-00000` og bekræft valg mellem enkeltdag og fremadrettet redigering
-- scroll langt ned i dialogen og bekræft at luk-knappen stadig er synlig
+**Fix**:
+- Fjern den dobbelte serie-dialog i `AssignmentDialogManager` — den skal aldrig vise sin egen serie-prompt da `PlannerPage` allerede håndterer det
+- I `PlannerPage`: Når brugeren vælger "Hele serien" i SeriesActionDialog, sæt en `editMode`-state (`'single' | 'series'`) og send den til dialog-manageren
+- I `AssignmentDialogManager`: Brug `editMode` til at bestemme om submit kalder `onSubmit` (single) eller `onSubmitSeries` (series) — uden at vise en ny dialog
+- Tilføj `editMode` prop til `AssignmentDialogManager` og `PlannerDialogContainer`
+
+**Filer**: `PlannerPage.tsx`, `AssignmentDialogManager.tsx`, `PlannerDialogContainer.tsx`
+
+### 2. Car/Employee selector croppes — tekst skjules
+
+**Problem**: `PopoverContent` i begge selectors bruger `w-80` (320px), hvilket er for smalt til at vise bilnavn + badge + nummerplade. Billedet viser at "I brug"-badgen skubber bilnavnet ud.
+
+**Fix**:
+- `MultipleCarSelector.tsx`: Ændr `PopoverContent` fra `w-80` til `w-96` (384px)
+- `EmployeeSelector.tsx`: Ændr `PopoverContent` fra `w-80` til `w-96` (384px)
+- Tilføj `overflow-hidden` og `text-ellipsis` på navne-spans for graceful truncation
+
+**Filer**: `MultipleCarSelector.tsx`, `EmployeeSelector.tsx`
+
+### 3. Historik/planner ændringer viser andre afdelingers data
+
+**Problem**: `ChangeLogContext.tsx` fetcher `planner_change_log` med `select('*')` uden nogen `department_id`-filtrering. `planner_change_log`-tabellen har ingen `department_id`-kolonne, men logge refererer `assignment_id` som har en relation til `assignments`-tabellen der har `department_id`.
+
+**Fix**:
+- I `ChangeLogContext.fetchChangeLogs()`: Brug `selectedDepartmentId` fra `useDepartment()`
+- Hent først assignments IDs for den aktive afdeling, derefter filtrér change logs via en join eller subquery
+- Konkret: fetch `planner_change_log` med en inner join: `.select('*, assignments!inner(department_id)')` og `.eq('assignments.department_id', selectedDepartmentId)`
+- Tilføj `selectedDepartmentId` til useEffect dependencies så logs genindlæses ved afdelingsskift
+- Gør det samme for `fetchChangeLogsByDateRange` og `fetchChangeLogsByCaseNumber`
+
+**Filer**: `ChangeLogContext.tsx`
+
+### Samlet scope
+- 5 filer ændres
+- Ingen database-ændringer
+- Changelog opdateres
+
