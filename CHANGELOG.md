@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased] - 2026-04-10
+
+### Fixed — Car Selector Labels
+- Forkortet `carAlreadyInUse` tekst fra "er allerede i brug på denne dag." → "I brug" (da) / "In use" (en)
+- Tilføjet `max-w-[120px] truncate` på badges i MultipleCarSelector for at forhindre tekst-overflow
+
+### Added — Bulk Edit for Opgaveserier
+- Ny `updateSeriesAssignments` funktion der opdaterer alle opgaver i en serie (delt `group_id`) på én gang
+- Når man redigerer en opgave der er del af en serie, spørges om man vil redigere "Kun denne dag" eller "Hele serien"
+- Ved "Kun denne dag" afkobles opgaven fra gruppen og opdateres individuelt
+- Ved "Hele serien" opdateres titel, adresse, tidspunkter, medarbejdere og bil for alle dage i serien
+
+### Fixed — Manglende oversættelser
+- Tilføjet `common.selectDate` på dansk ("Vælg dato") og engelsk ("Select date")
+- Tilføjet `planner.series.seriesUpdated` og `planner.series.seriesUpdateFailed` oversættelser
+
 ## [Unreleased] - 2026-04-04
 
 ### Changed — Afdelingsvælger flyttet til profilmenu
