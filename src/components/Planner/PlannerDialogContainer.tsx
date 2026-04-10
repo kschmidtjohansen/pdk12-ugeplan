@@ -13,6 +13,8 @@ interface PlannerDialogContainerProps {
   formData: Partial<Assignment>;
   setFormData: (data: Partial<Assignment>) => void;
   onSubmit: (data: Partial<Assignment>) => Promise<void>;
+  onSubmitSeries?: (groupId: string, data: Partial<Assignment>) => Promise<void>;
+  onDetachFromGroup?: (id: string) => Promise<boolean>;
   assignments: Assignment[];
   cars: Car[];
   employees: Employee[];
@@ -28,6 +30,8 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   formData,
   setFormData,
   onSubmit,
+  onSubmitSeries,
+  onDetachFromGroup,
   assignments,
   cars,
   employees,
@@ -43,14 +47,16 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
       formData={formData}
       setFormData={setFormData}
       onSubmit={onSubmit}
-      onDelete={() => {}} // Not used in this context
-      onPublish={() => {}} // Not used in this context
+      onSubmitSeries={onSubmitSeries}
+      onDetachFromGroup={onDetachFromGroup}
+      onDelete={() => {}}
+      onPublish={() => {}}
       assignments={assignments}
       cars={cars}
       employees={employees}
       vacations={vacations}
       selectedDay={selectedDay}
-      onPublishDay={() => {}} // Not used in this context
+      onPublishDay={() => {}}
       onEmployeeToggle={onEmployeeToggle}
     />
   );
