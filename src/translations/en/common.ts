@@ -154,5 +154,6 @@ export const common = {
   and: "and",
   or: "or",
   showMore: "Show details",
-  showLess: "Hide details"
+  showLess: "Hide details",
+  selectDate: "Select date"
 };

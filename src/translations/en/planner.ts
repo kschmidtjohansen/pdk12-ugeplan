@@ -281,7 +281,7 @@ const planner = {
 
   // Car booking conflict dialog
   carBookingConflict: 'Car already in use',
-  carAlreadyInUse: 'is already in use on this day.',
+  carAlreadyInUse: 'In use',
   conflictingTasks: 'Used for the following tasks',
   confirmDoubleBooking: 'Do you still want to select this car?',
   useAnywayButton: 'Use anyway',
