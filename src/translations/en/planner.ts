@@ -245,7 +245,7 @@ const planner = {
     deleteTitle: 'Delete series assignment',
     deleteDescription: 'This assignment is part of a multi-day series. Do you want to delete only this day or the entire series?',
     onlyThisDay: 'Only this day',
-    entireSeries: 'Entire series',
+    entireSeries: 'This and future days',
     seriesDeleted: 'The entire assignment series has been deleted',
     seriesUpdated: 'The entire assignment series has been updated',
     seriesUpdateFailed: 'Could not update the entire series',

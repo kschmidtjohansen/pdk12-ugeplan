@@ -294,6 +294,7 @@ const PlannerPage: React.FC = () => {
     setFormData({
       ...assignment,
       id: undefined,
+      groupId: undefined,
       date: today,
       published: false,
       employees: assignment.employees ? [...assignment.employees] : [],
@@ -613,7 +614,7 @@ const PlannerPage: React.FC = () => {
           employees={employees} 
           cars={cars} 
           vacations={vacations} 
-          assignments={sortedWeekAssignments} 
+          assignments={assignments} 
           onEmployeeToggle={handleEmployeeToggle} 
         />
 

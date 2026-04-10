@@ -359,7 +359,7 @@ const planner = {
     deleteTitle: 'Slet serieopgave',
     deleteDescription: 'Denne opgave er del af en serie over flere dage. Vil du slette kun denne dag eller hele serien?',
     onlyThisDay: 'Kun denne dag',
-    entireSeries: 'Hele serien',
+    entireSeries: 'Denne og fremadrettede dage',
     seriesDeleted: 'Hele opgaveserien er blevet slettet',
     seriesUpdated: 'Hele opgaveserien er blevet opdateret',
     seriesUpdateFailed: 'Kunne ikke opdatere hele serien',
