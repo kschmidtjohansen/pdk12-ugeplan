@@ -13,6 +13,7 @@ import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
 import { da } from 'date-fns/locale';
 import { filterDisplayNames } from '@/utils/people';
 import AssignmentDetailsDialog from './AssignmentDetailsDialog';
+import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 import { Assignment } from '@/types/assignment';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -368,6 +369,7 @@ const MineOpgaver: React.FC = () => {
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         cars={cars}
+        siblingAssignmentIds={getSeriesSiblingIds(selectedAssignment, assignments)}
       />
     </Card>
   );

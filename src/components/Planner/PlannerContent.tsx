@@ -15,6 +15,7 @@ import { DutyWeekWidget } from './DutyWeekWidget';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import AssignmentDetailsDialog from '@/components/Dashboard/AssignmentDetailsDialog';
+import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -53,11 +54,17 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const { canEdit, canPublishTasks } = usePermissions();
   const { isDutyEnabled } = useDepartment();
   
-  const { employees, cars } = useUnifiedData();
+  const { employees, cars, assignments: allAssignments } = useUnifiedData();
   const { vacations } = useVacations();
   
   // State for assignment details dialog
   const [detailsDialogAssignment, setDetailsDialogAssignment] = useState<Assignment | null>(null);
+
+  // Compute sibling IDs (all days in same case series) for the open assignment
+  const detailsSiblingIds = useMemo(
+    () => getSeriesSiblingIds(detailsDialogAssignment, allAssignments),
+    [detailsDialogAssignment, allAssignments]
+  );
 
   if (import.meta.env.DEV) console.log(`[PlannerContent] Displaying ${weekAssignments.length} assignments with ${employees.length} employees and ${cars.length} cars`);
 
@@ -230,6 +237,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         onClose={() => setDetailsDialogAssignment(null)}
         cars={cars}
         onEdit={onEditAssignment}
+        siblingAssignmentIds={detailsSiblingIds}
       />
     </div>
   );
