@@ -414,7 +414,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         </Card>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+      <div className="sticky bottom-0 -mx-8 -mb-8 px-8 py-4 bg-background/95 backdrop-blur border-t flex flex-col sm:flex-row gap-3 z-10">
         <Button type="submit" disabled={isSubmitting || conflictDetails.length > 0} className="flex-1">
           <Edit3 className="mr-2 h-4 w-4" />
           {isSubmitting ? t('planner.operations.saving') : currentAssignment ? t('common.update') : t('common.create')}
