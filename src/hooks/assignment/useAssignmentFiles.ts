@@ -47,7 +47,10 @@ interface UseAssignmentFilesReturn {
   refetch: () => Promise<void>;
 }
 
-export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFilesReturn => {
+export const useAssignmentFiles = (
+  assignmentId: string | null,
+  siblingAssignmentIds?: string[]
+): UseAssignmentFilesReturn => {
   const [files, setFiles] = useState<AssignmentFile[]>([]);
   const [folders, setFolders] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -56,15 +59,24 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
   const imageCount = files.filter(f => f.mime_type?.startsWith('image/')).length;
   const documentCount = files.filter(f => !f.mime_type?.startsWith('image/')).length;
 
+  // Effective IDs to read from: all sibling days of the case, or just this assignment.
+  // We always WRITE to `assignmentId` (the currently opened day).
+  const effectiveIds = siblingAssignmentIds && siblingAssignmentIds.length > 0
+    ? siblingAssignmentIds
+    : assignmentId
+      ? [assignmentId]
+      : [];
+  const effectiveIdsKey = effectiveIds.join(',');
+
   const fetchFiles = useCallback(async () => {
-    if (!assignmentId) return;
+    if (effectiveIds.length === 0) return;
 
     setLoading(true);
     try {
       const { data: filesData, error } = await supabase
         .from('assignment_files')
         .select('*')
-        .eq('assignment_id', assignmentId)
+        .in('assignment_id', effectiveIds)
         .order('folder_name', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
 
@@ -108,7 +120,8 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
     } finally {
       setLoading(false);
     }
-  }, [assignmentId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveIdsKey]);
 
   const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
@@ -580,24 +593,29 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
     return acc;
   }, {} as GroupedFiles);
 
-  // Set up realtime subscription
+  // Set up realtime subscription — listen across the whole table and filter
+  // client-side so we receive changes for every sibling assignment in the series.
   useEffect(() => {
-    if (!assignmentId) return;
+    if (effectiveIds.length === 0) return;
 
     fetchFiles();
 
+    const idSet = new Set(effectiveIds);
     const channel = supabase
-      .channel(`assignment-files-${assignmentId}`)
+      .channel(`assignment-files-${effectiveIdsKey}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'assignment_files',
-          filter: `assignment_id=eq.${assignmentId}`
         },
-        () => {
-          fetchFiles();
+        (payload) => {
+          const newId = (payload.new as { assignment_id?: string } | null)?.assignment_id;
+          const oldId = (payload.old as { assignment_id?: string } | null)?.assignment_id;
+          if ((newId && idSet.has(newId)) || (oldId && idSet.has(oldId))) {
+            fetchFiles();
+          }
         }
       )
       .subscribe();
@@ -605,7 +623,8 @@ export const useAssignmentFiles = (assignmentId: string | null): UseAssignmentFi
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [assignmentId, fetchFiles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveIdsKey, fetchFiles]);
 
   return {
     files,

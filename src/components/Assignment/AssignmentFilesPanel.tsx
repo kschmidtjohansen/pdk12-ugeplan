@@ -45,6 +45,9 @@ interface AssignmentFilesPanelProps {
   assignmentId: string;
   assignmentTitle?: string;
   hideHeader?: boolean;
+  /** All assignment IDs in the same case series (multi-day bookings).
+   *  Files are read across all of them so attachments are shared across days. */
+  siblingAssignmentIds?: string[];
 }
 
 interface PendingUpload {
@@ -56,7 +59,8 @@ interface PendingUpload {
 const AssignmentFilesPanel: React.FC<AssignmentFilesPanelProps> = ({
   assignmentId,
   assignmentTitle,
-  hideHeader = false
+  hideHeader = false,
+  siblingAssignmentIds
 }) => {
   const { t, currentLanguage } = useTranslation();
   const [showFolderDialog, setShowFolderDialog] = useState(false);
@@ -87,7 +91,7 @@ const AssignmentFilesPanel: React.FC<AssignmentFilesPanelProps> = ({
     downloadAll,
     updateFileComment,
     generateImagePdfWithComments
-  } = useAssignmentFiles(assignmentId);
+  } = useAssignmentFiles(assignmentId, siblingAssignmentIds);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
