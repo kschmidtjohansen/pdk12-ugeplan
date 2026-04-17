@@ -340,12 +340,33 @@ const PlannerPage: React.FC = () => {
 
   const handleDeleteAssignment = useCallback(async (id: string) => {
     const assignment = assignments.find(a => a.id === id);
-    if (assignment?.groupId) {
+    if (!assignment) return;
+    const siblings = findSeriesSiblings(assignment);
+    if (assignment.groupId || siblings.length > 1) {
       setSeriesAction({ assignment, mode: 'delete' });
     } else {
       await deleteAssignment(id);
     }
-  }, [deleteAssignment, assignments]);
+  }, [deleteAssignment, assignments, findSeriesSiblings]);
+
+  // Backfill group_id for legacy series (where group_id is NULL but case_number/title matches)
+  const ensureGroupId = useCallback(async (assignment: Assignment): Promise<string | null> => {
+    if (assignment.groupId) return assignment.groupId;
+    const siblings = findSeriesSiblings(assignment);
+    if (siblings.length <= 1) return null;
+    const newGroupId = crypto.randomUUID();
+    const ids = siblings.map(s => s.id);
+    const { error } = await supabase
+      .from('assignments')
+      .update({ group_id: newGroupId, updated_at: new Date().toISOString() })
+      .in('id', ids);
+    if (error) {
+      if (import.meta.env.DEV) console.error('[PlannerPage] Failed to backfill group_id:', error);
+      return null;
+    }
+    await refetch();
+    return newGroupId;
+  }, [findSeriesSiblings, refetch]);
 
   // Series action handlers
   const handleSeriesSingleDay = useCallback(async () => {
@@ -357,7 +378,9 @@ const PlannerPage: React.FC = () => {
       await deleteAssignment(assignment.id);
     } else {
       // Detach from group then open edit dialog as single
-      await detachFromGroup(assignment.id);
+      if (assignment.groupId) {
+        await detachFromGroup(assignment.id);
+      }
       setEditMode('single');
       openEditDialogDirect({ ...assignment, groupId: undefined });
     }
@@ -368,14 +391,21 @@ const PlannerPage: React.FC = () => {
     const { assignment, mode } = seriesAction;
     setSeriesAction(null);
 
+    // Backfill group_id for legacy data so series operations work
+    const groupId = await ensureGroupId(assignment);
+
     if (mode === 'delete') {
-      await deleteAssignmentsByGroupId(assignment.groupId!);
+      if (groupId) {
+        await deleteAssignmentsByGroupId(groupId);
+      } else {
+        await deleteAssignment(assignment.id);
+      }
     } else {
       // Open edit dialog for the clicked assignment in series mode
       setEditMode('series');
-      openEditDialogDirect(assignment);
+      openEditDialogDirect({ ...assignment, groupId: groupId || assignment.groupId });
     }
-  }, [seriesAction, deleteAssignmentsByGroupId]);
+  }, [seriesAction, deleteAssignmentsByGroupId, deleteAssignment, ensureGroupId]);
 
   const handlePublishAssignment = useCallback(async (id: string) => {
     await publishAssignment(id);
