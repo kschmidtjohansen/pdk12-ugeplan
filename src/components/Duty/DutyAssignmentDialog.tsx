@@ -95,7 +95,7 @@ export const DutyAssignmentDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t('duty.assignEmployee')}</DialogTitle>
         </DialogHeader>

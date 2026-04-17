@@ -2,6 +2,14 @@
 
 ## [Unreleased] - 2026-04-17
 
+### Fixed — Dobbelt scrollbar i dialoger + pænere luk-knap
+- Fjernet duplikerede `overflow-y-auto`/`max-h-[…]` klasser fra `DialogContent`-brug i AssignmentDialogManager, DutyAssignmentDialog, CarAvailabilityModal, AbsentEmployeesModal, UserFormDialog og AssignmentDetailsDialog (scroll håndteres nu kun af den indre wrapper i `dialog.tsx`)
+- `DialogContent` har nu `pr-12` på den indre scroll-wrapper så scrollbaren ikke krydser luk-knappen
+- Luk-knappen har fået højere z-index (z-60), `bg-background/90` + `backdrop-blur-sm` og let skygge så den forbliver tydelig under scroll
+- Tilføjet `overscroll-contain` for renere scroll-isolation
+
+## [Unreleased] - 2026-04-17
+
 ### Changed — SeriesActionDialog redesignet med radio-valg
 - Erstattet de tre footer-knapper med en RadioGroup hvor begge valg ("Kun denne dag" / "Denne og fremadrettede dage") vises som klikbare kort med beskrivelse
 - Footer indeholder nu kun Annuller + Bekræft (destructive ved sletning)
