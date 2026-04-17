@@ -250,9 +250,10 @@ const PlannerPage: React.FC = () => {
     if (!key) return [assignment];
     return assignments.filter(a => {
       const aKey = (a.case_number && a.case_number.trim()) || a.title?.trim();
-      return aKey === key && a.date !== assignment.date
-        ? true
-        : a.id === assignment.id;
+      if (aKey !== key) return false;
+      // Must be same department to count as a series
+      if (a.department_id && assignment.department_id && a.department_id !== assignment.department_id) return false;
+      return true;
     });
   }, [assignments]);
 
