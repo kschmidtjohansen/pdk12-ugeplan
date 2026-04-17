@@ -1,63 +1,34 @@
 
-Brugeren vil forbedre `SeriesActionDialog` (vist i screenshot) — i stedet for tre knapper i bunden ønskes en pænere løsning med en select box.
 
-Lad mig læse den nuværende komponent og vurdere design.
+## Plan: Fjern dobbelt scrollbar + sikre luk-knap er pænt placeret
 
-Nuværende design: AlertDialog med titel, beskrivelse og 3 knapper (Annuller, Kun denne dag, Denne og fremadrettede dage). Knapperne wrapper grimt på smalle skærme.
+### Rod-årsag
+`DialogContent` (i `src/components/ui/dialog.tsx` linje 27-30) har **allerede** en intern wrapper med `overflow-y-auto max-h-[90vh] p-8` rundt om children. Flere dialoger tilføjer derfor fejlagtigt **også** `overflow-y-auto` / `max-h-[XXvh]` på selve `DialogContent` → giver to scroll-containere. Den ene scrollbar går desuden hen over den absolut-positionerede luk-knap (top-4 right-4), fordi luk-knappen ligger på det ydre `Content`, mens scrollbaren tilhører det indre wrapper-element der løber helt ud i kanten.
 
-Forslag til nyt design:
-- Behold AlertDialog struktur
-- Erstat de to valg-knapper med en **RadioGroup** (visuelt pænere end select box til binære valg, og mere tilgængelig)
-- Hver radio-option vises som et klikbart kort med titel + kort beskrivelse
-- Bunden har kun: Annuller (secondary) + Bekræft (primary, destructive ved delete)
-- Defaultvalg: "Kun denne dag" (sikkerheds-default)
+### Løsning (to dele)
 
-Hvorfor RadioGroup frem for Select:
-- Begge valg synlige uden ekstra klik (bedre UX for kun 2 valg)
-- Mere "premium" SaaS-look (Linear/Notion stil) som matcher app-design
-- Valg-konteksten (beskrivelse under hver) er straks synlig
+**Del 1 — Forbedr `DialogContent` selv (engangsfix for hele appen)**
+Fil: `src/components/ui/dialog.tsx`
+- Behold den indre `overflow-y-auto`-wrapper, men giv den lidt højre-padding (`pr-12`) så scrollbaren ikke krydser luk-knappen, og lad luk-knappen sidde fast på det ydre Content (som nu).
+- Tilføj `[&>div]:overscroll-contain` for pænere scroll-isolation.
+- Sørg for at luk-knappen får højere z-index og en let baggrund så den ikke "drukner" i scrollende indhold (allerede `bg-background/50` — øg til `bg-background/90` + `backdrop-blur-sm` for synlighed under scroll).
 
-Hvis brugeren strikt vil have en `<Select>` dropdown, kan vi gøre det i stedet — men jeg foreslår RadioGroup som default fordi det passer bedre til kompakt SaaS-design og 2 valg.
+**Del 2 — Fjern duplikerede scroll-klasser i kald-stederne**
+Fjern `overflow-y-auto` (og overflødige `max-h-[…]`) fra `DialogContent`-brug i:
+- `src/components/Planner/AssignmentDialogManager.tsx` (linje 102) — behold kun `max-w-4xl`
+- `src/components/Duty/DutyAssignmentDialog.tsx` (linje 98) — behold kun `max-w-2xl`
+- `src/components/Dashboard/CarAvailabilityModal.tsx` (linje 25)
+- `src/components/Dashboard/AbsentEmployeesModal.tsx` (linje 33)
+- `src/components/Admin/UserFormDialog.tsx` (linje 357)
+- `src/components/Dashboard/AssignmentDetailsDialog.tsx` (linje 112) — denne bruger `flex flex-col p-0` med eget custom layout; her fjernes kun `overflow-y-auto` (scrollen håndteres internt af komponenten).
 
-## Plan: Pænere SeriesActionDialog med radio-valg
+### Verifikation af luk-knap
+Alle ovenstående dialoger bruger den fælles `DialogContent`, som **allerede** indeholder en luk-knap (`DialogPrimitive.Close` med X-ikon, linje 31-34 i `dialog.tsx`). Ingen dialog mangler altså en luk-knap — fixet i Del 1 sikrer at den ser pænt ud under scroll.
 
-### Design
-```
-┌─────────────────────────────────────────┐
-│ Rediger serieopgave                     │
-│ Denne opgave er del af en serie...      │
-│                                         │
-│ ┌─────────────────────────────────────┐ │
-│ │ ◉ Kun denne dag                     │ │
-│ │   Ændringer påvirker kun valgte dag │ │
-│ └─────────────────────────────────────┘ │
-│ ┌─────────────────────────────────────┐ │
-│ │ ○ Denne og fremadrettede dage       │ │
-│ │   Opdaterer alle dage i serien      │ │
-│ └─────────────────────────────────────┘ │
-│                                         │
-│              [Annuller]   [Bekræft]    │
-└─────────────────────────────────────────┘
-```
-
-### Ændringer
-**Fil**: `src/components/Planner/SeriesActionDialog.tsx`
-- Importér `RadioGroup`, `RadioGroupItem` fra `@/components/ui/radio-group`
-- Tilføj lokal `useState` for valgt option (`'single' | 'series'`, default `'single'`)
-- Render to klikbare kort-style radio-options med label + beskrivelse
-- Footer: kun Annuller + Bekræft-knap (Bekræft kalder `onSingleDay` eller `onEntireSeries` baseret på valg)
-- Reset valg til `'single'` når dialog lukkes
-- Bekræft-knap er `destructive` variant ved `mode='delete'`, ellers `default`
-
-**Fil**: `src/translations/da/planner.ts` + `src/translations/en/planner.ts`
-- Tilføj korte beskrivelser til hver option:
-  - `series.onlyThisDayDescription`: "Ændringer påvirker kun den valgte dag"
-  - `series.entireSeriesDescription`: "Opdaterer alle dage i serien"
-  - `series.confirm`: "Bekræft"
-
-**Fil**: `CHANGELOG.md` — log UI-forbedring
+`AlertDialog` (bruges af f.eks. `SeriesActionDialog`, `EmployeeDeleteDialog`, `WarehouseDeleteDialog`) har bevidst **ingen** luk-knap — den lukkes via Cancel/Action-knapper i footer. Det er korrekt mønster og ændres ikke.
 
 ### Scope
-- 4 filer
-- Ingen logik-ændring i kald-stederne (`AssignmentDialogManager`, `PlannerPage`) — props er uændrede
-- Ingen DB-ændringer
+- 7 filer (1 ui-primitiv + 6 forbrugere)
+- Ingen logik-ændringer, kun CSS-klasser
+- `CHANGELOG.md` opdateres
+
