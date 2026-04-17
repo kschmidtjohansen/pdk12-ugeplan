@@ -8,6 +8,7 @@ import { useCars } from '../hooks/car';
 import { useVacations } from '../hooks/useVacations';
 import { useAuth } from '../context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
+import { supabase } from '@/integrations/supabase/client';
 import PlannerContent from '../components/Planner/PlannerContent';
 import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
 import SeriesActionDialog from '../components/Planner/SeriesActionDialog';
