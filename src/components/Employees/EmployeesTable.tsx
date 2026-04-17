@@ -125,11 +125,9 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
 
   // Desktop: table layout
   return <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Users className="h-5 w-5 text-primary" />
-      </div>
-      
-      <div className="border rounded-md">
+      <div className="border rounded-md flex items-start gap-3 p-3">
+        <Users className="h-5 w-5 text-primary mt-3 shrink-0" />
+        <div className="flex-1">
         <Table>
           <TableHeader>
             <TableRow>
@@ -147,6 +145,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             {employees.map(employee => <EmployeeTableRow key={`${employee.id}-${employee.onLeave}-${employee.status}`} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
           </TableBody>
         </Table>
+        </div>
       </div>
     </div>;
 };
