@@ -2,6 +2,15 @@
 
 ## [Unreleased] - 2026-04-17
 
+### Changed — Chat & filer deles på tværs af alle dage i samme sag
+- Når en sag (fx 12-013738) løber over flere dage, viser chat og filer nu samme indhold uanset hvilken dag man åbner — beskeder/filer skrevet på mandag er synlige også fra tirsdag, onsdag osv.
+- Læsning sker på tværs af alle søsken-assignments via `groupId` (eller fallback `case_number`/`title` for legacy serier). Skrivning sker fortsat på den åbnede dags ID, så storage-paths bevares.
+- Realtime-subscriptions opdateret til at lytte til hele serien.
+- Ny util `getSeriesSiblingIds` i `src/utils/assignmentSeries.ts` (samme regler som `findSeriesSiblings` i PlannerPage).
+- Ingen DB-migration; virker straks for alle eksisterende beskeder og filer.
+
+## [Unreleased] - 2026-04-17
+
 ### Fixed — Dobbelt scrollbar i dialoger + pænere luk-knap
 - Fjernet duplikerede `overflow-y-auto`/`max-h-[…]` klasser fra `DialogContent`-brug i AssignmentDialogManager, DutyAssignmentDialog, CarAvailabilityModal, AbsentEmployeesModal, UserFormDialog og AssignmentDetailsDialog (scroll håndteres nu kun af den indre wrapper i `dialog.tsx`)
 - `DialogContent` har nu `pr-12` på den indre scroll-wrapper så scrollbaren ikke krydser luk-knappen

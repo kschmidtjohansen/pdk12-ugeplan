@@ -20,6 +20,9 @@ import { useDepartment } from '@/context/DepartmentContext';
    onClose: () => void;
    cars: CarType[];
    onEdit?: (assignment: Assignment) => void;
+   /** All assignment IDs in the same case series (multi-day bookings).
+    *  When provided, chat & files are shared across all days of the series. */
+   siblingAssignmentIds?: string[];
  }
  
  const AssignmentDetailsDialog: React.FC<AssignmentDetailsDialogProps> = ({
@@ -27,7 +30,8 @@ import { useDepartment } from '@/context/DepartmentContext';
    isOpen,
    onClose,
    cars,
-   onEdit
+   onEdit,
+   siblingAssignmentIds
  }) => {
   const { t, currentLanguage } = useTranslation();
   const { isChatEnabled, isFilesEnabled } = useDepartment();
@@ -41,12 +45,13 @@ import { useDepartment } from '@/context/DepartmentContext';
     || [];
   
   // ALL hooks must be called before any conditional return
-  const { imageCount, documentCount, files, downloadAll, generateImagePdfWithComments } = useAssignmentFiles(assignment?.id || null);
+  const { imageCount, documentCount, files, downloadAll, generateImagePdfWithComments } = useAssignmentFiles(assignment?.id || null, siblingAssignmentIds);
   const { messages, exportMessages } = useAssignmentMessages(
     assignment?.id || null,
     assignment?.title,
     assignedEmployeeIds,
-    assignment?.responsibleUserId
+    assignment?.responsibleUserId,
+    siblingAssignmentIds
   );
 
   // Safe to return early after all hooks are called
@@ -307,12 +312,13 @@ import { useDepartment } from '@/context/DepartmentContext';
                    )}
                  </div>
                </div>
-               {showFiles && (
+                {showFiles && (
                   <div className="px-4 sm:px-8 pb-6 max-h-72 overflow-y-auto">
                   <AssignmentFilesPanel 
                     assignmentId={assignment.id} 
                     assignmentTitle={assignment.title || assignment.case_number || undefined}
                     hideHeader={true}
+                    siblingAssignmentIds={siblingAssignmentIds}
                   />
                 </div>
               )}
@@ -360,6 +366,7 @@ import { useDepartment } from '@/context/DepartmentContext';
                 assignmentTitle={assignment.title}
                 assignedEmployeeIds={assignedEmployeeIds}
                 responsibleUserId={assignment.responsibleUserId}
+                siblingAssignmentIds={siblingAssignmentIds}
               />
             </div>
            </div>

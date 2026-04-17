@@ -10,6 +10,7 @@ import { Assignment } from '@/types/assignment';
 import { filterDisplayNames } from '@/utils/people';
 import WeekNavigation from './WeekNavigation';
 import AssignmentDetailsDialog from './AssignmentDetailsDialog';
+import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 
 interface WeeklyAssignmentsProps {
   assignments: Assignment[];
@@ -251,6 +252,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
         isOpen={isAssignmentDialogOpen} 
         onClose={() => setIsAssignmentDialogOpen(false)}
         cars={cars}
+        siblingAssignmentIds={getSeriesSiblingIds(selectedAssignment, assignments)}
       />
     </>
   );

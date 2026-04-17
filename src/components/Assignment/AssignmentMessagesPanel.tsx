@@ -27,22 +27,26 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
  
- interface AssignmentMessagesPanelProps {
-   assignmentId: string;
-   assignmentTitle?: string;
-   assignedEmployeeIds?: string[];
-   responsibleUserId?: string | null;
- }
- 
- const AssignmentMessagesPanel: React.FC<AssignmentMessagesPanelProps> = ({
-   assignmentId,
-   assignmentTitle,
-   assignedEmployeeIds,
-   responsibleUserId
- }) => {
-   const { t, currentLanguage } = useTranslation();
-   const [newMessage, setNewMessage] = useState('');
-   const [sending, setSending] = useState(false);
+interface AssignmentMessagesPanelProps {
+  assignmentId: string;
+  assignmentTitle?: string;
+  assignedEmployeeIds?: string[];
+  responsibleUserId?: string | null;
+  /** All assignment IDs in the same case series (multi-day bookings).
+   *  Messages are read across all of them so chat is shared across days. */
+  siblingAssignmentIds?: string[];
+}
+
+const AssignmentMessagesPanel: React.FC<AssignmentMessagesPanelProps> = ({
+  assignmentId,
+  assignmentTitle,
+  assignedEmployeeIds,
+  responsibleUserId,
+  siblingAssignmentIds
+}) => {
+  const { t, currentLanguage } = useTranslation();
+  const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<AssignmentMessage | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AssignmentMessage | null>(null);
    const scrollRef = useRef<HTMLDivElement>(null);
@@ -57,7 +61,8 @@ import {
      assignmentId,
      assignmentTitle,
      assignedEmployeeIds,
-     responsibleUserId
+     responsibleUserId,
+     siblingAssignmentIds
    );
  
   const { user } = useAuth();
