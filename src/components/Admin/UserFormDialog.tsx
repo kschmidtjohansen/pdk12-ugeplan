@@ -354,7 +354,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   };
 
   return (
-    <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+    <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
         <DialogTitle>
           {currentUser ? t('admin.userManagement.editUser') : t('admin.userManagement.addNewUser')}
