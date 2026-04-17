@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased] - 2026-04-17
+
+### Fixed — Serie-dialog vises nu også for ældre opgaver uden group_id
+- `PlannerPage` registrerer nu serier via fallback på `case_number`/`title` når `group_id` mangler i databasen (legacy data)
+- Ved valg af "Hele serien" backfilles automatisk et nyt `group_id` på alle søskende-opgaver, så bulk-opdatering virker
+- Sletning af "Hele serien" sletter nu hele serien selv for legacy data uden group_id
+- Eksempel: 12-00000 der kører hele uge 17 viser nu korrekt valget mellem "Kun denne dag" og "Hele serien" og kan opdateres på én gang
+
 ## [Unreleased] - 2026-04-10
 
 ### Fixed — Serie-dialog dobbelt-prompt fjernet
