@@ -238,8 +238,26 @@ const PlannerPage: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const handleOpenEditDialog = (assignment: Assignment) => {
+  // Detect if assignment is part of a series — either via groupId, or via legacy fallback
+  // (same case_number/title + same department + multiple dates)
+  const findSeriesSiblings = useCallback((assignment: Assignment): Assignment[] => {
     if (assignment.groupId) {
+      return assignments.filter(a => a.groupId === assignment.groupId);
+    }
+    // Legacy fallback: match on case_number first, then on title
+    const key = (assignment.case_number && assignment.case_number.trim()) || assignment.title?.trim();
+    if (!key) return [assignment];
+    return assignments.filter(a => {
+      const aKey = (a.case_number && a.case_number.trim()) || a.title?.trim();
+      return aKey === key && a.date !== assignment.date
+        ? true
+        : a.id === assignment.id;
+    });
+  }, [assignments]);
+
+  const handleOpenEditDialog = (assignment: Assignment) => {
+    const siblings = findSeriesSiblings(assignment);
+    if (assignment.groupId || siblings.length > 1) {
       setSeriesAction({ assignment, mode: 'edit' });
     } else {
       openEditDialogDirect(assignment);
