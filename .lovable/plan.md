@@ -1,34 +1,53 @@
 
+## Plan: Chat & filer deles på tværs af alle dage i samme sag
 
-## Plan: Fjern dobbelt scrollbar + sikre luk-knap er pænt placeret
+### Problem
+`assignment_messages.assignment_id` og `assignment_files.assignment_id` peger på **én specifik dags-row**. Når sag 12-013738 har en dag-row pr. ugedag (mandag, tirsdag, …), hænger en besked/fil skrevet på mandagen kun på mandag-id'en. Tirsdagen har sin egen id og ser intet.
 
-### Rod-årsag
-`DialogContent` (i `src/components/ui/dialog.tsx` linje 27-30) har **allerede** en intern wrapper med `overflow-y-auto max-h-[90vh] p-8` rundt om children. Flere dialoger tilføjer derfor fejlagtigt **også** `overflow-y-auto` / `max-h-[XXvh]` på selve `DialogContent` → giver to scroll-containere. Den ene scrollbar går desuden hen over den absolut-positionerede luk-knap (top-4 right-4), fordi luk-knappen ligger på det ydre `Content`, mens scrollbaren tilhører det indre wrapper-element der løber helt ud i kanten.
+### Løsning (frontend-only, ingen DB-migration)
+Beregn "søsken-ids" for den åbnede sag og hent beskeder/filer for **alle** dage i serien. Nye beskeder/filer skrives stadig til den aktuelle dags id (vi ændrer ikke skrivemønsteret), men læses på tværs.
 
-### Løsning (to dele)
+**Søsken-detektion** (samme logik som `findSeriesSiblings` i `PlannerPage.tsx`):
+1. Hvis `groupId` findes → alle assignments med samme `groupId`.
+2. Ellers fallback → alle assignments med samme `case_number` (eller `title` hvis case_number mangler).
+3. Hvis intet match → kun det aktuelle id (samme adfærd som i dag).
 
-**Del 1 — Forbedr `DialogContent` selv (engangsfix for hele appen)**
-Fil: `src/components/ui/dialog.tsx`
-- Behold den indre `overflow-y-auto`-wrapper, men giv den lidt højre-padding (`pr-12`) så scrollbaren ikke krydser luk-knappen, og lad luk-knappen sidde fast på det ydre Content (som nu).
-- Tilføj `[&>div]:overscroll-contain` for pænere scroll-isolation.
-- Sørg for at luk-knappen får højere z-index og en let baggrund så den ikke "drukner" i scrollende indhold (allerede `bg-background/50` — øg til `bg-background/90` + `backdrop-blur-sm` for synlighed under scroll).
+### Ændringer
 
-**Del 2 — Fjern duplikerede scroll-klasser i kald-stederne**
-Fjern `overflow-y-auto` (og overflødige `max-h-[…]`) fra `DialogContent`-brug i:
-- `src/components/Planner/AssignmentDialogManager.tsx` (linje 102) — behold kun `max-w-4xl`
-- `src/components/Duty/DutyAssignmentDialog.tsx` (linje 98) — behold kun `max-w-2xl`
-- `src/components/Dashboard/CarAvailabilityModal.tsx` (linje 25)
-- `src/components/Dashboard/AbsentEmployeesModal.tsx` (linje 33)
-- `src/components/Admin/UserFormDialog.tsx` (linje 357)
-- `src/components/Dashboard/AssignmentDetailsDialog.tsx` (linje 112) — denne bruger `flex flex-col p-0` med eget custom layout; her fjernes kun `overflow-y-auto` (scrollen håndteres internt af komponenten).
+**1. `src/hooks/assignment/useAssignmentMessages.ts`**
+- Skift signatur: tilføj valgfrit `siblingAssignmentIds?: string[]` argument.
+- Effektive id'er = `siblingAssignmentIds ?? [assignmentId]`.
+- Fetch: `.in('assignment_id', effectiveIds)` i stedet for `.eq()`.
+- Realtime-subscription: lyt på alle id'er (én channel, filter pr. id eller bredt filter på tabellen + client-side filtrering).
+- `sendMessage`: skriver fortsat til `assignmentId` (den åbnede dag) — uændret.
+- Eksport: tilføj evt. dato/dag-info i header for klarhed.
 
-### Verifikation af luk-knap
-Alle ovenstående dialoger bruger den fælles `DialogContent`, som **allerede** indeholder en luk-knap (`DialogPrimitive.Close` med X-ikon, linje 31-34 i `dialog.tsx`). Ingen dialog mangler altså en luk-knap — fixet i Del 1 sikrer at den ser pænt ud under scroll.
+**2. `src/hooks/assignment/useAssignmentFiles.ts`**
+- Samme mønster: tilføj `siblingAssignmentIds?: string[]`.
+- Fetch + verifikation/queries bruger `.in('assignment_id', effectiveIds)`.
+- Upload: skriver fortsat til `assignmentId` (uændret). Storage-path `${assignmentId}/...` bevares (filer bliver i deres dags-folder, men vises i hele serien).
+- Realtime-subscription udvides til alle id'er.
 
-`AlertDialog` (bruges af f.eks. `SeriesActionDialog`, `EmployeeDeleteDialog`, `WarehouseDeleteDialog`) har bevidst **ingen** luk-knap — den lukkes via Cancel/Action-knapper i footer. Det er korrekt mønster og ændres ikke.
+**3. `src/components/Assignment/AssignmentMessagesPanel.tsx`**
+- Tilføj `siblingAssignmentIds?: string[]` prop, send videre til hook.
+
+**4. `src/components/Assignment/AssignmentFilesPanel.tsx`**
+- Tilføj `siblingAssignmentIds?: string[]` prop, send videre til hook.
+
+**5. Kald-steder beregner søsken og sender ind**
+- `src/components/Dashboard/AssignmentDetailsDialog.tsx` (linje 312, 358): beregn `siblingIds` ud fra `assignments`-listen i context, eller modtag via prop.
+- `src/components/Planner/AssignmentDialogManager.tsx`: hvis filer/beskeder vises herfra, samme behandling. (Ifølge søgning vises de kun i `AssignmentDetailsDialog` — verificeres under implementering.)
+- Helper: lille util `getSeriesSiblingIds(assignment, allAssignments)` i fx `src/utils/assignmentSeries.ts` så logikken kan genbruges (samme regel som `findSeriesSiblings` i `PlannerPage`).
+
+**6. `CHANGELOG.md`** — log forbedringen.
+
+### Hvorfor ikke DB-ændring?
+- Virker straks for **alle eksisterende** beskeder og filer uden backfill.
+- RLS holder fortsat per-row (brugere har normalt samme tildelinger på tværs af serien, så adgangsmønsteret er det samme).
+- Ingen risiko for data-migration eller indeks-rebuilds.
+- Hvis vi senere vil normalisere via en `series_id`-kolonne på `assignment_messages`/`assignment_files`, er det en let opfølgning.
 
 ### Scope
-- 7 filer (1 ui-primitiv + 6 forbrugere)
-- Ingen logik-ændringer, kun CSS-klasser
-- `CHANGELOG.md` opdateres
-
+- 6 filer (2 hooks + 2 paneler + 1 ny util + 1 kald-sted + CHANGELOG)
+- Ingen DB-migration
+- Ingen ændring af send/upload-flow — kun læsning udvides
