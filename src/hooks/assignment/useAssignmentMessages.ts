@@ -33,27 +33,37 @@
    refetch: () => Promise<void>;
  }
  
- export const useAssignmentMessages = (
-   assignmentId: string | null,
-   assignmentTitle?: string,
-   assignedEmployeeIds?: string[],
-   responsibleUserId?: string | null
- ): UseAssignmentMessagesReturn => {
-   const [messages, setMessages] = useState<AssignmentMessage[]>([]);
-   const [loading, setLoading] = useState(false);
-   const { addNotification } = useNotifications();
- 
-   const fetchMessages = useCallback(async () => {
-     if (!assignmentId) return;
- 
-     setLoading(true);
-     try {
-       // First fetch messages
-       const { data: messagesData, error: messagesError } = await supabase
-         .from('assignment_messages')
-        .select('*, reply_to_id')
-         .eq('assignment_id', assignmentId)
-         .order('created_at', { ascending: true });
+export const useAssignmentMessages = (
+  assignmentId: string | null,
+  assignmentTitle?: string,
+  assignedEmployeeIds?: string[],
+  responsibleUserId?: string | null,
+  siblingAssignmentIds?: string[]
+): UseAssignmentMessagesReturn => {
+  const [messages, setMessages] = useState<AssignmentMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { addNotification } = useNotifications();
+
+  // Effective IDs to read from: all sibling days of the case, or just this assignment.
+  // We always WRITE to `assignmentId` (the currently opened day).
+  const effectiveIds = siblingAssignmentIds && siblingAssignmentIds.length > 0
+    ? siblingAssignmentIds
+    : assignmentId
+      ? [assignmentId]
+      : [];
+  const effectiveIdsKey = effectiveIds.join(',');
+
+  const fetchMessages = useCallback(async () => {
+    if (effectiveIds.length === 0) return;
+
+    setLoading(true);
+    try {
+      // Fetch messages across all sibling assignment IDs (whole case series)
+      const { data: messagesData, error: messagesError } = await supabase
+        .from('assignment_messages')
+       .select('*, reply_to_id')
+        .in('assignment_id', effectiveIds)
+        .order('created_at', { ascending: true });
  
        if (messagesError) throw messagesError;
  
@@ -106,10 +116,11 @@
        setMessages(messagesWithSenders);
      } catch (error) {
        if (import.meta.env.DEV) console.error('[useAssignmentMessages] Error fetching messages:', error);
-     } finally {
-       setLoading(false);
-     }
-   }, [assignmentId]);
+    } finally {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveIdsKey]);
  
    const sendMessage = useCallback(async (messageText: string, replyToId?: string) => {
       if (!assignmentId || !messageText.trim()) return;
