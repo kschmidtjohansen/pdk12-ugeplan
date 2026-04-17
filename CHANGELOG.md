@@ -2,6 +2,14 @@
 
 ## [Unreleased] - 2026-04-17
 
+### Changed — SeriesActionDialog redesignet med radio-valg
+- Erstattet de tre footer-knapper med en RadioGroup hvor begge valg ("Kun denne dag" / "Denne og fremadrettede dage") vises som klikbare kort med beskrivelse
+- Footer indeholder nu kun Annuller + Bekræft (destructive ved sletning)
+- Default-valg er "Kun denne dag" som sikker standard, og resettes hver gang dialogen åbnes
+- Mere konsistent SaaS-look og bedre UX på smalle skærme (knapper wrappede grimt før)
+
+## [Unreleased] - 2026-04-17
+
 ### Fixed — Serie-dialog vises nu også for ældre opgaver uden group_id
 - `PlannerPage` registrerer nu serier via fallback på `case_number`/`title` når `group_id` mangler i databasen (legacy data)
 - Ved valg af "Hele serien" backfilles automatisk et nyt `group_id` på alle søskende-opgaver, så bulk-opdatering virker
