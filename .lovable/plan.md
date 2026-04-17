@@ -1,53 +1,36 @@
 
-## Plan: Chat & filer deles på tværs af alle dage i samme sag
 
-### Problem
-`assignment_messages.assignment_id` og `assignment_files.assignment_id` peger på **én specifik dags-row**. Når sag 12-013738 har en dag-row pr. ugedag (mandag, tirsdag, …), hænger en besked/fil skrevet på mandagen kun på mandag-id'en. Tirsdagen har sin egen id og ser intet.
+## Plan: Faktisk fix af scrollbar + altid synlig luk-knap
 
-### Løsning (frontend-only, ingen DB-migration)
-Beregn "søsken-ids" for den åbnede sag og hent beskeder/filer for **alle** dage i serien. Nye beskeder/filer skrives stadig til den aktuelle dags id (vi ændrer ikke skrivemønsteret), men læses på tværs.
+### Rod-årsager identificeret
 
-**Søsken-detektion** (samme logik som `findSeriesSiblings` i `PlannerPage.tsx`):
-1. Hvis `groupId` findes → alle assignments med samme `groupId`.
-2. Ellers fallback → alle assignments med samme `case_number` (eller `title` hvis case_number mangler).
-3. Hvis intet match → kun det aktuelle id (samme adfærd som i dag).
+1. **Scrollbar går uden for `rounded-2xl`-kanten**: Den indre wrapper `<div className="overflow-y-auto max-h-[90vh] p-8 pr-12">` ligger inden i den ydre Content (som har `rounded-2xl overflow-hidden`), men scrollbaren tegnes på det indre div's højre kant — som er `pr-12` fra højre, men selve scrollbaren ligger HELT yderst i wrapperen. Resultat: visuel scrollbar tæt på den afrundede hjørne-kant.
 
-### Ændringer
+2. **Luk-knappen forsvinder bag indhold ved scroll**: Knappen er `absolute top-4 right-4` på det ydre Content. Den indre scroll-wrapper renderer Tabs/Form-indhold i topen. Når der scrolles, er luk-knappen ovenpå, men dens baggrund (`bg-background/90 backdrop-blur-sm`) er **half-transparent** og kontrasten mod scrollende formularfelter er for lav — derfor "forsvinder" den visuelt.
 
-**1. `src/hooks/assignment/useAssignmentMessages.ts`**
-- Skift signatur: tilføj valgfrit `siblingAssignmentIds?: string[]` argument.
-- Effektive id'er = `siblingAssignmentIds ?? [assignmentId]`.
-- Fetch: `.in('assignment_id', effectiveIds)` i stedet for `.eq()`.
-- Realtime-subscription: lyt på alle id'er (én channel, filter pr. id eller bredt filter på tabellen + client-side filtrering).
-- `sendMessage`: skriver fortsat til `assignmentId` (den åbnede dag) — uændret.
-- Eksport: tilføj evt. dato/dag-info i header for klarhed.
+3. **Submit-knap scroller med indholdet**: I `AssignmentForm` er bunden (`<div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t">`) en almindelig div, ikke sticky. Det giver indtryk af "to scrollbars" fordi indhold er højt og knappen først ses efter scroll.
 
-**2. `src/hooks/assignment/useAssignmentFiles.ts`**
-- Samme mønster: tilføj `siblingAssignmentIds?: string[]`.
-- Fetch + verifikation/queries bruger `.in('assignment_id', effectiveIds)`.
-- Upload: skriver fortsat til `assignmentId` (uændret). Storage-path `${assignmentId}/...` bevares (filer bliver i deres dags-folder, men vises i hele serien).
-- Realtime-subscription udvides til alle id'er.
+### Løsning
 
-**3. `src/components/Assignment/AssignmentMessagesPanel.tsx`**
-- Tilføj `siblingAssignmentIds?: string[]` prop, send videre til hook.
+**Fil 1: `src/components/ui/dialog.tsx`** — restrukturer Content så scrollbaren ligger pænt INDEN for den afrundede ramme, og luk-knappen er tydelig på alle baggrunde:
+- Fjern `max-h-[90vh]` fra det ydre Content (så det shrinker til indhold) — behold `max-h-[90vh]` kun på den indre scroll-wrapper.
+- Fjern `before:` gradient overlay (den interfererer med klik på luk-knappen og laver visuel støj).
+- Tilføj `mr-1 my-1` på den indre scroll-div så scrollbaren ikke rører den afrundede kant.
+- Tilføj custom scrollbar-styling (`scrollbar-thin`-lignende klasser) for diskret look.
+- Luk-knap: stærkere baggrund (`bg-background` solid + `border-border` solid + `shadow-md`), så den altid er tydelig over scrollende indhold.
+- Behold luk-knappens `z-[60]` og `top-3 right-3` (lidt tættere på hjørnet).
 
-**4. `src/components/Assignment/AssignmentFilesPanel.tsx`**
-- Tilføj `siblingAssignmentIds?: string[]` prop, send videre til hook.
+**Fil 2: `src/components/Planner/AssignmentForm.tsx`** — gør submit-bunden sticky inden for scroll-containeren:
+- Wrap form-indholdet og bunden så bunden får `sticky bottom-0 -mx-8 -mb-8 px-8 py-4 bg-background/95 backdrop-blur border-t` (negativ margin neutraliserer dialogens `p-8`).
+- Det fjerner indtrykket af "ekstra scrollbar" og holder Opdater-knappen altid synlig.
 
-**5. Kald-steder beregner søsken og sender ind**
-- `src/components/Dashboard/AssignmentDetailsDialog.tsx` (linje 312, 358): beregn `siblingIds` ud fra `assignments`-listen i context, eller modtag via prop.
-- `src/components/Planner/AssignmentDialogManager.tsx`: hvis filer/beskeder vises herfra, samme behandling. (Ifølge søgning vises de kun i `AssignmentDetailsDialog` — verificeres under implementering.)
-- Helper: lille util `getSeriesSiblingIds(assignment, allAssignments)` i fx `src/utils/assignmentSeries.ts` så logikken kan genbruges (samme regel som `findSeriesSiblings` i `PlannerPage`).
+**Fil 3: `CHANGELOG.md`** — log korrekt fix.
 
-**6. `CHANGELOG.md`** — log forbedringen.
-
-### Hvorfor ikke DB-ændring?
-- Virker straks for **alle eksisterende** beskeder og filer uden backfill.
-- RLS holder fortsat per-row (brugere har normalt samme tildelinger på tværs af serien, så adgangsmønsteret er det samme).
-- Ingen risiko for data-migration eller indeks-rebuilds.
-- Hvis vi senere vil normalisere via en `series_id`-kolonne på `assignment_messages`/`assignment_files`, er det en let opfølgning.
+### Ingen logik-ændringer
+Kun CSS-omstrukturering. Ingen API-ændringer i `DialogContent`-props, så alle 50+ kald-steder virker uændret.
 
 ### Scope
-- 6 filer (2 hooks + 2 paneler + 1 ny util + 1 kald-sted + CHANGELOG)
-- Ingen DB-migration
-- Ingen ændring af send/upload-flow — kun læsning udvides
+- 3 filer
+- Ingen DB-ændringer
+- Ingen test/build-impact ud over visuelt
+
