@@ -254,24 +254,29 @@ export const useAssignmentMessages = (
     }
   }, [assignmentId, fetchMessages]);
 
-   // Set up realtime subscription
+   // Set up realtime subscription — listen across the whole table and filter
+   // client-side so we receive changes for every sibling assignment in the series.
    useEffect(() => {
-     if (!assignmentId) return;
+     if (effectiveIds.length === 0) return;
  
      fetchMessages();
  
+     const idSet = new Set(effectiveIds);
      const channel = supabase
-       .channel(`assignment-messages-${assignmentId}`)
+       .channel(`assignment-messages-${effectiveIdsKey}`)
        .on(
          'postgres_changes',
          {
            event: '*',
            schema: 'public',
            table: 'assignment_messages',
-           filter: `assignment_id=eq.${assignmentId}`
          },
-         () => {
-           fetchMessages();
+         (payload) => {
+           const newId = (payload.new as { assignment_id?: string } | null)?.assignment_id;
+           const oldId = (payload.old as { assignment_id?: string } | null)?.assignment_id;
+           if ((newId && idSet.has(newId)) || (oldId && idSet.has(oldId))) {
+             fetchMessages();
+           }
          }
        )
        .subscribe();
@@ -279,7 +284,8 @@ export const useAssignmentMessages = (
      return () => {
        supabase.removeChannel(channel);
      };
-   }, [assignmentId, fetchMessages]);
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [effectiveIdsKey, fetchMessages]);
  
    return {
      messages,
