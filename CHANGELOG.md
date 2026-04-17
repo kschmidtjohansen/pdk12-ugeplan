@@ -2,6 +2,14 @@
 
 ## [Unreleased] - 2026-04-17
 
+### Fixed — Faktisk fix af scrollbar-overlap, luk-knap synlighed & sticky submit-knap
+- `DialogContent`: fjernet gradient-overlay (`before:`) der lavede visuel støj og kunne fange klik. Den ydre Content shrinker nu til indhold (ingen `max-h` på ydre — kun på den indre scroll-wrapper).
+- Indre scroll-wrapper bruger nu `[scrollbar-gutter:stable]` + tynd custom scrollbar (`w-2`, `bg-border/60`) så scrollbaren ligger pænt inden for den afrundede ramme.
+- Luk-knap: solid `bg-background` (ikke gennemsigtig), `border-border` solid, `shadow-md` og lidt mindre størrelse (h-9 w-9, top-3 right-3) så den altid er tydelig over scrollende indhold.
+- `AssignmentForm`: submit/publicer-knap-rækken er nu **sticky** i bunden af dialogen med backdrop-blur og border-top, så "Opdater"-knappen altid er synlig uden at skulle scrolle ned.
+
+## [Unreleased] - 2026-04-17
+
 ### Changed — Chat & filer deles på tværs af alle dage i samme sag
 - Når en sag (fx 12-013738) løber over flere dage, viser chat og filer nu samme indhold uanset hvilken dag man åbner — beskeder/filer skrevet på mandag er synlige også fra tirsdag, onsdag osv.
 - Læsning sker på tværs af alle søsken-assignments via `groupId` (eller fallback `case_number`/`title` for legacy serier). Skrivning sker fortsat på den åbnede dags ID, så storage-paths bevares.
