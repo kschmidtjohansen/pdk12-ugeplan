@@ -55,7 +55,7 @@ const KpiRow: React.FC<KpiRowProps> = ({ label, value, total, icon: Icon, onClic
 };
 
 const CompactKpiStack: React.FC = () => {
-  const { metrics, loading } = useDashboardMetrics();
+  const { metrics, loading, assignments, vacations } = useDashboardMetrics();
   const { t } = useTranslation();
   const { isWarehouseEnabled } = useDepartment();
   const navigate = useNavigate();
@@ -145,8 +145,8 @@ const CompactKpiStack: React.FC = () => {
         onOpenChange={setEmployeeModalOpen}
         employees={metrics.availableEmployees.employees}
         selectedDate={todayStr}
-        assignments={[]}
-        vacations={[]}
+        assignments={assignments}
+        vacations={vacations}
         title={t('dashboard.metrics.availableEmployees')}
       />
       <CarAvailabilityModal
