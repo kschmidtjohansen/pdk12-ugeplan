@@ -392,6 +392,21 @@ const planner = {
     delete: 'Deleted',
     publish: 'Published',
   },
+
+  // Enhanced unassigned resources
+  fullyAvailableEmployees: 'Fully Available Employees',
+  partiallyAvailableEmployees: 'Partially Available Employees',
+  onVacationEmployees: 'Employees on Vacation',
+  availableCount: 'Available',
+  onVacationCount: 'On Vacation',
+  partiallyBookedCount: 'Partially Booked',
+  noAvailableResources: 'No Available Resources',
+  allResourcesAssigned: 'All employees and cars are assigned to tasks on this day.',
+  employeeStatusAvailable: 'Available',
+  employeeStatusPartial: 'Partial',
+  employeeStatusVacation: 'Vacation',
+  carStatusAvailable: 'Available',
+  carWithTrailerLabel: 'Trailer',
 };
 
 export default planner;

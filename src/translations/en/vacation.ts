@@ -134,6 +134,12 @@ const vacation = {
   // Department filtering
   noDepartmentSelected: 'No department selected',
   selectDepartmentToViewVacations: 'Select a department to view vacation requests',
+
+  // Date pickers
+  startDate: 'Start date',
+  endDate: 'End date',
+  selectStartDate: 'Select start date',
+  selectEndDate: 'Select end date',
 };
 
 export default vacation;
