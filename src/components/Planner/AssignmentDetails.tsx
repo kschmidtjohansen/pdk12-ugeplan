@@ -122,33 +122,31 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   return <div className="grid grid-cols-2 gap-4 text-sm">
       {/* Left Column */}
       <div className="space-y-3">
-        {/* Time - enhanced styling */}
+        {/* Time */}
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-green-50 border border-green-200">
-            <Clock className="h-3.5 w-3.5 text-green-600" />
+          <div className="p-1.5 rounded-md bg-muted text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" />
           </div>
-          <span className="text-foreground font-medium text-sm">
-            {assignment.fromTime ? assignment.fromTime.substring(0, 5) : '00:00'} - {assignment.toTime ? assignment.toTime.substring(0, 5) : '00:00'}
+          <span className="text-foreground font-medium text-sm tabular-nums">
+            {assignment.fromTime ? assignment.fromTime.substring(0, 5) : '00:00'} – {assignment.toTime ? assignment.toTime.substring(0, 5) : '00:00'}
           </span>
         </div>
 
-        {/* Cars - enhanced display with sharing indicators */}
+        {/* Cars */}
         {carData.length > 0 && <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
-              <Car className="h-3.5 w-3.5 text-blue-600" />
+            <div className="p-1.5 rounded-md bg-muted text-muted-foreground">
+              <Car className="h-3.5 w-3.5" />
             </div>
             <div className="flex flex-wrap gap-1">
               <TooltipProvider delayDuration={100}>
                 {carData.map((car) => (
                   <Tooltip key={car.id}>
                     <TooltipTrigger asChild>
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className={cn(
-                          "text-xs cursor-default",
-                          car.isShared 
-                            ? "bg-yellow-50 border-yellow-300 text-yellow-700" 
-                            : "bg-blue-50"
+                          "text-xs cursor-default font-normal",
+                          car.isShared && "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-700/60"
                         )}
                       >
                         {car.name}
@@ -170,16 +168,13 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
 
       {/* Right Column */}
       <div className="space-y-3">
-
-        {/* Show all team members for assignments user can access */}
         {employeeData.names.length > 0 && <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
-              <Users className="h-3.5 w-3.5 text-purple-600" />
+            <div className="p-1.5 rounded-md bg-muted text-muted-foreground">
+              <Users className="h-3.5 w-3.5" />
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              
               <div className="flex flex-wrap gap-1">
-                {employeeData.names.map((employeeName, index) => <Badge key={index} variant="secondary" className="text-xs bg-purple-50">
+                {employeeData.names.map((employeeName, index) => <Badge key={index} variant="secondary" className="text-xs font-normal">
                     {employeeName || t('planner.unknownEmployee')}
                   </Badge>)}
               </div>
