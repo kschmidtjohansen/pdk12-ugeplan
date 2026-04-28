@@ -238,6 +238,7 @@ export default function DutyPage() {
         onOpenChange={setSwapDialogOpen}
         onReassign={handleReassignment}
       />
+      </div>
     </div>
     </DataFetchErrorBoundary>
   );
