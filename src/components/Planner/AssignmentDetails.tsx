@@ -123,81 +123,92 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   const showInline = employeeCount > 0 && employeeCount <= 2;
 
   return (
-    <div className="flex flex-col gap-1.5 text-sm">
-      {/* Row 1: time + cars (single wrapping row) */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="chip chip-strong chip-tabular">
-          <Clock className="h-3.5 w-3.5 text-primary" />
-          {assignment.fromTime ? assignment.fromTime.substring(0, 5) : '00:00'}
-          {' – '}
-          {assignment.toTime ? assignment.toTime.substring(0, 5) : '00:00'}
-        </span>
+    <div className="flex flex-col gap-2 text-sm">
+      {/* Row 1: time (left) + people (right) */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="icon-bubble icon-bubble-time" aria-hidden>
+            <Clock className="h-3.5 w-3.5" />
+          </span>
+          <span className="chip chip-time chip-tabular chip-strong">
+            {assignment.fromTime ? assignment.fromTime.substring(0, 5) : '00:00'}
+            {' - '}
+            {assignment.toTime ? assignment.toTime.substring(0, 5) : '00:00'}
+          </span>
+        </div>
 
-        {carData.length > 0 && (
-          <>
-            <span className="text-muted-foreground/50 text-xs px-0.5" aria-hidden>·</span>
-            <Car className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden />
-            <TooltipProvider delayDuration={100}>
-              {carData.map((car) => (
-                <Tooltip key={car.id}>
-                  <TooltipTrigger asChild>
-                    <span
-                      className={cn(
-                        'chip',
-                        car.isShared && 'chip-glass-destructive border-destructive/40 text-destructive'
-                      )}
-                    >
-                      {car.name}
-                      {car.isShared && <AlertTriangle className="h-3 w-3" />}
-                    </span>
-                  </TooltipTrigger>
-                  {car.isShared && (
-                    <TooltipContent side="top" className="max-w-xs">
-                      <p className="font-medium">{t('planner.sharedWithOtherTasks')}</p>
-                      <p className="text-xs text-muted-foreground">{car.sharedWith.join(', ')}</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              ))}
-            </TooltipProvider>
-          </>
+        {employeeCount > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="icon-bubble icon-bubble-person" aria-hidden>
+              <Users className="h-3.5 w-3.5" />
+            </span>
+            {showInline ? (
+              employeeData.names.map((name, i) => (
+                <span key={i} className="chip chip-person">
+                  {name || t('planner.unknownEmployee')}
+                </span>
+              ))
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="chip chip-person hover:opacity-80 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {employeeCount} {t('planner.employees') || 'medarbejdere'}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="top"
+                  align="end"
+                  className="w-auto max-w-xs p-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ul className="space-y-1">
+                    {employeeData.names.map((name, i) => (
+                      <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-rose-400 shrink-0" />
+                        {name || t('planner.unknownEmployee')}
+                      </li>
+                    ))}
+                  </ul>
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Row 2: employees collapsed (>2) or inline (≤2) */}
-      {employeeCount > 0 && (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {showInline ? (
-            <>
-              <Users className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden />
-              {employeeData.names.map((name, i) => (
-                <span key={i} className="chip">
-                  {name || t('planner.unknownEmployee')}
-                </span>
-              ))}
-            </>
-          ) : (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button type="button" className="chip hover:bg-accent transition-colors" onClick={(e) => e.stopPropagation()}>
-                  <Users className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span>
-                    {employeeCount} {t('planner.employees') || 'medarbejdere'}
+      {/* Row 2: cars */}
+      {carData.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="icon-bubble icon-bubble-car" aria-hidden>
+            <Car className="h-3.5 w-3.5" />
+          </span>
+          <TooltipProvider delayDuration={100}>
+            {carData.map((car) => (
+              <Tooltip key={car.id}>
+                <TooltipTrigger asChild>
+                  <span
+                    className={cn(
+                      'chip chip-car',
+                      car.isShared && 'ring-1 ring-destructive/40 text-destructive'
+                    )}
+                  >
+                    {car.name}
+                    {car.isShared && <AlertTriangle className="h-3 w-3" />}
                   </span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent side="top" align="start" className="w-auto max-w-xs p-2" onClick={(e) => e.stopPropagation()}>
-                <ul className="space-y-1">
-                  {employeeData.names.map((name, i) => (
-                    <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
-                      {name || t('planner.unknownEmployee')}
-                    </li>
-                  ))}
-                </ul>
-              </PopoverContent>
-            </Popover>
-          )}
+                </TooltipTrigger>
+                {car.isShared && (
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p className="font-medium">{t('planner.sharedWithOtherTasks')}</p>
+                    <p className="text-xs text-muted-foreground">{car.sharedWith.join(', ')}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            ))}
+          </TooltipProvider>
         </div>
       )}
     </div>
