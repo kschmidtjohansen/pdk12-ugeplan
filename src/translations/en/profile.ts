@@ -36,5 +36,9 @@ export const profile = {
   newPasswordRequired: 'New password is required',
   confirmPasswordRequired: 'Confirm password is required',
   incorrectCurrentPassword: 'Current password is incorrect',
-  unexpectedError: 'An unexpected error occurred'
+  unexpectedError: 'An unexpected error occurred',
+  changeProfilePictureDescription: 'Change your profile picture.',
+  selectNewPicture: 'Select an image.',
+  uploadPicture: 'Upload',
+  removePicture: 'Remove'
 };
