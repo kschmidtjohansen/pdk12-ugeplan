@@ -110,36 +110,34 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
     <>
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle asChild>
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-md bg-muted text-foreground">
-                  <Clock className="h-4 w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-base font-semibold truncate text-foreground">
-                    {t('dashboard.myAssignments')}
-                  </h2>
-                </div>
-                <div className="flex-shrink-0">
-                  <WeekNavigation
-                    onPrevious={onPreviousWeek}
-                    onNext={onNextWeek}
-                    currentWeek={selectedWeek}
-                  />
-                </div>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 rounded-md bg-muted text-foreground">
+                <Clock className="h-4 w-4" />
               </div>
-
-              <div className="flex justify-end">
-                <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
-                  <Link to="/planner" className="flex items-center justify-center gap-2">
-                    <span>{t('dashboard.viewAll')}</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base truncate">
+                  {t('dashboard.myAssignments')}
+                </CardTitle>
+              </div>
+              <div className="flex-shrink-0">
+                <WeekNavigation
+                  onPrevious={onPreviousWeek}
+                  onNext={onNextWeek}
+                  currentWeek={selectedWeek}
+                />
               </div>
             </div>
-          </CardTitle>
+
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
+                <Link to="/planner" className="flex items-center justify-center gap-2">
+                  <span>{t('dashboard.viewAll')}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {sortedAssignments.length === 0 ? (
