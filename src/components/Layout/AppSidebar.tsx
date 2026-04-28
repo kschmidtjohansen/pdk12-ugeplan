@@ -115,22 +115,27 @@ const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border h-11 flex items-center justify-center px-2">
-        <Link to="/dashboard" onClick={closeMobile} className="flex items-center justify-center w-full overflow-hidden">
+      <SidebarHeader className="border-b border-sidebar-border h-12 flex items-center justify-center px-2">
+        <Link
+          to="/dashboard"
+          onClick={closeMobile}
+          className="flex items-center justify-center w-full h-full overflow-hidden"
+          aria-label="Polygon"
+        >
           {collapsed ? (
             <img
               src={polygonMark}
               alt="Polygon"
-              className="h-7 w-7 select-none object-contain"
+              className="h-8 w-8 select-none object-contain"
               draggable={false}
             />
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2.5 mx-auto">
               <img
                 src={polygonMark}
                 alt=""
                 aria-hidden
-                className="h-6 w-6 select-none object-contain shrink-0"
+                className="h-7 w-7 select-none object-contain shrink-0"
                 draggable={false}
               />
               <img

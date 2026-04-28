@@ -144,8 +144,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       <ContextMenuTrigger asChild>
         <Card 
           className={cn(
-            'relative w-full p-3 brand-card-hover bg-gradient-to-br from-card to-card/70 border-border/60 shadow-xs',
-            hasConflict && 'border-l-[3px] border-l-destructive ring-1 ring-destructive/30',
+            'relative w-full p-3 brand-card-hover bg-card border-border/60 shadow-xs',
+            hasConflict && 'border-l-[3px] border-l-destructive ring-1 ring-destructive/20',
             isLoading && 'opacity-75',
             onViewDetails && 'cursor-pointer'
           )}
@@ -155,7 +155,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 px-2 py-0.5 bg-amber-500 text-white rounded-md shadow-xs cursor-help">
+              <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 px-2 py-0.5 bg-amber-500 text-white rounded-full shadow-xs cursor-help">
                 <Package className="h-3.5 w-3.5" />
                 <span className="text-xs font-semibold tabular-nums">{warehouseItemCount}</span>
               </div>
@@ -198,13 +198,15 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               <p className="text-xs text-muted-foreground mt-0.5 truncate">{assignment.location}</p>
             )}
             {responsibleUserInfo?.name && (
-              <span className="chip mt-1.5 self-start">
-                <UserCheck className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
-                <span className="font-normal text-muted-foreground">
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <span className="icon-bubble icon-bubble-sm icon-bubble-resp" aria-hidden>
+                  <UserCheck className="h-3 w-3" />
+                </span>
+                <span className="text-xs text-muted-foreground">
                   {t('planner.responsibleUser')}:
                 </span>
-                <span className="font-medium text-foreground">{responsibleUserInfo.name}</span>
-              </span>
+                <span className="text-xs font-medium text-foreground">{responsibleUserInfo.name}</span>
+              </div>
             )}
             {import.meta.env.DEV && assignment.responsibleUserId && !responsibleUserInfo && (
               <div className="flex items-center gap-1 mt-1">

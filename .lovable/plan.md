@@ -1,75 +1,84 @@
-## Plan: Logo, single My Tasks widget, vacation dropdown visibility, premium chip redesign
+# Plan: Sidebar polish, favicon, and pastel pill colors
 
-### 1. Polygon logo in topbar (replaces "P" tile)
-- Replace the blue `P` square in `AppSidebar` SidebarHeader with the existing official Polygon logo from `src/components/Layout/NavComponents/Logo.tsx` (uses `https://www.polygongroup.com/UI/build/svg/polygon-logo.svg`).
-- When sidebar is collapsed: show only a compact icon-only mark (keep the 28×28 blue rounded tile with "P" — this is the brand mark in icon-rail mode). When expanded: show the full Polygon SVG logo (h-6 wide ~110px).
-- This guarantees the wide horizontal Polygon wordmark is visible right next to the sidebar trigger when the sidebar is open, matching the user's screenshot reference.
+## 1. Sidebar header alignment
 
-### 2. Remove duplicate "Mine Opgaver" — keep one widget at top
-The dashboard currently renders:
-- Top: `WeeklyAssignments` (titled "Mine Opgaver" via `dashboard.myAssignments`) showing the entire week.
-- Bottom: `<MineOpgaver />` showing user-personal tasks.
+In `src/components/Layout/AppSidebar.tsx`:
+- Increase `SidebarHeader` height slightly (`h-12`) and use proper centered flex with consistent padding so both states feel balanced.
+- Collapsed state: render mark at `h-8 w-8`, perfectly centered (no surrounding container offset).
+- Expanded state: wrap mark + wordmark in a flex row with `items-center justify-center gap-2.5 w-full`, mark at `h-7 w-7`, wordmark at `h-5`. Use `mx-auto` so the pair sits centered, not left-biased.
+- Remove the gradient/border quirks so the divider line under the header is clean across collapsed/expanded transitions.
 
-User wants the **top** card to be the personal one, and the bottom one removed.
+## 2. Polygon favicon
 
-In `src/components/Dashboard/DashboardCockpit.tsx`:
-- Remove the `<MineOpgaver />` render and its import.
-- Add a memo `personalWeekAssignments` that filters `weekAssignments` to those where the current user is responsible (`responsibleUser.id` / `responsibleUserId === user.id`) OR an assigned employee (new shape `assignedEmployees[].id` or legacy `employees[]` containing `user.id`). Strict ID-only match — never name match.
-- Pass `personalWeekAssignments` to `WeeklyAssignments` only when `showMyTasks` is true; otherwise pass full `weekAssignments` (admins/skadeleders still see everything).
+- Copy `src/assets/polygon-mark.png` to `public/favicon.png`.
+- Delete `public/favicon.svg` (and `public/favicon.ico` if present) so the new PNG is the only icon source.
+- Update `index.html`:
+  - `<link rel="icon" href="/favicon.png" type="image/png">`
+  - `<link rel="apple-touch-icon" href="/favicon.png">`
+  - Update `og:image` to use `/favicon.png` as well.
 
-`MineOpgaver.tsx` itself stays in the codebase (still used in `ServicemedarbejderDashboard.tsx`) — only the duplicate render in `DashboardCockpit` is removed.
+## 3. Assignment card color scheme (pastel pills)
 
-### 3. Ferieoversigt visible in topbar
-The dropdown is currently rendered in `AppTopBar` but only when `isEffectiveAdmin || isSkadeleder`. Two issues to fix:
+Reference image: soft pastel pills with colored icons inside small tinted circles, neutral card surface, status pill in mint green, destructive icon in red.
 
-**a) Defensive rendering**: `VacationOverviewDropdown` calls `vacations.filter(...)` — if `vacations` is `undefined` (initial load before department resolved) the component throws and the trigger never paints. Wrap with `(vacations ?? [])`.
+### `src/index.css` — add pastel chip variants
+Extend existing `.chip` system with pastel tonal variants (light bg + matching foreground), all using HSL tokens so dark mode still works:
 
-**b) Discoverability**: Even when rendered the trigger is just a 32×32 icon with no badge when there are 0 pending — easy to miss. Make it more prominent:
-- Always show a subtle filled chip background (`chip-glass-primary` or `bg-primary/10`) for the trigger so it's visually anchored next to the user menu.
-- Show pending count badge at all times (small `0` is fine, or hide only when undefined). Tooltip: "Ferieoversigt".
-- Add `aria-haspopup="menu"`.
+```css
+@layer components {
+  /* Base neutral chip stays as is */
 
-This guarantees the icon is rendered and clearly visible.
+  /* Pastel tonal variants */
+  .chip-time   { @apply bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-500/10 dark:text-sky-300 dark:border-sky-500/20; }
+  .chip-car    { @apply bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-500/10 dark:text-sky-300 dark:border-sky-500/20; }
+  .chip-person { @apply bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20; }
+  .chip-resp   { @apply bg-transparent border-transparent px-0 text-foreground; }
 
-### 4. Premium chip redesign (truly premium, not "cheap")
-Current frosted-glass chips look noisy in grid view because every detail (time, car, employee, responsible) becomes a colored pill stacked vertically. Cleaner design:
-
-**A. New token: chip styling becomes monochrome by default with a single accent dot/icon.**
-- One unified `.chip` utility: `bg-card border border-border/60 rounded-md px-2 py-0.5 text-xs font-medium text-foreground inline-flex items-center gap-1.5`. Subtle inset highlight, no per-row color floods.
-- Icons keep their semantic color (`text-primary` for time, `text-amber-600` for car, `text-emerald-600` for users, `text-indigo-600` for responsible) — but the chip body stays neutral. This reads as a premium SaaS app (Linear / Notion / Height) instead of rainbow stickers.
-- Remove `chip-glass-primary/amber/emerald/indigo` from `AssignmentDetails`, `MineOpgaver`, and `AssignmentCard` — replace with the single neutral `.chip`. Only `chip-glass-destructive` (used for `ConflictBadge` and shared-car warning) keeps a colored body.
-
-**B. Restructure assignment card grid view content**
-Current grid view (`AssignmentDetails`) shows: time chip / car chips / employee chips in a 2-column grid + the responsible user separately in `AssignmentCard`. This piles up.
-
-New layout for `AssignmentDetails` (used in `AssignmentCard`):
+  /* Round icon badge that sits to the LEFT of a pill (not inside it) */
+  .icon-bubble { @apply inline-flex items-center justify-center h-6 w-6 rounded-full shrink-0; }
+  .icon-bubble-time   { @apply bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400; }
+  .icon-bubble-car    { @apply bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400; }
+  .icon-bubble-person { @apply bg-violet-50 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400; }
+  .icon-bubble-resp   { @apply bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400; }
+}
 ```
-[ 08:00–14:00 ]   ·   Bil 12   Bil 14            (single row, wraps)
-[ 👥 3 medarbejdere ▾ ]   [ 🧑‍💼 Mads (sagsansvarlig) ]
-```
-- Row 1: time chip + small bullet separator + car names as plain neutral chips (icon‑only Car icon prefix on the row, not on each chip).
-- Row 2: employees collapsed into a single chip "👥 3 medarbejdere" with a hover popover listing names. If ≤ 2 employees, show their first names inline. Responsible user gets its own chip with `UserCheck` icon.
-- This fits in one tidy block per assignment, even on grid view.
 
-**C. AssignmentCard polish**
-- Replace harsh left border (`border-l-[3px] border-l-emerald-500`) with a softer 2px accent + status dot in the header row (green dot = published, amber dot = draft). Conflict still uses `border-l-destructive` + ring.
-- Card background: subtle gradient `bg-gradient-to-br from-card to-card/60` with `border-border/60` and `shadow-xs`. Hover lifts via existing `.brand-card-hover`.
-- Title row spacing tightened (gap-1.5).
+Status badge (`AssignmentStatusBadge` for `Aftalt` / "agreed"):
+- Use mint pastel: `bg-emerald-50 text-emerald-700 border-emerald-100` (dark: emerald 500/10).
 
-**D. CompactAssignmentRow grid/table**
-- Remove per-cell colored icons; use uniform `text-muted-foreground` icons sized `h-3.5 w-3.5`. Status column uses the new dot pattern. Conflict ⚠ stays red.
+### `src/components/Planner/AssignmentDetails.tsx` — restructure rows
+Replace current row markup with the bubble-icon + pastel-pill pattern from the reference:
 
-### Files touched
-- `src/components/Layout/AppSidebar.tsx` (logo)
-- `src/components/Dashboard/DashboardCockpit.tsx` (remove MineOpgaver, personal filter)
-- `src/components/Layout/NavComponents/VacationOverviewDropdown.tsx` (defensive `vacations`, prominent trigger)
-- `src/index.css` (new neutral `.chip` utility, retire colored variants except destructive)
-- `src/components/Planner/AssignmentDetails.tsx` (new compact layout, popover for employees)
-- `src/components/Planner/AssignmentCard.tsx` (status dot header, softer accent, gradient)
-- `src/components/Planner/CompactAssignmentRow.tsx` (neutral chips, status dot)
-- `src/components/Dashboard/MineOpgaver.tsx` (use new neutral chips)
-- `CHANGELOG.md`
+- **Row 1 (time + cars):**
+  - Left: `<span class="icon-bubble icon-bubble-time"><Clock/></span>` followed by a single `chip chip-time` pill containing `08:00 - 16:00` (no inline icon inside the pill).
+  - Spacer pushes cars to far right (or wraps below on narrow): `icon-bubble icon-bubble-person` containing the `Users` icon, then person pills with `chip chip-person`.
+- **Row 2 (cars on its own row, like screenshot):**
+  - `<span class="icon-bubble icon-bubble-car"><Car/></span>` then car name(s) as `chip chip-car`.
+- Remove the inline `Clock`, `Car`, `Users` lucide icons from inside chips; they live in the icon bubbles now.
+- Keep conflict logic: a conflicting car keeps a destructive ring + small `AlertTriangle` to the right, but background stays the pastel base.
 
-### Out of scope
-- No DB changes. No translation changes (all keys already exist).
-- `MineOpgaver.tsx` is not deleted — still used by `ServicemedarbejderDashboard`.
+### `src/components/Planner/AssignmentCard.tsx` — header polish
+- Title row: keep `12-013828` style number + address line below.
+- Responsible user: drop the bordered chip wrapper. Render as plain inline row: `icon-bubble icon-bubble-resp` (small) + `Sagsansvarlig: <name>` text. Use a light-blue `UserCheck` icon to match the reference.
+- Status dot: keep but tone down to subtle gray for draft, emerald for published, amber for conflict.
+- Card surface: drop the gradient (`from-card to-card/70`), use flat `bg-card` with `border-border/60` and `shadow-xs` for the calmer reference look.
+- Action icons (pencil/copy/screen/trash): ensure colors match — neutral gray normally, red for delete, all `h-4 w-4`. (Done in `AssignmentActionButtons`; only adjust if currently colored.)
+
+### `src/components/Planner/CompactAssignmentRow.tsx`
+Apply the same pastel pill + bubble icon pattern in compact rows so list/grid views match.
+
+## 4. Files touched
+
+- `src/components/Layout/AppSidebar.tsx` — header centering
+- `index.html` — favicon links + og:image
+- `public/favicon.png` — new (copied from `src/assets/polygon-mark.png`)
+- `public/favicon.svg` — delete
+- `src/index.css` — pastel chip + icon-bubble utilities, status badge tweak
+- `src/components/Planner/AssignmentDetails.tsx` — row restructure
+- `src/components/Planner/AssignmentCard.tsx` — flat surface, responsible-user row
+- `src/components/Planner/AssignmentStatusBadge.tsx` — mint pastel for "Aftalt"
+- `src/components/Planner/CompactAssignmentRow.tsx` — same pastel system
+- `CHANGELOG.md` + `docs/implementation-plan/tasks.md` — log changes per project rules
+
+## Out of scope
+- No data/logic changes. No new dependencies. No translations changes.
