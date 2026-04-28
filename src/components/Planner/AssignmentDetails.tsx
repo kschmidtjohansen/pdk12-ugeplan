@@ -119,63 +119,88 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
     };
   };
   const employeeData = getEmployeeData(assignment);
-  return <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
-      {/* Left Column */}
-      <div className="space-y-2.5">
-        {/* Time */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 chip-glass-primary px-2.5 py-1 rounded-md text-xs font-semibold tabular-nums">
-            <Clock className="h-3.5 w-3.5" />
-            {assignment.fromTime ? assignment.fromTime.substring(0, 5) : '00:00'} – {assignment.toTime ? assignment.toTime.substring(0, 5) : '00:00'}
-          </span>
+  const employeeCount = employeeData.names.length;
+  const showInline = employeeCount > 0 && employeeCount <= 2;
+
+  return (
+    <div className="flex flex-col gap-1.5 text-sm">
+      {/* Row 1: time + cars (single wrapping row) */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span className="chip chip-strong chip-tabular">
+          <Clock className="h-3.5 w-3.5 text-primary" />
+          {assignment.fromTime ? assignment.fromTime.substring(0, 5) : '00:00'}
+          {' – '}
+          {assignment.toTime ? assignment.toTime.substring(0, 5) : '00:00'}
+        </span>
+
+        {carData.length > 0 && (
+          <>
+            <span className="text-muted-foreground/50 text-xs px-0.5" aria-hidden>·</span>
+            <Car className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden />
+            <TooltipProvider delayDuration={100}>
+              {carData.map((car) => (
+                <Tooltip key={car.id}>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={cn(
+                        'chip',
+                        car.isShared && 'chip-glass-destructive border-destructive/40 text-destructive'
+                      )}
+                    >
+                      {car.name}
+                      {car.isShared && <AlertTriangle className="h-3 w-3" />}
+                    </span>
+                  </TooltipTrigger>
+                  {car.isShared && (
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="font-medium">{t('planner.sharedWithOtherTasks')}</p>
+                      <p className="text-xs text-muted-foreground">{car.sharedWith.join(', ')}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              ))}
+            </TooltipProvider>
+          </>
+        )}
+      </div>
+
+      {/* Row 2: employees collapsed (>2) or inline (≤2) */}
+      {employeeCount > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {showInline ? (
+            <>
+              <Users className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" aria-hidden />
+              {employeeData.names.map((name, i) => (
+                <span key={i} className="chip">
+                  {name || t('planner.unknownEmployee')}
+                </span>
+              ))}
+            </>
+          ) : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button type="button" className="chip hover:bg-accent transition-colors" onClick={(e) => e.stopPropagation()}>
+                  <Users className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>
+                    {employeeCount} {t('planner.employees') || 'medarbejdere'}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="top" align="start" className="w-auto max-w-xs p-2" onClick={(e) => e.stopPropagation()}>
+                <ul className="space-y-1">
+                  {employeeData.names.map((name, i) => (
+                    <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                      {name || t('planner.unknownEmployee')}
+                    </li>
+                  ))}
+                </ul>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
-
-        {/* Cars */}
-        {carData.length > 0 && <div className="flex items-start gap-2 flex-wrap">
-            <span className="inline-flex items-center justify-center chip-glass-amber rounded-md h-6 w-6">
-              <Car className="h-3.5 w-3.5" />
-            </span>
-            <div className="flex flex-wrap gap-1">
-              <TooltipProvider delayDuration={100}>
-                {carData.map((car) => (
-                  <Tooltip key={car.id}>
-                    <TooltipTrigger asChild>
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md cursor-default chip-glass-amber",
-                          car.isShared && "chip-glass-destructive"
-                        )}
-                      >
-                        {car.name}
-                        {car.isShared && <AlertTriangle className="h-3 w-3" />}
-                      </span>
-                    </TooltipTrigger>
-                    {car.isShared && (
-                      <TooltipContent side="top" className="max-w-xs">
-                        <p className="font-medium">{t('planner.sharedWithOtherTasks')}</p>
-                        <p className="text-xs text-muted-foreground">{car.sharedWith.join(', ')}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                ))}
-              </TooltipProvider>
-            </div>
-          </div>}
-      </div>
-
-      {/* Right Column */}
-      <div className="space-y-2.5">
-        {employeeData.names.length > 0 && <div className="flex items-start gap-2 flex-wrap">
-            <span className="inline-flex items-center justify-center chip-glass-emerald rounded-md h-6 w-6">
-              <Users className="h-3.5 w-3.5" />
-            </span>
-            <div className="flex flex-wrap gap-1 min-w-0 flex-1">
-              {employeeData.names.map((employeeName, index) => <span key={index} className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-md chip-glass-emerald">
-                  {employeeName || t('planner.unknownEmployee')}
-                </span>)}
-            </div>
-          </div>}
-      </div>
-    </div>;
+      )}
+    </div>
+  );
 };
 export default AssignmentDetails;
