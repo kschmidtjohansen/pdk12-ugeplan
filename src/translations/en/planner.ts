@@ -24,6 +24,7 @@ const planner = {
   
   // Actions
   addAssignment: 'Add Assignment',
+  createAssignment: 'Create assignment',
   editAssignment: 'Edit Assignment',
   copyAssignment: 'Copy Assignment',
   deleteAssignment: 'Delete Assignment',
