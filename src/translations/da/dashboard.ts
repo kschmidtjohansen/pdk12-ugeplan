@@ -91,6 +91,7 @@ export const dashboard = {
   
   // UPDATED Dashboard metrics with new structure  
   metrics: {
+    title: "Dagens overblik",
     availableEmployees: "Ledige medarbejdere",
     availableCars: "Tilgængelige biler",
     absentEmployees: "Fraværende",
