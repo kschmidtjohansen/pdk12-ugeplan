@@ -54,12 +54,12 @@ export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
     }
   };
   if (assignments.length === 0) {
-    return <Card className="border-2 border-border/50 bg-gradient-to-br from-card to-card shadow-lg">
+    return <Card className="border border-border bg-card shadow-xs">
         <CardContent className="p-8 text-center">
-          <div className="p-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-            <Calendar className="h-10 w-10 text-gray-400" />
+          <div className="p-6 rounded-full bg-muted w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+            <Calendar className="h-10 w-10 text-muted-foreground" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-600 mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             {t('screenDisplay.noTasksPlanned')}
           </h2>
           <p className="text-muted-foreground">
@@ -71,7 +71,7 @@ export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
   return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
       {assignments.map((assignment, index) => {
       const status = getTimeStatus(assignment);
-      return <Card key={assignment.id} className="border-2 border-border/50 bg-gradient-to-br from-card to-card/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden relative animate-fade-in" style={{
+      return <Card key={assignment.id} className="border border-border bg-card shadow-xs hover:shadow-sm transition-shadow overflow-hidden relative animate-fade-in" style={{
         animationDelay: `${index * 0.1}s`
       }}>
             <CardContent className="p-4 space-y-3">

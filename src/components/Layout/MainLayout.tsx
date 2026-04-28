@@ -8,6 +8,8 @@ import { SecurityErrorBoundary } from '@/components/Layout/SecurityErrorBoundary
 import TopNavbar from './TopNavbar';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import { RealtimeChangeNotifier } from '@/components/shared/RealtimeChangeNotifier';
+import { useQueryClient } from '@tanstack/react-query';
+import { notifyOwnAction } from '@/lib/realtimeUtils';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -17,10 +19,25 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isAuthenticated, authReady } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { t, isInitialized } = useTranslation();
   const handlePullRefresh = useCallback(async () => {
     window.location.reload();
   }, []);
+
+  // Auto-refresh data on route changes so users always see fresh data without
+  // needing to dismiss the realtime "Opdater"-banner. We also dispatch an own-
+  // action event so the banner stays hidden during the silent refresh.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    notifyOwnAction();
+    queryClient.invalidateQueries({ queryKey: ['assignments'] });
+    queryClient.invalidateQueries({ queryKey: ['employees'] });
+    queryClient.invalidateQueries({ queryKey: ['cars'] });
+    queryClient.invalidateQueries({ queryKey: ['vacations'] });
+    queryClient.invalidateQueries({ queryKey: ['duties'] });
+  }, [location.pathname, isAuthenticated, queryClient]);
+
   if (import.meta.env.DEV) console.log('[MainLayout] SESSION EXPIRATION FIX - Render state:', {
     path: location.pathname,
     isAuthenticated,
@@ -103,7 +120,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         
         <main className="flex-1 w-full bg-background pt-14">
           <PullToRefresh onRefresh={handlePullRefresh}>
-            <div className="animate-fade-in-up w-full">
+            <div className="w-full">
               <SecurityErrorBoundary>
                 {children}
               </SecurityErrorBoundary>

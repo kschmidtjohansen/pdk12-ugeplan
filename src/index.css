@@ -162,6 +162,19 @@
     background: hsl(var(--primary) / 0.18);
     color: hsl(var(--foreground));
   }
+
+  /* Hide native browser password reveal buttons (Edge/IE/Chrome) so only
+     our custom eye toggle is shown — fixes "two eyes" rendering on Windows. */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none !important;
+  }
+  input[type="password"]::-webkit-credentials-auto-fill-button {
+    visibility: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    right: 0 !important;
+  }
 }
 
 /* ----------------------------------------------------------------------------

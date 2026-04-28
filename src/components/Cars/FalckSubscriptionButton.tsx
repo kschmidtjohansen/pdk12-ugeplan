@@ -79,7 +79,7 @@ const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdm
       <Button
         variant="outline"
         onClick={() => setOpen(true)}
-        className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm shadow-lg"
+        className="border-border bg-background hover:bg-accent text-foreground"
       >
         <Shield className="mr-2 h-4 w-4" />
         {t('cars.falckSubscription')}

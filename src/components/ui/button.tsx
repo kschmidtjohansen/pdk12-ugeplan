@@ -27,11 +27,6 @@ const buttonVariants = cva(
           "bg-warning text-warning-foreground hover:bg-warning/90",
         info:
           "bg-info text-info-foreground hover:bg-info/90",
-        // Legacy variants kept as alias to default to avoid breakage
-        gradient:
-          "bg-primary text-primary-foreground hover:bg-primary/90",
-        glass:
-          "border border-border bg-background text-foreground hover:bg-accent",
       },
       size: {
         default: "h-9 px-4 py-2",

@@ -95,7 +95,7 @@ const Index = () => {
   // Wait for auth to be ready before making any routing decisions
   if (!authReady || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-muted/30 to-muted/50">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
           <p className="text-muted-foreground">Initialiserer godkendelse...</p>

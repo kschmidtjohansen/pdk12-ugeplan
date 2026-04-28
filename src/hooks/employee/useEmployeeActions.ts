@@ -1,5 +1,6 @@
 
 import { useToast } from '@/hooks/use-toast';
+import { notifyOwnAction } from '@/lib/realtimeUtils';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
@@ -16,6 +17,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const queryClient = useQueryClient();
 
   const toggleEmployeeLeave = async (employee: Employee, setOnLeave: boolean, notes: string | null = null) => {
+    notifyOwnAction();
     try {
       if (import.meta.env.DEV) console.log('[useEmployeeActions] Updating employee leave status:', {
         employeeId: employee.id,
@@ -59,6 +61,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
 
 
   const updateEmployee = async (employee: Employee, formData: any) => {
+    notifyOwnAction();
     try {
       if (import.meta.env.DEV) console.log('[useEmployeeActions] Updating employee:', {
         employeeId: employee.id,
@@ -154,6 +157,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   };
 
   const deleteEmployee = async (employeeId: string, allEmployees: Employee[]) => {
+    notifyOwnAction();
     try {
       const employee = allEmployees.find(e => e.id === employeeId);
       if (!employee) throw new Error('Employee not found');

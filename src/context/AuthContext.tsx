@@ -244,7 +244,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (import.meta.env.DEV) {
         console.log(`[AuthContext] User loaded:`, enhancedUser.name, enhancedUser.role, `(${Date.now() - startTime}ms)`);
       }
-      
+
+      // Cache last known user name for personalized greeting on the login page next time.
+      try {
+        if (enhancedUser.name) localStorage.setItem('last_user_name', enhancedUser.name);
+        if (enhancedUser.email) localStorage.setItem('last_user_email', enhancedUser.email);
+      } catch {
+        // ignore storage errors (private mode etc.)
+      }
+
       circuitBreaker.recordSuccess(`user_data_fetch_${authUser.id}`);
       return enhancedUser;
       

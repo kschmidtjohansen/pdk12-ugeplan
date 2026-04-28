@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { notifyOwnAction } from '@/lib/realtimeUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
@@ -32,6 +33,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   };
 
   const confirmDelete = async (forceDelete: boolean = false) => {
+    notifyOwnAction();
     if (currentCar) {
       try {
         let assignmentsAffected = 0;
@@ -223,6 +225,7 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   };
   
   const updateAvailabilityStatus = async (car: CarData, isAvailable: boolean, notes: string | null) => {
+    notifyOwnAction();
     try {
       if (import.meta.env.DEV) console.log("[useCarActions] Updating car availability:", {
         car_id: car.id,

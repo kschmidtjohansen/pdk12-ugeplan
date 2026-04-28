@@ -1,78 +1,192 @@
-## Plan: Globalt UI-overhaul — "Apple/Arc" premium look
+## Plan: 9 forbedringer (UX-fixes + UI-overhaul fase 3)
 
-### Mål
-Strippe det "lovable made"-look (gradients, glow, pulse, shimmer, hover-lift, tunge skygger) og erstatte med et roligt, premium, Apple/Arc-inspireret udtryk. **Behold:** primær blå (`#00aeef`), logo, semantiske farve-tokens, dansk terminologi, høj informationstæthed jf. core memory.
+Samlet plan for alle 9 punkter. Funktionalitet bevares, ingen DB-ændringer, ingen brud på multi-tenant-regler. Brand-farver og logo uændret.
 
-### Designprincipper (de nye regler)
-- **Roligt og fladt-med-dybde:** Subtile borders (`border-border/60`) + ultra-lette skygger (`shadow-[0_1px_2px_rgba(0,0,0,0.04)]`). Ingen gradient-headers, ingen glow, ingen pulse.
-- **Konsistent radius:** `--radius: 0.625rem` (10px). Kort `rounded-xl` (12px), inputs/knapper `rounded-lg` (10px), pills/badges `rounded-md` (8px). Ingen `rounded-2xl/3xl` undtagen modal-overlays.
-- **Whitespace:** Stadig kompakt jf. memory (`p-4 gap-4`), men luftigere headere (`pb-3 mb-4` separator i stedet for tunge kort-headers).
-- **Typografi:** Inter beholdes, men `tracking-tight` på h1/h2, normal tracking ellers. Drop `text-balance` globalt (kun på h1). Sideoverskrifter ned fra `text-3xl` til `text-xl font-semibold`.
-- **Farvebrug:** Primær blå reserveres til CTA, aktive states og fokus. Ikke længere baggrunde for hele headers. Ikon-baggrunde bliver `bg-muted text-foreground` i stedet for farverige `bg-blue-50 text-blue-600`.
-- **Bevægelse:** Kun `transition-colors` + `transition-opacity` (150ms). Fjern `hover:-translate-y-0.5`, `hover:scale`, `animate-fade-in-up` på sider, `animate-scale-in` på kort. Behold subtile tilstandsskift.
-- **Skygger:** Ny skala — `shadow-xs` for hvilende kort, `shadow-sm` på popovers/dropdowns, `shadow-md` kun på dialogs. Fjern `shadow-xl/2xl/glow/glow-lg` fra UI (beholdes i tokens men bruges ikke).
-- **Dark mode:** Polishes parallelt — baggrund `222 20% 7%`, kort `222 18% 10%`, borders med 6% lysere tone. Samme skala for skygger men reducerede.
+---
 
-### Hvad fjernes (komponent-for-komponent)
-| Komponent | Fjernes / ændres |
-|---|---|
-| `WelcomeHeader` | Gradient-baggrund, blur-orbs, `bg-white/20 backdrop-blur` chips. Bliver flad card med dato højre, hilsen venstre, tynd border-bottom på primary-accent. |
-| `QuickAccessGrid` | Farverige ikon-bokse (`bg-blue-50` etc.), `animate-scale-in`, `hover:bg-blue-50/50`. Bliver neutral ikon (foreground), `hover:bg-accent`, ingen lift. |
-| `Button` | Fjern `hover:-translate-y-0.5`, `hover:shadow-sm`, `before:` shimmer, `gradient`+`glass` varianter. Ny default: rene farveskift + `active:opacity-90`. Bevarer alle størrelser. |
-| `Input` | Fjern `border-2`, `h-12`, `bg-background/50 backdrop-blur`, `shadow-sm hover:shadow-md focus:shadow-lg`, `rounded-xl`. Ny: `h-9`, `border`, `rounded-lg`, fokus-ring kun. |
-| `Card` | Fjern tung `shadow-md` default. Ny: `border bg-card shadow-xs rounded-xl`. |
-| `Dialog` | Behold sticky header/footer (memory). Ændr radius til `rounded-xl`, skygge til `shadow-md`, custom scrollbar slankere. |
-| `PageHeader` | Fjern `shadow-md`, `p-6`, `rounded-2xl`. Ny: ren tekst-blok + `Separator` under, ingen kort-wrapper. |
-| `TopNavbar` | Tyndere (h-12 → h-12 behold), fjern evt. backdrop-blur tunghed, klar border-bottom. |
-| `index.css` | Fjern `glass-card`, `glass-effect`, `gradient-primary/secondary/radial`, `text-gradient`, `hover-lift`, `hover-glow`, `interactive-scale`, `border-gradient`, `shimmer-effect`, `animate-pulse-glow`, `animate-shimmer`, `animate-float`, `animate-bounce-gentle`, `pulse-glow` keyframes. Behold `fade-in`, `accordion-*`, `scale-in` (til Radix), `slide-in-*`. |
-| `tailwind.config.ts` | Fjern `boxShadow.glow`, `glow-lg`, `keyframes.pulse-glow`, `bounce-gentle`, `float`, `gradient`, `shimmer`. Justér radius-skala. |
-| Dashboard-widgets (Metrics, MineOpgaver, WeeklyAssignments, Vehicle/Vacation/Duty Widgets) | Fjern hover-lift, tunge skygger, gradient-baggrunde i InteractiveMetricCard. Standardiser til `Card` med `shadow-xs`. |
-| Planner (`AssignmentCard`, `DaySection`, `CompactDaySection`) | Slankere borders, ingen `hover:shadow-xl`, kun `hover:bg-accent/40` og `transition-colors`. |
-| Tabeller (Cars, Warehouse, Employees, Duty) | Konsistent header-styling: `text-xs uppercase tracking-wide text-muted-foreground` + `bg-muted/40`. Rækker: `hover:bg-muted/40` (lavere intensitet). |
-| Selectors (Employee/Car/Duty) | Allerede tæt på målbilledet — kun radius-justering og fjern evt. shadow på popover-content. |
-| Login (`LoginPage`) | Fjern gradient-baggrund hvis nogen, brug roligt off-white kort på subtil tonet baggrund. Logo og copy beholdes (memory). |
-| `LoadingSpinner`, `RouteLoadingFallback` | Roligere — fjern gradient-baggrunde i fallback. |
+### 1. Personlig velkomst på login
 
-### Tokens (nye værdier i `:root`)
-```text
---radius: 0.625rem            (var: 0.75rem)
---background: 0 0% 99%        (var: 210 40% 99%)
---foreground: 222 20% 14%     (mørkere, mere kontrast)
---card: 0 0% 100%
---border: 220 13% 91%         (uændret)
---muted: 220 14% 96%
---muted-foreground: 220 9% 46%
---primary: 197 100% 47%       (uændret — bevar brand)
---ring: 197 100% 47%          (uændret)
---shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04)
---shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06)
---shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.08)
+**Mål:** "Velkommen tilbage" → "Velkommen tilbage, {fornavn}" når en bruger har været logget ind før på enheden.
+
+- I `AuthContext` (efter vellykket `fetchUserData`): gem `localStorage.setItem('last_user_name', user.name)` og `last_user_email`. Ryd ikke ved logout — vi vil have navnet bag forsiden næste gang.
+- I `src/pages/LoginPage.tsx`: læs `last_user_name`, ekstrahér fornavn (split på første mellemrum), vis `{t('login.welcomeMessage')}, {firstName}` hvis det findes. Falder tilbage til ren `welcomeMessage` ellers.
+- Ingen ny oversættelsesnøgle nødvendig — vi koncatenerer.
+
+### 2. Kun ét øje-ikon i password-felt
+
+**Rod-årsag:** Browser (især Edge/Chrome på Windows) tegner sin egen øje-knap oven i feltet, så brugeren ser to øjne.
+
+**Fix:** Skjul browser-toggle med CSS i `src/index.css`:
+```css
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button { display: none !important; }
 ```
-Dark mode tilsvarende kalibreret (lysere borders, dybere baggrund).
+Berører både `EnhancedSecureLoginForm`, `PasswordInput` og `PasswordResetPage` på én gang. Egen toggle-knap forbliver.
 
-### Implementeringsrækkefølge (alt i én PR)
-1. **Tokens & globals** — `src/index.css` + `tailwind.config.ts`. Strip ubrugte utility-klasser/keyframes.
-2. **Base UI** — `Button`, `Input`, `Card`, `Dialog`, `Badge`, `Tabs`, `Tooltip`, `Popover`, `DropdownMenu`, `Select`, `StatusBadge`, `Skeleton`. Sikre at API/props er uændret.
-3. **Layout** — `MainLayout`, `TopNavbar`, `PageHeader`, `UserMenu`, `Logo` (uændret asset).
-4. **Dashboard** — `WelcomeHeader`, `QuickAccessGrid`, `MetricCard`/`InteractiveMetricCard`, `DashboardMetrics`, `MineOpgaver`, `WeeklyAssignments`, alle widgets.
-5. **Planner** — `PlannerContent`, `AssignmentCard`, `DaySection`/`CompactDaySection`, `AssignmentForm`, `AssignmentDetails`, selectors.
-6. **Feature-sider** — Cars (List/Table/MobileCard), Warehouse, Employees, Vacation, Duty, Admin, ChangeLog, ScreenDisplay-header, Login.
-7. **Dark-mode QA-pass** — gennemgå hver opdateret komponent i dark mode, justér tokens hvis kontrast svigter.
-8. **CHANGELOG.md** — log overhaul som ét entry.
+### 3. Smart series-prompt (kun spørg hvis det reelt er en serie)
 
-### Ikke-mål (dette overhaul gør IKKE)
-- Ingen ændring af logik, datalag, hooks, RLS, routing.
-- Ingen ny side, intet fjernet feature.
-- Ingen ændring af dansk tekst eller terminologi.
-- Ingen ændring af navigation-struktur (departement-selector forbliver i UserMenu).
-- Logo (`Logo.tsx`) og brand-blå rører vi ikke.
+**Rod-årsag:** I `PlannerPage.handleOpenEditDialog` / `handleDeleteAssignment` udløses `SeriesActionDialog` hvis `assignment.groupId` er sat — også når serien indeholder kun ét element (kan ske efter sletning af søsterdage, eller når legacy-data har samme `case_number` men kun én række).
 
-### Risici & mitigation
-- **Mange filer (~50–70):** Vi bruger semantiske tokens, så de fleste komponenter opdateres "automatisk" via `index.css` + base UI. Per-komponent ændringer reduceres til at fjerne hardcoded `bg-blue-50`, `hover:-translate-y-*`, `shadow-xl` etc.
-- **Visuel regression:** Efter hver gruppe (Layout / Dashboard / Planner / Features) kan du give visuel feedback før vi går videre.
-- **Brugere vænner sig:** Funktionel adfærd er identisk; kun udtryk ændres.
+**Fix:** Skift logik fra "har groupId ELLER >1 sibling" → "har faktisk >1 sibling i datasættet". Konkret i `PlannerPage.tsx`:
+- I `handleOpenEditDialog`: erstatte `if (assignment.groupId || siblings.length > 1)` med `if (siblings.length > 1)`.
+- Samme i `handleDeleteAssignment`.
+- `findSeriesSiblings` returnerer allerede den fulde liste (inkl. `assignment` selv), så `length > 1` er korrekt.
+- Resultat: 12-013700 (kun én dag) går direkte til normal edit/delete, multi-day serier viser stadig dialogen.
 
-### Leverance
-- Opdaterede tokens, ~10 base UI-komponenter, ~15 dashboard/planner-komponenter, ~20 feature-side-komponenter.
-- Opdateret `docs/ui-guidelines/design-system.md` så det matcher nye tokens og regler.
-- `CHANGELOG.md`-entry: "Globalt UI-overhaul: roligt premium-look, fjernet gradients/glow/lift, ny tokenskala. Ingen funktionel ændring."
+### 4. Automatisk refresh ved navigation og mutationer (mindre "Opdater"-banner)
+
+**Mål:** Banner fra `RealtimeChangeNotifier` skal kun dukke op ved *eksterne* ændringer fra andre brugere — egen aktivitet og navigation må ikke trigge den.
+
+To koordinerede fixes:
+
+**4a. Side-navigation invalidates cache:**
+Ny komponent `RouteChangeRefresher` (eller direkte i `MainLayout`): lyt på `useLocation().pathname`-ændringer og kald `queryClient.invalidateQueries()` for de relevante nøgler (`assignments`, `cars`, `employees`, `vacations`). Frisk data hentes lydløst. Samtidig dispatch `supabase-own-action` for at suppresse banneret i 3 sek.
+
+**4b. Mutationer dispatcher own-action konsekvent:**
+Audit alle mutations-stier — i dag dispatchet kun `useAssignmentFiles`. Tilføj `window.dispatchEvent(new Event('supabase-own-action'))` på succes-pathen i:
+- `useOptimizedAssignments`: `createAssignment`, `updateAssignment`, `updateSeriesAssignments`, `deleteAssignment`, `deleteAssignmentsByGroupId`, `publishAssignment`, `publishAssignmentsByDate`, `detachFromGroup`.
+- `useEmployees`: `createEmployee`, `updateEmployee`, `deleteEmployee`, `toggleEmployeeLeave`.
+- `useCars` mutationsfunktioner.
+- `useVacations` create/update/delete.
+- `useDuty` mutationsstier.
+
+Centraliser via lille hjælper `notifyOwnAction()` i `src/lib/realtimeUtils.ts` for konsistens.
+
+### 5. Bredere CarSelector og EmployeeSelector
+
+I `src/components/Planner/CarSelector.tsx`: `PopoverContent w-80` → `w-[420px] max-w-[calc(100vw-2rem)]`.
+I `src/components/Planner/EmployeeSelector.tsx`: `PopoverContent w-96` → `w-[480px] max-w-[calc(100vw-2rem)]`.
+Tilføj større min-bredde på rækken så bil-/medarbejdernavne ikke trunkeres for tidligt. Drawer (mobil) er allerede fuldt bred — uændret.
+
+### 6. MainLayout, TopNavbar og PageHeader: nye tokens, fjern backdrop-blur globalt
+
+**MainLayout** (`src/components/Layout/MainLayout.tsx`):
+- Fjern `<div className="animate-fade-in-up">` rundt om children — entry-animation på hver navigation føles træg.
+- Loading-/redirect-skærmene bruger allerede `bg-background` — bevares.
+
+**TopNavbar** (`src/components/Layout/TopNavbar.tsx`):
+- `bg-background/85 backdrop-blur-md border-b border-border` → `bg-background border-b border-border`. Flat, fast, mere Apple/Arc.
+
+**PageHeader** er allerede ren — ingen ændring.
+
+**Globale backdrop-blur fjernes / nedtones:**
+- `src/components/ui/dialog.tsx` overlay: `backdrop-blur-[2px]` → fjernes (kun `bg-foreground/40`).
+- `src/components/ui/toast.tsx`: kraftig nedrigning — fjern `backdrop-blur-xl`, `shadow-2xl`, `scale-[1.02]`-hover, `border-2`, gradient-`before`. Erstattes med `border border-border bg-card shadow-md rounded-xl p-4 pr-8`.
+- `src/components/Cars/FalckSubscriptionButton.tsx`: fjern `bg-white/20 ... backdrop-blur-sm shadow-lg` — brug `variant="outline" size="sm"`.
+- `src/components/Planner/AssignmentForm.tsx` sticky footer: `bg-background/95 backdrop-blur` → `bg-background border-t`.
+- `src/pages/Index.tsx`, `src/App.tsx`, `src/components/ErrorBoundary/{GlobalErrorBoundary,DashboardErrorBoundary}.tsx`, `src/components/ScreenDisplay/ScreenDisplayErrorBoundary.tsx`: erstat `bg-gradient-to-br from-gray-* to-*` med `bg-background`.
+- `src/components/Planner/UnassignedResourcesSection.tsx` + `DutyWeekWidget.tsx` `CardHeader`: `bg-gradient-to-r from-primary/5 to-primary/10` → `bg-muted/40 border-b border-border`.
+
+### 7. Ensret tabel- og formular-styling (Cars, Employees, Duty, Vacation)
+
+Standardiser tre lag:
+
+**Tabel-container** overalt: `rounded-xl border border-border bg-card shadow-xs overflow-hidden` (CarsPage/EmployeesPage har den allerede — udrul til `VacationTable` og `DutyList/DutyCalendar`).
+
+**Tabel-headers** (TableHead): `text-xs font-medium text-muted-foreground uppercase tracking-wide bg-muted/40 border-b border-border h-10 px-4`.
+
+**Tabel-rækker** (TableRow): `border-b border-border hover:bg-accent/40 transition-colors` — fjern eventuelle eksisterende `hover:bg-blue-50`, `hover:bg-slate-100`, m.m.
+
+**Formular-felter:**
+- Allerede konsistent via `Input`-komponenten (`h-9 rounded-lg border-input bg-background`).
+- `Label` overalt brug `<Label>` fra ui — gennemgå `EmployeeFormDialog`, `CarFormDialog`, `EnhancedVacationForm`, `DutyAssignmentForm`, `AssignmentFormFields` og fjern eventuelle inline `<label className="text-sm font-medium">` til fordel for komponenten.
+- Felt-grupper bruger `space-y-2`, dialog-grids bruger `grid gap-4 md:grid-cols-2`.
+
+Refaktor sker pr. fil — minimal logik-ændring, kun klassenavne.
+
+### 8. Refaktor Button, Input og Card
+
+**Button** (`src/components/ui/button.tsx`): allerede polished, men:
+- Fjern `gradient` og `glass` legacy-varianter (de er aliaser i dag — vi sletter for at fjerne fristelsen).
+- Tjek alle kald-steder med rg; ingen ramt forventes da de er aliaser. Hvis der er — konverter til `default`/`outline`.
+- Bevar `success`/`warning`/`info` (semantiske status-CTA'er).
+
+**Input** (`src/components/ui/input.tsx`): allerede ren — ingen ændring nødvendig.
+
+**Card** (`src/components/ui/card.tsx`): allerede ren (`shadow-xs`). Ingen ændring.
+
+Fokus i pkt. 8 er derfor at *udrydde* gamle rester:
+- `EnhancedSecureLoginForm`: `Card className="shadow-lg rounded-xl border-border/50"` → fjern overrides, brug default.
+- `ScreenDisplayContent.tsx` Card: `border-2 border-border/50 bg-gradient-to-br from-card to-card/50 shadow-lg hover:shadow-xl transition-all duration-300` → `bg-card border border-border shadow-xs hover:shadow-sm transition-shadow`.
+- `ScreenDisplayHeader.tsx`: erstat gradient-banner med ren `bg-card border-b border-border` + `bg-primary/10`-ikon.
+
+### 9. Tokens & globale styling-regler — sidste polish
+
+Tokens (`src/index.css`) og base-stylet er på plads fra fase 1+2. Justeringer:
+
+- Fjern `--gray-25..900` legacy-tokens (de bruges kun i de gradient-baggrunde vi fjerner i pkt. 6). Behold kun semantiske tokens.
+- Skriv kort kommentar i toppen af `index.css` der dokumenterer at custom skygger findes som `var(--shadow-xs..xl)` og må bruges via `shadow-xs/sm/md/lg/xl` (allerede mappet i `tailwind.config.ts`).
+- Dark mode: gennemgå pkt 6's tunge baggrunde i mørk tilstand for at sikre `bg-background` ser korrekt ud (HSL er allerede kalibreret — kun visuelt tjek).
+- Opdater `docs/ui-guidelines/design-system.md` med nye anti-patterns (`backdrop-blur*` på chrome, `bg-gradient-to-br from-gray-*`, `shadow-2xl`, `border-2`).
+
+---
+
+## Tekniske detaljer (samlet)
+
+```text
+Filer berørt (estimat ~30):
+ ├─ Tokens / globalt CSS
+ │   ├─ src/index.css                                  (pwd-eye CSS, ryd legacy gray)
+ │   ├─ src/components/ui/dialog.tsx                   (no backdrop-blur)
+ │   ├─ src/components/ui/toast.tsx                    (flat redesign)
+ │   └─ src/components/ui/button.tsx                   (drop gradient/glass aliases)
+ │
+ ├─ Punkt 1 — Login greet
+ │   ├─ src/context/AuthContext.tsx                    (cache last_user_name)
+ │   └─ src/pages/LoginPage.tsx                        (read + interpolate)
+ │
+ ├─ Punkt 3 — Smart series prompt
+ │   └─ src/pages/PlannerPage.tsx                      (logic tweak)
+ │
+ ├─ Punkt 4 — Auto refresh
+ │   ├─ src/lib/realtimeUtils.ts          (NEW, notifyOwnAction helper)
+ │   ├─ src/components/Layout/MainLayout.tsx           (route-change invalidator)
+ │   ├─ src/hooks/useOptimizedAssignments.ts           (dispatch on all mutations)
+ │   ├─ src/hooks/useEmployees.ts
+ │   ├─ src/hooks/car/* (mutation hook)
+ │   ├─ src/hooks/useVacations.ts
+ │   └─ src/hooks/duty/* (mutation hook)
+ │
+ ├─ Punkt 5 — Selector width
+ │   ├─ src/components/Planner/CarSelector.tsx
+ │   └─ src/components/Planner/EmployeeSelector.tsx
+ │
+ ├─ Punkt 6 — Layout cleanup
+ │   ├─ src/components/Layout/MainLayout.tsx           (remove fade-in-up wrapper)
+ │   ├─ src/components/Layout/TopNavbar.tsx            (flat bg)
+ │   ├─ src/pages/Index.tsx, src/App.tsx               (no gradient)
+ │   ├─ src/components/ErrorBoundary/Global*, Dashboard*  (no gradient)
+ │   ├─ src/components/Cars/FalckSubscriptionButton.tsx
+ │   ├─ src/components/Planner/AssignmentForm.tsx      (sticky footer)
+ │   ├─ src/components/Planner/UnassignedResourcesSection.tsx
+ │   ├─ src/components/Planner/DutyWeekWidget.tsx
+ │   └─ src/components/ScreenDisplay/{ScreenDisplayHeader,Content,ErrorBoundary}.tsx
+ │
+ ├─ Punkt 7 — Tables/forms unified
+ │   ├─ src/components/Employees/EmployeesTable.tsx + EmployeeTableRow
+ │   ├─ src/components/Cars/CarsTable.tsx
+ │   ├─ src/components/Vacation/VacationTable.tsx + VacationList
+ │   └─ src/components/Duty/DutyList.tsx + DutyCalendar
+ │
+ └─ Punkt 8/9 — Final polish
+     ├─ src/components/Auth/EnhancedSecureLoginForm.tsx  (Card overrides removed)
+     └─ docs/ui-guidelines/design-system.md             (new anti-patterns)
+
+Dokumentation:
+ ├─ CHANGELOG.md             (logge alle 9 ændringer)
+ └─ docs/ui-guidelines/design-system.md   (anti-patterns + tokens)
+```
+
+### Risiko & test
+- **Lav risiko**: Pkt. 1, 2, 5, 6, 8, 9 — kun visuelt.
+- **Middel risiko**: Pkt. 3 (logikken testes med både single-day og multi-day sager), pkt. 4 (verificér at mutationer fortsat opdaterer UI lokalt + at banneret ikke længere flasher efter egne handlinger), pkt. 7 (verificér at filter-/sort-funktionalitet i tabeller er uberørt).
+- Multi-tenant: ingen ændring i dataforespørgsler.
+- Backwards compatibility: legacy `gradient`/`glass` button-varianter slettes — rg-søgning bekræfter ingen brug i dag.
+
+### Scope-reduktion mulig
+Hvis det er for stort i én PR, kan vi splitte i to runder:
+- **Runde A**: pkt 1, 2, 3, 5 (hurtige UX-fixes — 1 commit).
+- **Runde B**: pkt 4, 6, 7, 8, 9 (overhaul + auto-refresh — 1 commit).
+
+Sig til hvis du foretrækker opsplitning, ellers udfører jeg alt i én tur.

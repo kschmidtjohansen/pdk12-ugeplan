@@ -12,6 +12,7 @@ import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { resolveEmployeeDisplayName } from '@/utils/people';
 import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyOwnAction } from '@/lib/realtimeUtils';
 import React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
@@ -243,7 +244,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   const createAssignment = useCallback(async (data: Partial<Assignment>) => {
     const operationId = `create-${Date.now()}`;
-    
+    notifyOwnAction();
+
     try {
       setOperationStates(prev => ({ ...prev, [operationId]: 'loading' }));
 
@@ -384,6 +386,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [toast, t, setAssignments, setOperationStates, allEmployees, refetch, user, selectedDepartmentId, selectedSubDepartmentId]);
 
   const updateAssignment = useCallback(async (id: string, data: Partial<Assignment>) => {
+    notifyOwnAction();
     setOperationState(id, 'loading');
     try {
       if (!data.title?.trim()) throw new Error('Title is required');
@@ -543,6 +546,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [toast, t, setOperationState, setAssignments, assignments, user]);
 
   const publishAssignment = useCallback(async (id: string) => {
+    notifyOwnAction();
     setOperationState(id, 'loading');
     try {
       setAssignments(prev => prev.map(a => a.id === id ? { ...a, published: true } : a));
@@ -560,6 +564,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [toast, t, setOperationState, refetch, setAssignments, user]);
 
   const publishAssignmentsByDate = useCallback(async (date: string) => {
+    notifyOwnAction();
     try {
       const assignmentIds = assignments.filter(a => a.date === date && !a.published).map(a => a.id);
       setAssignments(prev => prev.map(a => a.date === date ? { ...a, published: true } : a));
@@ -576,6 +581,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   // Delete all assignments sharing a group_id
   const deleteAssignmentsByGroupId = useCallback(async (groupId: string) => {
+    notifyOwnAction();
     if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Deleting series with group_id:', groupId);
 
     // 1. Optimistic: remove all matching assignments
@@ -619,6 +625,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   // Detach a single assignment from its group
   const detachFromGroup = useCallback(async (id: string): Promise<boolean> => {
+    notifyOwnAction();
     try {
       if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Detaching from group:', id);
 
@@ -641,6 +648,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   // Update all assignments sharing a group_id with shared fields (keeps individual dates)
   const updateSeriesAssignments = useCallback(async (groupId: string, data: Partial<Assignment>) => {
+    notifyOwnAction();
     try {
       if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Updating series with group_id:', groupId);
 
