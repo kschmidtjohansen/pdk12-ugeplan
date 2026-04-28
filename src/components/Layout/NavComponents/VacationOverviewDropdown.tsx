@@ -27,8 +27,8 @@ const VacationOverviewDropdown: React.FC = () => {
 
   const pending = useMemo(
     () =>
-      vacations
-        .filter((v) => v.status === 'pending')
+      (vacations ?? [])
+        .filter((v) => v?.status === 'pending')
         .sort(
           (a, b) =>
             new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
@@ -49,16 +49,23 @@ const VacationOverviewDropdown: React.FC = () => {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          className="relative h-8 w-8 text-muted-foreground hover:text-foreground"
-          aria-label={t('navigation.vacation')}
+          size="sm"
+          className="relative h-8 px-2 gap-1.5 rounded-md bg-primary/8 hover:bg-primary/14 text-primary border border-primary/20"
+          aria-label={t('navigation.vacation') || 'Ferieoversigt'}
+          aria-haspopup="menu"
+          title={t('navigation.vacation') || 'Ferieoversigt'}
         >
-          <CalendarDays className="h-[15px] w-[15px]" />
-          {pending.length > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold tabular-nums px-1 h-4 min-w-[16px]">
-              {pending.length}
-            </span>
-          )}
+          <CalendarDays className="h-4 w-4" />
+          <span
+            className={
+              'inline-flex items-center justify-center rounded-full text-[10px] font-semibold tabular-nums px-1 h-4 min-w-[16px] ' +
+              (pending.length > 0
+                ? 'bg-destructive text-destructive-foreground'
+                : 'bg-primary/15 text-primary')
+            }
+          >
+            {pending.length}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 p-0">
