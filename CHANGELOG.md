@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-04-28 — Selected-week consistency, Polygon icon & dashboard reorder
+
+### Ændret
+- `MineOpgaver` viser nu opgaver for den **valgte** uge (ikke kun nuværende), via nye `selectedWeek`/`selectedYear` props fra `DashboardCockpit`.
+- `CompactKpiStack` viser ugenummer i overskriften så nøgletal-blokken visuelt afspejler den valgte uge.
+- Dashboard højre kolonne rækkefølge: Nøgletal → Mine Opgaver → Ferieanmodninger → Vagt → Kommende fridage.
+- Sammenklappet sidebar viser nu Polygon-ikonet (trekantsswirl) i stedet for blå "P"-flise.
+
+### Filer
+- `src/assets/polygon-icon.png` (ny)
+- `src/components/Layout/AppSidebar.tsx`
+- `src/components/Dashboard/DashboardCockpit.tsx`
+- `src/components/Dashboard/MineOpgaver.tsx`
+- `src/components/Dashboard/CompactKpiStack.tsx`
+
+
 ## 2026-04-28 — Premium chip redesign, Polygon logo & dashboard cleanup
 
 ### Tilføjet

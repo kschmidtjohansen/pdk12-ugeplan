@@ -18,7 +18,12 @@ import { Assignment } from '@/types/assignment';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-const MineOpgaver: React.FC = () => {
+interface MineOpgaverProps {
+  selectedWeek?: number;
+  selectedYear?: number;
+}
+
+const MineOpgaver: React.FC<MineOpgaverProps> = ({ selectedWeek, selectedYear }) => {
   const { user } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const { assignments, loading, error } = useAssignmentDataOptimized();
@@ -32,12 +37,14 @@ const MineOpgaver: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  // Filter assignments for current week only
+  // Filter assignments for the selected week (falls back to current week)
   const userAssignments = React.useMemo(() => {
     if (!user?.id || !assignments) return [];
 
-    const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
-    const currentWeekDates = getWeekDates(currentWeek, currentYear);
+    const fallback = getCurrentWeekInfo();
+    const week = selectedWeek ?? fallback.week;
+    const year = selectedYear ?? fallback.year;
+    const currentWeekDates = getWeekDates(week, year);
 
     const userTasks = assignments.filter(assignment => {
       // Strict ID-based matching only (legacy 'employees' may contain IDs as strings)
@@ -72,7 +79,7 @@ const MineOpgaver: React.FC = () => {
     });
 
     return sorted.slice(0, 5);
-  }, [assignments, user]);
+  }, [assignments, user, selectedWeek, selectedYear]);
 
   // Calculate unique days count - moved before early returns to fix React hooks error
   const uniqueDaysCount = React.useMemo(() => {
@@ -206,7 +213,7 @@ const MineOpgaver: React.FC = () => {
             <Calendar className="h-5 w-5 text-primary" />
             {t('dashboard.myTasks') || 'Mine Opgaver'}
             <span className="text-sm font-normal text-muted-foreground">
-              - Uge {getCurrentWeekInfo().week}
+              - Uge {selectedWeek ?? getCurrentWeekInfo().week}
             </span>
             <Badge variant="secondary" className="ml-auto">
               {uniqueDaysCount} {uniqueDaysCount === 1 ? 'dag' : 'dage'}

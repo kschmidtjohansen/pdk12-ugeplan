@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
 import AbsentEmployeesModal from './AbsentEmployeesModal';
-import { format } from 'date-fns';
+import { format, parseISO, getISOWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 interface KpiRowProps {
@@ -144,13 +144,18 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate }) => {
     });
   }
 
+  const weekNumber = getISOWeek(parseISO(effectiveDate));
+
   return (
     <>
       <Card className="p-0 overflow-hidden">
-        <div className="px-4 py-3 border-b border-border brand-card-header">
+        <div className="px-4 py-3 border-b border-border brand-card-header flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold brand-dot text-foreground">
             {t('dashboard.metrics.title') || 'Nøgletal'}
           </h3>
+          <span className="text-xs font-medium text-muted-foreground tabular-nums">
+            {t('dashboard.week') || 'Uge'} {weekNumber}
+          </span>
         </div>
         <div>
           {rows.map((r, i) => (
