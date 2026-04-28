@@ -11,44 +11,27 @@ import WarehouseFormDialog from '@/components/Warehouse/WarehouseFormDialog';
 import WarehouseDeleteDialog from '@/components/Warehouse/WarehouseDeleteDialog';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import EmptyState from '@/components/shared/EmptyState';
+import ListPageShell from '@/components/shared/ListPageShell';
 
 const WarehousePage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { isWarehouseEnabled } = useDepartment();
   const {
-    items,
-    loading,
-    error,
-    isFormOpen,
-    editingItem,
-    isDeleteOpen,
-    deletingItem,
-    openAddDialog,
-    openEditDialog,
-    closeFormDialog,
-    openDeleteDialog,
-    closeDeleteDialog,
-    createItem,
-    updateItem,
-    deleteItem,
-    loading: actionLoading,
+    items, loading, error, isFormOpen, editingItem, isDeleteOpen, deletingItem,
+    openAddDialog, openEditDialog, closeFormDialog, openDeleteDialog, closeDeleteDialog,
+    createItem, updateItem, deleteItem, loading: actionLoading,
   } = useWarehouse();
 
   const canEdit = user?.role === 'super_admin' || user?.role === 'administrator' || user?.role === 'skadeleder';
 
   const handleSubmit = async (data: any) => {
-    if (editingItem) {
-      await updateItem(editingItem.id, data);
-    } else {
-      await createItem(data);
-    }
+    if (editingItem) await updateItem(editingItem.id, data);
+    else await createItem(data);
   };
 
   const handleDelete = async () => {
-    if (deletingItem) {
-      await deleteItem(deletingItem.id);
-    }
+    if (deletingItem) await deleteItem(deletingItem.id);
   };
 
   if (!isWarehouseEnabled) {
@@ -60,81 +43,63 @@ const WarehousePage = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-4">
-          <p className="text-destructive">{t('warehouse.messages.loadError')}</p>
-          <p className="text-sm text-muted-foreground">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-background">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-5">
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2 rounded-md bg-muted text-foreground">
-              <Package className="h-5 w-5" />
-            </div>
-            <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
-              {t('warehouse.title')}
-            </h1>
-          </div>
-          {canEdit && (
-            <Button onClick={openAddDialog} size="sm" className="gap-2">
+      <ListPageShell
+        title={t('warehouse.title')}
+        description={t('warehouse.description') || ''}
+        actions={
+          canEdit && (
+            <Button onClick={openAddDialog} size="sm">
               <Plus className="h-4 w-4" />
               {t('warehouse.addNew')}
             </Button>
-          )}
-        </div>
-
-        <div className="space-y-4">
-
-        {items.length === 0 ? (
-          <EmptyState
-            title={t('warehouse.empty.title')}
-            description={t('warehouse.empty.description')}
-            icon={<Package className="h-12 w-12" />}
-          />
+          )
+        }
+      >
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <LoadingSpinner size="lg" />
+          </div>
+        ) : error ? (
+          <div className="p-6">
+            <p className="text-destructive">{t('warehouse.messages.loadError')}</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              title={t('warehouse.empty.title')}
+              description={t('warehouse.empty.description')}
+              icon={<Package className="h-12 w-12" />}
+            />
+          </div>
         ) : (
-          <WarehouseList
-            items={items}
-            onEdit={openEditDialog}
-            onDelete={openDeleteDialog}
-            canEdit={canEdit}
-          />
+          <div className="p-4 sm:p-6">
+            <WarehouseList
+              items={items}
+              onEdit={openEditDialog}
+              onDelete={openDeleteDialog}
+              canEdit={canEdit}
+            />
+          </div>
         )}
+      </ListPageShell>
 
-        <WarehouseFormDialog
-          open={isFormOpen}
-          onOpenChange={closeFormDialog}
-          editingItem={editingItem}
-          onSubmit={handleSubmit}
-          loading={actionLoading}
-        />
-
-        <WarehouseDeleteDialog
-          open={isDeleteOpen}
-          onOpenChange={closeDeleteDialog}
-          item={deletingItem}
-          onConfirm={handleDelete}
-          loading={actionLoading}
-        />
-        </div>
-      </div>
-    </div>
+      <WarehouseFormDialog
+        open={isFormOpen}
+        onOpenChange={closeFormDialog}
+        editingItem={editingItem}
+        onSubmit={handleSubmit}
+        loading={actionLoading}
+      />
+      <WarehouseDeleteDialog
+        open={isDeleteOpen}
+        onOpenChange={closeDeleteDialog}
+        item={deletingItem}
+        onConfirm={handleDelete}
+        loading={actionLoading}
+      />
     </DataFetchErrorBoundary>
   );
 };
