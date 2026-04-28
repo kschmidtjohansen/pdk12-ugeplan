@@ -8,6 +8,7 @@ import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import VacationNotificationsPanel from './VacationNotificationsPanel';
 import WeeklyAssignments from './WeeklyAssignments';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useAuth } from '@/context/AuthContext';
 import { useVacations } from '@/hooks/useVacations';
 import { useAssignments } from '@/hooks/useAssignments';
 
