@@ -83,7 +83,7 @@ const AppSidebar: React.FC = () => {
               : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
           )}
         >
-          <NavLink to={item.path} end>
+          <NavLink to={item.path} end onClick={closeMobile}>
             {isActive && (
               <span
                 aria-hidden
@@ -114,8 +114,8 @@ const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border h-14 flex items-center justify-center px-2">
-        <Link to="/dashboard" className="flex items-center justify-center w-full">
+      <SidebarHeader className="border-b border-sidebar-border h-11 flex items-center justify-center px-2">
+        <Link to="/dashboard" onClick={closeMobile} className="flex items-center justify-center w-full">
           <div
             className={cn(
               'flex items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm',
