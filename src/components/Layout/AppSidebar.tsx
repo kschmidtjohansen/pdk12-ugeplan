@@ -34,9 +34,11 @@ const AppSidebar: React.FC = () => {
   const { isEffectiveAdmin } = useAuth();
   const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const collapsed = state === 'collapsed';
+
+  const closeMobile = () => { if (isMobile) setOpenMobile(false); };
 
   const allItems: NavItem[] = [
     { path: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
