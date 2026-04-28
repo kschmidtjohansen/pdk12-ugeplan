@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
+import { useVacationRequestsStatus } from '@/hooks/vacation/useVacationRequestsStatus';
 import { NotificationType } from '@/types/notification';
 import NotificationsDropdown from './NavComponents/NotificationsDropdown';
 import ChangeLogDropdown from './NavComponents/ChangeLogDropdown';
@@ -23,11 +25,35 @@ const ROUTE_TITLES: Record<string, string> = {
 
 const AppTopBar: React.FC = () => {
   const { t, currentLanguage, setLanguage } = useTranslation();
-  const { user, logout } = useAuth();
+  const { user, logout, isEffectiveAdmin, userDataLoaded } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Pending vacation toast (once per session)
+  useEffect(() => {
+    if (isEffectiveAdmin && hasPendingRequests && userDataLoaded) {
+      const noticeShown = sessionStorage.getItem('vacation-notice-shown');
+      if (!noticeShown) {
+        toast({
+          title: t('vacation.pendingRequestsTitle') || 'Der er afventende anmodninger',
+          description: `${pendingCount} ${t('vacation.pendingRequestsDescription') || 'fridags-anmodning(er) venter på godkendelse'}`,
+          action: (
+            <Button variant="outline" size="sm" onClick={() => navigate('/vacation')}>
+              {t('vacation.openVacationPage') || 'Åbn Fridage'}
+            </Button>
+          ),
+          duration: 10000,
+        });
+        sessionStorage.setItem('vacation-notice-shown', '1');
+      }
+    }
+    if (!hasPendingRequests) {
+      sessionStorage.removeItem('vacation-notice-shown');
+    }
+  }, [isEffectiveAdmin, hasPendingRequests, pendingCount, userDataLoaded, toast, t, navigate]);
 
   const titleKey = ROUTE_TITLES[location.pathname];
   const title = titleKey ? t(titleKey) : '';
