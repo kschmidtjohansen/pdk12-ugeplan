@@ -130,7 +130,7 @@ const TopNavbar: React.FC = () => {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-700/60 navbar-height">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-md border-b border-border navbar-height">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="relative flex justify-between items-center h-14">
           {/* Logo + Department Selector - Left */}
@@ -149,7 +149,7 @@ const TopNavbar: React.FC = () => {
             <div className="flex md:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-xl text-foreground hover:text-foreground hover:bg-muted focus:outline-none transition-colors duration-200"
+                className="inline-flex items-center justify-center p-2 rounded-md text-foreground hover:bg-accent focus:outline-none transition-colors duration-150"
               >
                 {mobileMenuOpen ? (
                   <X className="h-6 w-6" aria-hidden="true" />
