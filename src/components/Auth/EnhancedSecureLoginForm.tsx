@@ -101,7 +101,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-lg rounded-xl border-border/50">
+    <Card className="w-full max-w-md mx-auto">
       <CardHeader className="pb-2" />
       
       <CardContent className="space-y-4">

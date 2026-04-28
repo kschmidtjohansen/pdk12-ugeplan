@@ -46,28 +46,13 @@ export const ScreenDisplayHeader: React.FC<ScreenDisplayHeaderProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          <Button 
-            onClick={onPreviousDay} 
-            variant="outline" 
-            size="sm" 
-            className="bg-white/20 border-white/30 text-white hover:bg-white/30"
-          >
+          <Button onClick={onPreviousDay} variant="outline" size="sm">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button 
-            onClick={onToday} 
-            variant="outline" 
-            size="sm" 
-            className="bg-white/20 border-white/30 text-white hover:bg-white/30 px-4"
-          >
+          <Button onClick={onToday} variant="outline" size="sm" className="px-4">
             {t('planner.today')}
           </Button>
-          <Button 
-            onClick={onNextDay} 
-            variant="outline" 
-            size="sm" 
-            className="bg-white/20 border-white/30 text-white hover:bg-white/30"
-          >
+          <Button onClick={onNextDay} variant="outline" size="sm">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
