@@ -6,7 +6,6 @@ import DutySummaryWidget from './DutySummaryWidget';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import VacationNotificationsPanel from './VacationNotificationsPanel';
 import WeeklyAssignments from './WeeklyAssignments';
-import MineOpgaver from './MineOpgaver';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
 import { useVacations } from '@/hooks/useVacations';
@@ -86,7 +85,6 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {/* RIGHT — sticky cockpit panel (1/3) */}
       <aside className="space-y-4 lg:sticky lg:top-14 lg:self-start">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} />}
-        <MineOpgaver selectedWeek={selectedWeek} selectedYear={selectedYear} />
         {showMetrics && isEffectiveAdmin && <VacationNotificationsPanel />}
         {isDutyEnabled && <DutySummaryWidget />}
         <UpcomingVacationsWidget vacations={vacations} />
