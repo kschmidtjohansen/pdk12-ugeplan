@@ -80,17 +80,26 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       <ContextMenuTrigger asChild>
         <tr 
           className={cn(
-            'hover:bg-blue-50/50 dark:hover:bg-slate-800/50 border-b border-l-2 group transition-colors cursor-pointer',
-            hasConflict ? 'border-l-destructive bg-destructive/5' : (assignment.published ? 'border-l-green-500' : 'border-l-amber-400'),
+            'hover:bg-accent/40 border-b group transition-colors cursor-pointer',
+            hasConflict
+              ? 'bg-destructive/5'
+              : '',
             isLoading && 'opacity-60'
           )}
           onClick={onViewDetails}
         >
-      {/* Time */}
+      {/* Time + status dot */}
       <td className="py-2.5 px-3 text-sm font-medium whitespace-nowrap text-foreground">
         <div className="flex items-center gap-1.5">
+          <span
+            aria-hidden
+            className={cn(
+              'status-dot',
+              hasConflict ? 'status-dot-conflict' : (assignment.published ? 'status-dot-published' : 'status-dot-draft')
+            )}
+          />
           <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-          <span>{timeDisplay}</span>
+          <span className="tabular-nums">{timeDisplay}</span>
           {hasConflict && <ConflictBadge conflicts={conflicts} size="sm" />}
         </div>
       </td>
@@ -126,7 +135,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1">
-                <CarIcon className="h-3.5 w-3.5 text-blue-600" />
+                <CarIcon className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-xs text-foreground truncate max-w-[80px]">{carDisplay}</span>
               </div>
             </TooltipTrigger>
@@ -145,7 +154,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1">
-                <Users className="h-3.5 w-3.5 text-purple-600" />
+                <Users className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-xs text-foreground truncate max-w-[100px]">
                   {employeeDisplay}
                 </span>

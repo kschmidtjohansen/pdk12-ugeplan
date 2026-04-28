@@ -115,20 +115,25 @@ const AppSidebar: React.FC = () => {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border h-11 flex items-center justify-center px-2">
-        <Link to="/dashboard" onClick={closeMobile} className="flex items-center justify-center w-full">
-          <div
-            className={cn(
-              'flex items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm',
-              collapsed ? 'h-9 w-9' : 'h-9 w-9'
-            )}
-            aria-label="Polygon"
-          >
-            <span className="text-sm font-bold tracking-tight">P</span>
-          </div>
-          {!collapsed && (
-            <span className="ml-2 font-semibold text-sm tracking-tight text-sidebar-foreground">
-              Polygon
-            </span>
+        <Link to="/dashboard" onClick={closeMobile} className="flex items-center justify-center w-full overflow-hidden">
+          {collapsed ? (
+            <div
+              className="flex items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm h-8 w-8"
+              aria-label="Polygon"
+            >
+              <span className="text-sm font-bold tracking-tight">P</span>
+            </div>
+          ) : (
+            <img
+              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
+              alt="Polygon"
+              className="h-5 w-auto select-none"
+              width="110"
+              height="20"
+              loading="eager"
+              fetchPriority="high"
+              draggable={false}
+            />
           )}
         </Link>
       </SidebarHeader>

@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
-import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks, format } from 'date-fns';
+import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks, format } from 'date-fns';
 import QuickAccessGrid from './QuickAccessGrid';
 import CompactKpiStack from './CompactKpiStack';
-import MineOpgaver from './MineOpgaver';
 import DutySummaryWidget from './DutySummaryWidget';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import VacationNotificationsPanel from './VacationNotificationsPanel';
@@ -32,7 +31,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   onNextWeek,
 }) => {
   const { isDutyEnabled } = useDepartment();
-  const { isEffectiveAdmin } = useAuth();
+  const { isEffectiveAdmin, user } = useAuth();
   const { vacations } = useVacations();
   const { assignments } = useAssignments();
 
@@ -44,6 +43,19 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       return getISOWeek(d) === selectedWeek && getISOWeekYear(d) === selectedYear;
     });
   }, [assignments, selectedWeek, selectedYear]);
+
+  // Personal filter: only the user's own week (responsible OR assigned).
+  // When showMyTasks is true (servicemedarbejder etc.), the top widget is
+  // restricted to the current user — replacing the previous duplicate "Mine Opgaver".
+  const personalWeekAssignments = useMemo(() => {
+    if (!showMyTasks || !user?.id) return weekAssignments;
+    return weekAssignments.filter((a) => {
+      const isResp = (a.responsibleUser?.id ?? a.responsibleUserId) === user.id;
+      const isAssignedNew = a.assignedEmployees?.some((e) => e.id === user.id) ?? false;
+      const isAssignedLegacy = Array.isArray(a.employees) && a.employees.includes(user.id);
+      return isResp || isAssignedNew || isAssignedLegacy;
+    });
+  }, [weekAssignments, showMyTasks, user?.id]);
 
   // Anchor KPI selectedDate to today if current week is selected, otherwise to Monday of selected week
   const kpiDate = useMemo(() => {
@@ -61,13 +73,12 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {/* LEFT — main work surface (2/3) */}
       <div className="lg:col-span-2 space-y-4 min-w-0">
         <WeeklyAssignments
-          assignments={weekAssignments}
+          assignments={personalWeekAssignments}
           selectedWeek={selectedWeek}
           selectedYear={selectedYear}
           onPreviousWeek={onPreviousWeek}
           onNextWeek={onNextWeek}
         />
-        {showMyTasks && <MineOpgaver />}
         <QuickAccessGrid userRole={userRole} />
       </div>
 

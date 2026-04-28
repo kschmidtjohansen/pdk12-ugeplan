@@ -295,8 +295,8 @@ const MineOpgaver: React.FC = () => {
 
             {/* Time */}
             <div className="flex items-center gap-1.5 text-xs">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md chip-glass-primary font-semibold tabular-nums">
-                <Clock className="h-3 w-3" />
+              <span className="chip chip-strong chip-tabular">
+                <Clock className="h-3 w-3 text-primary" />
                 <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
               </span>
             </div>
@@ -306,10 +306,10 @@ const MineOpgaver: React.FC = () => {
               const carNames = getCarNames(assignment);
               return carNames.length > 0 ? (
                 <div className="flex items-center gap-1.5 text-xs flex-wrap">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md chip-glass-amber font-semibold">
-                    <Car className="h-3 w-3" />
-                    <span>{carNames.join(', ')}</span>
-                  </span>
+                  <Car className="h-3 w-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                  {carNames.map((n, i) => (
+                    <span key={i} className="chip">{n}</span>
+                  ))}
                 </div>
               ) : null;
             })()}
@@ -327,13 +327,9 @@ const MineOpgaver: React.FC = () => {
               return teamMembers.length > 0 ? (
                 <div className="flex items-center gap-1.5 text-xs flex-wrap">
                   <Users className="h-3 w-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                  <div className="flex flex-wrap gap-1">
-                    {teamMembers.map((name, i) => (
-                      <span key={i} className="inline-flex px-1.5 py-0.5 rounded-md chip-glass-emerald font-semibold">
-                        {name}
-                      </span>
-                    ))}
-                  </div>
+                  {teamMembers.map((name, i) => (
+                    <span key={i} className="chip">{name}</span>
+                  ))}
                 </div>
               ) : null;
             })()}
@@ -341,9 +337,10 @@ const MineOpgaver: React.FC = () => {
             {/* Show Sagsansvarlig if present */}
             {assignment.responsibleUser?.name && (
               <div className="flex items-center gap-1.5 text-xs">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md chip-glass-indigo font-semibold">
-                  <UserCheck className="h-3 w-3" />
-                  <span>{t('planner.responsibleUser') || 'Sagsansvarlig'}: {assignment.responsibleUser.name}</span>
+                <span className="chip">
+                  <UserCheck className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                  <span className="text-muted-foreground">{t('planner.responsibleUser') || 'Sagsansvarlig'}:</span>
+                  <span className="font-medium text-foreground">{assignment.responsibleUser.name}</span>
                 </span>
               </div>
             )}

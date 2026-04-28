@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-04-28 — Premium chip redesign, Polygon logo & dashboard cleanup
+
+### Tilføjet
+- **Polygon-logo i sidebar-header**: erstatter den blå `P`-flise med det officielle Polygon SVG-wordmark når sidebaren er åben. I collapsed icon-rail vises stadig den kompakte `P`-flise.
+- **Neutral premium `.chip` utility** (`index.css`): én ensartet chip — neutral kortbaggrund, subtil border + indre highlight; farveakcenten kommer udelukkende fra ikonet. Modifiers `.chip-strong`, `.chip-tabular`.
+- **`status-dot` utility** med `published` (grøn) / `draft` (rav) / `conflict` (rød) varianter med `box-shadow` ring mod kortbaggrund.
+
+### Ændret
+- **DashboardCockpit**: fjerner den nederste `<MineOpgaver />` (duplikat). Top-widget `WeeklyAssignments` filtreres nu personligt (sagsansvarlig ELLER koblet på som medarbejder) når `showMyTasks` er aktiv — strict ID-match.
+- **VacationOverviewDropdown**: defensiv mod `vacations === undefined`. Trigger har nu permanent primær-tonet baggrund + tæller-badge (også ved 0) for tydelig synlighed i topbaren.
+- **AssignmentDetails**: nyt kompakt layout — én række med tid + bil-chips, anden række med medarbejdere (≤2 inline, ellers samlet "N medarbejdere"-chip med popover).
+- **AssignmentCard**: gradient-baggrund + soft border + shadow-xs. Status-dot i headeren erstatter den hårde 3px venstre-border (kun konflikter beholder rød border + ring). Sagsansvarlig vises nu som chip med indigo-ikon.
+- **CompactAssignmentRow**: ensartede `text-muted-foreground` ikoner, status-dot i tidskolonnen.
+- **MineOpgaver**: alle chips bruger den nye neutrale `.chip`.
+
 ## 2026-04-28 — Conflict indicator, denser navbar, mobile polish & glass chips
 
 ### Tilføjet

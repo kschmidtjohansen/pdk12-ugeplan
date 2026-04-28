@@ -144,10 +144,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       <ContextMenuTrigger asChild>
         <Card 
           className={cn(
-            'relative w-full p-3 border-l-[3px] brand-card-hover',
-            hasConflict
-              ? 'border-l-destructive ring-1 ring-destructive/30'
-              : assignment.published ? 'border-l-emerald-500' : 'border-l-amber-400',
+            'relative w-full p-3 brand-card-hover bg-gradient-to-br from-card to-card/70 border-border/60 shadow-xs',
+            hasConflict && 'border-l-[3px] border-l-destructive ring-1 ring-destructive/30',
             isLoading && 'opacity-75',
             onViewDetails && 'cursor-pointer'
           )}
@@ -157,9 +155,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-white rounded-md shadow-xs cursor-help">
-                <Package className="h-4 w-4" />
-                <span className="text-sm font-semibold">{warehouseItemCount}</span>
+              <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 px-2 py-0.5 bg-amber-500 text-white rounded-md shadow-xs cursor-help">
+                <Package className="h-3.5 w-3.5" />
+                <span className="text-xs font-semibold tabular-nums">{warehouseItemCount}</span>
               </div>
             </TooltipTrigger>
             <TooltipContent 
@@ -175,10 +173,20 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       )}
       
       <div className="flex justify-between items-start gap-2 mb-2">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="flex flex-col flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-medium text-sm text-foreground">{assignment.title || t('planner.titleLabel')}</h3>
+        <div className="flex items-start gap-2 flex-1 min-w-0">
+          {/* Status dot */}
+          <span
+            aria-hidden
+            className={cn(
+              'status-dot mt-1.5',
+              hasConflict ? 'status-dot-conflict' : (isPublished ? 'status-dot-published' : 'status-dot-draft')
+            )}
+          />
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h3 className="font-semibold text-sm text-foreground tracking-tight truncate">
+                {assignment.title || t('planner.titleLabel')}
+              </h3>
               {hasConflict && <ConflictBadge conflicts={conflicts} size="sm" />}
               {operationState && (
                 <span className="text-xs text-primary font-medium animate-pulse">
@@ -187,15 +195,16 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               )}
             </div>
             {assignment.location && (
-              <p className="text-sm text-muted-foreground">{assignment.location}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">{assignment.location}</p>
             )}
             {responsibleUserInfo?.name && (
-              <div className="flex items-center gap-1 mt-1">
-                <UserCheck className="h-4 w-4 text-primary" />
-                <span className="text-sm text-foreground font-medium">
-                  {t('planner.responsibleUser')}: {responsibleUserInfo.name}
+              <span className="chip mt-1.5 self-start">
+                <UserCheck className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                <span className="font-normal text-muted-foreground">
+                  {t('planner.responsibleUser')}:
                 </span>
-              </div>
+                <span className="font-medium text-foreground">{responsibleUserInfo.name}</span>
+              </span>
             )}
             {import.meta.env.DEV && assignment.responsibleUserId && !responsibleUserInfo && (
               <div className="flex items-center gap-1 mt-1">
@@ -224,7 +233,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       </div>
       
       {assignment.description && (
-        <p className="text-muted-foreground mb-3 text-sm line-clamp-3">{assignment.description}</p>
+        <p className="text-muted-foreground mb-2 text-xs line-clamp-2">{assignment.description}</p>
       )}
       
       <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
