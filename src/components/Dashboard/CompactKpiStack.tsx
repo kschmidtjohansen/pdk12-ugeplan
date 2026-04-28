@@ -54,8 +54,13 @@ const KpiRow: React.FC<KpiRowProps> = ({ label, value, total, icon: Icon, onClic
   );
 };
 
-const CompactKpiStack: React.FC = () => {
-  const { metrics, loading, assignments, vacations } = useDashboardMetrics();
+interface CompactKpiStackProps {
+  /** ISO yyyy-MM-dd. Defaults to today. */
+  selectedDate?: string;
+}
+
+const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate }) => {
+  const { metrics, loading, error, assignments, vacations } = useDashboardMetrics();
   const { t } = useTranslation();
   const { isWarehouseEnabled } = useDepartment();
   const navigate = useNavigate();
@@ -65,6 +70,7 @@ const CompactKpiStack: React.FC = () => {
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
+  const effectiveDate = selectedDate || todayStr;
 
   if (loading) {
     return (
@@ -80,6 +86,19 @@ const CompactKpiStack: React.FC = () => {
               <div className="h-5 w-8 bg-muted rounded animate-pulse" />
             </div>
           ))}
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-0 overflow-hidden border-destructive/30 bg-destructive/5">
+        <div className="px-4 py-3 border-b border-destructive/30">
+          <h3 className="text-sm font-semibold text-destructive">{t('dashboard.metrics.title')}</h3>
+        </div>
+        <div className="px-4 py-6 text-sm text-destructive">
+          {t('common.errorLoadingData')}
         </div>
       </Card>
     );
@@ -144,7 +163,7 @@ const CompactKpiStack: React.FC = () => {
         open={employeeModalOpen}
         onOpenChange={setEmployeeModalOpen}
         employees={metrics.availableEmployees.employees}
-        selectedDate={todayStr}
+        selectedDate={effectiveDate}
         assignments={assignments}
         vacations={vacations}
         title={t('dashboard.metrics.availableEmployees')}
@@ -154,12 +173,14 @@ const CompactKpiStack: React.FC = () => {
         onClose={() => setCarModalOpen(false)}
         cars={metrics.availableCars.cars}
         title={t('dashboard.metrics.availableCars')}
+        selectedDate={effectiveDate}
       />
       <AbsentEmployeesModal
         isOpen={absentModalOpen}
         onClose={() => setAbsentModalOpen(false)}
         employees={metrics.absentEmployees.employees}
         title={t('dashboard.metrics.absentEmployees')}
+        selectedDate={effectiveDate}
       />
     </>
   );
