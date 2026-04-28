@@ -79,7 +79,7 @@ const MineOpgaver: React.FC<MineOpgaverProps> = ({ selectedWeek, selectedYear })
     });
 
     return sorted.slice(0, 5);
-  }, [assignments, user]);
+  }, [assignments, user, selectedWeek, selectedYear]);
 
   // Calculate unique days count - moved before early returns to fix React hooks error
   const uniqueDaysCount = React.useMemo(() => {
