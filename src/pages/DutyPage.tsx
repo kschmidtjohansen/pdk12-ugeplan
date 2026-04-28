@@ -239,7 +239,6 @@ export default function DutyPage() {
         onReassign={handleReassignment}
       />
       </div>
-    </div>
     </DataFetchErrorBoundary>
   );
 }
