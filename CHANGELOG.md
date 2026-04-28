@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-04-28 — Pastel pills, Polygon favicon & sidebar centering
+
+### Ændret
+- **Sidebar header**: højde øget til `h-12`, mark + wordmark centreres med `justify-center` + `mx-auto` for perfekt balance i både collapsed (h-8) og expanded (h-7 + h-5 wordmark) tilstande.
+- **Favicon**: nu `/favicon.png` baseret på Polygon-mark — bruges også til `apple-touch-icon` og `og:image`. Gamle `favicon.svg` og `favicon.ico` fjernet.
+- **Pastel pill system** (`index.css`): `.chip` er nu fuldt afrundet pill (`rounded-full`). Nye tonale varianter `.chip-time` (mint), `.chip-car` (sky-blå), `.chip-person` (rose) — matcher referencedesignet. Nye `.icon-bubble` runde ikon-badges (`time`/`car`/`person`/`resp`) sidder ved siden af pillerne.
+- **AssignmentDetails**: opbygget om — øverste række har tid (mint pill + grøn ikon-bubble) til venstre og personer (rose pills + lilla ikon-bubble) til højre; bil-række nedenunder med blå pills + blå ikon-bubble.
+- **AssignmentCard**: flad `bg-card` (ingen gradient), sagsansvarlig vist som inline tekst med blå rund ikon-bubble — ikke længere en chip-wrapper.
+- **AssignmentStatusBadge**: erstattet med custom mint pill (`Aftalt` = grøn pastel, ikke-publiceret = amber pastel).
+- **CompactAssignmentRow**: tid/bil/medarbejder-kolonner bruger nu samme pastel pill-system.
+
+
 ## 2026-04-28 — Premium chip redesign, Polygon logo & dashboard cleanup
 
 ### Tilføjet
