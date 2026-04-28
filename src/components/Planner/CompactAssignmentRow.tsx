@@ -154,7 +154,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1">
-                <Users className="h-3.5 w-3.5 text-purple-600" />
+                <Users className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-xs text-foreground truncate max-w-[100px]">
                   {employeeDisplay}
                 </span>
