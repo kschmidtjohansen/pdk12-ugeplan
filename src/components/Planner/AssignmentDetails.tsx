@@ -119,39 +119,36 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
     };
   };
   const employeeData = getEmployeeData(assignment);
-  return <div className="grid grid-cols-2 gap-4 text-sm">
+  return <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
       {/* Left Column */}
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {/* Time */}
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 chip-glass-primary px-2.5 py-1 rounded-md text-xs font-semibold tabular-nums">
             <Clock className="h-3.5 w-3.5" />
-          </div>
-          <span className="text-foreground font-medium text-sm tabular-nums px-2 py-0.5 rounded-md bg-primary/8 border border-primary/15">
             {assignment.fromTime ? assignment.fromTime.substring(0, 5) : '00:00'} – {assignment.toTime ? assignment.toTime.substring(0, 5) : '00:00'}
           </span>
         </div>
 
         {/* Cars */}
-        {carData.length > 0 && <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30">
+        {carData.length > 0 && <div className="flex items-start gap-2 flex-wrap">
+            <span className="inline-flex items-center justify-center chip-glass-amber rounded-md h-6 w-6">
               <Car className="h-3.5 w-3.5" />
-            </div>
+            </span>
             <div className="flex flex-wrap gap-1">
               <TooltipProvider delayDuration={100}>
                 {carData.map((car) => (
                   <Tooltip key={car.id}>
                     <TooltipTrigger asChild>
-                      <Badge
-                        variant="outline"
+                      <span
                         className={cn(
-                          "text-xs cursor-default font-medium border-amber-200 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200 dark:border-amber-500/30",
-                          car.isShared && "border-orange-400 bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:text-orange-200 dark:border-orange-700/60"
+                          "inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md cursor-default chip-glass-amber",
+                          car.isShared && "chip-glass-destructive"
                         )}
                       >
                         {car.name}
-                        {car.isShared && <AlertTriangle className="h-3 w-3 ml-1" />}
-                      </Badge>
+                        {car.isShared && <AlertTriangle className="h-3 w-3" />}
+                      </span>
                     </TooltipTrigger>
                     {car.isShared && (
                       <TooltipContent side="top" className="max-w-xs">
@@ -167,17 +164,15 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       </div>
 
       {/* Right Column */}
-      <div className="space-y-3">
-        {employeeData.names.length > 0 && <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30">
+      <div className="space-y-2.5">
+        {employeeData.names.length > 0 && <div className="flex items-start gap-2 flex-wrap">
+            <span className="inline-flex items-center justify-center chip-glass-emerald rounded-md h-6 w-6">
               <Users className="h-3.5 w-3.5" />
-            </div>
-            <div className="flex flex-col min-w-0 flex-1">
-              <div className="flex flex-wrap gap-1">
-                {employeeData.names.map((employeeName, index) => <Badge key={index} variant="outline" className="text-xs font-medium border-emerald-200 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200 dark:border-emerald-500/30">
-                    {employeeName || t('planner.unknownEmployee')}
-                  </Badge>)}
-              </div>
+            </span>
+            <div className="flex flex-wrap gap-1 min-w-0 flex-1">
+              {employeeData.names.map((employeeName, index) => <span key={index} className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-md chip-glass-emerald">
+                  {employeeName || t('planner.unknownEmployee')}
+                </span>)}
             </div>
           </div>}
       </div>
