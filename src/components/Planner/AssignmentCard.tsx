@@ -12,6 +12,9 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
+import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
+import ConflictBadge from './ConflictBadge';
+import { cn } from '@/lib/utils';
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -41,7 +44,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const { t } = useTranslation();
   const { employees } = useEmployees();
   const { data: warehouseIndicators } = useWarehouseIndicators();
-  
+  const { getConflicts } = useAssignmentConflicts(assignments);
+  const conflicts = getConflicts(assignment.id);
+  const hasConflict = conflicts.length > 0;
+
   const warehouseData = warehouseIndicators 
     ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
       warehouseIndicators.get(assignment.title) || { count: 0, totalQuantity: 0 }
@@ -137,7 +143,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <Card 
-          className={`relative w-full p-3 border-l-2 ${assignment.published ? 'border-l-emerald-500' : 'border-l-amber-400'} hover:bg-accent/40 transition-colors duration-150 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+          className={cn(
+            'relative w-full p-3 border-l-[3px] brand-card-hover',
+            hasConflict
+              ? 'border-l-destructive ring-1 ring-destructive/30'
+              : assignment.published ? 'border-l-emerald-500' : 'border-l-amber-400',
+            isLoading && 'opacity-75',
+            onViewDetails && 'cursor-pointer'
+          )}
           onClick={handleCardClick}
         >
       {warehouseItemCount > 0 && (
@@ -164,8 +177,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       <div className="flex justify-between items-start gap-2 mb-2">
         <div className="flex items-center gap-2 flex-1">
           <div className="flex flex-col flex-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-medium text-sm text-foreground">{assignment.title || t('planner.titleLabel')}</h3>
+              {hasConflict && <ConflictBadge conflicts={conflicts} size="sm" />}
               {operationState && (
                 <span className="text-xs text-primary font-medium animate-pulse">
                   {getOperationText(operationState)}
