@@ -16,6 +16,8 @@ const employees = {
   contact: 'Kontakt',
   avatar: 'Profilbillede',
   onLeave: 'Fraværende',
+  onLeaveSegment: 'Fraværende',
+  activeSegment: 'Tilgængelige',
   
   // Status translations
   status: {

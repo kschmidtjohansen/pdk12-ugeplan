@@ -16,6 +16,7 @@ export const common = {
   close: "Luk",
   open: "Åbn",
   search: "Søg",
+  searchPlaceholder: "Søgefelt",
   filter: "Filter",
   sort: "Sorter",
   clear: "Ryd",
