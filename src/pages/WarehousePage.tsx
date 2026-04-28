@@ -75,7 +75,7 @@ const WarehousePage = () => {
             />
           </div>
         ) : (
-          <div className="p-4 sm:p-6">
+          <div className="p-3 sm:p-6">
             <WarehouseList
               items={items}
               onEdit={openEditDialog}

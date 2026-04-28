@@ -98,7 +98,7 @@ const CarsPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="p-4 sm:p-6">
+              <div className="p-3 sm:p-6">
                 {filteredCars.length === 0 ? (
                   <div className="py-12 text-center text-sm text-muted-foreground">
                     {t('cars.noResults')}
