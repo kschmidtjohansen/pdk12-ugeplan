@@ -113,7 +113,7 @@ export default function DutyPage() {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-background">
+    
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-5 space-y-4">
         <div className="mb-1">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
