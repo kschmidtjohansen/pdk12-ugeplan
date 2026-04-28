@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { SecurityHeaders } from '@/components/Auth/SecurityHeaders';
 import { SecurityErrorBoundary } from '@/components/Layout/SecurityErrorBoundary';
-import TopNavbar from './TopNavbar';
+import AppShell from './AppShell';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import { RealtimeChangeNotifier } from '@/components/shared/RealtimeChangeNotifier';
 import { useQueryClient } from '@tanstack/react-query';
@@ -114,20 +114,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <SecurityErrorBoundary>
       <SecurityHeaders />
-      <div className="flex flex-col min-h-screen w-full">
-        <TopNavbar />
+      <AppShell>
         <RealtimeChangeNotifier />
-        
-        <main className="flex-1 w-full bg-background pt-14">
-          <PullToRefresh onRefresh={handlePullRefresh}>
-            <div className="w-full">
-              <SecurityErrorBoundary>
-                {children}
-              </SecurityErrorBoundary>
-            </div>
-          </PullToRefresh>
-        </main>
-      </div>
+        <PullToRefresh onRefresh={handlePullRefresh}>
+          <div className="w-full">
+            <SecurityErrorBoundary>
+              {children}
+            </SecurityErrorBoundary>
+          </div>
+        </PullToRefresh>
+      </AppShell>
     </SecurityErrorBoundary>
   );
 };
