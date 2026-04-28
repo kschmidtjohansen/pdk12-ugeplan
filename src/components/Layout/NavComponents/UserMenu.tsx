@@ -68,8 +68,8 @@ const UserMenu: React.FC<UserMenuProps> = ({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-9 w-9 profile-avatar">
+          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            <Avatar className="h-7 w-7 profile-avatar">
               <AvatarImage src={avatarUrl || undefined} />
               <AvatarFallback>
                 {!userDataLoaded ? '...' : (user?.name ? getInitials(user.name) : 'U')}
