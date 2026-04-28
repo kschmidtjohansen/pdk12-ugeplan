@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-04-28 — Color polish, role gating & navbar improvements
+
+### Tilføjet
+- **VacationOverviewDropdown** i top-navbar (`AppTopBar`) — kun synlig for Skadeleder, Administrator og Super Admin. Viser afventende ferieanmodninger med inline godkend/afvis og link til `/vacation`.
+
+### Ændret
+- **Mine Opgaver-kort** (`MineOpgaver`): tid, biler, medarbejdere og sagsansvarlig vises nu i farvede chips (primær/blå, amber, emerald, indigo) i stedet for grå tekst.
+- **AssignmentDetails** (planner-kort): tid/biler/medarbejdere har fået brand-blå/amber/emerald icon-chips og badges — ikke længere fladt grå look.
+- **Mine Opgaver — filtrering**: kun opgaver hvor brugeren er sagsansvarlig (`responsibleUser.id === user.id`) eller koblet på som medarbejder (legacy `employees` matcher KUN på `user.id`, ikke længere på navn). Fjerner falske matches.
+- **Planner view-toggle**: Standard/Gitter/Kompakt aktiv-state bruger nu primær/brand-farve med hvid tekst.
+- **Per-dag publish-knap** (`DaySection`, `CompactDaySection`): erstatter grøn med `variant="brand"` (matcher topbar). Beholder paperplane-ikon.
+- **AppSidebar**: Admin-menuen flyttet til `SidebarFooter` (pinned i bunden).
+- **AppShell**: sidebar er nu kollapseret som default (`defaultOpen={false}`).
+- **DashboardCockpit**: `VacationNotificationsPanel` vises nu kun til admins.
+
+### Fjernet
+- **AppTopBar**: pending-vacation toast-notice (én-gang-per-session). Erstattet af permanent `VacationOverviewDropdown`.
+
 ## 2026-04-28 — Polish: Dashboard week nav, KPI states, Duty/Cars/i18n fixes
 
 ### Tilføjet
