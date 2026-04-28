@@ -18,6 +18,8 @@ interface AbsentEmployeesModalProps {
   onClose: () => void;
   employees: AbsentEmployee[];
   title: string;
+  /** ISO yyyy-MM-dd context, currently informational. */
+  selectedDate?: string;
 }
 
 const AbsentEmployeesModal: React.FC<AbsentEmployeesModalProps> = ({
