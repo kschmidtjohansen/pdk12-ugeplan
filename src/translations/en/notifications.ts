@@ -21,7 +21,8 @@ const notifications = {
   newMessage: 'New message on assignment',
   newMessageDescription: '{sender} wrote: "{preview}"',
   vacationHighCoverageTitle: 'High vacation coverage',
-  vacationHighCoverage: 'Warning: Week {week} has more than 50% of service employees on vacation ({count}/{total})'
+  vacationHighCoverage: 'Warning: Week {week} has more than 50% of service employees on vacation ({count}/{total})',
+  title: 'Notifications',
 };
 
 export default notifications;

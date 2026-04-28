@@ -10,6 +10,8 @@ interface CarAvailabilityModalProps {
   onClose: () => void;
   cars: Car[];
   title: string;
+  /** ISO yyyy-MM-dd context, currently informational. */
+  selectedDate?: string;
 }
 
 const CarAvailabilityModal: React.FC<CarAvailabilityModalProps> = ({

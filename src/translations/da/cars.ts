@@ -73,6 +73,8 @@ const cars = {
   // Page content
   pageDescription: 'Ret biler og deres tilgængelighed',
   addNewCar: 'Tilføj Nyt Køretøj',
+  searchPlaceholder: 'Søg bilnr, navn, nummerplade…',
+  noResults: 'Ingen biler matcher dit filter',
   
   // Error messages for fetching
   fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.',

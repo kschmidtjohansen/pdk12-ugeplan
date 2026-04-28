@@ -42,7 +42,7 @@ const CarsPage: React.FC = () => {
         (c: any) =>
           c.name?.toLowerCase().includes(q) ||
           c.car_number?.toLowerCase().includes(q) ||
-          c.license_plate?.toLowerCase().includes(q)
+          c.number_plate?.toLowerCase().includes(q)
       );
     }
     return list;
@@ -99,15 +99,21 @@ const CarsPage: React.FC = () => {
               </div>
             ) : (
               <div className="p-4 sm:p-6">
-                <CarsList
-                  cars={filteredCars}
-                  canEdit={false}
-                  canViewFuelCardCode={canViewFuelCardCode}
-                  isAdmin={isAdmin}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onToggleAvailability={handleToggleAvailability}
-                />
+                {filteredCars.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-muted-foreground">
+                    {t('cars.noResults')}
+                  </div>
+                ) : (
+                  <CarsList
+                    cars={filteredCars}
+                    canEdit={false}
+                    canViewFuelCardCode={canViewFuelCardCode}
+                    isAdmin={isAdmin}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onToggleAvailability={handleToggleAvailability}
+                  />
+                )}
               </div>
             )}
           </ListPageShell>

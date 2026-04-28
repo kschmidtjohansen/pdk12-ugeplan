@@ -166,6 +166,9 @@ export const admin = {
     scheduledTasks: 'Scheduled Tasks',
     scheduledTasksDesc: 'Tasks this week'
   },
+  quickStats: {
+    total: 'total'
+  },
   securityLogs: {
     title: 'Security Logs',
     description: 'Monitor security events and system activities',
@@ -278,6 +281,7 @@ export const admin = {
     deactivateUser: 'Deactivate User',
     activateError: 'Error activating user',
     deactivateError: 'Error deactivating user',
+    inactive: 'inactive',
     department: 'Main Department',
     departments: 'Departments',
     subDepartments: 'Sub-departments',

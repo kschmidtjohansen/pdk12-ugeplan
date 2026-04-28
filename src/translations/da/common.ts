@@ -93,6 +93,8 @@ export const common = {
   failed_to_load: "Det lykkedes ikke at indlæse",
   try_again_later: "Prøv igen senere",
   connection_error: "Forbindelsesfejl",
+  errorLoadingData: "Kunne ikke indlæse data",
+  noResults: "Ingen resultater",
   
   // Additional common terms
   yes: "Ja",

@@ -12,7 +12,8 @@ import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { useDepartment } from '@/context/DepartmentContext';
 import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks } from 'date-fns';
 
 const DashboardPage: React.FC = () => {
   const { user, isDemoMode, effectiveRole } = useAuth();
@@ -20,6 +21,35 @@ const DashboardPage: React.FC = () => {
   const { refetch, lastRefresh } = useEnhancedUnifiedData();
   const { isUserInSelectedDepartment } = useDepartment();
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Persisted week navigation
+  const [selectedWeek, setSelectedWeek] = useState(() => {
+    const saved = localStorage.getItem('dashboardSelectedWeek');
+    return saved ? parseInt(saved, 10) : getISOWeek(new Date());
+  });
+  const [selectedYear, setSelectedYear] = useState(() => {
+    const saved = localStorage.getItem('dashboardSelectedYear');
+    return saved ? parseInt(saved, 10) : getISOWeekYear(new Date());
+  });
+
+  useEffect(() => {
+    localStorage.setItem('dashboardSelectedWeek', String(selectedWeek));
+    localStorage.setItem('dashboardSelectedYear', String(selectedYear));
+  }, [selectedWeek, selectedYear]);
+
+  const handlePreviousWeek = useCallback(() => {
+    const jan4 = new Date(selectedYear, 0, 4);
+    const prev = addWeeks(startOfISOWeek(addWeeks(jan4, selectedWeek - 1)), -1);
+    setSelectedWeek(getISOWeek(prev));
+    setSelectedYear(getISOWeekYear(prev));
+  }, [selectedWeek, selectedYear]);
+
+  const handleNextWeek = useCallback(() => {
+    const jan4 = new Date(selectedYear, 0, 4);
+    const next = addWeeks(startOfISOWeek(addWeeks(jan4, selectedWeek - 1)), 1);
+    setSelectedWeek(getISOWeek(next));
+    setSelectedYear(getISOWeekYear(next));
+  }, [selectedWeek, selectedYear]);
 
   const dailyQuote = getDailyQuote();
 
@@ -67,6 +97,10 @@ const DashboardPage: React.FC = () => {
               showMetrics={shouldShowMetrics}
               showMyTasks={isUserInSelectedDepartment}
               userRole={effectiveRole}
+              selectedWeek={selectedWeek}
+              selectedYear={selectedYear}
+              onPreviousWeek={handlePreviousWeek}
+              onNextWeek={handleNextWeek}
             />
           )}
         </div>

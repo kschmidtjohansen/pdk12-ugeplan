@@ -73,6 +73,8 @@ const cars = {
   // Page content
   pageDescription: 'Edit cars and their availability',
   addNewCar: 'Add New Vehicle',
+  searchPlaceholder: 'Search car no., name, plate…',
+  noResults: 'No cars match your filter',
   
   // Error messages for fetching
   fetchError: 'Failed to fetch vehicles. Please try again.',

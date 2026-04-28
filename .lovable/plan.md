@@ -1,155 +1,91 @@
+## Goal
 
-# Fase 3 — Strukturelt + visuelt overhaul
+Address six related polish items across Dashboard, Planner, Duty, Cars, Layout and translations.
 
-Baseret på dine svar: **markant blå overalt**, **to-kolonne arbejdsbord-dashboard**, **tabel + inline filter/segmenter** på listesider. For layout (du sprang over) foreslår jeg **hybrid: smal ikon-sidebar venstre + tynd topbar** — dette frigør den horisontale plads og gør hele appen markant anderledes uden at skjule navigation. Sig til hvis du hellere vil have en bred sidebar eller beholde topbaren.
+---
 
-## 1. Ny app-shell (hybrid sidebar + topbar)
+## 1. CompactKpiStack modals receive correct data + states
 
-- Tilføj `SidebarProvider` i `App.tsx` / `MainLayout.tsx`.
-- Bygger ny `AppSidebar` (`collapsible="icon"`, default 56px bred):
-  - Logo øverst (kun ikon-mærket fra polygon-logoet).
-  - Nav-items: Dashboard, Ugeplan, Medarbejdere, Biler, Fridage, Vagt, Lager, Admin (filtreret efter rolle/feature-toggles præcis som i dag).
-  - Aktiv item: solid `bg-primary` baggrund, hvid ikon, tynd hvid stribe i venstre kant.
-  - Hover: `bg-primary/10` + primary-tonet ikon.
-  - Notifikations-badge på fridage (samme logik som nu).
-  - Bunden: kollaps-knap + tema-toggle.
-- Ny `TopBar` (44px høj, sticky):
-  - Venstre: `SidebarTrigger` + sidens titel (auto fra route).
-  - Midten: global søgning (kommandopalette-knap, Ctrl/Cmd+K-stil — fungerer foreløbig som placeholder med sidens egen søgning).
-  - Højre: afdelingsvælger (chip-stil, blå outline når åben), notifikationer, ChangeLog, brugermenu.
-- Mobil: sidebar bliver offcanvas-drawer; topbar viser hamburger.
+**File:** `src/components/Dashboard/CompactKpiStack.tsx`, `src/hooks/useDashboardMetrics.ts`
 
-## 2. Markant blå signatur (uden at blive "for meget")
+- The stack already pulls `assignments` and `vacations` from `useDashboardMetrics`, but the modals are always anchored to "today". Make the date driven by a prop (`selectedDate`) so the cockpit can later sync it with the dashboard week navigation. Default remains today.
+- Pass `assignments` (filtered to selectedDate) and `vacations` (filtered to overlap selectedDate) to each modal.
+- Add explicit error state below the existing skeleton (red inline card using `t('common.errorLoadingData')`) when `useDashboardMetrics` returns `error`.
+- Show a small spinner inside each modal trigger button while loading instead of a value of `0` flicker (use `loading` from the hook).
+- `AbsentEmployeesModal` and `CarAvailabilityModal` get the same `selectedDate`, `assignments`, `vacations` props for consistency (extend their interfaces minimally; they currently only show today's data).
 
-Tilføjes i `index.css` og som genbrugelige utility-klasser:
+## 2. Week-number navigation on Dashboard
 
-- **Sidebar**: solid hvid baggrund i light, men aktive items + logo-bagside i `--primary`.
-- **Topbar**: tynd 1px `bg-primary/15` accent-stribe under topbaren (let "varemærke"-streg).
-- **Card-headers** på dashboard: `bg-gradient-to-b from-primary/5 to-transparent` + 1px `border-primary/10` top.
-- **Sektion-titler** (h2 i widget-cards): lille blå prik (`bg-primary`) + label, à la Linear.
-- **Stat-tal** (DashboardMetrics): primære tal i `text-primary` med tabular-nums, label i muted.
-- **Aktive tabs / segmenter**: `bg-primary text-primary-foreground` + subtil `shadow-sm`.
-- **Valgte rækker** i tabeller: `bg-primary/5` baggrund + 2px venstre `border-primary`.
-- **Badges/chips** for status: nye blå-tintede varianter (`info`-token bruges allerede; udvides).
-- **Focus-ringe**: allerede primary, polishes til 2px med 2px offset.
-- **Knapper**: primary-knap får subtil indre highlight (`shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]`) for premium dybde.
-- Dark mode: blå justeres til `197 100% 55%` på aktive flader, tints sænkes til `/8`–`/12` så det ikke gløder.
+**Files:** `src/pages/DashboardPage.tsx`, `src/components/Dashboard/DashboardCockpit.tsx`, new wrapper around `WeeklyAssignments` (already exists but unused).
 
-## 3. Dashboard — to-kolonne arbejdsbord
+- Lift `selectedWeek` / `selectedYear` state into `DashboardPage` (persisted in `localStorage` under `dashboardSelectedWeek` / `dashboardSelectedYear`, defaulting to current ISO week via `getISOWeek` / `getISOWeekYear`).
+- Pass them to `DashboardCockpit`, which renders the existing `WeeklyAssignments` component in the LEFT column (above `MineOpgaver`) with `onPreviousWeek` / `onNextWeek` handlers using `addWeeks` like `PlannerPage`.
+- Filter assignments for the selected week using the same ISO-week predicate as `PlannerPage` and feed `WeeklyAssignments`.
+- Sync `selectedDate` for `CompactKpiStack` to the Monday of the selected week (so KPI modals reflect the chosen week's first day; "today" still wins when current week is selected).
 
-Erstatter den nuværende lange en-spaltes liste med et cockpit-layout (kun for admin/skadeleder; servicemedarbejder beholder sin specialiserede visning):
+## 3. DutyPage stray wrapper tag
 
-```text
-+--------------------------------------+--------------------+
-| WelcomeHeader (full-bredde)                               |
-+--------------------------------------+--------------------+
-| VENSTRE KOLONNE (lg:col-span-2)      | HØJRE KOLONNE      |
-|                                      |                    |
-|  • DagensOverblik (NY)               |  • KPI-stack       |
-|    - 4 hurtige tal + dato/uge        |    (kompakt liste, |
-|                                      |     ikke 5 kort)   |
-|  • UgensOpgaver (WeeklyAssignments)  |                    |
-|    fylder mest, blå header           |  • DutySummary     |
-|                                      |                    |
-|  • MineOpgaver                       |  • UpcomingVacation|
-|                                      |                    |
-|                                      |  • QuickAccess     |
-|                                      |    (vertikal liste,|
-|                                      |     ikke grid)     |
-+--------------------------------------+--------------------+
-```
+**File:** `src/pages/DutyPage.tsx`
 
-- Grid: `grid grid-cols-1 lg:grid-cols-3 gap-4`.
-- KPI-kortene konsolideres fra et 5-kolonne grid til en kompakt vertikal stak i højre kolonne (titel + stort blåt tal + delta), så fokus flyttes til opgaver.
-- Sticky-opførsel: højre kolonne er `lg:sticky lg:top-16` så KPI'er altid er synlige mens man scroller venstre kolonne.
-- WelcomeHeader får venstre 4px blå `border-l` + dato-blokken får blå tint.
+- The component opens `<div className="min-h-screen…">` then `<div className="w-full px-…">` and inside that a `<div className="mb-1">` for the header. The header's inner content closes `</div>` on line 148 but the outer `<div className="w-full…">` only closes on line 241 — meanwhile `<Tabs>` and dialogs sit at the root indentation as if they were outside. Inspect closely: the indentation jumps because the JSX is structurally fine but visually misleading (Tabs/dialogs are still siblings inside `w-full`). The actual issue: the `<DataFetchErrorBoundary>` wraps a `<div>` that wraps a `<div>` — this duplicates min-h-screen padding from `AppShell`/`MainLayout` and breaks horizontal spacing on small breakpoints.
+- Fix: remove the inner `min-h-screen w-full bg-background` wrapper (already provided by `AppShell`'s `<main>`), keep only the padded container (`w-full px-… py-5 space-y-4`). Verify all closing tags balance.
 
-## 4. Listesider — segmenteret filterbar (Medarbejdere, Biler, Fridage, Vagt, Lager)
+## 4. CarsPage SegmentedFilterBar end-to-end
 
-Ny genbrugelig `ListPageShell`-komponent med konsistent struktur:
+**File:** `src/pages/CarsPage.tsx` (already wired) plus translation keys.
 
-```text
-+----------------------------------------------------------+
-| PageHeader (titel + primær handling)                     |
-+----------------------------------------------------------+
-| FilterBar (sticky, hvid card med blå underkant)          |
-|  [Segmenter: Alle (24) | Aktive (18) | Vikarer (4) | …]  |
-|  [Søg ......]  [Filter ▾] [Sortér ▾]      [View: ▦ ☰]    |
-+----------------------------------------------------------+
-| Tabel (eller grid, view-toggle)                          |
-|  - Sticky thead med blå-tintet baggrund (primary/5)      |
-|  - Zebra-striping fjernet, i stedet 1px border-border    |
-|  - Hover: bg-accent/40                                   |
-|  - Valgt række: bg-primary/5 + venstre primary-stribe    |
-+----------------------------------------------------------+
-```
+- Wiring is already in place. Polish:
+  - Add missing translation keys: `cars.pageDescription`, `cars.searchPlaceholder`, `common.all` (DA + EN).
+  - Bug: search filter looks at `c.license_plate` but the schema field is `number_plate`. Fix to `c.number_plate`.
+  - Ensure dialogs (`CarDialogs`, mark-available/unavailable) still use the unfiltered `cars` array (already correct).
+  - When `filteredCars` is empty after filtering, show an empty state inside the list area instead of a blank panel (use `t('cars.noResults')`, add key).
 
-Specifikt per side:
-- **Medarbejdere**: segmenter `Alle | Aktive | På fridage | Vikarer`. Tæller-badges i hver segment.
-- **Biler**: segmenter `Alle | Tilgængelige | Optaget | Med note`. View-toggle: tabel ↔ kort-grid (2-col bil-kort med billede/badge).
-- **Fridage**: segmenter `Afventer (X) | Godkendt | Afvist | Alle`. Afventer får rød pulse-prik når X>0.
-- **Vagt**: segmenter for `Denne uge | Næste uge | Alle`.
-- **Lager**: segmenter for kategori-filtre.
+## 5. Move vacation toast into AppTopBar / remove from TopNavbar
 
-## 5. Ugeplan — let polish (struktur beholdes)
+**Files:** `src/components/Layout/AppTopBar.tsx`, `src/components/Layout/TopNavbar.tsx`
 
-- Top-header få 4px blå venstre `border-l` + uge-navigatoren får aktive dage markeret med blå `border-b-2`.
-- View-toggle (Standard/Kompakt/Grid) får primær fyldt aktiv-state.
-- Day-sektioner: tilføj subtil blå venstre-stribe på "i dag".
+- Logic is already present in `AppTopBar` (lines 36–56). `TopNavbar` is no longer rendered anywhere (`AppShell` only uses `AppTopBar`), but the file still contains the duplicate `useEffect`.
+- Delete the duplicate `useEffect` block from `TopNavbar.tsx` (lines 41–81) and the now-unused `useVacationRequestsStatus` import. Leave the file otherwise intact since it may still be referenced by tests/legacy entry points (verify with `rg`; if no references besides self, delete the file entirely).
+- Verify trigger: `useVacationRequestsStatus` re-evaluates via realtime/`useVacations` cache; toast resets when `hasPendingRequests` becomes false (already implemented). No additional change needed.
 
-## 6. Admin — beholder eksisterende tabs men opgraderet
+## 6. Global translation consistency sweep
 
-Admin-sidens TabsList får ny styling: `bg-muted/40` container, aktive tabs fyldt blå, ikon + label.
+**Files:** `src/translations/da/*.ts`, `src/translations/en/*.ts`
 
-## 7. Dark mode polish
+- Audit all 18 translation files (DA vs EN) and ensure every key present in DA has an EN counterpart and vice versa. Build a small script (run once during implementation) to diff keys per file and patch missing ones.
+- Specifically add/verify:
+  - `common.all`, `common.errorLoadingData`, `common.noResults`
+  - `cars.pageDescription`, `cars.searchPlaceholder`, `cars.noResults`
+  - `dashboard.week`, `dashboard.metrics.title`, `dashboard.metrics.availableEmployees/availableCars/absentEmployees/warehouseItems`
+  - `vacation.pendingRequestsTitle`, `vacation.pendingRequestsDescription`, `vacation.openVacationPage`
+  - `navigation.*` for all routes used in `AppTopBar` ROUTE_TITLES
+- Replace any remaining hardcoded Danish strings discovered in `AppTopBar`, `AppSidebar`, `CompactKpiStack`, `DashboardCockpit`, `WeeklyAssignments` (e.g. fallback `|| 'Nøgletal'`) with proper `t()` keys + ensure both DA and EN entries exist.
 
-- Sidebar: `bg-card` (lidt lysere end baggrund) for at hæve sig.
-- Aktive items: `bg-primary` (lysere blå), ikke `bg-primary/20` så det stadig pop'er.
-- Card-headers: `bg-primary/8` i stedet for gradient.
-- Topbar bottom-stripe: `bg-primary/25`.
+---
 
-## 8. Berørte filer (estimeret)
+## Technical notes
 
-**Nyt:**
-- `src/components/Layout/AppSidebar.tsx`
-- `src/components/Layout/AppTopBar.tsx`
-- `src/components/Layout/AppShell.tsx` (wrapper med SidebarProvider)
-- `src/components/shared/ListPageShell.tsx`
-- `src/components/shared/SegmentedFilterBar.tsx`
-- `src/components/Dashboard/DashboardCockpit.tsx` (2-kolonne grid)
-- `src/components/Dashboard/CompactKpiStack.tsx` (vertikal KPI-liste)
+- KPI date sync uses `startOfISOWeek(weekStart)` for a deterministic anchor; if the selected week contains today, anchor stays at today.
+- DutyPage fix is purely structural — no behaviour change beyond removing the duplicate `min-h-screen` wrapper.
+- TopNavbar removal must be guarded by a final `rg "TopNavbar"` check; if zero non-self references, the file is deleted; otherwise only the toast logic is removed.
+- After translation sweep, run `tsc` (auto by harness) to catch any newly-introduced missing keys.
 
-**Modificeret:**
-- `src/components/Layout/MainLayout.tsx` — bruger ny `AppShell`
-- `src/components/Layout/TopNavbar.tsx` — udfases (logik flyttes til AppTopBar)
-- `src/pages/DashboardPage.tsx` — bruger `DashboardCockpit`
-- `src/pages/EmployeesPage.tsx`, `CarsPage.tsx`, `VacationPage.tsx`, `DutyPage.tsx`, `WarehousePage.tsx` — bruger `ListPageShell` + `SegmentedFilterBar`
-- `src/pages/PlannerPage.tsx` — header polish
-- `src/pages/AdminPage.tsx` — tabs styling
-- `src/components/Dashboard/WelcomeHeader.tsx`, `DashboardMetrics.tsx`, `MetricCard.tsx`, `InteractiveMetricCard.tsx`, `WeeklyAssignments.tsx`, `QuickAccessGrid.tsx`
-- `src/components/ui/table.tsx` — sticky thead, blå tint, valgt-række variant
-- `src/components/ui/tabs.tsx` — segmenteret variant
-- `src/components/ui/card.tsx` — `featured`-variant med blå header-tint
-- `src/index.css` — nye utilities (`.brand-stripe`, `.kpi-number`, `.list-row-selected`)
-- `tailwind.config.ts` — ekstra blå tints i palette
-- `docs/ui-guidelines/design-system.md` + `CHANGELOG.md`
+## Out of scope
 
-## 9. Bevares (rør ikke)
+- Visual redesign of WeeklyAssignments card (only data wiring + week nav).
+- Refactor of `useDashboardMetrics` beyond surfacing `selectedDate` plumbing.
+- Restructuring `DutyPage` tabs/calendar UX.
 
-- Polygon-blå hex `#00aeef` og logo
-- Multi-tenant query-isolation
-- Alle hooks, business-logik, RLS, realtime-logik, dialog-scrolling-mønster, departments/feature-toggles
-- Mobile drawer/popover-mønstre for selectors
-- Permissions/role-baseret nav-filtrering
+## Files touched
 
-## 10. Rollout
-
-1. Byg `AppSidebar` + `AppTopBar` + `AppShell`, koble på i MainLayout (ingen sider rørt endnu — verificér at navigation virker, dark mode virker, mobil offcanvas virker).
-2. Byg `DashboardCockpit` + `CompactKpiStack`, opdater `DashboardPage`.
-3. Byg `ListPageShell` + `SegmentedFilterBar`, refaktorér `EmployeesPage` som første eksempel.
-4. Rul `ListPageShell` ud til Cars, Vacation, Duty, Warehouse.
-5. Polish Planner, Admin.
-6. Dark-mode QA på alle sider.
-7. Opdater design-system docs + CHANGELOG.
-
-Sig til når du er klar — eller giv feedback på sidebar-valget / farvemængden, så justerer jeg planen.
+- `src/pages/DashboardPage.tsx`
+- `src/components/Dashboard/DashboardCockpit.tsx`
+- `src/components/Dashboard/CompactKpiStack.tsx`
+- `src/components/Dashboard/AbsentEmployeesModal.tsx`
+- `src/components/Dashboard/CarAvailabilityModal.tsx`
+- `src/hooks/useDashboardMetrics.ts` (minor: accept selectedDate)
+- `src/pages/DutyPage.tsx`
+- `src/pages/CarsPage.tsx`
+- `src/components/Layout/TopNavbar.tsx` (cleanup or delete)
+- `src/translations/da/*.ts`, `src/translations/en/*.ts`
+- `CHANGELOG.md`, `docs/implementation-plan/tasks.md`

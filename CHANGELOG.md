@@ -1,6 +1,26 @@
 # Changelog
 
+## 2026-04-28 — Polish: Dashboard week nav, KPI states, Duty/Cars/i18n fixes
+
+### Tilføjet
+- **Dashboard ugenavigation**: `DashboardPage` har nu persistent ISO-uge-state (`dashboardSelectedWeek/Year` i localStorage) med forrige/næste-uge-knapper via `WeeklyAssignments` i venstre kolonne af cockpit'et.
+- **CompactKpiStack**: accepterer nu `selectedDate` prop; KPI-modaler synkroniserer med valgt uge (mandag i ugen, eller i dag hvis aktuel uge).
+- **Error state** i `CompactKpiStack` ved fejl fra `useDashboardMetrics` (rød inline-card med `common.errorLoadingData`).
+- **Tomt state** i `CarsPage` når filter ikke matcher (`cars.noResults`).
+- **Translation keys**: `common.errorLoadingData`, `common.noResults`, `common.selected` (EN), `cars.searchPlaceholder`, `cars.noResults`, samt 24 manglende EN-keys for `planner.*`, `vacation.*`, `notifications.title`, `admin.quickStats.total`, `admin.userManagement.inactive`, `profile.*`. DA↔EN er nu 100% balanceret.
+
+### Ændret
+- **AbsentEmployeesModal / CarAvailabilityModal**: accepterer optional `selectedDate` for fremtidig dato-kontekst.
+- **CarsPage**: søgning bruger nu korrekt `number_plate` (ikke `license_plate`).
+- **DutyPage**: fjernet duplikeret `min-h-screen w-full bg-background` wrapper (allerede leveret af `AppShell`'s `<main>`); løser spacing-problemer på små breakpoints.
+
+### Fjernet
+- **TopNavbar.tsx**: legacy komponent slettet (ingen importers — `AppShell` bruger udelukkende `AppTopBar`). Vakante-toast-logikken eksisterede både i `TopNavbar` og `AppTopBar`; den eneste tilbageværende kilde er nu `AppTopBar`.
+
+---
+
 ## 2026-04-28 — UI-overhaul fase 3: Strukturelt + brand-blå signatur
+
 
 Stort strukturelt overhaul. Funktionalitet uændret. Ingen DB-ændringer.
 
