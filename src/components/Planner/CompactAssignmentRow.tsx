@@ -88,11 +88,18 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           )}
           onClick={onViewDetails}
         >
-      {/* Time */}
+      {/* Time + status dot */}
       <td className="py-2.5 px-3 text-sm font-medium whitespace-nowrap text-foreground">
         <div className="flex items-center gap-1.5">
+          <span
+            aria-hidden
+            className={cn(
+              'status-dot',
+              hasConflict ? 'status-dot-conflict' : (assignment.published ? 'status-dot-published' : 'status-dot-draft')
+            )}
+          />
           <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-          <span>{timeDisplay}</span>
+          <span className="tabular-nums">{timeDisplay}</span>
           {hasConflict && <ConflictBadge conflicts={conflicts} size="sm" />}
         </div>
       </td>
