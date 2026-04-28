@@ -1,13 +1,13 @@
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Clock, UserCheck, Users, Car, AlertTriangle } from 'lucide-react';
+import { Clock, Users, Car, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
-import { Assignment, getEmployeeNamesFromIds } from '../../types/assignment';
+import { Assignment } from '../../types/assignment';
 import { Car as CarType } from '../../types/car';
 import { useEmployees } from '../../hooks/useEmployees';
 import { filterDisplayNames } from '../../utils/people';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 interface AssignmentDetailsProps {
