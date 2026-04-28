@@ -26,7 +26,8 @@ const AbsentEmployeesModal: React.FC<AbsentEmployeesModalProps> = ({
   isOpen,
   onClose,
   employees,
-  title
+  title,
+  selectedDate,
 }) => {
   const { t } = useTranslation();
 
@@ -34,7 +35,14 @@ const AbsentEmployeesModal: React.FC<AbsentEmployeesModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="flex items-center justify-between gap-3">
+            <span>{title}</span>
+            {selectedDate && (
+              <Badge variant="default" size="sm" className="font-normal">
+                {new Date(selectedDate).toLocaleDateString()}
+              </Badge>
+            )}
+          </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-3">

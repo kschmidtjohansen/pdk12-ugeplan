@@ -85,8 +85,8 @@ const EmployeesPage: React.FC = () => {
     const onLeaveCount = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id)).length;
     const base: FilterSegment[] = [
       { key: 'all', label: t('common.all') || 'Alle', count: employees.length },
-      { key: 'active', label: t('employees.active') || 'Aktive', count: regularEmployees.filter((e) => !e.onLeave).length },
-      { key: 'onleave', label: t('employees.onLeaveSegment') || 'På fridage', count: onLeaveCount, highlight: onLeaveCount > 0 },
+      { key: 'active', label: t('employees.activeSegment') || 'Tilgængelige', count: regularEmployees.filter((e) => !e.onLeave).length },
+      { key: 'onleave', label: t('employees.onLeaveSegment') || 'Fraværende', count: onLeaveCount, highlight: onLeaveCount > 0 },
     ];
     if (isSubstituteEnabled) {
       base.push({ key: 'vikarer', label: 'Vikarer', count: vikarer.length });

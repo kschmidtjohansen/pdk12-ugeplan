@@ -91,6 +91,7 @@ export const dashboard = {
   
   // UPDATED Dashboard metrics with new structure
   metrics: {
+    title: "Daily overview",
     availableEmployees: "Available Employees",
     availableCars: "Available Cars",
     absentEmployees: "Absent Employees", 
@@ -150,5 +151,35 @@ export const dashboard = {
   // System error messages
   systemErrorTitle: "System Error",
   systemErrorDescription: "A system error occurred. Our team has been notified.",
-  checkBackLater: "Please check back later or contact support if the problem persists."
+  checkBackLater: "Please check back later or contact support if the problem persists.",
+
+  // Upcoming vacations widget
+  upcomingVacations: "Upcoming vacations",
+  noUpcomingVacations: "No upcoming vacations",
+
+  // Vacation notifications panel
+  vacationNotifications: "Vacation requests",
+  pendingRequests: "Pending approval",
+  approvalHistory: "History",
+  noPendingRequests: "No pending requests",
+  noApprovalHistory: "No history yet",
+  approve: "Approve",
+  reject: "Reject",
+  approved: "Approved",
+  rejected: "Rejected",
+
+  // Day-of-week filter
+  dayFilter: {
+    all: "All",
+    mon: "Mon",
+    tue: "Tue",
+    wed: "Wed",
+    thu: "Thu",
+    fri: "Fri",
+    sat: "Sat",
+    sun: "Sun"
+  },
+
+  // Modal week context
+  weekContext: "Week {week}, {year}"
 };

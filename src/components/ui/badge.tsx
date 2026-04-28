@@ -9,21 +9,29 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary/10 text-primary hover:bg-primary/15",
+          "border-transparent bg-primary/12 text-primary hover:bg-primary/18",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-destructive/10 text-destructive hover:bg-destructive/15",
+          "border-transparent bg-destructive/12 text-destructive hover:bg-destructive/18",
         outline:
           "text-foreground border-border hover:bg-accent",
         success:
-          "border-transparent bg-success/10 text-success hover:bg-success/15",
+          "border-transparent bg-success/12 text-success hover:bg-success/18",
         warning:
-          "border-transparent bg-warning/10 text-warning hover:bg-warning/15",
+          "border-transparent bg-warning/12 text-warning hover:bg-warning/18",
         info:
-          "border-transparent bg-info/10 text-info hover:bg-info/15",
+          "border-transparent bg-info/12 text-info hover:bg-info/18",
         gradient:
+          "border-transparent bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(199_89%_52%))] text-primary-foreground shadow-sm shadow-primary/25",
+        solidPrimary:
           "border-transparent bg-primary text-primary-foreground",
+        solidSuccess:
+          "border-transparent bg-success text-success-foreground",
+        solidWarning:
+          "border-transparent bg-warning text-warning-foreground",
+        solidDestructive:
+          "border-transparent bg-destructive text-destructive-foreground",
       },
       size: {
         default: "px-2 py-0.5 text-xs",

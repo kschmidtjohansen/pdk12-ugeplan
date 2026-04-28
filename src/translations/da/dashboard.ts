@@ -91,6 +91,7 @@ export const dashboard = {
   
   // UPDATED Dashboard metrics with new structure  
   metrics: {
+    title: "Dagens overblik",
     availableEmployees: "Ledige medarbejdere",
     availableCars: "Tilgængelige biler",
     absentEmployees: "Fraværende",
@@ -150,5 +151,35 @@ export const dashboard = {
   // System error messages
   systemErrorTitle: "Systemfejl",
   systemErrorDescription: "Der opstod en systemfejl. Vores team er blevet underrettet.",
-  checkBackLater: "Tjek venligst tilbage senere eller kontakt support hvis problemet fortsætter."
+  checkBackLater: "Tjek venligst tilbage senere eller kontakt support hvis problemet fortsætter.",
+
+  // Upcoming vacations widget
+  upcomingVacations: "Kommende fridage",
+  noUpcomingVacations: "Ingen kommende fridage",
+
+  // Vacation notifications panel
+  vacationNotifications: "Ferieanmodninger",
+  pendingRequests: "Afventer godkendelse",
+  approvalHistory: "Historik",
+  noPendingRequests: "Ingen afventende anmodninger",
+  noApprovalHistory: "Ingen historik endnu",
+  approve: "Godkend",
+  reject: "Afvis",
+  approved: "Godkendt",
+  rejected: "Afvist",
+
+  // Day-of-week filter
+  dayFilter: {
+    all: "Alle",
+    mon: "Man",
+    tue: "Tir",
+    wed: "Ons",
+    thu: "Tor",
+    fri: "Fre",
+    sat: "Lør",
+    sun: "Søn"
+  },
+
+  // Modal week context
+  weekContext: "Uge {week}, {year}"
 };

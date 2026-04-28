@@ -16,6 +16,7 @@ export const common = {
   close: "Close",
   open: "Open",
   search: "Search",
+  searchPlaceholder: "Search",
   filter: "Filter",
   sort: "Sort",
   clear: "Clear",

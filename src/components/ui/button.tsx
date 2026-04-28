@@ -10,23 +10,25 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[inset_0_1px_0_0_rgb(255_255_255/0.18)]",
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm shadow-primary/20 [box-shadow:inset_0_1px_0_0_rgb(255_255_255/0.18),0_1px_2px_0_hsl(var(--primary)/0.25)]",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm shadow-destructive/20",
         outline:
-          "border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground",
+          "border border-primary/30 bg-background text-foreground hover:bg-primary/5 hover:border-primary/50 hover:text-primary",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
-          "text-foreground hover:bg-accent hover:text-accent-foreground",
+          "text-foreground hover:bg-primary/8 hover:text-primary",
         link:
           "text-primary underline-offset-4 hover:underline",
         success:
-          "bg-success text-success-foreground hover:bg-success/90",
+          "bg-success text-success-foreground hover:bg-success/90 shadow-sm shadow-success/20",
         warning:
-          "bg-warning text-warning-foreground hover:bg-warning/90",
+          "bg-warning text-warning-foreground hover:bg-warning/90 shadow-sm shadow-warning/20",
         info:
           "bg-info text-info-foreground hover:bg-info/90",
+        brand:
+          "text-primary-foreground bg-[linear-gradient(135deg,hsl(var(--primary))_0%,hsl(199_89%_52%)_100%)] hover:brightness-110 shadow-md shadow-primary/30 [box-shadow:inset_0_1px_0_0_rgb(255_255_255/0.22),0_4px_12px_-2px_hsl(var(--primary)/0.35)]",
       },
       size: {
         default: "h-9 px-4 py-2",
