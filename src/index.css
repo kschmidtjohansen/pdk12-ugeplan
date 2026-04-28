@@ -260,11 +260,29 @@
   /* Soft blue gradient header used on dashboard cards */
   .brand-card-header {
     background: linear-gradient(
-      180deg,
-      hsl(var(--primary) / 0.06) 0%,
+      135deg,
+      hsl(var(--primary) / 0.10) 0%,
+      hsl(199 89% 52% / 0.04) 60%,
       hsl(var(--primary) / 0.0) 100%
     );
-    border-top: 1px solid hsl(var(--primary) / 0.12);
+    border-top: 1px solid hsl(var(--primary) / 0.18);
+  }
+
+  /* Stronger branded card with left accent bar */
+  .brand-card-accent {
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-card-accent::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary)) 0%,
+      hsl(199 89% 52%) 100%
+    );
   }
 
   /* Section title with leading blue dot */
@@ -298,6 +316,15 @@
   /* Premium primary button inner highlight */
   .btn-premium-inset {
     box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.18);
+  }
+
+  /* Subtle gradient surface for branded panels */
+  .brand-surface {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary) / 0.04) 0%,
+      hsl(var(--card)) 40%
+    );
   }
 }
 
