@@ -15,6 +15,8 @@ const employees = {
   contact: 'Contact',
   avatar: 'Avatar',
   onLeave: 'On Leave',
+  onLeaveSegment: 'Absent',
+  activeSegment: 'Available',
   
   // Status translations
   status: {
