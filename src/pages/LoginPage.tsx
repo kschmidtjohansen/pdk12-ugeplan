@@ -14,6 +14,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const departmentName = localStorage.getItem('selected_department_name');
+  const lastUserName = typeof window !== 'undefined' ? localStorage.getItem('last_user_name') : null;
+  const firstName = lastUserName ? lastUserName.split(' ')[0].trim() : '';
 
   useEffect(() => {
     if (import.meta.env.DEV) {
@@ -43,7 +45,7 @@ const LoginPage = () => {
           </div>
 
           <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">
-            {t('login.welcomeMessage')}
+            {t('login.welcomeMessage')}{firstName ? `, ${firstName}` : ''}
           </h1>
           <p className="text-sm text-muted-foreground">
             {t('login.loginSubtext')}

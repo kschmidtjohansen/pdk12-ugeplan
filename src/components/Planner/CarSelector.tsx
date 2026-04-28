@@ -232,8 +232,8 @@ export const CarSelector: React.FC<CarSelectorProps> = ({
           <PopoverTrigger asChild>
             {triggerButton}
           </PopoverTrigger>
-          <PopoverContent 
-            className="w-80 p-0 z-[60] bg-popover border shadow-lg" 
+          <PopoverContent
+            className="w-[420px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
             sideOffset={4}
           >
             <div 
