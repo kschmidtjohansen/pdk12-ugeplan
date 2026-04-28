@@ -69,6 +69,16 @@
     --gray-700: 222 20% 27%;
     --gray-800: 222 24% 17%;
     --gray-900: 222 47% 11%;
+
+    /* Sidebar tokens (light) — branded sidebar surface */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 20% 14%;
+    --sidebar-primary: 197 100% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 197 100% 96%;
+    --sidebar-accent-foreground: 197 100% 28%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 197 100% 47%;
   }
 
   .dark {
@@ -114,6 +124,16 @@
     --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.45);
     --shadow-lg: 0 10px 24px -6px rgb(0 0 0 / 0.50);
     --shadow-xl: 0 20px 40px -12px rgb(0 0 0 / 0.60);
+
+    /* Sidebar tokens (dark) */
+    --sidebar-background: 222 22% 9%;
+    --sidebar-foreground: 220 14% 96%;
+    --sidebar-primary: 197 100% 55%;
+    --sidebar-primary-foreground: 222 47% 8%;
+    --sidebar-accent: 197 60% 16%;
+    --sidebar-accent-foreground: 197 100% 80%;
+    --sidebar-border: 222 16% 18%;
+    --sidebar-ring: 197 100% 55%;
   }
 }
 
