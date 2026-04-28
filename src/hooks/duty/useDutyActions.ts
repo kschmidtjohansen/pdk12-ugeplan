@@ -98,6 +98,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
     dutyId: string,
     updates: { employee_id?: string; notes?: string; duty_type?: DutyType }
   ) => {
+    notifyOwnAction();
     if (!user) return false;
 
     try {
