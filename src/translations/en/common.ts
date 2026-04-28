@@ -93,6 +93,8 @@ export const common = {
   failed_to_load: "Failed to load",
   try_again_later: "Try again later",
   connection_error: "Connection error",
+  errorLoadingData: "Could not load data",
+  noResults: "No results",
   
   // Additional common terms
   yes: "Yes",
