@@ -213,7 +213,7 @@ const MineOpgaver: React.FC<MineOpgaverProps> = ({ selectedWeek, selectedYear })
             <Calendar className="h-5 w-5 text-primary" />
             {t('dashboard.myTasks') || 'Mine Opgaver'}
             <span className="text-sm font-normal text-muted-foreground">
-              - Uge {getCurrentWeekInfo().week}
+              - Uge {selectedWeek ?? getCurrentWeekInfo().week}
             </span>
             <Badge variant="secondary" className="ml-auto">
               {uniqueDaysCount} {uniqueDaysCount === 1 ? 'dag' : 'dage'}
