@@ -26,7 +26,6 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
   // Enhanced vacation request submission with security logging
   const submitVacationRequest = async (
     requestData: {
-    notifyOwnAction();
       dateRange: { from: Date; to: Date };
       requestType: VacationRequestType;
       startTime?: string;
@@ -37,11 +36,12 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
     selectedEmployeeId?: string,
     employees?: any[]
   ) => {
+    notifyOwnAction();
     if (isSubmitting) return false;
-    
+
     try {
       setIsSubmitting(true);
-      
+
       // Security check for admin requests
       if (isAdminRequest && !isAdmin && !isSkadeleder) {
         await logSecurityEvent(
