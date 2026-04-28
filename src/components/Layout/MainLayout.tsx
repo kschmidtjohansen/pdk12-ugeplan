@@ -63,10 +63,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-muted/50 to-muted">
+        <div className="flex items-center justify-center min-h-screen bg-background">
           <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground">{loadingText}</p>
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-border border-t-primary mx-auto"></div>
+            <p className="text-sm text-muted-foreground">{loadingText}</p>
             <div className="text-xs text-muted-foreground/60">
               Translation: {isInitialized ? 'Ready' : 'Loading'} | Auth: {authReady ? 'Ready' : 'Initializing'}
             </div>
@@ -82,10 +82,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-muted/50 to-muted">
+        <div className="flex items-center justify-center min-h-screen bg-background">
           <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground">Redirecting to login...</p>
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-border border-t-primary mx-auto"></div>
+            <p className="text-sm text-muted-foreground">Redirecting to login...</p>
           </div>
         </div>
       </SecurityErrorBoundary>
@@ -101,7 +101,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <TopNavbar />
         <RealtimeChangeNotifier />
         
-        <main className="flex-1 w-full bg-[#f8fafc] dark:bg-slate-950 pt-14">
+        <main className="flex-1 w-full bg-background pt-14">
           <PullToRefresh onRefresh={handlePullRefresh}>
             <div className="animate-fade-in-up w-full">
               <SecurityErrorBoundary>

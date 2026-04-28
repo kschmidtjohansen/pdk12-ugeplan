@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Separator } from '@/components/ui/separator';
 
 interface PageHeaderProps {
   title: string;
@@ -13,20 +13,21 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   children
 }) => {
   return (
-    <div className="bg-card rounded-2xl border border-border/50 p-6 shadow-md mb-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+    <div className="mb-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1 min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">{title}</h1>
           {description && (
             <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
           )}
         </div>
         {children && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {children}
           </div>
         )}
       </div>
+      <Separator className="mt-4" />
     </div>
   );
 };

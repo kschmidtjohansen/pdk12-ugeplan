@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,7 +9,6 @@ interface QuickAccessItem {
   icon: React.ReactNode;
   description: string;
   link: string;
-  color: string;
 }
 
 interface QuickAccessGridProps {
@@ -21,44 +19,42 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
   const { t } = useTranslation();
 
   const getQuickAccessItems = (): QuickAccessItem[] => {
-    const baseItems = [
+    const baseItems: QuickAccessItem[] = [
       {
         title: t('dashboard.quickAccessGrid.planner.title'),
-        icon: <Clock className="h-6 w-6" />,
+        icon: <Clock className="h-5 w-5" />,
         description: t('dashboard.quickAccessGrid.planner.description'),
         link: '/planner',
-        color: 'blue'
       },
       {
         title: t('dashboard.quickAccessGrid.vacation.title'),
-        icon: <Calendar className="h-6 w-6" />,
+        icon: <Calendar className="h-5 w-5" />,
         description: t('dashboard.quickAccessGrid.vacation.description'),
         link: '/vacation',
-        color: 'green'
       },
       {
         title: t('dashboard.quickAccessGrid.duty.title'),
-        icon: <Shield className="h-6 w-6" />,
+        icon: <Shield className="h-5 w-5" />,
         description: t('dashboard.quickAccessGrid.duty.description'),
         link: '/duty',
-        color: 'indigo'
-      }
+      },
     ];
 
     if (userRole === 'super_admin' || userRole === 'administrator' || userRole === 'skadeleder') {
-      baseItems.push({
-        title: t('dashboard.quickAccessGrid.employees.title'),
-        icon: <Users className="h-6 w-6" />,
-        description: t('dashboard.quickAccessGrid.employees.description'),
-        link: '/employees',
-        color: 'purple'
-      }, {
-        title: t('dashboard.quickAccessGrid.cars.title'),
-        icon: <Car className="h-6 w-6" />,
-        description: t('dashboard.quickAccessGrid.cars.description'),
-        link: '/cars',
-        color: 'orange'
-      });
+      baseItems.push(
+        {
+          title: t('dashboard.quickAccessGrid.employees.title'),
+          icon: <Users className="h-5 w-5" />,
+          description: t('dashboard.quickAccessGrid.employees.description'),
+          link: '/employees',
+        },
+        {
+          title: t('dashboard.quickAccessGrid.cars.title'),
+          icon: <Car className="h-5 w-5" />,
+          description: t('dashboard.quickAccessGrid.cars.description'),
+          link: '/cars',
+        }
+      );
     }
     return baseItems;
   };
@@ -66,27 +62,21 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
   const items = getQuickAccessItems();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       {items.map((item, index) => (
         <Link key={index} to={item.link} className="block group">
-          <Card className="h-full transition-colors duration-200 hover:bg-blue-50/50 dark:hover:bg-slate-800/50 hover:border-primary/30 animate-scale-in" style={{ animationDelay: `${index * 50}ms` }}>
+          <Card className="h-full transition-colors duration-150 hover:bg-accent/60 hover:border-border">
             <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`p-2 rounded-lg ${
-                  item.color === 'blue' ? 'bg-blue-50 text-blue-600' :
-                  item.color === 'green' ? 'bg-green-50 text-green-600' :
-                  item.color === 'purple' ? 'bg-purple-50 text-purple-600' :
-                  item.color === 'indigo' ? 'bg-indigo-50 text-indigo-600' :
-                  'bg-orange-50 text-orange-600'
-                }`}>
+              <div className="flex items-start justify-between mb-2">
+                <div className="p-1.5 rounded-md bg-muted text-foreground group-hover:bg-background group-hover:text-primary transition-colors">
                   {item.icon}
                 </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-foreground transition-colors" />
               </div>
-              <h3 className="font-bold text-base mb-2">
+              <h3 className="font-medium text-sm text-foreground mb-1">
                 {item.title}
               </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                 {item.description}
               </p>
             </CardContent>

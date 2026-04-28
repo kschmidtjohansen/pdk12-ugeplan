@@ -29,20 +29,20 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="mb-6">
-            <img 
-              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg" 
-              alt="Polygon Logo" 
-              className="h-20 mx-auto mb-4"
-              width="300"
-              height="80"
+            <img
+              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
+              alt="Polygon Logo"
+              className="h-16 mx-auto mb-4"
+              width="240"
+              height="64"
             />
           </div>
-          
-          <h1 className="text-2xl font-semibold text-foreground mb-1">
+
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">
             {t('login.welcomeMessage')}
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -54,7 +54,7 @@ const LoginPage = () => {
             </p>
           )}
         </div>
-        
+
         <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
       </div>
     </div>
