@@ -24,6 +24,7 @@ const planner = {
   
   // Actions
   addAssignment: 'Tilføj Opgave',
+  createAssignment: 'Opret opgave',
   editAssignment: 'Rediger Opgave',
   copyAssignment: 'Kopier Opgave',
   deleteAssignment: 'Slet Opgave',
