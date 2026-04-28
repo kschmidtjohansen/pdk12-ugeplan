@@ -32,6 +32,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   onNextWeek,
 }) => {
   const { isDutyEnabled } = useDepartment();
+  const { isEffectiveAdmin } = useAuth();
   const { vacations } = useVacations();
   const { assignments } = useAssignments();
 
