@@ -64,7 +64,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
       const t = texts[lang];
 
       return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 via-background to-gray-100 flex items-center justify-center p-4">
+        <div className="min-h-screen w-full bg-background flex items-center justify-center p-4">
           <Card className="max-w-lg w-full border-2 border-destructive/20 shadow-xl">
             <CardHeader className="text-center pb-2">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">

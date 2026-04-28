@@ -95,7 +95,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
   if (loading) {
     return (
       <Card className="overflow-hidden border-2 border-primary/20">
-        <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
+        <CardHeader className="py-2 px-4 bg-muted/40 border-b border-border">
           <div className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-primary" />
             <CardTitle className="text-lg font-semibold text-primary">
@@ -115,7 +115,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
   return (
     <Card className="overflow-hidden border-2 border-primary/20">
       <Collapsible open={!isWidgetCollapsed} onOpenChange={() => setIsWidgetCollapsed(!isWidgetCollapsed)}>
-        <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
+        <CardHeader className="py-2 px-4 bg-muted/40 border-b border-border">
           <CollapsibleTrigger asChild>
             <div className="flex items-center justify-between cursor-pointer">
               <div className="flex items-center gap-2">

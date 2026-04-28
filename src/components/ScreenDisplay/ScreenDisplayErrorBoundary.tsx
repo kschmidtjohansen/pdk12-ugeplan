@@ -18,7 +18,7 @@ export const ScreenDisplayErrorBoundary: React.FC<ScreenDisplayErrorBoundaryProp
   return (
     <DataFetchErrorBoundary
       fallback={
-        <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+        <div className="min-h-screen w-full bg-background flex items-center justify-center">
           <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
             <CardContent className="p-6 text-center">
               <div className="p-4 rounded-full bg-destructive/10 w-16 h-16 mx-auto mb-4 flex items-center justify-center">

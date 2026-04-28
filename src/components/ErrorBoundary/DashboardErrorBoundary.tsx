@@ -48,7 +48,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center p-6">
+        <div className="min-h-screen w-full bg-background flex items-center justify-center p-6">
           <Card className="max-w-lg w-full border-2 border-destructive/20 bg-destructive/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-destructive">

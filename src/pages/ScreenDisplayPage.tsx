@@ -133,7 +133,7 @@ const ScreenDisplayPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-lg text-muted-foreground">Loading assignments...</p>
@@ -147,7 +147,7 @@ const ScreenDisplayPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Assignments</h2>
@@ -167,7 +167,7 @@ const ScreenDisplayPage: React.FC = () => {
 
   return (
     <ScreenDisplayErrorBoundary date={selectedDateStr} onRetry={refetch}>
-      <div className="min-h-screen w-full bg-gradient-to-br from-gray-25 via-background to-gray-50">
+      <div className="min-h-screen w-full bg-background">
         <div className="w-full px-6 py-4 space-y-6">
           {!showAllAssignments && (
             <ScreenDisplayHeader

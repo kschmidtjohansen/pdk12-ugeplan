@@ -223,7 +223,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden border-2 border-primary/20">
-        <CardHeader className="py-2 px-4 bg-gradient-to-r from-primary/5 to-primary/10">
+        <CardHeader className="py-2 px-4 bg-muted/40 border-b border-border">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-primary" />
