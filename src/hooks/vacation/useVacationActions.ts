@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { notifyOwnAction } from '@/lib/realtimeUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -25,6 +26,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
   // Enhanced vacation request submission with security logging
   const submitVacationRequest = async (
     requestData: {
+    notifyOwnAction();
       dateRange: { from: Date; to: Date };
       requestType: VacationRequestType;
       startTime?: string;
@@ -267,6 +269,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
 
   // Enhanced delete vacation with security checks
   const deleteVacation = async (vacation: Vacation) => {
+    notifyOwnAction();
     if (!canDeleteVacation(vacation)) {
       toast({
         title: t('common.error'),
@@ -338,6 +341,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
 
   // Approve vacation with security checks
   const approveVacation = async (vacation: Vacation, notes?: string) => {
+    notifyOwnAction();
     if (!isAdmin && !isSkadeleder) {
       await logSecurityEvent(
         'vacation_unauthorized_approval',
@@ -443,6 +447,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
 
   // Reject vacation with security checks
   const rejectVacation = async (vacation: Vacation, reason?: string) => {
+    notifyOwnAction();
     if (!isAdmin && !isSkadeleder) {
       await logSecurityEvent(
         'vacation_unauthorized_rejection',

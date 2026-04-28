@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { notifyOwnAction } from '@/lib/realtimeUtils';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -37,6 +38,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
     notes?: string,
     manualName?: string
   ) => {
+    notifyOwnAction();
     if (!user) return false;
 
     try {
@@ -159,6 +161,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
   };
 
   const reassignDuty = async (dutyId: string, newEmployeeId: string) => {
+    notifyOwnAction();
     if (!user) return false;
 
     try {
@@ -191,6 +194,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
     newEmployeeId: string,
     reason?: string
   ): Promise<boolean> => {
+    notifyOwnAction();
     if (!user) return false;
 
     setLoading(true);
@@ -224,6 +228,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
     duty1Id: string,
     duty2Id: string
   ): Promise<boolean> => {
+    notifyOwnAction();
     if (!user) return false;
 
     setLoading(true);

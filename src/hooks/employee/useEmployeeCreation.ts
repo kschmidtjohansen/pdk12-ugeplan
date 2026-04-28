@@ -1,5 +1,6 @@
 
 import { useToast } from '@/hooks/use-toast';
+import { notifyOwnAction } from '@/lib/realtimeUtils';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
@@ -108,6 +109,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   };
 
   const createEmployee = async (formData: any) => {
+    notifyOwnAction();
     try {
       if (import.meta.env.DEV) console.log('[useEmployeeCreation] Form data received:', {
         name: formData.name,
