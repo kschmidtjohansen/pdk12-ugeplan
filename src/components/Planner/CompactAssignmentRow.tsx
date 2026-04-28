@@ -135,7 +135,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1">
-                <CarIcon className="h-3.5 w-3.5 text-blue-600" />
+                <CarIcon className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-xs text-foreground truncate max-w-[80px]">{carDisplay}</span>
               </div>
             </TooltipTrigger>
