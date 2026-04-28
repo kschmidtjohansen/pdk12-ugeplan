@@ -5,9 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/TranslationContext';
 import { getDailyQuote } from '@/utils/dailyQuotes';
 import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
-import QuickAccessGrid from '@/components/Dashboard/QuickAccessGrid';
-import DashboardMetrics from '@/components/Dashboard/DashboardMetrics';
-import MineOpgaver from '@/components/Dashboard/MineOpgaver';
+import DashboardCockpit from '@/components/Dashboard/DashboardCockpit';
 import { DemoDashboard } from '@/components/Demo/DemoDashboard';
 import ServicemedarbejderDashboard from '@/components/Dashboard/ServicemedarbejderDashboard';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
@@ -63,15 +61,13 @@ const DashboardPage: React.FC = () => {
 
           {/* Role-based Dashboard Content */}
           {isServicemedarbejder ? (
-            /* Servicemedarbejder Dashboard - Specialized view */
             <ServicemedarbejderDashboard />
           ) : (
-            /* Administrator/Skadeleder Dashboard - Full view */
-            <>
-              <QuickAccessGrid userRole={effectiveRole} />
-              {shouldShowMetrics && <DashboardMetrics />}
-              {isUserInSelectedDepartment && <MineOpgaver />}
-            </>
+            <DashboardCockpit
+              showMetrics={shouldShowMetrics}
+              showMyTasks={isUserInSelectedDepartment}
+              userRole={effectiveRole}
+            />
           )}
         </div>
       </div>
