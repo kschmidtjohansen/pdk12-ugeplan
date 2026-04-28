@@ -74,7 +74,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {/* RIGHT — sticky cockpit panel (1/3) */}
       <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} />}
-        {showMetrics && <VacationNotificationsPanel />}
+        {showMetrics && isEffectiveAdmin && <VacationNotificationsPanel />}
         {isDutyEnabled && <DutySummaryWidget />}
         <UpcomingVacationsWidget vacations={vacations} />
       </aside>
