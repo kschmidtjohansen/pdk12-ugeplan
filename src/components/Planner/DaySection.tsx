@@ -103,9 +103,9 @@ const DaySection: React.FC<DaySectionProps> = ({
         </div>
         
         {canPublishTasks && hasUnpublishedAssignments && (
-          <Button 
+          <Button
             onClick={handlePublishDay}
-            className="bg-green-600 hover:bg-green-700"
+            variant="brand"
             size="sm"
           >
             <Send className="mr-2 h-4 w-4" /> {t("planner.publishDayTasks")}

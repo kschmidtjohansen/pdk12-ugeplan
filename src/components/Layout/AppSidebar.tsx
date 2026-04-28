@@ -56,11 +56,59 @@ const AppSidebar: React.FC = () => {
   ];
 
   const items = allItems.filter((i) => {
-    if (i.adminOnly && !isEffectiveAdmin) return false;
+    if (i.adminOnly) return false; // Admin rendered separately in footer
     if (i.featureFlag === 'duty' && !isDutyEnabled) return false;
     if (i.featureFlag === 'warehouse' && !isWarehouseEnabled) return false;
     return true;
   });
+
+  const adminItem = allItems.find((i) => i.path === '/admin');
+  const showAdmin = !!adminItem && isEffectiveAdmin;
+
+  const renderItem = (item: NavItem) => {
+    const isActive = location.pathname === item.path;
+    const Icon = item.icon;
+    return (
+      <SidebarMenuItem key={item.path}>
+        <SidebarMenuButton
+          asChild
+          isActive={isActive}
+          tooltip={item.label}
+          className={cn(
+            'h-10 relative font-medium transition-colors',
+            isActive
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+              : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+          )}
+        >
+          <NavLink to={item.path} end>
+            {isActive && (
+              <span
+                aria-hidden
+                className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-primary-foreground/80"
+              />
+            )}
+            <Icon className="h-[18px] w-[18px] shrink-0" />
+            <span className="truncate">{item.label}</span>
+            {item.hasNotification && (
+              <span
+                className={cn(
+                  'ml-auto inline-flex items-center justify-center rounded-full text-[10px] font-semibold tabular-nums px-1.5 h-4 min-w-[16px]',
+                  isActive
+                    ? 'bg-primary-foreground/20 text-primary-foreground'
+                    : 'bg-destructive text-destructive-foreground'
+                )}
+              >
+                {item.notificationCount && item.notificationCount > 0
+                  ? item.notificationCount
+                  : '!'}
+              </span>
+            )}
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -86,57 +134,15 @@ const AppSidebar: React.FC = () => {
       <SidebarContent className="py-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                const isActive = location.pathname === item.path;
-                const Icon = item.icon;
-                return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={item.label}
-                      className={cn(
-                        'h-10 relative font-medium transition-colors',
-                        isActive
-                          ? 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
-                          : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                      )}
-                    >
-                      <NavLink to={item.path} end>
-                        {isActive && (
-                          <span
-                            aria-hidden
-                            className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-primary-foreground/80"
-                          />
-                        )}
-                        <Icon className="h-[18px] w-[18px] shrink-0" />
-                        <span className="truncate">{item.label}</span>
-                        {item.hasNotification && (
-                          <span
-                            className={cn(
-                              'ml-auto inline-flex items-center justify-center rounded-full text-[10px] font-semibold tabular-nums px-1.5 h-4 min-w-[16px]',
-                              isActive
-                                ? 'bg-primary-foreground/20 text-primary-foreground'
-                                : 'bg-destructive text-destructive-foreground'
-                            )}
-                          >
-                            {item.notificationCount && item.notificationCount > 0
-                              ? item.notificationCount
-                              : '!'}
-                          </span>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
+            <SidebarMenu>{items.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+      <SidebarFooter className="border-t border-sidebar-border p-2 space-y-1">
+        {showAdmin && (
+          <SidebarMenu>{renderItem(adminItem!)}</SidebarMenu>
+        )}
         {!collapsed && (
           <p className="text-[10px] text-sidebar-foreground/50 text-center px-2 leading-tight">
             Polygon Ugeplan

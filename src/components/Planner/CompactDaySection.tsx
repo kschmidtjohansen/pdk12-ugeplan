@@ -83,16 +83,16 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
         </div>
         
         {canPublishTasks && hasUnpublishedAssignments && (
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="brand"
             onClick={(e) => {
               e.stopPropagation();
               handlePublishDay();
             }}
-            className="h-7 text-xs bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+            className="h-7 text-xs"
           >
-            <Send className="h-3 w-3 mr-1" /> 
+            <Send className="h-3 w-3 mr-1" />
             {t('planner.publish')}
           </Button>
         )}

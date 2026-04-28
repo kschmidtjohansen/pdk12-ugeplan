@@ -8,6 +8,7 @@ import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import VacationNotificationsPanel from './VacationNotificationsPanel';
 import WeeklyAssignments from './WeeklyAssignments';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useAuth } from '@/context/AuthContext';
 import { useVacations } from '@/hooks/useVacations';
 import { useAssignments } from '@/hooks/useAssignments';
 
@@ -31,6 +32,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   onNextWeek,
 }) => {
   const { isDutyEnabled } = useDepartment();
+  const { isEffectiveAdmin } = useAuth();
   const { vacations } = useVacations();
   const { assignments } = useAssignments();
 
@@ -72,7 +74,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {/* RIGHT — sticky cockpit panel (1/3) */}
       <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} />}
-        {showMetrics && <VacationNotificationsPanel />}
+        {showMetrics && isEffectiveAdmin && <VacationNotificationsPanel />}
         {isDutyEnabled && <DutySummaryWidget />}
         <UpcomingVacationsWidget vacations={vacations} />
       </aside>

@@ -563,17 +563,17 @@ const PlannerPage: React.FC = () => {
               type="single"
               value={viewMode}
               onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid')}
-              className="bg-muted rounded-lg p-0.5"
+              className="bg-muted/50 border border-border rounded-lg p-0.5"
             >
-              <ToggleGroupItem value="standard" size="sm" className="h-7 px-2.5 data-[state=on]:bg-background data-[state=on]:shadow-xs">
+              <ToggleGroupItem value="standard" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
                 <List className="h-3.5 w-3.5 mr-1.5" />
                 <span className="text-xs">{t('planner.viewModeStandard')}</span>
               </ToggleGroupItem>
-              <ToggleGroupItem value="grid" size="sm" className="h-7 px-2.5 data-[state=on]:bg-background data-[state=on]:shadow-xs">
+              <ToggleGroupItem value="grid" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
                 <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
                 <span className="text-xs">{currentLanguage === 'da' ? 'Gitter' : 'Grid'}</span>
               </ToggleGroupItem>
-              <ToggleGroupItem value="compact" size="sm" className="h-7 px-2.5 data-[state=on]:bg-background data-[state=on]:shadow-xs">
+              <ToggleGroupItem value="compact" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
                 <LayoutList className="h-3.5 w-3.5 mr-1.5" />
                 <span className="text-xs">{t('planner.viewModeCompact')}</span>
               </ToggleGroupItem>
@@ -584,7 +584,7 @@ const PlannerPage: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleToggleAllExpanded}
-                className="h-7 px-2.5 text-xs"
+                className="h-7 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
               >
                 <ChevronsUpDown className="h-3.5 w-3.5 mr-1.5" />
                 {allExpanded

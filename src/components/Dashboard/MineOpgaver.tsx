@@ -35,31 +35,23 @@ const MineOpgaver: React.FC = () => {
   // Filter assignments for current week only
   const userAssignments = React.useMemo(() => {
     if (!user?.id || !assignments) return [];
-    
+
     const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
     const currentWeekDates = getWeekDates(currentWeek, currentYear);
-    
-    if (import.meta.env.DEV) console.log('[MineOpgaver] Filtering assignments:', {
-      userId: user.id, totalAssignments: assignments.length, currentWeek, currentYear
-    });
-    
+
     const userTasks = assignments.filter(assignment => {
-      // Check if user is assigned via assignedEmployees (preferred) or legacy employees array
-      const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id);
-      const isAssignedViaLegacy = assignment.employees?.includes(user.name);
-      const isResponsible = assignment.responsibleUser?.id === user.id;
+      // Strict ID-based matching only (legacy 'employees' may contain IDs as strings)
+      const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id) ?? false;
+      const isAssignedViaLegacy = Array.isArray(assignment.employees)
+        && assignment.employees.includes(user.id);
+      const isResponsible =
+        (assignment.responsibleUser?.id ?? assignment.responsibleUserId) === user.id;
+
       const assignmentDate = parseISO(assignment.date);
-      
-      // Check if assignment is in current week
       const isInCurrentWeek = assignmentDate >= currentWeekDates.start && assignmentDate <= currentWeekDates.end;
-      
-      const isUserInvolved = isAssignedViaNew || isAssignedViaLegacy || isResponsible;
-      
-      if (import.meta.env.DEV) console.log(`[MineOpgaver] Assignment "${assignment.title}":`, {
-        isAssignedViaNew, isAssignedViaLegacy, isResponsible, isInCurrentWeek, isUserInvolved
-      });
-      
-      return isUserInvolved && isInCurrentWeek; // FIXED: Removed published filter so servicemedarbejder can see all assignments they're involved in
+
+      const isUserInvolved = isResponsible || isAssignedViaNew || isAssignedViaLegacy;
+      return isUserInvolved && isInCurrentWeek;
     });
 
     const now = new Date();
@@ -79,7 +71,7 @@ const MineOpgaver: React.FC = () => {
       return a.fromTime.localeCompare(b.fromTime);
     });
 
-    return sorted.slice(0, 5); // Show max 5 tasks with today first, past at bottom
+    return sorted.slice(0, 5);
   }, [assignments, user]);
 
   // Calculate unique days count - moved before early returns to fix React hooks error
@@ -302,18 +294,22 @@ const MineOpgaver: React.FC = () => {
             )}
 
             {/* Time */}
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
+            <div className="flex items-center gap-1.5 text-xs">
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/8 border border-primary/15 text-foreground font-medium tabular-nums">
+                <Clock className="h-3 w-3 text-primary" />
+                <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
+              </div>
             </div>
 
             {/* Cars */}
             {(() => {
               const carNames = getCarNames(assignment);
               return carNames.length > 0 ? (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Car className="h-3 w-3" />
-                  <span>{carNames.join(', ')}</span>
+                <div className="flex items-center gap-1.5 text-xs flex-wrap">
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-800 font-medium dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-200">
+                    <Car className="h-3 w-3" />
+                    <span>{carNames.join(', ')}</span>
+                  </div>
                 </div>
               ) : null;
             })()}
@@ -321,33 +317,34 @@ const MineOpgaver: React.FC = () => {
             {/* Show all team members for assignments user can access */}
             {(() => {
               const names: string[] = [];
-              
-              // Add names from assignedEmployees (new format)
               if (assignment.assignedEmployees?.length) {
                 names.push(...assignment.assignedEmployees.map(emp => emp.name || emp.email || ''));
               }
-              
-              // Add names from legacy employees array
               if (assignment.employees?.length) {
                 names.push(...assignment.employees);
               }
-              
               const teamMembers = filterDisplayNames(names);
               return teamMembers.length > 0 ? (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Users className="h-3 w-3" />
-                  <span>{teamMembers.join(', ')}</span>
+                <div className="flex items-center gap-1.5 text-xs flex-wrap">
+                  <Users className="h-3 w-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                  <div className="flex flex-wrap gap-1">
+                    {teamMembers.map((name, i) => (
+                      <span key={i} className="inline-flex px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-200">
+                        {name}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ) : null;
             })()}
 
             {/* Show Sagsansvarlig if present */}
             {assignment.responsibleUser?.name && (
-              <div className="flex items-center gap-1 text-xs text-indigo-600">
-                <UserCheck className="h-3 w-3" />
-                <span className="font-medium">
-                  {t('planner.responsibleUser') || 'Sagsansvarlig'}: {assignment.responsibleUser.name}
-                </span>
+              <div className="flex items-center gap-1.5 text-xs">
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-800 font-medium dark:bg-indigo-500/10 dark:border-indigo-500/30 dark:text-indigo-200">
+                  <UserCheck className="h-3 w-3" />
+                  <span>{t('planner.responsibleUser') || 'Sagsansvarlig'}: {assignment.responsibleUser.name}</span>
+                </div>
               </div>
             )}
           </div>

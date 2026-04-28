@@ -124,17 +124,17 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       <div className="space-y-3">
         {/* Time */}
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-md bg-muted text-muted-foreground">
+          <div className="p-1.5 rounded-md bg-primary/10 text-primary border border-primary/20">
             <Clock className="h-3.5 w-3.5" />
           </div>
-          <span className="text-foreground font-medium text-sm tabular-nums">
+          <span className="text-foreground font-medium text-sm tabular-nums px-2 py-0.5 rounded-md bg-primary/8 border border-primary/15">
             {assignment.fromTime ? assignment.fromTime.substring(0, 5) : '00:00'} – {assignment.toTime ? assignment.toTime.substring(0, 5) : '00:00'}
           </span>
         </div>
 
         {/* Cars */}
         {carData.length > 0 && <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-muted text-muted-foreground">
+            <div className="p-1.5 rounded-md bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30">
               <Car className="h-3.5 w-3.5" />
             </div>
             <div className="flex flex-wrap gap-1">
@@ -145,8 +145,8 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
                       <Badge
                         variant="outline"
                         className={cn(
-                          "text-xs cursor-default font-normal",
-                          car.isShared && "border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-700/60"
+                          "text-xs cursor-default font-medium border-amber-200 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200 dark:border-amber-500/30",
+                          car.isShared && "border-orange-400 bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:text-orange-200 dark:border-orange-700/60"
                         )}
                       >
                         {car.name}
@@ -169,12 +169,12 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
       {/* Right Column */}
       <div className="space-y-3">
         {employeeData.names.length > 0 && <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-muted text-muted-foreground">
+            <div className="p-1.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30">
               <Users className="h-3.5 w-3.5" />
             </div>
             <div className="flex flex-col min-w-0 flex-1">
               <div className="flex flex-wrap gap-1">
-                {employeeData.names.map((employeeName, index) => <Badge key={index} variant="secondary" className="text-xs font-normal">
+                {employeeData.names.map((employeeName, index) => <Badge key={index} variant="outline" className="text-xs font-medium border-emerald-200 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200 dark:border-emerald-500/30">
                     {employeeName || t('planner.unknownEmployee')}
                   </Badge>)}
               </div>
