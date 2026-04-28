@@ -1,6 +1,38 @@
 # Changelog
 
+## 2026-04-28 — UI-overhaul fase 3: Strukturelt + brand-blå signatur
+
+Stort strukturelt overhaul. Funktionalitet uændret. Ingen DB-ændringer.
+
+### Tilføjet
+- **App-shell** (`AppShell.tsx`, `AppSidebar.tsx`, `AppTopBar.tsx`): Hybrid layout — kollapsbar ikon-sidebar + sticky 56px topbar med titel, notifikationer, ChangeLog og brugermenu. `brand-stripe` (2px) under topbaren som signatur. Mobil: offcanvas-drawer.
+- **Sidebar tokens** (`index.css`, `tailwind.config.ts`): `--sidebar-*` i light + dark, registreret som `sidebar.{primary,accent,border,ring}`.
+- **Brand utilities**: `.brand-stripe`, `.brand-card-header`, `.brand-dot`, `.kpi-number`, `.list-row-selected`, `.btn-premium-inset`.
+- **Dashboard cockpit** (`DashboardCockpit.tsx`, `CompactKpiStack.tsx`): To-kolonne arbejdsbord — venstre 2/3 (MineOpgaver + QuickAccess), højre 1/3 sticky-panel (KPI-stack + Duty + Vacations). KPI'erne er nu kompakt vertikal liste med store blå tal.
+- **List-shell primitiver** (`ListPageShell.tsx`, `SegmentedFilterBar.tsx`): Genbrugelig side-skal med titel, actions, sticky filter-bar med segmenter + tæller-badges + søgning.
+
+### Ændret
+- **MainLayout**: Bruger ny `AppShell` i stedet for fixed `TopNavbar`.
+- **DashboardPage**: Konsolideret rendering via `DashboardCockpit`.
+- **WelcomeHeader**: 1px primary venstre-stripe + uge-tal i `text-primary`.
+- **EmployeesPage**: Refaktoreret til `ListPageShell` + segmenter (Alle / Aktive / På fridage / Vikarer) + søgning på navn/email/titel.
+- **CarsPage**: Refaktoreret til `ListPageShell` + segmenter (Alle / Tilgængelige / Optaget) + søgning.
+- **VacationPage, WarehousePage**: Konverteret til `ListPageShell`-pattern.
+- **DutyPage**: Header standardiseret til fælles typografi.
+- **Tabs primitive**: Active state bruger `bg-primary text-primary-foreground`.
+- **Table primitive**: TableHeader er `bg-primary/5` + `sticky top-0`.
+- **Button primitive**: Default-variant fik `inset 0 1px 0 rgba(255,255,255,0.18)` for premium dybde.
+
+### Verificeret
+- TypeScript-build clean.
+- Multi-tenant query-isolation intakt (ingen hook-ændringer).
+- Dark mode: Sidebar-tokens har separate HSL-værdier; brand-card-header bruger `/0.06` for at undgå glow.
+- Vacation pending-toast logik flyttet fra TopNavbar til AppTopBar med samme session-storage gate.
+
+---
+
 ## 2026-04-28 — UI-overhaul fase 2: Planner + dokumentation
+
 
 Fortsætter Apple/Arc-overhaul fra fase 1. Funktionalitet uændret. Ingen DB-ændringer.
 
