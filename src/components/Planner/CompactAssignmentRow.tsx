@@ -98,8 +98,10 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
               hasConflict ? 'status-dot-conflict' : (assignment.published ? 'status-dot-published' : 'status-dot-draft')
             )}
           />
-          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="tabular-nums">{timeDisplay}</span>
+          <span className="chip chip-time chip-tabular chip-strong">
+            <Clock className="h-3 w-3" />
+            {timeDisplay}
+          </span>
           {hasConflict && <ConflictBadge conflicts={conflicts} size="sm" />}
         </div>
       </td>
@@ -125,7 +127,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       <td className="py-2.5 px-3 text-sm text-foreground">
         <div className="flex items-center gap-1.5">
           <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-          <span>{assignment.location || '-'}</span>
+          <span className="truncate">{assignment.location || '-'}</span>
         </div>
       </td>
       
@@ -134,10 +136,14 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
         <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-1">
-                <CarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-xs text-foreground truncate max-w-[80px]">{carDisplay}</span>
-              </div>
+              {carNames.length > 0 ? (
+                <span className="chip chip-car max-w-[140px]">
+                  <CarIcon className="h-3 w-3" />
+                  <span className="truncate">{carDisplay}</span>
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">-</span>
+              )}
             </TooltipTrigger>
             {carNames.length > 0 && (
               <TooltipContent side="top">
@@ -153,12 +159,14 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
         <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-1">
-                <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-xs text-foreground truncate max-w-[100px]">
-                  {employeeDisplay}
+              {employeeNames.length > 0 ? (
+                <span className="chip chip-person max-w-[160px]">
+                  <Users className="h-3 w-3" />
+                  <span className="truncate">{employeeDisplay}</span>
                 </span>
-              </div>
+              ) : (
+                <span className="text-xs text-muted-foreground">-</span>
+              )}
             </TooltipTrigger>
             {employeeNames.length > 0 && (
               <TooltipContent side="top">
@@ -168,8 +176,6 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           </Tooltip>
         </TooltipProvider>
       </td>
-      
-      {/* Status */}
       <td className="py-2.5 px-3">
         <AssignmentStatusBadge isPublished={assignment.published} />
       </td>
