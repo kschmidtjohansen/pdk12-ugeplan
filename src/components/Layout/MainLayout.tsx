@@ -120,7 +120,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         
         <main className="flex-1 w-full bg-background pt-14">
           <PullToRefresh onRefresh={handlePullRefresh}>
-            <div className="animate-fade-in-up w-full">
+            <div className="w-full">
               <SecurityErrorBoundary>
                 {children}
               </SecurityErrorBoundary>
