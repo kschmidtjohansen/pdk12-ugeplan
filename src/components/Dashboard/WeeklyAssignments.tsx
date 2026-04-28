@@ -108,30 +108,30 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
 
   return (
     <>
-      <Card className="border-2 border-border/50 bg-gradient-to-br from-card to-card">
-        <CardHeader className="pb-4">
-          <CardTitle>
-            <div className="flex flex-col gap-4">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle asChild>
+            <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-2xl bg-primary/10 border border-primary/20">
-                  <Clock className="h-5 w-5 text-primary" />
+                <div className="p-1.5 rounded-md bg-muted text-foreground">
+                  <Clock className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-lg sm:text-xl font-bold truncate">
+                  <h2 className="text-base font-semibold truncate text-foreground">
                     {t('dashboard.myAssignments')}
                   </h2>
                 </div>
                 <div className="flex-shrink-0">
-                  <WeekNavigation 
-                    onPrevious={onPreviousWeek} 
-                    onNext={onNextWeek} 
-                    currentWeek={selectedWeek} 
+                  <WeekNavigation
+                    onPrevious={onPreviousWeek}
+                    onNext={onNextWeek}
+                    currentWeek={selectedWeek}
                   />
                 </div>
               </div>
 
               <div className="flex justify-end">
-                <Button variant="gradient" size="sm" asChild className="shadow-lg w-full sm:w-auto">
+                <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
                   <Link to="/planner" className="flex items-center justify-center gap-2">
                     <span>{t('dashboard.viewAll')}</span>
                     <ArrowRight className="h-4 w-4" />
@@ -143,101 +143,78 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
         </CardHeader>
         <CardContent>
           {sortedAssignments.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="p-4 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Clock className="h-8 w-8 text-gray-400" />
+            <div className="text-center py-10">
+              <div className="p-3 rounded-full bg-muted w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <Clock className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+              <h3 className="text-sm font-medium text-foreground mb-1">
                 {t('dashboard.noAssignments')}
               </h3>
-              <p className="text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {t('dashboard.noAssignmentsScheduled')}
               </p>
             </div>
           ) : (
-            <div className="grid gap-3">
-              {sortedAssignments.map((assignment, index) => {
-                // Use helper function to get employee names
+            <div className="grid gap-2">
+              {sortedAssignments.map((assignment) => {
                 const employeeNames = getEmployeeNames(assignment);
                 const carNames = getCarNames(assignment);
-                
+
                 return (
-                  <div 
-                    key={assignment.id} 
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                    onClick={() => handleAssignmentClick(assignment)} 
-                    className="border-2 border-border/50 rounded-2xl p-4 bg-gradient-to-br from-card to-card/50 cursor-pointer animate-scale-in relative overflow-hidden py-[12px]"
+                  <div
+                    key={assignment.id}
+                    onClick={() => handleAssignmentClick(assignment)}
+                    className="border border-border rounded-lg p-3 bg-card cursor-pointer hover:bg-accent/40 transition-colors"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
-                    
-                    <div className="relative z-10">
-                      <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
-                        <div className="flex flex-col">
-                          <h3 className="font-bold text-lg text-left">
-                            {assignment.title || 'Untitled'}
-                          </h3>
-                          {assignment.location && (
-                            <p className="text-sm text-gray-600 text-left">
-                              {assignment.location}
-                            </p>
-                          )}
-                        </div>
-                        <div className="px-3 py-1 bg-primary/10 text-primary rounded-full font-semibold text-sm border border-primary/20">
-                          {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
-                        </div>
-                      </div>
-                      
-                      {assignment.description && (
-                        <p className="mb-2 text-left leading-relaxed text-sm text-polygon-neutral">
-                          {assignment.description}
-                        </p>
-                      )}
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* Display car names properly with support for multiple cars */}
-                        {carNames.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <div className="p-1.5 rounded-lg bg-blue-50 border border-blue-200">
-                              <Car className="h-3.5 w-3.5 text-blue-600" />
-                            </div>
-                            <span className="text-foreground font-medium text-sm">
-                              {carNames.join(', ')}
-                            </span>
-                          </div>
+                    <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
+                      <div className="flex flex-col min-w-0">
+                        <h3 className="font-semibold text-sm text-foreground text-left truncate">
+                          {assignment.title || 'Untitled'}
+                        </h3>
+                        {assignment.location && (
+                          <p className="text-xs text-muted-foreground text-left truncate">
+                            {assignment.location}
+                          </p>
                         )}
-                        
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded-lg bg-green-50 border border-green-200">
-                            <Clock className="h-3.5 w-3.5 text-green-600" />
-                          </div>
-                          <span className="text-foreground font-medium text-sm">
-                            {assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}
+                      </div>
+                      <div className="px-2 py-0.5 bg-muted text-foreground rounded-md text-xs font-medium tabular-nums">
+                        {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
+                      </div>
+                    </div>
+
+                    {assignment.description && (
+                      <p className="mb-2 text-left text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                        {assignment.description}
+                      </p>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {carNames.length > 0 && (
+                        <div className="flex items-center gap-2 text-xs text-foreground">
+                          <Car className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">{carNames.join(', ')}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-xs text-foreground">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="tabular-nums">
+                          {assignment.fromTime.substring(0, 5)} – {assignment.toTime.substring(0, 5)}
+                        </span>
+                      </div>
+                      {employeeNames.length > 0 && (
+                        <div className="flex items-center gap-2 text-xs text-foreground">
+                          <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">{employeeNames.join(', ')}</span>
+                        </div>
+                      )}
+                      {assignment.responsibleUser && (
+                        <div className="flex items-center gap-2 text-xs text-foreground">
+                          <UserCheck className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">
+                            {typeof assignment.responsibleUser === 'string' ? assignment.responsibleUser : assignment.responsibleUser.name}
                           </span>
                         </div>
-                        
-                        {/* Show employee names using helper function */}
-                        {employeeNames.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <div className="p-1.5 rounded-lg bg-purple-50 border border-purple-200">
-                              <Users className="h-3.5 w-3.5 text-purple-600" />
-                            </div>
-                            <span className="text-foreground font-medium text-sm">
-                              {employeeNames.join(', ')}
-                            </span>
-                          </div>
-                        )}
-
-                        {assignment.responsibleUser && (
-                          <div className="flex items-center gap-2">
-                            <div className="p-1.5 rounded-lg bg-indigo-50 border border-indigo-200">
-                              <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
-                            </div>
-                            <span className="text-foreground font-medium text-sm">
-                              {typeof assignment.responsibleUser === 'string' ? assignment.responsibleUser : assignment.responsibleUser.name}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 );

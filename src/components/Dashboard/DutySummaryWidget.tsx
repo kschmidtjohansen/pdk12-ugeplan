@@ -30,8 +30,8 @@ const DutySummaryWidget: React.FC = () => {
   };
 
   return (
-    <Card 
-      className="relative overflow-hidden transition-[border-color,box-shadow] duration-200 border-l-4 border-l-purple-500 shadow-md hover:shadow-lg cursor-pointer bg-gradient-to-br from-card to-card/50 border-2 border-border/50 hover:border-purple-300 hover:shadow-purple-500/20"
+    <Card
+      className="relative overflow-hidden transition-colors duration-150 cursor-pointer hover:bg-accent/40 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-info"
       onClick={() => navigate('/duty')}
       role="button"
       tabIndex={0}
@@ -42,23 +42,23 @@ const DutySummaryWidget: React.FC = () => {
         }
       }}
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-4 pt-3">
-        <CardTitle className="text-xs font-medium text-muted-foreground">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-4 pl-5 pt-3">
+        <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
           {t('duty.todayDuties')}
         </CardTitle>
-        <div className="p-2 rounded-xl border bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-300">
+        <div className="p-1.5 rounded-md bg-muted text-muted-foreground">
           <Phone className="h-4 w-4" />
         </div>
       </CardHeader>
       
-      <CardContent className="px-4 pb-3">
+      <CardContent className="px-4 pl-5 pb-3">
         {loading ? (
           <div className="text-xs text-muted-foreground">
             {t('common.loading')}...
           </div>
         ) : (
           <>
-            <div className="text-xl font-bold">
+            <div className="text-2xl font-semibold tracking-tight tabular-nums text-foreground">
               {todayDuties.length}
             </div>
             

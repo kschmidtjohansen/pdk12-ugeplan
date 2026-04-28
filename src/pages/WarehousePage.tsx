@@ -132,6 +132,7 @@ const WarehousePage = () => {
           onConfirm={handleDelete}
           loading={actionLoading}
         />
+        </div>
       </div>
     </div>
     </DataFetchErrorBoundary>
