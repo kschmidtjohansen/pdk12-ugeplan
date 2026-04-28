@@ -115,7 +115,7 @@ import { useDepartment } from '@/context/DepartmentContext';
    return (
      <Dialog open={isOpen} onOpenChange={onClose}>
        <DialogContent className={`${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[95dvh] flex flex-col p-0`}>
-        <DialogHeader className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b bg-gradient-to-b from-muted/30 to-transparent">
+        <DialogHeader className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b bg-card">
             <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 text-lg pr-14">
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary shrink-0" />
@@ -167,12 +167,12 @@ import { useDepartment } from '@/context/DepartmentContext';
                     <div className="grid gap-4">
                     {/* Cars */}
                      {carNames.length > 0 && (
-                        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                         <Car className="h-4 w-4 text-primary" />
+                        <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                         <Car className="h-4 w-4 text-muted-foreground" />
                          <div className="flex items-center flex-wrap gap-2 text-sm">
-                           <span className="font-medium">{t('planner.car')}:</span>
+                           <span className="font-medium text-foreground">{t('planner.car')}:</span>
                            {carNames.map((carName, index) => (
-                             <Badge key={index} variant="outline" className="text-xs">
+                             <Badge key={index} variant="outline" className="text-xs font-normal">
                                {carName}
                              </Badge>
                            ))}
@@ -182,30 +182,30 @@ import { useDepartment } from '@/context/DepartmentContext';
 
                      {/* Responsible User */}
                      {assignment.responsibleUser && (
-                        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                         <UserCheck className="h-4 w-4 text-primary" />
+                        <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                         <UserCheck className="h-4 w-4 text-muted-foreground" />
                          <div className="text-sm">
-                           <span className="font-medium">{t('planner.responsibleUser')}: </span>
-                           <span>{assignment.responsibleUser.name}</span>
+                           <span className="font-medium text-foreground">{t('planner.responsibleUser')}: </span>
+                           <span className="text-foreground">{assignment.responsibleUser.name}</span>
                          </div>
                        </div>
                      )}
 
                      {/* Assigned Employees */}
                      {((assignment.assignedEmployees && assignment.assignedEmployees.length > 0) || (assignment.employees && assignment.employees.length > 0)) && (
-                        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                         <Users className="h-4 w-4 text-primary" />
+                        <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                         <Users className="h-4 w-4 text-muted-foreground" />
                          <div className="flex items-center flex-wrap gap-2 text-sm">
-                           <span className="font-medium">{t('planner.employees')}:</span>
+                           <span className="font-medium text-foreground">{t('planner.employees')}:</span>
                            {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 ? (
                              assignment.assignedEmployees.map((employee) => (
-                               <Badge key={employee.id} variant="outline" className="text-xs">
+                               <Badge key={employee.id} variant="outline" className="text-xs font-normal">
                                  {employee.name}
                                </Badge>
                              ))
                            ) : assignment.employees && assignment.employees.length > 0 ? (
                              assignment.employees.map((employee, index) => (
-                               <Badge key={index} variant="outline" className="text-xs">
+                               <Badge key={index} variant="outline" className="text-xs font-normal">
                                  {employee}
                                </Badge>
                              ))
@@ -234,19 +234,19 @@ import { useDepartment } from '@/context/DepartmentContext';
                     {t('planner.dateAndTime') || 'Dato og tid'}
                   </h4>
                    <div className="grid gap-4">
-                     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                      <Calendar className="h-4 w-4 text-primary" />
+                     <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div className="text-sm">
-                        <span className="font-medium">{t('planner.date')}: </span>
-                        <span>{formatDate(assignment.date)}</span>
+                        <span className="font-medium text-foreground">{t('planner.date')}: </span>
+                        <span className="text-foreground">{formatDate(assignment.date)}</span>
                       </div>
                     </div>
                     
-                     <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                      <Clock className="h-4 w-4 text-primary" />
+                     <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
                       <div className="text-sm">
-                        <span className="font-medium">{t('planner.time')}: </span>
-                        <span>{assignment.fromTime.substring(0, 5)} - {assignment.toTime.substring(0, 5)}</span>
+                        <span className="font-medium text-foreground">{t('planner.time')}: </span>
+                        <span className="text-foreground tabular-nums">{assignment.fromTime.substring(0, 5)} – {assignment.toTime.substring(0, 5)}</span>
                       </div>
                      </div>
                    </div>
@@ -328,8 +328,8 @@ import { useDepartment } from '@/context/DepartmentContext';
 
           {/* Right column: Messages sidebar */}
           {isChatEnabled && (
-           <div className="lg:w-2/5 flex flex-col relative min-h-[300px] max-h-[50dvh] lg:h-auto lg:max-h-none lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-gradient-to-b from-muted/40 to-muted/20">
-             <div className="px-3 sm:px-5 py-4 border-b bg-background/60 backdrop-blur-sm">
+           <div className="lg:w-2/5 flex flex-col relative min-h-[300px] max-h-[50dvh] lg:h-auto lg:max-h-none lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-muted/20">
+             <div className="px-3 sm:px-5 py-4 border-b bg-card">
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-2.5 text-sm font-semibold">
                    <MessageSquare className="h-4 w-4 text-primary" />

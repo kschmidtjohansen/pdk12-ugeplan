@@ -9,6 +9,7 @@ import { Plus, Users, UserPlus } from 'lucide-react';
 import EmployeesTable from '@/components/Employees/EmployeesTable';
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
+import PageHeader from '@/components/Layout/PageHeader';
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -98,37 +99,31 @@ const EmployeesPage: React.FC = () => {
   return (
     <DataFetchErrorBoundary>
     <div className="min-h-screen w-full bg-background">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Simple Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-              {regularEmployees.length} {t("employees.title")} - {vikarer.length} Vikarer
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {t("employees.description")}
-            </p>
-          </div>
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-5">
+        <PageHeader
+          title={`${regularEmployees.length} ${t("employees.title")} · ${vikarer.length} Vikarer`}
+          description={t("employees.description")}
+        >
           {isAdmin && (
-            <div className="flex gap-2 flex-shrink-0">
-              <Button onClick={handleCreateNew} size="sm" className="sm:size-default">
-                <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+            <>
+              <Button onClick={handleCreateNew} size="sm">
+                <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">{t("employees.addEmployee")}</span>
                 <span className="sm:hidden">Tilføj</span>
               </Button>
               {isSubstituteEnabled && (
-                <Button onClick={handleCreateVikar} variant="outline" size="sm" className="sm:size-default">
-                  <UserPlus className="h-4 w-4 mr-1 sm:mr-2" />
+                <Button onClick={handleCreateVikar} variant="outline" size="sm">
+                  <UserPlus className="h-4 w-4" />
                   <span className="hidden sm:inline">{t("employees.addVikar")}</span>
                   <span className="sm:hidden">Vikar</span>
                 </Button>
               )}
-            </div>
+            </>
           )}
-        </div>
+        </PageHeader>
 
         {/* Employees Table */}
-        <div className="bg-card rounded-lg border shadow-sm">
+        <div className="rounded-xl border border-border bg-card shadow-xs">
           <EmployeesTable 
             employees={employees}
             vacations={vacations}

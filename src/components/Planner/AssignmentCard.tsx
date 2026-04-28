@@ -137,16 +137,16 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <Card 
-          className={`relative w-full p-3 border-l-2 ${assignment.published ? 'border-l-green-500' : 'border-l-amber-400'} hover:bg-blue-50/50 dark:hover:bg-slate-800/50 transition-colors duration-200 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
+          className={`relative w-full p-3 border-l-2 ${assignment.published ? 'border-l-emerald-500' : 'border-l-amber-400'} hover:bg-accent/40 transition-colors duration-150 ${isLoading ? 'opacity-75' : ''} ${onViewDetails ? 'cursor-pointer' : ''}`}
           onClick={handleCardClick}
         >
       {warehouseItemCount > 0 && (
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-white rounded-md shadow-sm animate-pulse hover:animate-none transition-all cursor-help">
-                <Package className="h-5 w-5" />
-                <span className="text-sm font-bold">{warehouseItemCount}</span>
+              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 text-white rounded-md shadow-xs cursor-help">
+                <Package className="h-4 w-4" />
+                <span className="text-sm font-semibold">{warehouseItemCount}</span>
               </div>
             </TooltipTrigger>
             <TooltipContent 
@@ -165,9 +165,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <div className="flex items-center gap-2 flex-1">
           <div className="flex flex-col flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium text-sm">{assignment.title || t('planner.titleLabel')}</h3>
+              <h3 className="font-medium text-sm text-foreground">{assignment.title || t('planner.titleLabel')}</h3>
               {operationState && (
-                <span className="text-xs text-blue-600 font-medium animate-pulse">
+                <span className="text-xs text-primary font-medium animate-pulse">
                   {getOperationText(operationState)}
                 </span>
               )}
@@ -177,7 +177,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             )}
             {responsibleUserInfo?.name && (
               <div className="flex items-center gap-1 mt-1">
-                <UserCheck className="h-4 w-4 text-blue-600" />
+                <UserCheck className="h-4 w-4 text-primary" />
                 <span className="text-sm text-foreground font-medium">
                   {t('planner.responsibleUser')}: {responsibleUserInfo.name}
                 </span>
@@ -185,8 +185,8 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             )}
             {import.meta.env.DEV && assignment.responsibleUserId && !responsibleUserInfo && (
               <div className="flex items-center gap-1 mt-1">
-                <UserCheck className="h-3 w-3 text-yellow-600" />
-                <span className="text-xs text-yellow-600" title="Debug: Responsible user ID found but user data missing">
+                <UserCheck className="h-3 w-3 text-amber-600" />
+                <span className="text-xs text-amber-600" title="Debug: Responsible user ID found but user data missing">
                   Missing User Data (Check Roles)
                 </span>
               </div>
