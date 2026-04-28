@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';
@@ -23,47 +22,24 @@ const InteractiveMetricCard: React.FC<InteractiveMetricCardProps> = ({
   icon: Icon,
   onClick,
   color = 'blue',
-  className
+  className,
 }) => {
-  const colorClasses = {
-    blue: {
-      icon: 'text-blue-600 bg-blue-50 border-blue-200',
-      accent: 'border-l-blue-500',
-      hover: 'hover:border-blue-300 hover:shadow-blue-500/20'
-    },
-    green: {
-      icon: 'text-green-600 bg-green-50 border-green-200',
-      accent: 'border-l-green-500',
-      hover: 'hover:border-green-300 hover:shadow-green-500/20'
-    },
-    orange: {
-      icon: 'text-orange-600 bg-orange-50 border-orange-200',
-      accent: 'border-l-orange-500',
-      hover: 'hover:border-orange-300 hover:shadow-orange-500/20'
-    },
-    red: {
-      icon: 'text-red-600 bg-red-50 border-red-200',
-      accent: 'border-l-red-500',
-      hover: 'hover:border-red-300 hover:shadow-red-500/20'
-    },
-    purple: {
-      icon: 'text-purple-600 bg-purple-50 border-purple-200',
-      accent: 'border-l-purple-500',
-      hover: 'hover:border-purple-300 hover:shadow-purple-500/20'
-    }
+  const accentClass: Record<NonNullable<InteractiveMetricCardProps['color']>, string> = {
+    blue: 'before:bg-primary',
+    green: 'before:bg-success',
+    orange: 'before:bg-warning',
+    red: 'before:bg-destructive',
+    purple: 'before:bg-info',
   };
 
-  const classes = colorClasses[color];
-
   return (
-    <Card 
+    <Card
       className={cn(
-        'relative overflow-hidden transition-[border-color,box-shadow] duration-200 border-l-4 shadow-md hover:shadow-lg cursor-pointer bg-gradient-to-br from-card to-card/50 border-2 border-border/50',
-        'min-h-[120px] active:scale-[0.98]', // Mobile: Ensure minimum touch target size and add active feedback
-        classes.accent,
-        classes.hover,
+        'relative overflow-hidden transition-colors duration-150 cursor-pointer hover:bg-accent/40 min-h-[110px]',
+        'before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px]',
+        accentClass[color],
         className
-      )} 
+      )}
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -75,30 +51,25 @@ const InteractiveMetricCard: React.FC<InteractiveMetricCardProps> = ({
       }}
       aria-label={`${title}: ${value}${total ? ` of ${total}` : ''}${subtitle ? `, ${subtitle}` : ''}`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" style={{ transform: 'translateZ(0)', willChange: 'opacity' }}></div>
-      
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-4 sm:px-6 pt-4">
-        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className={cn(
-          'p-2.5 sm:p-2 rounded-xl border transition-all duration-300 hover:scale-105',
-          classes.icon
-        )}>
-          <Icon className="h-5 w-5 sm:h-4 sm:w-4" />
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-4 pl-5 pt-3">
+        <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+          {title}
+        </CardTitle>
+        <div className="p-1.5 rounded-md bg-muted text-muted-foreground">
+          <Icon className="h-4 w-4" />
         </div>
       </CardHeader>
-      
-      <CardContent className="px-4 sm:px-6 pb-4">
-        <div className="text-2xl sm:text-xl font-bold">
+      <CardContent className="px-4 pl-5 pb-3">
+        <div className="text-2xl font-semibold tracking-tight tabular-nums text-foreground">
           {value}
-          {total && (
-            <span className="text-sm sm:text-xs text-muted-foreground ml-1">
+          {total !== undefined && (
+            <span className="text-sm font-normal text-muted-foreground ml-1">
               / {total}
             </span>
           )}
         </div>
-        
         {subtitle && (
-          <p className="text-sm sm:text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
             {subtitle}
           </p>
         )}

@@ -1,6 +1,4 @@
-
 import React from 'react';
-import { Clock } from 'lucide-react';
 import { format, getISOWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
@@ -31,38 +29,26 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
   const headerDate = getHeaderDateDisplay();
 
   return (
-    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-4 text-white animate-fade-in-up" style={{ willChange: 'transform, opacity' }}>
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent py-0"></div>
-      <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
-      
-      <div className="relative z-10 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30">
-            <Clock className="h-5 w-5 text-white" />
-          </div>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {t('dashboard.welcomeUser', { name: userName || t('common.user') })}
-            </h1>
-            <p className="text-blue-100 text-sm font-medium max-w-2xl">
-              {dailyQuote}
-            </p>
-          </div>
+    <div className="rounded-xl border border-border bg-card shadow-xs px-5 py-4 animate-fade-in-up">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground truncate">
+            {t('dashboard.welcomeUser', { name: userName || t('common.user') })}
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {dailyQuote}
+          </p>
         </div>
-        <div className="hidden md:block">
-          <div className="text-right space-y-2">
-            <div className="px-4 py-2 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30">
-              <p className="text-blue-100 uppercase tracking-wider font-semibold text-base">
-                {headerDate.dayName}
-              </p>
-              <p className="uppercase tracking-wider font-semibold text-2xl text-white">
-                {t('dashboard.week')} {headerDate.weekNumber}
-              </p>
-              <p className="font-bold text-base text-blue-100">
-                {headerDate.dateString}
-              </p>
-            </div>
-          </div>
+        <div className="hidden md:flex flex-col items-end text-right border-l border-border pl-4 min-w-[140px]">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {headerDate.dayName}
+          </span>
+          <span className="text-base font-semibold text-foreground">
+            {t('dashboard.week')} {headerDate.weekNumber}
+          </span>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {headerDate.dateString}
+          </span>
         </div>
       </div>
     </div>

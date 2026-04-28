@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';
@@ -26,78 +25,60 @@ const MetricCard: React.FC<MetricCardProps> = ({
   trend,
   color = 'blue',
   onClick,
-  className
+  className,
 }) => {
-  const colorClasses = {
-    blue: {
-      icon: 'text-blue-600 bg-blue-50 border-blue-200',
-      accent: 'border-l-blue-500',
-      hover: 'hover:border-blue-300 hover:shadow-blue-500/20'
-    },
-    green: {
-      icon: 'text-green-600 bg-green-50 border-green-200',
-      accent: 'border-l-green-500',
-      hover: 'hover:border-green-300 hover:shadow-green-500/20'
-    },
-    orange: {
-      icon: 'text-orange-600 bg-orange-50 border-orange-200',
-      accent: 'border-l-orange-500',
-      hover: 'hover:border-orange-300 hover:shadow-orange-500/20'
-    },
-    red: {
-      icon: 'text-red-600 bg-red-50 border-red-200',
-      accent: 'border-l-red-500',
-      hover: 'hover:border-red-300 hover:shadow-red-500/20'
-    },
-    purple: {
-      icon: 'text-purple-600 bg-purple-50 border-purple-200',
-      accent: 'border-l-purple-500',
-      hover: 'hover:border-purple-300 hover:shadow-purple-500/20'
-    }
+  // Map legacy color prop to a subtle accent stripe; otherwise neutral.
+  const accentClass: Record<NonNullable<MetricCardProps['color']>, string> = {
+    blue: 'before:bg-primary',
+    green: 'before:bg-success',
+    orange: 'before:bg-warning',
+    red: 'before:bg-destructive',
+    purple: 'before:bg-info',
   };
 
-  const classes = colorClasses[color];
-
   return (
-    <Card className={cn(
-      'relative overflow-hidden transition-colors duration-200 border-l-4 animate-scale-in',
-      classes.accent,
-      onClick && 'cursor-pointer hover:bg-blue-50/50 dark:hover:bg-slate-800/50',
-      className
-    )} onClick={onClick}>
-      
-      <CardContent className="p-4 relative z-10 py-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 space-y-2">
-            <p className="font-semibold text-muted-foreground uppercase tracking-wider text-xs">
+    <Card
+      className={cn(
+        'relative overflow-hidden transition-colors duration-150',
+        'before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px]',
+        accentClass[color],
+        onClick && 'cursor-pointer hover:bg-accent/40',
+        className
+      )}
+      onClick={onClick}
+    >
+      <CardContent className="p-4 pl-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0 space-y-1.5">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
               {title}
             </p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold tracking-tight">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <p className="text-2xl font-semibold tracking-tight text-foreground tabular-nums">
                 {value}
               </p>
               {trend && (
-                <span className={cn(
-                  'text-sm font-bold px-2 py-1 rounded-full border',
-                  trend.isPositive 
-                    ? 'text-green-700 bg-green-50 border-green-200' 
-                    : 'text-red-700 bg-red-50 border-red-200'
-                )}>
-                  {trend.isPositive ? '+' : ''}{trend.value}%
+                <span
+                  className={cn(
+                    'text-xs font-medium px-1.5 py-0.5 rounded-md',
+                    trend.isPositive
+                      ? 'text-success bg-success/10'
+                      : 'text-destructive bg-destructive/10'
+                  )}
+                >
+                  {trend.isPositive ? '+' : ''}
+                  {trend.value}%
                 </span>
               )}
             </div>
             {subtitle && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {subtitle}
               </p>
             )}
           </div>
-          <div className={cn(
-            'p-2 rounded-lg border transition-all duration-200',
-            classes.icon
-          )}>
-            <Icon className="h-6 w-6" />
+          <div className="p-2 rounded-md bg-muted text-muted-foreground">
+            <Icon className="h-5 w-5" />
           </div>
         </div>
       </CardContent>
