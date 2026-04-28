@@ -470,10 +470,10 @@ const PlannerPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Spinner size="lg" />
-          <p className="text-lg font-medium text-muted-foreground">{t('common.loading')}...</p>
+          <p className="text-sm font-medium text-muted-foreground">{t('common.loading')}...</p>
         </div>
       </div>
     );
@@ -481,9 +481,9 @@ const PlannerPage: React.FC = () => {
   
   if (error) {
     return (
-      <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">{t('common.error')}</h2>
+          <h2 className="text-xl font-semibold text-destructive mb-2">{t('common.error')}</h2>
           <p className="text-muted-foreground">{typeof error === 'string' ? error : 'An error occurred'}</p>
         </div>
       </div>
@@ -492,122 +492,99 @@ const PlannerPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-[#f8fafc] dark:bg-slate-950">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 space-y-4">
-        {/* Compact Header */}
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-4 lg:p-5 text-white animate-fade-in-up">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
-          
-          <div className="relative z-10">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30">
-                  <Clock className="h-5 w-5 text-white" />
-                </div>
-                <div className="space-y-0.5">
-                  <h1 className="text-xl lg:text-2xl font-semibold tracking-tight">
-                    {t("navigation.planner")}
-                  </h1>
-                  <p className="text-blue-100 text-xs lg:text-sm font-medium">
-                    {t('planner.weekView', {
-                      week: selectedWeek,
-                      year: selectedYear,
-                      start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                      end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
-                    })}
-                  </p>
-                </div>
-              </div>
+    <div className="min-h-screen w-full bg-background">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-5 space-y-4">
+        {/* Clean Header — Apple/Arc style */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary flex-shrink-0">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
+                {t("navigation.planner")}
+              </h1>
+              <p className="text-sm text-muted-foreground truncate">
+                {t('planner.weekView', {
+                  week: selectedWeek,
+                  year: selectedYear,
+                  start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                  end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+                })}
+              </p>
+            </div>
+          </div>
 
-              {/* Controls Section - Responsive */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:gap-4">
-                {/* Week Navigation */}
-                <div className="flex items-center justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={handlePreviousWeek} className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  
-                  <span className="font-medium min-w-[100px] text-center text-white text-lg lg:text-xl">
-                    {t('planner.week')} {selectedWeek}
-                  </span>
-                  
-                  <Button variant="outline" size="sm" onClick={handleNextWeek} className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm">
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div className="flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 py-1">
+              <Button variant="ghost" size="sm" onClick={handlePreviousWeek} className="h-7 w-7 p-0">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="font-medium min-w-[80px] text-center text-sm text-foreground">
+                {t('planner.week')} {selectedWeek}
+              </span>
+              <Button variant="ghost" size="sm" onClick={handleNextWeek} className="h-7 w-7 p-0">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2">
-                  {canPublishTasks && (
-                    <Button 
-                      onClick={handleShowOnScreen} 
-                      size="sm" 
-                      className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                    >
-                      <Monitor className="h-4 w-4" />
-                      <span className="hidden sm:inline">{t('planner.showOnScreen')}</span>
-                    </Button>
-                  )}
-                  {canCreate && (
-                    <Button 
-                      onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} 
-                      size="sm" 
-                      className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                    >
-                      <Plus className="h-4 w-4" />
-                      {t('planner.newAssignment')}
-                    </Button>
-                  )}
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              {canPublishTasks && (
+                <Button onClick={handleShowOnScreen} variant="outline" size="sm">
+                  <Monitor className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t('planner.showOnScreen')}</span>
+                </Button>
+              )}
+              {canCreate && (
+                <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm">
+                  <Plus className="h-4 w-4" />
+                  {t('planner.newAssignment')}
+                </Button>
+              )}
             </div>
           </div>
         </div>
 
         {/* Search and View Toggle Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card rounded-lg border p-3">
-          {/* Search Filter */}
-          <PlannerSearchFilter 
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-xs">
+          <PlannerSearchFilter
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />
-          
-          {/* View Mode Toggle */}
+
           <div className="hidden sm:flex items-center gap-2">
-            <span className="text-sm text-muted-foreground hidden sm:inline">
+            <span className="text-xs text-muted-foreground hidden sm:inline">
               {currentLanguage === 'da' ? 'Visning:' : 'View:'}
             </span>
-            <ToggleGroup 
-              type="single" 
-              value={viewMode} 
+            <ToggleGroup
+              type="single"
+              value={viewMode}
               onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid')}
-              className="bg-muted/50 rounded-lg p-0.5"
+              className="bg-muted rounded-lg p-0.5"
             >
-              <ToggleGroupItem value="standard" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
-                <List className="h-4 w-4 mr-1.5" />
+              <ToggleGroupItem value="standard" size="sm" className="h-7 px-2.5 data-[state=on]:bg-background data-[state=on]:shadow-xs">
+                <List className="h-3.5 w-3.5 mr-1.5" />
                 <span className="text-xs">{t('planner.viewModeStandard')}</span>
               </ToggleGroupItem>
-              <ToggleGroupItem value="grid" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
-                <LayoutGrid className="h-4 w-4 mr-1.5" />
+              <ToggleGroupItem value="grid" size="sm" className="h-7 px-2.5 data-[state=on]:bg-background data-[state=on]:shadow-xs">
+                <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
                 <span className="text-xs">{currentLanguage === 'da' ? 'Gitter' : 'Grid'}</span>
               </ToggleGroupItem>
-              <ToggleGroupItem value="compact" size="sm" className="h-8 px-3 data-[state=on]:bg-background">
-                <LayoutList className="h-4 w-4 mr-1.5" />
+              <ToggleGroupItem value="compact" size="sm" className="h-7 px-2.5 data-[state=on]:bg-background data-[state=on]:shadow-xs">
+                <LayoutList className="h-3.5 w-3.5 mr-1.5" />
                 <span className="text-xs">{t('planner.viewModeCompact')}</span>
               </ToggleGroupItem>
             </ToggleGroup>
-            
-            {/* Expand/Collapse all button - visible in standard and grid views */}
+
             {(viewMode === 'standard' || viewMode === 'grid') && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleToggleAllExpanded}
-                className="h-8 px-3 text-xs"
+                className="h-7 px-2.5 text-xs"
               >
-                <ChevronsUpDown className="h-4 w-4 mr-1.5" />
-                {allExpanded 
+                <ChevronsUpDown className="h-3.5 w-3.5 mr-1.5" />
+                {allExpanded
                   ? (currentLanguage === 'da' ? 'Fold sammen' : 'Collapse all')
                   : (currentLanguage === 'da' ? 'Udvid alle' : 'Expand all')
                 }
