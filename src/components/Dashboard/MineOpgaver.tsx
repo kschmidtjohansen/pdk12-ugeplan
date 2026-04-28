@@ -35,31 +35,23 @@ const MineOpgaver: React.FC = () => {
   // Filter assignments for current week only
   const userAssignments = React.useMemo(() => {
     if (!user?.id || !assignments) return [];
-    
+
     const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
     const currentWeekDates = getWeekDates(currentWeek, currentYear);
-    
-    if (import.meta.env.DEV) console.log('[MineOpgaver] Filtering assignments:', {
-      userId: user.id, totalAssignments: assignments.length, currentWeek, currentYear
-    });
-    
+
     const userTasks = assignments.filter(assignment => {
-      // Check if user is assigned via assignedEmployees (preferred) or legacy employees array
-      const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id);
-      const isAssignedViaLegacy = assignment.employees?.includes(user.name);
-      const isResponsible = assignment.responsibleUser?.id === user.id;
+      // Strict ID-based matching only (legacy 'employees' may contain IDs as strings)
+      const isAssignedViaNew = assignment.assignedEmployees?.some(emp => emp.id === user.id) ?? false;
+      const isAssignedViaLegacy = Array.isArray(assignment.employees)
+        && assignment.employees.includes(user.id);
+      const isResponsible =
+        (assignment.responsibleUser?.id ?? assignment.responsibleUserId) === user.id;
+
       const assignmentDate = parseISO(assignment.date);
-      
-      // Check if assignment is in current week
       const isInCurrentWeek = assignmentDate >= currentWeekDates.start && assignmentDate <= currentWeekDates.end;
-      
-      const isUserInvolved = isAssignedViaNew || isAssignedViaLegacy || isResponsible;
-      
-      if (import.meta.env.DEV) console.log(`[MineOpgaver] Assignment "${assignment.title}":`, {
-        isAssignedViaNew, isAssignedViaLegacy, isResponsible, isInCurrentWeek, isUserInvolved
-      });
-      
-      return isUserInvolved && isInCurrentWeek; // FIXED: Removed published filter so servicemedarbejder can see all assignments they're involved in
+
+      const isUserInvolved = isResponsible || isAssignedViaNew || isAssignedViaLegacy;
+      return isUserInvolved && isInCurrentWeek;
     });
 
     const now = new Date();
@@ -79,7 +71,7 @@ const MineOpgaver: React.FC = () => {
       return a.fromTime.localeCompare(b.fromTime);
     });
 
-    return sorted.slice(0, 5); // Show max 5 tasks with today first, past at bottom
+    return sorted.slice(0, 5);
   }, [assignments, user]);
 
   // Calculate unique days count - moved before early returns to fix React hooks error
