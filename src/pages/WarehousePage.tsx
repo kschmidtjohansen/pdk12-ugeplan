@@ -81,29 +81,26 @@ const WarehousePage = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b border-border/50 px-4 py-8">
-        <div className="container mx-auto">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-xl">
-              <Package className="h-8 w-8 text-primary" />
+    <div className="min-h-screen w-full bg-background">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-5">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 rounded-md bg-muted text-foreground">
+              <Package className="h-5 w-5" />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
               {t('warehouse.title')}
             </h1>
           </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        {canEdit && (
-          <div className="flex justify-end">
-            <Button onClick={openAddDialog} className="gap-2">
+          {canEdit && (
+            <Button onClick={openAddDialog} size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
               {t('warehouse.addNew')}
             </Button>
-          </div>
-        )}
+          )}
+        </div>
+
+        <div className="space-y-4">
 
         {items.length === 0 ? (
           <EmptyState
