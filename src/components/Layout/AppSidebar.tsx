@@ -13,6 +13,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { LayoutDashboard, Clock, Users, Car, Calendar, Shield, Package, Settings } from 'lucide-react';
+import polygonIcon from '@/assets/polygon-icon.png';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -117,12 +118,12 @@ const AppSidebar: React.FC = () => {
       <SidebarHeader className="border-b border-sidebar-border h-11 flex items-center justify-center px-2">
         <Link to="/dashboard" onClick={closeMobile} className="flex items-center justify-center w-full overflow-hidden">
           {collapsed ? (
-            <div
-              className="flex items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm h-8 w-8"
-              aria-label="Polygon"
-            >
-              <span className="text-sm font-bold tracking-tight">P</span>
-            </div>
+            <img
+              src={polygonIcon}
+              alt="Polygon"
+              className="h-8 w-8 object-contain select-none"
+              draggable={false}
+            />
           ) : (
             <img
               src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
