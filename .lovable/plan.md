@@ -1,41 +1,75 @@
-## Plan: Polygon icon-only logo + KPI metrics above "Mine Opgaver"
+## Plan: Logo, single My Tasks widget, vacation dropdown visibility, premium chip redesign
 
-### 1. Polygon logo — use the icon mark only (no "POLYGON" wordmark)
+### 1. Polygon logo in topbar (replaces "P" tile)
+- Replace the blue `P` square in `AppSidebar` SidebarHeader with the existing official Polygon logo from `src/components/Layout/NavComponents/Logo.tsx` (uses `https://www.polygongroup.com/UI/build/svg/polygon-logo.svg`).
+- When sidebar is collapsed: show only a compact icon-only mark (keep the 28×28 blue rounded tile with "P" — this is the brand mark in icon-rail mode). When expanded: show the full Polygon SVG logo (h-6 wide ~110px).
+- This guarantees the wide horizontal Polygon wordmark is visible right next to the sidebar trigger when the sidebar is open, matching the user's screenshot reference.
 
-The current `AppSidebar` loads `polygon-logo.svg` from polygongroup.com, which includes the full "POLYGON" wordmark. The user wants only the round swirl/triangle symbol from the uploaded reference image — no text.
+### 2. Remove duplicate "Mine Opgaver" — keep one widget at top
+The dashboard currently renders:
+- Top: `WeeklyAssignments` (titled "Mine Opgaver" via `dashboard.myAssignments`) showing the entire week.
+- Bottom: `<MineOpgaver />` showing user-personal tasks.
 
-Steps:
-- Copy the uploaded reference `user-uploads://Polygon_logo_png.png` into `src/assets/polygon-mark.png` so we own the asset and don't depend on the external CDN.
-- Crop the image during build by rendering it inside a fixed-size container with `object-cover` + a negative offset so only the left-hand swirl symbol is visible (the wordmark is cropped out). Alternatively, the cleanest approach: ask Lovable AI Gateway is unnecessary — we render the image with `object-contain` inside a `w-8 h-8` square and shift it horizontally with `object-[0%_center]` + `scale-[2.4]` and `overflow-hidden` on the parent so only the round mark shows. We will use this technique to avoid needing a separate cropped file.
-- Replace the `<img src="https://www.polygongroup.com/...">` block in `AppSidebar.tsx` (and the collapsed "P" tile) with the same icon-only mark in both states. Expanded sidebar: `h-7 w-7`. Collapsed rail: `h-7 w-7`. No text, no blue "P" placeholder.
-- Use the same icon-only mark in `src/components/Layout/NavComponents/Logo.tsx` for consistency wherever it's reused (login page, etc.).
+User wants the **top** card to be the personal one, and the bottom one removed.
 
-If the cropping trick produces visual artifacts, fall back to manually exporting a cropped PNG (icon-only) into `src/assets/polygon-mark.png` and reference that directly with `object-contain`.
+In `src/components/Dashboard/DashboardCockpit.tsx`:
+- Remove the `<MineOpgaver />` render and its import.
+- Add a memo `personalWeekAssignments` that filters `weekAssignments` to those where the current user is responsible (`responsibleUser.id` / `responsibleUserId === user.id`) OR an assigned employee (new shape `assignedEmployees[].id` or legacy `employees[]` containing `user.id`). Strict ID-only match — never name match.
+- Pass `personalWeekAssignments` to `WeeklyAssignments` only when `showMyTasks` is true; otherwise pass full `weekAssignments` (admins/skadeleders still see everything).
 
-### 2. Move KPI metrics above "Mine Opgaver" on the dashboard
+`MineOpgaver.tsx` itself stays in the codebase (still used in `ServicemedarbejderDashboard.tsx`) — only the duplicate render in `DashboardCockpit` is removed.
 
-Currently `DashboardCockpit.tsx` renders:
-- LEFT column (2/3): `WeeklyAssignments` (= "Mine Opgaver") + `QuickAccessGrid`.
-- RIGHT column (1/3, sticky): `CompactKpiStack` (the metrics: Medarbejdere / Biler / Fraværende / Lager) + `VacationNotificationsPanel` + `DutySummaryWidget` + `UpcomingVacationsWidget`.
+### 3. Ferieoversigt visible in topbar
+The dropdown is currently rendered in `AppTopBar` but only when `isEffectiveAdmin || isSkadeleder`. Two issues to fix:
 
-The user's screenshot shows the small KPI tiles row (Ugeplan / Fridage / Vagt / Medarbejdere / Biler quick-access cards). They want the **metrics** moved to sit directly above "Mine Opgaver" — i.e. as a horizontal strip at the top of the LEFT column.
+**a) Defensive rendering**: `VacationOverviewDropdown` calls `vacations.filter(...)` — if `vacations` is `undefined` (initial load before department resolved) the component throws and the trigger never paints. Wrap with `(vacations ?? [])`.
 
-Changes in `DashboardCockpit.tsx`:
-- Move `CompactKpiStack` out of the right `<aside>` and place it as the first child of the left column, above `WeeklyAssignments`.
-- Render it only when `showMetrics` is true (unchanged condition).
-- Convert `CompactKpiStack` rendering to a horizontal layout when used at the top: pass a new optional prop `orientation="horizontal"` so the four KPIs render as a 2-col (mobile) / 4-col (md+) grid of compact tiles instead of a vertical stacked card. Existing vertical usage (none after this move, but kept for safety) stays as default.
-- In `CompactKpiStack.tsx`: when `orientation === 'horizontal'`, wrap the KPI rows in a `grid grid-cols-2 md:grid-cols-4 gap-2` layout, replace the `border-b` row separator with bordered tile cards (`Card` with `p-3`), keep the colored icon chip + label + value/total layout. Click handlers and modals stay identical.
-- Right `<aside>` keeps `VacationNotificationsPanel`, `DutySummaryWidget`, `UpcomingVacationsWidget` (and is no longer dominated by the KPI block).
+**b) Discoverability**: Even when rendered the trigger is just a 32×32 icon with no badge when there are 0 pending — easy to miss. Make it more prominent:
+- Always show a subtle filled chip background (`chip-glass-primary` or `bg-primary/10`) for the trigger so it's visually anchored next to the user menu.
+- Show pending count badge at all times (small `0` is fine, or hide only when undefined). Tooltip: "Ferieoversigt".
+- Add `aria-haspopup="menu"`.
+
+This guarantees the icon is rendered and clearly visible.
+
+### 4. Premium chip redesign (truly premium, not "cheap")
+Current frosted-glass chips look noisy in grid view because every detail (time, car, employee, responsible) becomes a colored pill stacked vertically. Cleaner design:
+
+**A. New token: chip styling becomes monochrome by default with a single accent dot/icon.**
+- One unified `.chip` utility: `bg-card border border-border/60 rounded-md px-2 py-0.5 text-xs font-medium text-foreground inline-flex items-center gap-1.5`. Subtle inset highlight, no per-row color floods.
+- Icons keep their semantic color (`text-primary` for time, `text-amber-600` for car, `text-emerald-600` for users, `text-indigo-600` for responsible) — but the chip body stays neutral. This reads as a premium SaaS app (Linear / Notion / Height) instead of rainbow stickers.
+- Remove `chip-glass-primary/amber/emerald/indigo` from `AssignmentDetails`, `MineOpgaver`, and `AssignmentCard` — replace with the single neutral `.chip`. Only `chip-glass-destructive` (used for `ConflictBadge` and shared-car warning) keeps a colored body.
+
+**B. Restructure assignment card grid view content**
+Current grid view (`AssignmentDetails`) shows: time chip / car chips / employee chips in a 2-column grid + the responsible user separately in `AssignmentCard`. This piles up.
+
+New layout for `AssignmentDetails` (used in `AssignmentCard`):
+```
+[ 08:00–14:00 ]   ·   Bil 12   Bil 14            (single row, wraps)
+[ 👥 3 medarbejdere ▾ ]   [ 🧑‍💼 Mads (sagsansvarlig) ]
+```
+- Row 1: time chip + small bullet separator + car names as plain neutral chips (icon‑only Car icon prefix on the row, not on each chip).
+- Row 2: employees collapsed into a single chip "👥 3 medarbejdere" with a hover popover listing names. If ≤ 2 employees, show their first names inline. Responsible user gets its own chip with `UserCheck` icon.
+- This fits in one tidy block per assignment, even on grid view.
+
+**C. AssignmentCard polish**
+- Replace harsh left border (`border-l-[3px] border-l-emerald-500`) with a softer 2px accent + status dot in the header row (green dot = published, amber dot = draft). Conflict still uses `border-l-destructive` + ring.
+- Card background: subtle gradient `bg-gradient-to-br from-card to-card/60` with `border-border/60` and `shadow-xs`. Hover lifts via existing `.brand-card-hover`.
+- Title row spacing tightened (gap-1.5).
+
+**D. CompactAssignmentRow grid/table**
+- Remove per-cell colored icons; use uniform `text-muted-foreground` icons sized `h-3.5 w-3.5`. Status column uses the new dot pattern. Conflict ⚠ stays red.
 
 ### Files touched
-- `src/assets/polygon-mark.png` (new — copied from upload)
-- `src/components/Layout/AppSidebar.tsx` (icon-only logo, both states)
-- `src/components/Layout/NavComponents/Logo.tsx` (icon-only logo)
-- `src/components/Dashboard/DashboardCockpit.tsx` (move KPI to top of left column)
-- `src/components/Dashboard/CompactKpiStack.tsx` (add `orientation` prop, horizontal grid variant)
+- `src/components/Layout/AppSidebar.tsx` (logo)
+- `src/components/Dashboard/DashboardCockpit.tsx` (remove MineOpgaver, personal filter)
+- `src/components/Layout/NavComponents/VacationOverviewDropdown.tsx` (defensive `vacations`, prominent trigger)
+- `src/index.css` (new neutral `.chip` utility, retire colored variants except destructive)
+- `src/components/Planner/AssignmentDetails.tsx` (new compact layout, popover for employees)
+- `src/components/Planner/AssignmentCard.tsx` (status dot header, softer accent, gradient)
+- `src/components/Planner/CompactAssignmentRow.tsx` (neutral chips, status dot)
+- `src/components/Dashboard/MineOpgaver.tsx` (use new neutral chips)
 - `CHANGELOG.md`
 
 ### Out of scope
-- No changes to KPI data, modals, or click behavior.
-- No changes to routing, translations, or DB.
-- `MineOpgaver.tsx` is unchanged (the "Mine Opgaver" card on the dashboard is `WeeklyAssignments` titled via `dashboard.myAssignments`).
+- No DB changes. No translation changes (all keys already exist).
+- `MineOpgaver.tsx` is not deleted — still used by `ServicemedarbejderDashboard`.

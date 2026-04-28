@@ -57,11 +57,9 @@ const KpiRow: React.FC<KpiRowProps> = ({ label, value, total, icon: Icon, onClic
 interface CompactKpiStackProps {
   /** ISO yyyy-MM-dd. Defaults to today. */
   selectedDate?: string;
-  /** Layout: 'vertical' (stacked card, default) or 'horizontal' (grid of tiles) */
-  orientation?: 'vertical' | 'horizontal';
 }
 
-const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, orientation = 'vertical' }) => {
+const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate }) => {
   const { metrics, loading, error, assignments, vacations } = useDashboardMetrics();
   const { t } = useTranslation();
   const { isWarehouseEnabled } = useDepartment();
@@ -148,52 +146,18 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, orienta
 
   return (
     <>
-      {orientation === 'horizontal' ? (
-        <div className={cn('grid grid-cols-2 gap-2', rows.length >= 4 ? 'md:grid-cols-4' : 'md:grid-cols-3')}>
-          {rows.map((r) => {
-            const accentMap = {
-              primary: 'text-primary bg-primary/10',
-              success: 'text-success bg-success/10',
-              warning: 'text-warning bg-warning/10',
-              destructive: 'text-destructive bg-destructive/10',
-            } as const;
-            const Icon = r.icon;
-            return (
-              <button
-                key={r.key}
-                onClick={r.onClick}
-                className="group flex items-center gap-3 rounded-xl border border-border bg-card hover:bg-accent/40 transition-colors px-3 py-2.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <div className={cn('h-8 w-8 rounded-md flex items-center justify-center shrink-0', accentMap[r.accent || 'primary'])}>
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">{r.label}</p>
-                  <p className="tabular-nums leading-tight">
-                    <span className="text-lg font-semibold text-foreground">{r.value}</span>
-                    {r.total !== undefined && (
-                      <span className="text-xs text-muted-foreground ml-0.5">/ {r.total}</span>
-                    )}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
+      <Card className="p-0 overflow-hidden">
+        <div className="px-4 py-3 border-b border-border brand-card-header">
+          <h3 className="text-sm font-semibold brand-dot text-foreground">
+            {t('dashboard.metrics.title') || 'Nøgletal'}
+          </h3>
         </div>
-      ) : (
-        <Card className="p-0 overflow-hidden">
-          <div className="px-4 py-3 border-b border-border brand-card-header">
-            <h3 className="text-sm font-semibold brand-dot text-foreground">
-              {t('dashboard.metrics.title') || 'Nøgletal'}
-            </h3>
-          </div>
-          <div>
-            {rows.map((r, i) => (
-              <KpiRow key={r.key} {...r} isLast={i === rows.length - 1} />
-            ))}
-          </div>
-        </Card>
-      )}
+        <div>
+          {rows.map((r, i) => (
+            <KpiRow key={r.key} {...r} isLast={i === rows.length - 1} />
+          ))}
+        </div>
+      </Card>
 
       <EmployeeAvailabilityDialog
         open={employeeModalOpen}

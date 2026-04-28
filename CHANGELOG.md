@@ -1,12 +1,6 @@
 # Changelog
 
-## 2026-04-28 — Icon-only Polygon mark + KPI metrics flyttet over Mine Opgaver
-
-### Ændret
-- Sidebar/login logo viser nu kun Polygon-symbolet (swirl), ikke wordmark — lokalt asset i `src/assets/polygon-mark.png`.
-- KPI-metrics (`CompactKpiStack`) flyttet fra højre cockpit-panel til toppen af venstre kolonne, vist som horisontal grid (2 kolonner mobil / 4 kolonner desktop) direkte over Mine Opgaver.
-- Ny `orientation` prop på `CompactKpiStack` ('vertical' | 'horizontal').
-
+## 2026-04-28 — Premium chip redesign, Polygon logo & dashboard cleanup
 
 ### Tilføjet
 - **Polygon-logo i sidebar-header**: erstatter den blå `P`-flise med det officielle Polygon SVG-wordmark når sidebaren er åben. I collapsed icon-rail vises stadig den kompakte `P`-flise.

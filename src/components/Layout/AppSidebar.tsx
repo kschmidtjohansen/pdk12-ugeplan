@@ -13,7 +13,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { LayoutDashboard, Clock, Users, Car, Calendar, Shield, Package, Settings } from 'lucide-react';
-import polygonMark from '@/assets/polygon-mark.png';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -116,15 +115,26 @@ const AppSidebar: React.FC = () => {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border h-11 flex items-center justify-center px-2">
-        <Link to="/dashboard" onClick={closeMobile} className="flex items-center justify-center w-full overflow-hidden" aria-label="Polygon">
-          <img
-            src={polygonMark}
-            alt="Polygon"
-            className="h-7 w-7 object-contain select-none"
-            loading="eager"
-            fetchPriority="high"
-            draggable={false}
-          />
+        <Link to="/dashboard" onClick={closeMobile} className="flex items-center justify-center w-full overflow-hidden">
+          {collapsed ? (
+            <div
+              className="flex items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm h-8 w-8"
+              aria-label="Polygon"
+            >
+              <span className="text-sm font-bold tracking-tight">P</span>
+            </div>
+          ) : (
+            <img
+              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
+              alt="Polygon"
+              className="h-5 w-auto select-none"
+              width="110"
+              height="20"
+              loading="eager"
+              fetchPriority="high"
+              draggable={false}
+            />
+          )}
         </Link>
       </SidebarHeader>
 

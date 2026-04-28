@@ -72,7 +72,6 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* LEFT — main work surface (2/3) */}
       <div className="lg:col-span-2 space-y-4 min-w-0">
-        {showMetrics && <CompactKpiStack selectedDate={kpiDate} orientation="horizontal" />}
         <WeeklyAssignments
           assignments={personalWeekAssignments}
           selectedWeek={selectedWeek}
@@ -85,6 +84,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
 
       {/* RIGHT — sticky cockpit panel (1/3) */}
       <aside className="space-y-4 lg:sticky lg:top-14 lg:self-start">
+        {showMetrics && <CompactKpiStack selectedDate={kpiDate} />}
         {showMetrics && isEffectiveAdmin && <VacationNotificationsPanel />}
         {isDutyEnabled && <DutySummaryWidget />}
         <UpcomingVacationsWidget vacations={vacations} />
