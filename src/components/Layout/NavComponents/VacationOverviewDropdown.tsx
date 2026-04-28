@@ -50,10 +50,10 @@ const VacationOverviewDropdown: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
+          className="relative h-8 w-8 text-muted-foreground hover:text-foreground"
           aria-label={t('navigation.vacation')}
         >
-          <CalendarDays className="h-4 w-4" />
+          <CalendarDays className="h-[15px] w-[15px]" />
           {pending.length > 0 && (
             <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold tabular-nums px-1 h-4 min-w-[16px]">
               {pending.length}

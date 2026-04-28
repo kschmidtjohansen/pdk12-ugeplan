@@ -3,11 +3,15 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Send, Trash2, Copy, MapPin, Clock, Users, Car as CarIcon } from 'lucide-react';
+import { Pencil, Send, Trash2, Copy, MapPin, Clock, Users, Car as CarIcon, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
 import AssignmentStatusBadge from './AssignmentStatusBadge';
+import ConflictBadge from './ConflictBadge';
+import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
+import { useAssignments } from '@/hooks/useAssignments';
+import { cn } from '@/lib/utils';
 
 interface CompactAssignmentRowProps {
   assignment: Assignment;
@@ -33,6 +37,10 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   operationState
 }) => {
   const { t } = useTranslation();
+  const { assignments: allAssignments } = useAssignments();
+  const { getConflicts } = useAssignmentConflicts(allAssignments);
+  const conflicts = getConflicts(assignment.id);
+  const hasConflict = conflicts.length > 0;
   
   // Get car names
   const getCarNames = (): string[] => {
@@ -71,7 +79,11 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <tr 
-          className={`hover:bg-blue-50/50 dark:hover:bg-slate-800/50 border-b border-l-2 ${assignment.published ? 'border-l-green-500' : 'border-l-amber-400'} group transition-colors cursor-pointer ${isLoading ? 'opacity-60' : ''}`}
+          className={cn(
+            'hover:bg-blue-50/50 dark:hover:bg-slate-800/50 border-b border-l-2 group transition-colors cursor-pointer',
+            hasConflict ? 'border-l-destructive bg-destructive/5' : (assignment.published ? 'border-l-green-500' : 'border-l-amber-400'),
+            isLoading && 'opacity-60'
+          )}
           onClick={onViewDetails}
         >
       {/* Time */}
@@ -79,6 +91,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
         <div className="flex items-center gap-1.5">
           <Clock className="h-3.5 w-3.5 text-muted-foreground" />
           <span>{timeDisplay}</span>
+          {hasConflict && <ConflictBadge conflicts={conflicts} size="sm" />}
         </div>
       </td>
       

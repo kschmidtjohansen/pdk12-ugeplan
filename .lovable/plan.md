@@ -1,110 +1,114 @@
-## Plan: Dashboard color polish, role gating & navbar improvements
+## Plan: Conflict indicator, smaller navbar, mobile polish & glass-style chips
 
-### 1. Add color to Mine Opgaver cards (time, employees, car)
-File: `src/components/Dashboard/MineOpgaver.tsx`
-
-Today the small info rows (time, employees, cars) all use `text-muted-foreground` so the card looks gray. Apply the brand color system already defined in `index.css`:
-
-- Time row: `text-primary` icon + `text-foreground` text inside a `bg-primary/8 border border-primary/15 rounded-md px-2 py-0.5` chip.
-- Employees row: emerald accent — icon `text-emerald-600`, chip `bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20`.
-- Cars row: amber accent — icon `text-amber-600`, chip `bg-amber-50 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20`.
-- Sagsansvarlig already has `text-indigo-600` — keep, but add a soft pill background for consistency.
-- Card hover: change to `hover:border-primary/30 hover:shadow-sm` plus `border-l-2 border-l-primary/40` accent stripe for assignments where current user is `responsibleUser`.
-
-The same color treatment is applied in `src/components/Planner/AssignmentCard.tsx` (and `CompactAssignmentRow.tsx`) so weekly cards no longer look gray.
-
-### 2. Color the Planner view-toggle (Standard / Gitter / Kompakt)
-File: `src/pages/PlannerPage.tsx` (lines ~558–595)
-
-Replace the flat `bg-muted` ToggleGroup styling with a brand-on-active style:
-- Container: `bg-card border border-border` (kept).
-- Active item: `data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm` (replaces `bg-background`).
-- Icons inherit `currentColor` so they turn white when active.
-- "Udvid alle" button: switch to `variant="brand"` outline equivalent (`border-primary/30 text-primary hover:bg-primary/8`).
-
-### 3. Fix Mine Opgaver — show only assignments where the user is responsible OR assigned
-File: `src/components/Dashboard/MineOpgaver.tsx` + `src/utils/employeeAssignmentUtils.ts` (helper if missing)
-
-Current bug: legacy `employees?.includes(user.name)` matches by display name, which can collide (e.g. Kasper Schmidt Johansen showing). Replace the check with strict ID-based matching:
+### 1. Conflict detection (employee + car double-booking) in week view
+**New file:** `src/utils/assignmentConflicts.ts` — pure helpers:
 
 ```ts
-const isAssignedViaNew = assignment.assignedEmployees?.some(e => e.id === user.id) ?? false;
-const isAssignedViaLegacy = Array.isArray(assignment.employees)
-  && assignment.employees.includes(user.id); // IDs only, not names
-const isResponsible =
-  (assignment.responsibleUser?.id ?? assignment.responsibleUserId) === user.id;
-const isUserInvolved = isResponsible || isAssignedViaNew || isAssignedViaLegacy;
+export type ConflictKind = 'employee' | 'car';
+export interface AssignmentConflict {
+  kind: ConflictKind;
+  resourceId: string;       // employee or car id
+  resourceName: string;
+  withAssignmentId: string; // the other clashing assignment
+  withTitle: string;
+  overlap: { from: string; to: string };
+}
+
+// timesOverlap("08:00","12:00","11:00","13:00") => true (touching is NOT overlap)
+export function timesOverlap(aFrom: string, aTo: string, bFrom: string, bTo: string): boolean;
+
+// Returns conflicts grouped by assignment id, computed for the entire input set
+export function computeWeekConflicts(
+  weekAssignments: Assignment[],
+  employees: { id: string; name: string }[],
+  cars: { id: string; name: string }[]
+): Map<string, AssignmentConflict[]>;
 ```
 
-Drop the name-based fallback entirely. Add a defensive guard that requires `user?.id` before any inclusion.
+Algorithm: for each (date, resourceId) bucket, sort by `fromTime`, sweep neighbours, push a conflict pair on overlap. Resource extraction reuses the same logic already in `AssignmentDetails.getCarIds` and `assignedEmployees`/legacy `employees` ID array. Sub‑1ms even for 200 assignments.
 
-### 4. Vacation notifications widget — admin only
-File: `src/components/Dashboard/DashboardCockpit.tsx`
+**New hook:** `src/hooks/useWeekConflicts.ts` — wraps `useUnifiedData()` + memoizes by week assignments. Returns `(assignmentId) => AssignmentConflict[]`.
 
-Currently rendered for every user that sees metrics. Wrap with `useAuth().isEffectiveAdmin`:
+**UI integration:**
+- `src/components/Planner/AssignmentCard.tsx`: add a `ConflictBadge` next to the title — `Badge` with `AlertTriangle`, red glass style, tooltip listing each conflict (`Mads Fournaise: 08:00–12:00 ↔ 12-013832 (10:00–14:00)`). Card gets `border-l-destructive` left bar when in conflict (overrides published/unpublished color).
+- `src/components/Planner/CompactAssignmentRow.tsx`: small ⚠ icon in the "Time" cell with same tooltip.
+- `src/components/Dashboard/WeeklyAssignments.tsx`: reuse the same hook so conflict pills show on the dashboard week list too.
 
-```tsx
-{showMetrics && isEffectiveAdmin && <VacationNotificationsPanel />}
+No DB changes, purely client-side over already-fetched week data.
+
+### 2. Smaller, denser top navbar
+File: `src/components/Layout/AppTopBar.tsx`
+- `header` height `h-14` → `h-11` (44px). Update `AppSidebar` header from `h-14` to `h-11` to match.
+- Title: `text-sm` → `text-[13px]`, drop the vertical separator on small screens (already hidden, keep).
+- Reduce icon button sizes inside `NotificationsDropdown`, `VacationOverviewDropdown`, `ChangeLogDropdown`, `UserMenu` from `h-9 w-9` to `h-8 w-8` and icons `h-4 w-4` → `h-[15px] w-[15px]`. UserMenu avatar `h-8 w-8` → `h-7 w-7`.
+- `brand-stripe` height `h-[2px]` → `h-px`.
+- Adjust `lg:top-20` sticky offsets in `DashboardCockpit` aside to `lg:top-14`.
+
+### 3. Mobile polish (global)
+**Sidebar auto-close on navigation:**
+- `src/components/Layout/AppSidebar.tsx`: in `renderItem`, the `<NavLink>` already exists. Add `onClick={() => { if (isMobile) setOpenMobile(false); }}` using `useSidebar()`'s `isMobile` + `setOpenMobile`. Apply to both regular and footer (admin) items.
+
+**Top navbar mobile:**
+- Hide route title `<h1>` on `< sm` (already 1 line of text after burger). Replace with the brand "P" logo so user sees branding. The `SidebarTrigger` (burger) stays — first element, larger tap target `h-9 w-9` on mobile.
+- Make the action cluster compact: gap `gap-1` on mobile, `gap-1.5` on `sm`.
+
+**Page paddings:** Several pages use `p-6` / `gap-6`. Audit and switch to `p-3 sm:p-4 lg:p-6` and `gap-3 sm:gap-4` in:
+- `src/pages/DashboardPage.tsx`
+- `src/pages/PlannerPage.tsx` (top toolbar & search bar)
+- `src/pages/CarsPage.tsx`, `EmployeesPage.tsx`, `VacationPage.tsx`, `DutyPage.tsx`, `WarehousePage.tsx`
+- `src/components/shared/ListPageShell.tsx` to set the responsive padding centrally.
+
+**Tables → cards on mobile:**
+- Lists already have `MobileEmployeeCard` / `MobileCarCard` / `MobileWarehouseCard` — verify each list page renders them on `< md` and hides the table. Where missing, wrap the desktop `<Table>` in `hidden md:block` and the mobile card list in `md:hidden`.
+
+**Planner toolbar on mobile:**
+- The view-toggle is already `hidden sm:flex`. Move the "Vis på Skærm" + "Ny opgave" buttons into a single row that wraps cleanly; reduce label visibility on `< sm` (icon-only).
+
+**Touch targets:** every button used in cards (`h-6 w-6`) is bumped to `h-8 w-8` on `< sm` via responsive class.
+
+**Dialogs:** verify `DialogContent` uses `max-h-[90dvh]` and `w-[calc(100%-1rem)] sm:w-auto`. Patch `src/components/ui/dialog.tsx` if missing.
+
+### 4. Glass-style color polish
+The current chips use flat tint backgrounds (`bg-amber-50`, `bg-emerald-50`). Upgrade to translucent layered glass.
+
+**New utilities in `src/index.css`** (under `@layer utilities`):
+
+```css
+.chip-glass {
+  background: linear-gradient(180deg, hsl(var(--card)/.7) 0%, hsl(var(--card)/.55) 100%);
+  border: 1px solid hsl(var(--border)/.7);
+  backdrop-filter: saturate(140%) blur(8px);
+  -webkit-backdrop-filter: saturate(140%) blur(8px);
+  box-shadow: inset 0 1px 0 0 hsl(0 0% 100%/.5), 0 1px 2px hsl(222 20% 14%/.04);
+}
+.chip-glass-primary  { /* same base + primary tint overlay */ }
+.chip-glass-amber    { ... }
+.chip-glass-emerald  { ... }
+.chip-glass-indigo   { ... }
+.chip-glass-destructive { ... }
 ```
 
-(Imports `useAuth`. No change to `VacationNotificationsPanel.tsx` itself.)
+Each tinted variant uses the same translucent card base + a 12% color overlay + 1px colored inner ring (`box-shadow: inset 0 0 0 1px hsl(var(--primary)/.25)`), giving a frosted-glass look that adapts to light/dark.
 
-### 5. Move "Admin" to the bottom of the sidebar
-File: `src/components/Layout/AppSidebar.tsx`
+**Apply in:**
+- `src/components/Planner/AssignmentDetails.tsx` — replace the icon container + badge classes for time/cars/employees with `chip-glass-primary`, `chip-glass-amber`, `chip-glass-emerald`.
+- `src/components/Dashboard/MineOpgaver.tsx` — same chip classes for time/cars/employees/sagsansvarlig.
+- `AssignmentStatusBadge.tsx` — published/unpublished use `chip-glass-emerald` / `chip-glass-amber`.
+- The new `ConflictBadge` uses `chip-glass-destructive`.
 
-The `allItems` array already lists Admin last, but it currently appears among the regular items. Move the Admin entry into the `SidebarFooter` so it sits visually pinned at the bottom (above the "Polygon Ugeplan" caption). Render it with the same `SidebarMenuButton` styling as the main list. Filtering rules (`adminOnly` + `isEffectiveAdmin`) are preserved.
-
-### 6. Add a Vacation overview popover in the top navbar (Skadeleder/Admin/Super Admin only)
-Files:
-- New: `src/components/Layout/NavComponents/VacationOverviewDropdown.tsx`
-- `src/components/Layout/AppTopBar.tsx` — add the trigger between `NotificationsDropdown` and `ChangeLogDropdown`.
-
-Behavior:
-- Icon: `CalendarDays` from lucide.
-- Visible only when `isEffectiveAdmin` OR role is `skadeleder` (use `usePermissions().canManageVacations` if it exists, otherwise check `user.role` directly).
-- Shows a compact list of pending vacation requests (re-uses `useVacations` + `useVacationApprovalActions` already used by `VacationNotificationsPanel`) with inline approve/reject and a footer "Se alle fridage" link to `/vacation`.
-- Badge with `pendingCount` when > 0 (red dot if 0 pending hidden).
-
-This replaces the toast notification logic currently inside `AppTopBar` (the toast fired once per session) — remove that `useEffect` block since the data is now always visible in the navbar.
-
-### 7. Sidebar collapsed by default
-File: `src/components/Layout/AppShell.tsx`
-
-Change `<SidebarProvider defaultOpen={true}>` → `<SidebarProvider defaultOpen={false}>`. The shadcn sidebar persists user preference via cookie (`sidebar:state`), so the change only affects first visits / users without a saved preference.
-
-### 8. Unify the per-day "Publicer Dagens Opgaver" button with the top "Publicer alle" style
-Files:
-- `src/components/Planner/DaySection.tsx` (line ~106)
-- `src/components/Planner/CompactDaySection.tsx` (line ~86)
-
-Currently the day button uses a hard-coded green (`bg-green-600 hover:bg-green-700`). Replace with the same brand variant used by the top toolbar's create/publish actions and keep the paperplane (`Send`) icon:
-
-```tsx
-<Button onClick={handlePublishDay} variant="brand" size="sm">
-  <Send className="mr-2 h-4 w-4" />
-  {t("planner.publishDayTasks")}
-</Button>
-```
-
-Same change in compact mode (smaller icon/spacing kept).
-
-### 9. Documentation & changelog
-- Update `CHANGELOG.md` with a dated entry summarizing the eight changes above.
-- Mark the relevant tasks in `docs/implementation-plan/tasks.md` as `[x]`.
+Card hover: add `.brand-card-hover` utility (`hover:shadow-md hover:-translate-y-px transition` with `bg-card/80 backdrop-blur-sm`) on `AssignmentCard` and `MineOpgaver` rows.
 
 ### Files touched
-- `src/components/Dashboard/MineOpgaver.tsx`
-- `src/components/Dashboard/DashboardCockpit.tsx`
-- `src/components/Planner/AssignmentCard.tsx`
-- `src/components/Planner/CompactAssignmentRow.tsx`
-- `src/components/Planner/DaySection.tsx`
-- `src/components/Planner/CompactDaySection.tsx`
-- `src/pages/PlannerPage.tsx`
-- `src/components/Layout/AppShell.tsx`
-- `src/components/Layout/AppSidebar.tsx`
-- `src/components/Layout/AppTopBar.tsx`
-- `src/components/Layout/NavComponents/VacationOverviewDropdown.tsx` (new)
+- New: `src/utils/assignmentConflicts.ts`, `src/hooks/useWeekConflicts.ts`, `src/components/Planner/ConflictBadge.tsx`
+- `src/index.css` (chip-glass utilities + brand-card-hover)
+- `src/components/Layout/AppTopBar.tsx`, `AppSidebar.tsx`, `AppShell.tsx` (heights, sticky offsets, mobile auto-close)
+- `src/components/Layout/NavComponents/{NotificationsDropdown,ChangeLogDropdown,UserMenu,VacationOverviewDropdown}.tsx` (button sizes)
+- `src/components/Planner/AssignmentCard.tsx`, `CompactAssignmentRow.tsx`, `AssignmentDetails.tsx`, `AssignmentStatusBadge.tsx`
+- `src/components/Dashboard/MineOpgaver.tsx`, `WeeklyAssignments.tsx`, `DashboardCockpit.tsx` (sticky offset)
+- `src/components/shared/ListPageShell.tsx`, `src/components/ui/dialog.tsx` (mobile width/height)
+- All list pages for responsive padding + ensure mobile card variants render
 - `CHANGELOG.md`, `docs/implementation-plan/tasks.md`
 
 ### Out of scope
-No DB / RLS changes. No translation key additions beyond reuse of existing `dashboard.*` and `vacation.*` keys.
+- No DB / RLS / migration changes (all logic is client-side over existing data).
+- No new translation keys beyond `planner.conflicts.*` reused from existing `AssignmentForm` keys (already present per the grep above).

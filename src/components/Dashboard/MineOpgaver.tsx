@@ -295,10 +295,10 @@ const MineOpgaver: React.FC = () => {
 
             {/* Time */}
             <div className="flex items-center gap-1.5 text-xs">
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/8 border border-primary/15 text-foreground font-medium tabular-nums">
-                <Clock className="h-3 w-3 text-primary" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md chip-glass-primary font-semibold tabular-nums">
+                <Clock className="h-3 w-3" />
                 <span>{assignment.fromTime?.substring(0, 5)} - {assignment.toTime?.substring(0, 5)}</span>
-              </div>
+              </span>
             </div>
 
             {/* Cars */}
@@ -306,10 +306,10 @@ const MineOpgaver: React.FC = () => {
               const carNames = getCarNames(assignment);
               return carNames.length > 0 ? (
                 <div className="flex items-center gap-1.5 text-xs flex-wrap">
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-800 font-medium dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-200">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md chip-glass-amber font-semibold">
                     <Car className="h-3 w-3" />
                     <span>{carNames.join(', ')}</span>
-                  </div>
+                  </span>
                 </div>
               ) : null;
             })()}
@@ -329,7 +329,7 @@ const MineOpgaver: React.FC = () => {
                   <Users className="h-3 w-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                   <div className="flex flex-wrap gap-1">
                     {teamMembers.map((name, i) => (
-                      <span key={i} className="inline-flex px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-200">
+                      <span key={i} className="inline-flex px-1.5 py-0.5 rounded-md chip-glass-emerald font-semibold">
                         {name}
                       </span>
                     ))}
@@ -341,10 +341,10 @@ const MineOpgaver: React.FC = () => {
             {/* Show Sagsansvarlig if present */}
             {assignment.responsibleUser?.name && (
               <div className="flex items-center gap-1.5 text-xs">
-                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-800 font-medium dark:bg-indigo-500/10 dark:border-indigo-500/30 dark:text-indigo-200">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md chip-glass-indigo font-semibold">
                   <UserCheck className="h-3 w-3" />
                   <span>{t('planner.responsibleUser') || 'Sagsansvarlig'}: {assignment.responsibleUser.name}</span>
-                </div>
+                </span>
               </div>
             )}
           </div>

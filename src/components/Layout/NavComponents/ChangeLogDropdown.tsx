@@ -28,10 +28,10 @@ const ChangeLogDropdown: React.FC = () => {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="relative hover:bg-accent"
+          className="relative hover:bg-accent h-8 w-8"
           aria-label="View planner changes"
         >
-          <History className="h-5 w-5" />
+          <History className="h-[15px] w-[15px]" />
           {unviewedCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-2 w-2 rounded-full bg-red-500">
               <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping"></span>

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-04-28 — Conflict indicator, denser navbar, mobile polish & glass chips
+
+### Tilføjet
+- **Konfliktindikator for dobbeltbooking** (`useAssignmentConflicts`, `ConflictBadge`, `utils/assignmentConflicts.ts`): registrerer overlappende tider for samme medarbejder eller samme bil i den valgte uge. Vises som rødt glass-badge med ⚠ + antal konflikter på `AssignmentCard` (planner) og `CompactAssignmentRow`. Tooltip lister navn på resource + det clashende kald (titel + tid). Kortets venstre border bliver `destructive` ved konflikt.
+- **Frosted-glass chip-utilities** i `index.css`: `.chip-glass`, `.chip-glass-primary|amber|emerald|indigo|destructive` med translucent baggrund, backdrop-blur, indre highlight og farvet ring. Erstatter de tidligere flade `bg-amber-50` etc. for et mere premium look.
+- **`brand-card-hover`** utility (subtil løft + shadow på hover).
+
+### Ændret
+- **AppTopBar**: højde `h-14` → `h-11`; titel `text-[13px]`; trigger-knapper `h-8 w-8`; brand-stripe `h-px` → mindre, mere diskret navbar.
+- **AppSidebar**: header-højde matcher topbar (`h-11`); navigation lukker mobile sheet automatisk via `useSidebar().setOpenMobile(false)` når en ny rute vælges.
+- **AssignmentDetails / MineOpgaver**: chips bruger nu de nye glass-utilities — frosted look med farvet ring i stedet for fladt fyld.
+- **Mobile responsive paddings**: `DashboardPage`, `PlannerPage`, `DutyPage`, `CarsPage`, `EmployeesPage`, `VacationPage`, `WarehousePage` strammet til `px-3` / `py-3` på `< sm`.
+- **DashboardCockpit aside**: sticky offset opdateret til `lg:top-14` så den følger den nye topbar-højde.
+
+
 ## 2026-04-28 — Color polish, role gating & navbar improvements
 
 ### Tilføjet
