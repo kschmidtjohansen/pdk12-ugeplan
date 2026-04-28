@@ -113,38 +113,39 @@ export default function DutyPage() {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-3xl font-bold">{t('duty.title')}</h1>
-          <p className="text-sm text-muted-foreground mt-1 sm:mt-2">
-            {t('duty.upcomingDuties')}
-          </p>
+    <div className="min-h-screen w-full bg-background">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-5 space-y-4">
+        <div className="mb-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1 min-w-0">
+              <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">{t('duty.title')}</h1>
+              <p className="text-sm text-muted-foreground leading-relaxed">{t('duty.upcomingDuties')}</p>
+            </div>
+            <div className="flex gap-2 flex-wrap flex-shrink-0">
+              {canManage && (
+                <Button onClick={() => setDialogOpen(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+                  {t('duty.assignDuty')}
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSwapSelectDialogOpen(true)}
+                disabled={
+                  dutiesWithRoles.length === 0 ||
+                  (user?.role === 'servicemedarbejder'
+                    ? !dutiesWithRoles.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
+                    : !dutiesWithRoles.some(d => d.employee_id === user.id))
+                }
+              >
+                <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
+                {t('duty.swapDuty')}
+              </Button>
+            </div>
+          </div>
+          <div className="mt-4 h-px bg-border" />
         </div>
-        
-        <div className="flex gap-2 flex-wrap flex-shrink-0">
-          {canManage && (
-            <Button onClick={() => setDialogOpen(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1 sm:mr-2" />
-              {t('duty.assignDuty')}
-            </Button>
-          )}
-          <Button 
-            variant="secondary"
-            size="sm"
-            onClick={() => setSwapSelectDialogOpen(true)}
-            disabled={
-              dutiesWithRoles.length === 0 || 
-              (user?.role === 'servicemedarbejder'
-                ? !dutiesWithRoles.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
-                : !dutiesWithRoles.some(d => d.employee_id === user.id))
-            }
-          >
-            <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
-            {t('duty.swapDuty')}
-          </Button>
-        </div>
-      </div>
 
       {error && (
         <Card className="border border-destructive/30 bg-destructive/5">
