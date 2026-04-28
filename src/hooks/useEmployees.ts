@@ -3,6 +3,7 @@ import { useEmployeeData } from './employee/useEmployeeData';
 import { useEmployeeFormState } from './employee/useEmployeeFormState';
 import { useEmployeeActions } from './employee/useEmployeeActions';
 import { useEmployeeCreation } from './employee/useEmployeeCreation';
+import { notifyOwnAction } from '@/lib/realtimeUtils';
 
 export const useEmployees = () => {
   const { employees, loading, error, fetchEmployees } = useEmployeeData();
@@ -18,10 +19,12 @@ export const useEmployees = () => {
   const { createEmployee: createEmployeeFromCreationHook } = useEmployeeCreation(fetchEmployees);
 
   const createEmployee = async () => {
+    notifyOwnAction();
     return await createEmployeeFromCreationHook(formState.formData);
   };
 
   const updateEmployee = async () => {
+    notifyOwnAction();
     if (formState.currentEmployee) {
       return await updateEmployeeAction(formState.currentEmployee, formState.formData);
     }
@@ -29,10 +32,12 @@ export const useEmployees = () => {
   };
 
   const deleteEmployee = async (employeeId: string) => {
+    notifyOwnAction();
     return await deleteEmployeeAction(employeeId, employees);
   };
 
   const toggleEmployeeLeave = async (employee: typeof employees[0], setOnLeave: boolean, notes: string | null = null) => {
+    notifyOwnAction();
     return await toggleEmployeeLeaveAction(employee, setOnLeave, notes);
   };
 
