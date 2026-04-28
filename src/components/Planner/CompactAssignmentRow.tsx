@@ -80,8 +80,10 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       <ContextMenuTrigger asChild>
         <tr 
           className={cn(
-            'hover:bg-blue-50/50 dark:hover:bg-slate-800/50 border-b border-l-2 group transition-colors cursor-pointer',
-            hasConflict ? 'border-l-destructive bg-destructive/5' : (assignment.published ? 'border-l-green-500' : 'border-l-amber-400'),
+            'hover:bg-accent/40 border-b group transition-colors cursor-pointer',
+            hasConflict
+              ? 'bg-destructive/5'
+              : '',
             isLoading && 'opacity-60'
           )}
           onClick={onViewDetails}
