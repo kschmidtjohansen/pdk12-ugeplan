@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-04-29 — UI-justeringer + Daglig opsummering på DaySection (Step 3/C)
+
+### Tilføjet
+- **`DaySummary`-komponent** (`src/components/Planner/DaySummary.tsx`): vises i `DaySection`-headeren **når dagen er kollapset**. Indeholder pastel-pills med antal publicerede / kladder / konflikter samt en avatar-stak (initialer, max 5 + "+N"-overflow med tooltip-liste over resterende navne). Hver avatar har hover-tooltip med fuldt navn.
+
+### Ændret
+- **Filter-chips flyttet ind i søge-card'et**: chips ligger nu nederst i samme `<div>` som søgefelt og visningstoggles, adskilt af `border-t`. Den separate `rounded-xl`-wrapper er fjernet — sparer plads i headeren.
+- **DayAbsenceRow tidsformat**: `HH:MM:SS` strippes til `HH:MM` (matcher projekt-terminologi-memory).
+- **Konflikt-stripe på `AssignmentCard` fjernet**: den venstre Polygon-blå border + ring vises ikke længere — konflikter signaleres stadig via `ConflictBadge` ved siden af titlen og status-prikken.
+- **"X medarbejdere"-pill**: skiftet fra klik-`Popover` til hover-`Tooltip` i `AssignmentDetails` så navnene vises ved hover (fortsat klikbar uden at åbne kortet).
+
+
 ## 2026-04-29 — Fraværsoverlay i DaySection + Polygon-blå medarbejder-pills (Step 2/B)
 
 ### Tilføjet
