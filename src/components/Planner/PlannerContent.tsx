@@ -28,6 +28,7 @@ interface PlannerContentProps {
   onPublishDay: (date: string) => void;
   onCreateAssignment: (date: string) => void;
   onCopyAssignment: (assignment: Assignment) => void;
+  onCopyDayFromYesterday?: (date: string) => void;
   selectedWeek: number;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
