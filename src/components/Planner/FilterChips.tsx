@@ -161,48 +161,57 @@ const FilterChips: React.FC<FilterChipsProps> = ({ weekAssignments }) => {
   const hasActive = activeFilters.size > 0;
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {chips.map((c) => {
-        const isActive = activeFilters.has(c.key);
-        return (
+    <TooltipProvider delayDuration={250}>
+      <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+        {chips.map((c) => {
+          const isActive = activeFilters.has(c.key);
+          return (
+            <Tooltip key={c.key}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => toggle(c.key)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+                    'hover:bg-muted/60',
+                    isActive
+                      ? c.activeClass
+                      : 'border-border bg-background text-muted-foreground'
+                  )}
+                  aria-pressed={isActive}
+                  aria-label={c.tooltip}
+                >
+                  <span>{c.label}</span>
+                  {c.count > 0 && (
+                    <span
+                      className={cn(
+                        'inline-flex items-center justify-center rounded-full px-1.5 text-[10px] leading-4 min-w-[18px]',
+                        isActive ? 'bg-background/60' : 'bg-muted'
+                      )}
+                    >
+                      {c.count}
+                    </span>
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[240px] text-xs">
+                {c.tooltip}
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+        {hasActive && (
           <button
-            key={c.key}
             type="button"
-            onClick={() => toggle(c.key)}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
-              'hover:bg-muted/60',
-              isActive
-                ? c.activeClass
-                : 'border-border bg-background text-muted-foreground'
-            )}
-            aria-pressed={isActive}
+            onClick={clearAll}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted/60"
           >
-            <span>{c.label}</span>
-            {c.count > 0 && (
-              <span
-                className={cn(
-                  'inline-flex items-center justify-center rounded-full px-1.5 text-[10px] leading-4 min-w-[18px]',
-                  isActive ? 'bg-background/60' : 'bg-muted'
-                )}
-              >
-                {c.count}
-              </span>
-            )}
+            <X className="h-3 w-3" />
+            {currentLanguage === 'da' ? 'Nulstil' : 'Clear'}
           </button>
-        );
-      })}
-      {hasActive && (
-        <button
-          type="button"
-          onClick={clearAll}
-          className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-muted/60"
-        >
-          <X className="h-3 w-3" />
-          {currentLanguage === 'da' ? 'Nulstil' : 'Clear'}
-        </button>
-      )}
-    </div>
+        )}
+      </div>
+    </TooltipProvider>
   );
 };
 
