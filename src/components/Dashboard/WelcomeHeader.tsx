@@ -9,27 +9,27 @@ interface WelcomeHeaderProps {
 }
 
 const getGreeting = (hour: number, name: string, lang: string): string => {
+  // Ranges (spec): 08–10 morgen, 10–12 formiddag, 12–16 eftermiddag, 16–24 aften.
+  // 00–08 falder uden for spec → vis "Godaften" (sen nat hører til aften-tonen).
   if (lang === 'da') {
     if (hour >= 8 && hour < 10) return `Godmorgen ${name}`;
     if (hour >= 10 && hour < 12) return `God formiddag ${name}`;
     if (hour >= 12 && hour < 16) return `God eftermiddag ${name}`;
-    if (hour >= 16 || hour < 5) return `Godaften ${name}`;
-    return `Hej ${name}`;
+    return `Godaften ${name}`;
   }
   if (hour >= 8 && hour < 10) return `Good morning, ${name}`;
   if (hour >= 10 && hour < 12) return `Good late morning, ${name}`;
   if (hour >= 12 && hour < 16) return `Good afternoon, ${name}`;
-  if (hour >= 16 || hour < 5) return `Good evening, ${name}`;
-  return `Hello, ${name}`;
+  return `Good evening, ${name}`;
 };
 
 const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) => {
   const { currentLanguage, t } = useTranslation();
   const [now, setNow] = useState<Date>(() => new Date());
 
-  // Update every second so the clock ticks live
+  // Update every 30s — enough to keep HH:MM, week and date live without churn
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
+    const id = window.setInterval(() => setNow(new Date()), 30000);
     return () => window.clearInterval(id);
   }, []);
 
@@ -47,7 +47,7 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
   };
 
   const headerDate = getHeaderDateDisplay();
-  const clockString = format(now, 'HH:mm:ss');
+  const clockString = format(now, 'HH:mm');
   const name = userName || t('common.user');
   const greeting = getGreeting(now.getHours(), name, currentLanguage);
 

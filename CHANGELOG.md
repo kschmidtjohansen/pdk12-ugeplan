@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-04-29 — Dashboard: HH:MM-ur, valideret hilsen og forbedret QuickAccess
+
+### Ændret
+- `WelcomeHeader.tsx`: Ur viser nu kun `HH:MM` (uden sekunder); opdaterer hvert 30. sek så ur, ugenummer og dato altid er live.
+- `WelcomeHeader.tsx`: Tidshilsen valideret og strammet op — 08–10 Godmorgen, 10–12 God formiddag, 12–16 God eftermiddag, 16–08 Godaften (ingen "Hej"-fallback i drift).
+- `QuickAccessGrid.tsx`: Tydeligere hover (primær-tonet baggrund + ikon i `primary`) og synlig `focus-visible`-ring for tastatur­navigation.
+
 ## 2026-04-29 — Dashboard: kompakte genveje, tidshilsen og live-ur
 
 ### Ændret

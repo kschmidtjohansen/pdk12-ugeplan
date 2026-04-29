@@ -58,13 +58,17 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
   return (
     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
       {items.map((item, index) => (
-        <Link key={index} to={item.link} className="block group">
-          <Card className="h-full transition-colors duration-150 hover:bg-accent/60 hover:border-border">
+        <Link
+          key={index}
+          to={item.link}
+          className="block group rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <Card className="h-full transition-all duration-150 hover:bg-accent hover:border-primary/40 hover:shadow-sm group-focus-visible:border-primary">
             <CardContent className="p-2.5 flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-muted text-foreground group-hover:bg-background group-hover:text-primary transition-colors shrink-0">
+              <div className="p-1.5 rounded-md bg-muted text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors shrink-0">
                 {item.icon}
               </div>
-              <h3 className="font-medium text-xs text-foreground truncate">
+              <h3 className="font-medium text-xs text-foreground truncate group-hover:text-primary transition-colors">
                 {item.title}
               </h3>
             </CardContent>
