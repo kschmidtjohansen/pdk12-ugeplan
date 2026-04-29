@@ -180,6 +180,14 @@ const DaySection: React.FC<DaySectionProps> = ({
                 operationState={operationStates[assignment.id]}
               />
             ))
+          ) : onCreateAssignment && onCopyDayFromYesterday ? (
+            <EmptyDayCTA
+              dateKey={dateKey}
+              yesterdayCount={yesterdayCount}
+              canEdit={canEdit}
+              onCreateAssignment={onCreateAssignment}
+              onCopyFromYesterday={onCopyDayFromYesterday}
+            />
           ) : (
             <div className="py-4 px-4 rounded-lg text-center text-muted-foreground bg-slate-50 dark:bg-slate-800/50">
               <CalendarX2 className="h-6 w-6 text-muted-foreground/50 mx-auto mb-1" />
