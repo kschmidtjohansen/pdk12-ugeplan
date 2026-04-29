@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-04-29 — Login: split-screen brand panel med animeret mesh-gradient
+
+### Ændret
+- `LoginPage.tsx`: redesignet til to-kolonne SaaS-layout. Venstre side er et Polygon-blåt brand-panel med animeret mesh-gradient (3 drivende blå/cyan/teal blobs), subtilt grid-overlay, logo, tagline, 3 feature-kort og kunde-citat. Højre side rummer en ren, centreret login-form med velkomst, brand-footer og bevarede mobil-fallback (logo).
+- `tailwind.config.ts`: tilføjet `mesh-drift`, `mesh-drift-alt` og `logo-shimmer` keyframes/animationer til login-baggrunden og logo-glow.
+- Alle visuelle elementer bruger semantiske design-tokens (`hsl(var(--primary))`, `text-primary-foreground` via `text-white` på den mørke gradient) og brand-farver fra `polygon.*` paletten.
+
+
 ## 2026-04-29 — Planner: tooltips på filter-chips + responsiv wrap
 
 ### Ændret
