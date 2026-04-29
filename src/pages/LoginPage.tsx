@@ -97,8 +97,13 @@ const LoginPage = () => {
       >
         <MeshBackground />
         <div className="relative z-10 flex flex-col items-center text-center space-y-3 animate-fade-in-up">
-          <div className="h-12 w-12 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center animate-logo-shimmer">
-            <span className="font-bold text-xl tracking-tight">P</span>
+          <div className="h-12 px-4 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center animate-logo-shimmer">
+            <img
+              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
+              alt="Polygon"
+              className="h-6 w-auto brightness-0 invert"
+              loading="eager"
+            />
           </div>
           <div>
             <h1 className="text-xl font-semibold tracking-tight">{headline}</h1>
@@ -116,8 +121,13 @@ const LoginPage = () => {
 
         {/* Top — logo + system-navn */}
         <div className="relative z-10 flex items-center gap-3 animate-fade-in-up">
-          <div className="h-10 w-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center animate-logo-shimmer">
-            <span className="font-bold text-lg tracking-tight">P</span>
+          <div className="h-10 px-3 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center animate-logo-shimmer">
+            <img
+              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
+              alt="Polygon"
+              className="h-5 w-auto brightness-0 invert"
+              loading="eager"
+            />
           </div>
           <span className="text-lg font-semibold tracking-tight">{headline}</span>
         </div>
