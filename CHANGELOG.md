@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-04-29 — Inline daglig publicering (Step 4/D) + DaySummary fjernet
+
+### Tilføjet
+- **Inline publicering pr. dag**: "Publicér N kladder"-knap i `DaySection`-headeren viser nu det præcise antal kladder for dagen. Klik åbner en `AlertDialog` med bekræftelse ("Publicér N kladder for {dato}?") inden bulk-publicering køres via eksisterende `publishAssignmentsByDate` (skriver allerede til `planner_change_log`).
+- Knappen er kun synlig når brugeren har `canPublishTasks` OG dagen indeholder mindst én kladde.
+
+### Fjernet
+- **`DaySummary`-komponent**: status-pills (✓ publiceret, kladder, konflikter) og avatar-stak i kollapset header er fjernet efter brugerønske — header er nu renere og kortere.
+
+
 ## 2026-04-29 — UI-justeringer + Daglig opsummering på DaySection (Step 3/C)
 
 ### Tilføjet

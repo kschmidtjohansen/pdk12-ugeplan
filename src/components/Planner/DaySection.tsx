@@ -8,7 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Send, ChevronDown, ChevronRight, CalendarX2 } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
 import DayAbsenceRow from './DayAbsenceRow';
-import DaySummary from './DaySummary';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 
 interface DaySectionProps {
@@ -56,16 +66,26 @@ const DaySection: React.FC<DaySectionProps> = ({
     console.log(`Formatted date for ${dateKey}: ${formattedDate} (${currentLanguage})`);
   }
   
-  const hasUnpublishedAssignments = Array.isArray(dayAssignments) && dayAssignments.some(a => !a.published);
+  const draftAssignments = Array.isArray(dayAssignments) ? dayAssignments.filter(a => !a.published) : [];
+  const hasUnpublishedAssignments = draftAssignments.length > 0;
+  const draftCount = draftAssignments.length;
   const assignmentsCount = Array.isArray(dayAssignments) ? dayAssignments.length : 0;
 
   const taskText = currentLanguage === 'da' 
     ? (assignmentsCount === 1 ? 'opgave' : 'opgaver')
     : (assignmentsCount === 1 ? 'task' : 'tasks');
 
+  const draftLabel = currentLanguage === 'da'
+    ? (draftCount === 1 ? 'kladde' : 'kladder')
+    : (draftCount === 1 ? 'draft' : 'drafts');
+
+  const publishLabel = currentLanguage === 'da'
+    ? `Publicér ${draftCount} ${draftLabel}`
+    : `Publish ${draftCount} ${draftLabel}`;
+
   const handlePublishDay = () => {
     if (onPublishDay) {
-      if (import.meta.env.DEV) console.log('[DaySection] Publishing day:', dateKey);
+      if (import.meta.env.DEV) console.log('[DaySection] Publishing day:', dateKey, 'drafts:', draftCount);
       onPublishDay(dateKey);
     }
   };
@@ -102,19 +122,34 @@ const DaySection: React.FC<DaySectionProps> = ({
           <div className="ml-2 text-sm text-muted-foreground select-none">
             ({assignmentsCount} {taskText})
           </div>
-          {!isExpanded && (
-            <DaySummary dayAssignments={dayAssignments} allAssignments={allAssignments} />
-          )}
         </div>
         
         {canPublishTasks && hasUnpublishedAssignments && (
-          <Button
-            onClick={handlePublishDay}
-            variant="brand"
-            size="sm"
-          >
-            <Send className="mr-2 h-4 w-4" /> {t("planner.publishDayTasks")}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="brand" size="sm">
+                <Send className="mr-2 h-4 w-4" /> {publishLabel}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {currentLanguage === 'da' ? `Publicér ${draftCount} ${draftLabel}?` : `Publish ${draftCount} ${draftLabel}?`}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {currentLanguage === 'da'
+                    ? `Alle kladder for ${formattedDate} bliver publiceret og synlige for medarbejderne.`
+                    : `All drafts for ${formattedDate} will be published and visible to employees.`}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{currentLanguage === 'da' ? 'Annullér' : 'Cancel'}</AlertDialogCancel>
+                <AlertDialogAction onClick={handlePublishDay}>
+                  {currentLanguage === 'da' ? 'Publicér' : 'Publish'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
 
