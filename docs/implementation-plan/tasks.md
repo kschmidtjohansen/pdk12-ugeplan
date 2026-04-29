@@ -311,7 +311,7 @@ Gennemført 2026-04-04.
 Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 
 - [x] Step 1 (A): `FilterChips` med URL-state (`mine`, `unpublished`, `conflicts`, `noResponsible`, `noLocation`)
-- [ ] Step 2 (B): Ferie/fravær-overlay i `DaySection`
+- [x] Step 2 (B): Ferie/fravær-overlay i `DaySection` (`DayAbsenceRow`) + Polygon-blå farveharmonisering på medarbejder-pills og konflikt-stripe
 - [ ] Step 3 (C): Daglig opsummering på `DaySection`-header (kollapset)
 - [ ] Step 4 (D): Inline-publicering pr. dag fra header
 - [ ] Step 5 (E): Tom-dag-handling (CTA)
