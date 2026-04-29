@@ -606,16 +606,21 @@ const PlannerPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Filter chips row */}
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-xs">
+          <FilterChips weekAssignments={weekAssignments} />
+        </div>
+
         {/* Search results indicator */}
         {searchQuery && (
           <div className="text-sm text-muted-foreground">
-            {sortedWeekAssignments.length === 0 ? (
+            {chipFilteredAssignments.length === 0 ? (
               <span>{t('planner.noSearchResults')}</span>
             ) : (
               <span>
                 {currentLanguage === 'da' 
-                  ? `${sortedWeekAssignments.length} ${sortedWeekAssignments.length === 1 ? 'opgave' : 'opgaver'} fundet`
-                  : `${sortedWeekAssignments.length} ${sortedWeekAssignments.length === 1 ? 'assignment' : 'assignments'} found`
+                  ? `${chipFilteredAssignments.length} ${chipFilteredAssignments.length === 1 ? 'opgave' : 'opgaver'} fundet`
+                  : `${chipFilteredAssignments.length} ${chipFilteredAssignments.length === 1 ? 'assignment' : 'assignments'} found`
                 }
               </span>
             )}
@@ -624,7 +629,7 @@ const PlannerPage: React.FC = () => {
 
         {/* Main Content */}
         <PlannerContent 
-          weekAssignments={sortedWeekAssignments} 
+          weekAssignments={chipFilteredAssignments} 
           operationStates={convertedOperationStates}
           expandedDays={expandedDays}
           onToggleExpansion={handleToggleExpansion}
