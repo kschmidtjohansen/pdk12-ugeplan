@@ -113,7 +113,9 @@ const DaySection: React.FC<DaySectionProps> = ({
           </Button>
         )}
       </div>
-      
+
+      <DayAbsenceRow dateKey={dateKey} />
+
       {isExpanded && (
         <div className={`w-full grid gap-3 animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
           {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
