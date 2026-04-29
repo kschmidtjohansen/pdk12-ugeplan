@@ -19,6 +19,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks, format } from 'date-fns';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import PlannerSearchFilter from '@/components/Planner/PlannerSearchFilter';
+import FilterChips, { applyPlannerFilters, useActivePlannerFilters } from '@/components/Planner/FilterChips';
+import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 
 const PlannerPage: React.FC = () => {
   const {
