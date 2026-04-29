@@ -145,7 +145,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <Card 
           className={cn(
             'relative w-full p-3 brand-card-hover bg-card border-border/60 shadow-xs',
-            hasConflict && 'border-l-[3px] border-l-destructive ring-1 ring-destructive/20',
+            hasConflict && 'border-l-[3px] border-l-primary ring-1 ring-primary/20',
             isLoading && 'opacity-75',
             onViewDetails && 'cursor-pointer'
           )}
