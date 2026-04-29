@@ -72,6 +72,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* LEFT — main work surface (2/3) */}
       <div className="lg:col-span-2 space-y-4 min-w-0">
+        <QuickAccessGrid userRole={userRole} />
         <WeeklyAssignments
           assignments={personalWeekAssignments}
           selectedWeek={selectedWeek}
@@ -79,7 +80,6 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
           onPreviousWeek={onPreviousWeek}
           onNextWeek={onNextWeek}
         />
-        <QuickAccessGrid userRole={userRole} />
       </div>
 
       {/* RIGHT — sticky cockpit panel (1/3) */}

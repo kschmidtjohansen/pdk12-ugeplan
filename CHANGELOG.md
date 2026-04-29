@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-04-29 — Dashboard: kompakte genveje, tidshilsen og live-ur
+
+### Ændret
+- **`QuickAccessGrid`**: kort er nu kompakte ikon+titel-rækker (beskrivelse fjernet, mindre padding, 3 kol. mobil / 5 kol. desktop). Flyttet **op over** "Mine Opgaver" / `WeeklyAssignments` i `DashboardCockpit`.
+- **`WelcomeHeader`**:
+  - Hilsen er nu tidsafhængig: 08–10 "Godmorgen", 10–12 "God formiddag", 12–16 "God eftermiddag", 16–00 "Godaften" (engelsk variant tilsvarende). Falder tilbage til "Hej" uden for intervallerne.
+  - Tilføjet **live-ur** (`HH:MM:SS`) i højre datoblok — opdateres hvert sekund. Datoblokkens uge/dato følger nu også real-tid (ikke kun mount-tid).
+
+
 ## 2026-04-29 — Tom-dag-handling (Step 5/E) + Fravær skjult ved kollaps
 
 ### Tilføjet
