@@ -349,7 +349,7 @@
   /* Pastel tonal pills */
   .chip-time     { background: hsl(152 70% 96%); color: hsl(152 55% 28%); border-color: hsl(152 60% 88%); }
   .chip-car      { background: hsl(210 95% 96%); color: hsl(214 80% 35%); border-color: hsl(210 80% 90%); }
-  .chip-person   { background: hsl(340 85% 97%); color: hsl(340 60% 38%); border-color: hsl(340 70% 92%); }
+  .chip-person   { background: hsl(197 95% 95%); color: hsl(197 90% 28%); border-color: hsl(197 85% 85%); }
   .chip-resp     { background: transparent; border-color: transparent; padding-left: 0; padding-right: 0; }
 
   .dark .chip-time   { background: hsl(152 60% 14% / 0.6); color: hsl(152 60% 75%); border-color: hsl(152 50% 24%); }
