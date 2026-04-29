@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-04-29 — Login: Husk mig, A11y, bedre fejl, intern tone & lækker mobil
+
+### Tilføjet
+- **"Husk mig"-checkbox** på login-formen. Når aktiv (default), persisteres sessionen i `localStorage` og overlever browser-restart. Når inaktiv, gemmes sessionen i `sessionStorage` og forsvinder når tabben lukkes.
+- **Hybrid storage-adapter** i `src/integrations/supabase/client.ts` der dynamisk vælger `localStorage` vs `sessionStorage` ud fra `auth_remember_me`-flag.
+- **Tydelige fejlbeskeder** klassificeret efter type: ugyldige credentials, netværksfejl (incl. offline-banner via `navigator.onLine`), timeout, lockout, manglende felter — hver med egen ikon og handlings-rettet tekst på dansk/engelsk.
+- **Success-toast og inline-success** med grøn `Alert` ved login.
+- **Fuld tastatur- og skærmlæser-tilgængelighed**: `aria-invalid`, `aria-required`, `aria-busy`, `aria-live="assertive"` på fejlregion med auto-fokus, korrekt `aria-label` på password-toggle (med `aria-pressed`), `noValidate`-form med `aria-describedby`. Email-feltet auto-fokuseres ved mount.
+
+### Ændret
+- **`LoginPage.tsx`** har en mere neutral, intern tone (ingen salgs-pitch, ingen citat, ingen "træk-og-slip"-omtale). Tagline: "Polygon Ugeplan — Internt planlægningssystem for skadeservice." Feature-kort beskriver nu reelle moduler (Ugeplan, Vagter & ferie, Adgang pr. afdeling).
+- **Mobil-layout (<lg)** viser nu samme animerede mesh-gradient som top-banner med logo, headline og undertekst. Login-card overlapper banneret med `-mt-10` for et lækkert moderne look. Spacing og typografi er afstemt til mobil.
+- **Sonner-toasts** brugt til alle login-notifikationer (success/fejl) i stedet for legacy `useToast`.
+
+
 ## 2026-04-29 — Login: split-screen brand panel med animeret mesh-gradient
 
 ### Ændret
