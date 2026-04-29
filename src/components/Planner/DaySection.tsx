@@ -7,6 +7,7 @@ import { formatDateWithCapital, getDateStatus } from '@/utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Send, ChevronDown, ChevronRight, CalendarX2 } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
+import DayAbsenceRow from './DayAbsenceRow';
 import { cn } from '@/lib/utils';
 
 interface DaySectionProps {
