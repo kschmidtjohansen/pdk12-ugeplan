@@ -152,17 +152,6 @@ const DaySection: React.FC<DaySectionProps> = ({
           </AlertDialog>
         )}
       </div>
-        
-        {canPublishTasks && hasUnpublishedAssignments && (
-          <Button
-            onClick={handlePublishDay}
-            variant="brand"
-            size="sm"
-          >
-            <Send className="mr-2 h-4 w-4" /> {t("planner.publishDayTasks")}
-          </Button>
-        )}
-      </div>
 
       <DayAbsenceRow dateKey={dateKey} />
 
