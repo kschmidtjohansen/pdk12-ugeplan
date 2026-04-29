@@ -52,8 +52,10 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
         </span>
         {dayVacations.map((v) => {
           const name = resolveName(v.user_id, v.user?.name);
+          // Strip seconds: "08:00:00" → "08:00"
+          const fmt = (t?: string) => (t ? t.slice(0, 5) : '');
           const isPartial = v.request_type === 'partial_day' && v.start_time && v.end_time;
-          const label = isPartial ? `${name} (${v.start_time}–${v.end_time})` : name;
+          const label = isPartial ? `${name} (${fmt(v.start_time)}–${fmt(v.end_time)})` : name;
           return (
             <Tooltip key={v.id}>
               <TooltipTrigger asChild>
