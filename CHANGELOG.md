@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-04-29 — Tom-dag-handling (Step 5/E) + Fravær skjult ved kollaps
+
+### Tilføjet
+- **`EmptyDayCTA`-komponent** (`src/components/Planner/EmptyDayCTA.tsx`): vises i udvidede dagsektioner uden opgaver. Indeholder "+ Tilføj opgave" (åbner opret-dialog forhåndsudfyldt med dagens dato) og "Kopiér fra i går (N)" (kopierer alle gårsdagens opgaver som kladder til den valgte dato).
+- **`handleCopyDayFromYesterday`** i `PlannerPage`: bulk-opretter kopier som kladder, springer over medarbejdere på godkendt fravær for målsdatoen, og viser toast med antal kopier + antal udeladte fravær-tildelinger.
+
+### Ændret
+- **`DayAbsenceRow`** vises nu kun når dagen er udvidet (`isExpanded`) — sammenklappede dage er fri for fraværspills for at holde headeren ren.
+
+
 ## 2026-04-29 — Inline daglig publicering (Step 4/D) + DaySummary fjernet
 
 ### Tilføjet

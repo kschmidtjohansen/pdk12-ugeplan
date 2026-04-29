@@ -314,7 +314,7 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Step 2 (B): Ferie/fravær-overlay i `DaySection` (`DayAbsenceRow`) + Polygon-blå farveharmonisering på medarbejder-pills og konflikt-stripe
 - [x] ~~Step 3 (C): Daglig opsummering på `DaySection`-header~~ — fjernet efter brugerønske (DaySummary slettet)
 - [x] Step 4 (D): Inline-publicering pr. dag fra header — "Publicér N kladder"-knap med AlertDialog-bekræftelse
-- [ ] Step 5 (E): Tom-dag-handling (CTA)
+- [x] Step 5 (E): Tom-dag-handling (CTA) — `EmptyDayCTA` med "+ Tilføj opgave" og "Kopiér fra i går" (springer over fravær)
 - [ ] Step 6 (F): Visuel "i dag"-markør i tidslinjen
 - [ ] Step 7 (G): Konflikt- og advarselscenter
 - [ ] Step 8 (H): "Hvad ændrede sig?" — daglig diff-stripe

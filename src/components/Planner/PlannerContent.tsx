@@ -28,6 +28,7 @@ interface PlannerContentProps {
   onPublishDay: (date: string) => void;
   onCreateAssignment: (date: string) => void;
   onCopyAssignment: (assignment: Assignment) => void;
+  onCopyDayFromYesterday?: (date: string) => void;
   selectedWeek: number;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
@@ -45,6 +46,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   onPublishDay,
   onCreateAssignment,
   onCopyAssignment,
+  onCopyDayFromYesterday,
   selectedWeek,
   selectedYear,
   weekDates,
@@ -202,6 +204,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             onPublishAssignment={onPublishAssignment}
             onCopyAssignment={onCopyAssignment}
             onViewDetails={setDetailsDialogAssignment}
+            onCreateAssignment={onCreateAssignment}
+            onCopyDayFromYesterday={onCopyDayFromYesterday}
             canEdit={canEdit}
             canPublishTasks={canPublishTasks}
             cars={cars}

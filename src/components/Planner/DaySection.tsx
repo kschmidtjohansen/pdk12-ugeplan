@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Send, ChevronDown, ChevronRight, CalendarX2 } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
 import DayAbsenceRow from './DayAbsenceRow';
+import EmptyDayCTA from './EmptyDayCTA';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +35,9 @@ interface DaySectionProps {
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
   onViewDetails?: (assignment: Assignment) => void;
+  onCreateAssignment?: (date: string) => void;
+  onCopyDayFromYesterday?: (date: string) => void;
+  yesterdayCount?: number;
   canEdit: boolean;
   canPublishTasks: boolean;
   cars?: Car[];
@@ -53,6 +57,9 @@ const DaySection: React.FC<DaySectionProps> = ({
   onPublishAssignment,
   onCopyAssignment,
   onViewDetails,
+  onCreateAssignment,
+  onCopyDayFromYesterday,
+  yesterdayCount = 0,
   canEdit,
   canPublishTasks,
   cars = [],
@@ -153,7 +160,7 @@ const DaySection: React.FC<DaySectionProps> = ({
         )}
       </div>
 
-      <DayAbsenceRow dateKey={dateKey} />
+      {isExpanded && <DayAbsenceRow dateKey={dateKey} />}
 
       {isExpanded && (
         <div className={`w-full grid gap-3 animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
@@ -173,6 +180,14 @@ const DaySection: React.FC<DaySectionProps> = ({
                 operationState={operationStates[assignment.id]}
               />
             ))
+          ) : onCreateAssignment && onCopyDayFromYesterday ? (
+            <EmptyDayCTA
+              dateKey={dateKey}
+              yesterdayCount={yesterdayCount}
+              canEdit={canEdit}
+              onCreateAssignment={onCreateAssignment}
+              onCopyFromYesterday={onCopyDayFromYesterday}
+            />
           ) : (
             <div className="py-4 px-4 rounded-lg text-center text-muted-foreground bg-slate-50 dark:bg-slate-800/50">
               <CalendarX2 className="h-6 w-6 text-muted-foreground/50 mx-auto mb-1" />
