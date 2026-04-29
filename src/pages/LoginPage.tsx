@@ -129,7 +129,7 @@ const LoginPage = () => {
               loading="eager"
             />
           </div>
-          <span className="text-lg font-semibold tracking-tight">{headline}</span>
+          
         </div>
 
         {/* Middle — neutral systembeskrivelse */}
