@@ -102,6 +102,9 @@ const DaySection: React.FC<DaySectionProps> = ({
           <div className="ml-2 text-sm text-muted-foreground select-none">
             ({assignmentsCount} {taskText})
           </div>
+          {!isExpanded && (
+            <DaySummary dayAssignments={dayAssignments} allAssignments={allAssignments} />
+          )}
         </div>
         
         {canPublishTasks && hasUnpublishedAssignments && (
