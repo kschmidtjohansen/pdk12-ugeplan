@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Send, ChevronDown, ChevronRight, CalendarX2 } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
 import DayAbsenceRow from './DayAbsenceRow';
+import EmptyDayCTA from './EmptyDayCTA';
 import {
   AlertDialog,
   AlertDialogAction,
