@@ -170,8 +170,8 @@ const LoginPage = () => {
           style={{ animationDelay: '420ms' }}
         >
           {isDanish
-            ? 'Internt system — kontakt jeres administrator for adgang.'
-            : 'Internal system — contact your administrator for access.'}
+            ? 'Kontakt jeres administrator for adgang.'
+            : 'Contact your administrator for access.'}
         </div>
       </aside>
 
