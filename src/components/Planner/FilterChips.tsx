@@ -102,18 +102,25 @@ const FilterChips: React.FC<FilterChipsProps> = ({ weekAssignments }) => {
   const chips: Array<{
     key: PlannerFilterKey;
     label: string;
+    tooltip: string;
     count: number;
     activeClass: string;
   }> = [
     {
       key: 'mine',
       label: currentLanguage === 'da' ? 'Mine opgaver' : 'My tasks',
+      tooltip: currentLanguage === 'da'
+        ? 'Vis kun opgaver hvor du er ansvarlig eller tildelt.'
+        : 'Show only tasks where you are responsible or assigned.',
       count: counts.mine,
       activeClass: 'bg-primary/15 text-primary border-primary/30',
     },
     {
       key: 'unpublished',
       label: currentLanguage === 'da' ? 'Ikke aftalt' : 'Drafts',
+      tooltip: currentLanguage === 'da'
+        ? 'Vis kun kladder, der endnu ikke er publiceret til medarbejderne.'
+        : 'Show only drafts not yet published to employees.',
       count: counts.unpublished,
       activeClass:
         'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-100 dark:border-amber-800',
@@ -121,6 +128,9 @@ const FilterChips: React.FC<FilterChipsProps> = ({ weekAssignments }) => {
     {
       key: 'conflicts',
       label: currentLanguage === 'da' ? 'Med konflikter' : 'Conflicts',
+      tooltip: currentLanguage === 'da'
+        ? 'Vis opgaver med dobbeltbookede biler eller medarbejdere.'
+        : 'Show tasks with double-booked cars or employees.',
       count: counts.conflicts,
       activeClass:
         'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/40 dark:text-rose-100 dark:border-rose-800',
@@ -129,6 +139,9 @@ const FilterChips: React.FC<FilterChipsProps> = ({ weekAssignments }) => {
       key: 'noResponsible',
       label:
         currentLanguage === 'da' ? 'Mangler ansvarlig' : 'No responsible',
+      tooltip: currentLanguage === 'da'
+        ? 'Vis opgaver uden tildelt skadeleder/ansvarlig.'
+        : 'Show tasks without an assigned case manager.',
       count: counts.noResponsible,
       activeClass:
         'bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-950/40 dark:text-sky-100 dark:border-sky-800',
@@ -136,6 +149,9 @@ const FilterChips: React.FC<FilterChipsProps> = ({ weekAssignments }) => {
     {
       key: 'noLocation',
       label: currentLanguage === 'da' ? 'Mangler adresse' : 'No address',
+      tooltip: currentLanguage === 'da'
+        ? 'Vis opgaver hvor lokationen ikke er udfyldt.'
+        : 'Show tasks where the location is missing.',
       count: counts.noLocation,
       activeClass:
         'bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-950/40 dark:text-violet-100 dark:border-violet-800',
