@@ -17,6 +17,8 @@ interface CurrentAndFutureDaysProps {
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
   onViewDetails?: (assignment: Assignment) => void;
+  onCreateAssignment?: (date: string) => void;
+  onCopyDayFromYesterday?: (date: string) => void;
   canEdit: boolean;
   canPublishTasks: boolean;
   cars?: Car[];
