@@ -149,32 +149,33 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
                 </span>
               ))
             ) : (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="chip chip-person hover:opacity-80 transition-opacity"
-                    onClick={(e) => e.stopPropagation()}
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="chip chip-person hover:opacity-80 transition-opacity cursor-help"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {employeeCount} {t('planner.employees') || 'medarbejdere'}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="end"
+                    className="w-auto max-w-xs p-2"
                   >
-                    {employeeCount} {t('planner.employees') || 'medarbejdere'}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  side="top"
-                  align="end"
-                  className="w-auto max-w-xs p-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ul className="space-y-1">
-                    {employeeData.names.map((name, i) => (
-                      <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                        {name || t('planner.unknownEmployee')}
-                      </li>
-                    ))}
-                  </ul>
-                </PopoverContent>
-              </Popover>
+                    <ul className="space-y-1">
+                      {employeeData.names.map((name, i) => (
+                        <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                          {name || t('planner.unknownEmployee')}
+                        </li>
+                      ))}
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         )}
