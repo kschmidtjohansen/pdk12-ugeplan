@@ -369,7 +369,7 @@
   .icon-bubble-sm { height: 1.25rem; width: 1.25rem; }
   .icon-bubble-time   { background: hsl(152 70% 94%); color: hsl(152 55% 32%); }
   .icon-bubble-car    { background: hsl(210 95% 94%); color: hsl(214 80% 40%); }
-  .icon-bubble-person { background: hsl(265 80% 95%); color: hsl(265 55% 45%); }
+  .icon-bubble-person { background: hsl(197 95% 93%); color: hsl(197 90% 35%); }
   .icon-bubble-resp   { background: hsl(214 90% 95%); color: hsl(214 80% 45%); }
 
   .dark .icon-bubble-time   { background: hsl(152 60% 16% / 0.7); color: hsl(152 60% 70%); }
