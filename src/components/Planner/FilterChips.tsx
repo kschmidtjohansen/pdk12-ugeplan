@@ -6,6 +6,7 @@ import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useTranslation } from '@/context/TranslationContext';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export type PlannerFilterKey =
   | 'mine'
