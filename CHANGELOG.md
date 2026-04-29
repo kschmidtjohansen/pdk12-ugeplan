@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-04-29 — Planner: tooltips på filter-chips + responsiv wrap
+
+### Ændret
+- `FilterChips.tsx`: tilføjet kort tooltip (Radix `Tooltip`) på hver chip der forklarer præcist hvad filteret gør — fylder ikke mere på skærmen, vises kun ved hover/fokus. `aria-label` tilføjet for skærmlæsere.
+- `PlannerPage.tsx` filter-rækken bruger nu `flex-col lg:flex-row` så chips wrapper pænt og view-knapperne aldrig skubbes ned på små/mellemstore skærme.
+
+
 ## 2026-04-29 — Dashboard: HH:MM-ur, valideret hilsen og forbedret QuickAccess
 
 ### Ændret
