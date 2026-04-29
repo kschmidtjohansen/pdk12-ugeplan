@@ -22,7 +22,6 @@ import PlannerSearchFilter from '@/components/Planner/PlannerSearchFilter';
 import FilterChips, { applyPlannerFilters, useActivePlannerFilters } from '@/components/Planner/FilterChips';
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useToast } from '@/hooks/use-toast';
-import { computeConflicts } from '@/utils/assignmentConflicts';
 
 const PlannerPage: React.FC = () => {
   const {
