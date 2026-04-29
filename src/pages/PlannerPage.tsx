@@ -714,6 +714,7 @@ const PlannerPage: React.FC = () => {
           onPublishDay={handlePublishDay} 
           onCreateAssignment={handleOpenCreateDialog} 
           onCopyAssignment={handleCopyAssignment} 
+          onCopyDayFromYesterday={handleCopyDayFromYesterday}
           selectedWeek={selectedWeek} 
           selectedYear={selectedYear} 
           weekDates={weekDates}
