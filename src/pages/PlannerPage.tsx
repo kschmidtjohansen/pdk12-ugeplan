@@ -335,6 +335,14 @@ const PlannerPage: React.FC = () => {
     });
   }, [filteredWeekAssignments]);
 
+  // Apply chip-based filters (URL-driven) on top of search-filtered list
+  const activeChipFilters = useActivePlannerFilters();
+  const { hasConflicts: weekHasConflicts } = useAssignmentConflicts(weekAssignments);
+  const chipFilteredAssignments = useMemo(
+    () => applyPlannerFilters(sortedWeekAssignments, activeChipFilters, user?.id, weekHasConflicts),
+    [sortedWeekAssignments, activeChipFilters, user?.id, weekHasConflicts]
+  );
+
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
     await publishAssignmentsByDate(date);
