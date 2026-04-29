@@ -164,6 +164,19 @@ export default {
 					from: { opacity: '0', transform: 'scale(0.98)' },
 					to: { opacity: '1', transform: 'scale(1)' }
 				},
+				'mesh-drift': {
+					'0%, 100%': { transform: 'translate3d(0,0,0) scale(1)' },
+					'33%': { transform: 'translate3d(4%, -3%, 0) scale(1.08)' },
+					'66%': { transform: 'translate3d(-3%, 4%, 0) scale(0.95)' },
+				},
+				'mesh-drift-alt': {
+					'0%, 100%': { transform: 'translate3d(0,0,0) scale(1.05)' },
+					'50%': { transform: 'translate3d(-5%, 3%, 0) scale(0.92)' },
+				},
+				'logo-shimmer': {
+					'0%, 100%': { filter: 'drop-shadow(0 0 0 hsl(var(--primary) / 0))' },
+					'50%': { filter: 'drop-shadow(0 0 14px hsl(var(--primary) / 0.55))' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 200ms ease-out',
@@ -174,6 +187,9 @@ export default {
 				'scale-in': 'scale-in 180ms ease-out',
 				'slide-in-right': 'fade-in 200ms ease-out',
 				'slide-in-left': 'fade-in 200ms ease-out',
+				'mesh-drift': 'mesh-drift 18s ease-in-out infinite',
+				'mesh-drift-alt': 'mesh-drift-alt 22s ease-in-out infinite',
+				'logo-shimmer': 'logo-shimmer 4s ease-in-out infinite',
 			},
 			zIndex: {
 				'60': '60',
