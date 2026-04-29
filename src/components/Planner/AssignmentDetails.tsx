@@ -168,7 +168,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
                   <ul className="space-y-1">
                     {employeeData.names.map((name, i) => (
                       <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-rose-400 shrink-0" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                         {name || t('planner.unknownEmployee')}
                       </li>
                     ))}

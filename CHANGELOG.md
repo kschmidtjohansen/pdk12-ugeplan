@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-04-29 — Fraværsoverlay i DaySection + Polygon-blå medarbejder-pills (Step 2/B)
+
+### Tilføjet
+- **`DayAbsenceRow`-komponent** (`src/components/Planner/DayAbsenceRow.tsx`): viser godkendte fraværsperioder pr. dag direkte i `DaySection`-headeren. Pills viser navn (og evt. tidsinterval ved del-af-dag-fravær) med tooltip der angiver årsag. Bruger string-sammenligning på `yyyy-MM-dd` for at undgå UTC-shifts (jf. memory).
+- Vises altid (også når dagen er sammenklappet) så planlæggere ser fravær uden at åbne dagen.
+
+### Ændret — Polygon-blå farveharmonisering
+- **Medarbejder-chips** (`.chip-person` + `.icon-bubble-person` i `index.css`): skiftet fra rose/violet pastel til Polygon-blå (`hsl(197 ...)`) tones — matcher brand primary.
+- **Konflikt-stripe** på `AssignmentCard`: venstre `border-l` og ring skiftet fra `destructive` (rød) til `primary` (Polygon-blå) for konsistent brandfarve.
+- **AssignmentDetails employee-tooltip dot**: `bg-rose-400` → `bg-primary`.
+
+### Bibeholdt
+- Konflikt-chip i `FilterChips` forbliver rose/destructive farvet — den signalerer stadig advarsel som en filterkategori.
+
+
 ## 2026-04-29 — Filter-chips i Planner (Step 1/A af ugeplan-udvidelser)
 
 ### Tilføjet
