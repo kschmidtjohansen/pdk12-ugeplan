@@ -27,9 +27,9 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
   const { currentLanguage, t } = useTranslation();
   const [now, setNow] = useState<Date>(() => new Date());
 
-  // Update every second so the clock ticks live
+  // Update every 30s — enough to keep HH:MM, week and date live without churn
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 1000);
+    const id = window.setInterval(() => setNow(new Date()), 30000);
     return () => window.clearInterval(id);
   }, []);
 
@@ -47,7 +47,7 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
   };
 
   const headerDate = getHeaderDateDisplay();
-  const clockString = format(now, 'HH:mm:ss');
+  const clockString = format(now, 'HH:mm');
   const name = userName || t('common.user');
   const greeting = getGreeting(now.getHours(), name, currentLanguage);
 
