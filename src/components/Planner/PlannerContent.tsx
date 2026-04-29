@@ -46,6 +46,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   onPublishDay,
   onCreateAssignment,
   onCopyAssignment,
+  onCopyDayFromYesterday,
   selectedWeek,
   selectedYear,
   weekDates,
