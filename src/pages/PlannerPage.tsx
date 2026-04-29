@@ -19,6 +19,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks, format } from 'date-fns';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import PlannerSearchFilter from '@/components/Planner/PlannerSearchFilter';
+import FilterChips, { applyPlannerFilters, useActivePlannerFilters } from '@/components/Planner/FilterChips';
+import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 
 const PlannerPage: React.FC = () => {
   const {
@@ -333,6 +335,14 @@ const PlannerPage: React.FC = () => {
     });
   }, [filteredWeekAssignments]);
 
+  // Apply chip-based filters (URL-driven) on top of search-filtered list
+  const activeChipFilters = useActivePlannerFilters();
+  const { hasConflicts: weekHasConflicts } = useAssignmentConflicts(weekAssignments);
+  const chipFilteredAssignments = useMemo(
+    () => applyPlannerFilters(sortedWeekAssignments, activeChipFilters, user?.id, weekHasConflicts),
+    [sortedWeekAssignments, activeChipFilters, user?.id, weekHasConflicts]
+  );
+
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
     await publishAssignmentsByDate(date);
@@ -596,16 +606,21 @@ const PlannerPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Filter chips row */}
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-xs">
+          <FilterChips weekAssignments={weekAssignments} />
+        </div>
+
         {/* Search results indicator */}
         {searchQuery && (
           <div className="text-sm text-muted-foreground">
-            {sortedWeekAssignments.length === 0 ? (
+            {chipFilteredAssignments.length === 0 ? (
               <span>{t('planner.noSearchResults')}</span>
             ) : (
               <span>
                 {currentLanguage === 'da' 
-                  ? `${sortedWeekAssignments.length} ${sortedWeekAssignments.length === 1 ? 'opgave' : 'opgaver'} fundet`
-                  : `${sortedWeekAssignments.length} ${sortedWeekAssignments.length === 1 ? 'assignment' : 'assignments'} found`
+                  ? `${chipFilteredAssignments.length} ${chipFilteredAssignments.length === 1 ? 'opgave' : 'opgaver'} fundet`
+                  : `${chipFilteredAssignments.length} ${chipFilteredAssignments.length === 1 ? 'assignment' : 'assignments'} found`
                 }
               </span>
             )}
@@ -614,7 +629,7 @@ const PlannerPage: React.FC = () => {
 
         {/* Main Content */}
         <PlannerContent 
-          weekAssignments={sortedWeekAssignments} 
+          weekAssignments={chipFilteredAssignments} 
           operationStates={convertedOperationStates}
           expandedDays={expandedDays}
           onToggleExpansion={handleToggleExpansion}

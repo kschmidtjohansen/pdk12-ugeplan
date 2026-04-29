@@ -305,3 +305,18 @@ Gennemført 2026-04-04.
 - [x] Rettet forældet "16:00"-kommentar til "00:00"
 - [x] tasks.md opdateret med manglende feature-poster (Fase 14 + 15)
 - [x] Verificeret at alle øvrige 27 console-statements allerede var korrekt DEV-guarded
+
+## Fase 16: Ugeplan-udvidelser (rullende leverance, A–J) 🚧
+
+Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
+
+- [x] Step 1 (A): `FilterChips` med URL-state (`mine`, `unpublished`, `conflicts`, `noResponsible`, `noLocation`)
+- [ ] Step 2 (B): Ferie/fravær-overlay i `DaySection`
+- [ ] Step 3 (C): Daglig opsummering på `DaySection`-header (kollapset)
+- [ ] Step 4 (D): Inline-publicering pr. dag fra header
+- [ ] Step 5 (E): Tom-dag-handling (CTA)
+- [ ] Step 6 (F): Visuel "i dag"-markør i tidslinjen
+- [ ] Step 7 (G): Konflikt- og advarselscenter
+- [ ] Step 8 (H): "Hvad ændrede sig?" — daglig diff-stripe
+- [ ] Step 9 (I): Push-notifikationer ved tildeling
+- [ ] Step 10 (J): Ugentlig "Mandagsbriefing" (e-mail)

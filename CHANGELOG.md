@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-04-29 — Filter-chips i Planner (Step 1/A af ugeplan-udvidelser)
+
+### Tilføjet
+- **`FilterChips`-komponent** (`src/components/Planner/FilterChips.tsx`): sticky multi-select chip-række over Planner-indholdet med fem hurtige filtre: "Mine opgaver", "Ikke aftalt", "Med konflikter", "Mangler ansvarlig", "Mangler adresse". Hver chip viser et live-tæller-badge.
+- **URL-state**: aktive filtre persisteres i query-paramet `?filters=mine,unpublished,...` så de overlever refresh og kan deles via link.
+- **Pastel-farvekoder pr. filter**: primær (mine), amber (kladder), rose (konflikter), sky (mangler ansvarlig), violet (mangler adresse) — matcher eksisterende pill-system.
+- **"Nulstil"-knap** vises kun når mindst ét filter er aktivt.
+- **Tællere bygger på `useAssignmentConflicts`** så konflikt-chippet er korrekt synkroniseret med eksisterende konfliktlogik.
+
+### Ændret
+- **`PlannerPage`**: ny chip-række indsat under søgebjælken; `PlannerContent` modtager nu `chipFilteredAssignments` (sortering + chip-filtrering) i stedet for `sortedWeekAssignments`.
+
+
 ## 2026-04-28 — Pastel pills, Polygon favicon & sidebar centering
 
 ### Ændret
