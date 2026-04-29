@@ -374,7 +374,7 @@
 
   .dark .icon-bubble-time   { background: hsl(152 60% 16% / 0.7); color: hsl(152 60% 70%); }
   .dark .icon-bubble-car    { background: hsl(214 60% 16% / 0.7); color: hsl(214 80% 75%); }
-  .dark .icon-bubble-person { background: hsl(265 50% 18% / 0.7); color: hsl(265 70% 78%); }
+  .dark .icon-bubble-person { background: hsl(197 80% 20% / 0.7); color: hsl(197 90% 78%); }
   .dark .icon-bubble-resp   { background: hsl(214 60% 16% / 0.7); color: hsl(214 80% 78%); }
 
   /* Status dot */
