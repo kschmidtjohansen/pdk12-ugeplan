@@ -558,57 +558,59 @@ const PlannerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Search and View Toggle Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-xs">
-          <PlannerSearchFilter
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
+        {/* Search, View Toggle and Filter chips */}
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3 shadow-xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <PlannerSearchFilter
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
 
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="text-xs text-muted-foreground hidden sm:inline">
-              {currentLanguage === 'da' ? 'Visning:' : 'View:'}
-            </span>
-            <ToggleGroup
-              type="single"
-              value={viewMode}
-              onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid')}
-              className="bg-muted/50 border border-border rounded-lg p-0.5"
-            >
-              <ToggleGroupItem value="standard" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                <List className="h-3.5 w-3.5 mr-1.5" />
-                <span className="text-xs">{t('planner.viewModeStandard')}</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem value="grid" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
-                <span className="text-xs">{currentLanguage === 'da' ? 'Gitter' : 'Grid'}</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem value="compact" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                <LayoutList className="h-3.5 w-3.5 mr-1.5" />
-                <span className="text-xs">{t('planner.viewModeCompact')}</span>
-              </ToggleGroupItem>
-            </ToggleGroup>
-
-            {(viewMode === 'standard' || viewMode === 'grid') && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggleAllExpanded}
-                className="h-7 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                {currentLanguage === 'da' ? 'Visning:' : 'View:'}
+              </span>
+              <ToggleGroup
+                type="single"
+                value={viewMode}
+                onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid')}
+                className="bg-muted/50 border border-border rounded-lg p-0.5"
               >
-                <ChevronsUpDown className="h-3.5 w-3.5 mr-1.5" />
-                {allExpanded
-                  ? (currentLanguage === 'da' ? 'Fold sammen' : 'Collapse all')
-                  : (currentLanguage === 'da' ? 'Udvid alle' : 'Expand all')
-                }
-              </Button>
-            )}
-          </div>
-        </div>
+                <ToggleGroupItem value="standard" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <List className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="text-xs">{t('planner.viewModeStandard')}</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="grid" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="text-xs">{currentLanguage === 'da' ? 'Gitter' : 'Grid'}</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="compact" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <LayoutList className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="text-xs">{t('planner.viewModeCompact')}</span>
+                </ToggleGroupItem>
+              </ToggleGroup>
 
-        {/* Filter chips row */}
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-xs">
-          <FilterChips weekAssignments={weekAssignments} />
+              {(viewMode === 'standard' || viewMode === 'grid') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleAllExpanded}
+                  className="h-7 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                >
+                  <ChevronsUpDown className="h-3.5 w-3.5 mr-1.5" />
+                  {allExpanded
+                    ? (currentLanguage === 'da' ? 'Fold sammen' : 'Collapse all')
+                    : (currentLanguage === 'da' ? 'Udvid alle' : 'Expand all')
+                  }
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Filter chips inline under søgefelt */}
+          <div className="border-t border-border/60 pt-2">
+            <FilterChips weekAssignments={weekAssignments} />
+          </div>
         </div>
 
         {/* Search results indicator */}

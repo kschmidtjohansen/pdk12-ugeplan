@@ -312,7 +312,7 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 
 - [x] Step 1 (A): `FilterChips` med URL-state (`mine`, `unpublished`, `conflicts`, `noResponsible`, `noLocation`)
 - [x] Step 2 (B): Ferie/fravær-overlay i `DaySection` (`DayAbsenceRow`) + Polygon-blå farveharmonisering på medarbejder-pills og konflikt-stripe
-- [ ] Step 3 (C): Daglig opsummering på `DaySection`-header (kollapset)
+- [x] Step 3 (C): Daglig opsummering på `DaySection`-header (kollapset) — `DaySummary` med KPIs + avatar-stak
 - [ ] Step 4 (D): Inline-publicering pr. dag fra header
 - [ ] Step 5 (E): Tom-dag-handling (CTA)
 - [ ] Step 6 (F): Visuel "i dag"-markør i tidslinjen

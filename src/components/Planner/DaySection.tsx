@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Send, ChevronDown, ChevronRight, CalendarX2 } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
 import DayAbsenceRow from './DayAbsenceRow';
+import DaySummary from './DaySummary';
 import { cn } from '@/lib/utils';
 
 interface DaySectionProps {
@@ -101,6 +102,9 @@ const DaySection: React.FC<DaySectionProps> = ({
           <div className="ml-2 text-sm text-muted-foreground select-none">
             ({assignmentsCount} {taskText})
           </div>
+          {!isExpanded && (
+            <DaySummary dayAssignments={dayAssignments} allAssignments={allAssignments} />
+          )}
         </div>
         
         {canPublishTasks && hasUnpublishedAssignments && (
