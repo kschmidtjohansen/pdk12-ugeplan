@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-04-30 — Sikkerhedsoprydning: RLS, GraphQL & SECURITY DEFINER
+
+### Sikkerhedsfix (alle scanner-fund løst)
+- **profiles**: Fjernet `Users can view all profiles` (USING true) der gjorde alle 69 medarbejderprofiler — inkl. email, telefon, adresse, GPS — synlige for enhver indlogget bruger. Adgang sker nu udelukkende via `secure_profile_access_unified` (egen profil + admin/skadeleder ser alle). Fjernet duplikat insert/update-policies på `public`-rolle; `authenticated`-versioner bevaret.
+- **cars**: Fjernet `Users can view all cars` (USING true) og duplikat `Admins can manage cars`. Læsning kræver nu autentisering; brændstofkort-koder ikke længere offentligt læsbare.
+- **realtime.messages**: RLS aktiveret med policies der begrænser broadcast-modtagelse til `authenticated`. `postgres_changes`-events filtreres fortsat per-row af RLS på underliggende tabeller.
+- **storage.objects (avatars)**: Listing begrænset til `authenticated`. CDN-visning via `getPublicUrl` virker uændret.
+- **7 SECURITY DEFINER diagnostik-funktioner**: Tilføjet `is_admin_user()`-guard, `EXECUTE` revoked fra `anon`. Beskytter audit-log mod uautoriseret sletning.
+- **GraphQL-eksponering**: `pg_graphql`-extension droppet (appen bruger udelukkende PostgREST). Lukker 220 lints (0026/0027) uden funktionel impact.
+- **anon-rolle**: `SELECT` revoked på alle public-tabeller; appen bruger kun authenticated JWT.
+- **Interne logtabeller**: `logs*`, `system_cleanup_tracking` — `SELECT` revoked fra `authenticated` (RLS gav allerede kun admin adgang).
+
+### Ændret (kode)
+- `src/hooks/useDiagnostics.ts`: `check_system_health`-kald håndterer admin-only fejl pænt — non-admins får `warning`-status med "skipped"-besked.
+
+### Bevaret intakt
+- App-funktioner: profil-visning, biler, opgaver, ferie, vagter, lager, realtime, avatar-upload, fil-upload, admin-diagnostik.
+- Alle eksisterende `authenticated`-policies for app-tabeller.
+- Legacy-kolonner i `assignments` og `cars` (jf. memory).
+
+
 ## 2026-04-29 — Login: Husk mig, A11y, bedre fejl, intern tone & lækker mobil
 
 ### Tilføjet
