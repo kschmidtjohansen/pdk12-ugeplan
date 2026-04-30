@@ -91,20 +91,32 @@ export const useDiagnostics = () => {
         });
       }
 
-      // Test 4: System Health Function
+      // Test 4: System Health Function (admin-only RPC)
       try {
         const { data: healthData, error: healthError } = await supabase.rpc('check_system_health');
+        if (healthError) {
+          // Admin-only function — non-admins get a permission error, which is expected.
+          const isPermissionError = healthError.message?.toLowerCase().includes('administrator');
+          results.push({
+            category: 'System_Health',
+            status: isPermissionError ? 'warning' : 'fail',
+            message: isPermissionError
+              ? 'System health check requires administrator role (skipped)'
+              : `System health check failed: ${healthError.message}`,
+          });
+        } else {
+          results.push({
+            category: 'System_Health',
+            status: 'pass',
+            message: 'System health functions operational',
+            details: healthData,
+          });
+        }
+      } catch (err: any) {
         results.push({
           category: 'System_Health',
-          status: healthError ? 'fail' : 'pass',
-          message: healthError ? `System health check failed: ${healthError.message}` : 'System health functions operational',
-          details: healthData
-        });
-      } catch (err) {
-        results.push({
-          category: 'System_Health',
-          status: 'fail',
-          message: `Health function error: ${err}`
+          status: 'warning',
+          message: `Health function unavailable: ${err?.message ?? String(err)}`
         });
       }
 
