@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-05-01 — Login: forenklet brand-panel og mere levende mesh-baggrund
+- Venstre brand-panel: hvid headline, fjernet lang beskrivelse, kortere feature-tekster, strammere spacing.
+- Mesh-baggrund: nye `mesh-float-1/2/3` keyframes med større translate og skala-pulse for tydeligt mere bevægelse.
+- Respekterer `prefers-reduced-motion` (statisk fallback).
+
 ## 2026-04-30 — Sikkerhedsoprydning: RLS, GraphQL & SECURITY DEFINER
 
 ### Sikkerhedsfix (alle scanner-fund løst)

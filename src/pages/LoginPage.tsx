@@ -38,23 +38,17 @@ const LoginPage = () => {
     {
       icon: CalendarDays,
       title: isDanish ? 'Ugeplan' : 'Weekly planner',
-      desc: isDanish
-        ? 'Opret, rediger og publicér opgaver pr. dag og uge.'
-        : 'Create, edit and publish tasks per day and week.',
+      desc: isDanish ? 'Opgaver pr. dag og uge.' : 'Tasks per day and week.',
     },
     {
       icon: Users,
       title: isDanish ? 'Vagter & ferie' : 'Duty & vacation',
-      desc: isDanish
-        ? 'Vagtplan og fraværsoverblik på tværs af afdelingen.'
-        : 'Duty roster and absence overview across the department.',
+      desc: isDanish ? 'Vagtplan og fravær samlet.' : 'Duty and absence in one view.',
     },
     {
       icon: Shield,
       title: isDanish ? 'Adgang pr. afdeling' : 'Access per department',
-      desc: isDanish
-        ? 'Data og rettigheder er isoleret pr. afdeling og rolle.'
-        : 'Data and permissions are isolated per department and role.',
+      desc: isDanish ? 'Isoleret pr. afdeling og rolle.' : 'Isolated per department and role.',
     },
   ];
 
@@ -62,18 +56,33 @@ const LoginPage = () => {
   const MeshBackground = () => (
     <>
       <div aria-hidden className="absolute inset-0 bg-primary" />
-      <div aria-hidden className="absolute inset-0 overflow-hidden">
+      <div aria-hidden className="absolute inset-0 overflow-hidden motion-reduce:hidden">
         <div
-          className="absolute -top-32 -left-24 w-[60%] h-[60%] rounded-full blur-3xl opacity-70 animate-mesh-drift"
+          className="absolute -top-32 -left-24 w-[60%] h-[60%] rounded-full opacity-80 animate-mesh-float-1"
+          style={{ background: 'radial-gradient(circle at center, hsl(190 100% 70%) 0%, transparent 60%)', filter: 'blur(100px)', willChange: 'transform' }}
+        />
+        <div
+          className="absolute top-1/3 -right-24 w-[55%] h-[55%] rounded-full blur-3xl opacity-70 animate-mesh-float-2"
+          style={{ background: 'radial-gradient(circle at center, hsl(210 100% 60%) 0%, transparent 60%)', willChange: 'transform' }}
+        />
+        <div
+          className="absolute -bottom-24 left-1/4 w-[55%] h-[55%] rounded-full blur-3xl opacity-65 animate-mesh-float-3"
+          style={{ background: 'radial-gradient(circle at center, hsl(170 100% 65%) 0%, transparent 60%)', willChange: 'transform' }}
+        />
+      </div>
+      {/* Static fallback for reduced-motion users */}
+      <div aria-hidden className="absolute inset-0 overflow-hidden hidden motion-reduce:block">
+        <div
+          className="absolute -top-32 -left-24 w-[60%] h-[60%] rounded-full blur-3xl opacity-70"
           style={{ background: 'radial-gradient(circle at center, hsl(190 100% 70%) 0%, transparent 60%)' }}
         />
         <div
-          className="absolute top-1/3 -right-24 w-[55%] h-[55%] rounded-full blur-3xl opacity-60 animate-mesh-drift-alt"
+          className="absolute top-1/3 -right-24 w-[55%] h-[55%] rounded-full blur-3xl opacity-60"
           style={{ background: 'radial-gradient(circle at center, hsl(210 100% 60%) 0%, transparent 60%)' }}
         />
         <div
-          className="absolute -bottom-24 left-1/4 w-[55%] h-[55%] rounded-full blur-3xl opacity-50 animate-mesh-drift"
-          style={{ background: 'radial-gradient(circle at center, hsl(170 100% 65%) 0%, transparent 60%)', animationDelay: '-6s' }}
+          className="absolute -bottom-24 left-1/4 w-[55%] h-[55%] rounded-full blur-3xl opacity-50"
+          style={{ background: 'radial-gradient(circle at center, hsl(170 100% 65%) 0%, transparent 60%)' }}
         />
       </div>
       <div
@@ -133,19 +142,12 @@ const LoginPage = () => {
         </div>
 
         {/* Middle — neutral systembeskrivelse */}
-        <div className="relative z-10 max-w-lg space-y-8 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-          <div className="space-y-3">
-            <h2 className="text-3xl xl:text-4xl font-semibold leading-tight tracking-tight">
-              {isDanish ? 'Planlægning af ugen — samlet ét sted.' : 'Plan the week — all in one place.'}
-            </h2>
-            <p className="text-sm text-white/85 leading-relaxed max-w-md">
-              {isDanish
-                ? 'Polygon Ugeplan samler opgaver, medarbejdere, biler, vagter og ferie i ét fælles overblik for afdelingen.'
-                : 'Polygon Weekly Planner consolidates tasks, employees, vehicles, duty and vacation into one shared view for the department.'}
-            </p>
-          </div>
+        <div className="relative z-10 max-w-lg space-y-6 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+          <h2 className="text-3xl xl:text-4xl font-semibold leading-tight tracking-tight text-white drop-shadow-sm">
+            {isDanish ? 'Planlæg ugen — ét samlet overblik.' : 'Plan the week — one shared view.'}
+          </h2>
 
-          <ul className="space-y-2.5">
+          <ul className="space-y-2">
             {sections.map((s, i) => (
               <li
                 key={s.title}
