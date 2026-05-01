@@ -38,23 +38,17 @@ const LoginPage = () => {
     {
       icon: CalendarDays,
       title: isDanish ? 'Ugeplan' : 'Weekly planner',
-      desc: isDanish
-        ? 'Opret, rediger og publicér opgaver pr. dag og uge.'
-        : 'Create, edit and publish tasks per day and week.',
+      desc: isDanish ? 'Opgaver pr. dag og uge.' : 'Tasks per day and week.',
     },
     {
       icon: Users,
       title: isDanish ? 'Vagter & ferie' : 'Duty & vacation',
-      desc: isDanish
-        ? 'Vagtplan og fraværsoverblik på tværs af afdelingen.'
-        : 'Duty roster and absence overview across the department.',
+      desc: isDanish ? 'Vagtplan og fravær samlet.' : 'Duty and absence in one view.',
     },
     {
       icon: Shield,
       title: isDanish ? 'Adgang pr. afdeling' : 'Access per department',
-      desc: isDanish
-        ? 'Data og rettigheder er isoleret pr. afdeling og rolle.'
-        : 'Data and permissions are isolated per department and role.',
+      desc: isDanish ? 'Isoleret pr. afdeling og rolle.' : 'Isolated per department and role.',
     },
   ];
 
