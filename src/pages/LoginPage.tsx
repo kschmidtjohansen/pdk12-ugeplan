@@ -142,19 +142,12 @@ const LoginPage = () => {
         </div>
 
         {/* Middle — neutral systembeskrivelse */}
-        <div className="relative z-10 max-w-lg space-y-8 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-          <div className="space-y-3">
-            <h2 className="text-3xl xl:text-4xl font-semibold leading-tight tracking-tight">
-              {isDanish ? 'Planlægning af ugen — samlet ét sted.' : 'Plan the week — all in one place.'}
-            </h2>
-            <p className="text-sm text-white/85 leading-relaxed max-w-md">
-              {isDanish
-                ? 'Polygon Ugeplan samler opgaver, medarbejdere, biler, vagter og ferie i ét fælles overblik for afdelingen.'
-                : 'Polygon Weekly Planner consolidates tasks, employees, vehicles, duty and vacation into one shared view for the department.'}
-            </p>
-          </div>
+        <div className="relative z-10 max-w-lg space-y-6 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+          <h2 className="text-3xl xl:text-4xl font-semibold leading-tight tracking-tight text-white drop-shadow-sm">
+            {isDanish ? 'Planlæg ugen — ét samlet overblik.' : 'Plan the week — one shared view.'}
+          </h2>
 
-          <ul className="space-y-2.5">
+          <ul className="space-y-2">
             {sections.map((s, i) => (
               <li
                 key={s.title}
