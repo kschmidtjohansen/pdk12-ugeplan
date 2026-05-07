@@ -1,32 +1,19 @@
-## Opgave
+## Plan: Genimport af skadeledervagt (uge 19–44, 2026)
 
-To dele:
+Den tidligere import havde fejl i 7. maj og 8.–10. maj. Jeg har nu genlæst billedet uge for uge og verificeret bl.a. at uge 19 = Sune/Nick/Kasper/Sonny/Kasper/Kasper/Kasper, så Sonny har 7. maj og Kasper har 8.–10. maj.
 
-### 1. Fix bug i listevisning (Vagt)
-I `src/components/Duty/DutyList.tsx` tjekker `getDisplayName()` `!duty.employee_id` FØR den tjekker `EKSTERN:`-noten. Eksterne vagter har ingen `employee_id`, så de vises som "Ledig vagt" i stedet for det indtastede navn.
+### Hvad der sker
+1. Sletter alle eksisterende `skadeleder_vagt` for afdeling 12 i datointervallet **2026-05-04 til 2026-11-01**.
+2. Indsætter 182 nye rækker for uge 19–44 (Morten springes over som tidligere aftalt).
+3. Brugere bliver linket korrekt: Kasper Johansen og Nick Berg Hansen. Eksterne navne (Sander, Sune, John, Bo, Vibse, Sonny) gemmes som `EKSTERN: Fornavn Efternavn [INI]` så de vises både i kalender og listevisning.
 
-**Fix:** Byt rækkefølgen så `EKSTERN:`-tjekket kommer først (samme rækkefølge bruges allerede korrekt i `DutyMonthCalendar.tsx`).
+### Berørte data
+- Tabel: `on_call_duties`, kun `duty_type='skadeleder_vagt'` og `department_id` = afdeling 12 - Fredericia
+- Tidligere ugers vagter (uge 1–18) røres ikke
 
-### 2. Importér skadeledervagter for afdeling 12 - Fredericia
+### Verificering før kørsel
+- 2026-05-07: EKSTERN Sonny Brodersen ✓
+- 2026-05-08, 09, 10: Kasper Johansen ✓
+- Uge 19 mandag (4. maj): EKSTERN Sune Torp Dissing ✓
 
-Navne mappes:
-- **Brugere:** Nick → Nick Berg Hansen, Kasper → Kasper Johansen
-- **Eksterne (gemmes som `EKSTERN: Navn [INI]` i `notes`, employee_id = NULL):**
-  - Sander → Jesper Sander Mortensen [JSM]
-  - Sune → Sune Torp Dissing [STD]
-  - John → John Sørensen [JS]
-  - Bo → Bo Mathiesen [BM]
-  - Vibse → Vibeke Van Sanden [VVS]
-  - Sonny → Sonny Brodersen [SB]
-- **"Morten":** springes over (ledig vagt) jf. dit svar.
-
-Eksisterende `skadeleder_vagt`-rækker i Fredericia inden for importperioden slettes først for at undgå dubletter.
-
-### Manglende information
-
-Det uploadede billede viser kun **uge 1-44** ("Side 1"). Jeg har brug for at vide:
-
-1. **Hvilket år?** (Kørevagten dækkede uge 19-52 i 2026 — er det samme år her?)
-2. **Hvilke uger?** Skal jeg kun importere uge 1-44, eller har du en side 2 med uge 45-52 du kan uploade?
-
-Når du bekræfter år + evt. uploader resten, kører jeg migrationen og laver kode-fixet.
+Klik godkend for at køre migrationen.
