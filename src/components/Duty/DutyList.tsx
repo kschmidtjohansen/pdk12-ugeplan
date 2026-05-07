@@ -49,19 +49,19 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
 
   // Helper to get display name from duty
   const getDisplayName = (duty: Duty): string => {
-    // Check for unassigned duties first
-    if (!duty.employee_id) {
-      return t('duty.unassignedSlot');
-    }
-    
-    // Regular employee
-    if (duty.employee?.name) return duty.employee.name;
-    
-    // External entry
+    // External entry first — eksterne vagter har ingen employee_id
     if (duty.notes?.startsWith('EKSTERN:')) {
       return duty.notes.split('\n')[0].replace('EKSTERN: ', '').replace(/\s*\[.*?\]\s*/, '').trim();
     }
-    
+
+    // Unassigned
+    if (!duty.employee_id) {
+      return t('duty.unassignedSlot');
+    }
+
+    // Regular employee
+    if (duty.employee?.name) return duty.employee.name;
+
     // Fallback
     return 'Ukendt';
   };
