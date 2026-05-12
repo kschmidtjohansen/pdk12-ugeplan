@@ -26,6 +26,7 @@ interface DutyMonthCalendarProps {
   onMonthChange: (month: Date) => void;
   onDutyClick: (duty: Duty) => void;
   canManage: boolean;
+  onAddDuty?: (date: Date) => void;
 }
 
 export const DutyMonthCalendar = ({
@@ -34,6 +35,7 @@ export const DutyMonthCalendar = ({
   onMonthChange,
   onDutyClick,
   canManage,
+  onAddDuty,
 }: DutyMonthCalendarProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
