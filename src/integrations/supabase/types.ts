@@ -517,6 +517,48 @@ export type Database = {
         }
         Relationships: []
       }
+      duty_swap_requests: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          candidate_ids: string[]
+          created_at: string
+          department_id: string | null
+          duty_id: string
+          expires_at: string
+          id: string
+          requested_by: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          candidate_ids: string[]
+          created_at?: string
+          department_id?: string | null
+          duty_id: string
+          expires_at?: string
+          id?: string
+          requested_by: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          candidate_ids?: string[]
+          created_at?: string
+          department_id?: string | null
+          duty_id?: string
+          expires_at?: string
+          id?: string
+          requested_by?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       logs: {
         Row: {
           created_at: string
@@ -1149,6 +1191,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_duty_swap: { Args: { _request_id: string }; Returns: string }
       add_system_log: {
         Args: { p_details?: Json; p_event_type: string; p_message: string }
         Returns: string
@@ -1189,6 +1232,7 @@ export type Database = {
       }
       can_view_fuel_codes: { Args: never; Returns: boolean }
       can_view_fuel_codes_audited: { Args: never; Returns: boolean }
+      cancel_duty_swap: { Args: { _request_id: string }; Returns: string }
       check_data_access_health: { Args: never; Returns: Json }
       check_rate_limit_security: {
         Args: {
