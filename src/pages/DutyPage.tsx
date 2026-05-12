@@ -149,6 +149,12 @@ export default function DutyPage() {
         </Card>
       )}
 
+      <PendingSwapOffers
+        incoming={incoming}
+        outgoing={outgoing}
+        onChanged={() => { refetchSwap(); refetch(); }}
+      />
+
       <Tabs defaultValue="calendar" className="space-y-4">
         <TabsList>
           <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
