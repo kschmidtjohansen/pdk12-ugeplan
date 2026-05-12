@@ -213,10 +213,14 @@ export default function DutyPage() {
         <>
           <DutyAssignmentDialog
             open={dialogOpen}
-            onOpenChange={setDialogOpen}
+            onOpenChange={(o) => {
+              setDialogOpen(o);
+              if (!o) setPendingNewDate(null);
+            }}
             employees={employeesWithRoles}
             duties={dutiesWithRoles}
             onSuccess={refetch}
+            initialDate={pendingNewDate}
           />
           <DutyEditDialog
             open={editDialogOpen}
