@@ -6,10 +6,12 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
+import { useDutySwapRequests } from '@/hooks/duty/useDutySwapRequests';
 import { DutyAssignmentDialog } from '@/components/Duty/DutyAssignmentDialog';
 import { DutyEditDialog } from '@/components/Duty/DutyEditDialog';
 import { DutySwapSelectDialog } from '@/components/Duty/DutySwapSelectDialog';
 import { DutySwapDialog } from '@/components/Duty/DutySwapDialog';
+import { PendingSwapOffers } from '@/components/Duty/PendingSwapOffers';
 import { DutyList } from '@/components/Duty/DutyList';
 import { DutyMonthCalendar } from '@/components/Duty/DutyMonthCalendar';
 import { Button } from '@/components/ui/button';
@@ -44,7 +46,7 @@ export default function DutyPage() {
 
   const { duties, loading: dutiesLoading, error, refetch } = useDutyData(startDate, endDate);
   const { employees, loading: employeesLoading } = useEmployeeData();
-  const { reassignDuty } = useDutyActions(refetch);
+  const { incoming, outgoing, refetch: refetchSwap } = useDutySwapRequests();
 
   const loading = dutiesLoading || employeesLoading;
 
