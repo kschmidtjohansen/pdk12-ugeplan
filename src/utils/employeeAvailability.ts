@@ -5,10 +5,13 @@ import { format } from 'date-fns';
 
 export type EmployeeAvailabilityStatus = 'available' | 'partiallyBooked' | 'fullyBooked' | 'onLeave' | 'onVacation' | 'partialVacation';
 
+export type EmployeeAvailabilityBadgeVariant = 'success' | 'warning' | 'error' | 'default';
+
 export interface EmployeeAvailabilityInfo {
   status: EmployeeAvailabilityStatus;
   statusText: string;
   badgeColor: string;
+  badgeVariant: EmployeeAvailabilityBadgeVariant;
   availableAt?: string;
 }
 
