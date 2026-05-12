@@ -84,6 +84,22 @@ export const duty = {
   confirmReassignment: "Confirm assignment",
   noEligibleEmployees: "There are no other employees with the appropriate role for this duty",
   unassignedSlot: "Unassigned duty",
+  sendSwapOffer: "Send swap offer",
+  swapRequestSent: "Swap offer sent",
+  swapRequestFailed: "Could not send swap offer",
+  swapRequestCancelled: "Swap offer cancelled",
+  swapAlreadyTaken: "This duty has already been taken by someone else",
+  swapAcceptedSuccess: "You have taken over the duty",
+  swapAcceptFailed: "Could not take over the duty",
+  swapNotInvited: "You are not invited to this swap",
+  swapExpired: "The swap offer has expired",
+  pendingSwapOffers: "Swap offers for you",
+  acceptSwap: "Accept swap",
+  cancelSwapOffer: "Cancel offer",
+  myOpenSwapOffers: "My open swap offers",
+  selectCandidates: "Select one or more colleagues",
+  candidatesCount: "{{count}} selected",
+  swapOfferFrom: "Offer from {{name}}",
 };
 
 export default duty;
