@@ -200,6 +200,10 @@ export default function DutyPage() {
               onMonthChange={setCalendarMonth}
               onDutyClick={handleDutyClick}
               canManage={canManage}
+              onAddDuty={canManage ? (date) => {
+                setPendingNewDate(date);
+                setDialogOpen(true);
+              } : undefined}
             />
           )}
         </TabsContent>
