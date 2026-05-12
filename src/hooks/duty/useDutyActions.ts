@@ -281,11 +281,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       if (error) throw error;
 
       // Notify each candidate
-      const requesterName =
-        (user.user_metadata as any)?.name ||
-        (user.user_metadata as any)?.full_name ||
-        user.email ||
-        'Kollega';
+      const requesterName = user.name || user.email || 'Kollega';
       await createDutySwapOfferNotification(
         candidateIds,
         duty.duty_type,
