@@ -141,7 +141,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
           )}
 
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
-            <StatusBadge variant={availabilityInfo.status === 'available' ? 'success' : 'error'}>
+            <StatusBadge variant={availabilityInfo.badgeVariant}>
               {availabilityInfo.statusText}
             </StatusBadge>
           </div>
