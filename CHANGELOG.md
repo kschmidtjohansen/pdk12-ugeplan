@@ -1,12 +1,13 @@
 # Changelog
 
-## 2026-05-12 — Vagter: farveskel, multi-byt og flere vagter pr. dag
+## 2026-05-12 — Vagter: farveskel, multi-byt, multi-tildel og flere vagter pr. dag
 - Medarbejderstatus: Fraværende vises nu rød (error), Ferie/Fri vises gul (warning).
 - Vagtbyt omlagt til byttetilbud med flere kandidater og atomisk først-til-mølle accept via ny accept_duty_swap RPC. Vises "Vagten er taget"-dialog hvis allerede overtaget.
 - Ny tabel duty_swap_requests med RLS, realtime og SECURITY DEFINER accept/cancel funktioner.
 - Bekræftet at flere skadeledere/kørevagter samme dag allerede understøttes (ingen DB-blokering, UI mapper alle).
 - Fix: `DutySwapDialog` crashede med "Rendered more hooks than during the previous render" — hooks (`useState`/`useEffect`/`useMemo`) flyttet før early return.
 - Multi-vagt UX: månedskalenderen viser nu en "+"-knap pr. dag (kun for adminstratorer) der åbner tildelingsdialogen med datoen forudvalgt, så flere vagter pr. dag kan oprettes uden friktion.
+- Tildel vagt: medarbejdervælgeren er nu en multi-select med checkbokse, så flere skadeledere/kørevagter kan tildeles på én gang (én vagt pr. medarbejder pr. valgt dato).
 
 
 
