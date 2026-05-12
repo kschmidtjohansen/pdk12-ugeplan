@@ -31,6 +31,8 @@ interface DutyAssignmentDialogProps {
   employees: Employee[];
   duties: Duty[];
   onSuccess: () => void;
+  initialDate?: Date | null;
+  initialDutyType?: 'skadeleder_vagt' | 'kørevagt';
 }
 
 export const DutyAssignmentDialog = ({
@@ -39,9 +41,15 @@ export const DutyAssignmentDialog = ({
   employees,
   duties,
   onSuccess,
+  initialDate,
+  initialDutyType,
 }: DutyAssignmentDialogProps) => {
   const { t } = useTranslation();
-  const { formData, manualName, setDutyType, setEmployeeId, setDates, setNotes, setManualName, resetForm } = useDutyFormState();
+  const { formData, manualName, setDutyType, setEmployeeId, setDates, setNotes, setManualName, resetForm } = useDutyFormState({
+    initialDate,
+    initialDutyType,
+    resetSignal: `${open}-${initialDate?.toISOString() ?? ''}-${initialDutyType ?? ''}`,
+  });
   const { assignDuty, loading } = useDutyActions(() => {
     onSuccess();
     resetForm();

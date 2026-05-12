@@ -33,6 +33,7 @@ export default function DutyPage() {
   const [swapDialogOpen, setSwapDialogOpen] = useState(false);
   const [selectedDuty, setSelectedDuty] = useState<Duty | null>(null);
   const [dutyToSwap, setDutyToSwap] = useState<Duty | null>(null);
+  const [pendingNewDate, setPendingNewDate] = useState<Date | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   
@@ -199,6 +200,10 @@ export default function DutyPage() {
               onMonthChange={setCalendarMonth}
               onDutyClick={handleDutyClick}
               canManage={canManage}
+              onAddDuty={canManage ? (date) => {
+                setPendingNewDate(date);
+                setDialogOpen(true);
+              } : undefined}
             />
           )}
         </TabsContent>
@@ -208,10 +213,14 @@ export default function DutyPage() {
         <>
           <DutyAssignmentDialog
             open={dialogOpen}
-            onOpenChange={setDialogOpen}
+            onOpenChange={(o) => {
+              setDialogOpen(o);
+              if (!o) setPendingNewDate(null);
+            }}
             employees={employeesWithRoles}
             duties={dutiesWithRoles}
             onSuccess={refetch}
+            initialDate={pendingNewDate}
           />
           <DutyEditDialog
             open={editDialogOpen}

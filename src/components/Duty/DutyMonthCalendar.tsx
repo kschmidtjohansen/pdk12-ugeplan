@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -26,6 +26,7 @@ interface DutyMonthCalendarProps {
   onMonthChange: (month: Date) => void;
   onDutyClick: (duty: Duty) => void;
   canManage: boolean;
+  onAddDuty?: (date: Date) => void;
 }
 
 export const DutyMonthCalendar = ({
@@ -34,6 +35,7 @@ export const DutyMonthCalendar = ({
   onMonthChange,
   onDutyClick,
   canManage,
+  onAddDuty,
 }: DutyMonthCalendarProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
@@ -165,14 +167,27 @@ export const DutyMonthCalendar = ({
                   isToday && "ring-2 ring-primary"
                 )}
               >
-                <div
-                  className={cn(
-                    "text-sm font-medium mb-1",
-                    isCurrentMonth ? "text-foreground" : "text-muted-foreground",
-                    isToday && "text-primary font-bold"
+                <div className="flex items-center justify-between mb-1">
+                  <div
+                    className={cn(
+                      "text-sm font-medium",
+                      isCurrentMonth ? "text-foreground" : "text-muted-foreground",
+                      isToday && "text-primary font-bold"
+                    )}
+                  >
+                    {format(day, 'd')}
+                  </div>
+                  {canManage && onAddDuty && isCurrentMonth && (
+                    <button
+                      type="button"
+                      onClick={() => onAddDuty(day)}
+                      className="opacity-60 hover:opacity-100 hover:bg-muted rounded p-0.5 transition-opacity"
+                      title={t('duty.addDutyOnDay')}
+                      aria-label={t('duty.addDutyOnDay')}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
                   )}
-                >
-                  {format(day, 'd')}
                 </div>
                 
                 <div className="space-y-1">

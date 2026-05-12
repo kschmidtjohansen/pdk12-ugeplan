@@ -25,9 +25,6 @@ interface DutySwapDialogProps {
 export function DutySwapDialog({ duty, employees, open, onOpenChange, onSuccess }: DutySwapDialogProps) {
   const { t } = useTranslation();
   const { createSwapRequest, loading } = useDutyActions(onSuccess);
-
-  if (!duty) return null;
-
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -35,6 +32,7 @@ export function DutySwapDialog({ duty, employees, open, onOpenChange, onSuccess 
   }, [open, duty?.id]);
 
   const eligibleEmployees = useMemo(() => {
+    if (!duty) return [];
     return employees.filter(emp => {
       if (emp.id === duty.employee_id) return false;
       if (emp.status === 'on_leave' || emp.status === 'inactive' || emp.status === 'terminated' || emp.onLeave) {
@@ -46,6 +44,8 @@ export function DutySwapDialog({ duty, employees, open, onOpenChange, onSuccess 
       return true;
     });
   }, [employees, duty]);
+
+  if (!duty) return null;
 
   const toggle = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
