@@ -33,6 +33,7 @@ export default function DutyPage() {
   const [swapDialogOpen, setSwapDialogOpen] = useState(false);
   const [selectedDuty, setSelectedDuty] = useState<Duty | null>(null);
   const [dutyToSwap, setDutyToSwap] = useState<Duty | null>(null);
+  const [pendingNewDate, setPendingNewDate] = useState<Date | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   
