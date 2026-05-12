@@ -92,15 +92,7 @@ export default function DutyPage() {
     setSwapDialogOpen(true);
   };
 
-  const handleReassignment = async (dutyId: string, newEmployeeId: string) => {
-    const success = await reassignDuty(dutyId, newEmployeeId);
-    if (success) {
-      setSwapDialogOpen(false);
-      setDutyToSwap(null);
-      refetch();
-    }
-    return success;
-  };
+  // legacy reassign handler removed — swap now uses request flow
 
   if (!isDutyEnabled) {
     return (
@@ -236,7 +228,11 @@ export default function DutyPage() {
         employees={employeesWithRoles}
         open={swapDialogOpen}
         onOpenChange={setSwapDialogOpen}
-        onReassign={handleReassignment}
+        onSuccess={() => {
+          setSwapDialogOpen(false);
+          setDutyToSwap(null);
+          refetch();
+        }}
       />
       </div>
     </DataFetchErrorBoundary>
