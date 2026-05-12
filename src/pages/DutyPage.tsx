@@ -5,7 +5,6 @@ import { usePermissions, useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
-import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import { useDutySwapRequests } from '@/hooks/duty/useDutySwapRequests';
 import { DutyAssignmentDialog } from '@/components/Duty/DutyAssignmentDialog';
 import { DutyEditDialog } from '@/components/Duty/DutyEditDialog';
