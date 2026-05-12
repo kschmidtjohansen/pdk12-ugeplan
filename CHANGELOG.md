@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-05-12 — Vagter: farveskel, multi-byt og flere vagter pr. dag
+## 2026-05-12 — Vagter: farveskel, multi-byt, multi-tildel og flere vagter pr. dag
 - Medarbejderstatus: Fraværende vises nu rød (error), Ferie/Fri vises gul (warning).
 - Vagtbyt omlagt til byttetilbud med flere kandidater og atomisk først-til-mølle accept via ny accept_duty_swap RPC. Vises "Vagten er taget"-dialog hvis allerede overtaget.
 - Ny tabel duty_swap_requests med RLS, realtime og SECURITY DEFINER accept/cancel funktioner.
