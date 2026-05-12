@@ -5,11 +5,12 @@ import { usePermissions, useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
-import { useDutyActions } from '@/hooks/duty/useDutyActions';
+import { useDutySwapRequests } from '@/hooks/duty/useDutySwapRequests';
 import { DutyAssignmentDialog } from '@/components/Duty/DutyAssignmentDialog';
 import { DutyEditDialog } from '@/components/Duty/DutyEditDialog';
 import { DutySwapSelectDialog } from '@/components/Duty/DutySwapSelectDialog';
 import { DutySwapDialog } from '@/components/Duty/DutySwapDialog';
+import { PendingSwapOffers } from '@/components/Duty/PendingSwapOffers';
 import { DutyList } from '@/components/Duty/DutyList';
 import { DutyMonthCalendar } from '@/components/Duty/DutyMonthCalendar';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,7 @@ export default function DutyPage() {
 
   const { duties, loading: dutiesLoading, error, refetch } = useDutyData(startDate, endDate);
   const { employees, loading: employeesLoading } = useEmployeeData();
-  const { reassignDuty } = useDutyActions(refetch);
+  const { incoming, outgoing, refetch: refetchSwap } = useDutySwapRequests();
 
   const loading = dutiesLoading || employeesLoading;
 
@@ -92,15 +93,7 @@ export default function DutyPage() {
     setSwapDialogOpen(true);
   };
 
-  const handleReassignment = async (dutyId: string, newEmployeeId: string) => {
-    const success = await reassignDuty(dutyId, newEmployeeId);
-    if (success) {
-      setSwapDialogOpen(false);
-      setDutyToSwap(null);
-      refetch();
-    }
-    return success;
-  };
+  // legacy reassign handler removed — swap now uses request flow
 
   if (!isDutyEnabled) {
     return (
@@ -154,6 +147,12 @@ export default function DutyPage() {
           </CardContent>
         </Card>
       )}
+
+      <PendingSwapOffers
+        incoming={incoming}
+        outgoing={outgoing}
+        onChanged={() => { refetchSwap(); refetch(); }}
+      />
 
       <Tabs defaultValue="calendar" className="space-y-4">
         <TabsList>
@@ -236,7 +235,11 @@ export default function DutyPage() {
         employees={employeesWithRoles}
         open={swapDialogOpen}
         onOpenChange={setSwapDialogOpen}
-        onReassign={handleReassignment}
+        onSuccess={() => {
+          setSwapDialogOpen(false);
+          setDutyToSwap(null);
+          refetch();
+        }}
       />
       </div>
     </DataFetchErrorBoundary>

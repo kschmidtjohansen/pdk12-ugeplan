@@ -52,7 +52,68 @@ export const useDutyNotifications = (
     }
   }, [addNotification, t, currentLanguage, locale]);
 
+  const createDutySwapOfferNotification = useCallback(async (
+    candidateIds: string[],
+    dutyType: DutyType,
+    dutyDate: string,
+    requesterName: string,
+  ) => {
+    try {
+      const dutyTypeLabel = dutyType === 'skadeleder_vagt'
+        ? t('duty.skadelederVagt')
+        : t('duty.kørevagt');
+      const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+      const formatted = format(new Date(dutyDate), dateFormat, { locale });
+      const title = currentLanguage === 'da' ? 'Byttetilbud på vagt' : 'Duty swap offer';
+      const message = currentLanguage === 'da'
+        ? `${requesterName} tilbyder dig ${dutyTypeLabel} den ${formatted}. Først til mølle.`
+        : `${requesterName} offers you ${dutyTypeLabel} on ${formatted}. First come, first served.`;
+      await Promise.all(candidateIds.map(uid =>
+        addNotification({
+          targetUserId: uid,
+          type: 'duty',
+          title,
+          message,
+          link: '/duty',
+        })
+      ));
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Error creating swap offer notification:', error);
+    }
+  }, [addNotification, t, currentLanguage, locale]);
+
+  const createDutySwapTakenNotification = useCallback(async (
+    otherCandidateIds: string[],
+    dutyType: DutyType,
+    dutyDate: string,
+  ) => {
+    try {
+      const dutyTypeLabel = dutyType === 'skadeleder_vagt'
+        ? t('duty.skadelederVagt')
+        : t('duty.kørevagt');
+      const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+      const formatted = format(new Date(dutyDate), dateFormat, { locale });
+      const title = currentLanguage === 'da' ? 'Vagten er taget' : 'Duty taken';
+      const message = currentLanguage === 'da'
+        ? `${dutyTypeLabel} den ${formatted} er allerede taget af en anden.`
+        : `${dutyTypeLabel} on ${formatted} has already been taken.`;
+      await Promise.all(otherCandidateIds.map(uid =>
+        addNotification({
+          targetUserId: uid,
+          type: 'duty',
+          title,
+          message,
+          link: '/duty',
+        })
+      ));
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Error creating swap taken notification:', error);
+    }
+  }, [addNotification, t, currentLanguage, locale]);
+
   return {
     createDutyAssignmentNotification,
+    createDutySwapOfferNotification,
+    createDutySwapTakenNotification,
   };
 };

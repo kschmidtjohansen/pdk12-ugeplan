@@ -174,7 +174,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         </TableCell>
       )}
       <TableCell>
-        <StatusBadge variant={availabilityInfo.status === 'available' ? 'success' : 'error'}>
+        <StatusBadge variant={availabilityInfo.badgeVariant}>
           {availabilityInfo.statusText}
         </StatusBadge>
       </TableCell>

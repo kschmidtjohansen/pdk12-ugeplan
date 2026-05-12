@@ -17,7 +17,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
-  const { createDutyAssignmentNotification } = useDutyNotifications(addNotification);
+  const { createDutyAssignmentNotification, createDutySwapOfferNotification } = useDutyNotifications(addNotification);
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
@@ -257,6 +257,105 @@ export const useDutyActions = (onSuccess?: () => void) => {
     }
   };
 
+  const createSwapRequest = async (
+    duty: { id: string; duty_type: DutyType; duty_date: string; department_id?: string | null },
+    candidateIds: string[],
+  ): Promise<boolean> => {
+    notifyOwnAction();
+    if (!user) return false;
+    if (candidateIds.length === 0) {
+      toast.error(t('duty.noEmployeeSelected'));
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('duty_swap_requests')
+        .insert({
+          duty_id: duty.id,
+          requested_by: user.id,
+          candidate_ids: candidateIds,
+          department_id: duty.department_id ?? null,
+        });
+      if (error) throw error;
+
+      // Notify each candidate
+      const requesterName = user.name || user.email || 'Kollega';
+      await createDutySwapOfferNotification(
+        candidateIds,
+        duty.duty_type,
+        duty.duty_date,
+        requesterName,
+      );
+
+      toast.success(t('duty.swapRequestSent'));
+      queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
+      onSuccess?.();
+      return true;
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Error creating swap request:', err);
+      toast.error((err as any)?.message || t('duty.swapRequestFailed'));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const acceptSwapRequest = async (
+    requestId: string,
+  ): Promise<{ status: string }> => {
+    notifyOwnAction();
+    if (!user) return { status: 'unauthenticated' };
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('accept_duty_swap', {
+        _request_id: requestId,
+      });
+      if (error) throw error;
+      const status = (data as unknown as string) || 'unknown';
+      if (status === 'accepted') {
+        toast.success(t('duty.swapAcceptedSuccess'));
+      }
+      queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
+      queryClient.invalidateQueries({ queryKey: ['duties'] });
+      onSuccess?.();
+      return { status };
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Error accepting swap:', err);
+      toast.error((err as any)?.message || t('duty.swapAcceptFailed'));
+      return { status: 'error' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelSwapRequest = async (requestId: string): Promise<boolean> => {
+    notifyOwnAction();
+    if (!user) return false;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('cancel_duty_swap', {
+        _request_id: requestId,
+      });
+      if (error) throw error;
+      const status = (data as unknown as string) || 'unknown';
+      if (status === 'cancelled') {
+        toast.success(t('duty.swapRequestCancelled'));
+      }
+      queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
+      onSuccess?.();
+      return status === 'cancelled';
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Error cancelling swap:', err);
+      toast.error((err as any)?.message || t('duty.swapRequestFailed'));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     assignDuty,
     updateDuty,
@@ -264,6 +363,9 @@ export const useDutyActions = (onSuccess?: () => void) => {
     reassignDuty,
     swapDuty,
     swapDuties,
+    createSwapRequest,
+    acceptSwapRequest,
+    cancelSwapRequest,
     loading
   };
 };

@@ -5,10 +5,13 @@ import { format } from 'date-fns';
 
 export type EmployeeAvailabilityStatus = 'available' | 'partiallyBooked' | 'fullyBooked' | 'onLeave' | 'onVacation' | 'partialVacation';
 
+export type EmployeeAvailabilityBadgeVariant = 'success' | 'warning' | 'error' | 'default';
+
 export interface EmployeeAvailabilityInfo {
   status: EmployeeAvailabilityStatus;
   statusText: string;
   badgeColor: string;
+  badgeVariant: EmployeeAvailabilityBadgeVariant;
   availableAt?: string;
 }
 
@@ -158,24 +161,27 @@ export const getEmployeeAvailabilityStatus = (
       return {
         status: 'onVacation',
         statusText: t('employees.status.onVacation'),
-        badgeColor: 'bg-blue-100 text-blue-800 border-blue-200'
+        badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        badgeVariant: 'warning'
       };
     } else if (vacationStatus.vacationType === 'partial_day' && vacationStatus.startTime) {
       const formattedStartTime = normalizeTime(vacationStatus.startTime);
       return {
         status: 'partialVacation',
         statusText: t('vacation.offFrom', { time: formattedStartTime }),
-        badgeColor: 'bg-orange-100 text-orange-800 border-orange-200'
+        badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        badgeVariant: 'warning'
       };
     }
   }
 
-  // PRIORITY 2: Check if employee is manually marked as on leave
+  // PRIORITY 2: Check if employee is manually marked as on leave (fraværende)
   if (employee.onLeave) {
     return {
       status: 'onLeave',
       statusText: t('employees.status.onLeave'),
-      badgeColor: 'bg-gray-100 text-gray-800 border-gray-200'
+      badgeColor: 'bg-red-100 text-red-800 border-red-200',
+      badgeVariant: 'error'
     };
   }
 
@@ -202,7 +208,8 @@ export const getEmployeeAvailabilityStatus = (
     return {
       status: 'available',
       statusText: t('employees.status.available'),
-      badgeColor: 'bg-green-100 text-green-800 border-green-200'
+      badgeColor: 'bg-green-100 text-green-800 border-green-200',
+      badgeVariant: 'success'
     };
   }
 
@@ -222,7 +229,8 @@ export const getEmployeeAvailabilityStatus = (
     return {
       status: 'fullyBooked',
       statusText: t('employees.status.fullyBooked'),
-      badgeColor: 'bg-red-100 text-red-800 border-red-200'
+      badgeColor: 'bg-red-100 text-red-800 border-red-200',
+      badgeVariant: 'error'
     };
   }
   
@@ -233,6 +241,7 @@ export const getEmployeeAvailabilityStatus = (
     status: 'partiallyBooked',
     statusText: t('employees.availableAfter', { time: formattedTime }),
     badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    badgeVariant: 'warning',
     availableAt: latestEndTime
   };
 };
