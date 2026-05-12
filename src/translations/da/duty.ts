@@ -84,6 +84,22 @@ export const duty = {
   confirmReassignment: "Bekræft tildeling",
   noEligibleEmployees: "Der er ingen andre medarbejdere med den rette rolle til denne vagt",
   unassignedSlot: "Ledig vagt",
+  sendSwapOffer: "Send byttetilbud",
+  swapRequestSent: "Byttetilbud sendt",
+  swapRequestFailed: "Kunne ikke sende byttetilbud",
+  swapRequestCancelled: "Byttetilbud annulleret",
+  swapAlreadyTaken: "Vagten er allerede taget af en anden",
+  swapAcceptedSuccess: "Du har overtaget vagten",
+  swapAcceptFailed: "Kunne ikke overtage vagten",
+  swapNotInvited: "Du er ikke inviteret til dette byt",
+  swapExpired: "Byttetilbuddet er udløbet",
+  pendingSwapOffers: "Byttetilbud til dig",
+  acceptSwap: "Accepter byt",
+  cancelSwapOffer: "Annullér tilbud",
+  myOpenSwapOffers: "Mine åbne byttetilbud",
+  selectCandidates: "Vælg en eller flere kollegaer",
+  candidatesCount: "{{count}} valgt",
+  swapOfferFrom: "Tilbud fra {{name}}",
 };
 
 export default duty;
