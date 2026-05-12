@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,11 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Shield, Car, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Shield, Car, Loader2, X } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDutyFormState } from '@/hooks/duty/useDutyFormState';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
-import { DutyEmployeeSelector } from './DutyEmployeeSelector';
 import { DutyCalendar } from './DutyCalendar';
 import { toast } from '@/hooks/use-toast';
 import type { Duty } from '@/types/duty';
@@ -45,27 +47,48 @@ export const DutyAssignmentDialog = ({
   initialDutyType,
 }: DutyAssignmentDialogProps) => {
   const { t } = useTranslation();
-  const { formData, manualName, setDutyType, setEmployeeId, setDates, setNotes, setManualName, resetForm } = useDutyFormState({
+  const { formData, manualName, setDutyType, setDates, setNotes, setManualName, resetForm } = useDutyFormState({
     initialDate,
     initialDutyType,
     resetSignal: `${open}-${initialDate?.toISOString() ?? ''}-${initialDutyType ?? ''}`,
   });
-  const { assignDuty, loading } = useDutyActions(() => {
-    onSuccess();
-    resetForm();
-    setAttempted(false);
-    onOpenChange(false);
-  });
-  
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
   const [attempted, setAttempted] = useState(false);
 
-  const hasEmployee = !!(formData.employee_id || manualName.trim());
+  const { assignDuty, loading } = useDutyActions();
+
+  // Reset multi-select when dialog opens/closes or initial values change
+  useEffect(() => {
+    setSelectedEmployeeIds([]);
+    setAttempted(false);
+  }, [open, initialDate, initialDutyType]);
+
+  const filteredEmployees = useMemo(() => {
+    return formData.duty_type === 'skadeleder_vagt'
+      ? employees.filter(e => e.role === 'super_admin' || e.role === 'administrator' || e.role === 'skadeleder')
+      : employees;
+  }, [employees, formData.duty_type]);
+
+  // Drop selections that are no longer eligible after a duty-type switch
+  useEffect(() => {
+    setSelectedEmployeeIds(prev => prev.filter(id => filteredEmployees.some(e => e.id === id)));
+  }, [filteredEmployees]);
+
+  const toggleEmployee = (id: string) => {
+    setSelectedEmployeeIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const removeEmployee = (id: string) => {
+    setSelectedEmployeeIds(prev => prev.filter(x => x !== id));
+  };
+
+  const hasEmployee = selectedEmployeeIds.length > 0 || !!manualName.trim();
   const hasDates = formData.dates.length > 0;
   const canSubmit = hasEmployee && hasDates;
 
   const handleSubmit = async () => {
     setAttempted(true);
-    
+
     if (!hasEmployee) {
       toast({
         title: t('common.error'),
@@ -84,18 +107,33 @@ export const DutyAssignmentDialog = ({
       return;
     }
 
-    await assignDuty(
-      formData.duty_type,
-      formData.employee_id,
-      formData.dates,
-      formData.notes,
-      manualName.trim()
-    );
+    let allOk = true;
+
+    // Manual external name → single insert (no employee selection)
+    if (selectedEmployeeIds.length === 0 && manualName.trim()) {
+      const ok = await assignDuty(formData.duty_type, '', formData.dates, formData.notes, manualName.trim());
+      allOk = allOk && !!ok;
+    } else {
+      // Loop over each selected employee, creating duties for each on the chosen dates
+      for (const empId of selectedEmployeeIds) {
+        const ok = await assignDuty(formData.duty_type, empId, formData.dates, formData.notes, '');
+        allOk = allOk && !!ok;
+      }
+    }
+
+    if (allOk) {
+      onSuccess();
+      resetForm();
+      setSelectedEmployeeIds([]);
+      setAttempted(false);
+      onOpenChange(false);
+    }
   };
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       resetForm();
+      setSelectedEmployeeIds([]);
       setAttempted(false);
     }
     onOpenChange(isOpen);
@@ -126,16 +164,69 @@ export const DutyAssignmentDialog = ({
 
           <TabsContent value={formData.duty_type} className="space-y-4">
             <div className={`space-y-2 ${!hasEmployee && attempted ? 'ring-2 ring-red-500 rounded-md p-2' : ''}`}>
-              <Label className={!hasEmployee && attempted ? 'text-red-500' : ''}>
-                {t('duty.selectEmployee')} *
-              </Label>
-              <DutyEmployeeSelector
-                employees={employees}
-                selectedEmployeeId={formData.employee_id}
-                onSelectEmployee={setEmployeeId}
-                dutyType={formData.duty_type}
-              />
-              
+              <div className="flex items-center justify-between">
+                <Label className={!hasEmployee && attempted ? 'text-red-500' : ''}>
+                  {t('duty.selectEmployee')} *
+                </Label>
+                {selectedEmployeeIds.length > 0 && (
+                  <Badge variant="secondary">
+                    {selectedEmployeeIds.length} {t('duty.selected') ?? 'valgt'}
+                  </Badge>
+                )}
+              </div>
+
+              {selectedEmployeeIds.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {selectedEmployeeIds.map(id => {
+                    const emp = employees.find(e => e.id === id);
+                    if (!emp) return null;
+                    return (
+                      <Badge key={id} variant="outline" className="gap-1 pr-1">
+                        {emp.name}
+                        <button
+                          type="button"
+                          onClick={() => removeEmployee(id)}
+                          className="ml-0.5 rounded hover:bg-muted p-0.5"
+                          aria-label={t('common.remove') ?? 'Fjern'}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="border rounded-md">
+                <ScrollArea className="h-[200px]">
+                  <div className="p-2 space-y-1">
+                    {filteredEmployees.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-6">
+                        {t('duty.noEligibleEmployees')}
+                      </p>
+                    ) : (
+                      filteredEmployees.map(emp => {
+                        const checked = selectedEmployeeIds.includes(emp.id);
+                        return (
+                          <label
+                            key={emp.id}
+                            htmlFor={`assign-emp-${emp.id}`}
+                            className={`flex items-center gap-3 px-2 py-1.5 rounded cursor-pointer transition-colors hover:bg-muted/50 ${checked ? 'bg-primary/5' : ''}`}
+                          >
+                            <Checkbox
+                              id={`assign-emp-${emp.id}`}
+                              checked={checked}
+                              onCheckedChange={() => toggleEmployee(emp.id)}
+                            />
+                            <span className="text-sm flex-1">{emp.name}</span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
@@ -146,13 +237,19 @@ export const DutyAssignmentDialog = ({
                   </span>
                 </div>
               </div>
-              
+
               <Label>{t('duty.enterNameManually')}</Label>
-              <Input 
+              <Input
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
                 placeholder={t('duty.enterName')}
+                disabled={selectedEmployeeIds.length > 0}
               />
+              {selectedEmployeeIds.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {t('duty.manualDisabledHint') ?? 'Ryd valgte medarbejdere for at indtaste navn manuelt.'}
+                </p>
+              )}
             </div>
 
             <div className={`space-y-2 ${!hasDates && attempted ? 'ring-2 ring-red-500 rounded-md p-2' : ''}`}>
@@ -193,6 +290,7 @@ export const DutyAssignmentDialog = ({
                   variant="outline"
                   onClick={() => {
                     resetForm();
+                    setSelectedEmployeeIds([]);
                     setAttempted(false);
                     onOpenChange(false);
                   }}
