@@ -17,7 +17,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
-  const { createDutyAssignmentNotification } = useDutyNotifications(addNotification);
+  const { createDutyAssignmentNotification, createDutySwapOfferNotification } = useDutyNotifications(addNotification);
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
