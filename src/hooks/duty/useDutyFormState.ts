@@ -1,14 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { DutyFormData, DutyType } from '@/types/duty';
 
-export const useDutyFormState = () => {
-  const [formData, setFormData] = useState<DutyFormData>({
-    duty_type: 'kørevagt',
+interface UseDutyFormStateOptions {
+  initialDate?: Date | null;
+  initialDutyType?: DutyType;
+  resetSignal?: unknown;
+}
+
+export const useDutyFormState = (options: UseDutyFormStateOptions = {}) => {
+  const { initialDate, initialDutyType, resetSignal } = options;
+
+  const buildInitial = (): DutyFormData => ({
+    duty_type: initialDutyType ?? 'kørevagt',
     employee_id: '',
-    dates: [],
+    dates: initialDate ? [initialDate] : [],
     notes: '',
   });
+
+  const [formData, setFormData] = useState<DutyFormData>(buildInitial);
   const [manualName, setManualName] = useState('');
+
+  useEffect(() => {
+    setFormData(buildInitial());
+    setManualName('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetSignal]);
 
   const setDutyType = (dutyType: DutyType) => {
     setFormData(prev => ({ ...prev, duty_type: dutyType }));
@@ -27,12 +43,7 @@ export const useDutyFormState = () => {
   };
 
   const resetForm = () => {
-    setFormData({
-      duty_type: 'kørevagt',
-      employee_id: '',
-      dates: [],
-      notes: '',
-    });
+    setFormData(buildInitial());
     setManualName('');
   };
 
