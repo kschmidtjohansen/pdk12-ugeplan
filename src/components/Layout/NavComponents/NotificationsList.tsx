@@ -53,6 +53,7 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
               variant="ghost" 
               size="icon" 
               className="h-5 w-5" 
+              aria-label="Afvis notifikation"
               onClick={(e) => {
                 e.stopPropagation();
                 onClearNotification(notification.id);
