@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-05-14 — Global optimering Fase 5: Database & RLS-audit
+
+### Performance/log-bloat fix (kritisk)
+- **`assignments.assignments_restricted_access`** SELECT-policy fjernet. Den kaldte `log_security_event_safe('assignment_access', …)` på HVER række-scan, hvilket genererede log-bloat (planner = 100+ rows pr. page) og skrev synkront til logs-tabellen ved hver assignment-læsning. Adgang dækkes uændret af `Users can view accessible assignments` (`can_view_assignment_optimized`).
+- **`notifications.notifications_owner_only`** SELECT-policy fjernet. Samme problem (`log_security_event_safe('notification_access', …)`). Adgang dækkes uændret af `Users can view their notifications`.
+
+### Duplikerede policies fjernet
+- `notifications.notification_delete_policy` (duplikat af `Users can delete their notifications`).
+- `notifications.notification_update_policy` (duplikat af `Users can update their notifications`).
+- Postgres OR-merger permissive policies, så duplikater øger planner-omkostning uden at ændre adgang.
+
+### Konsistens
+- `cars.cars_select` strammet fra rolle `{public}` til `{authenticated}`. Functional gating uændret (qual krævede allerede `auth.uid() IS NOT NULL`); ren cosmetics for at matche resten af skemaet.
+
+### Bekræftet allerede sikkert (stale scanner-fund)
+- 4 ERROR-niveau "PUBLIC_USER_DATA"/"EXPOSED_SENSITIVE_DATA" fund fra Lovable security scanner (profiles/user_roles/cars/warehouse_items `USING (true)`) viste sig at være cached fra tidligere fase — live `pg_policies` viser at de allerede er fjernet. Markeret som fixed i security-tracker.
+
+### Bevidst ignoreret (intentional pattern)
+- 87 Supabase linter WARN'er om "Signed-In Users Can Execute SECURITY DEFINER Function": alle er RLS-helpers (`is_admin_user`, `has_role`, `can_view_assignment_optimized`, etc.) der KRÆVER SECURITY DEFINER for at undgå rekursion i policy-evaluering. Standard Supabase-pattern. Markeret som ignored med begrundelse i security memory.
+
+### Verificering
+- Migration kørt + bekræftet via live `pg_policies`-query.
+- Adgangsmatrix verificeret uændret: hver dropet policy har en eksisterende sibling med samme USING-logik (uden logging-side-effect).
+- `assignment_update_policy`, `assignment_insert_policy`, `assignment_delete_policy` urørt — kun den loggende SELECT-duplikat fjernet.
+
+
 ## 2026-05-14 — Global optimering Fase 4: Performance (statisk)
 
 ### Render-optimering
