@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { usePermissions } from '@/context/AuthContext';
+import SimplePagination from '@/components/shared/SimplePagination';
 import { useTranslation } from '@/context/TranslationContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Employee } from '@/types/employee';
