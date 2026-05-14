@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-05-14 — Global optimering Fase 1: Sikkerhed
+
+### Sikkerhedsfix
+- **Edge function `swap-duties`**: Fjernet impersonation-vektor. Body-feltet `requestedBy` ignoreres nu til alle autorisationstjek; `user.id` fra det verificerede JWT bruges i stedet. Body-feltet bevares kun for backwards compatibility (notifikations-routing).
+- **SECURITY DEFINER public-funktioner**: `REVOKE EXECUTE ... FROM anon, PUBLIC` på alle ~60 funktioner i `public`-skemaet. Lukker 101 Supabase-linter advarsler (188 → 87). Indloggede brugere kan stadig kalde alt det app'en behøver.
+- **Højrisiko-funktioner ekstra hærdet**: `schedule_maintenance_tasks`, `validate_database_health`, `test_query_performance`, `validate_data_integrity`, `final_database_optimization`, `generate_database_summary` revoked fra `authenticated`. De kan nu kun kaldes af `service_role` / postgres.
+- **Verificeret stale fund**: `pg_policies` bekræfter at de gamle "USING true public"-policies på `profiles`, `user_roles`, `cars`, `warehouse_items` og storage `assignment-files` er væk (fjernet 2026-04-30). Markeret som fixed i scanner.
+
+### Dokumentation
+- `mem://security-memory` opdateret med ny adgangsmodel, accepteret risiko (0029-warns for app-funktioner) og næste audit-skridt.
+
+### Bevaret intakt
+- Alle eksisterende RPC-kald fra UI (`accept_duty_swap`, `has_role`, `is_admin_user` osv.) virker uændret.
+- Ingen tabel-, kolonne- eller policy-strukturændringer.
+
+### Næste skridt (Fase 1b — udskudt)
+- Scope `realtime.messages`-policies til department/user-membership.
+- Stram storage INSERT-policy på `assignment-files` (kræver path-konventions-verifikation).
+
+
 ## 2026-05-12 — Vagter: farveskel, multi-byt, multi-tildel og flere vagter pr. dag
 - Medarbejderstatus: Fraværende vises nu rød (error), Ferie/Fri vises gul (warning).
 - Vagtbyt omlagt til byttetilbud med flere kandidater og atomisk først-til-mølle accept via ny accept_duty_swap RPC. Vises "Vagten er taget"-dialog hvis allerede overtaget.
