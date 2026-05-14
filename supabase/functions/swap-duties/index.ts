@@ -50,10 +50,12 @@ Deno.serve(async (req) => {
     const userRole = roleData?.role || 'servicemedarbejder';
     const isAdminOrSkadeleder = userRole === 'administrator' || userRole === 'skadeleder' || userRole === 'super_admin';
 
-    // Parse request body
-    const { duty1Id, duty2Id, requestedBy }: SwapDutiesRequest = await req.json();
+    // Parse request body — IMPORTANT: requestedBy from body is for notification routing only.
+    // ALL authorization decisions MUST use the verified `user.id` from the JWT.
+    const { duty1Id, duty2Id }: SwapDutiesRequest = await req.json();
+    const requestedBy = user.id;
 
-    console.log(`Swap request: duty1=${duty1Id}, duty2=${duty2Id}, requestedBy=${requestedBy}`);
+    if (import.meta.env?.DEV) console.log(`Swap request: duty1=${duty1Id}, duty2=${duty2Id}, requestedBy=${requestedBy}`);
 
     // Validate input
     if (!duty1Id || !duty2Id) {
