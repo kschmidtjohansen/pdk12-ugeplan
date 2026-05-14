@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://pdk12-ugeplan.lovable.app/sitemap.xml
