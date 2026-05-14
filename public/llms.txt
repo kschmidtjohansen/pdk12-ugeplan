@@ -1,0 +1,9 @@
+# Polygon Ugeplan
+
+> Internt planlægningssystem for Polygon skadeservice. Adgang kræver login — indhold er ikke offentligt tilgængeligt.
+
+Polygon Ugeplan samler ugeplan, vagter, ferie, biler, lager og afdelingsstyring i ét værktøj for medarbejdere og administratorer i Polygon.
+
+## Pages
+
+- [Login](/login): Adgang til systemet for autoriserede medarbejdere.
