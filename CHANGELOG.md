@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-05-14 — Global optimering Fase 3: UI/a11y
+
+### Tilgængelighed
+- Tilføjet `aria-label` til 33 icon-only buttons (shadcn `size="icon"` uden synlig tekst) i Admin (DepartmentManagement, SubDepartmentManagement, UserManagement, UserTableRow, VacationCalendarOverview), Assignment (FilesPanel, MessagesPanel), Cars (FalckSubscriptionButton), Duty (List, MonthCalendar) og Layout/NavComponents/NotificationsList. Bruger `t()` med dansk fallback.
+- Verificeret at `SidebarTrigger` og `Notifications/NotificationsDropdown` allerede har `<span className="sr-only">` (ingen ændring).
+- Verificeret kun ét `<main>` pr. side (LoginPage bypasser AppShell via path-check; `SidebarInset` er ikke i brug).
+
+### Kontrast
+- Hævet empty-state ikon-opacitet `text-muted-foreground/40` → `/60` i `EmployeesTable` og `CarsList` for WCAG AA.
+
+### Bevidst skip
+- 219 hardcoded farve-hits er overvejende intentionelle status-farver (røde fejl, grønne success, gule advarsler, traffic-light availability) — knowledge-godkendt, ikke refaktoreret.
+
 ## 2026-05-14 — Global optimering Fase 2: Login & sessionhåndtering (statisk review)
 
 ### Funktionelle fix
