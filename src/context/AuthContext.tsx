@@ -312,17 +312,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               if (wasManualLogout) {
                 manualLogoutRef.current = false;
               } else {
-                toast({
-                  title: t('auth.sessionExpiredTitle') || 'Session Expired',
-                  description: t('auth.sessionExpiredDescription') || 'Please log in again',
+                toastRef.current({
+                  title: tRef.current('auth.sessionExpiredTitle') || 'Session Expired',
+                  description: tRef.current('auth.sessionExpiredDescription') || 'Please log in again',
                   variant: "destructive",
                 });
                 
                 sessionStorage.clear();
                 
-                setTimeout(() => {
-                  window.location.href = '/login';
-                }, 1000);
+                // Use replace (not href) to avoid history pollution and skip the 1s delay
+                if (window.location.pathname !== '/login') {
+                  window.location.replace('/login');
+                }
               }
               
               return;
