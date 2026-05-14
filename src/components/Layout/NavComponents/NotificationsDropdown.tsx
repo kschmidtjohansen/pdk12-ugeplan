@@ -35,7 +35,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-8 w-8 overflow-visible">
+        <Button variant="ghost" size="icon" className="relative h-8 w-8 overflow-visible" aria-label={t('notifications.title') || 'Notifikationer'}>
           <Bell className="h-[15px] w-[15px]" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-[16px] rounded-full flex items-center justify-center leading-none z-[100]">
