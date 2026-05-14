@@ -271,4 +271,4 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   );
 };
 
-export default AssignmentCard;
+export default React.memo(AssignmentCard);

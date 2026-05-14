@@ -81,4 +81,4 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
   );
 };
 
-export default DayAbsenceRow;
+export default React.memo(DayAbsenceRow);
