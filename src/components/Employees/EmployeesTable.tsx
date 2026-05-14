@@ -36,6 +36,19 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
+  const PAGE_SIZE = 25;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(employees.length / PAGE_SIZE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [employees.length]);
+
+  const pagedEmployees = useMemo(
+    () => employees.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [employees, page]
+  );
+
   // Show error state with retry option
   if (error) {
     return <EmployeeLoadingError error={error} onRetry={onRetry} loading={loading} />;
