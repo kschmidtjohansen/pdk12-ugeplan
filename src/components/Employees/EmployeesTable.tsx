@@ -91,7 +91,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   // Show empty state
   if (employees.length === 0) {
     return <div className="text-center py-8">
-        <Users className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+        <Users className="h-12 w-12 text-muted-foreground/60 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-foreground mb-2">
           {t('employees.noEmployees') || 'No employees found'}
         </h3>

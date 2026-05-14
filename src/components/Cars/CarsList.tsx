@@ -33,7 +33,7 @@ const CarsList: React.FC<CarsListProps> = ({
   if (sortedCars.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Car className="h-12 w-12 text-muted-foreground/40 mb-4" />
+        <Car className="h-12 w-12 text-muted-foreground/60 mb-4" />
         <p className="text-muted-foreground">{t('cars.noCarsInSubDepartment')}</p>
       </div>
     );
