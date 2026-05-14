@@ -591,7 +591,7 @@ const AssignmentFilesPanel: React.FC<AssignmentFilesPanelProps> = ({
           <DialogHeader className="p-4 pb-2">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-base">{previewImage?.file_name}</DialogTitle>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={closePreview}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={closePreview} aria-label={t('common.close') || 'Luk'}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
