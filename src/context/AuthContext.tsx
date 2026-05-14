@@ -119,9 +119,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const manualLogoutRef = useRef(false);
   const sessionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
-  // Safe translation hook with fallback
+  // Safe translation hook with fallback. Stored in a ref so the auth-init effect
+  // does not re-subscribe every time TranslationContext re-renders.
   const translationContext = useContext(TranslationContext);
   const t = (translationContext?.t || ((key: string) => key)) as (key: string, params?: Record<string, any>) => string;
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
+  const toastRef = useRef(toast);
+  useEffect(() => { toastRef.current = toast; }, [toast]);
   
   // Demo mode detection
   const demoService = DemoUserService.getInstance();
