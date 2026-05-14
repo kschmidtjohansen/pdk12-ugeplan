@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-05-14 — Hærdning af SECURITY DEFINER-funktioner
+
+### Adgang strammet
+- Revoke EXECUTE fra `PUBLIC`, `anon`, `authenticated` på ~55 interne SECURITY DEFINER-funktioner, der ikke skal kunne kaldes via `/rest/v1/rpc/*`.
+- Omfatter: alle trigger-funktioner (`handle_*`, `update_*`, `validate_*`, `log_assignment_deletion`, `security_audit_trigger`, `rls_auto_enable`, `auto_apply_rls_to_log_partitions`, `apply_logs_rls_policies`), alle `log_*`-helpers, alle vedligeholdelses-/cron-jobs (`cleanup_*`, `delete_*`, `emergency_log_cleanup`, `refresh_materialized_views`, `run_*_maintenance`, `sync_user_roles_to_jwt` m.fl.), diagnostics (`check_*`, `verify_*`, `debug_auth_info`, `enhanced_security_monitor`, `get_enhanced_system_metrics`, `get_security_events_summary`, `security_health_check`, `validate_input_security`) samt intern helper `get_car_with_conditional_access`.
+- Triggers påvirkes ikke (kører som table-owner). Helpers kaldt fra andre SECURITY DEFINER-funktioner virker uændret (ydre definer kører som owner).
+- Bevarede RPCs: rolle-/access-helpers brugt i RLS (`is_admin_*`, `is_super_admin`, `has_role`-familien, `can_*`, `get_user_*`), samt frontend-RPCs (`list_accessible_assignments_with_team`, `get_profiles_admin_detailed`, `get_cars_with_security`, demo-funktioner, `cancel_duty_swap`, `clear_sick_leave_data`, `reset_demo_data`).
+- Resultat: scanner-fund faldt fra 82 → 37 (de 37 er bevidst eksponeret).
+
 ## 2026-05-14 — Global optimering Fase 5: Database & RLS-audit
 
 ### Performance/log-bloat fix (kritisk)
