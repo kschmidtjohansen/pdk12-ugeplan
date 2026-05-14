@@ -146,7 +146,9 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
     if (import.meta.env.DEV) console.log('[LoginForm] Attempting login');
     setIsLoading(true);
 
+    let timedOut = false;
     const loginTimeoutId = setTimeout(() => {
+      timedOut = true;
       setLoginTimeout(true);
       setIsLoading(false);
       setError('timeout');
@@ -155,6 +157,9 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
     try {
       const result = await login(email, password);
       clearTimeout(loginTimeoutId);
+
+      // If timeout already fired, do not overwrite the timeout state with stale results
+      if (timedOut) return;
 
       if (result.error) {
         if (import.meta.env.DEV) console.log('[LoginForm] Login failed:', result.error);
@@ -179,24 +184,19 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         toast.success(isDanish ? 'Du er logget ind' : 'You are signed in', {
           description: isDanish ? 'Omdirigerer til ugeplan…' : 'Redirecting to your planner…',
         });
+        // Let LoginPage handle navigation when userDataLoaded becomes true.
+        // Avoid hard window.location.replace to prevent race with the SPA navigate().
         onSuccess?.();
-
-        setTimeout(() => {
-          if (window.location.pathname !== '/dashboard') {
-            window.location.replace('/dashboard');
-          } else {
-            window.location.reload();
-          }
-        }, 800);
       }
     } catch (err) {
       clearTimeout(loginTimeoutId);
+      if (timedOut) return;
       if (import.meta.env.DEV) console.error('[LoginForm] Login error:', err);
       setAttempts((prev) => prev + 1);
       const kind = classifyError(err);
       setError(kind === 'unknown' ? (isOnline ? 'unknown' : 'network') : kind);
     } finally {
-      if (!loginTimeout) setIsLoading(false);
+      if (!timedOut) setIsLoading(false);
     }
   };
 
