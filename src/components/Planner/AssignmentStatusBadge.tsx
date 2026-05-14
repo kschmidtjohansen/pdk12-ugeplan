@@ -22,4 +22,4 @@ const AssignmentStatusBadge: React.FC<AssignmentStatusBadgeProps> = ({ isPublish
   );
 };
 
-export default AssignmentStatusBadge;
+export default React.memo(AssignmentStatusBadge);

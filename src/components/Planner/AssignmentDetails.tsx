@@ -215,4 +215,4 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
     </div>
   );
 };
-export default AssignmentDetails;
+export default React.memo(AssignmentDetails);

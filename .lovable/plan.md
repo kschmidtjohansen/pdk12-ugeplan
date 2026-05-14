@@ -1,57 +1,88 @@
-## Fase 3 — UI/Visual & a11y (statisk)
+## Fase 4 — Performance (statisk gennemgang)
 
-Fokuseret oprydning af de a11y/UI-problemer som statisk scanning afslørede. Holder mig i frontend-laget. Ingen ændringer af forretningslogik, RLS eller knowledge-rules (180min timeout, multi-tenant isolation, kompakt design, dialog-scrolling, etc. uændret).
+Fokus: målbare gevinster på bundle-size, render-cost og dev-støj. Ingen ændringer til forretningslogik, RLS, realtime-kontrakter eller knowledge-rules (multi-tenant isolation, 5min staleTime, 1s realtime debounce, kompakt UI bevares uændret).
 
-### 1. Icon-only buttons mangler `aria-label` (34 fund)
+### Status quo (allerede godt)
 
-shadcn `Button size="icon"` er kun 36×36 og uden tekst → screen readers læser intet. Tilføjer `aria-label` (dansk, fallback til engelsk via `t()` hvor TranslationContext findes) til alle 34 fund:
+- Route-level `lazy()` + `Suspense` på alle sider med retry-wrapper.
+- Manual chunks for react/ui/data/supabase/utils/charts vendors.
+- Terser med `drop_console: true` i prod → console.* fjernes automatisk i build.
+- React Query: staleTime 5min, gcTime 10min, refetchOnWindowFocus false.
+- `rollup-plugin-visualizer` konfigureret (genererer `dist/stats.html`).
+
+Disse rør ikke.
+
+### 1. Ustabile dependencies / over-rendering i Planner-træ (højeste impact)
+
+Statisk fund i de 14 Planner-komponenter:
+- `useMemo`/`useCallback` bruges sparsomt (max 7 i én fil, 0 i fx `AssignmentDialogManager`, `DutyWeekWidget`, `AssignmentForm` har kun 2).
+- 17 inline arrow-funktioner i JSX `onClick={() => …}` i `src/components/Planner/*` → ny ref pr. render → child memo-break.
+- Kun 2 `React.memo` i hele kodebasen.
+
+Plan:
+- Wrappe rene præsentations-children i `React.memo`: `DayAbsenceRow`, `FilterChips`-rows, listerækker i `AssignmentList`, `UnassignedResourcesSection`-cells.
+- Konvertere top-level event handlers i `PlannerContent`, `AssignmentDialogManager`, `AssignmentList` til `useCallback` med stabile deps.
+- `useMemo` på dyre derived arrays (filtered/sorterede assignments-lister i `PlannerContent`, `UnassignedResourcesSection`).
+- Ingen ændring af adfærd — kun referential stability.
+
+Holder ændringer til Planner-træet (hvor brugeren bruger >80% af tiden ifølge knowledge).
+
+### 2. Bundle: identificer reelle vindere via stats.html
+
+Køres lokalt af user efter denne fase (`npm run build` → `dist/stats.html`). Statisk identificeret allerede:
+- `recharts` i sit eget chunk ✓
+- `date-fns` i utils-vendor ✓ (bemærk: `date-fns/locale/da` importeres specifikt — godt, ingen action).
+- `src/integrations/supabase/types.ts` (1822 linjer) er kun typer, tree-shakes væk i prod ✓.
+
+Konkret action:
+- Tilføj `lucide-react` til `optimizeDeps.include` for hurtigere dev-cold-start (mange små icon-imports → mange dev-requests).
+- Verificere at `AssignmentFilesPanel.tsx` (814 linjer) og `UserManagement.tsx` (894 linjer) ikke ligger i hovedbundlet — de er allerede bag route-lazy, så de er det ikke. Ingen action.
+
+### 3. Dev-støj: ugarderede console-statements (20+ fund)
+
+Terser dropper dem i prod, men de spammer dev-konsollen og maskerer ægte fejl. Pakker dem i `if (import.meta.env.DEV)`-guard (samme mønster som resten af kodebasen allerede bruger):
 
 ```text
-Admin/DepartmentManagement.tsx           (4)  — gem/annullér/rediger/slet
-Admin/SubDepartmentManagement.tsx        (4)  — samme mønster
-Admin/UserManagement.tsx                 (2)  — pagination forrige/næste
-Admin/UserTableRow.tsx                   (4)  — handlinger pr. række
-Admin/VacationCalendarOverview.tsx       (2)  — forrige/næste måned
-Assignment/AssignmentFilesPanel.tsx      (4)  — download/slet/visning
-Assignment/AssignmentMessagesPanel.tsx   (2)  — send/slet besked
-Cars/FalckSubscriptionButton.tsx         (3)  — gem/annullér/rediger
-Duty/DutyList.tsx                        (2)  — handlinger
-Duty/DutyMonthCalendar.tsx               (2)  — forrige/næste måned
-Layout/NavComponents/NotificationsDropdown.tsx (1) — notifikationer
-Layout/NavComponents/NotificationsList.tsx     (1) — afvis
-Notifications/NotificationsDropdown.tsx        (1) — notifikationer
-ui/sidebar.tsx                                  (1) — toggle sidebar
+src/pages/ScreenDisplayPage.tsx          (3)
+src/pages/LoginPage.tsx                  (1)
+src/utils/dates/weekFormatting.ts        (1)
+src/services/optimizedAssignmentService.ts (2)
+src/hooks/assignment/useAssignmentFormState.ts (1)
+src/context/AuthContext.tsx              (2)
+src/components/Dashboard/EmployeeAvailabilityDialog/index.tsx (1)
+src/components/Vacation/VacationFormDialog.tsx (1)
+src/hooks/useNotifications.ts            (2)
+src/components/Planner/ResponsibleUserSelector.tsx (2)
+src/hooks/employee/useEmployeeCreation.ts (2 warns — bevares, men guardes)
 ```
 
-### 2. Dobbelt `<main>`-element
+Ikke rørt: `SecurityHeaders.tsx` (overrider bevidst `console.error` til security logging) og `useEmployeeCreation` warnings (bevares som warnings, blot guardet).
 
-`src/pages/LoginPage.tsx:181` har `<main>` direkte i route-komponenten OG `src/components/Layout/AppShell.tsx:17` har `<main>` i layoutet. shadcn `ui/sidebar.tsx` har også et `<main>` der kun renders i sidebar-context. WCAG kræver præcis ét `<main>` pr. side.
+### 4. Realtime listeners: verificer cleanup (statisk)
 
-- Skifter LoginPage’s `<main>` til `<section>` (LoginPage bypasser MainLayout via path-check, så AppShell’s `<main>` rendres ikke her — men der må stadig kun være ét på siden, og semantisk er højre kolonne en `section` af page-roden).
-- Lader AppShell’s `<main>` være rod-elementet for alle authenticated routes.
-- `ui/sidebar.tsx`’s indre `<main>` ændres til `<div role="main">`-wrapper alternativt fjernes, da AppShell allerede leverer `<main>`. Konkret: ændrer linje 320 til `<div>` og bevarer styling — det indre var en wrapper, ikke siderod.
+22 filer kalder `channel(...)` / `.subscribe(...)`. Tjekker statisk at hver `useEffect` har `return () => supabase.removeChannel(...)`. Hvis fund mangler cleanup, fixes (memory leak risk). Ingen ændring af channel-navne eller debounce — knowledge "1s debounce, ignore own actions" bevares.
 
-### 3. Lav-kontrast tokens
+### Ud af scope (kræver runtime/browser eller separat aftale)
 
-To fund: `text-muted-foreground/40` på empty-state ikoner i `EmployeesTable.tsx:94` og `CarsList.tsx:36`. Hæver til `text-muted-foreground/60` for at ramme WCAG AA på dekorative ikoner uden at gøre dem aggressive.
-
-### 4. Hardcoded farver — bevidst skip
-
-219 hits er overvejende intentionelle status-farver (røde fejl-states, grønne success-badges, gule advarsler) der er semantisk meningsfulde og knowledge-godkendte (Realtime status, traffic-light indicators, availability dots). Refaktorering til design-tokens for disse ville skabe mere risiko end gevinst og ligger uden for scope. Lader dem stå.
-
-### Ud af scope (gemmes til senere fase eller skal aftales separat)
-
-- Tap-target audit på mobil (kræver browser/runtime).
-- Focus-visible review på custom widgets (skal verificeres i browser).
-- Heading-hierarki audit pr. side (>10 sider, kræver dyb gennemgang).
-- Image alt-tekst audit (få brugerbilleder; logoer har allerede `alt`).
+- React Profiler-flamegraph (kræver browser).
+- Web Vitals måling (LCP/INP/CLS) — kræver published build.
+- Konvertering af de få billeder til AVIF/WebP — kun `polygon-mark.png` (3KB) findes; ingen LCP-image at preloade.
+- Virtualisering af lange lister (vi har ingen lister >200 rows i typisk dataset; udskydes til når reelle perf-problemer rapporteres).
+- Service worker / offline strategi.
 
 ### Verificering
 
 - TypeScript build (auto via harness).
-- Genscanner med samme regex efter ændringer for at bekræfte 0 icon-buttons mangler aria-label.
-- Verificerer at LoginPage/AppShell hver kun rendrer ét `<main>` pr. route.
+- Re-scan ugarderede `console.*` → forventer 0 udenfor `SecurityHeaders` og `weekFormatting`.
+- Manuel inspektion af Planner-render-paths: bekræft at alle `useCallback`/`useMemo` har korrekte deps (ingen stale closures).
+- User kan efterfølgende køre `npm run build` og åbne `dist/stats.html` for visuel bundle-rapport.
 
 ### Changelog
 
-Tilføjer "Fase 3: UI/a11y" sektion til `CHANGELOG.md` med liste over ændrede filer og fund.
+Tilføjer "Fase 4: Performance" sektion til `CHANGELOG.md` med liste over memoiserede komponenter, guardede console-statements og evt. realtime cleanup-fixes.
+
+### Tekniske noter
+
+- `React.memo` med default shallow compare er nok — vi sender ikke deeply nested objects som props i Planner-cells.
+- `useCallback` deps-arrays valideres mod faktisk closure; ikke "fake" deps for at slippe lint.
+- Konsole-guards bruger samme `if (import.meta.env.DEV)`-pattern som resten af kodebasen for konsistens.
