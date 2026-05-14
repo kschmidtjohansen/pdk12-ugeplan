@@ -1,88 +1,60 @@
-## Fase 4 — Performance (statisk gennemgang)
+# Fix: 82 SECURITY DEFINER functions exposed via PostgREST
 
-Fokus: målbare gevinster på bundle-size, render-cost og dev-støj. Ingen ændringer til forretningslogik, RLS, realtime-kontrakter eller knowledge-rules (multi-tenant isolation, 5min staleTime, 1s realtime debounce, kompakt UI bevares uændret).
+## Background
+Supabase scanner flags every `SECURITY DEFINER` function in `public` that `authenticated` can `EXECUTE`, because they are auto-exposed at `/rest/v1/rpc/<name>`. We cannot blindly switch them to `SECURITY INVOKER` — many are RLS helpers that *must* run as definer to bypass recursion, and others are triggers.
 
-### Status quo (allerede godt)
+The correct fix is to **REVOKE EXECUTE from `public`, `anon`, and `authenticated`** on every function that is **not** intentionally exposed as an RPC and **not** referenced inside a user-triggered RLS policy.
 
-- Route-level `lazy()` + `Suspense` på alle sider med retry-wrapper.
-- Manual chunks for react/ui/data/supabase/utils/charts vendors.
-- Terser med `drop_console: true` i prod → console.* fjernes automatisk i build.
-- React Query: staleTime 5min, gcTime 10min, refetchOnWindowFocus false.
-- `rollup-plugin-visualizer` konfigureret (genererer `dist/stats.html`).
+Key facts that make this safe:
+- **Trigger functions** run as the table owner regardless of grants — revoking EXECUTE does not break triggers.
+- **Helpers called from inside another `SECURITY DEFINER` function** continue to work, because the outer definer runs with the owner's privileges.
+- **RLS helper functions** referenced in `USING`/`WITH CHECK` clauses *do* need EXECUTE for the querying role — those we keep.
 
-Disse rør ikke.
+## Categorization of the 82 functions
 
-### 1. Ustabile dependencies / over-rendering i Planner-træ (højeste impact)
+### KEEP callable by `authenticated` (RLS helpers + intentional RPCs)
+Role/permission checks used in RLS:
+`is_admin_user`, `is_admin_or_skadeleder`, `is_super_admin`, `is_current_user_admin`, `get_current_user_role`, `get_user_role`, `get_user_role_safe`, `user_has_role`, `get_user_department_ids`, `get_user_sub_department_ids`
 
-Statisk fund i de 14 Planner-komponenter:
-- `useMemo`/`useCallback` bruges sparsomt (max 7 i én fil, 0 i fx `AssignmentDialogManager`, `DutyWeekWidget`, `AssignmentForm` har kun 2).
-- 17 inline arrow-funktioner i JSX `onClick={() => …}` i `src/components/Planner/*` → ny ref pr. render → child memo-break.
-- Kun 2 `React.memo` i hele kodebasen.
+Access checks used in RLS:
+`can_access_assignment`, `can_access_case_data`, `can_access_department_data`, `can_access_profile_field`, `can_access_vacation`, `can_user_access_assignment`, `can_view_assignment_optimized`, `can_view_fuel_codes`, `can_view_fuel_codes_audited`, `is_user_assigned_to_assignment`
 
-Plan:
-- Wrappe rene præsentations-children i `React.memo`: `DayAbsenceRow`, `FilterChips`-rows, listerækker i `AssignmentList`, `UnassignedResourcesSection`-cells.
-- Konvertere top-level event handlers i `PlannerContent`, `AssignmentDialogManager`, `AssignmentList` til `useCallback` med stabile deps.
-- `useMemo` på dyre derived arrays (filtered/sorterede assignments-lister i `PlannerContent`, `UnassignedResourcesSection`).
-- Ingen ændring af adfærd — kun referential stability.
+Intentional RPCs called by the frontend:
+`list_accessible_assignments_with_team`, `list_demo_assignments_with_team`, `get_accessible_profiles`, `get_profile_detailed`, `get_profile_with_role`, `get_profiles_admin_detailed` (both overloads), `get_profiles_basic`, `get_cars_with_security`, `get_demo_cars_with_security`, `get_demo_duties_with_employee`, `get_demo_profiles_admin_detailed`, `get_demo_vacations`, `get_demo_warehouse_items`, `cancel_duty_swap`, `clear_sick_leave_data`, `reset_demo_data`
 
-Holder ændringer til Planner-træet (hvor brugeren bruger >80% af tiden ifølge knowledge).
+(All of these already enforce role/identity checks internally.)
 
-### 2. Bundle: identificer reelle vindere via stats.html
+### REVOKE EXECUTE from `public`, `anon`, `authenticated` (≈55 funcs)
 
-Køres lokalt af user efter denne fase (`npm run build` → `dist/stats.html`). Statisk identificeret allerede:
-- `recharts` i sit eget chunk ✓
-- `date-fns` i utils-vendor ✓ (bemærk: `date-fns/locale/da` importeres specifikt — godt, ingen action).
-- `src/integrations/supabase/types.ts` (1822 linjer) er kun typer, tree-shakes væk i prod ✓.
+Trigger / event-trigger functions:
+`handle_assignment_updated_at`, `handle_new_user`, `log_assignment_deletion`, `update_modified_column`, `update_updated_at_column`, `validate_assignment_times`, `validate_duty_assignment`, `validate_vacation_dates`, `security_audit_trigger`, `rls_auto_enable`, `auto_apply_rls_to_log_partitions`, `apply_logs_rls_policies`
 
-Konkret action:
-- Tilføj `lucide-react` til `optimizeDeps.include` for hurtigere dev-cold-start (mange små icon-imports → mange dev-requests).
-- Verificere at `AssignmentFilesPanel.tsx` (814 linjer) og `UserManagement.tsx` (894 linjer) ikke ligger i hovedbundlet — de er allerede bag route-lazy, så de er det ikke. Ingen action.
+Logging helpers (only called from inside other definer functions):
+`add_system_log`, `log_data_access_attempt`, `log_data_fetch_error_safe`, `log_profile_access_attempt`, `log_realtime_change_throttled`, `log_security_event`, `log_security_event_optimized`, `log_security_event_safe`, `log_unauthorized_car_access`, `log_vacation_security_event`
 
-### 3. Dev-støj: ugarderede console-statements (20+ fund)
+Maintenance / cron / admin-only utilities:
+`cleanup_demo_data_ttl`, `cleanup_expired_temporary_users`, `cleanup_old_change_logs`, `create_logs_partition_for_month`, `delete_expired_approved_vacations`, `delete_old_rejected_vacations`, `emergency_log_cleanup`, `ensure_logs_rls_consistency`, `perform_database_maintenance`, `refresh_materialized_views`, `run_automated_maintenance`, `run_logs_rls_maintenance`, `set_temporary_user_expiration`, `sync_user_roles_to_jwt`
 
-Terser dropper dem i prod, men de spammer dev-konsollen og maskerer ægte fejl. Pakker dem i `if (import.meta.env.DEV)`-guard (samme mønster som resten af kodebasen allerede bruger):
+Diagnostics / health / verification (admin-only, should not be callable by any signed-in user):
+`check_data_access_health`, `check_rate_limit_security`, `check_system_health`, `debug_auth_info`, `enhanced_security_monitor`, `get_enhanced_system_metrics`, `get_security_events_summary`, `security_health_check`, `verify_complete_fix`, `verify_data_access_fix`, `verify_policy_fix`, `verify_role_assignments`, `validate_input_security`
 
-```text
-src/pages/ScreenDisplayPage.tsx          (3)
-src/pages/LoginPage.tsx                  (1)
-src/utils/dates/weekFormatting.ts        (1)
-src/services/optimizedAssignmentService.ts (2)
-src/hooks/assignment/useAssignmentFormState.ts (1)
-src/context/AuthContext.tsx              (2)
-src/components/Dashboard/EmployeeAvailabilityDialog/index.tsx (1)
-src/components/Vacation/VacationFormDialog.tsx (1)
-src/hooks/useNotifications.ts            (2)
-src/components/Planner/ResponsibleUserSelector.tsx (2)
-src/hooks/employee/useEmployeeCreation.ts (2 warns — bevares, men guardes)
-```
+Internal helper:
+`get_car_with_conditional_access(cars)` — only called by `get_cars_with_security`.
 
-Ikke rørt: `SecurityHeaders.tsx` (overrider bevidst `console.error` til security logging) og `useEmployeeCreation` warnings (bevares som warnings, blot guardet).
+## Implementation
 
-### 4. Realtime listeners: verificer cleanup (statisk)
+A single migration will:
+1. Issue `REVOKE EXECUTE ON FUNCTION public.<fn>(<args>) FROM PUBLIC, anon, authenticated;` for each function in the revoke list.
+2. Re-`GRANT EXECUTE ... TO authenticated` is **not** needed for the keep list (default grants remain).
+3. Update `CHANGELOG.md` and `docs/technical-specs` security note.
+4. Update security memory documenting the new posture: definer functions are private by default; only the listed RPCs are callable.
 
-22 filer kalder `channel(...)` / `.subscribe(...)`. Tjekker statisk at hver `useEffect` har `return () => supabase.removeChannel(...)`. Hvis fund mangler cleanup, fixes (memory leak risk). Ingen ændring af channel-navne eller debounce — knowledge "1s debounce, ignore own actions" bevares.
+## Verification
+After migration, re-run the security scanner — the 82 findings should drop to ~30 (the intentional RPCs + RLS helpers). Then mark those remaining as "ignored — intentional" with rationale in the security memory.
 
-### Ud af scope (kræver runtime/browser eller separat aftale)
+## Open question
+Two functions are ambiguous and worth confirming before the revoke:
+- `clear_sick_leave_data` — internally checks `is_admin_user()`. Called from the admin UI via RPC? If yes, keep. If invoked only by cron/edge function, revoke.
+- `reset_demo_data` — same situation; internally restricted to demo. Keep callable if the demo UI calls it directly.
 
-- React Profiler-flamegraph (kræver browser).
-- Web Vitals måling (LCP/INP/CLS) — kræver published build.
-- Konvertering af de få billeder til AVIF/WebP — kun `polygon-mark.png` (3KB) findes; ingen LCP-image at preloade.
-- Virtualisering af lange lister (vi har ingen lister >200 rows i typisk dataset; udskydes til når reelle perf-problemer rapporteres).
-- Service worker / offline strategi.
-
-### Verificering
-
-- TypeScript build (auto via harness).
-- Re-scan ugarderede `console.*` → forventer 0 udenfor `SecurityHeaders` og `weekFormatting`.
-- Manuel inspektion af Planner-render-paths: bekræft at alle `useCallback`/`useMemo` har korrekte deps (ingen stale closures).
-- User kan efterfølgende køre `npm run build` og åbne `dist/stats.html` for visuel bundle-rapport.
-
-### Changelog
-
-Tilføjer "Fase 4: Performance" sektion til `CHANGELOG.md` med liste over memoiserede komponenter, guardede console-statements og evt. realtime cleanup-fixes.
-
-### Tekniske noter
-
-- `React.memo` med default shallow compare er nok — vi sender ikke deeply nested objects som props i Planner-cells.
-- `useCallback` deps-arrays valideres mod faktisk closure; ikke "fake" deps for at slippe lint.
-- Konsole-guards bruger samme `if (import.meta.env.DEV)`-pattern som resten af kodebasen for konsistens.
+I will assume **both stay callable** unless you say otherwise.
