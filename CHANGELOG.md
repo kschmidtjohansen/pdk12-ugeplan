@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-05-14 — Dead-code oprydning
+
+### Slettet (verificeret ubrugt via knip + import-grep)
+- **Komponenter (~30):** gamle `Notifications/`-stak, duplikerede `Employees/EmployeeList*` + dialogs, ubrugte Dashboard-widgets (`AssignmentDistributionChart`, `DashboardMetrics`, `InteractiveMetricCard`, `MetricCard`, `SystemMetricsOverview`, `VehicleStatusWidget`), `AutoPublishHandler` (afløst af edge function + DB cron), `PasswordResetDebugger`, gammel `ErrorBoundary.tsx` + `DashboardErrorBoundary`, `Duty/DutyAssignmentForm` + `DutyReassignDialog`, `Layout/NavComponents/{DepartmentSelector,DesktopNavigation,MobileNavigation,Logo}`, `Layout/NavigationItems`, `Planner/AssignmentList` + `CarSelector`, `Vacation/{EmployeeVacationStatus,EnhancedVacationForm,VacationButtons,VacationCard}`, `shared/{Card,Metrics,Table}Skeleton`, `App.css`.
+- **Hooks (11):** `assignment/{useAssignmentActions,useAssignmentDialogState,useAssignmentFormState,useAssignmentHelpers,useCarDataHandler}`, `useAssignmentFilters`, `useAutoPublishAssignments`, `useDashboard`, `useDiagnostics`, `usePlannerPage`, `vacation/useVacationRequestActions`.
+- **Services/utils/types (8):** `assignmentFilterService`, `data/assignmentService`, `secureProfileService`, `securityManager`, `supabaseIssuesAuditor`, `databaseCleanup`, `securityValidation`, `types/{navigation,notification.d}`.
+- **shadcn UI primitives (17):** `accordion`, `aspect-ratio`, `breadcrumb`, `carousel`, `chart`, `command`, `form`, `hover-card`, `input-otp`, `menubar`, `navigation-menu`, `pagination`, `progress`, `resizable`, `secure-input`, `slider`, `sonner`.
+- **Edge functions (2):** `admin-delete-user` (afløst af `admin-user-delete`), `swap-duty` (afløst af `swap-duties`). Også undeployet via Supabase + fjernet fra `supabase/config.toml`.
+- **NPM dependencies (14):** `@radix-ui/react-{accordion,aspect-ratio,hover-card,menubar,navigation-menu,progress,slider}`, `cmdk`, `embla-carousel-react`, `input-otp`, `next-themes`, `react-resizable-panels`, `recharts`, `@tailwindcss/typography`.
+
+### Bevaret bevidst
+- `/docs/**`, `supabase/migrations/**`, `mem://`, `src/integrations/supabase/types.ts`, alle stadig-importerede shadcn-komponenter, `@hookform/resolvers`/`zod` (form-pattern), `@testing-library/*` + `vitest` + `jsdom` (test-infra).
+
+
 ## 2026-05-14 — Hærdning af SECURITY DEFINER-funktioner
 
 ### Adgang strammet
