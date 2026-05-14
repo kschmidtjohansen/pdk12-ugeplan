@@ -231,10 +231,10 @@ const SubDepartmentManagement: React.FC = () => {
                         className="h-8"
                         autoFocus
                       />
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleRename(sub.id)}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleRename(sub.id)} aria-label={t('common.save') || 'Gem'}>
                         <Check className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingId(null)}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingId(null)} aria-label={t('common.cancel') || 'Annullér'}>
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
@@ -247,6 +247,7 @@ const SubDepartmentManagement: React.FC = () => {
                         variant="ghost"
                         size="icon"
                         title={t('admin.subDepartments.editName')}
+                        aria-label={t('admin.subDepartments.editName') || 'Rediger navn'}
                         onClick={() => { setEditingId(sub.id); setEditingName(sub.name); }}
                       >
                         <Pencil className="h-4 w-4" />
@@ -255,6 +256,7 @@ const SubDepartmentManagement: React.FC = () => {
                         variant="ghost"
                         size="icon"
                         className="text-destructive hover:text-destructive"
+                        aria-label={t('common.delete') || 'Slet'}
                         onClick={() => handleDeleteAttempt(sub)}
                       >
                         <Trash2 className="h-4 w-4" />
