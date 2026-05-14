@@ -320,3 +320,10 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [ ] Step 8 (H): "Hvad ændrede sig?" — daglig diff-stripe
 - [ ] Step 9 (I): Push-notifikationer ved tildeling
 - [ ] Step 10 (J): Ugentlig "Mandagsbriefing" (e-mail)
+
+## Performance: liste-paginering (UI)
+
+- [x] Tilføj client-side paginering i `EmployeesTable` (25 pr. side, desktop + mobile)
+- [x] Tilføj client-side paginering i `CarsList` (25 pr. side, desktop + mobile)
+- [x] Progressive disclosure i `PastAssignments` + `CompactPastAssignments` (14 datoer, "Vis flere" +14)
+- [x] Genbrugelig `SimplePagination`-komponent i `src/components/shared/`

@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-05-14 — Liste-paginering (UI performance)
+
+### Tilføjet
+- **Ny komponent:** `src/components/shared/SimplePagination.tsx` — let, genbrugelig paginerings-kontrol (Forrige/Næste + sidetæller), bruger semantiske tokens.
+- **Employees (`EmployeesTable`):** Client-side paginering 25 pr. side på både desktop-tabel og mobile-kort. Reset til side 1 når listen ændrer længde (filter/søgning).
+- **Cars (`CarsList`):** Client-side paginering 25 pr. side på både desktop og mobile. Sortering flyttet i `useMemo`.
+- **Weekly Planner — past assignments (`PastAssignments` + `CompactPastAssignments`):** Progressive disclosure — viser de seneste 14 datoer som standard, "Vis flere"-knap loader 14 ad gangen. Undgår tunge renders når brugeren scroller bagud i historikken.
+
+### Effekt
+- Færre DOM-noder pr. render på lister med mange entries → hurtigere interaktion (især på mobil).
+- Ingen ændringer til Supabase-queries eller RLS — datasæt hentes uændret pr. afdeling.
+
+
 ## 2026-05-14 — Dead-code oprydning
 
 ### Slettet (verificeret ubrugt via knip + import-grep)

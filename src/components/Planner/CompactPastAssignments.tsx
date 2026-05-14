@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
+import { Button } from '@/components/ui/button';
 import CompactDaySection from './CompactDaySection';
 
 interface CompactPastAssignmentsProps {
@@ -38,16 +39,28 @@ const CompactPastAssignments: React.FC<CompactPastAssignmentsProps> = ({
   cars = []
 }) => {
   const { t } = useTranslation();
-  
+  const INITIAL = 14;
+  const STEP = 14;
+  const [visible, setVisible] = useState(INITIAL);
+
+  useEffect(() => {
+    setVisible(INITIAL);
+  }, [pastDates.length]);
+
+  const visibleDates = useMemo(
+    () => pastDates.slice(0, visible),
+    [pastDates, visible]
+  );
+
   if (pastDates.length === 0) return null;
-  
+
   return (
     <div className="mt-6">
       <h2 className="text-lg font-semibold mb-3 text-muted-foreground border-b pb-2">
         {t("planner.previousDays")}
       </h2>
       <div className="space-y-3">
-        {pastDates.map(dateKey => (
+        {visibleDates.map(dateKey => (
           <CompactDaySection 
             key={dateKey}
             dateKey={dateKey}
@@ -67,6 +80,17 @@ const CompactPastAssignments: React.FC<CompactPastAssignmentsProps> = ({
           />
         ))}
       </div>
+      {visible < pastDates.length && (
+        <div className="mt-3 flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setVisible(v => v + STEP)}
+          >
+            Vis flere ({pastDates.length - visible} tilbage)
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

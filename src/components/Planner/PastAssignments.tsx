@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
+import { Button } from '@/components/ui/button';
 import DaySection from './DaySection';
 
 interface PastAssignmentsProps {
@@ -43,16 +44,29 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
   gridLayout = false
 }) => {
   const { t } = useTranslation();
-  
+  const INITIAL = 14;
+  const STEP = 14;
+  const [visible, setVisible] = useState(INITIAL);
+
+  useEffect(() => {
+    setVisible(INITIAL);
+  }, [pastDates.length]);
+
+  // Show the most recent N past dates (assume newest first; fallback to slice end)
+  const visibleDates = useMemo(
+    () => pastDates.slice(0, visible),
+    [pastDates, visible]
+  );
+
   if (pastDates.length === 0) return null;
-  
+
   return (
     <div className="mt-8">
       <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
         {t("planner.previousDays")}
       </h2>
       <div className="space-y-6">
-        {pastDates.map(dateKey => (
+        {visibleDates.map(dateKey => (
           <DaySection 
             key={dateKey}
             dateKey={dateKey}
@@ -74,6 +88,17 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
           />
         ))}
       </div>
+      {visible < pastDates.length && (
+        <div className="mt-4 flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setVisible(v => v + STEP)}
+          >
+            Vis flere ({pastDates.length - visible} tilbage)
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

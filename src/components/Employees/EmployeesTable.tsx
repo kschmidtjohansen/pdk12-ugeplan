@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { usePermissions } from '@/context/AuthContext';
+import SimplePagination from '@/components/shared/SimplePagination';
 import { useTranslation } from '@/context/TranslationContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Employee } from '@/types/employee';
@@ -34,6 +35,19 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+
+  const PAGE_SIZE = 25;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(employees.length / PAGE_SIZE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [employees.length]);
+
+  const pagedEmployees = useMemo(
+    () => employees.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [employees, page]
+  );
 
   // Show error state with retry option
   if (error) {
@@ -109,7 +123,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   if (isMobile) {
     return (
       <div className="space-y-3 p-4">
-        {employees.map(employee => (
+        {pagedEmployees.map(employee => (
           <MobileEmployeeCard
             key={`${employee.id}-${employee.onLeave}-${employee.status}`}
             employee={employee}
@@ -119,6 +133,13 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             onToggleLeave={onToggleLeave}
           />
         ))}
+        <SimplePagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={employees.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
       </div>
     );
   }
@@ -142,9 +163,16 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {employees.map(employee => <EmployeeTableRow key={`${employee.id}-${employee.onLeave}-${employee.status}`} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
+            {pagedEmployees.map(employee => <EmployeeTableRow key={`${employee.id}-${employee.onLeave}-${employee.status}`} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
           </TableBody>
         </Table>
+        <SimplePagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={employees.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
         </div>
       </div>
     </div>;
