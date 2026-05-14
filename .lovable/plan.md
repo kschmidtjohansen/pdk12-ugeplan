@@ -1,60 +1,126 @@
-# Fix: 82 SECURITY DEFINER functions exposed via PostgREST
+# Cleanup: remove unused files and dead code
 
-## Background
-Supabase scanner flags every `SECURITY DEFINER` function in `public` that `authenticated` can `EXECUTE`, because they are auto-exposed at `/rest/v1/rpc/<name>`. We cannot blindly switch them to `SECURITY INVOKER` — many are RLS helpers that *must* run as definer to bypass recursion, and others are triggers.
+## Goal
+Remove confirmed dead code without affecting any live functionality, the running site, or `/docs` (the SSOT "knowledge"). All deletions are based on `knip` analysis cross-checked against actual imports and edge-function invocations.
 
-The correct fix is to **REVOKE EXECUTE from `public`, `anon`, and `authenticated`** on every function that is **not** intentionally exposed as an RPC and **not** referenced inside a user-triggered RLS policy.
+## Scope guard — what is explicitly NOT touched
+- `/docs/**` — SSOT, kept verbatim.
+- `supabase/migrations/**` — historical record, kept.
+- `src/integrations/supabase/types.ts` — auto-generated.
+- `mem://` memory files.
+- All shadcn UI primitives that *are* imported anywhere (only the verified-unused ones go).
+- Edge functions that are either invoked from frontend or scheduled in `supabase/config.toml` for runtime use.
+- `CHANGELOG.md`, `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `ONBOARDING.md`.
 
-Key facts that make this safe:
-- **Trigger functions** run as the table owner regardless of grants — revoking EXECUTE does not break triggers.
-- **Helpers called from inside another `SECURITY DEFINER` function** continue to work, because the outer definer runs with the owner's privileges.
-- **RLS helper functions** referenced in `USING`/`WITH CHECK` clauses *do* need EXECUTE for the querying role — those we keep.
+## Phase 1 — Duplicate / superseded source files (safe deletes)
 
-## Categorization of the 82 functions
+Verified zero imports anywhere in `src/`:
 
-### KEEP callable by `authenticated` (RLS helpers + intentional RPCs)
-Role/permission checks used in RLS:
-`is_admin_user`, `is_admin_or_skadeleder`, `is_super_admin`, `is_current_user_admin`, `get_current_user_role`, `get_user_role`, `get_user_role_safe`, `user_has_role`, `get_user_department_ids`, `get_user_sub_department_ids`
+**Old Notifications stack** (replaced by `src/components/Layout/NavComponents/Notifications*`):
+- `src/components/Notifications/NotificationItem.tsx`
+- `src/components/Notifications/NotificationsDropdown.tsx`
+- `src/components/Notifications/NotificationsList.tsx`
 
-Access checks used in RLS:
-`can_access_assignment`, `can_access_case_data`, `can_access_department_data`, `can_access_profile_field`, `can_access_vacation`, `can_user_access_assignment`, `can_view_assignment_optimized`, `can_view_fuel_codes`, `can_view_fuel_codes_audited`, `is_user_assigned_to_assignment`
+**Duplicate Employees lists** (active list is `EmployeesTable.tsx`):
+- `src/components/Employees/EmployeeList.tsx`
+- `src/components/Employees/EmployeesList.tsx`
+- `src/components/Employees/EmployeeDialogManager.tsx`
+- `src/components/Employees/EmployeeMarkAvailableDialog.tsx`
+- `src/components/Employees/EmployeeMarkLeaveDialog.tsx`
 
-Intentional RPCs called by the frontend:
-`list_accessible_assignments_with_team`, `list_demo_assignments_with_team`, `get_accessible_profiles`, `get_profile_detailed`, `get_profile_with_role`, `get_profiles_admin_detailed` (both overloads), `get_profiles_basic`, `get_cars_with_security`, `get_demo_cars_with_security`, `get_demo_duties_with_employee`, `get_demo_profiles_admin_detailed`, `get_demo_vacations`, `get_demo_warehouse_items`, `cancel_duty_swap`, `clear_sick_leave_data`, `reset_demo_data`
+**Unused dashboard widgets** (no Dashboard route imports them):
+- `src/components/Dashboard/AssignmentDistributionChart.tsx`
+- `src/components/Dashboard/DashboardMetrics.tsx`
+- `src/components/Dashboard/InteractiveMetricCard.tsx`
+- `src/components/Dashboard/MetricCard.tsx`
+- `src/components/Dashboard/SystemMetricsOverview.tsx`
+- `src/components/Dashboard/VehicleStatusWidget.tsx`
 
-(All of these already enforce role/identity checks internally.)
+**Other stale components / debug helpers:**
+- `src/components/Admin/PasswordResetDebugger.tsx`
+- `src/components/AutoPublish/AutoPublishHandler.tsx` (replaced by `send-duty-reminders` edge function + DB cron)
+- `src/components/ErrorBoundary.tsx` (a newer one lives in `src/components/ErrorBoundary/`)
+- `src/components/Duty/DutyAssignmentForm.tsx`
+- `src/components/Duty/DutyReassignDialog.tsx`
+- `src/components/Layout/NavComponents/DepartmentSelector.tsx` (selector now lives in UserMenu — confirmed by memory rule)
+- `src/components/Layout/NavComponents/DesktopNavigation.tsx`
+- `src/components/Layout/NavComponents/MobileNavigation.tsx`
+- `src/components/Layout/NavComponents/Logo.tsx`
+- `src/components/Layout/NavigationItems.tsx`
+- `src/components/Planner/AssignmentList.tsx`
+- `src/components/Planner/CarSelector.tsx`
+- `src/components/Vacation/EmployeeVacationStatus.tsx`
+- `src/components/Vacation/EnhancedVacationForm.tsx`
+- `src/components/Vacation/VacationButtons.tsx`
+- `src/components/Vacation/VacationCard.tsx`
+- `src/components/ErrorBoundary/DashboardErrorBoundary.tsx`
+- `src/components/shared/CardSkeleton.tsx`
+- `src/components/shared/MetricsSkeleton.tsx`
+- `src/components/shared/TableSkeleton.tsx`
+- `src/App.css` (Vite default, not imported)
 
-### REVOKE EXECUTE from `public`, `anon`, `authenticated` (≈55 funcs)
+## Phase 2 — Unused hooks / services / utils
 
-Trigger / event-trigger functions:
-`handle_assignment_updated_at`, `handle_new_user`, `log_assignment_deletion`, `update_modified_column`, `update_updated_at_column`, `validate_assignment_times`, `validate_duty_assignment`, `validate_vacation_dates`, `security_audit_trigger`, `rls_auto_enable`, `auto_apply_rls_to_log_partitions`, `apply_logs_rls_policies`
+- `src/hooks/assignment/useAssignmentActions.ts`
+- `src/hooks/assignment/useAssignmentDialogState.ts`
+- `src/hooks/assignment/useAssignmentFormState.ts`
+- `src/hooks/assignment/useAssignmentHelpers.ts`
+- `src/hooks/assignment/useCarDataHandler.ts`
+- `src/hooks/useAssignmentFilters.ts`
+- `src/hooks/useAutoPublishAssignments.ts`
+- `src/hooks/useDashboard.ts`
+- `src/hooks/useDiagnostics.ts`
+- `src/hooks/usePlannerPage.ts`
+- `src/hooks/vacation/useVacationRequestActions.ts`
+- `src/services/assignmentFilterService.ts`
+- `src/services/data/assignmentService.ts`
+- `src/services/secureProfileService.ts`
+- `src/services/securityManager.ts`
+- `src/services/supabaseIssuesAuditor.ts`
+- `src/types/navigation.ts`
+- `src/types/notification.d.ts`
+- `src/utils/databaseCleanup.ts`
+- `src/utils/securityValidation.ts`
 
-Logging helpers (only called from inside other definer functions):
-`add_system_log`, `log_data_access_attempt`, `log_data_fetch_error_safe`, `log_profile_access_attempt`, `log_realtime_change_throttled`, `log_security_event`, `log_security_event_optimized`, `log_security_event_safe`, `log_unauthorized_car_access`, `log_vacation_security_event`
+## Phase 3 — Unused shadcn UI primitives
 
-Maintenance / cron / admin-only utilities:
-`cleanup_demo_data_ttl`, `cleanup_expired_temporary_users`, `cleanup_old_change_logs`, `create_logs_partition_for_month`, `delete_expired_approved_vacations`, `delete_old_rejected_vacations`, `emergency_log_cleanup`, `ensure_logs_rls_consistency`, `perform_database_maintenance`, `refresh_materialized_views`, `run_automated_maintenance`, `run_logs_rls_maintenance`, `set_temporary_user_expiration`, `sync_user_roles_to_jwt`
+Only files knip marks unused AND that have zero imports outside themselves:
+`accordion.tsx`, `aspect-ratio.tsx`, `breadcrumb.tsx`, `carousel.tsx`, `chart.tsx`, `command.tsx`, `form.tsx`, `hover-card.tsx`, `input-otp.tsx`, `menubar.tsx`, `navigation-menu.tsx`, `pagination.tsx`, `progress.tsx`, `resizable.tsx`, `secure-input.tsx`, `slider.tsx`, `sonner.tsx`
 
-Diagnostics / health / verification (admin-only, should not be callable by any signed-in user):
-`check_data_access_health`, `check_rate_limit_security`, `check_system_health`, `debug_auth_info`, `enhanced_security_monitor`, `get_enhanced_system_metrics`, `get_security_events_summary`, `security_health_check`, `verify_complete_fix`, `verify_data_access_fix`, `verify_policy_fix`, `verify_role_assignments`, `validate_input_security`
+## Phase 4 — Duplicate / superseded edge functions
 
-Internal helper:
-`get_car_with_conditional_access(cars)` — only called by `get_cars_with_security`.
+Verified replacements exist and the old ones are not invoked anywhere:
+- `supabase/functions/admin-delete-user/` — superseded by `admin-user-delete` (used in 3 places).
+- `supabase/functions/swap-duty/` — superseded by `swap-duties` (used in `useDutyActions`).
 
-## Implementation
+Both will be removed via the edge-function delete tool so they are also undeployed.
 
-A single migration will:
-1. Issue `REVOKE EXECUTE ON FUNCTION public.<fn>(<args>) FROM PUBLIC, anon, authenticated;` for each function in the revoke list.
-2. Re-`GRANT EXECUTE ... TO authenticated` is **not** needed for the keep list (default grants remain).
-3. Update `CHANGELOG.md` and `docs/technical-specs` security note.
-4. Update security memory documenting the new posture: definer functions are private by default; only the listed RPCs are callable.
+**Kept** (still used or scheduled): `admin-create-user`, `admin-list-users`, `admin-reset-password`, `admin-user-delete`, `admin-user-role`, `admin-user-status`, `cleanup-change-logs`, `cleanup-expired-users`, `dawa-proxy`, `send-duty-reminders`, `swap-duties`.
 
-## Verification
-After migration, re-run the security scanner — the 82 findings should drop to ~30 (the intentional RPCs + RLS helpers). Then mark those remaining as "ignored — intentional" with rationale in the security memory.
+## Phase 5 — Unused dependencies (package.json)
+
+Remove only ones that are truly unimported after Phases 1–3:
+`@radix-ui/react-accordion`, `@radix-ui/react-aspect-ratio`, `@radix-ui/react-hover-card`, `@radix-ui/react-menubar`, `@radix-ui/react-navigation-menu`, `@radix-ui/react-progress`, `@radix-ui/react-slider`, `cmdk`, `embla-carousel-react`, `input-otp`, `next-themes`, `react-resizable-panels`, `recharts`, `@tailwindcss/typography`.
+
+**Kept despite knip flagging:** `@hookform/resolvers`, `zod` (form validation pattern may still be used after Phase 3 verification), `@testing-library/*`, `vitest`, `jsdom` (test infra — even if no tests exist now, removing them silently breaks a future `bun test`).
+
+## Phase 6 — Dead exports inside surviving files
+
+Drop only the non-default unused named exports flagged by knip in:
+- `src/utils/dateUtils.ts`, `src/utils/dates/weekCore.ts`, `src/utils/dates/weekFormatting.ts`, `src/utils/dates/weekNavigation.ts`
+- `src/utils/dbHelpers.ts`, `src/utils/inputSanitization.ts`, `src/utils/notifications.ts`, `src/utils/phoneValidation.ts`, `src/utils/securityLogger.ts`, `src/utils/uuidValidation.ts`, `src/utils/employeeAssignmentUtils.ts`, `src/utils/assignmentConflicts.ts`
+- `src/lib/utils.ts` (`formatDanishMonth`)
+- `src/integrations/supabase/client.ts` (`ensureValidSession`, `withRetry`)
+
+This phase is **opt-in** — risky because knip can miss dynamic uses. Default: skip Phase 6, only do it if you confirm.
+
+## Verification after each phase
+1. `bun run build` (handled automatically by harness).
+2. Re-run `knip` to confirm fewer findings and no new errors.
+3. Visual smoke check on preview.
+
+## Rollout order
+Phases 1 → 2 → 4 → 3 → 5. Phase 6 only on explicit go-ahead.
 
 ## Open question
-Two functions are ambiguous and worth confirming before the revoke:
-- `clear_sick_leave_data` — internally checks `is_admin_user()`. Called from the admin UI via RPC? If yes, keep. If invoked only by cron/edge function, revoke.
-- `reset_demo_data` — same situation; internally restricted to demo. Keep callable if the demo UI calls it directly.
-
-I will assume **both stay callable** unless you say otherwise.
+OK to proceed with all of Phases 1–5 in one pass, or do you want me to stop after Phase 1 for a checkpoint?
