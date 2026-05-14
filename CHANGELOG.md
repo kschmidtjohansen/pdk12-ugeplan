@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-05-14 — Global optimering Fase 2: Login & sessionhåndtering (statisk review)
+
+### Funktionelle fix
+- **AuthContext**: Auth-listener re-mountede ved hver TranslationContext-render (`t`/`toast` ustabile deps). Flyttet til refs så listener kun mountes én gang.
+- **Session-expired**: Erstattet `setTimeout(window.location.href = '/login', 1000)` med direkte `window.location.replace('/login')` (kun hvis ikke allerede på /login) — fjerner 1s flicker og history-pollution.
+- **`signUp`**: Tilføjet `emailRedirectTo: ${origin}/login` (knowledge-krav for Supabase auth).
+- **`register`**: Boblede tidligere kun en generisk fejl op fra `admin-create-user` edge function. Nu propageres edge function-beskeden så admins ser den reelle årsag (fx "email already exists").
+- **Login-form race**: Fjernet `window.location.replace('/dashboard')` i form efter succes — `LoginPage` håndterer nu navigationen via React Router når `userDataLoaded` er klar. Fjerner dobbelt-navigation og hard-reload.
+- **Login-form timeout**: `if (!loginTimeout) setIsLoading(false)` læste stale closure (altid `false`). Erstattet med lokal `timedOut` flag, som også guarder mod at sætte success/error state hvis login svarer EFTER 15s timeout.
+- **PasswordResetPage email-flow**: `handleEmailBasedReset` kaldte `admin-reset-password` med `{ email }`, men funktionen forventer `{ userId, newPassword }` og kræver admin-JWT — så email-baseret reset for ikke-loggede brugere var brudt. Skiftet til `supabase.auth.resetPasswordForEmail()` som er det offentlige flow.
+- **PasswordResetPage**: Hævet min. password-længde fra 6 til 8 tegn ved token-baseret reset.
+
 ## 2026-05-14 — Global optimering Fase 1: Sikkerhed
 
 ### Sikkerhedsfix

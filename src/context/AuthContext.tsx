@@ -119,9 +119,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const manualLogoutRef = useRef(false);
   const sessionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
-  // Safe translation hook with fallback
+  // Safe translation hook with fallback. Stored in a ref so the auth-init effect
+  // does not re-subscribe every time TranslationContext re-renders.
   const translationContext = useContext(TranslationContext);
   const t = (translationContext?.t || ((key: string) => key)) as (key: string, params?: Record<string, any>) => string;
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
+  const toastRef = useRef(toast);
+  useEffect(() => { toastRef.current = toast; }, [toast]);
   
   // Demo mode detection
   const demoService = DemoUserService.getInstance();
@@ -307,17 +312,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               if (wasManualLogout) {
                 manualLogoutRef.current = false;
               } else {
-                toast({
-                  title: t('auth.sessionExpiredTitle') || 'Session Expired',
-                  description: t('auth.sessionExpiredDescription') || 'Please log in again',
+                toastRef.current({
+                  title: tRef.current('auth.sessionExpiredTitle') || 'Session Expired',
+                  description: tRef.current('auth.sessionExpiredDescription') || 'Please log in again',
                   variant: "destructive",
                 });
                 
                 sessionStorage.clear();
                 
-                setTimeout(() => {
-                  window.location.href = '/login';
-                }, 1000);
+                // Use replace (not href) to avoid history pollution and skip the 1s delay
+                if (window.location.pathname !== '/login') {
+                  window.location.replace('/login');
+                }
               }
               
               return;
@@ -496,7 +502,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       }
     };
-  }, [toast, t]);
+  }, []);
 
   // Demo role management (simplified)
   useEffect(() => {
@@ -730,6 +736,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/login`,
           data: { name }
         }
       });
@@ -761,11 +768,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       });
       
-      if (error || !data?.user) throw error || new Error('Failed to create user');
+      if (error) {
+        return { error: error.message || 'Failed to create user', user: null };
+      }
+      if (!data?.user) {
+        return { error: data?.error || 'Failed to create user', user: null };
+      }
       
       return { error: null, user: data.user };
     } catch (error) {
-      return { error: 'An unexpected error occurred during registration.', user: null };
+      return {
+        error: error instanceof Error ? error.message : 'An unexpected error occurred during registration.',
+        user: null,
+      };
     }
   };
 

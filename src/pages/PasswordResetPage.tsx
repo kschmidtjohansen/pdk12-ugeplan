@@ -192,9 +192,10 @@ const PasswordResetPage: React.FC = () => {
       return;
     }
     
-    if (password.length < 6) {
+    if (password.length < 8) {
       toast({
         title: t('login.passwordTooShort'),
+        description: 'Adgangskoden skal være mindst 8 tegn.',
         variant: 'destructive',
       });
       return;
@@ -257,9 +258,10 @@ const PasswordResetPage: React.FC = () => {
     try {
       if (import.meta.env.DEV) console.log("Requesting password reset for email:", email);
       
-      // Use edge function for reliable email delivery
-      const { error } = await supabase.functions.invoke('admin-reset-password', {
-        body: { email }
+      // Use the public Supabase auth flow — works without an existing session and
+      // sends the recovery email with a token that links back to /password-reset.
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/password-reset`,
       });
       
       if (error) throw error;
