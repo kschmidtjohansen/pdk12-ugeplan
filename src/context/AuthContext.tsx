@@ -736,6 +736,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/login`,
           data: { name }
         }
       });
@@ -767,11 +768,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       });
       
-      if (error || !data?.user) throw error || new Error('Failed to create user');
+      if (error) {
+        return { error: error.message || 'Failed to create user', user: null };
+      }
+      if (!data?.user) {
+        return { error: data?.error || 'Failed to create user', user: null };
+      }
       
       return { error: null, user: data.user };
     } catch (error) {
-      return { error: 'An unexpected error occurred during registration.', user: null };
+      return {
+        error: error instanceof Error ? error.message : 'An unexpected error occurred during registration.',
+        user: null,
+      };
     }
   };
 
