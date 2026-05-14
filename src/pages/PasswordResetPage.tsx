@@ -192,9 +192,10 @@ const PasswordResetPage: React.FC = () => {
       return;
     }
     
-    if (password.length < 6) {
+    if (password.length < 8) {
       toast({
         title: t('login.passwordTooShort'),
+        description: 'Adgangskoden skal være mindst 8 tegn.',
         variant: 'destructive',
       });
       return;
