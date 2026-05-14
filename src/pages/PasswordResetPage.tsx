@@ -258,9 +258,10 @@ const PasswordResetPage: React.FC = () => {
     try {
       if (import.meta.env.DEV) console.log("Requesting password reset for email:", email);
       
-      // Use edge function for reliable email delivery
-      const { error } = await supabase.functions.invoke('admin-reset-password', {
-        body: { email }
+      // Use the public Supabase auth flow — works without an existing session and
+      // sends the recovery email with a token that links back to /password-reset.
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/password-reset`,
       });
       
       if (error) throw error;
