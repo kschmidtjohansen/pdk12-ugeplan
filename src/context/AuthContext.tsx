@@ -502,7 +502,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       }
     };
-  }, [toast, t]);
+  }, []);
 
   // Demo role management (simplified)
   useEffect(() => {
