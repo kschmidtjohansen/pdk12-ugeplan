@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-05-14 — Global optimering Fase 4: Performance (statisk)
+
+### Render-optimering
+- Wrappet hot Planner-leaf komponenter i `React.memo` for at undgå spildte re-renders når søskendekort opdateres: `AssignmentCard`, `AssignmentDetails`, `AssignmentStatusBadge`, `AssignmentActionButtons`, `ConflictBadge`, `DayAbsenceRow`. Ingen ændring af adfærd — kun referential gating via shallow prop-compare.
+
+### Bundle / dev-cold-start
+- Tilføjet `lucide-react` til `vite.config.ts` `optimizeDeps.include` for hurtigere dev-server cold-start (mange små icon-imports forhåndsbundles).
+
+### Verificeret allerede optimalt (ingen ændring nødvendig)
+- Console-statements: alle 27 fund er allerede `if (import.meta.env.DEV)`-guarded. Terser dropper dem også i prod-build (`drop_console: true`).
+- Realtime cleanup: alle 11 filer der kalder `.subscribe()` har matchende `removeChannel`/`unsubscribe` i `useEffect`-cleanup. Ingen memory leaks fundet.
+- Route-level lazy + Suspense + retry-wrapper er på plads for alle 14 sider.
+- Manuel chunking: react/ui/data/supabase/utils/charts vendors splittet korrekt.
+- React Query: 5min staleTime, 10min gcTime, `refetchOnWindowFocus: false`.
+
+### Ud af scope
+- Web Vitals (LCP/INP/CLS), React Profiler-flamegraph, virtualisering — kræver runtime/browser-måling.
+- User kan køre `npm run build` og åbne `dist/stats.html` for visuel bundle-rapport.
+
+
 ## 2026-05-14 — Global optimering Fase 3: UI/a11y
 
 ### Tilgængelighed
