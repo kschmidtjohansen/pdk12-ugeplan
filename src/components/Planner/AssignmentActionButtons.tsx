@@ -172,4 +172,4 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
   );
 };
 
-export default AssignmentActionButtons;
+export default React.memo(AssignmentActionButtons);

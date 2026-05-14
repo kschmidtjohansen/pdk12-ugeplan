@@ -64,4 +64,4 @@ const ConflictBadge: React.FC<ConflictBadgeProps> = ({ conflicts, size = 'md', c
   );
 };
 
-export default ConflictBadge;
+export default React.memo(ConflictBadge);
