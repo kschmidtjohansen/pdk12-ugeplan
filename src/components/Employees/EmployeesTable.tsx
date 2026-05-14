@@ -123,7 +123,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   if (isMobile) {
     return (
       <div className="space-y-3 p-4">
-        {employees.map(employee => (
+        {pagedEmployees.map(employee => (
           <MobileEmployeeCard
             key={`${employee.id}-${employee.onLeave}-${employee.status}`}
             employee={employee}
@@ -133,6 +133,13 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             onToggleLeave={onToggleLeave}
           />
         ))}
+        <SimplePagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={employees.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
       </div>
     );
   }
@@ -156,9 +163,16 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {employees.map(employee => <EmployeeTableRow key={`${employee.id}-${employee.onLeave}-${employee.status}`} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
+            {pagedEmployees.map(employee => <EmployeeTableRow key={`${employee.id}-${employee.onLeave}-${employee.status}`} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
           </TableBody>
         </Table>
+        <SimplePagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={employees.length}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
         </div>
       </div>
     </div>;
