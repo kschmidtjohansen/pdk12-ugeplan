@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
+import { Button } from '@/components/ui/button';
 import CompactDaySection from './CompactDaySection';
 
 interface CompactPastAssignmentsProps {
