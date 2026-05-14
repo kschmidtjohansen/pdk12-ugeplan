@@ -144,6 +144,7 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
                     size="icon"
                     onClick={() => onDutyClick?.(duty)}
                     className="text-primary hover:text-primary hover:bg-primary/10"
+                    aria-label={t('common.edit') || 'Rediger'}
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -154,6 +155,7 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
                         size="icon"
                         disabled={loading}
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        aria-label={t('common.delete') || 'Slet'}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
