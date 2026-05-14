@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     const { duty1Id, duty2Id }: SwapDutiesRequest = await req.json();
     const requestedBy = user.id;
 
-    if (import.meta.env?.DEV) console.log(`Swap request: duty1=${duty1Id}, duty2=${duty2Id}, requestedBy=${requestedBy}`);
+    console.log(`Swap request: duty1=${duty1Id}, duty2=${duty2Id}, requestedBy=${requestedBy}`);
 
     // Validate input
     if (!duty1Id || !duty2Id) {
