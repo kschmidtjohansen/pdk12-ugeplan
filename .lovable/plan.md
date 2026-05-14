@@ -1,100 +1,57 @@
-## Mål
+## Fase 3 — UI/Visual & a11y (statisk)
 
-En grundig, kontrolleret optimering af Polygon Ugeplan i 4 faser. Hver fase afsluttes med verifikation (linter/scanner re-run eller browser-walkthrough) før næste startes. Alt logges i `CHANGELOG.md` jf. dokumentationsprotokollen.
+Fokuseret oprydning af de a11y/UI-problemer som statisk scanning afslørede. Holder mig i frontend-laget. Ingen ændringer af forretningslogik, RLS eller knowledge-rules (180min timeout, multi-tenant isolation, kompakt design, dialog-scrolling, etc. uændret).
 
-Ingen ændringer rører ved låste områder fra memory: legacy-kolonner i `assignments`/`cars`, multi-tenant isolation (`selectedDepartmentId`-guard), `SET search_path = ''` på DB-funktioner, demo-mode-arkitekturen, dialog-scrolling-mønster.
+### 1. Icon-only buttons mangler `aria-label` (34 fund)
 
----
+shadcn `Button size="icon"` er kun 36×36 og uden tekst → screen readers læser intet. Tilføjer `aria-label` (dansk, fallback til engelsk via `t()` hvor TranslationContext findes) til alle 34 fund:
 
-## Fase 1 — Sikkerhed (lukke åbne huller)
+```text
+Admin/DepartmentManagement.tsx           (4)  — gem/annullér/rediger/slet
+Admin/SubDepartmentManagement.tsx        (4)  — samme mønster
+Admin/UserManagement.tsx                 (2)  — pagination forrige/næste
+Admin/UserTableRow.tsx                   (4)  — handlinger pr. række
+Admin/VacationCalendarOverview.tsx       (2)  — forrige/næste måned
+Assignment/AssignmentFilesPanel.tsx      (4)  — download/slet/visning
+Assignment/AssignmentMessagesPanel.tsx   (2)  — send/slet besked
+Cars/FalckSubscriptionButton.tsx         (3)  — gem/annullér/rediger
+Duty/DutyList.tsx                        (2)  — handlinger
+Duty/DutyMonthCalendar.tsx               (2)  — forrige/næste måned
+Layout/NavComponents/NotificationsDropdown.tsx (1) — notifikationer
+Layout/NavComponents/NotificationsList.tsx     (1) — afvis
+Notifications/NotificationsDropdown.tsx        (1) — notifikationer
+ui/sidebar.tsx                                  (1) — toggle sidebar
+```
 
-Først kører jeg `security--run_security_scan` + `supabase--linter` for at få frisk status (nuværende scan er `up_to_date: false`). Derefter:
+### 2. Dobbelt `<main>`-element
 
-**Bekræftede åbne fund (ikke i CHANGELOG):**
-- `swap_duties_requestedby` (edge function): erstat `requestedBy` fra request body med `user.id` fra verificeret JWT i `supabase/functions/swap-duties/index.ts`. Behold kun `requestedBy` til notifikations-routing.
-- `storage_assignment_files_unrestricted_insert`: stram storage INSERT-policy så bruger skal være i `assignments_employees` eller `responsible_user_id` for det `assignment_id` der ligger i path'en.
-- `realtime_broadcast_unrestricted`: scope `realtime.messages` SELECT/INSERT-policies til department/bruger-membership i stedet for `true`.
-- Supabase-linter SECURITY DEFINER-eksponering (0028/0029, ~10 funktioner): `REVOKE EXECUTE ... FROM PUBLIC, anon, authenticated` og `GRANT EXECUTE ... TO service_role` for diagnostik/maintenance-funktioner. Behold execute for funktioner som UI'en faktisk kalder (f.eks. `accept_duty_swap`, `has_role`).
-- Public bucket listing (0025): begræns SELECT-policy på `storage.objects` til `authenticated` + path-scope.
+`src/pages/LoginPage.tsx:181` har `<main>` direkte i route-komponenten OG `src/components/Layout/AppShell.tsx:17` har `<main>` i layoutet. shadcn `ui/sidebar.tsx` har også et `<main>` der kun renders i sidebar-context. WCAG kræver præcis ét `<main>` pr. side.
 
-**Stale fund (allerede fikset jf. CHANGELOG 2026-04-30):**
-- `profiles_table_public_exposure`, `user_roles_public_exposure`, `cars_public_exposure`, `warehouse_items_public_exposure`. Verificér via `pg_policies`-query at "USING true public"-policies faktisk er væk. Hvis ja → markér som fixed i scanner. Hvis nogen er tilbage → drop dem.
+- Skifter LoginPage’s `<main>` til `<section>` (LoginPage bypasser MainLayout via path-check, så AppShell’s `<main>` rendres ikke her — men der må stadig kun være ét på siden, og semantisk er højre kolonne en `section` af page-roden).
+- Lader AppShell’s `<main>` være rod-elementet for alle authenticated routes.
+- `ui/sidebar.tsx`’s indre `<main>` ændres til `<div role="main">`-wrapper alternativt fjernes, da AppShell allerede leverer `<main>`. Konkret: ændrer linje 320 til `<div>` og bevarer styling — det indre var en wrapper, ikke siderod.
 
-**Edge function audit (kort):** scan alle 11 functions for `requestedBy`-lignende patterns hvor body-data bruges til auth-beslutning i stedet for verificeret JWT.
+### 3. Lav-kontrast tokens
 
-**Verifikation:** kør `security--run_security_scan` + `supabase--linter` igen. Forventet: 0 error-level fund, warns kun for accepterede risici (dokumenteres i `security-memory`).
+To fund: `text-muted-foreground/40` på empty-state ikoner i `EmployeesTable.tsx:94` og `CarsList.tsx:36`. Hæver til `text-muted-foreground/60` for at ramme WCAG AA på dekorative ikoner uden at gøre dem aggressive.
 
----
+### 4. Hardcoded farver — bevidst skip
 
-## Fase 2 — Funktionelle bugs (alle moduler)
+219 hits er overvejende intentionelle status-farver (røde fejl-states, grønne success-badges, gule advarsler) der er semantisk meningsfulde og knowledge-godkendte (Realtime status, traffic-light indicators, availability dots). Refaktorering til design-tokens for disse ville skabe mere risiko end gevinst og ligger uden for scope. Lader dem stå.
 
-Browser-walkthrough af hovedflows som admin og som almindelig medarbejder. For hvert modul tester jeg de faktiske outcomes (ikke kun at dialogen åbner):
+### Ud af scope (gemmes til senere fase eller skal aftales separat)
 
-| Modul | Flow der testes |
-|---|---|
-| Login | Husk-mig, fejlbeskeder, password-reset |
-| Dashboard | Mine opgaver, QuickAccess, vagt-banner |
-| Planner | Opret/rediger/slet opgave, multi-dag, konflikt-validering, undo, filter-chips, mobil-visning |
-| Vagter | Tildel (multi-select), byt vagt (multi-modtager + atomisk accept), månedskalender + "+"-knap, fraværs/ferie-farver |
-| Ferie | Anmod, godkend, slet — sub-dept isolation |
-| Biler | Opret, marker utilg./tilg., Falck-abonnement, regex-validering |
-| Lager | DAWA-autocomplete, dept-isolation, JSON-settings |
-| Medarbejdere | DAWA-proximity, hidden home address, rolle-tildeling, super_admin-restriktion |
-| Admin | Department-feature toggles, bruger-rolle-edge-fns, audit log |
-| Screen Display | URL-param data-isolation |
+- Tap-target audit på mobil (kræver browser/runtime).
+- Focus-visible review på custom widgets (skal verificeres i browser).
+- Heading-hierarki audit pr. side (>10 sider, kræver dyb gennemgang).
+- Image alt-tekst audit (få brugerbilleder; logoer har allerede `alt`).
 
-Hvert fund logges, fixes i frontend/edge function (ikke DB med mindre nødvendigt), re-testes i browseren. Bugs grupperes i delcommits pr. modul.
+### Verificering
 
----
+- TypeScript build (auto via harness).
+- Genscanner med samme regex efter ændringer for at bekræfte 0 icon-buttons mangler aria-label.
+- Verificerer at LoginPage/AppShell hver kun rendrer ét `<main>` pr. route.
 
-## Fase 3 — Visuelle/UI-fejl & a11y
+### Changelog
 
-Statisk gennemgang + browser-verifikation på 3 viewports (375, 768, 1440):
-
-- **Hardcoded farver**: `rg "text-(gray|slate|zinc|neutral|white|black)-\\d|bg-white\\b|bg-black\\b" src/components` → erstat med design-tokens (`text-foreground`, `bg-background`, `bg-muted` osv.) jf. design-critical-instructions. Acceptér kun whitelistede undtagelser (login mesh-overlay).
-- **Tap-targets <44px**: alle `size="icon"` Buttons der er primære actions får `min-h-11 min-w-11`.
-- **Icon-only buttons uden `aria-label`**: tilføj label fra eksisterende translations.
-- **Dialog-scrolling**: bekræft fixed header + scrollable body på alle dialoger (memory).
-- **Tomme tilstande**: konsistent `EmptyState`-komponent overalt.
-- **Mobile**: tjek Planner view-toggles, Selector drawer-vs-popover (memory), top-bar overlap.
-- **Focus-visible**: ringe på alle interaktive elementer; tab-rækkefølge i dialoger.
-- **Heading-hierarki**: én `<h1>` pr. side (PageHeader bruger `h1` — verificér ingen route har dobbelt).
-- **Single `<main>`**: bekræft kun ét i `MainLayout`/`AppShell`.
-
-Resultater verificeres med browser-screenshots på 3 viewports for de 5 mest brugte sider (Dashboard, Planner, Vagter, Ferie, Medarbejdere).
-
----
-
-## Fase 4 — Performance
-
-- **Bundle-analyse**: tjek `dist/` for største chunks. Lazy-load tunge ruter (`AdminPage`, `ScreenDisplayPage`, `ChangeLogPage`) hvis ikke allerede gjort.
-- **React Query**: bekræft `staleTime: 5min`/`gcTime: 10min` (memory) er konsistent på alle listemodul-hooks; ret afvigere.
-- **Realtime debounce**: bekræft 1s debounce + ignore-own-action på alle kanaler (memory). Tjek for orphan-subscriptions.
-- **Postgres**: kør `EXPLAIN` på de 3-5 tungeste queries (assignments med joins, vacation calendar, dashboard-metrics). Tilføj manglende index hvor `seq_scan` rates er høje. Memory siger 8 dept_id indexes allerede tilføjet — verificér.
-- **Bilder/assets**: tjek `public/` for ukomprimerede billeder.
-- **Console-støj**: scan for `console.log` uden `import.meta.env.DEV`-guard og wrap dem (memory: production-readiness).
-- **Browser performance profile** på `/planner` (typisk tungeste side) før/efter for at måle effekt.
-
----
-
-## Tekniske detaljer
-
-**Dokumentation:** Hver fase får sin egen CHANGELOG-entry med dato (2026-05-14). `docs/implementation-plan/tasks.md` opdateres med `[x]` for hver afsluttet checkliste-post.
-
-**Migrations:** Sendes til godkendelse enkeltvis pr. logisk gruppe (RLS-policies separat fra SECURITY DEFINER-revokes), med klar markdown-beskrivelse til ikke-tekniske brugere.
-
-**Memory-opdateringer:** Hvis nye principper opstår undervejs (f.eks. en ny RLS-konvention), tilføjes de til `mem://` og indekset opdateres.
-
-**Stop-betingelse pr. fase:** hvis en fase finder >5 ikke-trivielle bugs, pauser jeg og rapporterer status før Fase 4, så du kan beslutte om noget skal udskydes.
-
-**Det jeg IKKE rører:** legacy-kolonner i `assignments`/`cars`, demo-mode schema, signing-keys/JWT auth-flow, multi-tenant `department_id`-mønster, bestående UI-tone og terminologi.
-
----
-
-## Leverancer
-
-1. Frisk security-scanner og Supabase-linter rapport: 0 error-level
-2. Bug-rapport pr. modul (fixet eller dokumenteret)
-3. Konsistente design-tokens i hele `src/components`
-4. Performance-måling før/efter på Planner
-5. Opdateret `CHANGELOG.md` + `docs/implementation-plan/tasks.md`
+Tilføjer "Fase 3: UI/a11y" sektion til `CHANGELOG.md` med liste over ændrede filer og fund.

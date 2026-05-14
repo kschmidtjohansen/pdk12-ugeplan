@@ -125,10 +125,10 @@ const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdm
                     placeholder="F.eks. 123456789"
                     autoFocus
                   />
-                  <Button size="icon" variant="ghost" onClick={handleSave} disabled={mutation.isPending}>
+                  <Button size="icon" variant="ghost" onClick={handleSave} disabled={mutation.isPending} aria-label="Gem">
                     <Check className="h-4 w-4 text-green-600" />
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => setEditing(false)}>
+                  <Button size="icon" variant="ghost" onClick={() => setEditing(false)} aria-label="Annullér">
                     <X className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
@@ -138,7 +138,7 @@ const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdm
                     {subscriptionNumber || t('cars.falckSubscriptionEmpty')}
                   </span>
                   {isAdmin && (
-                    <Button size="icon" variant="ghost" onClick={handleStartEdit}>
+                    <Button size="icon" variant="ghost" onClick={handleStartEdit} aria-label="Rediger Falck-abonnement">
                       <Pencil className="h-4 w-4" />
                     </Button>
                   )}

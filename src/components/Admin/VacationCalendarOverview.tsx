@@ -197,13 +197,13 @@ const VacationCalendarOverview: React.FC = () => {
               <CardDescription>{t('admin.vacationCalendar.description')}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={() => setCurrentMonth(m => subMonths(m, 1))}>
+              <Button variant="outline" size="icon" onClick={() => setCurrentMonth(m => subMonths(m, 1))} aria-label="Forrige måned">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="font-semibold min-w-[140px] text-center capitalize">
                 {format(currentMonth, 'MMMM yyyy', { locale })}
               </span>
-              <Button variant="outline" size="icon" onClick={() => setCurrentMonth(m => addMonths(m, 1))}>
+              <Button variant="outline" size="icon" onClick={() => setCurrentMonth(m => addMonths(m, 1))} aria-label="Næste måned">
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

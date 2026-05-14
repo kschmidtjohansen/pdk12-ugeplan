@@ -819,10 +819,10 @@ const UserManagement: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button variant="outline" size="icon" onClick={handleSmartRetry} title="Refresh users list with smart retry" disabled={loading}>
+              <Button variant="outline" size="icon" onClick={handleSmartRetry} title="Refresh users list with smart retry" aria-label="Genindlæs brugerliste" disabled={loading}>
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
-              <Button variant="outline" size="icon" onClick={toggleSortDirection} title={sortDirection === 'asc' ? 'Sort Z-A' : 'Sort A-Z'}>
+              <Button variant="outline" size="icon" onClick={toggleSortDirection} title={sortDirection === 'asc' ? 'Sort Z-A' : 'Sort A-Z'} aria-label={sortDirection === 'asc' ? 'Sortér Z-A' : 'Sortér A-Z'}>
                 {sortDirection === 'asc' ? <ArrowDownAZ className="h-4 w-4" /> : <ArrowUpAZ className="h-4 w-4" />}
               </Button>
               <Button onClick={handleCreateUser} className="bg-polygon-blue hover:bg-polygon-darkblue">

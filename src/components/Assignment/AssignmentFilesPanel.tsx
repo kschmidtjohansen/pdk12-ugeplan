@@ -591,7 +591,7 @@ const AssignmentFilesPanel: React.FC<AssignmentFilesPanelProps> = ({
           <DialogHeader className="p-4 pb-2">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-base">{previewImage?.file_name}</DialogTitle>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={closePreview}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={closePreview} aria-label={t('common.close') || 'Luk'}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -763,6 +763,7 @@ const FileItem: React.FC<FileItemProps> = ({
                   size="icon"
                   className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => setEditingComment(true)}
+                  aria-label={t('common.edit') || 'Rediger kommentar'}
                 >
                   <Pencil className="h-3 w-3" />
                 </Button>
@@ -790,6 +791,7 @@ const FileItem: React.FC<FileItemProps> = ({
           className="h-8 w-8"
           onClick={() => onDownload(file)}
           title={t('planner.files.downloadFile')}
+          aria-label={t('planner.files.downloadFile') || 'Download fil'}
         >
           <Download className="h-4 w-4" />
         </Button>
@@ -800,6 +802,7 @@ const FileItem: React.FC<FileItemProps> = ({
           onClick={handleDelete}
           disabled={deleting}
           title={t('planner.files.deleteFile')}
+          aria-label={t('planner.files.deleteFile') || 'Slet fil'}
         >
           <Trash2 className="h-4 w-4" />
         </Button>

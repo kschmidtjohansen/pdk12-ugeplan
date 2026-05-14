@@ -230,6 +230,7 @@ const AssignmentMessagesPanel: React.FC<AssignmentMessagesPanelProps> = ({
                 size="icon"
                className="h-7 w-7 flex-shrink-0"
                 onClick={() => setReplyingTo(null)}
+                aria-label={t('common.cancel') || 'Annullér svar'}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -250,6 +251,7 @@ const AssignmentMessagesPanel: React.FC<AssignmentMessagesPanelProps> = ({
              disabled={!newMessage.trim() || sending}
              className="self-end h-10 w-10"
              size="icon"
+             aria-label={t('planner.messages.send') || 'Send besked'}
            >
              <Send className="h-4 w-4" />
            </Button>

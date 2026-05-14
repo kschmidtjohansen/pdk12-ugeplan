@@ -51,7 +51,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
   const MobileActions = () => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={t('common.actions') || 'Handlinger'}>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -82,6 +82,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" onClick={() => onToggleUserStatus(user)}
+              aria-label={isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser')}
               className={`h-8 w-8 ${isUserActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}`}>
               {isUserActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
             </Button>
@@ -92,7 +93,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => onResetPassword(user)} className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={() => onResetPassword(user)} className="h-8 w-8" aria-label={t('admin.passwords.resetPasswordFor', { name: user.name }) || 'Nulstil adgangskode'}>
               <Key className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -102,7 +103,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => onEditUser(user)} className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={() => onEditUser(user)} className="h-8 w-8" aria-label={t('admin.userManagement.editUser') || 'Rediger bruger'}>
               <Edit className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -112,7 +113,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => onDeleteUser(user)} className="h-8 w-8 text-destructive hover:text-destructive">
+            <Button variant="ghost" size="icon" onClick={() => onDeleteUser(user)} className="h-8 w-8 text-destructive hover:text-destructive" aria-label={t('common.delete') || 'Slet'}>
               <Trash className="h-4 w-4" />
             </Button>
           </TooltipTrigger>

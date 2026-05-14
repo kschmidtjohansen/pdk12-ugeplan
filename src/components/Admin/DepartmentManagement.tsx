@@ -167,10 +167,10 @@ const DepartmentManagement: React.FC = () => {
                         className="h-8"
                         autoFocus
                       />
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleRename(dept.id)}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => handleRename(dept.id)} aria-label={t('common.save') || 'Gem'}>
                         <Check className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingId(null)}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingId(null)} aria-label={t('common.cancel') || 'Annullér'}>
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
@@ -183,6 +183,7 @@ const DepartmentManagement: React.FC = () => {
                         variant="ghost"
                         size="icon"
                         title={t('admin.departments.editName')}
+                        aria-label={t('admin.departments.editName') || 'Rediger navn'}
                         onClick={() => { setEditingId(dept.id); setEditingName(dept.name); }}
                       >
                         <Pencil className="h-4 w-4" />
@@ -191,6 +192,7 @@ const DepartmentManagement: React.FC = () => {
                         variant="ghost"
                         size="icon"
                         className="text-destructive hover:text-destructive"
+                        aria-label={t('common.delete') || 'Slet'}
                         onClick={() => setDeleteTarget(dept)}
                       >
                         <Trash2 className="h-4 w-4" />
