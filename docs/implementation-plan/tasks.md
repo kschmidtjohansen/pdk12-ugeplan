@@ -347,3 +347,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Ny `PlannerWidgetErrorBoundary` med lokaliseret fallback (da/en) og retry
 - [x] Wrap topsektioner i `PlannerContent` (UnassignedResources, DutyWeek, Current/Future, Past) hver i egen boundary
 - [x] Wrap hver dag i `CurrentAndFutureDays`, `PastAssignments` og deres compact-varianter, så fejl i ét dagskort ikke nedlægger hele ugeplanen
+
+## Observability: Web Vitals
+
+- [x] Tilføj `web-vitals` library + reporter (`src/utils/webVitals.ts`) med DEV console-log og batch-flush til Supabase ved page hide
+- [x] Ny tabel `web_vitals_metrics` med RLS (insert: egen user_id; select: admin/skadeleder)
+- [x] Admin-tab "Web Vitals" med periode/side-filter, p75 KPI'er pr. metric og top-10 langsomste sider
