@@ -52,8 +52,7 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
   const greeting = getGreeting(now.getHours(), name, currentLanguage);
 
   return (
-    <div className="relative rounded-xl border border-border bg-card shadow-xs px-5 py-4 animate-fade-in-up overflow-hidden">
-      <div aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+    <div className="rounded-xl border border-border bg-card shadow-xs px-5 py-4 animate-fade-in-up">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground truncate">
