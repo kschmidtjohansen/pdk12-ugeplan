@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { format, getISOWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
@@ -25,31 +25,43 @@ const getGreeting = (hour: number, name: string, lang: string): string => {
 
 const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) => {
   const { currentLanguage, t } = useTranslation();
-  const [now, setNow] = useState<Date>(() => new Date());
+  // Mount-only date: drives weekday, week-number, date and greeting (stable for the session).
+  const mountedNow = useRef<Date>(new Date()).current;
+  // Tick state: only updates HH:MM, at most once per minute.
+  const [clockNow, setClockNow] = useState<Date>(() => new Date());
 
-  // Update every 30s — enough to keep HH:MM, week and date live without churn
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 30000);
-    return () => window.clearInterval(id);
+    // Align first tick to the next full minute, then continue every 60s.
+    const msToNextMinute = 60000 - (Date.now() % 60000);
+    let intervalId: number | undefined;
+    const timeoutId = window.setTimeout(() => {
+      setClockNow(new Date());
+      intervalId = window.setInterval(() => setClockNow(new Date()), 60000);
+    }, msToNextMinute);
+    return () => {
+      window.clearTimeout(timeoutId);
+      if (intervalId !== undefined) window.clearInterval(intervalId);
+    };
   }, []);
 
-  const getHeaderDateDisplay = () => {
-    if (currentLanguage === 'da') {
-      const dayName = format(now, 'EEEE', { locale: da });
-      const weekNumber = getISOWeek(now);
-      const dateString = format(now, 'd.M.yyyy');
-      return { dayName, weekNumber, dateString };
-    }
-    const dayName = format(now, 'EEEE');
-    const weekNumber = getISOWeek(now);
-    const dateString = format(now, 'd.M.yyyy');
-    return { dayName, weekNumber, dateString };
-  };
-
-  const headerDate = getHeaderDateDisplay();
-  const clockString = format(now, 'HH:mm');
   const name = userName || t('common.user');
-  const greeting = getGreeting(now.getHours(), name, currentLanguage);
+
+  const headerDate = useMemo(() => {
+    const locale = currentLanguage === 'da' ? { locale: da } : undefined;
+    return {
+      dayName: format(mountedNow, 'EEEE', locale),
+      weekNumber: getISOWeek(mountedNow),
+      dateString: format(mountedNow, 'd.M.yyyy'),
+    };
+  }, [mountedNow, currentLanguage]);
+
+  const greeting = useMemo(
+    () => getGreeting(mountedNow.getHours(), name, currentLanguage),
+    [mountedNow, name, currentLanguage]
+  );
+
+  const clockString = useMemo(() => format(clockNow, 'HH:mm'), [clockNow]);
+
 
   return (
     <div className="rounded-xl border border-border bg-card shadow-xs px-5 py-4 animate-fade-in-up">
