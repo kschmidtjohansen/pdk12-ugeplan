@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
@@ -12,7 +12,7 @@ import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { getCurrentWeekInfo, getWeekDates } from '@/utils/dates';
 import { da } from 'date-fns/locale';
 import { filterDisplayNames } from '@/utils/people';
-import AssignmentDetailsDialog from './AssignmentDetailsDialog';
+const AssignmentDetailsDialog = lazy(() => import('./AssignmentDetailsDialog'));
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 import { Assignment } from '@/types/assignment';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
@@ -358,13 +358,17 @@ const MineOpgaver: React.FC = () => {
         </div>
       </CardContent>
 
-      <AssignmentDetailsDialog
-        assignment={selectedAssignment}
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        cars={cars}
-        siblingAssignmentIds={getSeriesSiblingIds(selectedAssignment, assignments)}
-      />
+      {isDialogOpen && (
+        <Suspense fallback={null}>
+          <AssignmentDetailsDialog
+            assignment={selectedAssignment}
+            isOpen={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+            cars={cars}
+            siblingAssignmentIds={getSeriesSiblingIds(selectedAssignment, assignments)}
+          />
+        </Suspense>
+      )}
     </Card>
   );
 };
