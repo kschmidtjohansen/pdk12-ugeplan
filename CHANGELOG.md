@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-05-15 — Login-side: solid Polygon-blå baggrund
+
+### UI
+- Fjernet animeret mesh-/blob-gradient og logo-shimmer på `LoginPage` (både desktop venstre-panel og mobil-banner). Erstattet med en ren, solid `bg-polygon-blue` (#00aeef) baggrund.
+- Slettet keyframes og animations-entries i `tailwind.config.ts`: `mesh-drift`, `mesh-drift-alt`, `mesh-float-1/2/3`, `logo-shimmer`. Logo-containerens `animate-logo-shimmer`-klasse fjernet to steder.
+
 ## 2026-05-15 — CI-gate mod døde imports
 
 ### Tooling / Quality
