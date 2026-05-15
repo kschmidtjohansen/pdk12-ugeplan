@@ -241,8 +241,8 @@ const PlannerPage: React.FC = () => {
 
   const handleOpenEditDialog = (assignment: Assignment) => {
     const siblings = findSeriesSiblings(assignment);
-    // Only prompt for series action if there are actually multiple sibling assignments.
-    // A lone groupId (e.g. after siblings were deleted) should not trigger the prompt.
+    // INTENTIONAL: only prompt SeriesActionDialog when siblings.length > 1.
+    // A lone assignment (incl. orphaned groupId after sibling deletion) edits directly.
     if (siblings.length > 1) {
       setSeriesAction({ assignment, mode: 'edit' });
     } else {
@@ -407,7 +407,8 @@ const PlannerPage: React.FC = () => {
     const assignment = assignments.find(a => a.id === id);
     if (!assignment) return;
     const siblings = findSeriesSiblings(assignment);
-    // Only prompt if this is genuinely a multi-day series.
+    // INTENTIONAL: only prompt SeriesActionDialog when siblings.length > 1.
+    // A lone assignment deletes directly without the series prompt.
     if (siblings.length > 1) {
       setSeriesAction({ assignment, mode: 'delete' });
     } else {
