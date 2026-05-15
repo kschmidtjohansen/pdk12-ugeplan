@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,8 +30,8 @@ import { usePermissions } from '@/context/AuthContext';
 import { Assignment } from '@/types/assignment';
 import { filterDisplayNames } from '@/utils/people';
 import WeekNavigation from './WeekNavigation';
-import AssignmentDetailsDialog from './AssignmentDetailsDialog';
-import AssignmentDialogManager from '@/components/Planner/AssignmentDialogManager';
+const AssignmentDetailsDialog = lazy(() => import('./AssignmentDetailsDialog'));
+const AssignmentDialogManager = lazy(() => import('@/components/Planner/AssignmentDialogManager'));
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 import { startOfISOWeek, addWeeks, format, getISOWeek, getISOWeekYear } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -408,16 +408,21 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
         </CardContent>
       </Card>
 
-      <AssignmentDetailsDialog
-        assignment={selectedAssignment}
-        isOpen={isAssignmentDialogOpen}
-        onClose={() => setIsAssignmentDialogOpen(false)}
-        cars={cars}
-        siblingAssignmentIds={getSeriesSiblingIds(selectedAssignment, assignments)}
-      />
+      {isAssignmentDialogOpen && (
+        <Suspense fallback={null}>
+          <AssignmentDetailsDialog
+            assignment={selectedAssignment}
+            isOpen={isAssignmentDialogOpen}
+            onClose={() => setIsAssignmentDialogOpen(false)}
+            cars={cars}
+            siblingAssignmentIds={getSeriesSiblingIds(selectedAssignment, assignments)}
+          />
+        </Suspense>
+      )}
 
       {/* Create / Edit dialog */}
       {formDialogOpen && (
+        <Suspense fallback={null}>
         <AssignmentDialogManager
           isDialogOpen={formDialogOpen}
           setIsDialogOpen={setFormDialogOpen}
