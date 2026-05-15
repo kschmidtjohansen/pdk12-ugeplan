@@ -336,15 +336,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               return;
             }
             
-            // Handle successful sign in
+            // Handle successful sign in — record session start, then fall through to user-data fetch
             if (event === 'SIGNED_IN' && newSession) {
-              setSession(newSession);
-              setSessionExpired(false);
-              // Record login time for 180-min session timeout
               sessionStorage.setItem('session_start_time', String(Date.now()));
-              return;
             }
-            
+
             setSession(newSession);
             setSessionExpired(false);
             
