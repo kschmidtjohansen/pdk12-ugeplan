@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-05-15 — Auto-publicering af opgaver (server-side)
+
+### Fixed
+- **DB-funktion `public.auto_publish_due_assignments()`** + pg_cron job `auto-publish-assignments` (kører hvert minut). Den tidligere client-side `useAutoPublishAssignments` blev fjernet uden erstatning — auto-publicering fungerede derfor reelt ikke. Nu publiceres alle ikke-publicerede opgaver med `assignment_date <= dagens dato (Europe/Copenhagen)` automatisk senest 1 minut efter midnat dansk tid, uafhængigt af om en bruger er logget ind. DST håndteres via `AT TIME ZONE 'Europe/Copenhagen'`. Funktionen er idempotent og logger antal publicerede til `public.logs` (`event_type = 'auto_publish'`).
+
 ## 2026-05-15 — Lazy-load pdf-lib (bundle-optimering)
 
 ### Optimering
