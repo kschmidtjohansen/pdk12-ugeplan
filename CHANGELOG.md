@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-05-15 — Flade pille-chips erstatter frosted-glass
+
+### UI
+- `src/index.css`: `.chip-glass`, `.chip-glass-primary/-amber/-emerald/-indigo/-destructive` omskrevet til flade piller — solid `hsl(var(--muted))` baggrund, 0.5px solid border i variantens farve, ingen `backdrop-filter`, ingen translucens, ingen inner-highlight `box-shadow`. Farveramp (primary/amber/emerald/indigo/destructive) bevaret via semantiske tokens og light/dark color-overrides.
+- Kun `ConflictBadge` bruger klasserne i dag — ingen Planner-komponenter ændret.
+
 ## 2026-05-15 — Login-side: solid Polygon-blå baggrund
 
 ### UI
