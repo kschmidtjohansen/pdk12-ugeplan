@@ -4,6 +4,7 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import DaySection from './DaySection';
 import VirtualList from './VirtualList';
+import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
 
 interface CurrentAndFutureDaysProps {
   dates: string[];
@@ -63,6 +64,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
       gap={24}
       threshold={10}
       renderItem={(dateKey) => (
+        <PlannerWidgetErrorBoundary key={dateKey} label={dateKey}>
         <DaySection
           dateKey={dateKey}
           dayAssignments={groupedAssignments[dateKey] || []}
@@ -84,6 +86,7 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           operationStates={operationStates}
           gridLayout={gridLayout}
         />
+        </PlannerWidgetErrorBoundary>
       )}
     />
   );
