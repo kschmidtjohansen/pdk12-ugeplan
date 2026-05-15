@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-15 — AppSidebar: flade hover/active states uden dekorationer
+
+### UI
+- Aktivt nav-item: `bg-primary/10 text-primary` (tidligere fyldt `bg-sidebar-primary`). Den dekorative 3px venstre-bar ved aktivt item er fjernet.
+- Hover: `bg-accent/40` uden tekst-farveskift (tidligere `bg-sidebar-accent` + accent-foreground).
+- Eksplicit `transition-[background-color,color,opacity] duration-150 ease-out` + `cursor-pointer`. Ingen `scale`, `translate`, `shadow` eller `animate-*` på items. Reglerne gælder også for collapsed icon-rail (samme `renderItem`).
+- Notifikations-badge i aktiv tilstand justeret til `bg-primary/15 text-primary` for læsbarhed mod den lysere baggrund.
+
 ## 2026-05-15 — WelcomeHeader: 60s ur-interval + memoiseret dato/uge
 
 ### Performance

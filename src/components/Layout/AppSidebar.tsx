@@ -78,19 +78,13 @@ const AppSidebar: React.FC = () => {
           isActive={isActive}
           tooltip={item.label}
           className={cn(
-            'h-10 relative font-medium transition-colors',
+            'h-10 font-medium cursor-pointer transition-[background-color,color,opacity] duration-150 ease-out',
             isActive
-              ? 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
-              : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+              ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
+              : 'text-sidebar-foreground/80 hover:bg-accent/40'
           )}
         >
           <NavLink to={item.path} end onClick={closeMobile}>
-            {isActive && (
-              <span
-                aria-hidden
-                className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-primary-foreground/80"
-              />
-            )}
             <Icon className="h-[18px] w-[18px] shrink-0" />
             <span className="truncate">{item.label}</span>
             {item.hasNotification && (
@@ -98,7 +92,7 @@ const AppSidebar: React.FC = () => {
                 className={cn(
                   'ml-auto inline-flex items-center justify-center rounded-full text-[10px] font-semibold tabular-nums px-1.5 h-4 min-w-[16px]',
                   isActive
-                    ? 'bg-primary-foreground/20 text-primary-foreground'
+                    ? 'bg-primary/15 text-primary'
                     : 'bg-destructive text-destructive-foreground'
                 )}
               >
