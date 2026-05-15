@@ -16,7 +16,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { isAuthenticated, authReady, isPendingApproval, userDataLoaded } = useAuth();
+  const { isAuthenticated, authReady } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -52,19 +52,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       navigate('/login', { replace: true });
     }
   }, [authReady, isAuthenticated, navigate]);
-
-  // Pending-approval gate: block users without an assigned role
-  useEffect(() => {
-    if (
-      authReady &&
-      isAuthenticated &&
-      userDataLoaded &&
-      isPendingApproval &&
-      location.pathname !== '/pending-approval'
-    ) {
-      navigate('/pending-approval', { replace: true });
-    }
-  }, [authReady, isAuthenticated, userDataLoaded, isPendingApproval, location.pathname, navigate]);
 
 
   // Don't show layout for login page or password reset page

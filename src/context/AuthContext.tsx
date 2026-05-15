@@ -38,7 +38,6 @@ interface AuthContextType {
   isEffectiveSkadeleder: boolean;
   isEffectiveServicemedarbejder: boolean;
   effectiveRole: UserRole | null;
-  isPendingApproval: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
@@ -77,7 +76,6 @@ const AuthContext = createContext<AuthContextType>({
   isEffectiveSkadeleder: false,
   isEffectiveServicemedarbejder: false,
   effectiveRole: null,
-  isPendingApproval: false,
   login: async () => ({ error: null }),
   logout: async () => {},
   signUp: async () => ({ error: null }),
@@ -116,7 +114,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userDataLoaded, setUserDataLoaded] = useState<boolean>(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
-  const [isPendingApproval, setIsPendingApproval] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const manualLogoutRef = useRef(false);
@@ -364,38 +361,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   if (userData && mounted) {
                     if (import.meta.env.DEV) console.log('[AuthContext] Complete user data loaded:', userData.name, userData.role);
                     setUser(userData);
-
-                    // Check pending-approval state for non-demo users
-                    if (newSession.user.email !== DemoUserService.DEMO_USER_EMAIL) {
-                      try {
-                        const { data: isPending } = await supabase.rpc('is_pending_user', {
-                          _user_id: newSession.user.id,
-                        });
-                        if (mounted) {
-                          setIsPendingApproval(!!isPending);
-                          if (isPending) {
-                            // Notify super_admins once per user (idempotent on server side)
-                            const flagKey = `pending_notified_${newSession.user.id}`;
-                            if (!localStorage.getItem(flagKey)) {
-                              try {
-                                await supabase.rpc('notify_admins_of_pending_user', {
-                                  _email: newSession.user.email || '',
-                                  _name: userData.name || newSession.user.email || '',
-                                });
-                                localStorage.setItem(flagKey, '1');
-                              } catch {
-                                // non-fatal
-                              }
-                            }
-                          }
-                        }
-                      } catch {
-                        // non-fatal — keep previous state
-                      }
-                    } else if (mounted) {
-                      setIsPendingApproval(false);
-                    }
-
                     setTimeout(() => {
                       if (mounted) {
                         setUserDataLoaded(true);
@@ -438,7 +403,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             } else {
               setUser(null);
               setUserDataLoaded(false);
-              setIsPendingApproval(false);
             }
 
             if (!initializationComplete) {
@@ -625,17 +589,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (refreshedUser) {
         setUser(refreshedUser);
         setUserDataLoaded(true);
-        // Re-check pending state
-        if (session.user.email !== DemoUserService.DEMO_USER_EMAIL) {
-          try {
-            const { data: isPending } = await supabase.rpc('is_pending_user', {
-              _user_id: session.user.id,
-            });
-            setIsPendingApproval(!!isPending);
-          } catch {
-            // ignore
-          }
-        }
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error('[AuthContext] Failed to refresh user data:', error instanceof Error ? error.message : 'Unknown error');
@@ -741,7 +694,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setSession(null);
       setSessionExpired(false);
-      setIsPendingApproval(false);
       
       // 1. TanStack Query -- ryd al cached data
       queryClient.clear();
@@ -890,7 +842,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isEffectiveSkadeleder,
     isEffectiveServicemedarbejder,
     effectiveRole: currentRole,
-    isPendingApproval,
     login,
     logout,
     signUp,

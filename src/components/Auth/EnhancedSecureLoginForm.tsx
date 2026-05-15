@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -357,58 +356,6 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
             ) : (
               t('login.button')
             )}
-          </Button>
-
-          {/* Divider */}
-          <div className="relative my-2">
-            <div className="absolute inset-0 flex items-center" aria-hidden>
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
-                {isDanish ? 'eller' : 'or'}
-              </span>
-            </div>
-          </div>
-
-          {/* Microsoft SSO */}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full gap-2"
-            disabled={isLoading || !isOnline}
-            onClick={async () => {
-              try {
-                const { error } = await supabase.auth.signInWithOAuth({
-                  provider: 'azure',
-                  options: {
-                    redirectTo: `${window.location.origin}/auth/callback`,
-                    scopes: 'email profile openid offline_access',
-                  },
-                });
-                if (error) {
-                  toast.error(
-                    isDanish
-                      ? 'Kunne ikke starte Microsoft-login. Prøv igen.'
-                      : 'Could not start Microsoft sign-in. Please try again.'
-                  );
-                }
-              } catch {
-                toast.error(
-                  isDanish
-                    ? 'Uventet fejl ved Microsoft-login.'
-                    : 'Unexpected error during Microsoft sign-in.'
-                );
-              }
-            }}
-          >
-            <svg viewBox="0 0 23 23" className="h-4 w-4" aria-hidden focusable="false">
-              <rect x="1" y="1" width="10" height="10" fill="#F25022" />
-              <rect x="12" y="1" width="10" height="10" fill="#7FBA00" />
-              <rect x="1" y="12" width="10" height="10" fill="#00A4EF" />
-              <rect x="12" y="12" width="10" height="10" fill="#FFB900" />
-            </svg>
-            <span>{t('login.loginWithMicrosoft')}</span>
           </Button>
         </form>
       </CardContent>

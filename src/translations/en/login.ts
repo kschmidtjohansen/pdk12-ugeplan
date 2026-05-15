@@ -60,8 +60,7 @@ const login = {
   selectDepartmentPlaceholder: 'Select department...',
   departmentRequired: 'Please select a main department before logging in.',
   departmentAccessDenied: 'Access denied. You are not assigned to this department. Please select the correct department and try again.',
-  loadingDepartments: 'Loading departments...',
-  loginWithMicrosoft: 'Sign in with Microsoft'
+  loadingDepartments: 'Loading departments...'
 };
 
 export default login;

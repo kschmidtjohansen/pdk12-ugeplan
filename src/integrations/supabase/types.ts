@@ -1516,7 +1516,6 @@ export type Database = {
       is_admin_or_skadeleder: { Args: never; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }
       is_current_user_admin: { Args: never; Returns: boolean }
-      is_pending_user: { Args: { _user_id: string }; Returns: boolean }
       is_strong_password: { Args: { password: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_user_assigned_to_assignment: {
@@ -1630,10 +1629,6 @@ export type Database = {
       }
       mask_email: { Args: { p_email: string }; Returns: string }
       mask_phone: { Args: { p_phone: string }; Returns: string }
-      notify_admins_of_pending_user: {
-        Args: { _email: string; _name: string }
-        Returns: undefined
-      }
       perform_database_maintenance: { Args: never; Returns: Json }
       refresh_materialized_views: { Args: never; Returns: undefined }
       reset_demo_data: { Args: never; Returns: Json }

@@ -509,16 +509,3 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ### Tokens
 - `index.css`: tilføjet globale CSS-regler der skjuler native browser password-reveal-knapper, så kun appens egen øje-toggle vises.
-
-## 2026-05-15 — Microsoft (Entra) SSO
-
-### Added
-- "Log ind med Microsoft"-knap på login-siden via Supabase Azure OAuth-provider.
-- Ny `/auth/callback`-rute der færdiggør OAuth-flowet.
-- Ny `/pending-approval`-skærm: brugere uden tildelt rolle blokeres her indtil en admin tildeler rolle/afdeling.
-- DB-funktioner `is_pending_user(uuid)` og `notify_admins_of_pending_user(text, text)` (begge `SET search_path = ''`).
-- Ved første pending-login bliver alle Super Admins notificeret (idempotent).
-- Eksisterende e-mail-brugere kobles automatisk via verificeret e-mail (Supabase Identity Linking, kræver dashboard-toggle).
-
-### Notes
-- Azure App Registration + Supabase Provider-opsætning skal færdiggøres manuelt før flowet virker end-to-end (se docs).
