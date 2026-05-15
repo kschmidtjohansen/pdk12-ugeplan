@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-05-15 — WelcomeHeader: 60s ur-interval + memoiseret dato/uge
+
+### Performance
+- `WelcomeHeader`: `setInterval` sænket fra 30s → 60s og alignet til næste hele minut, så HH:MM kun re-rendrer pr. minut-skift.
+- Dato (ugedag, ISO-uge, d.M.yyyy) og hilsen er nu `useMemo`-cachet baseret på en mount-only `Date` (`useRef`) — opdateres ikke ved minut-tick, kun ved mount/sprog-/navne-skift.
+
 ## 2026-05-15 — Brand-stripes fjernet, separation via border
 
 ### UI
