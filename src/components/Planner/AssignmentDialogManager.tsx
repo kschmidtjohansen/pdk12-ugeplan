@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Employee } from '@/types/employee';
@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslation } from '@/context/TranslationContext';
 import AssignmentForm from './AssignmentForm';
 import AssignmentHistoryTab from './AssignmentHistoryTab';
-import SeriesActionDialog from './SeriesActionDialog';
+const SeriesActionDialog = lazy(() => import('./SeriesActionDialog'));
 
 interface AssignmentDialogManagerProps {
   isDialogOpen: boolean;
@@ -147,13 +147,17 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
         </DialogContent>
       </Dialog>
 
-      <SeriesActionDialog
-        open={seriesDialogOpen}
-        onOpenChange={setSeriesDialogOpen}
-        mode="edit"
-        onSingleDay={handleSingleDay}
-        onEntireSeries={handleEntireSeries}
-      />
+      {seriesDialogOpen && (
+        <Suspense fallback={null}>
+          <SeriesActionDialog
+            open={seriesDialogOpen}
+            onOpenChange={setSeriesDialogOpen}
+            mode="edit"
+            onSingleDay={handleSingleDay}
+            onEntireSeries={handleEntireSeries}
+          />
+        </Suspense>
+      )}
     </>
   );
 };

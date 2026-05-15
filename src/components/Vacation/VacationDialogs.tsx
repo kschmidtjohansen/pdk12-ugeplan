@@ -1,11 +1,11 @@
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { DateRange } from 'react-day-picker';
 import { Vacation, VacationRequestType } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
-import VacationFormDialog from './VacationFormDialog';
-import VacationActionDialog from './VacationActionDialog';
-import AdminVacationFormDialog from './AdminVacationFormDialog';
+const VacationFormDialog = lazy(() => import('./VacationFormDialog'));
+const VacationActionDialog = lazy(() => import('./VacationActionDialog'));
+const AdminVacationFormDialog = lazy(() => import('./AdminVacationFormDialog'));
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface VacationDialogsProps {
@@ -80,92 +80,102 @@ const VacationDialogs: React.FC<VacationDialogsProps> = ({
   return (
     <>
       {/* Regular vacation request dialog */}
-      <VacationFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        date={date}
-        setDate={setDate}
-        reason={reason}
-        setReason={setReason}
-        onSubmit={submitVacationRequest}
-        isEditing={false}
-        // New props
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        useSeparateDateFields={true}
-        // Request type and time props
-        requestType={requestType}
-        setRequestType={setRequestType}
-        startTime={startTime}
-        setStartTime={setStartTime}
-        endTime={endTime}
-        setEndTime={setEndTime}
-      />
-      
+      {dialogOpen && (
+        <Suspense fallback={null}>
+          <VacationFormDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            date={date}
+            setDate={setDate}
+            reason={reason}
+            setReason={setReason}
+            onSubmit={submitVacationRequest}
+            isEditing={false}
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            useSeparateDateFields={true}
+            requestType={requestType}
+            setRequestType={setRequestType}
+            startTime={startTime}
+            setStartTime={setStartTime}
+            endTime={endTime}
+            setEndTime={setEndTime}
+          />
+        </Suspense>
+      )}
+
       {/* Admin vacation request dialog */}
-      <AdminVacationFormDialog
-        open={adminDialogOpen}
-        onOpenChange={setAdminDialogOpen}
-        date={date}
-        setDate={setDate}
-        reason={reason}
-        setReason={setReason}
-        selectedEmployeeId={selectedEmployeeId}
-        setSelectedEmployeeId={setSelectedEmployeeId}
-        onSubmit={submitAdminVacationRequest}
-        // New props
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        useSeparateDateFields={true}
-        // Request type and time props
-        requestType={requestType}
-        setRequestType={setRequestType}
-        startTime={startTime}
-        setStartTime={setStartTime}
-        endTime={endTime}
-        setEndTime={setEndTime}
-      />
-      
+      {adminDialogOpen && (
+        <Suspense fallback={null}>
+          <AdminVacationFormDialog
+            open={adminDialogOpen}
+            onOpenChange={setAdminDialogOpen}
+            date={date}
+            setDate={setDate}
+            reason={reason}
+            setReason={setReason}
+            selectedEmployeeId={selectedEmployeeId}
+            setSelectedEmployeeId={setSelectedEmployeeId}
+            onSubmit={submitAdminVacationRequest}
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            useSeparateDateFields={true}
+            requestType={requestType}
+            setRequestType={setRequestType}
+            startTime={startTime}
+            setStartTime={setStartTime}
+            endTime={endTime}
+            setEndTime={setEndTime}
+          />
+        </Suspense>
+      )}
+
       {/* Vacation action dialog (approve/reject) */}
-      <VacationActionDialog
-        open={actionDialogOpen}
-        onOpenChange={setActionDialogOpen}
-        vacation={currentVacation}
-        actionType={actionType}
-        note={note}
-        setNote={setNote}
-        onSubmit={handleActionSubmit}
-      />
-      
+      {actionDialogOpen && (
+        <Suspense fallback={null}>
+          <VacationActionDialog
+            open={actionDialogOpen}
+            onOpenChange={setActionDialogOpen}
+            vacation={currentVacation}
+            actionType={actionType}
+            note={note}
+            setNote={setNote}
+            onSubmit={handleActionSubmit}
+          />
+        </Suspense>
+      )}
+
       {/* Edit vacation dialog */}
-      <VacationFormDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        date={date}
-        setDate={setDate}
-        reason={reason}
-        setReason={setReason}
-        onSubmit={submitEditVacation}
-        isEditing={true}
-        onDelete={handleDeleteCurrentVacation}
-        // New props
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        useSeparateDateFields={true}
-        // Request type and time props
-        requestType={requestType}
-        setRequestType={setRequestType}
-        startTime={startTime}
-        setStartTime={setStartTime}
-        endTime={endTime}
-        setEndTime={setEndTime}
-      />
+      {editDialogOpen && (
+        <Suspense fallback={null}>
+          <VacationFormDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            date={date}
+            setDate={setDate}
+            reason={reason}
+            setReason={setReason}
+            onSubmit={submitEditVacation}
+            isEditing={true}
+            onDelete={handleDeleteCurrentVacation}
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            useSeparateDateFields={true}
+            requestType={requestType}
+            setRequestType={setRequestType}
+            startTime={startTime}
+            setStartTime={setStartTime}
+            endTime={endTime}
+            setEndTime={setEndTime}
+          />
+        </Suspense>
+      )}
       
       {/* Delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
