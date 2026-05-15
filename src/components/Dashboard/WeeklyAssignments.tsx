@@ -440,6 +440,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
           onPublishDay={() => {}}
           onEmployeeToggle={handleEmployeeToggle}
         />
+        </Suspense>
       )}
 
       {/* Delete confirmation */}
