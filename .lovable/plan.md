@@ -1,21 +1,17 @@
 ## Status: Already implemented — no changes needed
 
-The requested optimization is already in place in `src/hooks/assignment/useAssignmentFiles.ts`.
+`src/context/AuthContext.tsx` already follows the requested pattern.
 
 ### Verification
-- Line 7: comment documenting the lazy load — `// Note: pdf-lib (~600 kB) is dynamically imported inside generatePdf()`
-- Line 365 (inside `generateImagePdfWithComments`): `const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');`
-- No top-level `import ... from 'pdf-lib'` exists anywhere in `src/`.
-- The function is already `async` (declared via `useCallback(async (...) => { ... })`).
-- A loading state is signalled before the await via `toast.info('Genererer PDF...')` and final success/error toasts are emitted at the end / in `catch`.
+- **Empty deps array**: The auth-init `useEffect` containing `supabase.auth.onAuthStateChange` ends with `}, []);` at line 500.
+- **`tRef`**: Lines 125–126 — `const tRef = useRef(t); useEffect(() => { tRef.current = t; }, [t]);`
+- **`toastRef`**: Lines 127–128 — `const toastRef = useRef(toast); useEffect(() => { toastRef.current = toast; }, [toast]);`
+- **Listener uses refs**: Lines 314–316 inside the `onAuthStateChange` callback call `toastRef.current({...})` and `tRef.current(...)` — never the closure-captured `t` or `toast` directly.
+- **`navigate`**: Not used in this file; navigation is performed via `window.location.replace('/login')` (line 324), so no `navigate` ref is needed.
+- **No deps leak**: `t`, `toast`, `navigate`, and `queryClient` are NOT listed in the auth-init effect's dependency array.
 
-### Optional small improvement (only if you want it)
-There is currently no `try/finally` — only `try/catch`. If you want a guaranteed "clearing" step (e.g. dismiss the loading toast even on unexpected throws), I could:
-
-1. Capture the toast id: `const toastId = toast.loading('Genererer PDF...');`
-2. Wrap the body in `try { ... } catch { ... } finally { toast.dismiss(toastId); }`
-
-This is the only thing left that matches the spirit of your request ("cleared in finally"). It is not strictly necessary because the existing `catch` already shows an error toast.
+Comment on lines 121–122 already documents the intent:
+> "Stored in a ref so the auth-init effect does not re-subscribe every time TranslationContext re-renders."
 
 ### Recommendation
-Approve this plan as a no-op confirmation, OR tell me to also apply the `toast.loading` + `finally { toast.dismiss }` refinement and I will make that single edit.
+No code change required. Approve this plan as a no-op confirmation.
