@@ -52,49 +52,9 @@ const LoginPage = () => {
     },
   ];
 
-  // Reusable mesh background — bruges både i venstre brand-panel (lg+) og i mobil-toppen
-  const MeshBackground = () => (
-    <>
-      <div aria-hidden className="absolute inset-0 bg-primary" />
-      <div aria-hidden className="absolute inset-0 overflow-hidden motion-reduce:hidden">
-        <div
-          className="absolute -top-32 -left-24 w-[60%] h-[60%] rounded-full opacity-80 animate-mesh-float-1"
-          style={{ background: 'radial-gradient(circle at center, hsl(190 100% 70%) 0%, transparent 60%)', filter: 'blur(100px)', willChange: 'transform' }}
-        />
-        <div
-          className="absolute top-1/3 -right-24 w-[55%] h-[55%] rounded-full blur-3xl opacity-70 animate-mesh-float-2"
-          style={{ background: 'radial-gradient(circle at center, hsl(210 100% 60%) 0%, transparent 60%)', willChange: 'transform' }}
-        />
-        <div
-          className="absolute -bottom-24 left-1/4 w-[55%] h-[55%] rounded-full blur-3xl opacity-65 animate-mesh-float-3"
-          style={{ background: 'radial-gradient(circle at center, hsl(170 100% 65%) 0%, transparent 60%)', willChange: 'transform' }}
-        />
-      </div>
-      {/* Static fallback for reduced-motion users */}
-      <div aria-hidden className="absolute inset-0 overflow-hidden hidden motion-reduce:block">
-        <div
-          className="absolute -top-32 -left-24 w-[60%] h-[60%] rounded-full blur-3xl opacity-70"
-          style={{ background: 'radial-gradient(circle at center, hsl(190 100% 70%) 0%, transparent 60%)' }}
-        />
-        <div
-          className="absolute top-1/3 -right-24 w-[55%] h-[55%] rounded-full blur-3xl opacity-60"
-          style={{ background: 'radial-gradient(circle at center, hsl(210 100% 60%) 0%, transparent 60%)' }}
-        />
-        <div
-          className="absolute -bottom-24 left-1/4 w-[55%] h-[55%] rounded-full blur-3xl opacity-50"
-          style={{ background: 'radial-gradient(circle at center, hsl(170 100% 65%) 0%, transparent 60%)' }}
-        />
-      </div>
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }}
-      />
-    </>
+  // Solid Polygon brand-blå baggrund — bruges både i venstre brand-panel (lg+) og i mobil-toppen
+  const BrandBackground = () => (
+    <div aria-hidden className="absolute inset-0 bg-polygon-blue" />
   );
 
   return (
