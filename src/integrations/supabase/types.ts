@@ -1299,6 +1299,15 @@ export type Database = {
         }[]
       }
       cleanup_old_change_logs: { Args: never; Returns: Json }
+      cleanup_session_data: {
+        Args: { baseline_timestamp: string }
+        Returns: {
+          deleted_assignments: number
+          deleted_notifications: number
+          deleted_vacations: number
+          deleted_warehouse: number
+        }[]
+      }
       clear_sick_leave_data: { Args: never; Returns: Json }
       create_logs_partition_for_month: { Args: never; Returns: undefined }
       debug_auth_info: { Args: never; Returns: Json }
