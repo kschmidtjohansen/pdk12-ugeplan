@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-15 — Sikkerhedsforbedringer af RPC-helpers
+
+### Security / Reliability
+- Ny `public.cleanup_session_data(timestamptz)` wrapper-funktion der videresender til `demo.cleanup_session_data`. Retter runtime-fejl i `demoUserService.cleanupAllDemoUserData()` (PostgREST eksponerer kun `public` schema, så det direkte kald fejlede med 404).
+- Strammet `search_path = ''` på 5 SECURITY DEFINER-funktioner: `get_current_user_role`, `is_admin_user`, `cleanup_demo_data_ttl`, `reset_demo_data`, `list_accessible_assignments_with_team`. Alle interne tabel- og typereferencer er nu schema-kvalificerede (`public.user_roles`, `public.user_role`). Bringer funktionerne i overensstemmelse med Core security-reglen i memory-indekset.
+- Ingen funktionel adfærdsændring — kun sikkerhedshærdning. Pre-eksisterende linter-warnings om `SECURITY DEFINER`-eksekvering er ikke berørt af denne migration.
+
 ## 2026-05-15 — RLS-performance benchmark (planner-forespørgsler)
 
 ### Observability / Performance
