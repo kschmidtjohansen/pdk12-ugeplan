@@ -64,9 +64,9 @@ const LoginPage = () => {
         className="relative lg:hidden text-white overflow-hidden px-6 pt-10 pb-12 animate-fade-in-down"
         aria-label={headline}
       >
-        <MeshBackground />
+        <BrandBackground />
         <div className="relative z-10 flex flex-col items-center text-center space-y-3 animate-fade-in-up">
-          <div className="h-12 px-4 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center animate-logo-shimmer">
+          <div className="h-12 px-4 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center ">
             <img
               src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
               alt="Polygon"
@@ -86,11 +86,11 @@ const LoginPage = () => {
         className="relative hidden lg:flex flex-col justify-between overflow-hidden text-white p-10 xl:p-14"
         aria-label={headline}
       >
-        <MeshBackground />
+        <BrandBackground />
 
         {/* Top — logo + system-navn */}
         <div className="relative z-10 flex items-center gap-3 animate-fade-in-up">
-          <div className="h-10 px-3 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center animate-logo-shimmer">
+          <div className="h-10 px-3 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center ">
             <img
               src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
               alt="Polygon"
