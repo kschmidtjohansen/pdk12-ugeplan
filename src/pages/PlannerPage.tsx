@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '../context/TranslationContext';
 import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
@@ -10,8 +10,8 @@ import { useAuth } from '../context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import PlannerContent from '../components/Planner/PlannerContent';
-import PlannerDialogContainer from '../components/Planner/PlannerDialogContainer';
-import SeriesActionDialog from '../components/Planner/SeriesActionDialog';
+const PlannerDialogContainer = lazy(() => import('../components/Planner/PlannerDialogContainer'));
+const SeriesActionDialog = lazy(() => import('../components/Planner/SeriesActionDialog'));
 import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
@@ -703,32 +703,40 @@ const PlannerPage: React.FC = () => {
         />
 
         {/* Assignment Dialog */}
-        <PlannerDialogContainer 
-          isDialogOpen={isDialogOpen} 
-          onClose={() => { setIsDialogOpen(false); setEditMode(null); }} 
-          onSubmit={handleSubmit} 
-          onSubmitSeries={updateSeriesAssignments}
-          onDetachFromGroup={detachFromGroup}
-          editMode={editMode}
-          currentAssignment={currentAssignment} 
-          selectedDay={selectedDay} 
-          formData={formData} 
-          setFormData={setFormData} 
-          employees={employees} 
-          cars={cars} 
-          vacations={vacations} 
-          assignments={assignments} 
-          onEmployeeToggle={handleEmployeeToggle} 
-        />
+        {isDialogOpen && (
+          <Suspense fallback={null}>
+            <PlannerDialogContainer 
+              isDialogOpen={isDialogOpen} 
+              onClose={() => { setIsDialogOpen(false); setEditMode(null); }} 
+              onSubmit={handleSubmit} 
+              onSubmitSeries={updateSeriesAssignments}
+              onDetachFromGroup={detachFromGroup}
+              editMode={editMode}
+              currentAssignment={currentAssignment} 
+              selectedDay={selectedDay} 
+              formData={formData} 
+              setFormData={setFormData} 
+              employees={employees} 
+              cars={cars} 
+              vacations={vacations} 
+              assignments={assignments} 
+              onEmployeeToggle={handleEmployeeToggle} 
+            />
+          </Suspense>
+        )}
 
         {/* Series Action Dialog */}
-        <SeriesActionDialog
-          open={!!seriesAction}
-          onOpenChange={(open) => { if (!open) setSeriesAction(null); }}
-          mode={seriesAction?.mode || 'edit'}
-          onSingleDay={handleSeriesSingleDay}
-          onEntireSeries={handleSeriesEntireSeries}
-        />
+        {seriesAction && (
+          <Suspense fallback={null}>
+            <SeriesActionDialog
+              open={!!seriesAction}
+              onOpenChange={(open) => { if (!open) setSeriesAction(null); }}
+              mode={seriesAction?.mode || 'edit'}
+              onSingleDay={handleSeriesSingleDay}
+              onEntireSeries={handleSeriesEntireSeries}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
     </DataFetchErrorBoundary>
