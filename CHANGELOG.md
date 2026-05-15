@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-05-15 — Performance: lazy-load af dialog-komponenter
+
+### Performance
+- Konverteret betinget renderede dialog-imports til `React.lazy` + `<Suspense fallback={null}>` så deres JS først hentes ved første åbning:
+  - `AssignmentDetailsDialog` i `WeeklyAssignments`, `MineOpgaver`, `PlannerContent`.
+  - `AssignmentDialogManager` i `WeeklyAssignments`.
+  - `PlannerDialogContainer` + `SeriesActionDialog` i `PlannerPage`.
+  - `SeriesActionDialog` i `AssignmentDialogManager`.
+  - `VacationFormDialog`, `VacationActionDialog`, `AdminVacationFormDialog` i `VacationDialogs`.
+  - `CarFormDialog`, `DeleteConfirmDialog` i `CarDialogs`.
+- Hver dialog gates på sit eget `open`-flag inden Suspense-grænsen for at undgå unødig prefetch.
+
 ## 2026-05-15 — Dashboard: admin-widget for auto-publish historik
 
 ### Feature
