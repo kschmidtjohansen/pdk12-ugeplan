@@ -1,36 +1,42 @@
 ## Audit-resultat
 
-`rg "chip-glass" src/` viser **kun ét aktivt forbrugssted**: `src/components/Planner/ConflictBadge.tsx` (linje 33) bruger `chip-glass-destructive`. De Planner-komponenter du nævner (`AssignmentCard`, `AssignmentDetails`, `CompactAssignmentRow`) refererer **ikke** til nogen `chip-glass*`-klasse — hverken nu eller via wrapper-helpers. Selve klasse-definitionerne (linje 392–465 i `src/index.css`) er derimod stadig udsendt i bundlen.
+- **Topbar-stribe:** `AppTopBar.tsx` linje 88 rendrer `<div className="brand-stripe h-px w-full" />`. Klassen er defineret i `src/index.css` (linje 250–258) som en horisontal primary-gradient. Topbar har allerede `border-b border-border` (sammen med sidebar), så stregen er ren dekoration.
+- **WelcomeHeader venstre-stribe:** `WelcomeHeader.tsx` linje 56 bruger ikke `::before`, men en inline `<div aria-hidden className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />` (kombineret med `relative … overflow-hidden` på rod-`div`). Behandles som WelcomeHeaders venstre-stribe.
+- **Dashboard-card venstre-stribe:** `.brand-card-accent::before` (index.css 272–286) er en 3px primary-gradient venstrekant. Bruges i `VacationNotificationsPanel.tsx` og `WeeklyAssignments.tsx`. Begge cards har allerede `border` via shadcn `Card`.
+- **Token-note:** projektet eksponerer ikke `--color-border-tertiary`. Standard-borderen er `hsl(var(--border))`, som allerede ligger på sidebar, topbar og `Card`. Det dækker den separations-rolle planen efterspørger.
 
-CSS-tokens: projektet eksponerer ikke `--color-background-secondary`. De tilgængelige semantiske tokens er `--background`, `--card`, `--secondary`, `--muted`, `--border`, `--primary`, `--destructive` (alle som `H S L`). Jeg bruger `--muted` som den "muted background"-token planen omtaler — det matcher det høj-densitets, rolige UI-sprog (bg `#f8fafc`-lignende).
+Ikke berørt: `.brand-card-header` (svag blå gradient øverst i card-header) og `.brand-dot` (lille farvet prik foran section-titel) — det er ikke stripes, og de blev ikke nævnt i opgaven.
 
 ## Planlagte ændringer
 
-### `src/index.css` (linje 392–465)
-Erstat `.chip-glass`, `.chip-glass-primary`, `.chip-glass-amber`, `.chip-glass-emerald`, `.chip-glass-indigo`, `.chip-glass-destructive` (+ deres `.dark`-overrides) med flade pille-utilities:
+### `src/components/Layout/AppTopBar.tsx`
+- Fjern brand-stripe `<div>` (linje 87–88) inkl. kommentar. Topbar beholder sin nuværende `border-b border-border`.
 
-- Fælles base (extracted i kommentar): `background: hsl(var(--muted))`, `border: 0.5px solid hsl(var(--border))`, `color: hsl(var(--foreground))`, **ingen** `backdrop-filter`, **ingen** `box-shadow`, **ingen** translucens.
-- Farvevarianter beholder den eksisterende ramp men som flade tokens:
-  - `chip-glass-primary` → `color: hsl(var(--primary))`, border `hsl(var(--primary) / 1)` ved 0.5px (solid token, ingen alpha-fyld). Background forbliver `hsl(var(--muted))` så pillerne læses ensartet.
-  - `chip-glass-amber` → `color: hsl(35 92% 35%)` (light) / `hsl(35 92% 75%)` (dark), border `hsl(35 92% 50%)`.
-  - `chip-glass-emerald` → `color: hsl(152 60% 28%)` / `hsl(152 60% 70%)`, border `hsl(152 60% 40%)`.
-  - `chip-glass-indigo` → `color: hsl(231 60% 40%)` / `hsl(231 70% 78%)`, border `hsl(231 70% 55%)`.
-  - `chip-glass-destructive` → `color: hsl(var(--destructive))`, border `hsl(var(--destructive))`.
-- Klassenavnene bevares (så `ConflictBadge.tsx` ikke skal ændres), men kommentaren opdateres fra "Frosted-glass chips" til "Flat pill chips".
+### `src/components/Dashboard/WelcomeHeader.tsx`
+- Fjern det venstre stripe-`<div>` (linje 56).
+- Fjern `relative` og `overflow-hidden` fra rod-`div` (kun nødvendige for stripen).
 
-### Planner-komponenter
-Ingen ændringer — de bruger ikke `chip-glass*` i dag. Hvis du forventede status-/tag-pills i `AssignmentCard`/`AssignmentDetails`/`CompactAssignmentRow`, ligger de under andre klasser (fx shadcn `Badge`) og er uden for denne opgave. Sig til hvis jeg skal udvide scope.
+### `src/components/Dashboard/VacationNotificationsPanel.tsx`
+- Fjern `brand-card-accent`-klasse fra `Card` (linje 41).
+
+### `src/components/Dashboard/WeeklyAssignments.tsx`
+- Fjern `brand-card-accent`-klasse fra `Card` (linje 224).
+
+### `src/index.css`
+- Slet `.brand-stripe` (250–258).
+- Slet `.brand-card-accent` + `.brand-card-accent::before` (272–286).
+- Behold `.brand-card-header`, `.brand-dot`, `.kpi-number`, `.list-row-selected`, `.brand-surface` — ikke stripes, primary-farven optræder her som tonet baggrund / tekst, ikke som dekorativ kant.
 
 ### `CHANGELOG.md`
-Tilføj entry "Flat pill-chips erstatter frosted-glass" øverst med kort opsummering af tokens og at kun `ConflictBadge` påvirkes visuelt.
+- Tilføj entry "Brand-stripes fjernet — separation via border" øverst med kort opsummering.
 
 ## Verifikation
 
-- `rg "chip-glass" src/` → samme ene træf i `ConflictBadge.tsx` (intet er fjernet utilsigtet).
-- Browser-screenshot af Planner med en konflikt-badge for at bekræfte den nye flade pille (light + dark mode).
+- `grep brand-stripe\|brand-card-accent src/` → kun definitionerne forsvinder; ingen efterladte forbrugere.
+- Browser-screenshot af `/` (Dashboard) for at bekræfte at WelcomeHeader, VacationNotificationsPanel og WeeklyAssignments stadig adskilles tydeligt af card-border + topbar/sidebar-border, uden de blå stripes.
 
 ## Out of scope
 
-- Ingen logik-ændringer.
-- Ingen omdøbning af klasserne (kræver bredere refactor og berører ConflictBadge-API).
-- Ingen ændring af shadcn `Badge` eller andre tag-/status-komponenter.
+- Ingen ændring af interaktive primary-elementer (knapper, aktive nav-items, links).
+- Ingen ændring af `.brand-card-header` gradient eller `.brand-dot` markør.
+- Ingen ændring af shadcn `Card`-base eller border-tokens.

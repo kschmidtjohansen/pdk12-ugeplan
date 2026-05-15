@@ -84,8 +84,6 @@ const AppTopBar: React.FC = () => {
           />
         </div>
       </div>
-      {/* brand stripe */}
-      <div aria-hidden className="brand-stripe h-px w-full" />
     </header>
   );
 };
