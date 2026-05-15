@@ -1,30 +1,36 @@
-## Mål
+## Audit-resultat
 
-Erstat den animerede mesh/blob-baggrund i login-sidens venstre panel (og mobil-banneret) med en ren, solid Polygon brand-blå `#00aeef`. Fjern logo-shimmer og de tre mesh-float-animationer. Behold logo, tagline og feature-cards — bare på den flade farve.
+`rg "chip-glass" src/` viser **kun ét aktivt forbrugssted**: `src/components/Planner/ConflictBadge.tsx` (linje 33) bruger `chip-glass-destructive`. De Planner-komponenter du nævner (`AssignmentCard`, `AssignmentDetails`, `CompactAssignmentRow`) refererer **ikke** til nogen `chip-glass*`-klasse — hverken nu eller via wrapper-helpers. Selve klasse-definitionerne (linje 392–465 i `src/index.css`) er derimod stadig udsendt i bundlen.
 
-## Ændringer
+CSS-tokens: projektet eksponerer ikke `--color-background-secondary`. De tilgængelige semantiske tokens er `--background`, `--card`, `--secondary`, `--muted`, `--border`, `--primary`, `--destructive` (alle som `H S L`). Jeg bruger `--muted` som den "muted background"-token planen omtaler — det matcher det høj-densitets, rolige UI-sprog (bg `#f8fafc`-lignende).
 
-### `src/pages/LoginPage.tsx`
-- Slet hele `MeshBackground`-komponenten (linje 55–98) inkl. de 3 animerede blob-divs, motion-reduce fallback-blobs og det subtile grid-overlay.
-- Erstat med en simpel `<div aria-hidden className="absolute inset-0 bg-polygon-blue" />` (ny semantisk farve, se nedenfor).
-- Fjern `animate-logo-shimmer`-klassen begge steder (linje 109 og 133). Logo-containerne beholdes som de er (white/15 backdrop-blur boks).
-- Behold alt øvrigt indhold uændret: headline, sub-headline, feature-cards, fade-in-animationer på indhold, sprog/tema-knapper.
+## Planlagte ændringer
 
-### `tailwind.config.ts`
-- Tilføj farve-token `polygon: { blue: '#00aeef' }` under `colors.extend` (eller direkte `polygonBlue`) så `bg-polygon-blue` kan bruges. Alternativt mappes til en CSS-variabel `--polygon-blue` i `index.css` og refereres via `hsl(var(--polygon-blue))` for konsistens med resten af design-systemet — anbefalet variant.
-- Fjern keyframes: `mesh-drift`, `mesh-drift-alt`, `mesh-float-1`, `mesh-float-2`, `mesh-float-3`, `logo-shimmer`.
-- Fjern tilsvarende entries under `animation`: `mesh-drift`, `mesh-drift-alt`, `mesh-float-1`, `mesh-float-2`, `mesh-float-3`, `logo-shimmer`.
-- Bevar `fade-in-down`, `scale-in`, `slide-in-*` og øvrige animationer — de bruges andre steder.
+### `src/index.css` (linje 392–465)
+Erstat `.chip-glass`, `.chip-glass-primary`, `.chip-glass-amber`, `.chip-glass-emerald`, `.chip-glass-indigo`, `.chip-glass-destructive` (+ deres `.dark`-overrides) med flade pille-utilities:
 
-### `src/index.css`
-- Tilføj `--polygon-blue: 196 100% 47%;` (HSL for `#00aeef`) i `:root` og dark-blok så token-systemet er konsistent.
+- Fælles base (extracted i kommentar): `background: hsl(var(--muted))`, `border: 0.5px solid hsl(var(--border))`, `color: hsl(var(--foreground))`, **ingen** `backdrop-filter`, **ingen** `box-shadow`, **ingen** translucens.
+- Farvevarianter beholder den eksisterende ramp men som flade tokens:
+  - `chip-glass-primary` → `color: hsl(var(--primary))`, border `hsl(var(--primary) / 1)` ved 0.5px (solid token, ingen alpha-fyld). Background forbliver `hsl(var(--muted))` så pillerne læses ensartet.
+  - `chip-glass-amber` → `color: hsl(35 92% 35%)` (light) / `hsl(35 92% 75%)` (dark), border `hsl(35 92% 50%)`.
+  - `chip-glass-emerald` → `color: hsl(152 60% 28%)` / `hsl(152 60% 70%)`, border `hsl(152 60% 40%)`.
+  - `chip-glass-indigo` → `color: hsl(231 60% 40%)` / `hsl(231 70% 78%)`, border `hsl(231 70% 55%)`.
+  - `chip-glass-destructive` → `color: hsl(var(--destructive))`, border `hsl(var(--destructive))`.
+- Klassenavnene bevares (så `ConflictBadge.tsx` ikke skal ændres), men kommentaren opdateres fra "Frosted-glass chips" til "Flat pill chips".
+
+### Planner-komponenter
+Ingen ændringer — de bruger ikke `chip-glass*` i dag. Hvis du forventede status-/tag-pills i `AssignmentCard`/`AssignmentDetails`/`CompactAssignmentRow`, ligger de under andre klasser (fx shadcn `Badge`) og er uden for denne opgave. Sig til hvis jeg skal udvide scope.
+
+### `CHANGELOG.md`
+Tilføj entry "Flat pill-chips erstatter frosted-glass" øverst med kort opsummering af tokens og at kun `ConflictBadge` påvirkes visuelt.
 
 ## Verifikation
 
-Efter ændringerne: kør grep for at sikre at ingen anden fil refererer til de fjernede animations-klasser (forventet ingen hits uden for konfigurationen). Tag et browser-screenshot af `/login` for at bekræfte det rene split-screen look uden blobs eller shimmer.
+- `rg "chip-glass" src/` → samme ene træf i `ConflictBadge.tsx` (intet er fjernet utilsigtet).
+- Browser-screenshot af Planner med en konflikt-badge for at bekræfte den nye flade pille (light + dark mode).
 
 ## Out of scope
 
-- Ingen ændringer i selve login-formen (højre panel).
-- Ingen ny funktionalitet, oversættelser eller routing-ændringer.
-- Ingen oprydning af andre animations-klasser end de 6 nævnte.
+- Ingen logik-ændringer.
+- Ingen omdøbning af klasserne (kræver bredere refactor og berører ConflictBadge-API).
+- Ingen ændring af shadcn `Badge` eller andre tag-/status-komponenter.
