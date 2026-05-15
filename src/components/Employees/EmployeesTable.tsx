@@ -213,7 +213,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onToggleLeave={onToggleLeave}
-                        aria-rowindex={virtualItem.index + 2}
+                        
                       />
                     );
                   })}
