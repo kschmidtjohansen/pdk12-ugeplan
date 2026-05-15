@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-05-15 — Dashboard: admin-widget for auto-publish historik
+
+### Feature
+- Ny tabel `auto_publish_log` (run_at, assignments_updated, department_id, triggered_by) med RLS — kun super_admin / administrator / skadeleder kan læse.
+- `auto_publish_due_assignments()` opdateret: looper per afdeling og indsætter en log-række per afdeling per kørsel.
+- Nyt admin-widget `AutoPublishLogWidget` i `DashboardCockpit` aside (vises kun ved `showMetrics && isEffectiveAdmin`) — viser de 10 seneste kørsler med tidspunkt + antal publicerede opgaver, filtreret på valgt afdeling.
+- Hook `useAutoPublishLog` (React Query, 5 min staleTime, kræver `selectedDepartmentId`).
+- Oversættelser tilføjet på `da` og `en`.
+
 ## 2026-05-15 — EmployeesTable: row-virtualisation ved >50 rækker
 
 ### Performance / a11y

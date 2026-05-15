@@ -181,5 +181,12 @@ export const dashboard = {
   },
 
   // Modal week context
-  weekContext: "Week {week}, {year}"
+  weekContext: "Week {week}, {year}",
+
+  // Auto-publish log widget (admin)
+  autoPublishLog: {
+    title: "Latest auto-publish runs",
+    empty: "No runs yet",
+    assignmentsUpdated: "{count} assignments"
+  }
 };

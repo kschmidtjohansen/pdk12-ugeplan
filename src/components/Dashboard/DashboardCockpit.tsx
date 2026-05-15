@@ -5,6 +5,7 @@ import CompactKpiStack from './CompactKpiStack';
 import DutySummaryWidget from './DutySummaryWidget';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import VacationNotificationsPanel from './VacationNotificationsPanel';
+import AutoPublishLogWidget from './AutoPublishLogWidget';
 import WeeklyAssignments from './WeeklyAssignments';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
@@ -86,6 +87,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       <aside className="space-y-4 lg:sticky lg:top-14 lg:self-start">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} />}
         {showMetrics && isEffectiveAdmin && <VacationNotificationsPanel />}
+        {showMetrics && isEffectiveAdmin && <AutoPublishLogWidget />}
         {isDutyEnabled && <DutySummaryWidget />}
         <UpcomingVacationsWidget vacations={vacations} />
       </aside>

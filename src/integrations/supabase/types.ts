@@ -269,6 +269,30 @@ export type Database = {
           },
         ]
       }
+      auto_publish_log: {
+        Row: {
+          assignments_updated: number
+          department_id: string | null
+          id: string
+          run_at: string
+          triggered_by: string
+        }
+        Insert: {
+          assignments_updated?: number
+          department_id?: string | null
+          id?: string
+          run_at?: string
+          triggered_by?: string
+        }
+        Update: {
+          assignments_updated?: number
+          department_id?: string | null
+          id?: string
+          run_at?: string
+          triggered_by?: string
+        }
+        Relationships: []
+      }
       car_sub_departments: {
         Row: {
           car_id: string
