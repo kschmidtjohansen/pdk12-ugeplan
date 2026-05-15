@@ -182,20 +182,18 @@ const PlannerPage: React.FC = () => {
     });
   }, [weekAssignments, searchQuery]);
 
-  // Handlers - use date-fns for proper week navigation
-  const handlePreviousWeek = () => {
-    const currentWeekStart = getWeekDates(selectedWeek, selectedYear).start;
-    const prevWeekStart = addWeeks(currentWeekStart, -1);
+  // Handlers — reuse memoized weekDates
+  const handlePreviousWeek = useCallback(() => {
+    const prevWeekStart = addWeeks(weekDates.start, -1);
     setSelectedWeek(getISOWeek(prevWeekStart));
     setSelectedYear(getISOWeekYear(prevWeekStart));
-  };
+  }, [weekDates]);
 
-  const handleNextWeek = () => {
-    const currentWeekStart = getWeekDates(selectedWeek, selectedYear).start;
-    const nextWeekStart = addWeeks(currentWeekStart, 1);
+  const handleNextWeek = useCallback(() => {
+    const nextWeekStart = addWeeks(weekDates.start, 1);
     setSelectedWeek(getISOWeek(nextWeekStart));
     setSelectedYear(getISOWeekYear(nextWeekStart));
-  };
+  }, [weekDates]);
 
   const handleOpenCreateDialog = (date: string) => {
     setCurrentAssignment(null);
