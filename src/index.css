@@ -246,17 +246,6 @@
 
   /* ----- Brand signature utilities (polygon blue) ----- */
 
-  /* Thin top accent stripe — used under topbar for brand signature */
-  .brand-stripe {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--primary) / 0.0) 0%,
-      hsl(var(--primary) / 0.35) 30%,
-      hsl(var(--primary) / 0.35) 70%,
-      hsl(var(--primary) / 0.0) 100%
-    );
-  }
-
   /* Soft blue gradient header used on dashboard cards */
   .brand-card-header {
     background: linear-gradient(
@@ -266,23 +255,6 @@
       hsl(var(--primary) / 0.0) 100%
     );
     border-top: 1px solid hsl(var(--primary) / 0.18);
-  }
-
-  /* Stronger branded card with left accent bar */
-  .brand-card-accent {
-    position: relative;
-    overflow: hidden;
-  }
-  .brand-card-accent::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 3px;
-    background: linear-gradient(
-      180deg,
-      hsl(var(--primary)) 0%,
-      hsl(199 89% 52%) 100%
-    );
   }
 
   /* Section title with leading blue dot */
