@@ -327,3 +327,10 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Tilføj client-side paginering i `CarsList` (25 pr. side, desktop + mobile)
 - [x] Progressive disclosure i `PastAssignments` + `CompactPastAssignments` (14 datoer, "Vis flere" +14)
 - [x] Genbrugelig `SimplePagination`-komponent i `src/components/shared/`
+
+## Performance: memoization af uge-beregninger (UI)
+
+- [x] Module-level cache i `getWeekDates(week, year)` — stabile objekt-referencer
+- [x] Pre-formaterede `startStr`/`endStr` for billig YYYY-MM-DD string-compare
+- [x] FIFO-cache `getISOWeekInfoForDate(dateStr)` (cap 1000)
+- [x] `PlannerPage`: `weekDates` via `useMemo`, weekAssignments-filter via string-compare, `useCallback` på uge-navigation

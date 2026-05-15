@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-05-15 — Memoization af uge-beregninger (UI performance)
+
+### Optimering
+- **`src/utils/dates/weekCore.ts`:** Tilføjet module-level cache i `getWeekDates(week, year)` — samme `(week, year)` returnerer nu samme objekt-reference på tværs af renders, hvilket holder React `useMemo`/`useEffect`-deps stabile. Pre-formaterede `startStr`/`endStr` (YYYY-MM-DD) inkluderet for billig string-sammenligning. Ny helper `getISOWeekInfoForDate(dateStr)` med FIFO-cache (cap 1000) til ISO-uge-opslag på datostrenge. Fjernet støjende DEV-`console.log`.
+- **`src/pages/PlannerPage.tsx`:**
+  - Erstattet inline `getWeekDates` og lokal `getAllWeekDays` med cachet util fra `@/utils/dates`.
+  - `weekDates` indpakket i `useMemo` på `(selectedWeek, selectedYear)`.
+  - `weekAssignments`-filter: skiftet fra `new Date(...)` + `getISOWeek` + `getISOWeekYear` per række til lexicographic YYYY-MM-DD string-sammenligning mod `weekDates.startStr/endStr` — eliminerer O(n) Date-allokering pr. render.
+  - `handlePreviousWeek`/`handleNextWeek` indpakket i `useCallback` og bruger memoiseret `weekDates.start`.
+
+### Effekt
+- Færre allokationer og date-fns-kald pr. render i Planner.
+- Stabile referencer reducerer downstream re-renders i `PlannerContent`.
+
+
 ## 2026-05-14 — Liste-paginering (UI performance)
 
 ### Tilføjet

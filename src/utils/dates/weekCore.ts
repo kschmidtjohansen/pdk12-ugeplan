@@ -1,65 +1,82 @@
 
-import { 
-  parseISO, 
-  getISOWeek, 
-  getISOWeekYear, 
+import {
+  parseISO,
+  getISOWeek,
+  getISOWeekYear,
   format,
-  startOfISOWeek, 
-  endOfISOWeek, 
-  setISOWeek, 
+  startOfISOWeek,
+  endOfISOWeek,
+  setISOWeek,
   setISOWeekYear,
-  addDays
 } from "date-fns";
 
+export interface WeekDateRange {
+  start: Date;
+  end: Date;
+  weekNumber: number;
+  year: number;
+  /** Pre-formatted YYYY-MM-DD for cheap string compares */
+  startStr: string;
+  endStr: string;
+}
+
+// ------- Module-level caches -------
+// Inputs are deterministic (week+year, or YYYY-MM-DD), so caching is always safe.
+
+const weekDatesCache = new Map<string, WeekDateRange>();
+const isoInfoCache = new Map<string, { week: number; year: number }>();
+const ISO_INFO_CACHE_MAX = 1000;
+
 /**
- * Get the date range for a specific ISO week number and year
- * ISO weeks start on Monday and end on Sunday according to ISO 8601
+ * Get the date range for a specific ISO week number and year.
+ * Result is memoized — repeat calls return the same object reference,
+ * which keeps React useMemo / useEffect deps stable.
  */
-export const getWeekDates = (weekNumber: number, year: number) => {
+export const getWeekDates = (weekNumber: number, year: number): WeekDateRange => {
   if (weekNumber < 1 || weekNumber > 53) {
     throw new Error(`Invalid week number: ${weekNumber}. Must be between 1 and 53.`);
   }
-  
-  try {
-    // Create a date in the specified year
-    const baseDate = new Date(year, 0, 4); // January 4th is always in week 1
-    
-    // Set the ISO week year first to ensure proper year context
-    const dateWithYear = setISOWeekYear(baseDate, year);
-    
-    // Then set the ISO week number
-    const dateWithWeek = setISOWeek(dateWithYear, weekNumber);
-    
-    // Get the start (Monday) of that ISO week
-    const start = startOfISOWeek(dateWithWeek);
-    
-    // Get the end (Sunday) of that ISO week
-    // Using endOfISOWeek directly returns the last millisecond of Sunday
-    const end = endOfISOWeek(dateWithWeek);
-    
-    // Debug output
-    if (import.meta.env.DEV) console.log(`Week ${weekNumber}/${year} - Start: ${format(start, 'yyyy-MM-dd')} (${format(start, 'EEEE')}) - Day: ${start.getDay()}`);
-    if (import.meta.env.DEV) console.log(`Week ${weekNumber}/${year} - End: ${format(end, 'yyyy-MM-dd')} (${format(end, 'EEEE')}) - Day: ${end.getDay()}`);
-    
-    // Verify week boundaries - Monday(1) to Sunday(0)
-    if (start.getDay() !== 1) {
-      if (import.meta.env.DEV) console.error(`ERROR: Week start is not Monday! Got day ${start.getDay()} (${format(start, 'EEEE')})`);
-    }
-    
-    if (end.getDay() !== 0) {
-      if (import.meta.env.DEV) console.error(`ERROR: Week end is not Sunday! Got day ${end.getDay()} (${format(end, 'EEEE')})`);
-    }
-    
-    return {
-      start,
-      end,
-      weekNumber,
-      year
-    };
-  } catch (err) {
-    if (import.meta.env.DEV) console.error("Error in getWeekDates:", err);
-    throw err;
+
+  const cacheKey = `${year}-${weekNumber}`;
+  const cached = weekDatesCache.get(cacheKey);
+  if (cached) return cached;
+
+  const baseDate = new Date(year, 0, 4); // Jan 4th is always in ISO week 1
+  const dateWithYear = setISOWeekYear(baseDate, year);
+  const dateWithWeek = setISOWeek(dateWithYear, weekNumber);
+  const start = startOfISOWeek(dateWithWeek);
+  const end = endOfISOWeek(dateWithWeek);
+
+  const result: WeekDateRange = {
+    start,
+    end,
+    weekNumber,
+    year,
+    startStr: format(start, "yyyy-MM-dd"),
+    endStr: format(end, "yyyy-MM-dd"),
+  };
+
+  weekDatesCache.set(cacheKey, result);
+  return result;
+};
+
+/**
+ * Memoized lookup of ISO week + year for a YYYY-MM-DD date string.
+ * Cap entries with a simple FIFO eviction.
+ */
+export const getISOWeekInfoForDate = (dateStr: string): { week: number; year: number } => {
+  const cached = isoInfoCache.get(dateStr);
+  if (cached) return cached;
+
+  const d = parseISO(dateStr);
+  const info = { week: getISOWeek(d), year: getISOWeekYear(d) };
+
+  if (isoInfoCache.size >= ISO_INFO_CACHE_MAX) {
+    const firstKey = isoInfoCache.keys().next().value;
+    if (firstKey !== undefined) isoInfoCache.delete(firstKey);
   }
+  isoInfoCache.set(dateStr, info);
+  return info;
 };
 
 /**
@@ -69,57 +86,44 @@ export const getCurrentWeekInfo = () => {
   const now = new Date();
   return {
     week: getISOWeek(now),
-    year: getISOWeekYear(now)
+    year: getISOWeekYear(now),
   };
 };
 
 /**
  * Get the current week dates
- * Returns the date range for the current week
  */
 export const getCurrentWeekDates = (week?: number, year?: number) => {
   if (week !== undefined && year !== undefined) {
     return getWeekDates(week, year);
-  } else {
-    const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
-    return getWeekDates(currentWeek, currentYear);
   }
+  const { week: currentWeek, year: currentYear } = getCurrentWeekInfo();
+  return getWeekDates(currentWeek, currentYear);
 };
 
 /**
  * Get all days in the week as formatted date strings (YYYY-MM-DD)
- * @param dateRange Object with start and end dates
- * @returns Array of formatted date strings
  */
 export const getAllWeekDays = (dateRange: { start: Date; end: Date }) => {
   const { start, end } = dateRange;
-  
-  // Create an array to hold all dates
   const allDays: string[] = [];
-  
-  // Clone the start date to avoid modifying original
   const currentDate = new Date(start);
-  
-  // Loop through each day, adding to array
   while (currentDate <= end) {
-    allDays.push(format(currentDate, 'yyyy-MM-dd'));
-    // Move to next day
+    allDays.push(format(currentDate, "yyyy-MM-dd"));
     currentDate.setDate(currentDate.getDate() + 1);
   }
-  
   return allDays;
 };
 
-// These functions are kept for backward compatibility but may be deprecated in future
+// Backward-compat helpers
 export const getCurrentWeekNumber = () => getCurrentWeekInfo().week;
 
 export const getWeekNumber = (date: Date | string) => {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+  const dateObj = typeof date === "string" ? parseISO(date) : date;
   return getISOWeek(dateObj);
 };
 
 export const getYearForDate = (date: Date | string) => {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  // Return ISO week year, not calendar year
+  const dateObj = typeof date === "string" ? parseISO(date) : date;
   return getISOWeekYear(dateObj);
 };
