@@ -1,55 +1,44 @@
-## Mål
-Fjerne unødige genberegninger af uge-nummer / uge-datoer / uge-assignment-filtrering ved hvert render. Hot path er `PlannerPage` (kører ved hver state-change, scroll, dialog-åbning), men også `Dashboard`/`WelcomeHeader` får små gevinster.
+## Status
+Route-niveau lazy loading findes allerede i `src/App.tsx` (`lazyWithRetry` + `Suspense` for alle sider). Der er intet at gøre på route-niveau.
 
-## Problemer i den nuværende kode
+Brugeren vil i stedet have **bundle-analyse** for at finde tunge afhængigheder.
 
-**`src/pages/PlannerPage.tsx`**
-- L140: `getWeekDates` er en inline funktion (ikke `useCallback`/`useMemo`) — kaldes på hvert render (L147), plus i `handlePreviousWeek` (L203) og `handleNextWeek` (L210).
-- L147: `weekDates` er et nyt objekt hver render → invalidator alle nedstrøms `useMemo` der bruger det som dep (`handleToggleAllExpanded` L162).
-- L165-174: `weekAssignments` filter kører `new Date(...)` + `getISOWeek` + `getISOWeekYear` for **hver** assignment, hver gang `assignments`-array-referencen ændrer sig (selv ved realtime-debounce-refetch der returnerer samme data). Dette er O(n) tunge date-fns-kald per render-cycle.
-- L102-110: lokal `getAllWeekDays` duplikerer canonical util fra `utils/dates/weekCore.ts`.
+## Fund fra build
 
-**Dashboard / WelcomeHeader / VacationCalendarOverview**
-- `getISOWeek(new Date())` kaldes direkte i render-body (`WelcomeHeader.tsx` L39+L44, `DashboardPage.tsx` ved init-state).
-- Mindre churn, men kan trivielt memoiseres pr. dato.
+Production build **fejler** lige nu:
+```
+Could not resolve entry module "@radix-ui/react-accordion"
+```
+`vite.config.ts` `manualChunks` refererer til pakker der blev fjernet i tidligere dead-code-oprydning (`@radix-ui/react-accordion`, `recharts`). Det skal fixes før vi overhovedet kan analysere.
 
 ## Plan
 
-### 1. Module-level cache i `src/utils/dates/weekCore.ts`
-Tilføj to billige Map-baserede caches (deterministisk input → deterministisk output, sikkert at cache for sessionens varighed):
+### 1. Reparér `vite.config.ts` → ren build
+- Fjern fra `ui-vendor`: `@radix-ui/react-accordion` (slettet).
+- Fjern hele `charts-vendor` (`recharts` er afinstalleret).
+- Tilføj de nye Radix-pakker som faktisk bruges (`alert-dialog`, `collapsible`, `context-menu`, `radio-group`, `slot`, `toggle`, `toggle-group`) til `ui-vendor`, så de ikke kopieres ind i hver page-chunk.
 
-- `getWeekDates(week, year)` cache med nøgle `${year}-${week}`. Returnerer samme objekt-reference ved gentagne kald → stabil dep i React.
-- Ny helper `getISOWeekInfoForDate(dateStr: string): { week, year }` der memoiserer på YYYY-MM-DD-strenge (cap på fx 1000 entries via simpel FIFO/LRU). Bruges af weekAssignments-filteret.
+### 2. Generér og analysér bundle
+- Kør `vite build` → `dist/stats.html` (rollup-plugin-visualizer er allerede konfigureret).
+- Kør `du -sh dist/assets/*.js | sort -h` for top-størrelser.
+- Identificér:
+  - Største vendor-chunks (forventet: react-vendor, supabase-vendor, ui-vendor, data-vendor).
+  - Største page-chunks (PlannerPage, DashboardPage, AdminPage).
+  - Duplikerede pakker på tværs af page-chunks (kandidater til ekstra `manualChunks`).
 
-Fjern DEV-`console.log` i `getWeekDates` (kører ofte → log-spam i dev).
+### 3. Rapportér til brugeren
+Levér en kort tabel: chunk-navn, gzip-størrelse, top-3 indhold. Så kan vi i et opfølgende step beslutte om der skal:
+- Code-splittes flere sub-komponenter (f.eks. `AssignmentDialogManager`, dialogs i Admin).
+- Flyttes flere libs til vendor-chunks.
+- Fjernes/erstattes en tung lib.
 
-### 2. `PlannerPage.tsx`
-- Erstat inline `getWeekDates` med import fra `@/utils/dates` (cached).
-- `weekDates`: `useMemo(() => getWeekDates(selectedWeek, selectedYear), [selectedWeek, selectedYear])`.
-- `weekAssignments`: Skift fra dato-parsing til **lexicographic string-compare** mod `weekDates.start`/`end` (begge formateret som `yyyy-MM-dd`). YYYY-MM-DD sorterer korrekt som strings — ingen Date-allokering pr. række. Dep: `[assignments, weekStartStr, weekEndStr]`.
-- Erstat lokal `getAllWeekDays` med import.
-- `handlePreviousWeek`/`handleNextWeek`: brug `useCallback` + den memoiserede `weekDates` (stadig stabil mellem renders inden for samme uge).
-
-### 3. `WelcomeHeader.tsx`, `DashboardPage.tsx`, `VacationCalendarOverview.tsx`
-- Wrap `getISOWeek(new Date())`-kald i `useMemo(() => …, [])` (eller `useMemo` på en stabil dato-key) så de ikke kører pr. render.
-- For `DashboardPage` init-state er det allerede engangs, men `WelcomeHeader` gør det per render → største gevinst der.
-
-### 4. `WeeklyAssignments.tsx` (Dashboard)
-- `prefillDate` useMemo er allerede ok. Ingen ændring nødvendig — kun verifikation.
-
-## Ud af scope
-- Ingen ændring af RLS, queries eller datamodel.
-- Ingen ny dependency. Bruger kun React + date-fns.
-- Virtualisering / server-side filtering — ikke nødvendigt ved disse mængder.
+**Ingen kodelogik-ændringer i denne runde** — kun config-fix + analyse + rapport. Ægte optimeringer kommer i opfølgende plan baseret på fund.
 
 ## Filer der ændres
-- `src/utils/dates/weekCore.ts` — tilføj caches, fjern dev-logs
-- `src/utils/dates/index.ts` — eksportér ny helper hvis nødvendig
-- `src/pages/PlannerPage.tsx` — memoize weekDates, fjern dup, hurtigere filter
-- `src/components/Dashboard/WelcomeHeader.tsx` — useMemo om uge-nummer
-- `CHANGELOG.md` + `docs/implementation-plan/tasks.md`
+- `vite.config.ts` — ryd op i `manualChunks`.
+- `CHANGELOG.md` + `docs/implementation-plan/tasks.md` — log analyse-runden.
 
 ## Verifikation
-- Build kompilerer rent.
-- Manuelt: skift uge frem/tilbage virker, søgning filtrerer korrekt, "Vis alle/kollaps alle" virker uændret.
-- DevTools Profiler: `PlannerContent` re-render-tid skal falde ved gentagne renders i samme uge.
+- `bunx vite build` lykkes uden fejl.
+- `dist/stats.html` genereres.
+- Rapport leveres i chat.

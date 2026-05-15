@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-05-15 — Bundle-analyse + vite manualChunks fix
+
+### Fixed
+- **`vite.config.ts`:** Production build var brækket fordi `manualChunks` refererede til pakker fjernet ved tidligere dead-code-oprydning (`@radix-ui/react-accordion`, `recharts`). Listen er ryddet op og udvidet med faktisk-brugte Radix-komponenter (`alert-dialog`, `collapsible`, `context-menu`, `radio-group`, `slot`, `toggle`, `toggle-group`).
+
+### Bundle-analyse (efter fix)
+Top chunks (gzip):
+| Chunk | Gzip | Note |
+|---|---|---|
+| **useWarehouseIndicators** | **238 kB** | ⚠️ Indeholder `pdf-lib` (importeret eager i `useAssignmentFiles.ts`) — kandidat til dynamic import |
+| index (entry) | 89 kB | Hovedbundle |
+| react-vendor | 53 kB | OK |
+| ui-vendor (Radix) | 46 kB | OK |
+| supabase-vendor | 28 kB | OK |
+| PlannerPage | 19 kB | Fint efter route-split |
+| DashboardPage | 18 kB | OK |
+| data-vendor | 17 kB | OK |
+| AdminPage | 16 kB | OK |
+
+`dist/stats.html` genereret via rollup-plugin-visualizer.
+
+### Næste optimering (ikke implementeret)
+- Dynamic-import `pdf-lib` inde i `generatePdf()` i `useAssignmentFiles.ts` → fjerner ~200 kB gzip fra initial load af planner/dashboard. Forventet største enkeltgevinst.
+
+
 ## 2026-05-15 — Memoization af uge-beregninger (UI performance)
 
 ### Optimering

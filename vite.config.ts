@@ -46,25 +46,30 @@ export default defineConfig(({ mode }) => ({
           // React core
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           
-          // UI libraries (Radix UI components)
+          // UI libraries (Radix UI components actually in use)
           'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-accordion',
             '@radix-ui/react-alert-dialog',
             '@radix-ui/react-avatar',
             '@radix-ui/react-checkbox',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-switch',
+            '@radix-ui/react-collapsible',
+            '@radix-ui/react-context-menu',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
             '@radix-ui/react-label',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-radio-group',
             '@radix-ui/react-scroll-area',
-            '@radix-ui/react-separator'
+            '@radix-ui/react-select',
+            '@radix-ui/react-separator',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-switch',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-toggle',
+            '@radix-ui/react-toggle-group',
+            '@radix-ui/react-tooltip'
           ],
-          
+
           // Data & Forms
           'data-vendor': [
             '@tanstack/react-query',
@@ -72,15 +77,12 @@ export default defineConfig(({ mode }) => ({
             '@hookform/resolvers',
             'zod'
           ],
-          
+
           // Supabase & Authentication
           'supabase-vendor': ['@supabase/supabase-js'],
-          
+
           // Utils & Date libraries
-          'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge'],
-          
-          // Charts (only for pages that use them)
-          'charts-vendor': ['recharts']
+          'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge']
         }
       }
     }
