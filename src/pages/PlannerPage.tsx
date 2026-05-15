@@ -99,28 +99,24 @@ const PlannerPage: React.FC = () => {
     }));
   }, []);
   
-  // Helper to get all week days as date strings
-  const getAllWeekDays = useCallback((dates: { start: Date; end: Date }) => {
-    const days: string[] = [];
-    const current = new Date(dates.start);
-    while (current <= dates.end) {
-      days.push(format(current, 'yyyy-MM-dd'));
-      current.setDate(current.getDate() + 1);
-    }
-    return days;
-  }, []);
-  
+  // Memoized week dates — getWeekDates is module-level cached, so the same
+  // (week, year) returns the same object reference across renders.
+  const weekDates = useMemo(
+    () => getWeekDates(selectedWeek, selectedYear),
+    [selectedWeek, selectedYear]
+  );
+
   // Persist view mode
   useEffect(() => {
     localStorage.setItem('plannerViewMode', viewMode);
   }, [viewMode]);
-  
+
   // Persist selected week and year
   useEffect(() => {
     localStorage.setItem('plannerSelectedWeek', selectedWeek.toString());
     localStorage.setItem('plannerSelectedYear', selectedYear.toString());
   }, [selectedWeek, selectedYear]);
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
@@ -137,22 +133,10 @@ const PlannerPage: React.FC = () => {
     employees: []
   });
 
-  // Week utilities using date-fns for accurate ISO week handling
-  const getWeekDates = (week: number, year: number) => {
-    const jan4 = new Date(year, 0, 4);
-    const weekStart = startOfISOWeek(addWeeks(jan4, week - 1));
-    const weekEnd = endOfISOWeek(weekStart);
-    return { start: weekStart, end: weekEnd, weekNumber: week, year };
-  };
-
-  const weekDates = getWeekDates(selectedWeek, selectedYear);
-  
   // Handler to expand/collapse all days
   const handleToggleAllExpanded = useCallback(() => {
     const newExpanded = !allExpanded;
     setAllExpanded(newExpanded);
-    
-    // Set all days in the selected week to the new state
     if (weekDates) {
       const newExpandedDays: Record<string, boolean> = {};
       getAllWeekDays(weekDates).forEach(dateStr => {
@@ -160,19 +144,18 @@ const PlannerPage: React.FC = () => {
       });
       setExpandedDays(newExpandedDays);
     }
-  }, [allExpanded, weekDates, getAllWeekDays]);
-  
-  // Filter assignments by week using ISO week numbers
+  }, [allExpanded, weekDates]);
+
+  // Filter assignments by week using cheap YYYY-MM-DD lexicographic compare.
+  // Avoids per-row Date allocation + getISOWeek/getISOWeekYear computation.
   const weekAssignments = useMemo(() => {
     if (!assignments || assignments.length === 0) return [];
-    
+    const { startStr, endStr } = weekDates;
     return assignments.filter(assignment => {
-      const assignmentDate = new Date(assignment.date);
-      const assignmentWeek = getISOWeek(assignmentDate);
-      const assignmentYear = getISOWeekYear(assignmentDate);
-      return assignmentWeek === selectedWeek && assignmentYear === selectedYear;
+      const d = assignment.date;
+      return typeof d === 'string' && d >= startStr && d <= endStr;
     });
-  }, [assignments, selectedWeek, selectedYear]);
+  }, [assignments, weekDates]);
 
   // Filter assignments by search query
   const filteredWeekAssignments = useMemo(() => {
