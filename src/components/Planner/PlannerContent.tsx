@@ -15,6 +15,7 @@ import { DutyWeekWidget } from './DutyWeekWidget';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import AssignmentDetailsDialog from '@/components/Dashboard/AssignmentDetailsDialog';
+import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 
 interface PlannerContentProps {
@@ -126,20 +127,24 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       {(canEdit || canPublishTasks) && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="lg:col-span-2">
-            <UnassignedResourcesSection
-              assignments={weekAssignments}
-              employees={employees}
-              cars={cars}
-              vacations={vacations}
-              weekDates={weekDates}
-            />
+            <PlannerWidgetErrorBoundary label="Unassigned Resources">
+              <UnassignedResourcesSection
+                assignments={weekAssignments}
+                employees={employees}
+                cars={cars}
+                vacations={vacations}
+                weekDates={weekDates}
+              />
+            </PlannerWidgetErrorBoundary>
           </div>
           {isDutyEnabled && (
             <div>
-              <DutyWeekWidget
-                selectedWeek={selectedWeek}
-                selectedYear={selectedYear}
-              />
+              <PlannerWidgetErrorBoundary label="Duty Week">
+                <DutyWeekWidget
+                  selectedWeek={selectedWeek}
+                  selectedYear={selectedYear}
+                />
+              </PlannerWidgetErrorBoundary>
             </div>
           )}
         </div>
