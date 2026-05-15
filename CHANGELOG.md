@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-15 — EmployeesTable: row-virtualisation ved >50 rækker
+
+### Performance / a11y
+- Tilføjet `@tanstack/react-virtual`. Desktop-tabellen skifter automatisk fra `SimplePagination` til virtualiseret body når `employees.length > 50` (estimeret rækkehøjde 56px, overscan 8, scroll-viewport `max-h-[calc(100vh-260px)]`).
+- ≤50 rækker bruger den eksisterende paginering uændret. Mobile-card-view er ikke påvirket.
+- `<table>` får nu `aria-rowcount` (data + header) i begge stier, så skærmlæsere altid ser det fulde filtrerede antal.
+
 ## 2026-05-15 — ScreenDisplayPage: full-page ErrorBoundary + neutral kiosk-fallback
 
 ### Reliability / UI

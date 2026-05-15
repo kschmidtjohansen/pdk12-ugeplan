@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { usePermissions } from '@/context/AuthContext';
 import SimplePagination from '@/components/shared/SimplePagination';
 import { useTranslation } from '@/context/TranslationContext';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import EmployeeTableRow from './EmployeeTableRow';
 import MobileEmployeeCard from './MobileEmployeeCard';
 import EmployeeLoadingError from '@/components/ErrorBoundary/EmployeeLoadingError';
+
 interface EmployeesTableProps {
   employees: Employee[];
   vacations: Vacation[];
@@ -22,6 +24,13 @@ interface EmployeesTableProps {
   loading: boolean;
   onRetry: () => void;
 }
+
+const PAGE_SIZE = 25;
+// INTENTIONAL: above this threshold the desktop table switches from
+// SimplePagination to row virtualisation (TanStack Virtual).
+const VIRTUALIZE_THRESHOLD = 50;
+const ROW_HEIGHT = 56;
+
 const EmployeesTable: React.FC<EmployeesTableProps> = ({
   employees,
   vacations,
@@ -36,7 +45,6 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
 
-  const PAGE_SIZE = 25;
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(employees.length / PAGE_SIZE));
 
@@ -48,6 +56,16 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
     () => employees.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     [employees, page]
   );
+
+  const shouldVirtualize = !isMobile && employees.length > VIRTUALIZE_THRESHOLD;
+
+  const scrollParentRef = useRef<HTMLDivElement | null>(null);
+  const virtualizer = useVirtualizer({
+    count: shouldVirtualize ? employees.length : 0,
+    getScrollElement: () => scrollParentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 8,
+  });
 
   // Show error state with retry option
   if (error) {
@@ -119,7 +137,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
       </div>;
   }
 
-  // Mobile: card layout
+  // Mobile: card layout (unchanged)
   if (isMobile) {
     return (
       <div className="space-y-3 p-4">
@@ -144,37 +162,108 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
     );
   }
 
-  // Desktop: table layout
-  return <div className="space-y-4">
+  // Desktop table header — shared between paginated and virtualised paths
+  const tableHeader = (
+    <TableHeader>
+      <TableRow>
+        <TableHead>{t('employees.name') || 'Name'}</TableHead>
+        <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
+        <TableHead>{t('employees.jobTitle') || 'Job Title'}</TableHead>
+        <TableHead>{t('employees.certificates') || 'Certificates'}</TableHead>
+        {isAdmin && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
+        <TableHead>{t('employees.statusLabel') || 'Status'}</TableHead>
+        {isAdmin && <TableHead>{t('common.actions') || 'Actions'}</TableHead>}
+      </TableRow>
+    </TableHeader>
+  );
+
+  // aria-rowcount = data rows + 1 header row, always reflecting full filtered total
+  const ariaRowCount = employees.length + 1;
+
+  // Virtualised desktop path — > 50 filtered rows
+  if (shouldVirtualize) {
+    const virtualItems = virtualizer.getVirtualItems();
+    const totalSize = virtualizer.getTotalSize();
+    const paddingTop = virtualItems[0]?.start ?? 0;
+    const paddingBottom = totalSize - (virtualItems[virtualItems.length - 1]?.end ?? 0);
+
+    return (
+      <div className="space-y-4">
+        <div className="border rounded-md flex items-start gap-3 p-3">
+          <Users className="h-5 w-5 text-primary mt-3 shrink-0" />
+          <div className="flex-1">
+            <div
+              ref={scrollParentRef}
+              className="max-h-[calc(100vh-260px)] overflow-auto"
+            >
+              <Table aria-rowcount={ariaRowCount}>
+                {tableHeader}
+                <TableBody>
+                  {paddingTop > 0 && (
+                    <tr aria-hidden="true" style={{ height: paddingTop }} />
+                  )}
+                  {virtualItems.map(virtualItem => {
+                    const employee = employees[virtualItem.index];
+                    if (!employee) return null;
+                    return (
+                      <EmployeeTableRow
+                        key={`${employee.id}-${employee.onLeave}-${employee.status}`}
+                        employee={employee}
+                        vacations={vacations}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onToggleLeave={onToggleLeave}
+                        
+                      />
+                    );
+                  })}
+                  {paddingBottom > 0 && (
+                    <tr aria-hidden="true" style={{ height: paddingBottom }} />
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <p className="text-xs text-muted-foreground pt-2">
+              {t('employees.showingAll') || 'Viser alle'} {employees.length}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop paginated path — ≤ 50 filtered rows (unchanged behaviour)
+  return (
+    <div className="space-y-4">
       <div className="border rounded-md flex items-start gap-3 p-3">
         <Users className="h-5 w-5 text-primary mt-3 shrink-0" />
         <div className="flex-1">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('employees.name') || 'Name'}</TableHead>
-              <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
-              <TableHead>{t('employees.jobTitle') || 'Job Title'}</TableHead>
-              <TableHead>{t('employees.certificates') || 'Certificates'}</TableHead>
-              
-              {isAdmin && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
-              <TableHead>{t('employees.statusLabel') || 'Status'}</TableHead>
-              {isAdmin && <TableHead>{t('common.actions') || 'Actions'}</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pagedEmployees.map(employee => <EmployeeTableRow key={`${employee.id}-${employee.onLeave}-${employee.status}`} employee={employee} vacations={vacations} onEdit={onEdit} onDelete={onDelete} onToggleLeave={onToggleLeave} />)}
-          </TableBody>
-        </Table>
-        <SimplePagination
-          page={page}
-          totalPages={totalPages}
-          totalItems={employees.length}
-          pageSize={PAGE_SIZE}
-          onPageChange={setPage}
-        />
+          <Table aria-rowcount={ariaRowCount}>
+            {tableHeader}
+            <TableBody>
+              {pagedEmployees.map(employee => (
+                <EmployeeTableRow
+                  key={`${employee.id}-${employee.onLeave}-${employee.status}`}
+                  employee={employee}
+                  vacations={vacations}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onToggleLeave={onToggleLeave}
+                />
+              ))}
+            </TableBody>
+          </Table>
+          <SimplePagination
+            page={page}
+            totalPages={totalPages}
+            totalItems={employees.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default EmployeesTable;
