@@ -335,3 +335,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Pre-formaterede `startStr`/`endStr` for billig YYYY-MM-DD string-compare
 - [x] FIFO-cache `getISOWeekInfoForDate(dateStr)` (cap 1000)
 - [x] `PlannerPage`: `weekDates` via `useMemo`, weekAssignments-filter via string-compare, `useCallback` på uge-navigation
+
+## Performance: virtualisering af Weekly Planner (UI)
+
+- [x] Tilføj `@tanstack/react-virtual` (window-virtualizer)
+- [x] Ny `VirtualList` hjælpekomponent med threshold-fallback og dynamisk row-måling
+- [x] Virtualisér `CurrentAndFutureDays`, `CompactCurrentAndFutureDays`, `PastAssignments`, `CompactPastAssignments` (kun aktiveres > 10 dage)

@@ -5,6 +5,7 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Button } from '@/components/ui/button';
 import DaySection from './DaySection';
+import VirtualList from './VirtualList';
 
 interface PastAssignmentsProps {
   pastDates: string[];
@@ -65,10 +66,14 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
       <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">
         {t("planner.previousDays")}
       </h2>
-      <div className="space-y-6">
-        {visibleDates.map(dateKey => (
-          <DaySection 
-            key={dateKey}
+      <VirtualList
+        items={visibleDates}
+        getKey={(dateKey) => dateKey}
+        estimateSize={120}
+        gap={24}
+        threshold={10}
+        renderItem={(dateKey) => (
+          <DaySection
             dateKey={dateKey}
             dayAssignments={groupedAssignments[dateKey] || []}
             allAssignments={allAssignments}
@@ -86,8 +91,8 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
             operationStates={operationStates}
             gridLayout={gridLayout}
           />
-        ))}
-      </div>
+        )}
+      />
       {visible < pastDates.length && (
         <div className="mt-4 flex justify-center">
           <Button

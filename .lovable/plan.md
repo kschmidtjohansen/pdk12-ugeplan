@@ -1,42 +1,52 @@
-## Status
-Den tidligere `useAutoPublishAssignments`-hook (client-side, kørte kun når en bruger var logget ind) blev fjernet i dead-code-oprydningen. Changeloggen sagde den var "afløst af edge function + DB cron", men **det blev aldrig faktisk oprettet** — der findes ingen `auto-publish` edge function og ingen cron-job i databasen i dag. Derfor publiceres opgaver aldrig automatisk lige nu.
+# Virtualisering af Weekly Planner
 
 ## Mål
-Hver dag kl. 00:01 Europe/Copenhagen skal alle ikke-publicerede opgaver, hvor `assignment_date` ≤ dagens dato (Copenhagen-tid), automatisk markeres som `published = true`.
+Reducere DOM-noder og render-tid i Planneren når der er mange dage / mange opgaver pr. dag, ved at indføre scroll-vinduet rendering (kun synlige rækker mountes).
 
-## Plan
+## Bibliotek
+Tilføj `@tanstack/react-virtual` (lille, headless, understøtter dynamiske rækkehøjder via `measureElement`). Ingen anden runtime-ændring.
 
-### 1. SQL: ny DB-funktion `public.auto_publish_due_assignments()`
-- `SECURITY DEFINER`, `SET search_path = ''` (jvf. core security rules).
-- Opdaterer:
-  ```sql
-  UPDATE public.assignments
-  SET published = true, updated_at = now()
-  WHERE published = false
-    AND assignment_date <= (now() AT TIME ZONE 'Europe/Copenhagen')::date;
-  ```
-- Returnerer antal opdaterede rækker.
-- Logger til `public.logs` med `event_type = 'auto_publish'` hvis count > 0.
-- Idempotent: kan trygt køres mange gange.
+## Hvor virtualiserer vi
 
-### 2. pg_cron job
-- Navn: `auto-publish-assignments`.
-- Schedule: `* * * * *` (hvert minut). Matcher samme pattern som `cleanup-demo-data-ttl`. Funktionen er billig (én indekseret UPDATE) og idempotent. Det giver max ~1 minuts forsinkelse efter midnat — opfylder "00:01"-kravet.
-- Kommando: `SELECT public.auto_publish_due_assignments();`
+1. **Day-lister** (én række = én `DaySection` / `CompactDaySection`):
+   - `src/components/Planner/CurrentAndFutureDays.tsx`
+   - `src/components/Planner/CompactCurrentAndFutureDays.tsx`
+   - `src/components/Planner/PastAssignments.tsx`
+   - `src/components/Planner/CompactPastAssignments.tsx`
 
-### 3. Tidszone-håndtering
-- pg_cron kører i UTC, men funktionen sammenligner mod `(now() AT TIME ZONE 'Europe/Copenhagen')::date` — så DST håndteres korrekt automatisk.
+2. **Opgaver inde i en udvidet dag** (én række = én `AssignmentCard` / `CompactAssignmentRow`):
+   - `src/components/Planner/DaySection.tsx` (kun listen i `isExpanded` blokken, kun når `gridLayout=false` — grid-layout beholder CSS-grid)
+   - `src/components/Planner/CompactDaySection.tsx` (kun den indre liste når `isExpanded`)
 
-### 4. Verifikation
-- Test manuelt med `SELECT public.auto_publish_due_assignments();` efter migration.
-- Tjek at cron-jobbet er registreret: `SELECT * FROM cron.job WHERE jobname = 'auto-publish-assignments';`.
+## Tilgang
 
-## Filer / DB-objekter
-- **Ny migration** (via migrations-tool): funktion + grant + cron-schedule.
-- `CHANGELOG.md` + `docs/implementation-plan/tasks.md`.
-- Ingen ændringer i frontend-kode — auto-publish kører nu udelukkende server-side.
+- Tærskel: virtualisering aktiveres først når listen overstiger et bundet (f.eks. dages liste > 10, eller opgaver > 25). Under tærsklen renderes som i dag — undgår overhead og bevarer CLS for små lister.
+- Brug `useVirtualizer` med `getScrollElement` koblet til vinduet via en `windowVirtualizer` (`useWindowVirtualizer`), så vi ikke introducerer en indre scroll-container (Planneren scroller på siden i dag).
+- Dynamisk rækkehøjde via `measureElement` (DaySection er kollapsbar, så højden ændres ved expand/collapse — virtualizer re-måler).
+- `overscan: 4` for at holde scroll glat.
+- Stabil `key` = `dateKey` / `assignment.id` (uændret).
+- Bevar eksisterende props og kontrakter — kun rendering ændres.
 
-## Out of scope
-- Ingen edge function (unødvendig — pure SQL er hurtigere og mere pålideligt).
-- Ingen ændring af manuelt "Publicer dag"-flow i Planner.
-- Ingen historik-rensning af eksisterende uvist-publicerede opgaver fra fortiden — funktionen vil ved første kørsel også publicere dem (de matcher `assignment_date <= today`). Dette er det forventede catch-up-resultat.
+## Filer der oprettes/redigeres
+
+- Edit: `src/components/Planner/CurrentAndFutureDays.tsx`
+- Edit: `src/components/Planner/CompactCurrentAndFutureDays.tsx`
+- Edit: `src/components/Planner/PastAssignments.tsx`
+- Edit: `src/components/Planner/CompactPastAssignments.tsx`
+- Edit: `src/components/Planner/DaySection.tsx` (kun expanded liste, ikke-grid)
+- Edit: `src/components/Planner/CompactDaySection.tsx` (kun expanded liste)
+- Ny lille hjælpekomponent: `src/components/Planner/VirtualList.tsx` — indkapsler `useWindowVirtualizer` med tærskel-fallback, så de fire fil-edits forbliver små og konsistente.
+- Edit: `package.json` (via `bun add @tanstack/react-virtual`)
+- Edit: `CHANGELOG.md`
+- Edit: `docs/implementation-plan/tasks.md` (marker opgaven `[x]`)
+
+## Uden for scope
+- Ingen ændring af data-fetching, sortering, filtrering, expand/collapse-logik eller realtime.
+- Ingen ændring af `AssignmentCard` / `CompactAssignmentRow` selv.
+- Ingen indre scroll-container i Planner (vi bruger window-virtualisering).
+- Past-assignments "Vis flere"-knap fjernes ikke i denne omgang (kan evt. fjernes senere når virtualisering kan bære fuld liste — men det rører UX og holdes uden for scope).
+
+## Risici & mitigering
+- Måling af variable højder kan give et lille jitter ved expand/collapse. Mitigering: `measureElement` + `estimateSize` baseret på kollapset/udvidet tilstand.
+- Ankre/`scrollIntoView` (fx hop til dagens dato) skal stadig virke — vi eksponerer `virtualizer.scrollToIndex(...)` hvis nødvendigt; ellers bevares den nuværende native scroll (window scrollTo) som allerede bruges.
+- Keyboard/a11y bevares (knapper og roller uændrede).
