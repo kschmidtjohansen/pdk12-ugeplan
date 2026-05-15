@@ -5,6 +5,7 @@ import { Car } from '@/types/car';
 import { Button } from '@/components/ui/button';
 import CompactDaySection from './CompactDaySection';
 import VirtualList from './VirtualList';
+import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
 
 interface CompactPastAssignmentsProps {
   pastDates: string[];
@@ -67,6 +68,7 @@ const CompactPastAssignments: React.FC<CompactPastAssignmentsProps> = ({
         gap={12}
         threshold={10}
         renderItem={(dateKey) => (
+          <PlannerWidgetErrorBoundary key={dateKey} label={dateKey}>
           <CompactDaySection
             dateKey={dateKey}
             dayAssignments={groupedAssignments[dateKey] || []}
@@ -83,6 +85,7 @@ const CompactPastAssignments: React.FC<CompactPastAssignmentsProps> = ({
             cars={cars}
             operationStates={operationStates}
           />
+          </PlannerWidgetErrorBoundary>
         )}
       />
       {visible < pastDates.length && (

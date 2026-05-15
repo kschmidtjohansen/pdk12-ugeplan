@@ -15,6 +15,7 @@ import { DutyWeekWidget } from './DutyWeekWidget';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import AssignmentDetailsDialog from '@/components/Dashboard/AssignmentDetailsDialog';
+import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 
 interface PlannerContentProps {
@@ -126,20 +127,24 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       {(canEdit || canPublishTasks) && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="lg:col-span-2">
-            <UnassignedResourcesSection
-              assignments={weekAssignments}
-              employees={employees}
-              cars={cars}
-              vacations={vacations}
-              weekDates={weekDates}
-            />
+            <PlannerWidgetErrorBoundary label="Unassigned Resources">
+              <UnassignedResourcesSection
+                assignments={weekAssignments}
+                employees={employees}
+                cars={cars}
+                vacations={vacations}
+                weekDates={weekDates}
+              />
+            </PlannerWidgetErrorBoundary>
           </div>
           {isDutyEnabled && (
             <div>
-              <DutyWeekWidget
-                selectedWeek={selectedWeek}
-                selectedYear={selectedYear}
-              />
+              <PlannerWidgetErrorBoundary label="Duty Week">
+                <DutyWeekWidget
+                  selectedWeek={selectedWeek}
+                  selectedYear={selectedYear}
+                />
+              </PlannerWidgetErrorBoundary>
             </div>
           )}
         </div>
@@ -155,81 +160,89 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       {/* Render view based on viewMode */}
       {viewMode === 'compact' ? (
         <>
-          <CompactCurrentAndFutureDays 
-            dates={currentAndFutureDates || []}
-            groupedAssignments={groupedAssignments || {}}
-            operationStates={operationStates}
-            expandedDays={expandedDays}
-            onToggleExpansion={onToggleExpansion}
-            onPublishDay={onPublishDay}
-            onEditAssignment={onEditAssignment}
-            onDeleteAssignment={onDeleteAssignment}
-            onPublishAssignment={onPublishAssignment}
-            onCopyAssignment={onCopyAssignment}
-            onViewAssignmentDetails={setDetailsDialogAssignment}
-            canEdit={canEdit}
-            canPublishTasks={canPublishTasks}
-            cars={cars}
-          />
-          
-          <CompactPastAssignments 
-            pastDates={pastDates || []}
-            groupedAssignments={groupedAssignments || {}}
-            operationStates={operationStates}
-            expandedDays={expandedDays}
-            onToggleExpansion={onToggleExpansion}
-            onPublishDay={onPublishDay}
-            onEditAssignment={onEditAssignment}
-            onDeleteAssignment={onDeleteAssignment}
-            onPublishAssignment={onPublishAssignment}
-            onCopyAssignment={onCopyAssignment}
-            onViewAssignmentDetails={setDetailsDialogAssignment}
-            canEdit={canEdit}
-            canPublishTasks={canPublishTasks}
-            cars={cars}
-          />
+          <PlannerWidgetErrorBoundary label="Current & Future">
+            <CompactCurrentAndFutureDays 
+              dates={currentAndFutureDates || []}
+              groupedAssignments={groupedAssignments || {}}
+              operationStates={operationStates}
+              expandedDays={expandedDays}
+              onToggleExpansion={onToggleExpansion}
+              onPublishDay={onPublishDay}
+              onEditAssignment={onEditAssignment}
+              onDeleteAssignment={onDeleteAssignment}
+              onPublishAssignment={onPublishAssignment}
+              onCopyAssignment={onCopyAssignment}
+              onViewAssignmentDetails={setDetailsDialogAssignment}
+              canEdit={canEdit}
+              canPublishTasks={canPublishTasks}
+              cars={cars}
+            />
+          </PlannerWidgetErrorBoundary>
+
+          <PlannerWidgetErrorBoundary label="Past Days">
+            <CompactPastAssignments 
+              pastDates={pastDates || []}
+              groupedAssignments={groupedAssignments || {}}
+              operationStates={operationStates}
+              expandedDays={expandedDays}
+              onToggleExpansion={onToggleExpansion}
+              onPublishDay={onPublishDay}
+              onEditAssignment={onEditAssignment}
+              onDeleteAssignment={onDeleteAssignment}
+              onPublishAssignment={onPublishAssignment}
+              onCopyAssignment={onCopyAssignment}
+              onViewAssignmentDetails={setDetailsDialogAssignment}
+              canEdit={canEdit}
+              canPublishTasks={canPublishTasks}
+              cars={cars}
+            />
+          </PlannerWidgetErrorBoundary>
         </>
       ) : (
         <>
-          <CurrentAndFutureDays 
-            dates={currentAndFutureDates || []}
-            groupedAssignments={groupedAssignments || {}}
-            allAssignments={weekAssignments}
-            operationStates={operationStates}
-            expandedDays={expandedDays}
-            onToggleExpansion={onToggleExpansion}
-            onPublishDay={onPublishDay}
-            onEditAssignment={onEditAssignment}
-            onDeleteAssignment={onDeleteAssignment}
-            onPublishAssignment={onPublishAssignment}
-            onCopyAssignment={onCopyAssignment}
-            onViewDetails={setDetailsDialogAssignment}
-            onCreateAssignment={onCreateAssignment}
-            onCopyDayFromYesterday={onCopyDayFromYesterday}
-            canEdit={canEdit}
-            canPublishTasks={canPublishTasks}
-            cars={cars}
-            gridLayout={viewMode === 'grid'}
-          />
-          
-          <PastAssignments 
-            pastDates={pastDates || []}
-            groupedAssignments={groupedAssignments || {}}
-            allAssignments={weekAssignments}
-            operationStates={operationStates}
-            expandedDays={expandedDays}
-            onToggleExpansion={onToggleExpansion}
-            onPublishDay={onPublishDay}
-            onEditAssignment={onEditAssignment}
-            onDeleteAssignment={onDeleteAssignment}
-            onPublishAssignment={onPublishAssignment}
-            onCopyAssignment={onCopyAssignment}
-            onViewDetails={setDetailsDialogAssignment}
-            canEdit={canEdit}
-            canPublishTasks={canPublishTasks}
-            cars={cars}
-            gridLayout={viewMode === 'grid'}
-          />
+          <PlannerWidgetErrorBoundary label="Current & Future">
+            <CurrentAndFutureDays 
+              dates={currentAndFutureDates || []}
+              groupedAssignments={groupedAssignments || {}}
+              allAssignments={weekAssignments}
+              operationStates={operationStates}
+              expandedDays={expandedDays}
+              onToggleExpansion={onToggleExpansion}
+              onPublishDay={onPublishDay}
+              onEditAssignment={onEditAssignment}
+              onDeleteAssignment={onDeleteAssignment}
+              onPublishAssignment={onPublishAssignment}
+              onCopyAssignment={onCopyAssignment}
+              onViewDetails={setDetailsDialogAssignment}
+              onCreateAssignment={onCreateAssignment}
+              onCopyDayFromYesterday={onCopyDayFromYesterday}
+              canEdit={canEdit}
+              canPublishTasks={canPublishTasks}
+              cars={cars}
+              gridLayout={viewMode === 'grid'}
+            />
+          </PlannerWidgetErrorBoundary>
+
+          <PlannerWidgetErrorBoundary label="Past Days">
+            <PastAssignments 
+              pastDates={pastDates || []}
+              groupedAssignments={groupedAssignments || {}}
+              allAssignments={weekAssignments}
+              operationStates={operationStates}
+              expandedDays={expandedDays}
+              onToggleExpansion={onToggleExpansion}
+              onPublishDay={onPublishDay}
+              onEditAssignment={onEditAssignment}
+              onDeleteAssignment={onDeleteAssignment}
+              onPublishAssignment={onPublishAssignment}
+              onCopyAssignment={onCopyAssignment}
+              onViewDetails={setDetailsDialogAssignment}
+              canEdit={canEdit}
+              canPublishTasks={canPublishTasks}
+              cars={cars}
+              gridLayout={viewMode === 'grid'}
+            />
+          </PlannerWidgetErrorBoundary>
         </>
       )}
       

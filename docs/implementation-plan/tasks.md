@@ -341,3 +341,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Tilføj `@tanstack/react-virtual` (window-virtualizer)
 - [x] Ny `VirtualList` hjælpekomponent med threshold-fallback og dynamisk row-måling
 - [x] Virtualisér `CurrentAndFutureDays`, `CompactCurrentAndFutureDays`, `PastAssignments`, `CompactPastAssignments` (kun aktiveres > 10 dage)
+
+## Reliability: Error Boundaries i Planner
+
+- [x] Ny `PlannerWidgetErrorBoundary` med lokaliseret fallback (da/en) og retry
+- [x] Wrap topsektioner i `PlannerContent` (UnassignedResources, DutyWeek, Current/Future, Past) hver i egen boundary
+- [x] Wrap hver dag i `CurrentAndFutureDays`, `PastAssignments` og deres compact-varianter, så fejl i ét dagskort ikke nedlægger hele ugeplanen

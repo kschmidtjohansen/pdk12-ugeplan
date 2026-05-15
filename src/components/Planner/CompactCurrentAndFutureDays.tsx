@@ -3,6 +3,7 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import CompactDaySection from './CompactDaySection';
 import VirtualList from './VirtualList';
+import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
 
 interface CompactCurrentAndFutureDaysProps {
   dates: string[];
@@ -47,6 +48,7 @@ const CompactCurrentAndFutureDays: React.FC<CompactCurrentAndFutureDaysProps> = 
       gap={12}
       threshold={10}
       renderItem={(dateKey) => (
+        <PlannerWidgetErrorBoundary key={dateKey} label={dateKey}>
         <CompactDaySection
           dateKey={dateKey}
           dayAssignments={groupedAssignments[dateKey] || []}
@@ -63,6 +65,7 @@ const CompactCurrentAndFutureDays: React.FC<CompactCurrentAndFutureDaysProps> = 
           cars={cars}
           operationStates={operationStates}
         />
+        </PlannerWidgetErrorBoundary>
       )}
     />
   );
