@@ -1200,6 +1200,7 @@ export type Database = {
         Args: { table_name: string }
         Returns: undefined
       }
+      auto_publish_due_assignments: { Args: never; Returns: number }
       base64url_decode: { Args: { data: string }; Returns: string }
       base64url_encode: { Args: { data: string }; Returns: string }
       can_access_assignment: {
