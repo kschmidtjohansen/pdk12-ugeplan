@@ -37,24 +37,32 @@ const CarDialogs: React.FC<CarDialogsProps> = ({
 }) => {
   return (
     <>
-      <CarFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        formData={formData}
-        setFormData={setFormData}
-        onInputChange={onInputChange}
-        onCheckboxChange={onCheckboxChange}
-        onSubmit={onSubmit}
-        isEditing={!!currentCar}
-        canViewFuelCardCode={canViewFuelCardCode}
-      />
+      {dialogOpen && (
+        <Suspense fallback={null}>
+          <CarFormDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            formData={formData}
+            setFormData={setFormData}
+            onInputChange={onInputChange}
+            onCheckboxChange={onCheckboxChange}
+            onSubmit={onSubmit}
+            isEditing={!!currentCar}
+            canViewFuelCardCode={canViewFuelCardCode}
+          />
+        </Suspense>
+      )}
 
-      <DeleteConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        currentCar={currentCar}
-        onConfirmDelete={onConfirmDelete}
-      />
+      {deleteDialogOpen && (
+        <Suspense fallback={null}>
+          <DeleteConfirmDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            currentCar={currentCar}
+            onConfirmDelete={onConfirmDelete}
+          />
+        </Suspense>
+      )}
     </>
   );
 };
