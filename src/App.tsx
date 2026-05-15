@@ -72,6 +72,8 @@ const App = () => {
         }, 10000);
       });
     }
+    // Initialize Web Vitals reporting (dev console + Supabase persistence)
+    import('./utils/webVitals').then(({ initWebVitals }) => initWebVitals());
   }, []);
 
   return (
