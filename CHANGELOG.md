@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-15 — ScreenDisplayPage: full-page ErrorBoundary + neutral kiosk-fallback
+
+### Reliability / UI
+- `ScreenDisplayErrorBoundary` wrapper flyttet til at omslutte hele `ScreenDisplayPage` (loading/error/success), så uventede render-crashes i alle branches fanges.
+- Fallback redesignet til TV/kiosk-brug: kun `bg-background` (ingen gradient eller destructive farve), Polygon-logo, neutral besked "Skærmen er ikke tilgængelig" og diskret "Genindlæs nu"-link.
+- Tilføjet auto-reload via `setInterval(window.location.reload, 60_000)` i fallback, så skærmen selv kommer tilbage, når backend igen er tilgængelig.
+
 ## 2026-05-15 — PlannerPage: dokumenteret intentional guard på SeriesActionDialog
 
 ### Code clarity

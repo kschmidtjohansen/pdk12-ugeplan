@@ -131,8 +131,9 @@ const ScreenDisplayPage: React.FC = () => {
     updateUrlDate(today);
   };
 
+  let content: React.ReactNode;
   if (loading) {
-    return (
+    content = (
       <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -143,16 +144,14 @@ const ScreenDisplayPage: React.FC = () => {
         </div>
       </div>
     );
-  }
-
-  if (error) {
-    return (
+  } else if (error) {
+    content = (
       <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Assignments</h2>
             <p className="text-muted-foreground mb-4">{error.message}</p>
-            <button 
+            <button
               onClick={refetch}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
             >
@@ -163,10 +162,8 @@ const ScreenDisplayPage: React.FC = () => {
         </Card>
       </div>
     );
-  }
-
-  return (
-    <ScreenDisplayErrorBoundary date={selectedDateStr} onRetry={refetch}>
+  } else {
+    content = (
       <div className="min-h-screen w-full bg-background">
         <div className="w-full px-6 py-4 space-y-6">
           {!showAllAssignments && (
@@ -177,20 +174,28 @@ const ScreenDisplayPage: React.FC = () => {
               onToday={handleToday}
             />
           )}
-          
+
           {showAllAssignments && (
             <div className="text-center py-4">
               <h1 className="text-2xl font-bold text-foreground">All Published Assignments</h1>
               <p className="text-muted-foreground">Showing all published assignments across all dates</p>
             </div>
           )}
-          
+
           <ScreenDisplayContent
             assignments={assignments}
             selectedDate={selectedDate}
           />
         </div>
       </div>
+    );
+  }
+
+  // INTENTIONAL: wrap the entire page (loading/error/success) so unexpected
+  // render crashes in any branch fall back to the neutral kiosk screen.
+  return (
+    <ScreenDisplayErrorBoundary date={selectedDateStr} onRetry={refetch}>
+      {content}
     </ScreenDisplayErrorBoundary>
   );
 };

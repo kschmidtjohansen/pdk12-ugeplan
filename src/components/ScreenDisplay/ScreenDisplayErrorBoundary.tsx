@@ -1,8 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
-import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface ScreenDisplayErrorBoundaryProps {
   children: React.ReactNode;
@@ -10,33 +7,55 @@ interface ScreenDisplayErrorBoundaryProps {
   onRetry: () => void;
 }
 
+/**
+ * Neutral kiosk-friendly fallback for TV/skærm-visning.
+ * - Ingen gradient eller farvet baggrund (kun bg-background).
+ * - Polygon-logo + "Skærmen er ikke tilgængelig".
+ * - Auto-reload hvert 60. sekund via window.location.reload().
+ */
+const ScreenDisplayFallback: React.FC = () => {
+  useEffect(() => {
+    const timer = setInterval(() => {
+      window.location.reload();
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
+      <div className="flex flex-col items-center text-center gap-6 max-w-md">
+        <img
+          src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
+          alt="Polygon"
+          className="h-12 w-auto"
+        />
+        <div className="space-y-2">
+          <h1 className="text-xl font-semibold text-foreground">
+            Skærmen er ikke tilgængelig
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Visningen genindlæses automatisk hvert minut.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+        >
+          Genindlæs nu
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const ScreenDisplayErrorBoundary: React.FC<ScreenDisplayErrorBoundaryProps> = ({
   children,
   date,
-  onRetry
 }) => {
   return (
     <DataFetchErrorBoundary
-      fallback={
-        <div className="min-h-screen w-full bg-background flex items-center justify-center">
-          <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
-            <CardContent className="p-6 text-center">
-              <div className="p-4 rounded-full bg-destructive/10 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Calendar className="h-8 w-8 text-destructive" />
-              </div>
-              <h2 className="text-xl font-semibold text-destructive mb-2">Screen Display Error</h2>
-              <p className="text-muted-foreground mb-4">
-                There was an error loading the screen display for {date}. 
-                This could be due to network issues or data problems.
-              </p>
-              <Button onClick={onRetry} className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Try Again
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      }
+      fallback={<ScreenDisplayFallback />}
       onError={(error, errorInfo) => {
         if (import.meta.env.DEV) console.error('[ScreenDisplayErrorBoundary] Caught error:', {
           error,
