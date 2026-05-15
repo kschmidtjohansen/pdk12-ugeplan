@@ -1186,6 +1186,51 @@ export type Database = {
           },
         ]
       }
+      web_vitals_metrics: {
+        Row: {
+          connection_type: string | null
+          created_at: string
+          department_id: string | null
+          device_type: string | null
+          id: string
+          metric_name: string
+          metric_value: number
+          rating: string | null
+          route: string
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          connection_type?: string | null
+          created_at?: string
+          department_id?: string | null
+          device_type?: string | null
+          id?: string
+          metric_name: string
+          metric_value: number
+          rating?: string | null
+          route: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          connection_type?: string | null
+          created_at?: string
+          department_id?: string | null
+          device_type?: string | null
+          id?: string
+          metric_name?: string
+          metric_value?: number
+          rating?: string | null
+          route?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
