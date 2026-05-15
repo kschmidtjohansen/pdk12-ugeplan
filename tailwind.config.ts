@@ -174,12 +174,6 @@ export default {
 				'scale-in': 'scale-in 180ms ease-out',
 				'slide-in-right': 'fade-in 200ms ease-out',
 				'slide-in-left': 'fade-in 200ms ease-out',
-				'mesh-drift': 'mesh-drift 18s ease-in-out infinite',
-				'mesh-drift-alt': 'mesh-drift-alt 22s ease-in-out infinite',
-				'mesh-float-1': 'mesh-float-1 18s ease-in-out infinite',
-				'mesh-float-2': 'mesh-float-2 22s ease-in-out infinite',
-				'mesh-float-3': 'mesh-float-3 26s ease-in-out infinite',
-				'logo-shimmer': 'logo-shimmer 4s ease-in-out infinite',
 			},
 			zIndex: {
 				'60': '60',
