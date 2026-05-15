@@ -361,6 +361,9 @@ export const useAssignmentFiles = (
     toast.info('Genererer PDF...');
 
     try {
+      // Lazy-load pdf-lib only when actually generating a PDF (~600 kB)
+      const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
+
       const pdfDoc = await PDFDocument.create();
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
