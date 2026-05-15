@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-15 — RLS-performance benchmark (planner-forespørgsler)
+
+### Observability / Performance
+- Kørt `EXPLAIN (ANALYZE, BUFFERS)` på 6 centrale planner-queries (assignments, assignments_employees, on_call_duties, vacations, profiles, cars). Typisk total ~45 ms execution på warm cache.
+- Verificeret at fjernede log-tunge RLS-policies har stoppet alle 8 tidligere event-typer (`own_detailed_profile_access`, `admin_profiles_*`, `fuel_card_access`, `cars_data_access`, `profiles_basic_access`, `unauthorized_admin_profiles_access`, `access_attempt`) — 0 nye rows i 30+ dage.
+- Rapport: `/mnt/documents/rls-performance-report.md`. Follow-ups identificeret: manglende index på `assignments_employees(assignment_id)` (Q2: 22 ms Seq Scan), `secure_assignment_access`-logging i RPC, og konsolidering af 9 policies på `profiles`.
+
 ## 2026-05-15 — Web Vitals-målinger (LCP/INP/CLS/FCP/TTFB)
 
 ### Observability
