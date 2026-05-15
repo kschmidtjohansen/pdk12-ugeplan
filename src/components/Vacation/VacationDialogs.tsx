@@ -1,11 +1,11 @@
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { DateRange } from 'react-day-picker';
 import { Vacation, VacationRequestType } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
-import VacationFormDialog from './VacationFormDialog';
-import VacationActionDialog from './VacationActionDialog';
-import AdminVacationFormDialog from './AdminVacationFormDialog';
+const VacationFormDialog = lazy(() => import('./VacationFormDialog'));
+const VacationActionDialog = lazy(() => import('./VacationActionDialog'));
+const AdminVacationFormDialog = lazy(() => import('./AdminVacationFormDialog'));
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface VacationDialogsProps {

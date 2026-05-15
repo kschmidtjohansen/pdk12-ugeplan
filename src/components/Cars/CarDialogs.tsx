@@ -1,7 +1,7 @@
 
-import React from 'react';
-import CarFormDialog from './CarFormDialog';
-import DeleteConfirmDialog from './DeleteConfirmDialog';
+import React, { Suspense, lazy } from 'react';
+const CarFormDialog = lazy(() => import('./CarFormDialog'));
+const DeleteConfirmDialog = lazy(() => import('./DeleteConfirmDialog'));
 import { CarData, CarFormData } from './types';
 
 interface CarDialogsProps {
