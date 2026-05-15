@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense, lazy } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
@@ -14,7 +14,7 @@ import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { DutyWeekWidget } from './DutyWeekWidget';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
-import AssignmentDetailsDialog from '@/components/Dashboard/AssignmentDetailsDialog';
+const AssignmentDetailsDialog = lazy(() => import('@/components/Dashboard/AssignmentDetailsDialog'));
 import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 
@@ -248,14 +248,18 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       
       {/* Assignment Details Dialog for compact view */}
       {/* Assignment Details Dialog for both views */}
-      <AssignmentDetailsDialog
-        assignment={detailsDialogAssignment}
-        isOpen={!!detailsDialogAssignment}
-        onClose={() => setDetailsDialogAssignment(null)}
-        cars={cars}
-        onEdit={onEditAssignment}
-        siblingAssignmentIds={detailsSiblingIds}
-      />
+      {detailsDialogAssignment && (
+        <Suspense fallback={null}>
+          <AssignmentDetailsDialog
+            assignment={detailsDialogAssignment}
+            isOpen={!!detailsDialogAssignment}
+            onClose={() => setDetailsDialogAssignment(null)}
+            cars={cars}
+            onEdit={onEditAssignment}
+            siblingAssignmentIds={detailsSiblingIds}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };
