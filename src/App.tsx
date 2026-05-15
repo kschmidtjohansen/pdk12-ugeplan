@@ -40,6 +40,8 @@ const ChangeLogPage = lazyWithRetry(() => import("./pages/ChangeLogPage"));
 const AdminPage = lazyWithRetry(() => import("./pages/AdminPage"));
 const PasswordResetPage = lazyWithRetry(() => import("./pages/PasswordResetPage"));
 const ScreenDisplayPage = lazyWithRetry(() => import("./pages/ScreenDisplayPage"));
+const AuthCallbackPage = lazyWithRetry(() => import("./pages/AuthCallbackPage"));
+const PendingApprovalPage = lazyWithRetry(() => import("./pages/PendingApprovalPage"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Optimized QueryClient configuration
@@ -143,6 +145,8 @@ const AppContent = () => {
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/password-reset" element={<PasswordResetPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/pending-approval" element={<PendingApprovalPage />} />
           
           {/* Protected routes wrapped in MainLayout */}
           <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
