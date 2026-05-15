@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-15 — Error Boundaries omkring planner-komponenter
+
+### Reliability
+- Ny komponent `PlannerWidgetErrorBoundary` (`src/components/ErrorBoundary/PlannerWidgetErrorBoundary.tsx`) — lokaliseret (da/en), kompakt fallback med "Prøv igen", DEV-only fejldetaljer.
+- `PlannerContent` wrapper nu hver topsektion (UnassignedResources, DutyWeek, Current/Future-lister, Past-lister) i sin egen boundary, så en fejl i én widget ikke tager hele Planner-siden ned.
+- `CurrentAndFutureDays`, `PastAssignments`, `CompactCurrentAndFutureDays` og `CompactPastAssignments` wrapper hver enkelt dag i en boundary — en korrupt `AssignmentCard` på én dato isolerer fejlen til den dag, mens de øvrige dage stadig vises.
+
 ## 2026-05-15 — Virtualisering af Weekly Planner
 
 ### Performance
