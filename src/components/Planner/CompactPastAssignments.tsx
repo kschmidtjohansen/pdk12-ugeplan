@@ -4,6 +4,7 @@ import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Button } from '@/components/ui/button';
 import CompactDaySection from './CompactDaySection';
+import VirtualList from './VirtualList';
 
 interface CompactPastAssignmentsProps {
   pastDates: string[];
@@ -59,10 +60,14 @@ const CompactPastAssignments: React.FC<CompactPastAssignmentsProps> = ({
       <h2 className="text-lg font-semibold mb-3 text-muted-foreground border-b pb-2">
         {t("planner.previousDays")}
       </h2>
-      <div className="space-y-3">
-        {visibleDates.map(dateKey => (
-          <CompactDaySection 
-            key={dateKey}
+      <VirtualList
+        items={visibleDates}
+        getKey={(dateKey) => dateKey}
+        estimateSize={56}
+        gap={12}
+        threshold={10}
+        renderItem={(dateKey) => (
+          <CompactDaySection
             dateKey={dateKey}
             dayAssignments={groupedAssignments[dateKey] || []}
             isExpanded={expandedDays[dateKey] === true}
@@ -78,8 +83,8 @@ const CompactPastAssignments: React.FC<CompactPastAssignmentsProps> = ({
             cars={cars}
             operationStates={operationStates}
           />
-        ))}
-      </div>
+        )}
+      />
       {visible < pastDates.length && (
         <div className="mt-3 flex justify-center">
           <Button

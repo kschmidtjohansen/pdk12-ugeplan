@@ -2,6 +2,7 @@ import React from 'react';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import CompactDaySection from './CompactDaySection';
+import VirtualList from './VirtualList';
 
 interface CompactCurrentAndFutureDaysProps {
   dates: string[];
@@ -37,12 +38,16 @@ const CompactCurrentAndFutureDays: React.FC<CompactCurrentAndFutureDaysProps> = 
   cars = []
 }) => {
   if (dates.length === 0) return null;
-  
+
   return (
-    <div className="space-y-3">
-      {dates.map(dateKey => (
-        <CompactDaySection 
-          key={dateKey}
+    <VirtualList
+      items={dates}
+      getKey={(dateKey) => dateKey}
+      estimateSize={56}
+      gap={12}
+      threshold={10}
+      renderItem={(dateKey) => (
+        <CompactDaySection
           dateKey={dateKey}
           dayAssignments={groupedAssignments[dateKey] || []}
           isExpanded={expandedDays[dateKey] === true}
@@ -58,8 +63,8 @@ const CompactCurrentAndFutureDays: React.FC<CompactCurrentAndFutureDaysProps> = 
           cars={cars}
           operationStates={operationStates}
         />
-      ))}
-    </div>
+      )}
+    />
   );
 };
 

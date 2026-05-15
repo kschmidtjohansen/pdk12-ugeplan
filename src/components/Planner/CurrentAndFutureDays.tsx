@@ -3,6 +3,7 @@ import React from 'react';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import DaySection from './DaySection';
+import VirtualList from './VirtualList';
 
 interface CurrentAndFutureDaysProps {
   dates: string[];
@@ -47,7 +48,6 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
 }) => {
   if (dates.length === 0) return null;
 
-  // Compute yesterday count from groupedAssignments by walking back one day
   const getYesterdayCount = (dateKey: string): number => {
     const d = new Date(dateKey + 'T00:00:00');
     d.setDate(d.getDate() - 1);
@@ -56,10 +56,14 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {dates.map(dateKey => (
-        <DaySection 
-          key={dateKey}
+    <VirtualList
+      items={dates}
+      getKey={(dateKey) => dateKey}
+      estimateSize={140}
+      gap={24}
+      threshold={10}
+      renderItem={(dateKey) => (
+        <DaySection
           dateKey={dateKey}
           dayAssignments={groupedAssignments[dateKey] || []}
           allAssignments={allAssignments}
@@ -80,8 +84,8 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           operationStates={operationStates}
           gridLayout={gridLayout}
         />
-      ))}
-    </div>
+      )}
+    />
   );
 };
 
