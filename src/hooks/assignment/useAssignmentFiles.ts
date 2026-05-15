@@ -4,7 +4,8 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import JSZip from 'jszip';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+// Note: pdf-lib (~600 kB) is dynamically imported inside generatePdf()
+// to keep it out of the initial bundle.
 
 export interface AssignmentFile {
   id: string;
