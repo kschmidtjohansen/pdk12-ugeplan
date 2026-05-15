@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-05-15 — Lazy-load pdf-lib (bundle-optimering)
+
+### Optimering
+- **`src/hooks/assignment/useAssignmentFiles.ts`:** `pdf-lib` (~600 kB / 178 kB gzip) er nu dynamic-importeret inde i `generatePdf()` i stedet for at blive eager-loaded i top af filen. Loades først når en bruger klikker "Eksportér til PDF".
+
+### Effekt
+- "useWarehouseIndicators"-chunken (delt af Planner/Dashboard via AssignmentCard) faldt fra **238 kB → 63 kB gzip** (-175 kB).
+- pdf-lib ligger nu i egen lazy chunk (178 kB gzip) der kun hentes ved PDF-eksport.
+- Initial load af Planner og Dashboard er markant lettere.
+
+
 ## 2026-05-15 — Bundle-analyse + vite manualChunks fix
 
 ### Fixed
