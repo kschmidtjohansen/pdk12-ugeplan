@@ -38,6 +38,7 @@ interface AuthContextType {
   isEffectiveSkadeleder: boolean;
   isEffectiveServicemedarbejder: boolean;
   effectiveRole: UserRole | null;
+  isPendingApproval: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
@@ -76,6 +77,7 @@ const AuthContext = createContext<AuthContextType>({
   isEffectiveSkadeleder: false,
   isEffectiveServicemedarbejder: false,
   effectiveRole: null,
+  isPendingApproval: false,
   login: async () => ({ error: null }),
   logout: async () => {},
   signUp: async () => ({ error: null }),
