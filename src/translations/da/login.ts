@@ -60,7 +60,8 @@ const login = {
   selectDepartmentPlaceholder: 'Vælg afdeling...',
   departmentRequired: 'Vælg venligst en hovedafdeling før du logger ind.',
   departmentAccessDenied: 'Adgang nægtet. Du er ikke tilknyttet denne afdeling. Vælg venligst den korrekte afdeling og prøv igen.',
-  loadingDepartments: 'Indlæser afdelinger...'
+  loadingDepartments: 'Indlæser afdelinger...',
+  loginWithMicrosoft: 'Log ind med Microsoft'
 };
 
 export default login;
