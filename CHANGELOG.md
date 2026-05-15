@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-15 — Web Vitals-målinger (LCP/INP/CLS/FCP/TTFB)
+
+### Observability
+- Tilføjet `web-vitals` library og ny `src/utils/webVitals.ts` der måler Core Web Vitals globalt. I DEV logges hver måling til konsollen; i alle miljøer batches og persisteres målinger til ny Supabase-tabel `web_vitals_metrics` ved `pagehide` / `visibilitychange=hidden` (lav netværks-overhead, ingen indvirkning på initial render — kører via `requestIdleCallback`).
+- Hver måling tagges med route, user_id, device_type, connection_type, user_agent og session_id. Demo-bruger filtreres fra. RLS: brugere kan kun indsætte egne målinger; kun admin/skadeleder kan læse.
+- Ny admin-tab "Web Vitals" på `/admin` med periode- og side-filter, p75 KPI-kort pr. metric (good/needs-improvement/poor andele) og top-10 langsomste sider.
+
 ## 2026-05-15 — Error Boundaries omkring planner-komponenter
 
 ### Reliability
