@@ -625,6 +625,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (refreshedUser) {
         setUser(refreshedUser);
         setUserDataLoaded(true);
+        // Re-check pending state
+        if (session.user.email !== DemoUserService.DEMO_USER_EMAIL) {
+          try {
+            const { data: isPending } = await supabase.rpc('is_pending_user', {
+              _user_id: session.user.id,
+            });
+            setIsPendingApproval(!!isPending);
+          } catch {
+            // ignore
+          }
+        }
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error('[AuthContext] Failed to refresh user data:', error instanceof Error ? error.message : 'Unknown error');
@@ -730,6 +741,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setSession(null);
       setSessionExpired(false);
+      setIsPendingApproval(false);
       
       // 1. TanStack Query -- ryd al cached data
       queryClient.clear();
