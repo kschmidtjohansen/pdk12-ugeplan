@@ -305,6 +305,7 @@ Gennemført 2026-04-04.
 - [x] Rettet forældet "16:00"-kommentar til "00:00"
 - [x] tasks.md opdateret med manglende feature-poster (Fase 14 + 15)
 - [x] Verificeret at alle øvrige 27 console-statements allerede var korrekt DEV-guarded
+- [x] **2026-05-15:** Server-side auto-publicering genoprettet — `auto_publish_due_assignments()` + pg_cron hvert minut (Europe/Copenhagen). Erstatter den fjernede client-side hook.
 
 ## Fase 16: Ugeplan-udvidelser (rullende leverance, A–J) 🚧
 
