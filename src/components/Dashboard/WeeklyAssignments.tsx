@@ -221,7 +221,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
 
   return (
     <>
-      <Card className="brand-card-accent">
+      <Card>
         <CardHeader className="pb-3 brand-card-header">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
