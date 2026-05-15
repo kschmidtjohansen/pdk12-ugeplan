@@ -16,7 +16,8 @@ import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import { Spinner } from '@/components/ui/spinner';
-import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks, format } from 'date-fns';
+import { getISOWeek, getISOWeekYear, addWeeks, format } from 'date-fns';
+import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import PlannerSearchFilter from '@/components/Planner/PlannerSearchFilter';
 import FilterChips, { applyPlannerFilters, useActivePlannerFilters } from '@/components/Planner/FilterChips';
