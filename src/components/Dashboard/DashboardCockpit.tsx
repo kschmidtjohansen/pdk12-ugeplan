@@ -5,6 +5,7 @@ import CompactKpiStack from './CompactKpiStack';
 import DutySummaryWidget from './DutySummaryWidget';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import VacationNotificationsPanel from './VacationNotificationsPanel';
+import AutoPublishLogWidget from './AutoPublishLogWidget';
 import WeeklyAssignments from './WeeklyAssignments';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
