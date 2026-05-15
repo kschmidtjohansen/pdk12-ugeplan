@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-05-15 — PlannerPage: dokumenteret intentional guard på SeriesActionDialog
+
+### Code clarity
+- `handleOpenEditDialog` og `handleDeleteAssignment` har fået eksplicitte `INTENTIONAL`-kommentarer, der markerer, at `SeriesActionDialog` kun må vises når `findSeriesSiblings(assignment).length > 1`. Lone assignments (inkl. orphaned `groupId`) edit/deletes direkte uden series-prompt. Ingen logik-ændring.
+
 ## 2026-05-15 — AppSidebar: flade hover/active states uden dekorationer
 
 ### UI
