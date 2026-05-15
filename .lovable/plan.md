@@ -1,40 +1,29 @@
-## Status: Guard already in place — proposing comment refinement only
+## Plan: Wrap full ScreenDisplayPage + neutral kiosk-friendly fallback
 
-Both edit and delete handlers in `src/pages/PlannerPage.tsx` already guard on `findSeriesSiblings(assignment).length > 1` before opening `SeriesActionDialog`. Lone assignments fall through to direct edit/delete.
+### Findings
+- `ScreenDisplayPage.tsx` currently only wraps the **success branch** (line 169) in `<ScreenDisplayErrorBoundary>`. The early `loading` (l. 134) and `error` (l. 148) returns render OUTSIDE the boundary, so a render-time crash in those branches is uncaught.
+- `ScreenDisplayErrorBoundary.tsx` fallback uses `bg-destructive/5`, a destructive icon and "Screen Display Error" copy — too loud for a TV/kiosk and not branded.
+- Polygon logo is loaded elsewhere from `https://www.polygongroup.com/UI/build/svg/polygon-logo.svg` (used in `LoginPage.tsx`); a local `public/polygon-mark.png` also exists.
+- Route is registered in `src/App.tsx` (the page component is the route element); boundary belongs in the page so it still catches errors thrown by hooks inside it.
 
-### Trace
-- **`findSeriesSiblings`** (lines 229–240): returns sibling assignments by `groupId`, or legacy `case_number`/`title` match. Returns `[assignment]` (length 1) when no key.
-- **Edit — `handleOpenEditDialog`** (lines 242–251):
-  ```ts
-  const siblings = findSeriesSiblings(assignment);
-  if (siblings.length > 1) setSeriesAction({ assignment, mode: 'edit' });
-  else openEditDialogDirect(assignment);
-  ```
-  Existing comment: *"Only prompt for series action if there are actually multiple sibling assignments. A lone groupId (e.g. after siblings were deleted) should not trigger the prompt."*
-- **Delete — `handleDeleteAssignment`** (lines 406–416):
-  ```ts
-  if (siblings.length > 1) setSeriesAction({ assignment, mode: 'delete' });
-  else await deleteAssignment(id);
-  ```
-  Existing comment: *"Only prompt if this is genuinely a multi-day series."*
-- **`SeriesActionDialog`** render (line 724) is gated on `open={!!seriesAction}`, which is only set inside the two `> 1` branches above.
+### Changes
 
-### Proposed change
-The guard is correct and has comments, but the user wants it explicitly marked as *intentional behaviour*. I will tighten the two comments to use a shared, unambiguous marker so future contributors don't "fix" it:
+**1. `src/components/ScreenDisplay/ScreenDisplayErrorBoundary.tsx`**
+- Extract a small internal `ScreenDisplayFallback` component so it can use hooks.
+- Layout: full-screen `bg-background` (no gradient, no destructive color), centered column with:
+  - Polygon SVG logo (`https://www.polygongroup.com/UI/build/svg/polygon-logo.svg`, height ~48px, `alt="Polygon"`).
+  - Neutral heading: `Skærmen er ikke tilgængelig`.
+  - Muted sub-line indicating an auto-reload is pending.
+  - Optional small "Genindlæs nu" button calling `window.location.reload()` (kept minimal, no destructive styling).
+- `useEffect` sets `setInterval(() => window.location.reload(), 60_000)` and clears it on unmount. No coloured backgrounds.
+- Drop the `date` and `onRetry` props from the fallback — irrelevant in kiosk mode (kept on the wrapper for backward-compat / logging only).
 
-1. **Line 244–245** → replace with:
-   ```ts
-   // INTENTIONAL: only prompt SeriesActionDialog when siblings.length > 1.
-   // A lone assignment (incl. orphaned groupId after sibling deletion) edits directly.
-   ```
-2. **Line 410** → replace with:
-   ```ts
-   // INTENTIONAL: only prompt SeriesActionDialog when siblings.length > 1.
-   // A lone assignment deletes directly without the series prompt.
-   ```
+**2. `src/pages/ScreenDisplayPage.tsx`**
+- Move `<ScreenDisplayErrorBoundary>` to wrap the **entire** returned tree (loading / error / success branches all inside). Simplest form: refactor the function to compute one `content` JSX value via `if/else` and return `<ScreenDisplayErrorBoundary ...>{content}</ScreenDisplayErrorBoundary>` once.
 
-No logic changes. No changes to `AssignmentDialogManager.tsx` (separate dialog flow, out of scope).
+**3. `CHANGELOG.md`** — entry: "ScreenDisplayPage: full-page ErrorBoundary + neutral kiosk fallback med Polygon-logo og 60s auto-reload".
 
-### Files touched
-- `src/pages/PlannerPage.tsx` (2 comment edits)
-- `CHANGELOG.md` (1 entry per project workflow)
+### Out of scope
+- `App.tsx` route definition (page-level boundary suffices).
+- Translation system (page already mixes EN/DA copy; we use Danish here per request).
+- Existing inline error UI at l. 148–166 stays — it handles known data-fetch errors with a Retry button; the boundary is for unexpected render crashes.
