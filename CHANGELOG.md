@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-15 — Brand-stripes fjernet, separation via border
+
+### UI
+- Fjernet horisontal `brand-stripe` under `AppTopBar` — topbar adskilles nu udelukkende af eksisterende `border-b border-border`.
+- Fjernet venstre 1px primary-stripe på `WelcomeHeader` (inline `bg-primary` div + `relative/overflow-hidden`).
+- Fjernet venstre 3px primary-stripe (`brand-card-accent::before`) på `VacationNotificationsPanel` og `WeeklyAssignments`. Card-border bevarer separationen.
+- `src/index.css`: slettet `.brand-stripe` og `.brand-card-accent`-klasserne. Polygon-blå optræder nu kun på interaktive elementer (knapper, aktive nav-items, links) og som svag tonet baggrund på `.brand-card-header` / `.brand-dot`.
+
 ## 2026-05-15 — Flade pille-chips erstatter frosted-glass
 
 ### UI
