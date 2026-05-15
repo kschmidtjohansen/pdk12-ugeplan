@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-15 — Virtualisering af Weekly Planner
+
+### Performance
+- Tilføjet `@tanstack/react-virtual` og en ny `VirtualList`-komponent (`src/components/Planner/VirtualList.tsx`) baseret på `useWindowVirtualizer` med dynamisk row-måling (`measureElement`).
+- `CurrentAndFutureDays`, `CompactCurrentAndFutureDays`, `PastAssignments` og `CompactPastAssignments` rendres nu kun for de synlige dage (overscan 4) når listen overstiger 10 dage. Under tærsklen falder den tilbage til normal rendering, så små lister er upåvirkede.
+- Reducerer DOM-noder og initial render-tid markant ved store ugelister/historiske perioder med mange opgaver. Window-scroll bevares — ingen indre scroll-container indført.
+
+
 ## 2026-05-15 — Auto-publicering af opgaver (server-side)
 
 ### Fixed
