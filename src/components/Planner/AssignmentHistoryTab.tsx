@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useTranslation } from '@/context/TranslationContext';

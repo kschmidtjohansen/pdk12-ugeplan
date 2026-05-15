@@ -3,10 +3,8 @@ import { notifyOwnAction } from '@/lib/realtimeUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
-import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useQueryClient } from '@tanstack/react-query';
-import { CarSecurityService } from '@/services/carSecurityService';
 import { usePermissions, useAuth } from '@/context/AuthContext';
 // DemoUserService removed — demo car actions now go through DB with is_demo=true
 

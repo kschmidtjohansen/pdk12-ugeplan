@@ -1,6 +1,4 @@
 import { supabase } from '@/integrations/supabase/client';
-import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
-import { Assignment } from '@/types/assignment';
 import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 // DemoUserService removed — demo writes now go to DB with is_demo=true
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';

@@ -3,7 +3,7 @@
  import { useNotifications } from '@/context/NotificationContext';
  import { toast } from 'sonner';
  import { format } from 'date-fns';
- import { da, enGB } from 'date-fns/locale';
+ import { da } from 'date-fns/locale';
  
  export interface AssignmentMessage {
    id: string;

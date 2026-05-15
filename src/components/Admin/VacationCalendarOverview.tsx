@@ -15,16 +15,14 @@ import {
   eachDayOfInterval,
   addMonths,
   subMonths,
-  getDay,
   isSameMonth,
   startOfWeek,
   endOfWeek,
   getISOWeek,
   eachWeekOfInterval,
-  isWithinInterval,
   parseISO,
 } from 'date-fns';
-import { da, enUS } from 'date-fns/locale';
+import { da } from 'date-fns/locale';
 
 interface VacationWithProfile {
   id: string;

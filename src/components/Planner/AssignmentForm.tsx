@@ -8,7 +8,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Trash2, Edit3, AlertTriangle } from 'lucide-react';
+import { Send, Edit3, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
 import { getEmployeeVacationStatus } from '@/utils/employeeAvailability';

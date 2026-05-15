@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Users, Car, Calendar, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Clock, AlertCircle, UserCheck, Wrench } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
-import { Assignment, normalizeEmployees } from '@/types/assignment';
+import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';

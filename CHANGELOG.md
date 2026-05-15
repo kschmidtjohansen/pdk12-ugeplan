@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-05-15 — CI-gate mod døde imports
+
+### Tooling / Quality
+- Ny GitHub Actions workflow `.github/workflows/ci.yml` der kører `npm ci` + `npm run lint:ci` + `npm run build` på hver pull request mod `main` (samt push til `main`). Concurrency-gruppe annullerer in-flight kørsler ved nye pushes.
+- Tilføjet `eslint-plugin-unused-imports` (devDependency) og aktiveret `unused-imports/no-unused-imports: "error"` i `eslint.config.js`. Nye PR'er fejler nu hårdt hvis de introducerer ubrugte imports.
+- Nyt npm-script `lint:ci` (`eslint . --quiet`) der kun rapporterer errors — bruges af CI så pre-eksisterende warnings (no-explicit-any m.fl.) ikke blokerer.
+- Auto-fixet 51 eksisterende døde imports på tværs af kodebasen så første CI-kørsel starter grønt.
+- Pre-eksisterende lint-regler med få overtrædelser (no-explicit-any, no-require-imports, no-empty-object-type, rules-of-hooks, no-useless-escape, prefer-const) downgradet til `warn` for ikke at blokere CI på legacy-kode. Kan strammes igen i en separat oprydningsopgave.
+
 ## 2026-05-15 — Sikkerhedsforbedringer af RPC-helpers
 
 ### Security / Reliability

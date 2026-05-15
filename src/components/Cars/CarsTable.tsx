@@ -15,7 +15,6 @@ import { useTranslation } from '@/context/TranslationContext';
 import { 
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip";
 

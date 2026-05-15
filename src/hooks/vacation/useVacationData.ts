@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { Vacation, VacationRequestType } from '@/types/vacation';
-import { logSecurityEvent } from '@/utils/securityLogger';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { realtimeManager } from '@/services/realtimeManager';

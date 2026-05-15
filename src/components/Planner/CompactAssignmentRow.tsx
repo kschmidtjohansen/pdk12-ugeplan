@@ -1,9 +1,8 @@
 import React from 'react';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Send, Trash2, Copy, MapPin, Clock, Users, Car as CarIcon, AlertTriangle } from 'lucide-react';
+import { Pencil, Send, Trash2, Copy, MapPin, Clock, Users, Car as CarIcon } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';

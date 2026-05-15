@@ -1,53 +1,60 @@
 ## Mål
 
-Verificere at alle aktivt brugte edge functions og RLS/RPC-helpers stadig kan kaldes fra frontend uden runtime-fejl (401/403/404/500, CORS-fejl eller manglende funktioner i DB).
+Forhindre at nye døde/ubrugte imports lander i `main` ved at køre lint + build automatisk på hver pull request via GitHub Actions.
 
-## Omfang
+## Hvad bliver tilføjet
 
-**Edge functions i brug** (11 stk., alle findes i `supabase/functions/`):
-- admin-list-users, admin-create-user, admin-user-role, admin-user-delete, admin-user-status, admin-reset-password
-- swap-duties, send-duty-reminders, cleanup-change-logs, cleanup-expired-users, dawa-proxy
+### 1. ESLint-regel der faktisk fanger døde imports
 
-**RPC/RLS-helpers kaldt fra frontend**:
-- `is_admin_user`, `get_current_user_role`, `can_view_fuel_codes`
-- `list_accessible_assignments_with_team` (planner-kerne)
-- `accept_duty_swap`, `cancel_duty_swap`
-- `log_security_event_optimized`, `log_security_event_safe`
-- `verify_complete_fix`, `delete_old_rejected_vacations`
-- `cleanup_demo_data_ttl`, `reset_demo_data`, `cleanup_session_data`
-- `get_demo_warehouse_items`, `get_demo_vacations`, `get_demo_duties_with_employee`, `get_demo_profiles_admin_detailed`
+Nuværende `eslint.config.js` har `"@typescript-eslint/no-unused-vars": "off"` — derfor fanger `npm run lint` ikke ubrugte imports i dag. Vi tilføjer `eslint-plugin-unused-imports` (devDependency) og opdaterer reglerne:
 
-## Fremgangsmåde (kun læsning, ingen kodeændringer)
+- `unused-imports/no-unused-imports: "error"` — fejler ved ubrugte `import`-statements (præcis det brugeren beder om).
+- `unused-imports/no-unused-vars: "warn"` — advarer ved ubrugte variable/parametre uden at bryde build (kan strammes senere).
 
-### Trin 1 — DB-helpers eksisterer
-Kør `supabase--read_query` mod `pg_proc` og bekræft at hver RPC ovenfor findes med korrekt signatur og `search_path = ''`. Manglende funktioner = blocker.
+Det eksisterende `@typescript-eslint/no-unused-vars: "off"` bevares så vi ikke pludselig får hundredevis af fejl på legacy-kode — `unused-imports`-pluginnet håndterer specifikt imports.
 
-### Trin 2 — Edge functions svarer
-For hver af de 11 funktioner: `supabase--curl_edge_functions` med korrekt method (OPTIONS preflight + GET/POST). Forventet: 200/204 eller 401 hvis auth kræves men ikke sendt — IKKE 404/500. Tjek CORS-headers i svaret.
+### 2. Ny script-kommando
 
-### Trin 3 — Edge function logs
-`supabase--edge_function_logs` for hver function (sidste 24t) — kig efter boot-fejl, uncaught exceptions, manglende secrets.
+Tilføj `"lint:ci": "eslint . --max-warnings=0"` i `package.json` så CI fejler både på errors OG warnings. Lokalt kan `npm run lint` fortsat bruges uden warning-grænse.
 
-### Trin 4 — Frontend runtime-validering i preview
-Browser-driven smoke test som indlogget bruger:
-1. `/dashboard` — udløser `list_accessible_assignments_with_team`, `is_admin_user`, evt. `get_current_user_role`
-2. `/planner` — udløser planner-RPC tungt; tjek query-tider og fejl
-3. `/admin` (UserManagement) — udløser `admin-list-users` + `get_demo_profiles_admin_detailed`
-4. `/cars` — udløser `can_view_fuel_codes` + `log_security_event_safe`
-5. Vagt-/ferieside — udløser duty- og vacation-RPC'er
+### 3. GitHub Actions workflow
 
-For hvert trin: `browser--read_console_logs` + `browser--list_network_requests` filtreret på errors/4xx/5xx.
+Ny fil `.github/workflows/ci.yml`:
 
-### Trin 5 — Rapport
-Tabel pr. function/RPC: ✅ OK / ⚠️ advarsel / ❌ fejl med årsag og forslag til fix. Ingen kodeændringer i denne kørsel — fix foreslås separat. Hvis alt er grønt, opdateres `CHANGELOG.md` med valideringsnoten.
+```text
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]   # også på direkte push for safety net
 
-## Forudsætninger
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - checkout
+      - setup-node@v4 (node 20, npm cache)
+      - npm ci
+      - npm run lint:ci      # fejler ved døde imports
+      - npm run build        # fejler ved type-/build-fejl
+```
 
-- Brugeren skal være logget ind i preview-iframen (super_admin foretrækkes for bredest dækning).
-- Ingen destruktive kald — admin-create/delete/role/status testes kun med OPTIONS-preflight og GET hvor relevant; faktiske mutations springes over.
+Concurrency-gruppe pr. ref så nye pushes annullerer kørende jobs (sparer minutter).
+
+## Hvad bliver IKKE rørt
+
+- Ingen ændringer i applikationskode.
+- Ingen rettelser af eventuelle eksisterende ubrugte imports — det vil sandsynligvis dukke op som første CI-fejl, og kan ryddes i en separat opgave.
+- Ingen tests køres (projektet har ikke en konfigureret test-suite for nuværende).
+- Ingen Supabase-deploy eller secrets nødvendige — workflowet kører helt uden hemmeligheder.
+
+## Verifikation efter implementering
+
+1. Kør `npm run lint:ci` lokalt for at se om der allerede er døde imports der vil få første PR til at fejle. Hvis ja, nævnes det i afsluttende besked så brugeren kan tage stilling til opfølgende oprydning.
+2. `npm run build` skal stadig passere uændret.
 
 ## Out of scope
 
-- Ingen kodeændringer
-- Ingen migrations
-- Ingen automatiserede Deno/Vitest-tests
+- Type-only check (`tsc --noEmit`) — kan tilføjes senere hvis ønsket.
+- Auto-fix workflow eller pre-commit hook (husky/lint-staged).
+- Branch protection rules på GitHub-siden — skal sættes manuelt af repo-owner under Settings → Branches.

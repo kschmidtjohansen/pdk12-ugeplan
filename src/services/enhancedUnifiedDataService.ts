@@ -40,7 +40,7 @@ class EnhancedUnifiedDataService {
         return { data: [], error: null, fromCache: result.fromCache || false, healthCheck: true };
       }
 
-      let employees: Employee[] = result.data.map(profile => ({
+      const employees: Employee[] = result.data.map(profile => ({
         id: profile.id,
         name: profile.name || 'Unknown',
         email: profile.email || '',
@@ -80,7 +80,7 @@ class EnhancedUnifiedDataService {
         return { data: [], error: null, fromCache: result.fromCache || false, healthCheck: true };
       }
 
-      let assignments: Assignment[] = result.data.map(assignment => {
+      const assignments: Assignment[] = result.data.map(assignment => {
         const team = Array.isArray(assignment.team) ? assignment.team : [];
         const employees = team.map((emp: any) => emp.name || emp.email || 'Unknown User');
         

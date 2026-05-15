@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
-import { validateAndSanitizePhone, getPhoneValidationError } from '@/utils/phoneValidation';
+import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 
 interface AdminUser {
   id: string;

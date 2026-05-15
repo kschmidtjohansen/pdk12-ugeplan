@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from '@/context/TranslationContext';
 import { Vacation } from '@/types/vacation';
 import { CalendarClock, User } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { differenceInDays } from 'date-fns';
 import { da, enGB } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { formatDateRangeWithWeeks } from '@/utils/dateUtils';
