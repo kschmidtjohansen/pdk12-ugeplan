@@ -116,6 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userDataLoaded, setUserDataLoaded] = useState<boolean>(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
+  const [isPendingApproval, setIsPendingApproval] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const manualLogoutRef = useRef(false);
