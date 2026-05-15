@@ -4,7 +4,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { groupAssignmentsByDay } from '@/utils/dateUtils';
-import { format, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 import { getAllWeekDays } from '@/utils/dates';
 import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';

@@ -1,5 +1,5 @@
 
-import { getISOWeek, getISOWeekYear, lastDayOfYear, getWeek } from "date-fns";
+import { getISOWeek, getISOWeekYear, lastDayOfYear } from "date-fns";
 
 /**
  * Get the previous ISO week number and year

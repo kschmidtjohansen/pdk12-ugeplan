@@ -1,9 +1,8 @@
 
-import { useEffect, useCallback, useRef } from 'react';
-import { format, startOfWeek, endOfWeek, addWeeks, eachDayOfInterval, getISOWeek } from 'date-fns';
+import { useEffect, useCallback } from 'react';
+import { format, startOfWeek, endOfWeek, addWeeks, getISOWeek } from 'date-fns';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
-import { safeProperty } from '@/utils/dbHelpers';
 import { useDepartment } from '@/context/DepartmentContext';
 
 export const useVacationNotifications = (

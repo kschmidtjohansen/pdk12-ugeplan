@@ -1,19 +1,13 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 import { useDemoTracking } from '@/hooks/useDemoTracking';
 import { useDemoAutoCleanup } from '@/hooks/useDemoAutoCleanup';
 import { 
   Activity, 
-  Database, 
   Trash2, 
   AlertTriangle,
-  Clock,
-  BarChart3,
-  Timer,
-  RefreshCw
+  Timer
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';

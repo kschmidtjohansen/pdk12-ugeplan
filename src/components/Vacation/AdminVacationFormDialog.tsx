@@ -29,7 +29,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
-import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 
 interface AdminVacationFormDialogProps {

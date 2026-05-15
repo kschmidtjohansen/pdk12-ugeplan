@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
-import { systemHealthService } from '../systemHealthService';
 
 interface DataFetchResult<T> {
   data: T[];

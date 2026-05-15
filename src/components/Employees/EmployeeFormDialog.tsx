@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, Wifi, WifiOff, Calendar, UserCheck } from 'lucide-react';
-import { validateAndSanitizePhone, getPhoneValidationError } from '@/utils/phoneValidation';
+import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 interface EmployeeFormDialogProps {
