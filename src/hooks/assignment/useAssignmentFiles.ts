@@ -4,7 +4,8 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import JSZip from 'jszip';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+// Note: pdf-lib (~600 kB) is dynamically imported inside generatePdf()
+// to keep it out of the initial bundle.
 
 export interface AssignmentFile {
   id: string;
@@ -360,6 +361,9 @@ export const useAssignmentFiles = (
     toast.info('Genererer PDF...');
 
     try {
+      // Lazy-load pdf-lib only when actually generating a PDF (~600 kB)
+      const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
+
       const pdfDoc = await PDFDocument.create();
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
