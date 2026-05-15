@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-05-15 — Login-side: solid Polygon-blå baggrund
+
+### UI
+- Fjernet animeret mesh-/blob-gradient og logo-shimmer på `LoginPage` (både desktop venstre-panel og mobil-banner). Erstattet med en ren, solid `bg-polygon-blue` (#00aeef) baggrund.
+- Slettet keyframes og animations-entries i `tailwind.config.ts`: `mesh-drift`, `mesh-drift-alt`, `mesh-float-1/2/3`, `logo-shimmer`. Logo-containerens `animate-logo-shimmer`-klasse fjernet to steder.
+
 ## 2026-05-15 — CI-gate mod døde imports
 
 ### Tooling / Quality
@@ -43,8 +49,6 @@
 - Tilføjet `@tanstack/react-virtual` og en ny `VirtualList`-komponent (`src/components/Planner/VirtualList.tsx`) baseret på `useWindowVirtualizer` med dynamisk row-måling (`measureElement`).
 - `CurrentAndFutureDays`, `CompactCurrentAndFutureDays`, `PastAssignments` og `CompactPastAssignments` rendres nu kun for de synlige dage (overscan 4) når listen overstiger 10 dage. Under tærsklen falder den tilbage til normal rendering, så små lister er upåvirkede.
 - Reducerer DOM-noder og initial render-tid markant ved store ugelister/historiske perioder med mange opgaver. Window-scroll bevares — ingen indre scroll-container indført.
-
-
 ## 2026-05-15 — Auto-publicering af opgaver (server-side)
 
 ### Fixed

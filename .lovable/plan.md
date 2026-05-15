@@ -1,60 +1,30 @@
 ## Mål
 
-Forhindre at nye døde/ubrugte imports lander i `main` ved at køre lint + build automatisk på hver pull request via GitHub Actions.
+Erstat den animerede mesh/blob-baggrund i login-sidens venstre panel (og mobil-banneret) med en ren, solid Polygon brand-blå `#00aeef`. Fjern logo-shimmer og de tre mesh-float-animationer. Behold logo, tagline og feature-cards — bare på den flade farve.
 
-## Hvad bliver tilføjet
+## Ændringer
 
-### 1. ESLint-regel der faktisk fanger døde imports
+### `src/pages/LoginPage.tsx`
+- Slet hele `MeshBackground`-komponenten (linje 55–98) inkl. de 3 animerede blob-divs, motion-reduce fallback-blobs og det subtile grid-overlay.
+- Erstat med en simpel `<div aria-hidden className="absolute inset-0 bg-polygon-blue" />` (ny semantisk farve, se nedenfor).
+- Fjern `animate-logo-shimmer`-klassen begge steder (linje 109 og 133). Logo-containerne beholdes som de er (white/15 backdrop-blur boks).
+- Behold alt øvrigt indhold uændret: headline, sub-headline, feature-cards, fade-in-animationer på indhold, sprog/tema-knapper.
 
-Nuværende `eslint.config.js` har `"@typescript-eslint/no-unused-vars": "off"` — derfor fanger `npm run lint` ikke ubrugte imports i dag. Vi tilføjer `eslint-plugin-unused-imports` (devDependency) og opdaterer reglerne:
+### `tailwind.config.ts`
+- Tilføj farve-token `polygon: { blue: '#00aeef' }` under `colors.extend` (eller direkte `polygonBlue`) så `bg-polygon-blue` kan bruges. Alternativt mappes til en CSS-variabel `--polygon-blue` i `index.css` og refereres via `hsl(var(--polygon-blue))` for konsistens med resten af design-systemet — anbefalet variant.
+- Fjern keyframes: `mesh-drift`, `mesh-drift-alt`, `mesh-float-1`, `mesh-float-2`, `mesh-float-3`, `logo-shimmer`.
+- Fjern tilsvarende entries under `animation`: `mesh-drift`, `mesh-drift-alt`, `mesh-float-1`, `mesh-float-2`, `mesh-float-3`, `logo-shimmer`.
+- Bevar `fade-in-down`, `scale-in`, `slide-in-*` og øvrige animationer — de bruges andre steder.
 
-- `unused-imports/no-unused-imports: "error"` — fejler ved ubrugte `import`-statements (præcis det brugeren beder om).
-- `unused-imports/no-unused-vars: "warn"` — advarer ved ubrugte variable/parametre uden at bryde build (kan strammes senere).
+### `src/index.css`
+- Tilføj `--polygon-blue: 196 100% 47%;` (HSL for `#00aeef`) i `:root` og dark-blok så token-systemet er konsistent.
 
-Det eksisterende `@typescript-eslint/no-unused-vars: "off"` bevares så vi ikke pludselig får hundredevis af fejl på legacy-kode — `unused-imports`-pluginnet håndterer specifikt imports.
+## Verifikation
 
-### 2. Ny script-kommando
-
-Tilføj `"lint:ci": "eslint . --max-warnings=0"` i `package.json` så CI fejler både på errors OG warnings. Lokalt kan `npm run lint` fortsat bruges uden warning-grænse.
-
-### 3. GitHub Actions workflow
-
-Ny fil `.github/workflows/ci.yml`:
-
-```text
-on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]   # også på direkte push for safety net
-
-jobs:
-  lint-and-build:
-    runs-on: ubuntu-latest
-    steps:
-      - checkout
-      - setup-node@v4 (node 20, npm cache)
-      - npm ci
-      - npm run lint:ci      # fejler ved døde imports
-      - npm run build        # fejler ved type-/build-fejl
-```
-
-Concurrency-gruppe pr. ref så nye pushes annullerer kørende jobs (sparer minutter).
-
-## Hvad bliver IKKE rørt
-
-- Ingen ændringer i applikationskode.
-- Ingen rettelser af eventuelle eksisterende ubrugte imports — det vil sandsynligvis dukke op som første CI-fejl, og kan ryddes i en separat opgave.
-- Ingen tests køres (projektet har ikke en konfigureret test-suite for nuværende).
-- Ingen Supabase-deploy eller secrets nødvendige — workflowet kører helt uden hemmeligheder.
-
-## Verifikation efter implementering
-
-1. Kør `npm run lint:ci` lokalt for at se om der allerede er døde imports der vil få første PR til at fejle. Hvis ja, nævnes det i afsluttende besked så brugeren kan tage stilling til opfølgende oprydning.
-2. `npm run build` skal stadig passere uændret.
+Efter ændringerne: kør grep for at sikre at ingen anden fil refererer til de fjernede animations-klasser (forventet ingen hits uden for konfigurationen). Tag et browser-screenshot af `/login` for at bekræfte det rene split-screen look uden blobs eller shimmer.
 
 ## Out of scope
 
-- Type-only check (`tsc --noEmit`) — kan tilføjes senere hvis ønsket.
-- Auto-fix workflow eller pre-commit hook (husky/lint-staged).
-- Branch protection rules på GitHub-siden — skal sættes manuelt af repo-owner under Settings → Branches.
+- Ingen ændringer i selve login-formen (højre panel).
+- Ingen ny funktionalitet, oversættelser eller routing-ændringer.
+- Ingen oprydning af andre animations-klasser end de 6 nævnte.
