@@ -51,13 +51,22 @@ export class PlannerWidgetErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    const label = this.props.label;
     if (import.meta.env.DEV) {
       console.error(
-        `[PlannerWidgetErrorBoundary]${this.props.label ? ` (${this.props.label})` : ''} caught:`,
+        `[PlannerWidgetErrorBoundary]${label ? ` (${label})` : ''} caught:`,
         error,
         errorInfo
       );
+    } else {
+      console.error(
+        `[PlannerWidgetErrorBoundary]${label ? ` (${label})` : ''}: ${error.message}`
+      );
     }
+    const t = texts[getLang()];
+    toast.error(`${t.title}${label ? ` — ${label}` : ''}`, {
+      description: error.message,
+    });
   }
 
   private handleRetry = () => {
