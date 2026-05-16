@@ -99,6 +99,76 @@ const convertToAssignment = (data: OptimizedAssignmentData, allEmployees: Employ
   };
 };
 
+export interface FetchAssignmentsForQueryArgs {
+  userId: string | undefined;
+  userRole: string | undefined;
+  userEmail: string | undefined;
+  filter: FilterType;
+  selectedDepartmentId: string | null | undefined;
+  selectedSubDepartmentId: string | null | undefined;
+  allEmployees: Employee[];
+}
+
+export const fetchAssignmentsForQuery = async ({
+  userId,
+  userRole,
+  userEmail,
+  filter,
+  selectedDepartmentId,
+  selectedSubDepartmentId,
+  allEmployees,
+}: FetchAssignmentsForQueryArgs): Promise<Assignment[]> => {
+  if (!userId || !userRole) return [];
+
+  if (import.meta.env.DEV) console.log(`[useOptimizedAssignments] Fetching assignments with filter: ${filter}`);
+
+  let result: OptimizedAssignmentData[];
+
+  switch (filter) {
+    case 'all':
+      result = await OptimizedAssignmentService.fetchAllAssignments(userRole, userEmail, selectedDepartmentId, selectedSubDepartmentId);
+      break;
+    case 'published':
+      result = await OptimizedAssignmentService.fetchAllPublishedAssignments(userEmail, selectedDepartmentId, selectedSubDepartmentId);
+      break;
+    case 'unpublished':
+      result = await OptimizedAssignmentService.fetchUnpublishedAssignments(userId, userRole, userEmail, selectedDepartmentId, selectedSubDepartmentId);
+      break;
+    case 'user':
+      result = await OptimizedAssignmentService.fetchUserAssignments(userId, userRole, userEmail, selectedDepartmentId, selectedSubDepartmentId);
+      break;
+    default:
+      result = [];
+  }
+
+  return result.map(data => {
+    try {
+      return convertToAssignment(data, allEmployees);
+    } catch (conversionError) {
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Error converting assignment:', conversionError);
+      return {
+        id: data.id || 'unknown',
+        title: data.title || 'Unknown Assignment',
+        description: data.description || '',
+        date: data.assignment_date || '',
+        fromTime: data.from_time || '08:00',
+        toTime: data.to_time || '16:00',
+        location: data.location || '',
+        type: data.type,
+        published: data.published || false,
+        responsibleUserId: data.responsible_user_id,
+        employees: [],
+        assignedEmployees: [],
+        car: '',
+        cars: [],
+        createdAt: data.created_at || '',
+        updatedAt: data.updated_at || '',
+        responsibleUser: data.responsible_user
+      };
+    }
+  });
+};
+
 export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimizedAssignmentsResult => {
   const { user, isAuthenticated, authReady } = useAuth();
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
@@ -118,60 +188,15 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const queryKey = ['assignments', user?.id, user?.role, filter, selectedDepartmentId, selectedSubDepartmentId];
 
   const fetchAssignmentsFn = async (): Promise<Assignment[]> => {
-    if (!user?.id || !user?.role) {
-      return [];
-    }
-
-    if (import.meta.env.DEV) console.log(`[useOptimizedAssignments] Fetching assignments with filter: ${filter}`);
-
-    let result: OptimizedAssignmentData[];
-
-    switch (filter) {
-      case 'all':
-        result = await OptimizedAssignmentService.fetchAllAssignments(user.role, user.email, selectedDepartmentId, selectedSubDepartmentId);
-        break;
-      case 'published':
-        result = await OptimizedAssignmentService.fetchAllPublishedAssignments(user.email, selectedDepartmentId, selectedSubDepartmentId);
-        break;
-      case 'unpublished':
-        result = await OptimizedAssignmentService.fetchUnpublishedAssignments(user.id, user.role, user.email, selectedDepartmentId, selectedSubDepartmentId);
-        break;
-      case 'user':
-        result = await OptimizedAssignmentService.fetchUserAssignments(user.id, user.role, user.email, selectedDepartmentId, selectedSubDepartmentId);
-        break;
-      default:
-        result = [];
-    }
-
-    const convertedAssignments = result.map(data => {
-      try {
-        return convertToAssignment(data, allEmployees);
-      } catch (conversionError) {
-        if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Error converting assignment:', conversionError);
-        return {
-          id: data.id || 'unknown',
-          title: data.title || 'Unknown Assignment',
-          description: data.description || '',
-          date: data.assignment_date || '',
-          fromTime: data.from_time || '08:00',
-          toTime: data.to_time || '16:00',
-          location: data.location || '',
-          type: data.type,
-          published: data.published || false,
-          responsibleUserId: data.responsible_user_id,
-          employees: [],
-          assignedEmployees: [],
-          car: '',
-          cars: [],
-          createdAt: data.created_at || '',
-          updatedAt: data.updated_at || '',
-          responsibleUser: data.responsible_user
-        };
-      }
+    return fetchAssignmentsForQuery({
+      userId: user?.id,
+      userRole: user?.role,
+      userEmail: user?.email,
+      filter,
+      selectedDepartmentId,
+      selectedSubDepartmentId,
+      allEmployees,
     });
-
-    if (import.meta.env.DEV) console.log(`[useOptimizedAssignments] Fetched ${convertedAssignments.length} assignments`);
-    return convertedAssignments;
   };
 
   const { data: queryData, isLoading, error: queryError, refetch: queryRefetch } = useQuery({

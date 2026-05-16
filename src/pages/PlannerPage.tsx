@@ -1,7 +1,9 @@
 import React, { useCallback, useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '../context/TranslationContext';
-import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
+import { useOptimizedAssignments, fetchAssignmentsForQuery } from '../hooks/useOptimizedAssignments';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { Assignment } from '../types/assignment';
 import { useEmployees } from '../hooks/useEmployees';
 import { useCars } from '../hooks/car';
@@ -59,6 +61,9 @@ const PlannerPage: React.FC = () => {
   const {
     vacations
   } = useVacations();
+  const { employees: allEmployees } = useEmployeeData();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
+  const queryClient = useQueryClient();
   
   // Use optimized assignments hook for unified data management
   const {
@@ -232,6 +237,25 @@ const PlannerPage: React.FC = () => {
     setSelectedWeek(getISOWeek(nextWeekStart));
     setSelectedYear(getISOWeekYear(nextWeekStart));
   }, [weekDates]);
+
+  // Prefetch adjacent week assignments on hover for instant navigation.
+  // Query key matches useOptimizedAssignments('all') exactly.
+  const handlePrefetchAssignments = useCallback(() => {
+    if (!user?.id || !user?.role) return;
+    queryClient.prefetchQuery({
+      queryKey: ['assignments', user.id, user.role, 'all', selectedDepartmentId, selectedSubDepartmentId],
+      queryFn: () => fetchAssignmentsForQuery({
+        userId: user.id,
+        userRole: user.role,
+        userEmail: user.email,
+        filter: 'all',
+        selectedDepartmentId,
+        selectedSubDepartmentId,
+        allEmployees,
+      }),
+      staleTime: 2 * 60 * 1000,
+    });
+  }, [queryClient, user?.id, user?.role, user?.email, selectedDepartmentId, selectedSubDepartmentId, allEmployees]);
 
   const handleOpenCreateDialog = (date: string) => {
     setCurrentAssignment(null);
@@ -608,7 +632,6 @@ const PlannerPage: React.FC = () => {
     });
   }, []);
 
-  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
 
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -685,13 +708,13 @@ const PlannerPage: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div className="flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 py-1">
-              <Button variant="ghost" size="sm" onClick={handlePreviousWeek} className="h-7 w-7 p-0">
+              <Button variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} className="h-7 w-7 p-0">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="font-medium min-w-[80px] text-center text-sm text-foreground">
                 {t('planner.week')} {selectedWeek}
               </span>
-              <Button variant="ghost" size="sm" onClick={handleNextWeek} className="h-7 w-7 p-0">
+              <Button variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} className="h-7 w-7 p-0">
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

@@ -1,35 +1,18 @@
-## Findings
+## Plan: Add week-navigation prefetch on hover in PlannerPage
 
-Several of the dialogs you named do not exist with those literal names, and `AssignmentDetailsDialog` is already lazy-loaded everywhere it is used. Concretely:
+**What**
+Add `onMouseEnter` prefetch handlers to the previous-week and next-week arrow buttons in `PlannerPage.tsx`. When the user hovers over either arrow, the app proactively fetches assignment data so week navigation feels instant.
 
-- `AssignmentDetailsDialog` — already `React.lazy` in `PlannerContent.tsx`, `WeeklyAssignments.tsx`, and `MineOpgaver.tsx`. **Not used in `DashboardCockpit.tsx`** (Cockpit renders `WeeklyAssignments`, which owns the dialog). Nothing to change for this one.
-- `CreateAssignmentDialog`, `EditAssignmentDialog`, `CarDetailsDialog`, `VacationRequestDialog` — these exact components don't exist. Closest matches:
-  - Assignment create/edit goes through `AssignmentDialogManager` (used via `PlannerDialogContainer`).
-  - Car: `CarFormDialog`, `CarMarkAvailableDialog`, `CarMarkUnavailableDialog`, `DeleteConfirmDialog` (no "CarDetailsDialog").
-  - Vacation: `VacationFormDialog`, `AdminVacationFormDialog`, `VacationDialogs` wrapper (no "VacationRequestDialog").
+**How**
+1. **Export a reusable fetcher** from `src/hooks/useOptimizedAssignments.ts`
+   - Extract the `fetchAssignmentsFn` body into an exported async function `fetchAllAssignmentsForQuery` that accepts `user`, `filter`, `selectedDepartmentId`, `selectedSubDepartmentId`, and `allEmployees` as explicit arguments and returns `Promise<Assignment[]>`.
+   - Update the hook's internal `queryFn` to call this exported function.
 
-In `PlannerPage.tsx` the only statically-imported, conditionally-rendered dialogs are `BulkAssignEmployeeDialog` and `BulkAssignCarDialog`.
+2. **Wire up prefetch in PlannerPage**
+   - Import `useQueryClient` from `@tanstack/react-query` and the new `fetchAllAssignmentsForQuery` helper.
+   - Import `useEmployeeData` to obtain `allEmployees` (needed for the conversion step).
+   - Get `queryClient` via `useQueryClient()`.
+   - Create a `handlePrefetch` helper that builds the exact query key `['assignments', user?.id, user?.role, 'all', selectedDepartmentId, selectedSubDepartmentId]` and calls `queryClient.prefetchQuery({ queryKey, queryFn: () => fetchAllAssignmentsForQuery(...), staleTime: 2 * 60 * 1000 })`.
+   - Add `onMouseEnter={handlePrefetch}` to both the `<Button variant="ghost" ...>` elements for previous and next week.
 
-## Proposed plan
-
-Apply the lazy + `<Suspense fallback={null}>` pattern to dialogs that match the intent of your request (statically imported, conditionally rendered, real components in the codebase):
-
-1. **`src/pages/PlannerPage.tsx`**
-   - Convert `BulkAssignEmployeeDialog` and `BulkAssignCarDialog` to `React.lazy`.
-   - Wrap their JSX usage in a single `<Suspense fallback={null}>`.
-
-2. **`src/components/Vacation/VacationDialogs.tsx`** (if it statically imports `VacationFormDialog` / `AdminVacationFormDialog`)
-   - Convert those to `React.lazy` + `<Suspense fallback={null}>`.
-
-3. **`src/components/Cars/CarDialogs.tsx`**
-   - Convert `CarFormDialog`, `CarMarkAvailableDialog`, `CarMarkUnavailableDialog`, `DeleteConfirmDialog` to `React.lazy` + `<Suspense fallback={null}>`.
-
-4. **`src/components/Planner/PlannerDialogContainer.tsx`**
-   - Convert `AssignmentDialogManager` (which contains the create/edit assignment dialogs) to `React.lazy` + `<Suspense fallback={null}>`.
-
-No changes to `DashboardCockpit.tsx` (no qualifying dialogs there) and no changes to `AssignmentDetailsDialog` callsites (already lazy).
-
-## Questions before I implement
-
-1. Do you want me to proceed with the mapping above (treating `VacationFormDialog` as the "VacationRequestDialog" and the Cars dialog set as the "CarDetailsDialog" target)?
-2. Or should I limit the change strictly to the two real candidates I'm certain about: `BulkAssignEmployeeDialog`, `BulkAssignCarDialog` in `PlannerPage.tsx`, plus the no-op confirmation that `AssignmentDetailsDialog` is already lazy everywhere?
+**Key detail:** `useOptimizedAssignments('all')` loads all assignments (not per-week), so the adjacent-week prefetch uses the identical query key. The benefit is ensuring the cache stays warm if it has expired, making navigation instant.
