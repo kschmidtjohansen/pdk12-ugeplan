@@ -166,21 +166,36 @@ const DaySection: React.FC<DaySectionProps> = ({
       {isExpanded && (
         <div className={`w-full grid gap-3 animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
           {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
-            dayAssignments.map((assignment) => (
-              <AssignmentCard
-                key={assignment.id}
-                assignment={assignment}
+            !gridLayout && dayAssignments.length > 12 ? (
+              <VirtualizedAssignmentCards
+                assignments={dayAssignments}
+                allAssignments={allAssignments}
                 cars={cars}
-                assignments={allAssignments}
                 canEdit={canEdit}
-                onEdit={() => onEditAssignment(assignment)}
-                onDelete={() => onDeleteAssignment(assignment.id)}
-                onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
-                onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
-                onViewDetails={onViewDetails ? () => onViewDetails(assignment) : undefined}
-                operationState={operationStates[assignment.id]}
+                operationStates={operationStates}
+                onEditAssignment={onEditAssignment}
+                onDeleteAssignment={onDeleteAssignment}
+                onPublishAssignment={onPublishAssignment}
+                onCopyAssignment={onCopyAssignment}
+                onViewDetails={onViewDetails}
               />
-            ))
+            ) : (
+              dayAssignments.map((assignment) => (
+                <AssignmentCard
+                  key={assignment.id}
+                  assignment={assignment}
+                  cars={cars}
+                  assignments={allAssignments}
+                  canEdit={canEdit}
+                  onEdit={() => onEditAssignment(assignment)}
+                  onDelete={() => onDeleteAssignment(assignment.id)}
+                  onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
+                  onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
+                  onViewDetails={onViewDetails ? () => onViewDetails(assignment) : undefined}
+                  operationState={operationStates[assignment.id]}
+                />
+              ))
+            )
           ) : onCreateAssignment && onCopyDayFromYesterday ? (
             <EmptyDayCTA
               dateKey={dateKey}
