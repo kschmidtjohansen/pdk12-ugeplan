@@ -408,6 +408,17 @@ const planner = {
     delete: 'Slettet',
     publish: 'Publiceret',
   },
+  conflict: {
+    title: 'Dobbeltbooking',
+    resolved: 'Konflikt løst',
+    thisAssignment: 'Denne opgave',
+    conflictsWith: 'Konflikt med',
+    changeTime: 'Ændr tidspunkt',
+    changeResource: 'Skift medarbejder / bil',
+    save: 'Gem',
+    cancel: 'Annullér',
+    invalidTime: 'Ugyldigt tidsinterval',
+  },
 };
 
 export default planner;
