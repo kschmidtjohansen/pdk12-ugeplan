@@ -787,6 +787,9 @@ const PlannerPage: React.FC = () => {
           selectedYear={selectedYear} 
           weekDates={weekDates}
           viewMode={viewMode}
+          selectedIds={selectedIds}
+          selectionActive={selectedIds.size > 0}
+          onToggleSelect={handleToggleSelect}
         />
 
         {/* Assignment Dialog */}
