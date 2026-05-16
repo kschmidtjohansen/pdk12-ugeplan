@@ -1,51 +1,79 @@
-# Plan: Virtualize long day-sections in default Planner view
+## PWA Integration with vite-plugin-pwa
 
-## Goal
-For the default (non-compact, non-grid) Planner view, virtualize the list of `AssignmentCard`s inside any day that holds more than 12 assignments. Compact and Grid views stay as direct rendering.
+### Goal
+Add Progressive Web App support using `vite-plugin-pwa` with `generateSW` strategy, Workbox precaching, and runtime caching for Supabase API calls.
 
-## Scope
-- Only the card list inside `DaySection` (default variant). Header, publish button, `DayAbsenceRow`, and `EmptyDayCTA` remain outside the virtualizer.
-- Threshold: `assignments.length > 12`.
-- Virtualizer config: `estimateSize: () => 88`, `overscan: 3`.
-- Keep `React.memo` on `AssignmentCard` (already in place — line 274).
+---
 
-## Notes on existing infrastructure
-- `@tanstack/react-virtual` is **already installed** (used by `src/components/Planner/VirtualList.tsx`). No new dependency needed — install step in the request is a no-op we can skip / confirm.
-- Existing `VirtualList` uses `useWindowVirtualizer` at day-section granularity (10+ days). We are adding a second, inner virtualization layer for cards within a single day, using `useVirtualizer` with a scoped scroll parent (window scroll).
+### Important Limitation
+PWA features (service worker, offline support, install prompt) will only work in the **published/deployed version** (`pdk12.dk` / `pdk12-ugeplan.lovable.app`), not inside the Lovable editor preview. The service worker must be guarded so it never registers in preview iframe contexts.
 
-## Changes
+---
 
-### 1. `src/components/Planner/DaySection.tsx`
-- Import `useWindowVirtualizer` from `@tanstack/react-virtual` and `useRef`.
-- When `gridLayout === false` AND `dayAssignments.length > 12`, render the cards through a virtualizer:
-  - `count: dayAssignments.length`
-  - `estimateSize: () => 88`
-  - `overscan: 3`
-  - `getItemKey: (i) => dayAssignments[i].id`
-  - `scrollMargin: parentRef.current?.offsetTop ?? 0`
-  - Use `measureElement` ref on each row to handle taller cards.
-- For `gridLayout === true` (grid view inside default mode) keep current direct rendering.
-- For `dayAssignments.length <= 12` keep current direct rendering.
-- `EmptyDayCTA` branch unchanged.
+### Implementation Steps
 
-### 2. Compact + Grid views — unchanged
-- `CompactCurrentAndFutureDays` / `CompactPastAssignments`: untouched.
-- Grid layout branch in `DaySection` (`gridLayout=true`): untouched.
+#### 1. Install `vite-plugin-pwa`
+```bash
+bun add -D vite-plugin-pwa
+```
 
-### 3. `AssignmentCard`
-- No changes — already `React.memo`-wrapped.
+#### 2. Update `vite.config.ts`
+Add the `VitePWA` plugin with the following configuration:
 
-### 4. Documentation
-- `CHANGELOG.md`: add entry under Performance — "Virtualize day sections with >12 assignments using @tanstack/react-virtual (estimateSize 88, overscan 3)".
-- `docs/implementation-plan/tasks.md`: add matching `[x]` entry.
+| Option | Value |
+|--------|-------|
+| `registerType` | `'autoUpdate'` |
+| `devOptions.enabled` | `false` (never register SW in development) |
+| `manifest.name` | `'Polygon Ugeplan'` |
+| `manifest.short_name` | `'Ugeplan'` |
+| `manifest.theme_color` | `'#00aeef'` |
+| `manifest.icons` | Single icon entry: `src: '/favicon.png', sizes: '192x192', type: 'image/png'` |
+| `manifest.start_url` | `'/'` |
+| `manifest.display` | `'standalone'` |
 
-## Out of scope
-- Compact view virtualization.
-- Grid view virtualization.
-- Changes to outer day-list virtualization in `CurrentAndFutureDays`.
-- Any business-logic changes.
+**Workbox configuration (`workbox` key):**
+- `navigateFallbackDenylist`: exclude `[^/]+~oauth` (internal Supabase/auth routes)
+- `runtimeCaching`:
+  - **HTML navigations**: `NetworkFirst`, 3s network timeout, cache name `"html"`
+  - **Supabase REST API**: match `request.destination === ''` + URL hostname includes `supabase.co`, strategy `NetworkFirst`, cache name `"supabase-api"`, `maxAgeSeconds: 300` (5 minutes), `maxEntries: 100`
+  - **Static assets** (JS/CSS/fonts/images): `CacheFirst`, cache name `"static-assets"`, `maxAgeSeconds: 31536000` (1 year)
+- `globPatterns`: `['**/*.{js,css,html,woff2,png,svg}']` (precache build output)
+- `cleanupOutdatedCaches`: `true`
 
-## Verification
-- Open Planner in default view on a week with >12 assignments in one day → cards render, scrolling smooth, no layout shift between rows, expand/collapse still works.
-- Days with ≤12 assignments still render directly (no absolute positioning).
-- Compact and grid views unchanged.
+#### 3. Add service-worker registration guard to `src/main.tsx`
+Insert before `createRoot()`:
+```typescript
+const isInIframe = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+const isPreviewHost = window.location.hostname.includes('id-preview--') || window.location.hostname.includes('lovableproject.com');
+
+if (isPreviewHost || isInIframe) {
+  navigator.serviceWorker?.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
+}
+```
+This prevents the service worker from interfering with the Lovable editor preview.
+
+#### 4. Add manifest link to `index.html`
+Insert inside `<head>`:
+```html
+<link rel="manifest" href="/manifest.webmanifest" />
+```
+
+#### 5. Verify build succeeds
+Run `bun run build` and confirm no errors. The plugin auto-generates `manifest.webmanifest` and the service worker in `dist/`.
+
+---
+
+### Files Modified
+- `vite.config.ts` — add `VitePWA` plugin import and configuration
+- `src/main.tsx` — add SW registration guard
+- `index.html` — add manifest link
+- `package.json` — add `vite-plugin-pwa` devDependency
+
+### Files Generated (at build time)
+- `dist/manifest.webmanifest`
+- `dist/sw.js` (Workbox service worker)
+
+### Not in Scope
+- Background sync (explicitly excluded per request)
+- Custom icon sizes beyond existing `favicon.png`
+- Push notifications

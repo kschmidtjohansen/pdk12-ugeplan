@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-16 — PWA: vite-plugin-pwa med Workbox runtime cache
+
+### Performance / Offline
+- Tilføjet `vite-plugin-pwa` (`generateSW`) i `vite.config.ts`: precache af JS/CSS/HTML/font/billede-assets, `NetworkFirst` for Supabase REST/Functions med 5 min `maxAgeSeconds`, `NetworkFirst` for HTML-navigation, `CacheFirst` for Google Fonts og statiske assets, `cleanupOutdatedCaches: true`.
+- Manifest: `name "Polygon Ugeplan"`, `short_name "Ugeplan"`, `theme_color "#00aeef"`, ikoner fra `/favicon.png` (192/512, maskable). `<link rel="manifest">` tilføjet i `index.html`.
+- `src/main.tsx` afregistrerer service workers i iframe/preview-hosts (Lovable-editoren) for at undgå stale cache. Ingen background sync.
+
 ## 2026-05-16 — Performance: virtualisering af lange dag-sektioner i Planner
 
 ### Performance
