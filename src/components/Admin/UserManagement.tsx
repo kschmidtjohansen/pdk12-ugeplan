@@ -52,7 +52,7 @@ const UserManagement: React.FC = () => {
   });
 
   const isSuperAdmin = authUser?.role === 'super_admin';
-  const isAdmin = authUser?.role === 'administrator';
+  const isAdmin = authUser?.role === 'administrator' || isSuperAdmin;
   const canSeeUnassigned = isSuperAdmin || isAdmin;
 
   // Demo user constants

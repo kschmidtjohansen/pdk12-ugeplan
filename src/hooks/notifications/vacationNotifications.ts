@@ -14,7 +14,7 @@ export const useVacationNotifications = (
   
   // Create notifications for pending vacation requests
   const createNotificationsForPendingRequests = useCallback(async () => {
-    if (!user || user.role !== 'administrator' || !selectedDepartmentId) {
+    if (!user || (user.role !== 'administrator' && user.role !== 'super_admin') || !selectedDepartmentId) {
       return;
     }
     
@@ -102,7 +102,7 @@ export const useVacationNotifications = (
 
   // Check if >50% of service employees have vacation in any upcoming week
   const checkHighVacationWeeks = useCallback(async () => {
-    if (!user || user.role !== 'administrator' || !selectedDepartmentId) {
+    if (!user || (user.role !== 'administrator' && user.role !== 'super_admin') || !selectedDepartmentId) {
       return;
     }
 
@@ -240,7 +240,7 @@ export const useVacationNotifications = (
 
   // Run when user becomes an admin
   useEffect(() => {
-    if (user?.role === 'administrator') {
+    if (user?.role === 'administrator' || user?.role === 'super_admin') {
       createNotificationsForPendingRequests();
       checkHighVacationWeeks();
     }

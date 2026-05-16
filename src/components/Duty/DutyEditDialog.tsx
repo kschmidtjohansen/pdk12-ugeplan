@@ -54,7 +54,7 @@ export const DutyEditDialog = ({
       const employee = employees.find(emp => emp.id === selectedEmployeeId);
       if (employee) {
         const role = employee.role;
-        if (role !== 'administrator' && role !== 'skadeleder') {
+        if (role !== 'administrator' && role !== 'skadeleder' && role !== 'super_admin') {
           setValidationError(t('duty.invalidRoleForSkadeleder'));
           return false;
         }

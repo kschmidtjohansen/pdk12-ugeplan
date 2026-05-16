@@ -52,7 +52,7 @@ export const useNotifications = () => {
   const { createNotificationsForPendingRequests } = useVacationNotifications(user, addNotification);
   
   useEffect(() => {
-    if (user && user.role !== 'administrator' && notifications.length > 0) {
+    if (user && user.role !== 'administrator' && user.role !== 'super_admin' && notifications.length > 0) {
       const filteredNotifications = notifications.filter(notification => {
         if (notification.targetUserId === user.id) return true;
         if (notification.type === 'vacation' && !notification.message?.includes(user.name)) return false;
@@ -71,7 +71,7 @@ export const useNotifications = () => {
   }, [user, notifications, setNotifications, setUnreadCount]);
   
   useEffect(() => {
-    if (user?.role === 'administrator' && !loading && notifications.length >= 0 && !systemReadyRef.current) {
+    if ((user?.role === 'administrator' || user?.role === 'super_admin') && !loading && notifications.length >= 0 && !systemReadyRef.current) {
       if (import.meta.env.DEV) {
         console.log('Checking for any missing admin notifications for pending vacations');
       }

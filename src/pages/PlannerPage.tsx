@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
 import BulkActionBar from '@/components/Planner/BulkActionBar';
 import BulkAssignEmployeeDialog from '@/components/Planner/BulkAssignEmployeeDialog';
+import BulkAssignCarDialog from '@/components/Planner/BulkAssignCarDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -137,6 +138,7 @@ const PlannerPage: React.FC = () => {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [bulkAssignCarOpen, setBulkAssignCarOpen] = useState(false);
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
@@ -440,16 +442,26 @@ const PlannerPage: React.FC = () => {
   }, [publishAssignmentsByDate]);
 
   // ---- Bulk actions ----
-  const handleBulkPublish = useCallback(async () => {
+  const handleBulkAssignCar = useCallback(async (carId: string) => {
     if (selectedIds.size === 0) return;
     setBulkBusy(true);
     try {
-      await publishAssignmentsByIds([...selectedIds]);
-      clearSelection();
+      const ids = [...selectedIds];
+      const { error } = await supabase
+        .from('assignments')
+        .update({ car_id: carId })
+        .in('id', ids);
+      if (error) {
+        toast({ title: 'Kunne ikke tildele køretøj', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: `Køretøj tildelt ${ids.length} opgave${ids.length === 1 ? '' : 'r'}` });
+        await refetch();
+        clearSelection();
+      }
     } finally {
       setBulkBusy(false);
     }
-  }, [selectedIds, publishAssignmentsByIds, clearSelection]);
+  }, [selectedIds, toast, refetch, clearSelection]);
 
   const handleBulkDeleteConfirm = useCallback(async () => {
     if (selectedIds.size === 0) return;
@@ -832,9 +844,9 @@ const PlannerPage: React.FC = () => {
         <BulkActionBar
           count={selectedIds.size}
           busy={bulkBusy}
-          onPublish={handleBulkPublish}
-          onDelete={() => setBulkDeleteOpen(true)}
           onAssignEmployee={() => setBulkAssignOpen(true)}
+          onAssignCar={() => setBulkAssignCarOpen(true)}
+          onDelete={() => setBulkDeleteOpen(true)}
           onClear={clearSelection}
         />
 
@@ -843,6 +855,13 @@ const PlannerPage: React.FC = () => {
           count={selectedIds.size}
           onClose={() => setBulkAssignOpen(false)}
           onConfirm={handleBulkAssignEmployee}
+        />
+
+        <BulkAssignCarDialog
+          open={bulkAssignCarOpen}
+          count={selectedIds.size}
+          onClose={() => setBulkAssignCarOpen(false)}
+          onConfirm={handleBulkAssignCar}
         />
 
         <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
