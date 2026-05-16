@@ -38,6 +38,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
 }) => {
   const { t } = useTranslation();
   const { assignments: allAssignments } = useAssignments();
+  const { employees } = useEmployees();
   const { getConflicts } = useAssignmentConflicts(allAssignments);
   const conflicts = getConflicts(assignment.id);
   const hasConflict = conflicts.length > 0;
