@@ -25,8 +25,8 @@ import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
 import BulkActionBar from '@/components/Planner/BulkActionBar';
-import BulkAssignEmployeeDialog from '@/components/Planner/BulkAssignEmployeeDialog';
-import BulkAssignCarDialog from '@/components/Planner/BulkAssignCarDialog';
+const BulkAssignEmployeeDialog = lazy(() => import('@/components/Planner/BulkAssignEmployeeDialog'));
+const BulkAssignCarDialog = lazy(() => import('@/components/Planner/BulkAssignCarDialog'));
 import {
   AlertDialog,
   AlertDialogAction,
@@ -850,19 +850,25 @@ const PlannerPage: React.FC = () => {
           onClear={clearSelection}
         />
 
-        <BulkAssignEmployeeDialog
-          open={bulkAssignOpen}
-          count={selectedIds.size}
-          onClose={() => setBulkAssignOpen(false)}
-          onConfirm={handleBulkAssignEmployee}
-        />
+        <Suspense fallback={null}>
+          {bulkAssignOpen && (
+            <BulkAssignEmployeeDialog
+              open={bulkAssignOpen}
+              count={selectedIds.size}
+              onClose={() => setBulkAssignOpen(false)}
+              onConfirm={handleBulkAssignEmployee}
+            />
+          )}
 
-        <BulkAssignCarDialog
-          open={bulkAssignCarOpen}
-          count={selectedIds.size}
-          onClose={() => setBulkAssignCarOpen(false)}
-          onConfirm={handleBulkAssignCar}
-        />
+          {bulkAssignCarOpen && (
+            <BulkAssignCarDialog
+              open={bulkAssignCarOpen}
+              count={selectedIds.size}
+              onClose={() => setBulkAssignCarOpen(false)}
+              onConfirm={handleBulkAssignCar}
+            />
+          )}
+        </Suspense>
 
         <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
           <AlertDialogContent>
