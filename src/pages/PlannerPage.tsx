@@ -25,8 +25,8 @@ import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
 import BulkActionBar from '@/components/Planner/BulkActionBar';
-import BulkAssignEmployeeDialog from '@/components/Planner/BulkAssignEmployeeDialog';
-import BulkAssignCarDialog from '@/components/Planner/BulkAssignCarDialog';
+const BulkAssignEmployeeDialog = lazy(() => import('@/components/Planner/BulkAssignEmployeeDialog'));
+const BulkAssignCarDialog = lazy(() => import('@/components/Planner/BulkAssignCarDialog'));
 import {
   AlertDialog,
   AlertDialogAction,
