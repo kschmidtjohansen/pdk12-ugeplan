@@ -58,7 +58,7 @@ const AppTopBar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 h-11 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 border-b border-border/70">
+    <header role="banner" className="sticky top-0 z-40 h-11 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 border-b border-border/70">
       <div className="flex items-center h-full px-2 sm:px-3 gap-2">
         <SidebarTrigger className="text-muted-foreground hover:text-foreground h-8 w-8 hidden lg:inline-flex" />
         <div className="h-4 w-px bg-border hidden sm:block" />
