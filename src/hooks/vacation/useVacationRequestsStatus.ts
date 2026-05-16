@@ -47,29 +47,22 @@ export const useVacationRequestsStatus = () => {
     fetchPendingRequests();
 
     // Set up real-time subscription for vacation status changes
-    const channel = supabase
-      .channel('vacation-requests-status-public')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'vacations',
-          filter: 'status=eq.pending'
-        },
-        () => {
-          fetchPendingRequests();
-        }
-      )
-      .subscribe();
+    const unsubscribe = subscribeToTable({
+      key: `useVacationRequestsStatus:${selectedDepartmentId ?? 'demo'}`,
+      table: 'vacations',
+      filter: 'status=eq.pending',
+      callback: () => {
+        fetchPendingRequests();
+      },
+    });
 
-    // Add polling fallback every 30 seconds to ensure updates aren't missed
+    // Polling fallback every 30 seconds to ensure updates aren't missed
     const pollInterval = setInterval(() => {
       fetchPendingRequests();
     }, 30000);
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
       clearInterval(pollInterval);
     };
   }, [isEffectiveAdmin, userDataLoaded, isDemoMode, selectedDepartmentId]);
