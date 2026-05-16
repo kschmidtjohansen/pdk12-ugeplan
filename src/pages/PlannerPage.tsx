@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
 import BulkActionBar from '@/components/Planner/BulkActionBar';
 import BulkAssignEmployeeDialog from '@/components/Planner/BulkAssignEmployeeDialog';
+import BulkAssignCarDialog from '@/components/Planner/BulkAssignCarDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -832,9 +833,9 @@ const PlannerPage: React.FC = () => {
         <BulkActionBar
           count={selectedIds.size}
           busy={bulkBusy}
-          onPublish={handleBulkPublish}
-          onDelete={() => setBulkDeleteOpen(true)}
           onAssignEmployee={() => setBulkAssignOpen(true)}
+          onAssignCar={() => setBulkAssignCarOpen(true)}
+          onDelete={() => setBulkDeleteOpen(true)}
           onClear={clearSelection}
         />
 
@@ -843,6 +844,13 @@ const PlannerPage: React.FC = () => {
           count={selectedIds.size}
           onClose={() => setBulkAssignOpen(false)}
           onConfirm={handleBulkAssignEmployee}
+        />
+
+        <BulkAssignCarDialog
+          open={bulkAssignCarOpen}
+          count={selectedIds.size}
+          onClose={() => setBulkAssignCarOpen(false)}
+          onConfirm={handleBulkAssignCar}
         />
 
         <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
