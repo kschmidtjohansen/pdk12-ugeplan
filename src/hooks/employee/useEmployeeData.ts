@@ -202,27 +202,24 @@ export const useEmployeeData = () => {
 
     let timeoutId: NodeJS.Timeout;
 
-    const channel = supabase
-      .channel(`employee_changes_public`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
-        if (import.meta.env.DEV) console.log(`[useEmployeeData] Profile change detected:`, payload.eventType);
+    const unsubscribe = subscribeToTables(
+      `useEmployeeData:${user.id}`,
+      [
+        { table: 'profiles' },
+        { table: 'user_roles' },
+      ],
+      (table, payload) => {
+        if (import.meta.env.DEV) console.log(`[useEmployeeData] ${table} change detected:`, payload?.eventType);
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
           queryClient.invalidateQueries({ queryKey: ['employees'] });
         }, 1000);
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, (payload) => {
-        if (import.meta.env.DEV) console.log(`[useEmployeeData] Role change detected:`, payload.eventType);
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['employees'] });
-        }, 1000);
-      })
-      .subscribe();
+      }
+    );
 
     return () => {
       clearTimeout(timeoutId);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [isDemoMode, userDataLoaded, user, queryClient]);
 
