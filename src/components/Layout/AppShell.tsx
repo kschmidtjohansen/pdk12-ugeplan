@@ -10,6 +10,10 @@ interface AppShellProps {
 }
 
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
+  useEffect(() => {
+    applyColorScheme(getStoredColorScheme());
+  }, []);
+
   return (
     <>
       <a
