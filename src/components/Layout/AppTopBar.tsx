@@ -5,7 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { NotificationType } from '@/types/notification';
-import NotificationsDropdown from './NavComponents/NotificationsDropdown';
+import NotificationsDrawer from './NavComponents/NotificationsDrawer';
 import ChangeLogDropdown from './NavComponents/ChangeLogDropdown';
 import UserMenu from './NavComponents/UserMenu';
 import VacationOverviewDropdown from './NavComponents/VacationOverviewDropdown';
@@ -72,13 +72,7 @@ const AppTopBar: React.FC = () => {
         )}
 
         <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
-          <NotificationsDropdown
-            notifications={notifications.slice(0, 10)}
-            unreadCount={unreadCount}
-            markAllAsRead={markAllAsRead}
-            handleNotificationClick={handleNotificationClick}
-            clearNotification={deleteNotification}
-          />
+          <NotificationsDrawer />
           {canSeeVacationOverview && <VacationOverviewDropdown />}
           <ChangeLogDropdown />
           <UserMenu
