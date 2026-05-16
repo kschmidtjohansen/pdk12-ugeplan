@@ -1,14 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import AppSidebar from './AppSidebar';
 import AppTopBar from './AppTopBar';
 import MobileBottomNav from './MobileBottomNav';
+import { applyColorScheme, getStoredColorScheme } from '@/hooks/useColorScheme';
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
+  useEffect(() => {
+    applyColorScheme(getStoredColorScheme());
+  }, []);
+
   return (
     <>
       <a

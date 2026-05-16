@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Camera, Lock, Crown, Building2, Layers } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor } from 'lucide-react';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,9 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string | null>(null);
+  const { scheme, setScheme } = useColorScheme();
+  const schemeLabel = scheme === 'light' ? 'Lyst tema' : scheme === 'dark' ? 'Mørkt tema' : 'System';
+  const SchemeIcon = scheme === 'light' ? Sun : scheme === 'dark' ? Moon : Monitor;
 
   const getInitials = (name: string): string => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
@@ -161,7 +165,20 @@ const UserMenu: React.FC<UserMenuProps> = ({
           </DropdownMenuItem>
           
           <DropdownMenuSeparator />
-          
+
+          {/* Theme Selector */}
+          <DropdownMenuLabel className="flex items-center gap-2">
+            <SchemeIcon className="h-4 w-4" />
+            {schemeLabel}
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup value={scheme} onValueChange={(v) => setScheme(v as 'light' | 'dark' | 'system')}>
+            <DropdownMenuRadioItem value="light" className="cursor-pointer">Lyst tema</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="dark" className="cursor-pointer">Mørkt tema</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="system" className="cursor-pointer">System</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+
+          <DropdownMenuSeparator />
+
           {/* Language Selector */}
           <DropdownMenuLabel>{t('common.language')}</DropdownMenuLabel>
           <DropdownMenuRadioGroup value={currentLanguage} onValueChange={val => setLanguage(val as 'en' | 'da')}>
