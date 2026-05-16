@@ -8,10 +8,20 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { formatDateForDisplay } from '@/utils/dateUtils';
 
-const ChangeLogList: React.FC = () => {
+interface ChangeLogListProps {
+  onNavigate?: () => void;
+  hideHeader?: boolean;
+}
+
+const ChangeLogList: React.FC<ChangeLogListProps> = ({ onNavigate, hideHeader = false }) => {
   const { changeLogs, loading: isLoading } = useChangeLogs();
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const go = (path: string) => {
+    onNavigate?.();
+    navigate(path);
+  };
 
   const getOperationIcon = (operation: string) => {
     switch (operation) {
