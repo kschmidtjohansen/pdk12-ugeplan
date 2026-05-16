@@ -1,10 +1,10 @@
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
-import AssignmentDialogManager from './AssignmentDialogManager';
+const AssignmentDialogManager = lazy(() => import('./AssignmentDialogManager'));
 
 interface PlannerDialogContainerProps {
   isDialogOpen: boolean;
