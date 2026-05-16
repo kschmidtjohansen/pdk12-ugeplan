@@ -88,9 +88,7 @@ const CarsPage: React.FC = () => {
             }
           >
             {loading ? (
-              <div className="flex justify-center items-center p-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary" />
-              </div>
+              <ListSkeleton />
             ) : error ? (
               <div className="p-6">
                 <div className="bg-destructive/10 border border-destructive/30 text-destructive p-4 rounded-lg text-sm">
