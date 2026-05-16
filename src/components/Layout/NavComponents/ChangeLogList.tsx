@@ -8,10 +8,20 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { formatDateForDisplay } from '@/utils/dateUtils';
 
-const ChangeLogList: React.FC = () => {
+interface ChangeLogListProps {
+  onNavigate?: () => void;
+  hideHeader?: boolean;
+}
+
+const ChangeLogList: React.FC<ChangeLogListProps> = ({ onNavigate, hideHeader = false }) => {
   const { changeLogs, loading: isLoading } = useChangeLogs();
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const go = (path: string) => {
+    onNavigate?.();
+    navigate(path);
+  };
 
   const getOperationIcon = (operation: string) => {
     switch (operation) {
@@ -72,16 +82,18 @@ const ChangeLogList: React.FC = () => {
 
   const handleLogClick = (log: any) => {
     if (log.assignment_id && log.operation !== 'DELETE') {
-      navigate('/planner');
+      go('/planner');
     }
   };
 
   if (isLoading) {
     return (
       <div className="w-full">
-        <div className="p-4 border-b">
-          <h3 className="font-semibold text-sm">{t('changeLog.recentChanges')}</h3>
-        </div>
+        {!hideHeader && (
+          <div className="p-4 border-b">
+            <h3 className="font-semibold text-sm">{t('changeLog.recentChanges')}</h3>
+          </div>
+        )}
         <div className="p-4 text-center text-sm text-muted-foreground">
           {t('common.loading')}
         </div>
@@ -89,7 +101,7 @@ const ChangeLogList: React.FC = () => {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => navigate('/changelog')}
+            onClick={() => go('/changelog')}
           >
             {t('changeLog.viewAll')}
           </Button>
@@ -99,12 +111,14 @@ const ChangeLogList: React.FC = () => {
   }
 
   return (
-    <div className="w-full">
-      <div className="p-4 border-b">
-        <h3 className="font-semibold text-sm">{t('changeLog.recentChanges')}</h3>
-      </div>
-      
-      <ScrollArea className="h-[350px]">
+    <div className="w-full flex flex-col h-full">
+      {!hideHeader && (
+        <div className="p-4 border-b">
+          <h3 className="font-semibold text-sm">{t('changeLog.recentChanges')}</h3>
+        </div>
+      )}
+
+      <ScrollArea className={hideHeader ? 'flex-1' : 'h-[350px]'}>
         <div className="p-2">
           {changeLogs.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
@@ -136,7 +150,7 @@ const ChangeLogList: React.FC = () => {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => navigate('/changelog')}
+          onClick={() => go('/changelog')}
         >
           {t('changeLog.viewAll')}
         </Button>
