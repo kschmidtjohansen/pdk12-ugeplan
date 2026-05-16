@@ -176,15 +176,16 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
 
     if (isDemoMode) return; // Demo: no realtime needed
 
-    const channel = supabase
-      .channel(`cars-changes-public`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, (payload) => {
+    const unsubscribe = subscribeToTable({
+      key: `useCarData:${user.id}`,
+      table: 'cars',
+      callback: (payload) => {
         if (import.meta.env.DEV) console.log(`[useCarData] Realtime update received:`, payload);
         queryClient.invalidateQueries({ queryKey: ['cars'] });
-      })
-      .subscribe();
+      },
+    });
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { unsubscribe(); };
   }, [isDemoMode, userDataLoaded, user?.id, queryClient]);
 
   return {
