@@ -226,20 +226,19 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       }, 1000);
     };
 
-    const channel = supabase
-      .channel('optimized-assignments-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, handleRealtimeChange)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments_employees' }, handleRealtimeChange)
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          if (import.meta.env.DEV) console.warn('[useOptimizedAssignments] Realtime channel error');
-        }
-      });
+    const unsubscribe = subscribeToTables(
+      `useOptimizedAssignments:${user.id}`,
+      [
+        { table: 'assignments' },
+        { table: 'assignments_employees' },
+      ],
+      () => handleRealtimeChange()
+    );
 
     return () => {
       isMounted = false;
       if (debounceTimer) clearTimeout(debounceTimer);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [isAuthenticated, user?.id, user?.email, queryClient]);
 
