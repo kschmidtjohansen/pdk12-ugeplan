@@ -148,7 +148,7 @@ const AppSidebar: React.FC = () => {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="py-2">
+      <SidebarContent className="py-2" role="navigation" aria-label="Primær navigation">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>{items.map(renderItem)}</SidebarMenu>
