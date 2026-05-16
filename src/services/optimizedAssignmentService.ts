@@ -769,6 +769,27 @@ export class OptimizedAssignmentService {
     return this.updateAssignment(assignmentId, { published: true }, userEmail);
   }
 
+  static async publishAssignmentsByIds(ids: string[], userEmail?: string): Promise<boolean> {
+    const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
+    if (isDemoMode) throw new Error('Demo mode is read-only. Cannot publish assignments.');
+    if (!ids || ids.length === 0) return true;
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({ published: true })
+        .in('id', ids);
+      if (error) {
+        if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error publishing by ids:', error);
+        return false;
+      }
+      this.clearCache();
+      return true;
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error publishing by ids:', error);
+      return false;
+    }
+  }
+
   static async publishAssignmentsByDate(date: string, userEmail?: string): Promise<boolean> {
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     if (isDemoMode) throw new Error('Demo mode is read-only. Cannot publish assignments.');
