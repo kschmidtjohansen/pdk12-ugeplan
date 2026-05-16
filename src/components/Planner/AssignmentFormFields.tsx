@@ -191,183 +191,189 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">{t('planner.enterTitle')}</Label>
-        <Input
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder={t('planner.enterTitle')}
-          required
-        />
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* LEFT COLUMN */}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="title">{t('planner.enterTitle')}</Label>
+          <Input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={t('planner.enterTitle')}
+            required
+          />
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="location">{t('planner.location')}</Label>
-        <AddressAutocomplete
-          value={location}
-          onChange={(val) => {
-            setLocation(val);
-            // Extract postcode from manual input (format: "Street, 7000 City")
-            const match = val.match(/,\s*(\d{4})\s/);
-            if (match) {
-              setCasePostcode(match[1]);
-              setZipCode(match[1]);
-              // Fetch coords for the extracted postcode
-              fetchPostnrCoords(match[1]).then(coords => {
-                onCoordsChange?.(coords?.lat, coords?.lng);
-                setCaseLat(coords?.lat);
-                setCaseLng(coords?.lng);
-              });
-            }
-          }}
-          onAddressSelect={(data) => {
-            setLocation(data.address);
-            setCasePostcode(data.zipCode);
-            setZipCode(data.zipCode);
-            setCity(data.city);
-            // Use coords directly from DAWA autocomplete response (no extra API call)
-            if (data.lat !== undefined && data.lng !== undefined) {
-              onCoordsChange?.(data.lat, data.lng);
-              setCaseLat(data.lat);
-              setCaseLng(data.lng);
-            } else {
-              // Fallback: fetch coords if not available in autocomplete response
-              fetchPostnrCoords(data.zipCode).then(coords => {
-                onCoordsChange?.(coords?.lat, coords?.lng);
-                setCaseLat(coords?.lat);
-                setCaseLng(coords?.lng);
-              });
-            }
-          }}
-          placeholder={t('planner.enterLocation')}
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="location">{t('planner.location')}</Label>
+          <AddressAutocomplete
+            value={location}
+            onChange={(val) => {
+              setLocation(val);
+              // Extract postcode from manual input (format: "Street, 7000 City")
+              const match = val.match(/,\s*(\d{4})\s/);
+              if (match) {
+                setCasePostcode(match[1]);
+                setZipCode(match[1]);
+                // Fetch coords for the extracted postcode
+                fetchPostnrCoords(match[1]).then(coords => {
+                  onCoordsChange?.(coords?.lat, coords?.lng);
+                  setCaseLat(coords?.lat);
+                  setCaseLng(coords?.lng);
+                });
+              }
+            }}
+            onAddressSelect={(data) => {
+              setLocation(data.address);
+              setCasePostcode(data.zipCode);
+              setZipCode(data.zipCode);
+              setCity(data.city);
+              // Use coords directly from DAWA autocomplete response (no extra API call)
+              if (data.lat !== undefined && data.lng !== undefined) {
+                onCoordsChange?.(data.lat, data.lng);
+                setCaseLat(data.lat);
+                setCaseLng(data.lng);
+              } else {
+                // Fallback: fetch coords if not available in autocomplete response
+                fetchPostnrCoords(data.zipCode).then(coords => {
+                  onCoordsChange?.(coords?.lat, coords?.lng);
+                  setCaseLat(coords?.lat);
+                  setCaseLng(coords?.lng);
+                });
+              }
+            }}
+            placeholder={t('planner.enterLocation')}
+          />
+        </div>
 
-      <div className="space-y-2">
-        <Label>{t('planner.selectMultipleDates')}</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-left font-normal"
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedDates.length > 0 
-                ? t('planner.datesSelected', { count: selectedDates.length })
-                : t('common.selectDate')}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-            <Calendar
-              mode="multiple"
-              selected={selectedDates}
-              onSelect={handleDateSelect}
-              initialFocus
-              locale={currentLanguage === 'da' ? da : undefined}
-              className="pointer-events-auto"
-              disabled={(date) => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                return date < today;
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-        {selectedDates.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {selectedDates.map((date, index) => (
-              <div 
-                key={index}
-                className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-sm"
+        <div className="space-y-2">
+          <Label>{t('planner.selectMultipleDates')}</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
               >
-                <span>{formatDateDisplay(date)}</span>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDates.length > 0 
+                  ? t('planner.datesSelected', { count: selectedDates.length })
+                  : t('common.selectDate')}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+              <Calendar
+                mode="multiple"
+                selected={selectedDates}
+                onSelect={handleDateSelect}
+                initialFocus
+                locale={currentLanguage === 'da' ? da : undefined}
+                className="pointer-events-auto"
+                disabled={(date) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  return date < today;
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+          {selectedDates.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {selectedDates.map((date, index) => (
+                <div 
+                  key={index}
+                  className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-sm"
+                >
+                  <span>{formatDateDisplay(date)}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDate(date)}
+                    className="ml-1 hover:text-destructive"
+                    aria-label={t('planner.removeDate')}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              {selectedDates.length > 1 && (
                 <button
                   type="button"
-                  onClick={() => handleRemoveDate(date)}
-                  className="ml-1 hover:text-destructive"
-                  aria-label={t('planner.removeDate')}
+                  onClick={() => setSelectedDates([])}
+                  className="px-2 py-1 text-xs text-muted-foreground hover:text-destructive underline"
                 >
-                  ×
+                  {t('planner.clearDates')}
                 </button>
-              </div>
-            ))}
-            {selectedDates.length > 1 && (
-              <button
-                type="button"
-                onClick={() => setSelectedDates([])}
-                className="px-2 py-1 text-xs text-muted-foreground hover:text-destructive underline"
-              >
-                {t('planner.clearDates')}
-              </button>
-            )}
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="fromTime">{t('planner.fromTime')}</Label>
+            <Input
+              id="fromTime"
+              type="time"
+              value={fromTime}
+              onChange={(e) => setFromTime(e.target.value)}
+            />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="toTime">{t('planner.toTime')}</Label>
+            <Input
+              id="toTime"
+              type="time"
+              value={toTime}
+              onChange={(e) => setToTime(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="description">{t('planner.assignmentDescription')}</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={t('planner.notesPlaceholder')}
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN */}
+      <div className="space-y-4">
+        {canAssignResponsibleUser && (
+          <ResponsibleUserSelector
+            selectedUserId={selectedResponsibleUserId}
+            onUserSelect={(userId) => setSelectedResponsibleUserId(userId)}
+          />
         )}
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="fromTime">{t('planner.fromTime')}</Label>
-          <Input
-            id="fromTime"
-            type="time"
-            value={fromTime}
-            onChange={(e) => setFromTime(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="toTime">{t('planner.toTime')}</Label>
-          <Input
-            id="toTime"
-            type="time"
-            value={toTime}
-            onChange={(e) => setToTime(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <EmployeeSelector
-        employees={employees}
-        selectedEmployees={selectedEmployees}
-        onToggle={onEmployeeToggle}
-        vacations={vacations}
-        currentDate={currentDateStr}
-        assignments={assignments}
-        casePostcode={casePostcode}
-        caseLat={caseLat}
-        caseLng={caseLng}
-        allSelectedDates={selectedDates}
-      />
-
-      {canAssignResponsibleUser && (
-        <ResponsibleUserSelector
-          selectedUserId={selectedResponsibleUserId}
-          onUserSelect={(userId) => setSelectedResponsibleUserId(userId)}
-        />
-      )}
-
-      <div className="space-y-2">
-        <MultipleCarSelector
-          cars={cars.filter(car => car.show_in_planner !== false)}
-          selectedCarIds={selectedCarIds}
-          onCarToggle={handleCarToggle}
+        <EmployeeSelector
+          employees={employees}
+          selectedEmployees={selectedEmployees}
+          onToggle={onEmployeeToggle}
+          vacations={vacations}
           currentDate={currentDateStr}
           assignments={assignments}
-          currentAssignmentId={assignmentId}
+          casePostcode={casePostcode}
+          caseLat={caseLat}
+          caseLng={caseLng}
           allSelectedDates={selectedDates}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">{t('planner.assignmentDescription')}</Label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder={t('planner.notesPlaceholder')}
-          rows={3}
-        />
+        <div className="space-y-2">
+          <MultipleCarSelector
+            cars={cars.filter(car => car.show_in_planner !== false)}
+            selectedCarIds={selectedCarIds}
+            onCarToggle={handleCarToggle}
+            currentDate={currentDateStr}
+            assignments={assignments}
+            currentAssignmentId={assignmentId}
+            allSelectedDates={selectedDates}
+          />
+        </div>
       </div>
     </div>
   );
