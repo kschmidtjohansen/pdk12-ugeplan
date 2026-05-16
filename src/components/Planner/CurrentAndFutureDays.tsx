@@ -85,6 +85,9 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
           cars={cars}
           operationStates={operationStates}
           gridLayout={gridLayout}
+          selectedIds={selectedIds}
+          selectionActive={selectionActive}
+          onToggleSelect={onToggleSelect}
         />
         </PlannerWidgetErrorBoundary>
       )}
