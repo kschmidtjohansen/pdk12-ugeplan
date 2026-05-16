@@ -408,6 +408,17 @@ const planner = {
   employeeStatusVacation: 'Vacation',
   carStatusAvailable: 'Available',
   carWithTrailerLabel: 'Trailer',
+  conflict: {
+    title: 'Double booking',
+    resolved: 'Conflict resolved',
+    thisAssignment: 'This assignment',
+    conflictsWith: 'Conflicts with',
+    changeTime: 'Change time',
+    changeResource: 'Change employee / car',
+    save: 'Save',
+    cancel: 'Cancel',
+    invalidTime: 'Invalid time range',
+  },
 };
 
 export default planner;
