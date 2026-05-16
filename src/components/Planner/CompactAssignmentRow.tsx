@@ -101,7 +101,15 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
             <Clock className="h-3 w-3" />
             {timeDisplay}
           </span>
-          {hasConflict && <ConflictBadge conflicts={conflicts} size="sm" />}
+          {hasConflict && (
+            <ConflictBadge
+              conflicts={conflicts}
+              size="sm"
+              assignment={assignment}
+              allAssignments={allAssignments}
+              cars={cars}
+            />
+          )}
         </div>
       </td>
       
