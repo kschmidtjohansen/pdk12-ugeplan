@@ -97,10 +97,12 @@ const AdminPage: React.FC = () => {
               <CalendarDays className="h-4 w-4" />
               {t('admin.tabs.vacationCalendar')}
             </TabsTrigger>
-            <TabsTrigger value="webVitals" className="gap-2">
-              <Activity className="h-4 w-4" />
-              Web Vitals
-            </TabsTrigger>
+            {isSuperAdmin && (
+              <TabsTrigger value="webVitals" className="gap-2">
+                <Activity className="h-4 w-4" />
+                Web Vitals
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="users" className="animate-fade-in">
@@ -146,19 +148,21 @@ const AdminPage: React.FC = () => {
             <VacationCalendarOverview />
           </TabsContent>
 
-          <TabsContent value="webVitals" className="animate-fade-in">
-            <Card>
-              <CardHeader>
-                <CardTitle>Core Web Vitals</CardTitle>
-                <CardDescription>
-                  LCP, INP, CLS, FCP og TTFB målt fra ægte brugersessions. Værdier vises som p75 pr. metric.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WebVitalsOverview />
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {isSuperAdmin && (
+            <TabsContent value="webVitals" className="animate-fade-in">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Core Web Vitals</CardTitle>
+                  <CardDescription>
+                    LCP, INP, CLS, FCP og TTFB målt fra ægte brugersessions. Værdier vises som p75 pr. metric.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <WebVitalsOverview />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
