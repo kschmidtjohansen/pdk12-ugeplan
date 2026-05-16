@@ -238,6 +238,25 @@ const PlannerPage: React.FC = () => {
     setSelectedYear(getISOWeekYear(nextWeekStart));
   }, [weekDates]);
 
+  // Prefetch adjacent week assignments on hover for instant navigation.
+  // Query key matches useOptimizedAssignments('all') exactly.
+  const handlePrefetchAssignments = useCallback(() => {
+    if (!user?.id || !user?.role) return;
+    queryClient.prefetchQuery({
+      queryKey: ['assignments', user.id, user.role, 'all', selectedDepartmentId, selectedSubDepartmentId],
+      queryFn: () => fetchAssignmentsForQuery({
+        userId: user.id,
+        userRole: user.role,
+        userEmail: user.email,
+        filter: 'all',
+        selectedDepartmentId,
+        selectedSubDepartmentId,
+        allEmployees,
+      }),
+      staleTime: 2 * 60 * 1000,
+    });
+  }, [queryClient, user?.id, user?.role, user?.email, selectedDepartmentId, selectedSubDepartmentId, allEmployees]);
+
   const handleOpenCreateDialog = (date: string) => {
     setCurrentAssignment(null);
     setSelectedDay(date);
