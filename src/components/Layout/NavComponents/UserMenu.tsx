@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Camera, Lock, Crown, Building2, Layers } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor } from 'lucide-react';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
