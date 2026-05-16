@@ -77,7 +77,7 @@ const VacationOverviewDropdown: React.FC = () => {
             {t('dashboard.vacationNotifications') || 'Ferieanmodninger'}
           </SheetTitle>
           {pending.length > 0 && (
-            <Badge variant="solidPrimary" size="sm">
+            <Badge variant="solidPrimary" size="sm" className="mx-[30px]">
               {pending.length}
             </Badge>
           )}
