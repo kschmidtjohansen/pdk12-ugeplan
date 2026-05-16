@@ -850,19 +850,25 @@ const PlannerPage: React.FC = () => {
           onClear={clearSelection}
         />
 
-        <BulkAssignEmployeeDialog
-          open={bulkAssignOpen}
-          count={selectedIds.size}
-          onClose={() => setBulkAssignOpen(false)}
-          onConfirm={handleBulkAssignEmployee}
-        />
+        <Suspense fallback={null}>
+          {bulkAssignOpen && (
+            <BulkAssignEmployeeDialog
+              open={bulkAssignOpen}
+              count={selectedIds.size}
+              onClose={() => setBulkAssignOpen(false)}
+              onConfirm={handleBulkAssignEmployee}
+            />
+          )}
 
-        <BulkAssignCarDialog
-          open={bulkAssignCarOpen}
-          count={selectedIds.size}
-          onClose={() => setBulkAssignCarOpen(false)}
-          onConfirm={handleBulkAssignCar}
-        />
+          {bulkAssignCarOpen && (
+            <BulkAssignCarDialog
+              open={bulkAssignCarOpen}
+              count={selectedIds.size}
+              onClose={() => setBulkAssignCarOpen(false)}
+              onConfirm={handleBulkAssignCar}
+            />
+          )}
+        </Suspense>
 
         <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
           <AlertDialogContent>
