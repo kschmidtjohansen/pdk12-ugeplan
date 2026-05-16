@@ -19,6 +19,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useVacationRequestsStatus } from '@/hooks/vacation/useVacationRequestsStatus';
 import { cn } from '@/lib/utils';
+import DepartmentSwitcherPill from './NavComponents/DepartmentSwitcherPill';
 
 interface NavItem {
   path: string;
@@ -160,9 +161,12 @@ const AppSidebar: React.FC = () => {
           <SidebarMenu>{renderItem(adminItem!)}</SidebarMenu>
         )}
         {!collapsed && (
-          <p className="text-[10px] text-sidebar-foreground/50 text-center px-2 leading-tight">
-            Polygon Ugeplan
-          </p>
+          <div className="flex flex-col items-center gap-1 px-2 pt-1">
+            <DepartmentSwitcherPill />
+            <p className="text-[10px] text-sidebar-foreground/50 text-center leading-tight">
+              Polygon Ugeplan
+            </p>
+          </div>
         )}
       </SidebarFooter>
     </Sidebar>
