@@ -97,10 +97,12 @@ const AdminPage: React.FC = () => {
               <CalendarDays className="h-4 w-4" />
               {t('admin.tabs.vacationCalendar')}
             </TabsTrigger>
-            <TabsTrigger value="webVitals" className="gap-2">
-              <Activity className="h-4 w-4" />
-              Web Vitals
-            </TabsTrigger>
+            {isSuperAdmin && (
+              <TabsTrigger value="webVitals" className="gap-2">
+                <Activity className="h-4 w-4" />
+                Web Vitals
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="users" className="animate-fade-in">
