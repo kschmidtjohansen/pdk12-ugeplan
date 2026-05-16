@@ -112,22 +112,21 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       }, 1000);
     };
 
-    const channel = supabase
-      .channel('unified-data-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, () => handleRealtimeChange('cars'))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => handleRealtimeChange('profiles'))
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          if (import.meta.env.DEV) console.warn('[useUnifiedData] Realtime channel error, falling back to existing data');
-        }
-      });
+    const unsubscribe = subscribeToTables(
+      `useUnifiedData:${selectedDepartmentId ?? 'all'}`,
+      [
+        { table: 'cars' },
+        { table: 'profiles' },
+      ],
+      (table) => handleRealtimeChange(table)
+    );
 
     loadData();
 
     return () => {
       isMounted = false;
       if (debounceTimer) clearTimeout(debounceTimer);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [isDemoMode, selectedDepartmentId]);
 
