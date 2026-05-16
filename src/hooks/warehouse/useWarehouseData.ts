@@ -96,14 +96,15 @@ export const useWarehouseData = () => {
       }, 45000);
       return () => clearInterval(pollInterval);
     } else {
-      const channel = supabase
-        .channel(`warehouse_items_changes_public`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouse_items' }, () => {
+      const unsubscribe = subscribeToTable({
+        key: `useWarehouseData:${user.id}:${selectedDepartmentId ?? 'none'}`,
+        table: 'warehouse_items',
+        callback: () => {
           queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
-        })
-        .subscribe();
+        },
+      });
 
-      return () => { supabase.removeChannel(channel); };
+      return () => { unsubscribe(); };
     }
   }, [isDemoMode, userDataLoaded, user?.id, selectedDepartmentId, queryClient]);
 
