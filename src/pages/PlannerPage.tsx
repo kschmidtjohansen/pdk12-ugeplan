@@ -115,6 +115,7 @@ const PlannerPage: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('plannerSelectedWeek', selectedWeek.toString());
     localStorage.setItem('plannerSelectedYear', selectedYear.toString());
+    setPlannerWeek(selectedWeek, selectedYear);
   }, [selectedWeek, selectedYear]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
