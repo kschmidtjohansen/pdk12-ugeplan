@@ -19,6 +19,7 @@ import {
 } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import AvatarStack from '@/components/shared/AvatarStack';
 
 interface DutyMonthCalendarProps {
   duties: Duty[];
@@ -255,6 +256,16 @@ export const DutyMonthCalendar = ({
                     );
                   })}
                 </div>
+                {dayDuties.length > 0 && (
+                  <div className="mt-1">
+                    <AvatarStack
+                      employees={dayDuties.map((d) => ({
+                        id: d.id,
+                        name: d.employee?.name || getDisplayName(d),
+                      }))}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
