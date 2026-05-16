@@ -214,7 +214,16 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               <h3 className="font-semibold text-sm text-foreground tracking-tight truncate">
                 {assignment.title || t('planner.titleLabel')}
               </h3>
-              {hasConflict && <ConflictBadge conflicts={conflicts} size="sm" />}
+              {hasConflict && (
+                <ConflictBadge
+                  conflicts={conflicts}
+                  size="sm"
+                  assignment={assignment}
+                  allAssignments={assignments}
+                  employees={employees}
+                  cars={cars}
+                />
+              )}
               {operationState && (
                 <span className="text-xs text-primary font-medium animate-pulse">
                   {getOperationText(operationState)}

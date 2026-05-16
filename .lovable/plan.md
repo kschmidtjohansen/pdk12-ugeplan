@@ -1,45 +1,76 @@
-Add a `StatusTimeline` component below the date/time block in `AssignmentDetailsDialog` that lists up to 8 recent `planner_change_log` rows for the current assignment.
+# Klikbar ConflictBadge med løsningspopover
 
-### 1. New file: `src/components/Dashboard/StatusTimeline.tsx`
+Gør konfliktbadgen interaktiv: ved klik åbnes en popover, der viser de to konfliktende opgaver side om side og tilbyder to hurtige handlinger, som begge bruger den eksisterende `updateAssignment`-mutation. Ingen nye Supabase-queries.
 
-- Client component, props: `assignmentId: string`.
-- `useQuery` (React Query, key `['planner_change_log', assignmentId]`, `staleTime: 60_000`) selects from `planner_change_log`:
+## Filer
+
+**Ny:** `src/components/Planner/ConflictResolutionPopover.tsx`
+**Ændret:** `ConflictBadge.tsx`, `AssignmentCard.tsx`, `CompactAssignmentRow.tsx`, `translations/{da,en}/planner.ts`
+
+## 1. ConflictBadge bliver en knap
+
+- Konvertér det nuværende `<span>` til en `<button>` inde i `Popover` (shadcn) i stedet for `Tooltip`. Samme udseende (`chip-glass-destructive`), men nu `cursor-pointer` og `aria-label="Løs konflikt"`.
+- Nye props: `assignment: Assignment`, `allAssignments: Assignment[]`, `employees`, `cars`, `onResolve?: () => void`. Disse sendes ned fra `AssignmentCard` / `CompactAssignmentRow` (begge har dem allerede tilgængelige via deres props/context).
+- Popover-indholdet rendrer den nye `ConflictResolutionPopover`-komponent og videresender de unikke konflikter.
+
+## 2. ConflictResolutionPopover (ny)
+
+Layout: header "Dobbeltbooking" + liste over unikke konflikter. For hver konflikt vises to kort side om side:
+
+```text
+┌─ Denne opgave ─────┐  ┌─ Konflikt med ──────┐
+│ Titel              │  │ Titel               │
+│ 08:00–10:00        │  │ 09:30–11:00         │
+│ 👤 Peter / 🚗 Bil2 │  │ 👤 Peter / 🚗 Bil2  │
+└────────────────────┘  └─────────────────────┘
+[ Ændr tidspunkt ]  [ Skift medarbejder / bil ]
+```
+
+Knapperne virker på *denne* opgave (`assignment`), ikke modparten. State i komponenten:
+
+- `mode: 'idle' | 'time' | 'resource'`
+- `idle`: viser de to handlingsknapper.
+- `time`: viser to `<Input type="time">` (fra/til) forudfyldt med `assignment.fromTime/toTime` + `Gem`-knap. Ved gem:
   ```ts
-  supabase.from('planner_change_log')
-    .select('id, operation, changed_by_name, change_details, created_at')
-    .eq('assignment_id', assignmentId)
-    .order('created_at', { ascending: false })
-    .limit(8)
+  await updateAssignment(assignment.id, { fromTime, toTime });
   ```
-- Render a vertical timeline (`<ol className="relative border-l border-border ml-2 space-y-4 pl-4">`). Each item:
-  - Absolute-positioned dot (`<span className="absolute -left-[7px] h-3 w-3 rounded-full ring-2 ring-background ${dotColor}" />`).
-  - Label = translated action ("Oprettet", "Opdateret", "Publiceret", "Slettet", "Færdiggjort") with fallback to raw `operation`.
-  - Relative time via `formatDistanceToNow(new Date(created_at), { addSuffix: true, locale: currentLanguage === 'da' ? da : undefined })`.
-  - Actor: `changed_by_name`.
-- Dot color map (operation, case-insensitive):
-  - `CREATE` → `bg-amber-400`
-  - `PUBLISH` / `PUBLISHED` → `bg-primary`
-  - `COMPLETE` / `COMPLETED` → `bg-emerald-500`
-  - `DELETE` / `DELETED` → `bg-destructive`
-  - fallback (e.g. `UPDATE`) → `bg-muted-foreground`
-- States:
-  - loading → 3 skeleton rows (`bg-muted animate-pulse`).
-  - error or empty → hide the section entirely (no entries to show, or RLS blocked).
-- Heading matches existing dialog style: `<h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('planner.history') ?? 'Historik'}</h4>`.
+- `resource`: Hvis konflikten er `kind: 'employee'` → vis en `Select` med tilgængelige `employees` (ekskl. nuværende konflikt-ID). Hvis `kind: 'car'` → samme med `cars`. Ved valg:
+  ```ts
+  // employee-konflikt: erstat den konfliktende medarbejder
+  const newAssigned = assignment.assignedEmployees
+    .filter(e => e.id !== conflict.resourceId)
+    .concat([{ id: newId, name: ... }]);
+  await updateAssignment(assignment.id, { assignedEmployees: newAssigned });
 
-### 2. `src/components/Dashboard/AssignmentDetailsDialog.tsx`
-
-- Import the new component.
-- Inside the left-column content area, after the "Date and Time" block (after line 252 `</div>`), add:
-  ```tsx
-  <Separator className="my-2" />
-  <StatusTimeline assignmentId={assignment.id} />
+  // car-konflikt: erstat car-id i cars[]
+  const newCars = (assignment.cars ?? []).map(c => c === conflict.resourceId ? newId : c);
+  await updateAssignment(assignment.id, { cars: newCars });
   ```
 
-### Notes & caveats
+Efter en succesfuld mutation:
+```ts
+toast.success(t('planner.conflict.resolved')); // "Konflikt løst"
+onResolve?.();        // lukker popover
+```
 
-- `planner_change_log` RLS SELECT requires `is_admin_or_skadeleder()`. For non-admin users the query returns 0 rows and the component silently renders nothing — confirmed acceptable since the timeline is informational.
-- The schema currently logs `CREATE`, `UPDATE`, `DELETE`, `PUBLISH`. There is no `COMPLETED` operation, but `bg-emerald-500` is wired to `COMPLETE`/`COMPLETED` for forward compatibility per the spec.
-- No DB migration, no new dependencies — `date-fns` and `@tanstack/react-query` are already in use.
+Badgen forsvinder automatisk i næste render, fordi `computeConflicts` ikke længere finder overlap (ingen ekstra logik nødvendig — den nuværende `useAssignmentConflicts`-hook recomputer ved data-ændring).
 
-No other files change.
+Loading-state: deaktivér knapper mens mutationen kører; vis fejltoast ved exception.
+
+## 3. AssignmentCard / CompactAssignmentRow
+
+Send de nye props videre til `ConflictBadge`. Begge komponenter har allerede `assignment` og `conflicts`; `allAssignments`, `employees`, `cars` hentes fra samme hooks/props de allerede bruger (`useOptimizedAssignments`, `useEmployees`, `useCars`) — videregives via eksisterende kontekst/props uden nye queries.
+
+Hvis det er lettere, kan `ConflictResolutionPopover` selv kalde `useOptimizedAssignments()` for at hente `updateAssignment` og `useEmployees()/useCars()` for navne — så undgår vi prop-drilling. Den eksisterende tooltip-info (resourceName) er nok til at vise konfliktdetaljer; vi behøver kun employees/cars-listerne til selectoren i `resource`-mode.
+
+## 4. Oversættelser
+
+`planner.conflict.*`:
+- `da`: `resolved: "Konflikt løst"`, `changeTime: "Ændr tidspunkt"`, `changeResource: "Skift medarbejder / bil"`, `thisAssignment: "Denne opgave"`, `conflictsWith: "Konflikt med"`, `save: "Gem"`, `cancel: "Annullér"`.
+- `en`: tilsvarende.
+
+## Ude af scope
+
+- Ingen ændring af `computeConflicts`, RLS, eller datakilder.
+- Ingen ændring af modpart-opgaven (B) — kun "denne" opgave (A) redigeres; brugeren kan åbne B's badge for at justere den anden vej.
+- Ingen drag/drop, batch-resolve, eller persisteret "ignored"-state.

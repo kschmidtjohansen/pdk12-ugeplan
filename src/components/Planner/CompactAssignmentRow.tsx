@@ -10,6 +10,7 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 import ConflictBadge from './ConflictBadge';
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useAssignments } from '@/hooks/useAssignments';
+import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
 
 interface CompactAssignmentRowProps {
@@ -37,6 +38,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
 }) => {
   const { t } = useTranslation();
   const { assignments: allAssignments } = useAssignments();
+  const { employees } = useEmployees();
   const { getConflicts } = useAssignmentConflicts(allAssignments);
   const conflicts = getConflicts(assignment.id);
   const hasConflict = conflicts.length > 0;
@@ -101,7 +103,16 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
             <Clock className="h-3 w-3" />
             {timeDisplay}
           </span>
-          {hasConflict && <ConflictBadge conflicts={conflicts} size="sm" />}
+          {hasConflict && (
+            <ConflictBadge
+              conflicts={conflicts}
+              size="sm"
+              assignment={assignment}
+              allAssignments={allAssignments}
+              employees={employees}
+              cars={cars}
+            />
+          )}
         </div>
       </td>
       
