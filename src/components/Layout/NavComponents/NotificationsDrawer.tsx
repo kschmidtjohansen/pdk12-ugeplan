@@ -196,7 +196,7 @@ const NotificationsDrawer: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs h-7"
+            className="text-xs h-7 px-[12px] mx-[40px]"
             onClick={handleMarkAll}
             disabled={unreadCount === 0}
           >
