@@ -33,6 +33,9 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string | null>(null);
+  const { scheme, setScheme } = useColorScheme();
+  const schemeLabel = scheme === 'light' ? 'Lyst tema' : scheme === 'dark' ? 'Mørkt tema' : 'System';
+  const SchemeIcon = scheme === 'light' ? Sun : scheme === 'dark' ? Moon : Monitor;
 
   const getInitials = (name: string): string => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
