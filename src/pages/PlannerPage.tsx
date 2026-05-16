@@ -827,6 +827,40 @@ const PlannerPage: React.FC = () => {
             />
           </Suspense>
         )}
+
+        {/* Bulk action bar */}
+        <BulkActionBar
+          count={selectedIds.size}
+          busy={bulkBusy}
+          onPublish={handleBulkPublish}
+          onDelete={() => setBulkDeleteOpen(true)}
+          onAssignEmployee={() => setBulkAssignOpen(true)}
+          onClear={clearSelection}
+        />
+
+        <BulkAssignEmployeeDialog
+          open={bulkAssignOpen}
+          count={selectedIds.size}
+          onClose={() => setBulkAssignOpen(false)}
+          onConfirm={handleBulkAssignEmployee}
+        />
+
+        <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Slet {selectedIds.size} opgave{selectedIds.size === 1 ? '' : 'r'}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Denne handling kan ikke fortrydes. Alle valgte opgaver slettes permanent.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={bulkBusy}>Annullér</AlertDialogCancel>
+              <AlertDialogAction onClick={handleBulkDeleteConfirm} disabled={bulkBusy}>
+                Slet
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
     </DataFetchErrorBoundary>
