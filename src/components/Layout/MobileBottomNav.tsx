@@ -27,6 +27,7 @@ const MobileBottomNav: React.FC = () => {
 
   return (
     <nav
+      role="navigation"
       className={cn(
         'lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background',
         'border-t border-border/70',
