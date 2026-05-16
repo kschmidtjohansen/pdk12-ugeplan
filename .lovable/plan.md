@@ -1,18 +1,27 @@
-## Plan: Add week-navigation prefetch on hover in PlannerPage
+Replace the existing realtime debounce logic in three hooks with a uniform ref-based 500ms throttle pattern.
 
-**What**
-Add `onMouseEnter` prefetch handlers to the previous-week and next-week arrow buttons in `PlannerPage.tsx`. When the user hovers over either arrow, the app proactively fetches assignment data so week navigation feels instant.
+### What changes
 
-**How**
-1. **Export a reusable fetcher** from `src/hooks/useOptimizedAssignments.ts`
-   - Extract the `fetchAssignmentsFn` body into an exported async function `fetchAllAssignmentsForQuery` that accepts `user`, `filter`, `selectedDepartmentId`, `selectedSubDepartmentId`, and `allEmployees` as explicit arguments and returns `Promise<Assignment[]>`.
-   - Update the hook's internal `queryFn` to call this exported function.
+1. **src/hooks/useOptimizedAssignments.ts** — Planner assignments realtime handler
+   - Add `const throttleRef = useRef<ReturnType<typeof setTimeout> | null>(null);` at the hook level.
+   - In the `subscribeToTables` callback, replace the current `debounceTimer` local variable with the ref pattern:
+     ```ts
+     if (throttleRef.current) clearTimeout(throttleRef.current);
+     throttleRef.current = setTimeout(() => {
+       OptimizedAssignmentService.clearCache();
+       queryClient.invalidateQueries({ queryKey: ['assignments'] });
+     }, 500);
+     ```
+   - Clean up in the `useEffect` return: `if (throttleRef.current) clearTimeout(throttleRef.current);`.
 
-2. **Wire up prefetch in PlannerPage**
-   - Import `useQueryClient` from `@tanstack/react-query` and the new `fetchAllAssignmentsForQuery` helper.
-   - Import `useEmployeeData` to obtain `allEmployees` (needed for the conversion step).
-   - Get `queryClient` via `useQueryClient()`.
-   - Create a `handlePrefetch` helper that builds the exact query key `['assignments', user?.id, user?.role, 'all', selectedDepartmentId, selectedSubDepartmentId]` and calls `queryClient.prefetchQuery({ queryKey, queryFn: () => fetchAllAssignmentsForQuery(...), staleTime: 2 * 60 * 1000 })`.
-   - Add `onMouseEnter={handlePrefetch}` to both the `<Button variant="ghost" ...>` elements for previous and next week.
+2. **src/hooks/car/useCarData.ts** — Cars realtime handler
+   - Add the same `throttleRef` at the hook level.
+   - Wrap the existing `queryClient.invalidateQueries({ queryKey: ['cars'] })` inside the `subscribeToTable` callback with the same 500ms ref-based throttle.
+   - Clean up the timeout in the `useEffect` return.
 
-**Key detail:** `useOptimizedAssignments('all')` loads all assignments (not per-week), so the adjacent-week prefetch uses the identical query key. The benefit is ensuring the cache stays warm if it has expired, making navigation instant.
+3. **src/hooks/employee/useEmployeeData.ts** — Employees realtime handler
+   - Replace the existing local `timeoutId` debounce with the same ref-based 500ms throttle.
+   - Clean up in the `useEffect` return.
+
+### Why
+All three handlers currently use ad-hoc debounce (or none at all). Unifying them to a single ref-based 500ms throttle reduces redundant invalidation bursts when realtime fires multiple events in rapid succession, and makes the pattern consistent across the codebase.

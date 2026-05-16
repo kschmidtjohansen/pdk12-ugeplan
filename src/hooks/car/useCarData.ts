@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
@@ -172,6 +172,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
   };
 
   // Realtime subscription
+  const realtimeThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!userDataLoaded || !user) return;
 
@@ -182,11 +183,17 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       table: 'cars',
       callback: (payload) => {
         if (import.meta.env.DEV) console.log(`[useCarData] Realtime update received:`, payload);
-        queryClient.invalidateQueries({ queryKey: ['cars'] });
+        if (realtimeThrottleRef.current) clearTimeout(realtimeThrottleRef.current);
+        realtimeThrottleRef.current = setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['cars'] });
+        }, 500);
       },
     });
 
-    return () => { unsubscribe(); };
+    return () => {
+      if (realtimeThrottleRef.current) clearTimeout(realtimeThrottleRef.current);
+      unsubscribe();
+    };
   }, [isDemoMode, userDataLoaded, user?.id, queryClient]);
 
   return {

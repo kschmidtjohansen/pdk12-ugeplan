@@ -198,10 +198,9 @@ export const useEmployeeData = () => {
   }, [queryError]);
 
   // Realtime subscription
+  const realtimeThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!userDataLoaded || !user || isDemoMode) return;
-
-    let timeoutId: NodeJS.Timeout;
 
     const unsubscribe = subscribeToTables(
       `useEmployeeData:${user.id}`,
@@ -211,15 +210,15 @@ export const useEmployeeData = () => {
       ],
       (table, payload) => {
         if (import.meta.env.DEV) console.log(`[useEmployeeData] ${table} change detected:`, payload?.eventType);
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
+        if (realtimeThrottleRef.current) clearTimeout(realtimeThrottleRef.current);
+        realtimeThrottleRef.current = setTimeout(() => {
           queryClient.invalidateQueries({ queryKey: ['employees'] });
-        }, 1000);
+        }, 500);
       }
     );
 
     return () => {
-      clearTimeout(timeoutId);
+      if (realtimeThrottleRef.current) clearTimeout(realtimeThrottleRef.current);
       unsubscribe();
     };
   }, [isDemoMode, userDataLoaded, user, queryClient]);
