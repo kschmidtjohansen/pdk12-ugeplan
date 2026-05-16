@@ -148,19 +148,21 @@ const AdminPage: React.FC = () => {
             <VacationCalendarOverview />
           </TabsContent>
 
-          <TabsContent value="webVitals" className="animate-fade-in">
-            <Card>
-              <CardHeader>
-                <CardTitle>Core Web Vitals</CardTitle>
-                <CardDescription>
-                  LCP, INP, CLS, FCP og TTFB målt fra ægte brugersessions. Værdier vises som p75 pr. metric.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WebVitalsOverview />
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {isSuperAdmin && (
+            <TabsContent value="webVitals" className="animate-fade-in">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Core Web Vitals</CardTitle>
+                  <CardDescription>
+                    LCP, INP, CLS, FCP og TTFB målt fra ægte brugersessions. Værdier vises som p75 pr. metric.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <WebVitalsOverview />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
