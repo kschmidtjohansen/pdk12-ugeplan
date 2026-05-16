@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-16 — Performance: virtualisering af lange dag-sektioner i Planner
+
+### Performance
+- `DaySection` (standard-visning) virtualiserer nu kort-listen vha. `@tanstack/react-virtual` (`useWindowVirtualizer`) når en dag har mere end 12 opgaver. `estimateSize: () => 88`, `overscan: 3`, `getItemKey` på assignment-id, dynamisk `measureElement` for variable højder.
+- Header, publish-knap, `DayAbsenceRow` og `EmptyDayCTA` forbliver uden for virtualiseringen.
+- Compact- og gitter-visning samt dage med ≤12 opgaver renderer fortsat direkte. `AssignmentCard` er stadig `React.memo`-wrapped.
+
+
 ## 2026-05-15 — Performance: lazy-load af dialog-komponenter
 
 ### Performance

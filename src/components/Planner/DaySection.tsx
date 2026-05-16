@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
+import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
@@ -165,21 +166,36 @@ const DaySection: React.FC<DaySectionProps> = ({
       {isExpanded && (
         <div className={`w-full grid gap-3 animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
           {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
-            dayAssignments.map((assignment) => (
-              <AssignmentCard
-                key={assignment.id}
-                assignment={assignment}
+            !gridLayout && dayAssignments.length > 12 ? (
+              <VirtualizedAssignmentCards
+                assignments={dayAssignments}
+                allAssignments={allAssignments}
                 cars={cars}
-                assignments={allAssignments}
                 canEdit={canEdit}
-                onEdit={() => onEditAssignment(assignment)}
-                onDelete={() => onDeleteAssignment(assignment.id)}
-                onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
-                onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
-                onViewDetails={onViewDetails ? () => onViewDetails(assignment) : undefined}
-                operationState={operationStates[assignment.id]}
+                operationStates={operationStates}
+                onEditAssignment={onEditAssignment}
+                onDeleteAssignment={onDeleteAssignment}
+                onPublishAssignment={onPublishAssignment}
+                onCopyAssignment={onCopyAssignment}
+                onViewDetails={onViewDetails}
               />
-            ))
+            ) : (
+              dayAssignments.map((assignment) => (
+                <AssignmentCard
+                  key={assignment.id}
+                  assignment={assignment}
+                  cars={cars}
+                  assignments={allAssignments}
+                  canEdit={canEdit}
+                  onEdit={() => onEditAssignment(assignment)}
+                  onDelete={() => onDeleteAssignment(assignment.id)}
+                  onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
+                  onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
+                  onViewDetails={onViewDetails ? () => onViewDetails(assignment) : undefined}
+                  operationState={operationStates[assignment.id]}
+                />
+              ))
+            )
           ) : onCreateAssignment && onCopyDayFromYesterday ? (
             <EmptyDayCTA
               dateKey={dateKey}
@@ -196,6 +212,82 @@ const DaySection: React.FC<DaySectionProps> = ({
           )}
         </div>
       )}
+    </div>
+  );
+};
+
+interface VirtualizedAssignmentCardsProps {
+  assignments: Assignment[];
+  allAssignments: Assignment[];
+  cars: Car[];
+  canEdit: boolean;
+  operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
+  onEditAssignment: (assignment: Assignment) => void;
+  onDeleteAssignment: (assignmentId: string) => void;
+  onPublishAssignment?: (assignmentId: string) => void;
+  onCopyAssignment?: (assignment: Assignment) => void;
+  onViewDetails?: (assignment: Assignment) => void;
+}
+
+const VirtualizedAssignmentCards: React.FC<VirtualizedAssignmentCardsProps> = ({
+  assignments,
+  allAssignments,
+  cars,
+  canEdit,
+  operationStates,
+  onEditAssignment,
+  onDeleteAssignment,
+  onPublishAssignment,
+  onCopyAssignment,
+  onViewDetails,
+}) => {
+  const parentRef = useRef<HTMLDivElement | null>(null);
+
+  const virtualizer = useWindowVirtualizer({
+    count: assignments.length,
+    estimateSize: () => 88,
+    overscan: 3,
+    scrollMargin: parentRef.current?.offsetTop ?? 0,
+    getItemKey: (index) => assignments[index].id,
+  });
+
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalSize = virtualizer.getTotalSize();
+  const scrollMargin = virtualizer.options.scrollMargin;
+
+  return (
+    <div ref={parentRef} style={{ position: 'relative', height: totalSize, width: '100%' }}>
+      {virtualItems.map((vRow) => {
+        const assignment = assignments[vRow.index];
+        return (
+          <div
+            key={vRow.key as string}
+            data-index={vRow.index}
+            ref={virtualizer.measureElement}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              transform: `translateY(${vRow.start - scrollMargin}px)`,
+              paddingBottom: 12,
+            }}
+          >
+            <AssignmentCard
+              assignment={assignment}
+              cars={cars}
+              assignments={allAssignments}
+              canEdit={canEdit}
+              onEdit={() => onEditAssignment(assignment)}
+              onDelete={() => onDeleteAssignment(assignment.id)}
+              onPublish={onPublishAssignment ? () => onPublishAssignment(assignment.id) : undefined}
+              onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
+              onViewDetails={onViewDetails ? () => onViewDetails(assignment) : undefined}
+              operationState={operationStates[assignment.id]}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 };

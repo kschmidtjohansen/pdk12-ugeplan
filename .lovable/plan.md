@@ -1,78 +1,51 @@
-## Mål
+# Plan: Virtualize long day-sections in default Planner view
 
-Konverter statisk-importerede dialog-komponenter til `React.lazy` + `<Suspense>`, så deres JS først hentes ved første åbning. Reducerer initial bundle for Dashboard, Planner, Vacation og Car-flows.
+## Goal
+For the default (non-compact, non-grid) Planner view, virtualize the list of `AssignmentCard`s inside any day that holds more than 12 assignments. Compact and Grid views stay as direct rendering.
 
-## Scope (faktisk eksisterende dialoger)
+## Scope
+- Only the card list inside `DaySection` (default variant). Header, publish button, `DayAbsenceRow`, and `EmptyDayCTA` remain outside the virtualizer.
+- Threshold: `assignments.length > 12`.
+- Virtualizer config: `estimateSize: () => 88`, `overscan: 3`.
+- Keep `React.memo` on `AssignmentCard` (already in place — line 274).
 
-### Dashboard / Planner
-| Fil | Lazy-import |
-|---|---|
-| `src/components/Dashboard/WeeklyAssignments.tsx` | `AssignmentDetailsDialog`, `AssignmentDialogManager` |
-| `src/components/Dashboard/MineOpgaver.tsx` | `AssignmentDetailsDialog` |
-| `src/components/Planner/PlannerContent.tsx` | `AssignmentDetailsDialog` |
-| `src/pages/PlannerPage.tsx` | `PlannerDialogContainer`, `SeriesActionDialog` |
-| `src/components/Planner/AssignmentDialogManager.tsx` | `SeriesActionDialog` (intern) |
+## Notes on existing infrastructure
+- `@tanstack/react-virtual` is **already installed** (used by `src/components/Planner/VirtualList.tsx`). No new dependency needed — install step in the request is a no-op we can skip / confirm.
+- Existing `VirtualList` uses `useWindowVirtualizer` at day-section granularity (10+ days). We are adding a second, inner virtualization layer for cards within a single day, using `useVirtualizer` with a scoped scroll parent (window scroll).
 
-### Vacation
-| Fil | Lazy-import |
-|---|---|
-| `src/components/Vacation/VacationDialogs.tsx` | `VacationFormDialog`, `VacationActionDialog`, `AdminVacationFormDialog` |
+## Changes
 
-### Cars
-| Fil | Lazy-import |
-|---|---|
-| `src/components/Cars/CarDialogs.tsx` | `CarFormDialog`, `DeleteConfirmDialog` |
+### 1. `src/components/Planner/DaySection.tsx`
+- Import `useWindowVirtualizer` from `@tanstack/react-virtual` and `useRef`.
+- When `gridLayout === false` AND `dayAssignments.length > 12`, render the cards through a virtualizer:
+  - `count: dayAssignments.length`
+  - `estimateSize: () => 88`
+  - `overscan: 3`
+  - `getItemKey: (i) => dayAssignments[i].id`
+  - `scrollMargin: parentRef.current?.offsetTop ?? 0`
+  - Use `measureElement` ref on each row to handle taller cards.
+- For `gridLayout === true` (grid view inside default mode) keep current direct rendering.
+- For `dayAssignments.length <= 12` keep current direct rendering.
+- `EmptyDayCTA` branch unchanged.
 
-> `DashboardCockpit.tsx` har ingen direkte dialog-imports — springes over.
-> Komponenter der allerede ER en `Dialog`-wrapper omkring et åbent state (f.eks. `FalckSubscriptionButton` der bruger `@/components/ui/dialog` direkte) konverteres ikke — de er ikke separate moduler.
+### 2. Compact + Grid views — unchanged
+- `CompactCurrentAndFutureDays` / `CompactPastAssignments`: untouched.
+- Grid layout branch in `DaySection` (`gridLayout=true`): untouched.
 
-## Mønster
+### 3. `AssignmentCard`
+- No changes — already `React.memo`-wrapped.
 
-```tsx
-import React, { Suspense, lazy } from 'react';
-
-const AssignmentDetailsDialog = lazy(
-  () => import('@/components/Dashboard/AssignmentDetailsDialog')
-);
-
-// Render kun hvis åbnet:
-{selectedAssignment && (
-  <Suspense fallback={null}>
-    <AssignmentDetailsDialog
-      assignment={selectedAssignment}
-      open={!!selectedAssignment}
-      onOpenChange={...}
-    />
-  </Suspense>
-)}
-```
-
-Regler:
-- `fallback={null}` — dialoger skal ikke vise skeleton; de er usynlige indtil åbne.
-- Render kun JSX'en når `open === true` (eller tilsvarende guard) — ellers prefetcher Suspense unødigt.
-- Hvis en fil eksporterer dialogen som named export, brug `lazy(() => import('...').then(m => ({ default: m.X })))`.
-
-## Tekniske detaljer
-
-- `React.lazy` kræver `default` export. Tjekkes per fil; alle de listede dialoger er allerede default exports baseret på eksisterende `import X from './X'`-mønstre.
-- Suspense-grænsen placeres så tæt på dialogen som muligt for at undgå at suspende parent-UI ved første render.
-- TypeScript-props bevares uændret.
-- Ingen funktionel ændring — kun bundle-splitting.
-
-## Verifikation
-
-1. `bun run build` → bekræft at nye chunks for hver dialog dukker op i `dist/assets/`.
-2. Manuel røgtest af Planner, Dashboard, Vacation og Cars: åbn én dialog hvert sted, bekræft at den loader uden synlig flicker.
-3. Console: ingen `Suspense`/`lazy`-warnings.
-
-## Dokumentation
-
-- `CHANGELOG.md`: tilføj entry under Performance.
-- `docs/implementation-plan/tasks.md`: marker som `[x]` hvis der findes en matchende opgave; ellers tilføj kort note.
+### 4. Documentation
+- `CHANGELOG.md`: add entry under Performance — "Virtualize day sections with >12 assignments using @tanstack/react-virtual (estimateSize 88, overscan 3)".
+- `docs/implementation-plan/tasks.md`: add matching `[x]` entry.
 
 ## Out of scope
+- Compact view virtualization.
+- Grid view virtualization.
+- Changes to outer day-list virtualization in `CurrentAndFutureDays`.
+- Any business-logic changes.
 
-- `DashboardCockpit.tsx` (ingen dialog-imports).
-- Dialoger der ikke ligger i separate moduler (f.eks. inline `Dialog` i `FalckSubscriptionButton`).
-- `CreateAssignmentDialog` / `EditAssignmentDialog` / `CarDetailsDialog` / `VacationRequestDialog` — eksisterer ikke i kodebasen.
-- Route-level lazy loading (separat opgave).
+## Verification
+- Open Planner in default view on a week with >12 assignments in one day → cards render, scrolling smooth, no layout shift between rows, expand/collapse still works.
+- Days with ≤12 assignments still render directly (no absolute positioning).
+- Compact and grid views unchanged.
