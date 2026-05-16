@@ -43,6 +43,9 @@ interface DaySectionProps {
   canPublishTasks: boolean;
   cars?: Car[];
   gridLayout?: boolean;
+  selectedIds?: Set<string>;
+  selectionActive?: boolean;
+  onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
 const DaySection: React.FC<DaySectionProps> = ({
@@ -64,7 +67,10 @@ const DaySection: React.FC<DaySectionProps> = ({
   canEdit,
   canPublishTasks,
   cars = [],
-  gridLayout = false
+  gridLayout = false,
+  selectedIds,
+  selectionActive = false,
+  onToggleSelect,
 }) => {
   const { t, currentLanguage } = useTranslation();
   
@@ -178,6 +184,9 @@ const DaySection: React.FC<DaySectionProps> = ({
                 onPublishAssignment={onPublishAssignment}
                 onCopyAssignment={onCopyAssignment}
                 onViewDetails={onViewDetails}
+                selectedIds={selectedIds}
+                selectionActive={selectionActive}
+                onToggleSelect={onToggleSelect}
               />
             ) : (
               dayAssignments.map((assignment) => (
@@ -193,6 +202,9 @@ const DaySection: React.FC<DaySectionProps> = ({
                   onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
                   onViewDetails={onViewDetails ? () => onViewDetails(assignment) : undefined}
                   operationState={operationStates[assignment.id]}
+                  selected={selectedIds?.has(assignment.id) ?? false}
+                  selectionActive={selectionActive}
+                  onToggleSelect={onToggleSelect}
                 />
               ))
             )
@@ -227,6 +239,9 @@ interface VirtualizedAssignmentCardsProps {
   onPublishAssignment?: (assignmentId: string) => void;
   onCopyAssignment?: (assignment: Assignment) => void;
   onViewDetails?: (assignment: Assignment) => void;
+  selectedIds?: Set<string>;
+  selectionActive?: boolean;
+  onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
 const VirtualizedAssignmentCards: React.FC<VirtualizedAssignmentCardsProps> = ({
@@ -240,6 +255,9 @@ const VirtualizedAssignmentCards: React.FC<VirtualizedAssignmentCardsProps> = ({
   onPublishAssignment,
   onCopyAssignment,
   onViewDetails,
+  selectedIds,
+  selectionActive = false,
+  onToggleSelect,
 }) => {
   const parentRef = useRef<HTMLDivElement | null>(null);
 
@@ -284,6 +302,9 @@ const VirtualizedAssignmentCards: React.FC<VirtualizedAssignmentCardsProps> = ({
               onCopy={onCopyAssignment ? () => onCopyAssignment(assignment) : undefined}
               onViewDetails={onViewDetails ? () => onViewDetails(assignment) : undefined}
               operationState={operationStates[assignment.id]}
+              selected={selectedIds?.has(assignment.id) ?? false}
+              selectionActive={selectionActive}
+              onToggleSelect={onToggleSelect}
             />
           </div>
         );

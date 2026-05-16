@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
 import { Car } from '../../types/car';
@@ -27,6 +28,9 @@ interface AssignmentCardProps {
   onCopy?: () => void;
   onViewDetails?: () => void;
   operationState?: 'publishing' | 'deleting' | 'updating' | null;
+  selected?: boolean;
+  selectionActive?: boolean;
+  onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
@@ -39,7 +43,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   onPublish,
   onCopy,
   onViewDetails,
-  operationState = null
+  operationState = null,
+  selected = false,
+  selectionActive = false,
+  onToggleSelect,
 }) => {
   const { t } = useTranslation();
   const { employees } = useEmployees();
@@ -131,7 +138,11 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a') || target.closest('[role="button"]')) {
+    if (target.closest('button') || target.closest('a') || target.closest('[role="button"]') || target.closest('[data-select-checkbox]')) {
+      return;
+    }
+    if (selectionActive && onToggleSelect && canEdit) {
+      onToggleSelect(assignment.id, e);
       return;
     }
     if (onViewDetails) {
@@ -142,14 +153,31 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <Card 
+        <Card
           className={cn(
-            'relative w-full p-3 brand-card-hover bg-card border-border/60 shadow-xs',
+            'group relative w-full p-3 brand-card-hover bg-card border-border/60 shadow-xs',
             isLoading && 'opacity-75',
-            onViewDetails && 'cursor-pointer'
+            (onViewDetails || selectionActive) && 'cursor-pointer',
+            selected && 'ring-2 ring-primary'
           )}
           onClick={handleCardClick}
         >
+          {canEdit && onToggleSelect && (
+            <div
+              data-select-checkbox
+              className={cn(
+                'absolute top-2 left-2 z-30 transition-opacity',
+                selected || selectionActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'
+              )}
+              onClick={(e) => { e.stopPropagation(); onToggleSelect(assignment.id, e); }}
+            >
+              <Checkbox
+                checked={selected}
+                aria-label="Vælg opgave"
+                className="bg-background border-border shadow-sm"
+              />
+            </div>
+          )}
       {warehouseItemCount > 0 && (
         <TooltipProvider delayDuration={100}>
           <Tooltip>

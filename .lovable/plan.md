@@ -1,43 +1,60 @@
-## NotificationsDrawer (slide-in from right)
+## Bulk multi-select for planner assignments
 
-Replace the existing bell dropdown with a Radix `Sheet` drawer that shows the full notification history with date grouping and infinite scroll.
+Add hover-checkbox selection on `AssignmentCard` and a floating `BulkActionBar` driven by selection state held in `PlannerPage`.
 
-### What will be built
+### 1. Selection state in `PlannerPage`
+- `const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())`.
+- Helpers `toggleSelect(id)`, `clearSelection()`, `isSelected(id)`.
+- `useEffect([selectedWeek, selectedYear])` → `clearSelection()` so changing week wipes selection.
 
-**1. New component** `src/components/Layout/NavComponents/NotificationsDrawer.tsx`
-- Uses `Sheet` / `SheetContent` from `@/components/ui/sheet` with `side="right"` (`w-full sm:max-w-md`).
-- Trigger = the existing bell button (with unread badge), so it visually replaces the dropdown trigger inside `AppTopBar`.
-- Header (sticky): "Notifikationer" title, `Marker alle som læst` button (disabled when no unread), `SheetClose` X (auto from Sheet).
-- Body: scrollable list grouped into "I dag", "Denne uge", "Tidligere" using `date-fns` `isToday` and `isThisWeek({ weekStartsOn: 1 })`. Group headers in small uppercase text-muted-foreground.
-- Each row: 
-  - coloured dot (h-2 w-2 rounded-full): `bg-primary` if unread, `bg-muted` if read
-  - title (bold) + message (text-sm muted)
-  - relative time via `formatDistanceToNow(..., { addSuffix: true, locale: da })`
-  - delete button (Trash icon, ghost) on the right
-- Click row → calls `markAsRead(id)`, then navigates to `notification.link` if present, closes the sheet.
+### 2. Prop drilling
+Pass `selectedIds`, `selectionActive` (= `selectedIds.size > 0`), and `onToggleSelect` through:
+- `PlannerContent` → existing day-rendering wrappers → `DaySection` / `VirtualizedAssignmentCards` → `AssignmentCard`.
+Only the new props are added; existing handlers stay untouched.
 
-**2. Infinite scroll**
-- Local `useInfiniteQuery` inside the drawer:
-  - queryKey: `['notifications', 'infinite', userId]`
-  - pageSize: 20
-  - fetcher: `supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false }).range(from, to)`
-  - `getNextPageParam`: returns `pages.flat().length` if last page had 20, else `undefined`
-- Sentinel `<div ref>` at the bottom uses `IntersectionObserver` to call `fetchNextPage()`.
-- Loading skeletons (4 rows) while initial fetching; "Indlæser…" while fetching next page; empty state when zero notifications.
+### 3. `AssignmentCard` changes
+- Accept `selected: boolean`, `selectionActive: boolean`, `onToggleSelect?: (id, ev) => void`.
+- Wrap content in `group` and render a `Checkbox` (shadcn) absolutely positioned top-left.
+  - Visible when `selected || selectionActive` (always shown) OR `group-hover` (CSS `opacity-0 group-hover:opacity-100`, plus forced `opacity-100` when `selected || selectionActive`).
+  - `onClick` stops propagation and calls `onToggleSelect(assignment.id, e)`. Supports shift-click later (out of scope now; pass event through anyway).
+- When `selected`, add ring style (`ring-2 ring-primary`) on the `Card`.
+- Card body click is unchanged — selection only happens via the checkbox to avoid breaking edit-on-click. (Optional: when `selectionActive`, a card body click toggles selection instead of opening edit. We'll include this behavior since it matches typical bulk-select UX.)
 
-**3. Mutations**
-- Reuse the existing `useNotifications()` context functions: `markAsRead`, `markAllAsRead`, `deleteNotification`. They update Supabase + local context state. After mutation, also call `queryClient.invalidateQueries({ queryKey: ['notifications', 'infinite', userId] })` so the drawer list refreshes.
-- The bell badge in the trigger keeps using `unreadCount` from context (unchanged behaviour).
+### 4. New `BulkActionBar` component
+`src/components/Planner/BulkActionBar.tsx`
+- Fixed position: `fixed bottom-4 left-1/2 -translate-x-1/2 z-40` with `pb-[env(safe-area-inset-bottom)]`; on mobile (`<sm`) lifted above bottom nav via `bottom-20`.
+- Pill container: `bg-background border shadow-lg rounded-full px-3 py-2 flex items-center gap-2`.
+- Content: `"{count} valgt"` label, then buttons:
+  - **Publicér valgte** → `onPublishSelected()`
+  - **Slet valgte** → `onDeleteSelected()` (confirm via existing toast/AlertDialog pattern used in PlannerPage)
+  - **Tildel medarbejder** → `onAssignEmployee()` opens a new lightweight `BulkAssignEmployeeDialog` (employee picker → calls `assignEmployeeToAssignments(ids, userId)`)
+  - **Fjern valg** (ghost) → `onClear()`
+- Disables action buttons while a bulk mutation is in-flight.
+- Animates in with `data-[state=open]` slide-from-bottom (Tailwind `animate-in slide-in-from-bottom-4`).
 
-**4. Wire into `AppTopBar.tsx`**
-- Replace `<NotificationsDropdown ... />` with `<NotificationsDrawer />`.
-- Remove the props plumbing (drawer reads context internally). `notifications.slice(0,10)` from context becomes unused for this widget — keep context as-is since other places may use it.
+Rendered from `PlannerPage` directly (not inside `PlannerContent`) so it floats over the entire layout.
+
+### 5. Bulk handlers in `PlannerPage`
+- `handleBulkPublish`: extend `OptimizedAssignmentService.publishAssignmentsByDate` with a sibling method `publishAssignmentsByIds(ids: string[], userEmail?)` that does `.update({ published: true }).in('id', ids)`, clears cache, and is exposed through `useOptimizedAssignments` + `useAssignmentsConsolidated` as `publishAssignmentsByIds`. Then `await publishAssignmentsByIds([...selectedIds])` and `clearSelection()`.
+- `handleBulkDelete`: loop `await deleteAssignment(id)` for each (existing mutation already handles cache invalidation). Wrap in `Promise.all` for parallelism but cap with try/catch. Show single toast at the end. Confirm via existing `AlertDialog` pattern.
+- `handleBulkAssignEmployee(userId)`: insert rows into `assignments_employees` for every selected id that doesn't already have that user. Use existing assignment-employee mutation if available; otherwise add a small Supabase call inside the new dialog handler. Clear selection on success.
+
+### 6. Files
+**New**
+- `src/components/Planner/BulkActionBar.tsx`
+- `src/components/Planner/BulkAssignEmployeeDialog.tsx`
+
+**Edited**
+- `src/pages/PlannerPage.tsx` — selection state, week-change reset, bulk handlers, render `<BulkActionBar />`.
+- `src/components/Planner/PlannerContent.tsx` — pass through selection props.
+- `src/components/Planner/DaySection.tsx` — pass through selection props to both standard and virtualized card renders.
+- `src/components/Planner/AssignmentCard.tsx` — checkbox + selected ring + selectionActive click behavior.
+- `src/services/optimizedAssignmentService.ts` — add `publishAssignmentsByIds`.
+- `src/hooks/useOptimizedAssignments.ts` + `src/hooks/useAssignmentsConsolidated.ts` — expose `publishAssignmentsByIds`.
 
 ### Out of scope
-- No schema or RLS changes (the `notifications` table already supports user-scoped reads/updates).
-- `NotificationsDropdown.tsx` and `NotificationsList.tsx` stay in the repo for now (not deleted) in case they're imported elsewhere; can be removed later.
-- No changes to realtime subscription behaviour.
-
-### Files changed
-- `src/components/Layout/NavComponents/NotificationsDrawer.tsx` (new)
-- `src/components/Layout/AppTopBar.tsx`
+- Shift-click range selection (event is forwarded so it can be added later).
+- Persisting selection across reloads.
+- Bulk edit of fields beyond employee assignment.
+- Cars / sub-dept changes from the bulk bar.
+- RLS changes (existing policies on `assignments`, `assignments_employees` already cover admin/skadeleder bulk operations).

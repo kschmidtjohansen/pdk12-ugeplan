@@ -24,6 +24,18 @@ import FilterChips, { applyPlannerFilters, useActivePlannerFilters } from '@/com
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
+import BulkActionBar from '@/components/Planner/BulkActionBar';
+import BulkAssignEmployeeDialog from '@/components/Planner/BulkAssignEmployeeDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const PlannerPage: React.FC = () => {
   const {
@@ -61,7 +73,8 @@ const PlannerPage: React.FC = () => {
     deleteAssignmentsByGroupId,
     detachFromGroup,
     publishAssignment,
-    publishAssignmentsByDate
+    publishAssignmentsByDate,
+    publishAssignmentsByIds
   } = useOptimizedAssignments('all');
 
   // Simplified planner state management using ISO week numbers with localStorage persistence
@@ -118,6 +131,27 @@ const PlannerPage: React.FC = () => {
     localStorage.setItem('plannerSelectedYear', selectedYear.toString());
     setPlannerWeek(selectedWeek, selectedYear);
   }, [selectedWeek, selectedYear]);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const handleToggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  // Clear selection when navigating to a different week
+  useEffect(() => {
+    clearSelection();
+  }, [selectedWeek, selectedYear, clearSelection]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
@@ -404,6 +438,57 @@ const PlannerPage: React.FC = () => {
   const handlePublishDay = useCallback(async (date: string) => {
     await publishAssignmentsByDate(date);
   }, [publishAssignmentsByDate]);
+
+  // ---- Bulk actions ----
+  const handleBulkPublish = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    try {
+      await publishAssignmentsByIds([...selectedIds]);
+      clearSelection();
+    } finally {
+      setBulkBusy(false);
+    }
+  }, [selectedIds, publishAssignmentsByIds, clearSelection]);
+
+  const handleBulkDeleteConfirm = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    const ids = [...selectedIds];
+    let failed = 0;
+    try {
+      await Promise.all(ids.map(id => deleteAssignment(id).catch(() => { failed++; })));
+      toast({
+        title: failed === 0 ? `${ids.length} opgaver slettet` : `${ids.length - failed} slettet, ${failed} fejlede`,
+        variant: failed === 0 ? 'default' : 'destructive',
+      });
+      clearSelection();
+    } finally {
+      setBulkBusy(false);
+      setBulkDeleteOpen(false);
+    }
+  }, [selectedIds, deleteAssignment, toast, clearSelection]);
+
+  const handleBulkAssignEmployee = useCallback(async (userId: string) => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    try {
+      const ids = [...selectedIds];
+      const rows = ids.map(assignment_id => ({ assignment_id, user_id: userId }));
+      const { error } = await supabase
+        .from('assignments_employees')
+        .upsert(rows, { onConflict: 'assignment_id,user_id', ignoreDuplicates: true });
+      if (error) {
+        toast({ title: 'Kunne ikke tildele medarbejder', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: `Medarbejder tildelt ${ids.length} opgave${ids.length === 1 ? '' : 'r'}` });
+        await refetch();
+        clearSelection();
+      }
+    } finally {
+      setBulkBusy(false);
+    }
+  }, [selectedIds, toast, refetch, clearSelection]);
 
   const handleDeleteAssignment = useCallback(async (id: string) => {
     const assignment = assignments.find(a => a.id === id);
@@ -702,6 +787,9 @@ const PlannerPage: React.FC = () => {
           selectedYear={selectedYear} 
           weekDates={weekDates}
           viewMode={viewMode}
+          selectedIds={selectedIds}
+          selectionActive={selectedIds.size > 0}
+          onToggleSelect={handleToggleSelect}
         />
 
         {/* Assignment Dialog */}
@@ -739,6 +827,40 @@ const PlannerPage: React.FC = () => {
             />
           </Suspense>
         )}
+
+        {/* Bulk action bar */}
+        <BulkActionBar
+          count={selectedIds.size}
+          busy={bulkBusy}
+          onPublish={handleBulkPublish}
+          onDelete={() => setBulkDeleteOpen(true)}
+          onAssignEmployee={() => setBulkAssignOpen(true)}
+          onClear={clearSelection}
+        />
+
+        <BulkAssignEmployeeDialog
+          open={bulkAssignOpen}
+          count={selectedIds.size}
+          onClose={() => setBulkAssignOpen(false)}
+          onConfirm={handleBulkAssignEmployee}
+        />
+
+        <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Slet {selectedIds.size} opgave{selectedIds.size === 1 ? '' : 'r'}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Denne handling kan ikke fortrydes. Alle valgte opgaver slettes permanent.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={bulkBusy}>Annullér</AlertDialogCancel>
+              <AlertDialogAction onClick={handleBulkDeleteConfirm} disabled={bulkBusy}>
+                Slet
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
     </DataFetchErrorBoundary>

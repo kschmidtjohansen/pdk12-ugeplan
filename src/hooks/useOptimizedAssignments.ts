@@ -34,6 +34,7 @@ interface UseOptimizedAssignmentsResult {
   detachFromGroup: (id: string) => Promise<boolean>;
   publishAssignment: (id: string) => Promise<void>;
   publishAssignmentsByDate: (date: string) => Promise<void>;
+  publishAssignmentsByIds: (ids: string[]) => Promise<void>;
   setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
 }
 
@@ -579,6 +580,23 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     }
   }, [toast, t, refetch, setAssignments, assignments, user]);
 
+  const publishAssignmentsByIds = useCallback(async (ids: string[]) => {
+    if (!ids || ids.length === 0) return;
+    notifyOwnAction();
+    const idSet = new Set(ids);
+    try {
+      setAssignments(prev => prev.map(a => idSet.has(a.id) ? { ...a, published: true } : a));
+      await OptimizedAssignmentService.publishAssignmentsByIds(ids, user.email);
+      await PlannerChangeLogger.logPublish(ids);
+      toast({ title: t('planner.dayPublished'), description: `${ids.length}` });
+      await refetch();
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Publish by ids failed:', error);
+      await refetch();
+      toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorPublishingDay'), variant: 'destructive' });
+    }
+  }, [toast, t, refetch, setAssignments, user]);
+
   // Delete all assignments sharing a group_id
   const deleteAssignmentsByGroupId = useCallback(async (groupId: string) => {
     notifyOwnAction();
@@ -739,6 +757,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     detachFromGroup,
     publishAssignment,
     publishAssignmentsByDate,
+    publishAssignmentsByIds,
     setAssignments
   };
 };
