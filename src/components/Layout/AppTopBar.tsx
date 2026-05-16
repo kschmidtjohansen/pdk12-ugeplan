@@ -10,6 +10,7 @@ import ChangeLogDropdown from './NavComponents/ChangeLogDropdown';
 import UserMenu from './NavComponents/UserMenu';
 import VacationOverviewDropdown from './NavComponents/VacationOverviewDropdown';
 import { useToast } from '@/hooks/use-toast';
+import { usePlannerWeek } from '@/stores/plannerWeekStore';
 
 const ROUTE_TITLES: Record<string, string> = {
   '/dashboard': 'navigation.dashboard',
@@ -32,6 +33,8 @@ const AppTopBar: React.FC = () => {
 
   const titleKey = ROUTE_TITLES[location.pathname];
   const title = titleKey ? t(titleKey) : '';
+  const { week } = usePlannerWeek();
+  const isPlanner = location.pathname === '/planner';
 
   // Vacation overview dropdown is visible to Skadeleder, Administrator and Super Admin
   const canSeeVacationOverview = isEffectiveAdmin || isSkadeleder;
@@ -59,12 +62,14 @@ const AppTopBar: React.FC = () => {
       <div className="flex items-center h-full px-2 sm:px-3 gap-2">
         <SidebarTrigger className="text-muted-foreground hover:text-foreground h-8 w-8" />
         <div className="h-4 w-px bg-border hidden sm:block" />
-        <h1 className="text-[13px] font-semibold text-foreground tracking-tight truncate hidden sm:block">
+        <h1 className="text-[13px] font-semibold text-foreground tracking-tight truncate">
           {title}
         </h1>
-        <h1 className="text-[13px] font-semibold text-foreground tracking-tight truncate sm:hidden">
-          {title}
-        </h1>
+        {isPlanner && (
+          <span className="inline-flex items-center bg-primary/10 text-primary text-[12px] rounded-full px-2 py-0.5 font-medium">
+            {t('planner.week') || 'Uge'} {week}
+          </span>
+        )}
 
         <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
           <NotificationsDropdown

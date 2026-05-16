@@ -23,6 +23,7 @@ import PlannerSearchFilter from '@/components/Planner/PlannerSearchFilter';
 import FilterChips, { applyPlannerFilters, useActivePlannerFilters } from '@/components/Planner/FilterChips';
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useToast } from '@/hooks/use-toast';
+import { setPlannerWeek } from '@/stores/plannerWeekStore';
 
 const PlannerPage: React.FC = () => {
   const {
@@ -115,6 +116,7 @@ const PlannerPage: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('plannerSelectedWeek', selectedWeek.toString());
     localStorage.setItem('plannerSelectedYear', selectedYear.toString());
+    setPlannerWeek(selectedWeek, selectedYear);
   }, [selectedWeek, selectedYear]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
