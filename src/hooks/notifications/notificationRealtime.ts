@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTable, unsubscribeByKey } from '@/lib/realtimeChannels';
 import { sortNotifications } from '@/utils/notifications';
 
 // Key for localStorage to track notifications shown across browser sessions
