@@ -605,27 +605,20 @@ export const useAssignmentFiles = (
     fetchFiles();
 
     const idSet = new Set(effectiveIds);
-    const channel = supabase
-      .channel(`assignment-files-${effectiveIdsKey}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'assignment_files',
-        },
-        (payload) => {
-          const newId = (payload.new as { assignment_id?: string } | null)?.assignment_id;
-          const oldId = (payload.old as { assignment_id?: string } | null)?.assignment_id;
-          if ((newId && idSet.has(newId)) || (oldId && idSet.has(oldId))) {
-            fetchFiles();
-          }
+    const unsubscribe = subscribeToTable({
+      key: `useAssignmentFiles:${effectiveIdsKey}`,
+      table: 'assignment_files',
+      callback: (payload) => {
+        const newId = (payload?.new as { assignment_id?: string } | null)?.assignment_id;
+        const oldId = (payload?.old as { assignment_id?: string } | null)?.assignment_id;
+        if ((newId && idSet.has(newId)) || (oldId && idSet.has(oldId))) {
+          fetchFiles();
         }
-      )
-      .subscribe();
+      },
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveIdsKey, fetchFiles]);
