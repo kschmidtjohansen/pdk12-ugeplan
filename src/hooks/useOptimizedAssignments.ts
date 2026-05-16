@@ -234,22 +234,22 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [queryRefetch]);
 
   // Realtime subscription for assignments + assignments_employees tables
+  const realtimeThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (user?.email === 'test@polygongroup.com' || !isAuthenticated || !user?.id) return;
 
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     let isMounted = true;
 
     const handleRealtimeChange = () => {
       if (!isMounted) return;
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
+      if (realtimeThrottleRef.current) clearTimeout(realtimeThrottleRef.current);
+      realtimeThrottleRef.current = setTimeout(() => {
         if (isMounted) {
           if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Realtime change detected, invalidating...');
           OptimizedAssignmentService.clearCache();
           queryClient.invalidateQueries({ queryKey: ['assignments'] });
         }
-      }, 1000);
+      }, 500);
     };
 
     const unsubscribe = subscribeToTables(
@@ -263,7 +263,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
     return () => {
       isMounted = false;
-      if (debounceTimer) clearTimeout(debounceTimer);
+      if (realtimeThrottleRef.current) clearTimeout(realtimeThrottleRef.current);
       unsubscribe();
     };
   }, [isAuthenticated, user?.id, user?.email, queryClient]);
