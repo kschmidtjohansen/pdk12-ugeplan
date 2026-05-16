@@ -48,7 +48,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const [open, setOpen] = useState(false);
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
 
-  // Calculate distances from case to each employee using Haversine
+  // Haversine sort — deps: employee list + assignment GPS coords
   const distanceMap = useMemo(() => {
     const map = new Map<string, number>();
     if (caseLat == null || caseLng == null) return map;
@@ -60,20 +60,21 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return map;
   }, [employees, caseLat, caseLng]);
 
+  // Haversine sort — deps: employee list + assignment GPS coords
   const sortedEmployees = useMemo(() => {
-    if (caseLat != null && caseLng != null && distanceMap.size > 0) {
-      return [...employees].sort((a, b) => {
-        const distA = distanceMap.get(a.id);
-        const distB = distanceMap.get(b.id);
-        const aClose = distA != null && distA <= 15;
-        const bClose = distB != null && distB <= 15;
-        if (aClose && bClose) return distA! - distB!;
-        if (aClose) return -1;
-        if (bClose) return 1;
-        return a.name.localeCompare(b.name);
-      });
-    }
-    return [...employees].sort((a, b) => a.name.localeCompare(b.name));
+    // No assignment coords → skip sort entirely, return list as-is
+    if (caseLat == null || caseLng == null) return employees;
+    if (distanceMap.size === 0) return employees;
+    return [...employees].sort((a, b) => {
+      const distA = distanceMap.get(a.id);
+      const distB = distanceMap.get(b.id);
+      const aClose = distA != null && distA <= 15;
+      const bClose = distB != null && distB <= 15;
+      if (aClose && bClose) return distA! - distB!;
+      if (aClose) return -1;
+      if (bClose) return 1;
+      return a.name.localeCompare(b.name);
+    });
   }, [employees, caseLat, caseLng, distanceMap]);
 
   const top3NearbyIds = useMemo(() => {
