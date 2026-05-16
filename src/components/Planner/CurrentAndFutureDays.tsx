@@ -25,6 +25,9 @@ interface CurrentAndFutureDaysProps {
   canPublishTasks: boolean;
   cars?: Car[];
   gridLayout?: boolean;
+  selectedIds?: Set<string>;
+  selectionActive?: boolean;
+  onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
 const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
@@ -45,7 +48,10 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   canEdit,
   canPublishTasks,
   cars = [],
-  gridLayout = false
+  gridLayout = false,
+  selectedIds,
+  selectionActive = false,
+  onToggleSelect,
 }) => {
   if (dates.length === 0) return null;
 

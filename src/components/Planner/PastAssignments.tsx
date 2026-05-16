@@ -25,6 +25,9 @@ interface PastAssignmentsProps {
   canPublishTasks: boolean;
   cars?: Car[];
   gridLayout?: boolean;
+  selectedIds?: Set<string>;
+  selectionActive?: boolean;
+  onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
 const PastAssignments: React.FC<PastAssignmentsProps> = ({
@@ -43,7 +46,10 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
   canEdit,
   canPublishTasks,
   cars = [],
-  gridLayout = false
+  gridLayout = false,
+  selectedIds,
+  selectionActive = false,
+  onToggleSelect,
 }) => {
   const { t } = useTranslation();
   const INITIAL = 14;
@@ -92,6 +98,9 @@ const PastAssignments: React.FC<PastAssignmentsProps> = ({
             cars={cars}
             operationStates={operationStates}
             gridLayout={gridLayout}
+            selectedIds={selectedIds}
+            selectionActive={selectionActive}
+            onToggleSelect={onToggleSelect}
           />
           </PlannerWidgetErrorBoundary>
         )}
