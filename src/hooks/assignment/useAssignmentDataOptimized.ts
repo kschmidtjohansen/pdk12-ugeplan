@@ -4,6 +4,7 @@ import { Assignment } from '@/types/assignment';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTables } from '@/lib/realtimeChannels';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { useAuth } from '@/context/AuthContext';
@@ -134,54 +135,41 @@ export const useAssignmentDataOptimized = () => {
 
   useEffect(() => {
     let debounceTimeout: NodeJS.Timeout;
-    
-    const channel = supabase
-      .channel('assignment_changes_optimized')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, (payload) => {
-        if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Assignment change detected:', payload.eventType);
-        
-        enhancedDataFetching.clearCache('assignments');
-        
-        if (isDemoMode) {
-          if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Demo user - immediate fetch');
-          fetchAssignments();
-        } else {
-          clearTimeout(debounceTimeout);
-          debounceTimeout = setTimeout(() => {
-            fetchAssignments();
-          }, 500);
-        }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments_employees' }, (payload) => {
-        if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Assignment employee change detected:', payload.eventType);
-        
-        enhancedDataFetching.clearCache('assignments');
-        
-        if (isDemoMode) {
-          if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Demo user - immediate fetch for employee changes');
-          fetchAssignments();
-        } else {
-          clearTimeout(debounceTimeout);
-          debounceTimeout = setTimeout(() => {
-            fetchAssignments();
-          }, 500);
-        }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
-        if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] Profile change detected');
-        
-        enhancedDataFetching.clearCache('assignments');
-        
+
+    const triggerFetch = (immediate: boolean, delay: number) => {
+      enhancedDataFetching.clearCache('assignments');
+      if (immediate) {
+        fetchAssignments();
+      } else {
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
           fetchAssignments();
-        }, 1000);
-      })
-      .subscribe();
-      
+        }, delay);
+      }
+    };
+
+    const unsubscribe = subscribeToTables(
+      'useAssignmentDataOptimized',
+      [
+        { table: 'assignments' },
+        { table: 'assignments_employees' },
+        { table: 'profiles' },
+      ],
+      (table, payload) => {
+        if (import.meta.env.DEV) {
+          console.log(`[useAssignmentDataOptimized] ${table} change detected:`, payload?.eventType);
+        }
+        if (table === 'profiles') {
+          triggerFetch(false, 1000);
+        } else {
+          triggerFetch(isDemoMode, 500);
+        }
+      }
+    );
+
     return () => {
       clearTimeout(debounceTimeout);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [fetchAssignments, isDemoMode]);
 

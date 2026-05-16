@@ -2,6 +2,7 @@
 import { useEffect, useCallback } from 'react';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTable } from '@/lib/realtimeChannels';
 import { WarehouseItem, WarehouseItemFormData } from '@/types/warehouse';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -96,14 +97,15 @@ export const useWarehouseData = () => {
       }, 45000);
       return () => clearInterval(pollInterval);
     } else {
-      const channel = supabase
-        .channel(`warehouse_items_changes_public`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'warehouse_items' }, () => {
+      const unsubscribe = subscribeToTable({
+        key: `useWarehouseData:${user.id}:${selectedDepartmentId ?? 'none'}`,
+        table: 'warehouse_items',
+        callback: () => {
           queryClient.invalidateQueries({ queryKey: ['warehouse-items'] });
-        })
-        .subscribe();
+        },
+      });
 
-      return () => { supabase.removeChannel(channel); };
+      return () => { unsubscribe(); };
     }
   }, [isDemoMode, userDataLoaded, user?.id, selectedDepartmentId, queryClient]);
 

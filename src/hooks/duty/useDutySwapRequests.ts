@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTable } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import type { Duty } from '@/types/duty';
 
@@ -65,19 +66,16 @@ export const useDutySwapRequests = () => {
 
   useEffect(() => {
     if (!user?.id) return;
-    const channel = supabase
-      .channel('duty-swap-requests')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'duty_swap_requests' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
-          queryClient.invalidateQueries({ queryKey: ['duties'] });
-        },
-      )
-      .subscribe();
+    const unsubscribe = subscribeToTable({
+      key: `useDutySwapRequests:${user.id}`,
+      table: 'duty_swap_requests',
+      callback: () => {
+        queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
+        queryClient.invalidateQueries({ queryKey: ['duties'] });
+      },
+    });
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [user?.id, queryClient]);
 

@@ -5,6 +5,7 @@ import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTables } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
@@ -112,22 +113,21 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       }, 1000);
     };
 
-    const channel = supabase
-      .channel('unified-data-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, () => handleRealtimeChange('cars'))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => handleRealtimeChange('profiles'))
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          if (import.meta.env.DEV) console.warn('[useUnifiedData] Realtime channel error, falling back to existing data');
-        }
-      });
+    const unsubscribe = subscribeToTables(
+      `useUnifiedData:${selectedDepartmentId ?? 'all'}`,
+      [
+        { table: 'cars' },
+        { table: 'profiles' },
+      ],
+      (table) => handleRealtimeChange(table)
+    );
 
     loadData();
 
     return () => {
       isMounted = false;
       if (debounceTimer) clearTimeout(debounceTimer);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [isDemoMode, selectedDepartmentId]);
 

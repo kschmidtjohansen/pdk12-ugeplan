@@ -1,33 +1,82 @@
-## Two fixes
+# Plan: Shared realtime channels per table
 
-### A) Super Admin treated as Admin everywhere
+## Goal
+Reduce WebSocket fan-out by sharing a single Supabase Realtime channel per `(schema, table)` pair across all hooks. Each caller registers a postgres_changes listener with a unique key, and unregisters by key. The underlying channel is created on the first subscriber and torn down when the ref-count hits zero.
 
-`usePermissions().isAdmin` and `AuthContext` already include `super_admin`, but several places do strict `role === 'administrator'` checks that exclude super_admins. Update each to include `'super_admin'`.
+## New module: `src/lib/realtimeChannels.ts`
 
-Files to fix:
+Public API:
 
-1. `src/services/optimizedAssignmentService.ts:406` — `isAdmin` in `fetchAssignmentsFallback` → add `role === 'super_admin'`. Without this, super-admins viewing data through the fallback path only see `published = true` assignments.
-2. `src/components/Admin/UserManagement.tsx:55` — local `isAdmin` uses strict equality; replace with `['administrator','super_admin'].includes(authUser?.role)`.
-3. `src/components/Planner/UnassignedResourcesSection.tsx:154` — extend the role filter to include `'super_admin'`.
-4. `src/components/Duty/DutyEditDialog.tsx:57` — extend `role !== 'administrator' && role !== 'skadeleder'` guard to also allow `'super_admin'`.
-5. `src/hooks/notifications/vacationNotifications.ts:17, 105, 243` — replace `user.role !== 'administrator'` / `=== 'administrator'` with admin-or-super-admin checks so super-admins get vacation notifications.
-6. `src/hooks/useNotifications.ts:55, 74` — same: admin notifications should fire for super-admins too.
+```ts
+type Event = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
-For consistency, introduce a tiny helper `isAdminRole(role)` in `src/utils/roles.ts` returning `role === 'administrator' || role === 'super_admin'`, and use it from each site (keeps the rule in one place so this doesn't regress again).
+interface SubscribeOptions {
+  key: string;                    // unique caller key, used for unsubscribe
+  table: string;
+  schema?: 'public' | 'demo';     // default 'public'
+  event?: Event;                  // default '*'
+  filter?: string;                // optional postgres_changes filter
+  callback: (payload: any) => void;
+}
 
-Already correct (verified, no change): `AuthContext`, `WarehousePage`, `DutySwapDialog`, `ResponsibleUserSelector`, `DutyAssignmentDialog`, `DutyEmployeeSelector`, `AssignmentActionButtons`, `AdminPage`, `DashboardPage`, `QuickAccessGrid`, `useAutoPublishLog`, `AssignmentMessagesPanel`, `SubDepartmentManagement`.
+export function subscribeToTable(opts: SubscribeOptions): () => void;
+export function unsubscribeByKey(key: string): void;
+export function getActiveChannelStats(): { channels: number; listeners: number };
+```
 
-### B) BulkActionBar — swap "Publicér valgte" for "Tildel køretøj"
+Internals:
 
-- `src/components/Planner/BulkActionBar.tsx` — remove the Publish button + `onPublish` prop, add `onAssignCar` button (label "Tildel køretøj", icon `Car` from lucide-react). New button order: `Tildel medarbejder`, `Tildel køretøj`, `Slet valgte`, `Fjern valg`.
-- New `src/components/Planner/BulkAssignCarDialog.tsx` — mirrors `BulkAssignEmployeeDialog`, lists cars from `useCars()` (search by `registration_number` / `make` / `model`), confirms with the selected `carId`.
-- `src/pages/PlannerPage.tsx`:
-  - Drop `handleBulkPublish` and the `onPublish` prop on `BulkActionBar`.
-  - Add `bulkAssignCarOpen` state + `handleBulkAssignCar(carId)` that updates the selected assignments via `supabase.from('assignments').update({ car_id: carId }).in('id', [...selectedIds])`, then `refetch()` + `clearSelection()` + toast.
-  - Render `<BulkAssignCarDialog />` next to `<BulkAssignEmployeeDialog />`.
-  - `publishAssignmentsByIds` mutation stays in the hook (other features may need it) but is no longer wired into the bar.
+- `channels: Map<string, { channel: RealtimeChannel; refCount: number; listeners: Map<string, Listener> }>` keyed by `${schema}:${table}:${event}:${filter ?? ''}`. Filter/event are part of the key because Supabase binds them at `.on()` time and they cannot be re-filtered client-side cheaply for unrelated subscribers.
+- `subscribeToTable` looks up the channel by key. If absent, calls `supabase.channel(\`shared:${key}:${nanoid}\`)`, attaches a single `.on('postgres_changes', {...})` handler that fans out to all registered listeners, and calls `.subscribe()`. Otherwise reuses the existing channel and only increments the ref-count.
+- Returns an unsubscribe function that decrements refCount, removes the listener, and calls `supabase.removeChannel(...)` when refCount reaches 0.
+- DEV-only `console.log` for create/teardown, gated by `import.meta.env.DEV`.
+- Errors swallowed with `.message` logging per project error-handling rule.
 
-### Out of scope
-- No DB or RLS changes (RLS on `assignments` already permits admin/skadeleder/super-admin updates).
-- No changes to compact view (still no bulk select there — same as before).
-- No memory update required; the admin-role rule is already documented in Core memory.
+## Helper for multi-table hooks
+Add a small convenience:
+
+```ts
+export function subscribeToTables(
+  baseKey: string,
+  tables: Array<Omit<SubscribeOptions, 'key' | 'callback'> & { table: string }>,
+  callback: (table: string, payload: any) => void
+): () => void;
+```
+
+It registers one listener per table using `${baseKey}:${table}` keys and returns a single combined unsubscribe — needed by hooks like `useUnifiedData` that previously chained multiple `.on()` calls on one channel.
+
+## Hook migrations (scope: `src/hooks/` only)
+
+Replace `supabase.channel(...).on('postgres_changes', ...).subscribe()` + `supabase.removeChannel(...)` with `subscribeToTable` / `subscribeToTables`:
+
+1. `src/hooks/data/useUnifiedData.ts` — `cars`, `profiles` → `subscribeToTables`.
+2. `src/hooks/useOptimizedAssignments.ts` — `assignments`, `assignments_employees`.
+3. `src/hooks/assignment/useAssignmentDataOptimized.ts` — `assignments`, `assignments_employees`, `profiles`.
+4. `src/hooks/assignment/useAssignmentMessages.ts` — `assignment_messages` (keep `filter` on assignment_id).
+5. `src/hooks/assignment/useAssignmentFiles.ts` — `assignment_files` (with filter).
+6. `src/hooks/car/useCarData.ts` — `cars`.
+7. `src/hooks/employee/useEmployeeData.ts` — `profiles`, `user_roles`.
+8. `src/hooks/warehouse/useWarehouseData.ts` — `warehouse_items`.
+9. `src/hooks/vacation/useVacationRequestsStatus.ts` — `vacations`.
+10. `src/hooks/duty/useDutyData.ts` — `on_call_duties`.
+11. `src/hooks/duty/useDutySwapRequests.ts` — `duty_swap_requests`.
+12. `src/hooks/notifications/notificationRealtime.ts` — notifications table(s) with user-scoped filter.
+
+Each hook will:
+- Build a stable `key` like `useUnifiedData:${selectedDepartmentId}` or `useAssignmentMessages:${assignmentId}`.
+- Call subscribe in `useEffect`, call the returned unsubscribe in the cleanup.
+- Preserve existing debounce timers and "ignore own actions" logic — only the channel layer changes.
+
+## Out of scope (explicitly not touched)
+- `src/services/realtimeManager.ts` — keeps its own multi-table abstraction; not used by the listed hooks. Left untouched.
+- `src/context/ChangeLogContext.tsx`, `src/components/shared/RealtimeChangeNotifier.tsx`, `src/components/Admin/UserManagement.tsx` — outside `src/hooks/`. Not migrated unless requested.
+- Schema for demo mode is preserved (passed through `schema` option).
+
+## Validation
+- Type-check via the existing build pipeline.
+- Manual smoke: open Planner + Dashboard, confirm realtime updates still arrive, check DEV console for "shared channel created" appearing once per table instead of per hook.
+- Verify cleanup by navigating away and back; channel teardown log should fire when last subscriber unmounts.
+
+## Risks
+- Filters: two hooks subscribing to the same table with different `filter` strings will still open separate channels (intentional — Supabase server-side filter cannot be merged). Sharing only kicks in for identical `(schema, table, event, filter)` tuples.
+- Demo mode uses `schema: 'demo'`; key includes schema so public and demo channels stay isolated.

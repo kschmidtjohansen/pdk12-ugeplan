@@ -5,6 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTable } from '@/lib/realtimeChannels';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -176,15 +177,16 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
 
     if (isDemoMode) return; // Demo: no realtime needed
 
-    const channel = supabase
-      .channel(`cars-changes-public`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, (payload) => {
+    const unsubscribe = subscribeToTable({
+      key: `useCarData:${user.id}`,
+      table: 'cars',
+      callback: (payload) => {
         if (import.meta.env.DEV) console.log(`[useCarData] Realtime update received:`, payload);
         queryClient.invalidateQueries({ queryKey: ['cars'] });
-      })
-      .subscribe();
+      },
+    });
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { unsubscribe(); };
   }, [isDemoMode, userDataLoaded, user?.id, queryClient]);
 
   return {
