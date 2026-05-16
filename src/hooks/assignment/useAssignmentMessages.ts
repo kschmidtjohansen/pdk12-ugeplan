@@ -1,5 +1,6 @@
  import { useState, useEffect, useCallback } from 'react';
  import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTable } from '@/lib/realtimeChannels';
  import { useNotifications } from '@/context/NotificationContext';
  import { toast } from 'sonner';
  import { format } from 'date-fns';
