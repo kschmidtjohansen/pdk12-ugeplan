@@ -61,6 +61,9 @@ const PlannerPage: React.FC = () => {
   const {
     vacations
   } = useVacations();
+  const { employees: allEmployees } = useEmployeeData();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
+  const queryClient = useQueryClient();
   
   // Use optimized assignments hook for unified data management
   const {
