@@ -1,27 +1,13 @@
-Replace the existing realtime debounce logic in three hooks with a uniform ref-based 500ms throttle pattern.
+No changes needed — this work is already complete in the codebase.
 
-### What changes
+### Verified
 
-1. **src/hooks/useOptimizedAssignments.ts** — Planner assignments realtime handler
-   - Add `const throttleRef = useRef<ReturnType<typeof setTimeout> | null>(null);` at the hook level.
-   - In the `subscribeToTables` callback, replace the current `debounceTimer` local variable with the ref pattern:
-     ```ts
-     if (throttleRef.current) clearTimeout(throttleRef.current);
-     throttleRef.current = setTimeout(() => {
-       OptimizedAssignmentService.clearCache();
-       queryClient.invalidateQueries({ queryKey: ['assignments'] });
-     }, 500);
-     ```
-   - Clean up in the `useEffect` return: `if (throttleRef.current) clearTimeout(throttleRef.current);`.
+- **`src/components/shared/ListSkeleton.tsx`** exists and matches the spec: accepts `rowCount` (default 8), renders rows with a 40×40 (`h-10 w-10`) rounded avatar square, two stacked lines at 70% / 40% width, and a short right-side line, all using `bg-muted animate-pulse`.
+- **`src/pages/WarehousePage.tsx`** — `{loading ? <ListSkeleton /> : …}` (line 61).
+- **`src/pages/CarsPage.tsx`** — `{loading ? <ListSkeleton /> : …}` (line 91).
+- **`src/pages/EmployeesPage.tsx`** — loading is delegated to `EmployeesTable`, which renders `<ListSkeleton />` when `loading` is true.
+- **`src/pages/VacationPage.tsx`** — loading is delegated through `VacationPageContainer → VacationTabContent → VacationList → VacationTable`, which renders `<ListSkeleton />` when `isLoading` is true.
 
-2. **src/hooks/car/useCarData.ts** — Cars realtime handler
-   - Add the same `throttleRef` at the hook level.
-   - Wrap the existing `queryClient.invalidateQueries({ queryKey: ['cars'] })` inside the `subscribeToTable` callback with the same 500ms ref-based throttle.
-   - Clean up the timeout in the `useEffect` return.
+### Optional cleanup (only if you want it)
 
-3. **src/hooks/employee/useEmployeeData.ts** — Employees realtime handler
-   - Replace the existing local `timeoutId` debounce with the same ref-based 500ms throttle.
-   - Clean up in the `useEffect` return.
-
-### Why
-All three handlers currently use ad-hoc debounce (or none at all). Unifying them to a single ref-based 500ms throttle reduces redundant invalidation bursts when realtime fires multiple events in rapid succession, and makes the pattern consistent across the codebase.
+`WarehousePage.tsx` still imports `LoadingSpinner` on line 12 even though it is no longer used. I can remove that dead import if you'd like — otherwise nothing to do.
