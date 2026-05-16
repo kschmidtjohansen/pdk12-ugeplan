@@ -5,6 +5,7 @@ import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTables } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
