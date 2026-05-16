@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTable } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import type { Duty } from '@/types/duty';
 
