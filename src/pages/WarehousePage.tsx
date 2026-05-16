@@ -9,7 +9,7 @@ import { useWarehouse } from '@/hooks/warehouse';
 import WarehouseList from '@/components/Warehouse/WarehouseList';
 import WarehouseFormDialog from '@/components/Warehouse/WarehouseFormDialog';
 import WarehouseDeleteDialog from '@/components/Warehouse/WarehouseDeleteDialog';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import ListPageShell from '@/components/shared/ListPageShell';
