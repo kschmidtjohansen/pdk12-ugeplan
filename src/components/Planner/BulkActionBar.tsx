@@ -1,23 +1,23 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Trash2, UserPlus, X } from 'lucide-react';
+import { Trash2, UserPlus, X, Car as CarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BulkActionBarProps {
   count: number;
   busy?: boolean;
-  onPublish: () => void;
-  onDelete: () => void;
   onAssignEmployee: () => void;
+  onAssignCar: () => void;
+  onDelete: () => void;
   onClear: () => void;
 }
 
 const BulkActionBar: React.FC<BulkActionBarProps> = ({
   count,
   busy = false,
-  onPublish,
-  onDelete,
   onAssignEmployee,
+  onAssignCar,
+  onDelete,
   onClear,
 }) => {
   if (count === 0) return null;
@@ -37,11 +37,11 @@ const BulkActionBar: React.FC<BulkActionBarProps> = ({
           {count} valgt
         </span>
         <div className="h-5 w-px bg-border" />
-        <Button size="sm" variant="brand" disabled={busy} onClick={onPublish} className="gap-1.5">
-          <Send className="h-3.5 w-3.5" /> Publicér valgte
-        </Button>
         <Button size="sm" variant="outline" disabled={busy} onClick={onAssignEmployee} className="gap-1.5">
           <UserPlus className="h-3.5 w-3.5" /> Tildel medarbejder
+        </Button>
+        <Button size="sm" variant="outline" disabled={busy} onClick={onAssignCar} className="gap-1.5">
+          <CarIcon className="h-3.5 w-3.5" /> Tildel køretøj
         </Button>
         <Button size="sm" variant="outline" disabled={busy} onClick={onDelete} className="gap-1.5 text-destructive hover:text-destructive">
           <Trash2 className="h-3.5 w-3.5" /> Slet valgte
