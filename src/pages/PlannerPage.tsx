@@ -439,6 +439,57 @@ const PlannerPage: React.FC = () => {
     await publishAssignmentsByDate(date);
   }, [publishAssignmentsByDate]);
 
+  // ---- Bulk actions ----
+  const handleBulkPublish = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    try {
+      await publishAssignmentsByIds([...selectedIds]);
+      clearSelection();
+    } finally {
+      setBulkBusy(false);
+    }
+  }, [selectedIds, publishAssignmentsByIds, clearSelection]);
+
+  const handleBulkDeleteConfirm = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    const ids = [...selectedIds];
+    let failed = 0;
+    try {
+      await Promise.all(ids.map(id => deleteAssignment(id).catch(() => { failed++; })));
+      toast({
+        title: failed === 0 ? `${ids.length} opgaver slettet` : `${ids.length - failed} slettet, ${failed} fejlede`,
+        variant: failed === 0 ? 'default' : 'destructive',
+      });
+      clearSelection();
+    } finally {
+      setBulkBusy(false);
+      setBulkDeleteOpen(false);
+    }
+  }, [selectedIds, deleteAssignment, toast, clearSelection]);
+
+  const handleBulkAssignEmployee = useCallback(async (userId: string) => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    try {
+      const ids = [...selectedIds];
+      const rows = ids.map(assignment_id => ({ assignment_id, user_id: userId }));
+      const { error } = await supabase
+        .from('assignments_employees')
+        .upsert(rows, { onConflict: 'assignment_id,user_id', ignoreDuplicates: true });
+      if (error) {
+        toast({ title: 'Kunne ikke tildele medarbejder', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: `Medarbejder tildelt ${ids.length} opgave${ids.length === 1 ? '' : 'r'}` });
+        await refetch();
+        clearSelection();
+      }
+    } finally {
+      setBulkBusy(false);
+    }
+  }, [selectedIds, toast, refetch, clearSelection]);
+
   const handleDeleteAssignment = useCallback(async (id: string) => {
     const assignment = assignments.find(a => a.id === id);
     if (!assignment) return;
