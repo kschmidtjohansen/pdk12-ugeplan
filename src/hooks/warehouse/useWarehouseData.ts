@@ -2,6 +2,7 @@
 import { useEffect, useCallback } from 'react';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTable } from '@/lib/realtimeChannels';
 import { WarehouseItem, WarehouseItemFormData } from '@/types/warehouse';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
