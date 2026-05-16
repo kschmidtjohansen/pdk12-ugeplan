@@ -156,7 +156,7 @@ const AppSidebar: React.FC = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-2 space-y-1">
+      <SidebarFooter role="contentinfo" className="border-t border-sidebar-border p-2 space-y-1">
         {showAdmin && (
           <SidebarMenu>{renderItem(adminItem!)}</SidebarMenu>
         )}
