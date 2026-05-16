@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { CarData } from '@/components/Cars/types';
@@ -172,7 +172,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
   };
 
   // Realtime subscription
-  const realtimeThrottleRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const realtimeThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!userDataLoaded || !user) return;
 
