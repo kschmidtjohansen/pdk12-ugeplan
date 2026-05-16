@@ -10,6 +10,7 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 import ConflictBadge from './ConflictBadge';
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useAssignments } from '@/hooks/useAssignments';
+import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
 
 interface CompactAssignmentRowProps {
