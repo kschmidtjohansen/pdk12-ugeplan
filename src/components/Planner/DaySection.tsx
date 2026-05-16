@@ -214,6 +214,8 @@ const DaySection: React.FC<DaySectionProps> = ({
       )}
     </div>
   );
+};
+
 interface VirtualizedAssignmentCardsProps {
   assignments: Assignment[];
   allAssignments: Assignment[];
