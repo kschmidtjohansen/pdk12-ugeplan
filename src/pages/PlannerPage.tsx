@@ -24,6 +24,18 @@ import FilterChips, { applyPlannerFilters, useActivePlannerFilters } from '@/com
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
+import BulkActionBar from '@/components/Planner/BulkActionBar';
+import BulkAssignEmployeeDialog from '@/components/Planner/BulkAssignEmployeeDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const PlannerPage: React.FC = () => {
   const {
@@ -61,7 +73,8 @@ const PlannerPage: React.FC = () => {
     deleteAssignmentsByGroupId,
     detachFromGroup,
     publishAssignment,
-    publishAssignmentsByDate
+    publishAssignmentsByDate,
+    publishAssignmentsByIds
   } = useOptimizedAssignments('all');
 
   // Simplified planner state management using ISO week numbers with localStorage persistence
