@@ -109,6 +109,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
               size="sm"
               assignment={assignment}
               allAssignments={allAssignments}
+              employees={employees}
               cars={cars}
             />
           )}
