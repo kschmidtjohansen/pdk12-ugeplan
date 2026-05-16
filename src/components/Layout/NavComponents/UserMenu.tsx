@@ -165,7 +165,20 @@ const UserMenu: React.FC<UserMenuProps> = ({
           </DropdownMenuItem>
           
           <DropdownMenuSeparator />
-          
+
+          {/* Theme Selector */}
+          <DropdownMenuLabel className="flex items-center gap-2">
+            <SchemeIcon className="h-4 w-4" />
+            {schemeLabel}
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup value={scheme} onValueChange={(v) => setScheme(v as 'light' | 'dark' | 'system')}>
+            <DropdownMenuRadioItem value="light" className="cursor-pointer">Lyst tema</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="dark" className="cursor-pointer">Mørkt tema</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="system" className="cursor-pointer">System</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+
+          <DropdownMenuSeparator />
+
           {/* Language Selector */}
           <DropdownMenuLabel>{t('common.language')}</DropdownMenuLabel>
           <DropdownMenuRadioGroup value={currentLanguage} onValueChange={val => setLanguage(val as 'en' | 'da')}>
