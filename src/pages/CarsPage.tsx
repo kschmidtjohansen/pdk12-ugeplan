@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import FalckSubscriptionButton from '@/components/Cars/FalckSubscriptionButton';
 import ListPageShell from '@/components/shared/ListPageShell';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 import SegmentedFilterBar, { FilterSegment } from '@/components/shared/SegmentedFilterBar';
 
 type CarSegment = 'all' | 'available' | 'unavailable';
