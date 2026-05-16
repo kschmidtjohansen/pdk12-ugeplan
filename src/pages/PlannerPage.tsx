@@ -613,7 +613,6 @@ const PlannerPage: React.FC = () => {
     });
   }, []);
 
-  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
 
   const handleShowOnScreen = () => {
     const today = new Date().toISOString().split('T')[0];
