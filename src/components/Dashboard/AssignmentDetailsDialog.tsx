@@ -9,6 +9,7 @@ import { Car as CarType } from '@/types/car';
 import { Calendar, Clock, MapPin, Car, Users, UserCheck, Pencil, MessageSquare, Files, Image, FileText, ChevronDown, ChevronUp, Download, Loader2, FileImage, FolderDown } from 'lucide-react';
 import AssignmentMessagesPanel from '@/components/Assignment/AssignmentMessagesPanel';
 import AssignmentFilesPanel from '@/components/Assignment/AssignmentFilesPanel';
+import StatusTimeline from '@/components/Dashboard/StatusTimeline';
 import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
 import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -247,9 +248,11 @@ import { useDepartment } from '@/context/DepartmentContext';
                         <span className="font-medium text-foreground">{t('planner.time')}: </span>
                         <span className="text-foreground tabular-nums">{assignment.fromTime.substring(0, 5)} – {assignment.toTime.substring(0, 5)}</span>
                       </div>
-                     </div>
+                    </div>
                    </div>
-                 </div>
+                </div>
+
+                <StatusTimeline assignmentId={assignment.id} />
               </div>
             </div>
 
