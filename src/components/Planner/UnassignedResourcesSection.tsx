@@ -151,7 +151,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const allAvailable = [...employeeAvailabilityData.available, ...employeeAvailabilityData.partiallyBooked];
     
     const skadeledere = allAvailable.filter(
-      emp => emp.role === 'skadeleder' || emp.role === 'administrator'
+      emp => emp.role === 'skadeleder' || emp.role === 'administrator' || emp.role === 'super_admin'
     );
     const servicemedarbejdere = allAvailable.filter(
       emp => emp.role === 'servicemedarbejder' || emp.role === 'vikar'

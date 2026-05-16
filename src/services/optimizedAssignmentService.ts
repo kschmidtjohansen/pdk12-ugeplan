@@ -403,7 +403,7 @@ export class OptimizedAssignmentService {
     try {
       if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Using fallback assignment fetch');
       
-      const isAdmin = role === 'administrator' || role === 'skadeleder';
+      const isAdmin = role === 'administrator' || role === 'skadeleder' || role === 'super_admin';
       const query = supabase
         .from('assignments')
         .select(`id, title, description, assignment_date, from_time, to_time, location, type, published, responsible_user_id, created_at, updated_at, car_id, car_ids, group_id, case_number`)
