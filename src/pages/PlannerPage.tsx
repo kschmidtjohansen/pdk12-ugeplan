@@ -1,7 +1,9 @@
 import React, { useCallback, useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '../context/TranslationContext';
-import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
+import { useOptimizedAssignments, fetchAssignmentsForQuery } from '../hooks/useOptimizedAssignments';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { Assignment } from '../types/assignment';
 import { useEmployees } from '../hooks/useEmployees';
 import { useCars } from '../hooks/car';
