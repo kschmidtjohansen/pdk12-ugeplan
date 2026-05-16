@@ -7,7 +7,6 @@ import { Car as CarType } from '../../types/car';
 import { useEmployees } from '../../hooks/useEmployees';
 import { filterDisplayNames } from '../../utils/people';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import AvatarStack from '@/components/shared/AvatarStack';
 import { cn } from '@/lib/utils';
 
 interface AssignmentDetailsProps {
@@ -120,6 +119,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
   };
   const employeeData = getEmployeeData(assignment);
   const employeeCount = employeeData.names.length;
+  const showInline = employeeCount > 0 && employeeCount <= 2;
 
   return (
     <div className="flex flex-col gap-2 text-sm">
@@ -141,11 +141,41 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
             <span className="icon-bubble icon-bubble-person" aria-hidden>
               <Users className="h-3.5 w-3.5" />
             </span>
-            <AvatarStack
-              employees={employeeData.names.map((name) => ({
-                name: name || (t('planner.unknownEmployee') as string),
-              }))}
-            />
+            {showInline ? (
+              employeeData.names.map((name, i) => (
+                <span key={i} className="chip chip-person">
+                  {name || t('planner.unknownEmployee')}
+                </span>
+              ))
+            ) : (
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="chip chip-person hover:opacity-80 transition-opacity cursor-help"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {employeeCount} {t('planner.employees') || 'medarbejdere'}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="end"
+                    className="w-auto max-w-xs p-2"
+                  >
+                    <ul className="space-y-1">
+                      {employeeData.names.map((name, i) => (
+                        <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                          {name || t('planner.unknownEmployee')}
+                        </li>
+                      ))}
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         )}
       </div>
