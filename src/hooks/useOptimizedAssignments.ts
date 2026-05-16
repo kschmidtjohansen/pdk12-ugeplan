@@ -12,6 +12,7 @@ import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { resolveEmployeeDisplayName } from '@/utils/people';
 import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTables } from '@/lib/realtimeChannels';
 import { notifyOwnAction } from '@/lib/realtimeUtils';
 import React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
