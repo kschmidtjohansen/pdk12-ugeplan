@@ -82,16 +82,18 @@ const ChangeLogList: React.FC<ChangeLogListProps> = ({ onNavigate, hideHeader = 
 
   const handleLogClick = (log: any) => {
     if (log.assignment_id && log.operation !== 'DELETE') {
-      navigate('/planner');
+      go('/planner');
     }
   };
 
   if (isLoading) {
     return (
       <div className="w-full">
-        <div className="p-4 border-b">
-          <h3 className="font-semibold text-sm">{t('changeLog.recentChanges')}</h3>
-        </div>
+        {!hideHeader && (
+          <div className="p-4 border-b">
+            <h3 className="font-semibold text-sm">{t('changeLog.recentChanges')}</h3>
+          </div>
+        )}
         <div className="p-4 text-center text-sm text-muted-foreground">
           {t('common.loading')}
         </div>
@@ -99,7 +101,7 @@ const ChangeLogList: React.FC<ChangeLogListProps> = ({ onNavigate, hideHeader = 
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => navigate('/changelog')}
+            onClick={() => go('/changelog')}
           >
             {t('changeLog.viewAll')}
           </Button>
@@ -109,12 +111,14 @@ const ChangeLogList: React.FC<ChangeLogListProps> = ({ onNavigate, hideHeader = 
   }
 
   return (
-    <div className="w-full">
-      <div className="p-4 border-b">
-        <h3 className="font-semibold text-sm">{t('changeLog.recentChanges')}</h3>
-      </div>
-      
-      <ScrollArea className="h-[350px]">
+    <div className="w-full flex flex-col h-full">
+      {!hideHeader && (
+        <div className="p-4 border-b">
+          <h3 className="font-semibold text-sm">{t('changeLog.recentChanges')}</h3>
+        </div>
+      )}
+
+      <ScrollArea className={hideHeader ? 'flex-1' : 'h-[350px]'}>
         <div className="p-2">
           {changeLogs.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
@@ -146,7 +150,7 @@ const ChangeLogList: React.FC<ChangeLogListProps> = ({ onNavigate, hideHeader = 
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => navigate('/changelog')}
+          onClick={() => go('/changelog')}
         >
           {t('changeLog.viewAll')}
         </Button>
