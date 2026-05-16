@@ -132,6 +132,27 @@ const PlannerPage: React.FC = () => {
     setPlannerWeek(selectedWeek, selectedYear);
   }, [selectedWeek, selectedYear]);
 
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const handleToggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  // Clear selection when navigating to a different week
+  useEffect(() => {
+    clearSelection();
+  }, [selectedWeek, selectedYear, clearSelection]);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
   const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
