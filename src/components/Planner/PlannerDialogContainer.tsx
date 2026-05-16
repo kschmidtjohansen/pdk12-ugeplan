@@ -42,26 +42,28 @@ const PlannerDialogContainer: React.FC<PlannerDialogContainerProps> = ({
   onEmployeeToggle
 }) => {
   return (
-    <AssignmentDialogManager
-      isDialogOpen={isDialogOpen}
-      setIsDialogOpen={onClose}
-      currentAssignment={currentAssignment}
-      formData={formData}
-      setFormData={setFormData}
-      onSubmit={onSubmit}
-      onSubmitSeries={onSubmitSeries}
-      onDetachFromGroup={onDetachFromGroup}
-      editMode={editMode}
-      onDelete={() => {}}
-      onPublish={() => {}}
-      assignments={assignments}
-      cars={cars}
-      employees={employees}
-      vacations={vacations}
-      selectedDay={selectedDay}
-      onPublishDay={() => {}}
-      onEmployeeToggle={onEmployeeToggle}
-    />
+    <Suspense fallback={null}>
+      <AssignmentDialogManager
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={onClose}
+        currentAssignment={currentAssignment}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={onSubmit}
+        onSubmitSeries={onSubmitSeries}
+        onDetachFromGroup={onDetachFromGroup}
+        editMode={editMode}
+        onDelete={() => {}}
+        onPublish={() => {}}
+        assignments={assignments}
+        cars={cars}
+        employees={employees}
+        vacations={vacations}
+        selectedDay={selectedDay}
+        onPublishDay={() => {}}
+        onEmployeeToggle={onEmployeeToggle}
+      />
+    </Suspense>
   );
 };
 
