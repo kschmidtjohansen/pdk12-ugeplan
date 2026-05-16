@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { EnhancedVacationCard } from './EnhancedVacationCard';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 
 interface VacationTableProps {
   vacations: Vacation[];
@@ -90,11 +91,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
   };
   
   if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <div className="animate-spin h-8 w-8 border-t-2 border-polygon-blue rounded-full"></div>
-      </div>
-    );
+    return <ListSkeleton />;
   }
   
   if (vacations.length === 0) {

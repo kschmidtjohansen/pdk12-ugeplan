@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import EmployeeTableRow from './EmployeeTableRow';
 import MobileEmployeeCard from './MobileEmployeeCard';
 import EmployeeLoadingError from '@/components/ErrorBoundary/EmployeeLoadingError';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 
 interface EmployeesTableProps {
   employees: Employee[];
@@ -74,50 +75,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
 
   // Show loading state
   if (loading) {
-    return <div className="space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Users className="h-5 w-5 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">
-            {t('common.loading') || 'Loading employees...'}
-          </span>
-        </div>
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                  <TableHead>{t('employees.name') || 'Name'}</TableHead>
-                  <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
-                  <TableHead>{t('employees.jobTitle') || 'Job Title'}</TableHead>
-                  {isAdmin && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
-                  <TableHead>{t('employees.statusLabel') || 'Status'}</TableHead>
-                  {isAdmin && <TableHead>{t('common.actions') || 'Actions'}</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({
-              length: 6
-            }).map((_, i) => <TableRow key={i}>
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <Skeleton className="h-4 w-32" />
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-40" />
-                      <Skeleton className="h-4 w-32" />
-                    </div>
-                  </td>
-                  <td className="p-4"><Skeleton className="h-4 w-24" /></td>
-                  <td className="p-4"><Skeleton className="h-6 w-20" /></td>
-                  <td className="p-4"><Skeleton className="h-6 w-16" /></td>
-                  {isAdmin && <td className="p-4"><Skeleton className="h-8 w-24" /></td>}
-                </TableRow>)}
-            </TableBody>
-          </Table>
-        </div>
-      </div>;
+    return <ListSkeleton />;
   }
 
   // Show empty state

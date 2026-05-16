@@ -10,6 +10,7 @@ import WarehouseList from '@/components/Warehouse/WarehouseList';
 import WarehouseFormDialog from '@/components/Warehouse/WarehouseFormDialog';
 import WarehouseDeleteDialog from '@/components/Warehouse/WarehouseDeleteDialog';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import ListPageShell from '@/components/shared/ListPageShell';
 
@@ -58,9 +59,7 @@ const WarehousePage = () => {
         }
       >
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <LoadingSpinner size="lg" />
-          </div>
+          <ListSkeleton />
         ) : error ? (
           <div className="p-6">
             <p className="text-destructive">{t('warehouse.messages.loadError')}</p>

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import FalckSubscriptionButton from '@/components/Cars/FalckSubscriptionButton';
 import ListPageShell from '@/components/shared/ListPageShell';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 import SegmentedFilterBar, { FilterSegment } from '@/components/shared/SegmentedFilterBar';
 
 type CarSegment = 'all' | 'available' | 'unavailable';
@@ -88,9 +89,7 @@ const CarsPage: React.FC = () => {
             }
           >
             {loading ? (
-              <div className="flex justify-center items-center p-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary" />
-              </div>
+              <ListSkeleton />
             ) : error ? (
               <div className="p-6">
                 <div className="bg-destructive/10 border border-destructive/30 text-destructive p-4 rounded-lg text-sm">
