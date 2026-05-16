@@ -34,6 +34,9 @@ interface PlannerContentProps {
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
   viewMode?: 'standard' | 'compact' | 'grid';
+  selectedIds?: Set<string>;
+  selectionActive?: boolean;
+  onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
@@ -51,7 +54,10 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   selectedWeek,
   selectedYear,
   weekDates,
-  viewMode = 'standard'
+  viewMode = 'standard',
+  selectedIds,
+  selectionActive = false,
+  onToggleSelect,
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
@@ -220,6 +226,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
               canPublishTasks={canPublishTasks}
               cars={cars}
               gridLayout={viewMode === 'grid'}
+              selectedIds={selectedIds}
+              selectionActive={selectionActive}
+              onToggleSelect={onToggleSelect}
             />
           </PlannerWidgetErrorBoundary>
 
@@ -241,6 +250,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
               canPublishTasks={canPublishTasks}
               cars={cars}
               gridLayout={viewMode === 'grid'}
+              selectedIds={selectedIds}
+              selectionActive={selectionActive}
+              onToggleSelect={onToggleSelect}
             />
           </PlannerWidgetErrorBoundary>
         </>
