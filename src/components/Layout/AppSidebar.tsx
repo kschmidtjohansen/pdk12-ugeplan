@@ -148,7 +148,7 @@ const AppSidebar: React.FC = () => {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="py-2">
+      <SidebarContent className="py-2" role="navigation" aria-label="Primær navigation">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>{items.map(renderItem)}</SidebarMenu>
@@ -156,7 +156,7 @@ const AppSidebar: React.FC = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-2 space-y-1">
+      <SidebarFooter role="contentinfo" className="border-t border-sidebar-border p-2 space-y-1">
         {showAdmin && (
           <SidebarMenu>{renderItem(adminItem!)}</SidebarMenu>
         )}

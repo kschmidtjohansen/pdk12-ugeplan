@@ -10,20 +10,32 @@ interface AppShellProps {
 
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
   return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <AppTopBar />
-          <main className="flex-1 w-full pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0">
-            {children}
-          </main>
+    <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-3 focus:py-2 focus:bg-background focus:text-foreground focus:rounded-md focus:shadow-md focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Gå til indhold
+      </a>
+      <SidebarProvider defaultOpen={false}>
+        <div className="flex min-h-screen w-full bg-background">
+          <AppSidebar />
+          <div className="flex-1 flex flex-col min-w-0">
+            <AppTopBar />
+            <main
+              id="main-content"
+              role="main"
+              tabIndex={-1}
+              className="flex-1 w-full pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0"
+            >
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
-      <MobileBottomNav />
-    </SidebarProvider>
+        <MobileBottomNav />
+      </SidebarProvider>
+    </>
   );
 };
 
 export default AppShell;
-
