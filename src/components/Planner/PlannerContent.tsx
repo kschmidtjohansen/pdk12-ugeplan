@@ -59,7 +59,6 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
-  useDepartment();
   
   const { employees, cars, assignments: allAssignments } = useUnifiedData();
   const { vacations } = useVacations();
