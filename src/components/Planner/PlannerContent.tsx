@@ -145,6 +145,23 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         </PlannerWidgetErrorBoundary>
       )}
 
+      {/* Expand/Collapse all — sits with the day list */}
+      {onToggleAllExpanded && viewMode !== 'compact' && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleAllExpanded}
+            className="h-7 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+          >
+            <ChevronsUpDown className="h-3.5 w-3.5 mr-1.5" />
+            {allExpanded
+              ? (currentLanguage === 'da' ? 'Fold sammen' : 'Collapse all')
+              : (currentLanguage === 'da' ? 'Udvid alle' : 'Expand all')}
+          </Button>
+        </div>
+      )}
+
       {/* Show empty state message if no assignments, but still render the days */}
       {hasNoAssignments && (
         <div className="text-center py-8 text-muted-foreground">
