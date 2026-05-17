@@ -21,7 +21,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { getISOWeek, getISOWeekYear, addWeeks, format } from 'date-fns';
 import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
+
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
 import BulkActionBar from '@/components/Planner/BulkActionBar';
