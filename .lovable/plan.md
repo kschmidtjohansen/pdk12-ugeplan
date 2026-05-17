@@ -1,90 +1,80 @@
-# Sentry-integration med PII-strip
+## Global Assignment Search
 
-## Vigtigt om DSN'en
-Lovable-projekter har **ingen `.env`-fil** — `VITE_*`-variabler kan ikke tilføjes lokalt. Den foreslåede løsning bliver:
+### 1. Migration — `search_assignments` RPC
 
-- Læser `import.meta.env.VITE_SENTRY_DSN` (samme API som beskrevet).
-- Hvis DSN'en mangler, springer `Sentry.init` over (ingen fejl i preview).
-- Du indsætter selv DSN'en når deployet — enten via Lovable's deploy-env eller ved at hardcode den i `main.tsx` (DSN er teknisk set offentlig). Sig til hvilken vej du foretrækker, ellers kører jeg med env-variant.
+```sql
+CREATE OR REPLACE FUNCTION public.search_assignments(query text, dept_id uuid)
+RETURNS SETOF public.assignments
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+  SELECT *
+  FROM public.assignments
+  WHERE department_id = dept_id
+    AND length(trim(query)) >= 2
+    AND (
+      title ILIKE '%' || query || '%'
+      OR location ILIKE '%' || query || '%'
+      OR case_number ILIKE '%' || query || '%'
+    )
+  ORDER BY assignment_date DESC
+  LIMIT 20;
+$$;
 
-## Ændringer
-
-### 1. Dependency
-- `bun add @sentry/react`
-
-### 2. `src/lib/sentry.ts` (ny)
-Samler init + PII-scrubber så alle ErrorBoundaries importerer ét sted:
-
-```ts
-import * as Sentry from '@sentry/react';
-
-const PII_KEYS = /^(email|e_mail|phone|telephone|mobile|tlf|address|adresse|zip|postnr|city|by)$/i;
-
-const scrub = (val: unknown): unknown => {
-  if (Array.isArray(val)) return val.map(scrub);
-  if (val && typeof val === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(val)) {
-      out[k] = PII_KEYS.test(k) ? '[redacted]' : scrub(v);
-    }
-    return out;
-  }
-  return val;
-};
-
-export const initSentry = () => {
-  const dsn = import.meta.env.VITE_SENTRY_DSN;
-  if (!dsn) return;
-  Sentry.init({
-    dsn,
-    environment: import.meta.env.MODE,
-    tracesSampleRate: 0.2,
-    beforeSend(event) {
-      if (event.user) {
-        delete event.user.email;
-        delete (event.user as any).phone;
-        delete (event.user as any).address;
-      }
-      if (event.request?.data) event.request.data = scrub(event.request.data);
-      if (event.extra) event.extra = scrub(event.extra) as Record<string, unknown>;
-      if (event.contexts) event.contexts = scrub(event.contexts) as any;
-      if (event.breadcrumbs) {
-        event.breadcrumbs = event.breadcrumbs.map(b => ({ ...b, data: b.data ? (scrub(b.data) as any) : b.data }));
-      }
-      return event;
-    },
-  });
-};
-
-export { Sentry };
+GRANT EXECUTE ON FUNCTION public.search_assignments(text, uuid) TO authenticated;
 ```
 
-### 3. `src/main.tsx`
-Kald `initSentry()` før `createRoot`, og wrap `<App />` i `Sentry.ErrorBoundary` med en simpel fallback.
+`SECURITY INVOKER` ensures the existing RLS on `assignments` (incl. `can_view_assignment_optimized` + `hide_demo_data_assignments`) applies — no cross-department leakage.
 
-```tsx
-import { Sentry, initSentry } from './lib/sentry';
-initSentry();
-// ...service worker guard uændret...
-createRoot(document.getElementById('root')!).render(
-  <Sentry.ErrorBoundary fallback={<div className="p-6 text-sm">Noget gik galt.</div>}>
-    <App />
-  </Sentry.ErrorBoundary>
-);
-```
+### 2. New component — `GlobalAssignmentSearch.tsx`
 
-### 4. Tilføj `Sentry.captureException(error)` i alle 4 eksisterende `componentDidCatch`
-- `src/components/ErrorBoundary/DataFetchErrorBoundary.tsx`
-- `src/components/ErrorBoundary/GlobalErrorBoundary.tsx`
-- `src/components/ErrorBoundary/PlannerWidgetErrorBoundary.tsx`
-- `src/components/Layout/SecurityErrorBoundary.tsx`
+Path: `src/components/Layout/NavComponents/GlobalAssignmentSearch.tsx`
 
-Eksisterende logging/UI bevares uændret — kun én linje tilføjes øverst i hver `componentDidCatch`.
+- `Input` with search icon, placeholder "Søg i alle opgaver…", responsive width (hidden on xs, ~`w-64` on md+).
+- Local state: `query`, `results`, `loading`, `open`.
+- 300ms debounce via `setTimeout` in `useEffect`. Skip RPC when trimmed query < 2 chars.
+- Calls `supabase.rpc('search_assignments', { query, dept_id: selectedDepartmentId })` from `DepartmentContext`. Guard: do nothing until `selectedDepartmentId` is set (multi-tenant core rule).
+- Popover/dropdown anchored to input showing rows: **title** (bold), **case_number · location** (muted), **assignment_date** formatted `dd-MM-yyyy` right-aligned.
+- Click row → set `openAssignmentId` in a small Zustand store (`assignmentDetailsStore`) and clear input.
+- Empty state: "Ingen resultater". Loading: small spinner. Errors: silent (console.error in DEV only).
+- Keyboard: Escape closes, ArrowUp/Down navigates, Enter opens.
 
-### 5. `.env`
-Lovable har ingen `.env`. Jeg dropper trinnet, medmindre du eksplicit vil have en `.env.example` committet til reference (kan tilføjes).
+### 3. New global dialog — `AssignmentDetailsDialog.tsx`
 
-## Out of scope
-- Ingen ændring af `ScreenDisplayErrorBoundary` (functional, ingen `componentDidCatch`).
-- Ingen Sentry tracing/replay-integrationer udover `tracesSampleRate`.
-- Ingen ændring af bestående fallback-UI'er.
+Path: `src/components/Planner/AssignmentDetailsDialog.tsx`
+
+- Reads `openAssignmentId` from `assignmentDetailsStore`.
+- Fetches the single assignment via `supabase.from('assignments').select('*').eq('id', id).maybeSingle()` plus the joined employees from `assignments_employees`.
+- Renders read-only summary: title, type badge, date + time range, location, case_number, responsible user, employees list, cars, description.
+- Footer button "Åbn i Planner" → navigates to `/planner` (no further state needed; planner already loads the week).
+- Mounted once in `AppShell` so it's available on every route.
+
+### 4. Wiring
+
+- `AppTopBar.tsx`: insert `<GlobalAssignmentSearch />` between the title block and `ml-auto` actions group.
+- `AppShell.tsx`: mount `<AssignmentDetailsDialog />` near the existing global providers.
+
+### 5. Store
+
+`src/stores/assignmentDetailsStore.ts` — tiny Zustand store: `{ openAssignmentId, open(id), close() }`.
+
+### 6. Translations
+
+Add to `src/translations/{da,en}/planner.ts`:
+- `search.placeholder`: "Søg i alle opgaver…" / "Search all assignments…"
+- `search.noResults`: "Ingen resultater" / "No results"
+- `search.openInPlanner`: "Åbn i Planner" / "Open in Planner"
+
+### Out of scope
+
+- No changes to existing Planner dialogs.
+- No Cmd+K palette.
+- No edits from the details dialog (read-only).
+- No new RLS policies (existing ones cover it).
+
+### Files
+
+- **New**: migration, `GlobalAssignmentSearch.tsx`, `AssignmentDetailsDialog.tsx`, `assignmentDetailsStore.ts`
+- **Edited**: `AppTopBar.tsx`, `AppShell.tsx`, both `planner.ts` translation files
