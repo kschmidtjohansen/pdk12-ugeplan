@@ -95,14 +95,8 @@ const Index = () => {
   // Wait for auth to be ready before making any routing decisions
   if (!authReady || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Initialiserer godkendelse...</p>
-          <div className="text-xs text-muted-foreground/60 mt-2">
-            Auth klar: {authReady ? 'Ja' : 'Nej'} | Indlæser: {loading ? 'Ja' : 'Nej'}
-          </div>
-        </div>
+      <div className="min-h-screen bg-background" aria-label="Initialiserer godkendelse...">
+        <ListSkeleton />
       </div>
     );
   }

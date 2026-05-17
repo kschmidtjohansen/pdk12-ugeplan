@@ -163,9 +163,7 @@ export default function DutyPage() {
 
         <TabsContent value="list" className="space-y-4">
           {loading ? (
-            <div className="flex items-center justify-center min-h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
-            </div>
+            <ListSkeleton />
           ) : dutiesWithRoles.length === 0 ? (
             <Card className="border-2 border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-12">
@@ -190,9 +188,7 @@ export default function DutyPage() {
 
         <TabsContent value="calendar" className="space-y-4">
           {loading ? (
-            <div className="flex items-center justify-center min-h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
-            </div>
+            <ListSkeleton />
           ) : (
             <DutyMonthCalendar
               duties={dutiesWithRoles}

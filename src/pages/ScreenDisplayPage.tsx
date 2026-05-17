@@ -217,14 +217,8 @@ const ScreenDisplayPage: React.FC = () => {
   let content: React.ReactNode;
   if (loading) {
     content = (
-      <div className="min-h-screen w-full bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg text-muted-foreground">Loading assignments...</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-          </p>
-        </div>
+      <div className="min-h-screen w-full bg-background" aria-label="Loading assignments...">
+        <ListSkeleton />
       </div>
     );
   } else if (error) {
