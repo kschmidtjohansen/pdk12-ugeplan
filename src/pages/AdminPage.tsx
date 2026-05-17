@@ -155,6 +155,12 @@ const AdminPage: React.FC = () => {
             <VacationCalendarOverview />
           </TabsContent>
 
+          {(isSuperAdmin || isAdmin) && (
+            <TabsContent value="autoPublish" className="animate-fade-in">
+              <AutoPublishLogWidget />
+            </TabsContent>
+          )}
+
           {isSuperAdmin && (
             <TabsContent value="webVitals" className="animate-fade-in">
               <Card>
