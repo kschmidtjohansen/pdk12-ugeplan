@@ -443,22 +443,14 @@ const PlannerPage: React.FC = () => {
   }, [assignments, vacations, createAssignment, toast, currentLanguage]);
 
   const sortedWeekAssignments = useMemo(() => {
-    if (!filteredWeekAssignments) return [];
-    return [...filteredWeekAssignments].sort((a, b) => {
+    if (!weekAssignments) return [];
+    return [...weekAssignments].sort((a, b) => {
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
       return a.fromTime.localeCompare(b.fromTime);
     });
-  }, [filteredWeekAssignments]);
-
-  // Apply chip-based filters (URL-driven) on top of search-filtered list
-  const activeChipFilters = useActivePlannerFilters();
-  const { hasConflicts: weekHasConflicts } = useAssignmentConflicts(weekAssignments);
-  const chipFilteredAssignments = useMemo(
-    () => applyPlannerFilters(sortedWeekAssignments, activeChipFilters, user?.id, weekHasConflicts),
-    [sortedWeekAssignments, activeChipFilters, user?.id, weekHasConflicts]
-  );
+  }, [weekAssignments]);
 
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
