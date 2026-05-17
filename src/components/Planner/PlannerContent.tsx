@@ -11,7 +11,6 @@ import PastAssignments from './PastAssignments';
 import CompactCurrentAndFutureDays from './CompactCurrentAndFutureDays';
 import CompactPastAssignments from './CompactPastAssignments';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
-import { DutyWeekWidget } from './DutyWeekWidget';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 const AssignmentDetailsDialog = lazy(() => import('@/components/Dashboard/AssignmentDetailsDialog'));
