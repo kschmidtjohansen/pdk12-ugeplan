@@ -13,9 +13,9 @@ const AutoPublishLogWidget: React.FC = () => {
 
   return (
     <Card className="rounded-xl">
-      <CardHeader className="flex flex-row items-center gap-2">
+      <CardHeader className="brand-card-header flex flex-row items-center gap-2">
         <Clock className="h-4 w-4 text-muted-foreground" />
-        <CardTitle className="text-sm font-semibold">
+        <CardTitle className="text-sm font-semibold brand-dot">
           {t('dashboard.autoPublishLog.title')}
         </CardTitle>
       </CardHeader>
