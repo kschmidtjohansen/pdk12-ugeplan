@@ -47,20 +47,79 @@ const ScreenDisplayPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(getInitialDate);
   const [showAllAssignments] = useState(shouldShowAllAssignments);
   const departmentId = getUrlParam('departmentId');
-  const subDepartmentId = getUrlParam('subDepartmentId');
-  
+  const initialSubDepartmentId = getUrlParam('subDepartmentId');
+
+  // Rotation params
+  const rotateEnabled = getUrlParam('rotate') === 'true';
+  const intervalSeconds = useMemo(() => {
+    const raw = parseInt(getUrlParam('interval') || '', 10);
+    if (!Number.isFinite(raw) || raw <= 0) return 30;
+    return Math.min(600, Math.max(5, raw));
+  }, []);
+
+  const [subDeptList, setSubDeptList] = useState<SubDept[]>([]);
+  const [rotationIndex, setRotationIndex] = useState(0);
+
+  // Fetch sub-departments when rotation is enabled
+  useEffect(() => {
+    if (!rotateEnabled || !departmentId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('sub_departments')
+        .select('id, name')
+        .eq('department_id', departmentId)
+        .order('name');
+      if (cancelled) return;
+      const list = (data || []) as SubDept[];
+      setSubDeptList(list);
+      if (initialSubDepartmentId) {
+        const idx = list.findIndex((s) => s.id === initialSubDepartmentId);
+        if (idx >= 0) setRotationIndex(idx);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [rotateEnabled, departmentId, initialSubDepartmentId]);
+
+  const rotationActive = rotateEnabled && !!departmentId && subDeptList.length >= 2;
+  const activeSubDept = rotationActive
+    ? subDeptList[rotationIndex % subDeptList.length]
+    : null;
+  const subDepartmentId = rotationActive
+    ? (activeSubDept?.id ?? null)
+    : initialSubDepartmentId;
+
+  // Rotation interval
+  useEffect(() => {
+    if (!rotationActive) return;
+    const timer = setInterval(() => {
+      setRotationIndex((i) => (i + 1) % subDeptList.length);
+    }, intervalSeconds * 1000);
+    return () => clearInterval(timer);
+  }, [rotationActive, subDeptList.length, intervalSeconds]);
+
+  // Sync subDepartmentId to URL on rotation
+  useEffect(() => {
+    if (!rotationActive || !activeSubDept) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('subDepartmentId', activeSubDept.id);
+    window.history.replaceState({}, '', url.toString());
+  }, [rotationActive, activeSubDept]);
+
   const selectedDateStr = showAllAssignments ? '' : format(selectedDate, 'yyyy-MM-dd');
-  
+
   if (import.meta.env.DEV) {
     console.log('[ScreenDisplayPage] DATA FETCHING:', {
       selectedDateStr,
       showAllAssignments,
       departmentId,
       subDepartmentId,
+      rotationActive,
+      rotationIndex,
       timestamp: new Date().toISOString()
     });
   }
-  
+
   const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr, departmentId, subDepartmentId);
 
   useEffect(() => {
