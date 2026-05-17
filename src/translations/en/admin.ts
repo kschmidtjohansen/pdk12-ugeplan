@@ -15,7 +15,8 @@ export const admin = {
     subDepartments: 'Sub-departments',
     features: 'Features',
     locations: 'Locations',
-    vacationCalendar: 'Vacation Overview'
+    vacationCalendar: 'Vacation Overview',
+    autoPublish: 'Auto-publishing'
   },
   dashboard: {
     title: 'Admin Dashboard',
