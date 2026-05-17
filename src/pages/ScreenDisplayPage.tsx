@@ -172,8 +172,29 @@ const ScreenDisplayPage: React.FC = () => {
     newUrl.searchParams.set('date', format(date, 'yyyy-MM-dd'));
     if (departmentId) newUrl.searchParams.set('departmentId', departmentId);
     if (subDepartmentId) newUrl.searchParams.set('subDepartmentId', subDepartmentId);
+    if (rotateEnabled) newUrl.searchParams.set('rotate', 'true');
+    if (rotateEnabled) newUrl.searchParams.set('interval', String(intervalSeconds));
     window.history.replaceState({}, '', newUrl.toString());
   };
+
+  const rotationOverlay = rotationActive && activeSubDept ? (
+    <>
+      <div className="fixed top-3 right-3 z-50 px-3 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md">
+        {activeSubDept.name}
+      </div>
+      <div className="fixed bottom-0 left-0 right-0 h-1 bg-muted z-50">
+        <div
+          key={rotationIndex}
+          className="h-full bg-primary"
+          style={{
+            width: '0%',
+            animation: `screen-display-countdown ${intervalSeconds}s linear forwards`,
+          }}
+        />
+      </div>
+      <style>{`@keyframes screen-display-countdown { from { width: 100%; } to { width: 0%; } }`}</style>
+    </>
+  ) : null;
 
   const handlePreviousDay = () => {
     const newDate = subDays(selectedDate, 1);
