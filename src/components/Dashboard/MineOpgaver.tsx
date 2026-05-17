@@ -144,9 +144,9 @@ const MineOpgaver: React.FC = () => {
   if (loading) {
     return (
       <Card className="h-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
+        <CardHeader className="brand-card-header">
+          <CardTitle className="text-sm font-semibold brand-dot flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-primary" />
             {t('dashboard.myTasks') || 'Mine Opgaver'}
           </CardTitle>
         </CardHeader>
