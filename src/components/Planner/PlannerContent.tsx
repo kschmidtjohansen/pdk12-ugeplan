@@ -128,31 +128,17 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 
   return (
     <div className="space-y-4 pb-4">
-      {/* Unassigned Resources and Duty Widget */}
+      {/* Unassigned Resources */}
       {(canEdit || canPublishTasks) && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <div className="lg:col-span-2">
-            <PlannerWidgetErrorBoundary label="Unassigned Resources">
-              <UnassignedResourcesSection
-                assignments={weekAssignments}
-                employees={employees}
-                cars={cars}
-                vacations={vacations}
-                weekDates={weekDates}
-              />
-            </PlannerWidgetErrorBoundary>
-          </div>
-          {isDutyEnabled && (
-            <div>
-              <PlannerWidgetErrorBoundary label="Duty Week">
-                <DutyWeekWidget
-                  selectedWeek={selectedWeek}
-                  selectedYear={selectedYear}
-                />
-              </PlannerWidgetErrorBoundary>
-            </div>
-          )}
-        </div>
+        <PlannerWidgetErrorBoundary label="Unassigned Resources">
+          <UnassignedResourcesSection
+            assignments={weekAssignments}
+            employees={employees}
+            cars={cars}
+            vacations={vacations}
+            weekDates={weekDates}
+          />
+        </PlannerWidgetErrorBoundary>
       )}
 
       {/* Show empty state message if no assignments, but still render the days */}
