@@ -1,76 +1,90 @@
-# Klikbar ConflictBadge med løsningspopover
+# Sentry-integration med PII-strip
 
-Gør konfliktbadgen interaktiv: ved klik åbnes en popover, der viser de to konfliktende opgaver side om side og tilbyder to hurtige handlinger, som begge bruger den eksisterende `updateAssignment`-mutation. Ingen nye Supabase-queries.
+## Vigtigt om DSN'en
+Lovable-projekter har **ingen `.env`-fil** — `VITE_*`-variabler kan ikke tilføjes lokalt. Den foreslåede løsning bliver:
 
-## Filer
+- Læser `import.meta.env.VITE_SENTRY_DSN` (samme API som beskrevet).
+- Hvis DSN'en mangler, springer `Sentry.init` over (ingen fejl i preview).
+- Du indsætter selv DSN'en når deployet — enten via Lovable's deploy-env eller ved at hardcode den i `main.tsx` (DSN er teknisk set offentlig). Sig til hvilken vej du foretrækker, ellers kører jeg med env-variant.
 
-**Ny:** `src/components/Planner/ConflictResolutionPopover.tsx`
-**Ændret:** `ConflictBadge.tsx`, `AssignmentCard.tsx`, `CompactAssignmentRow.tsx`, `translations/{da,en}/planner.ts`
+## Ændringer
 
-## 1. ConflictBadge bliver en knap
+### 1. Dependency
+- `bun add @sentry/react`
 
-- Konvertér det nuværende `<span>` til en `<button>` inde i `Popover` (shadcn) i stedet for `Tooltip`. Samme udseende (`chip-glass-destructive`), men nu `cursor-pointer` og `aria-label="Løs konflikt"`.
-- Nye props: `assignment: Assignment`, `allAssignments: Assignment[]`, `employees`, `cars`, `onResolve?: () => void`. Disse sendes ned fra `AssignmentCard` / `CompactAssignmentRow` (begge har dem allerede tilgængelige via deres props/context).
-- Popover-indholdet rendrer den nye `ConflictResolutionPopover`-komponent og videresender de unikke konflikter.
+### 2. `src/lib/sentry.ts` (ny)
+Samler init + PII-scrubber så alle ErrorBoundaries importerer ét sted:
 
-## 2. ConflictResolutionPopover (ny)
-
-Layout: header "Dobbeltbooking" + liste over unikke konflikter. For hver konflikt vises to kort side om side:
-
-```text
-┌─ Denne opgave ─────┐  ┌─ Konflikt med ──────┐
-│ Titel              │  │ Titel               │
-│ 08:00–10:00        │  │ 09:30–11:00         │
-│ 👤 Peter / 🚗 Bil2 │  │ 👤 Peter / 🚗 Bil2  │
-└────────────────────┘  └─────────────────────┘
-[ Ændr tidspunkt ]  [ Skift medarbejder / bil ]
-```
-
-Knapperne virker på *denne* opgave (`assignment`), ikke modparten. State i komponenten:
-
-- `mode: 'idle' | 'time' | 'resource'`
-- `idle`: viser de to handlingsknapper.
-- `time`: viser to `<Input type="time">` (fra/til) forudfyldt med `assignment.fromTime/toTime` + `Gem`-knap. Ved gem:
-  ```ts
-  await updateAssignment(assignment.id, { fromTime, toTime });
-  ```
-- `resource`: Hvis konflikten er `kind: 'employee'` → vis en `Select` med tilgængelige `employees` (ekskl. nuværende konflikt-ID). Hvis `kind: 'car'` → samme med `cars`. Ved valg:
-  ```ts
-  // employee-konflikt: erstat den konfliktende medarbejder
-  const newAssigned = assignment.assignedEmployees
-    .filter(e => e.id !== conflict.resourceId)
-    .concat([{ id: newId, name: ... }]);
-  await updateAssignment(assignment.id, { assignedEmployees: newAssigned });
-
-  // car-konflikt: erstat car-id i cars[]
-  const newCars = (assignment.cars ?? []).map(c => c === conflict.resourceId ? newId : c);
-  await updateAssignment(assignment.id, { cars: newCars });
-  ```
-
-Efter en succesfuld mutation:
 ```ts
-toast.success(t('planner.conflict.resolved')); // "Konflikt løst"
-onResolve?.();        // lukker popover
+import * as Sentry from '@sentry/react';
+
+const PII_KEYS = /^(email|e_mail|phone|telephone|mobile|tlf|address|adresse|zip|postnr|city|by)$/i;
+
+const scrub = (val: unknown): unknown => {
+  if (Array.isArray(val)) return val.map(scrub);
+  if (val && typeof val === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(val)) {
+      out[k] = PII_KEYS.test(k) ? '[redacted]' : scrub(v);
+    }
+    return out;
+  }
+  return val;
+};
+
+export const initSentry = () => {
+  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  if (!dsn) return;
+  Sentry.init({
+    dsn,
+    environment: import.meta.env.MODE,
+    tracesSampleRate: 0.2,
+    beforeSend(event) {
+      if (event.user) {
+        delete event.user.email;
+        delete (event.user as any).phone;
+        delete (event.user as any).address;
+      }
+      if (event.request?.data) event.request.data = scrub(event.request.data);
+      if (event.extra) event.extra = scrub(event.extra) as Record<string, unknown>;
+      if (event.contexts) event.contexts = scrub(event.contexts) as any;
+      if (event.breadcrumbs) {
+        event.breadcrumbs = event.breadcrumbs.map(b => ({ ...b, data: b.data ? (scrub(b.data) as any) : b.data }));
+      }
+      return event;
+    },
+  });
+};
+
+export { Sentry };
 ```
 
-Badgen forsvinder automatisk i næste render, fordi `computeConflicts` ikke længere finder overlap (ingen ekstra logik nødvendig — den nuværende `useAssignmentConflicts`-hook recomputer ved data-ændring).
+### 3. `src/main.tsx`
+Kald `initSentry()` før `createRoot`, og wrap `<App />` i `Sentry.ErrorBoundary` med en simpel fallback.
 
-Loading-state: deaktivér knapper mens mutationen kører; vis fejltoast ved exception.
+```tsx
+import { Sentry, initSentry } from './lib/sentry';
+initSentry();
+// ...service worker guard uændret...
+createRoot(document.getElementById('root')!).render(
+  <Sentry.ErrorBoundary fallback={<div className="p-6 text-sm">Noget gik galt.</div>}>
+    <App />
+  </Sentry.ErrorBoundary>
+);
+```
 
-## 3. AssignmentCard / CompactAssignmentRow
+### 4. Tilføj `Sentry.captureException(error)` i alle 4 eksisterende `componentDidCatch`
+- `src/components/ErrorBoundary/DataFetchErrorBoundary.tsx`
+- `src/components/ErrorBoundary/GlobalErrorBoundary.tsx`
+- `src/components/ErrorBoundary/PlannerWidgetErrorBoundary.tsx`
+- `src/components/Layout/SecurityErrorBoundary.tsx`
 
-Send de nye props videre til `ConflictBadge`. Begge komponenter har allerede `assignment` og `conflicts`; `allAssignments`, `employees`, `cars` hentes fra samme hooks/props de allerede bruger (`useOptimizedAssignments`, `useEmployees`, `useCars`) — videregives via eksisterende kontekst/props uden nye queries.
+Eksisterende logging/UI bevares uændret — kun én linje tilføjes øverst i hver `componentDidCatch`.
 
-Hvis det er lettere, kan `ConflictResolutionPopover` selv kalde `useOptimizedAssignments()` for at hente `updateAssignment` og `useEmployees()/useCars()` for navne — så undgår vi prop-drilling. Den eksisterende tooltip-info (resourceName) er nok til at vise konfliktdetaljer; vi behøver kun employees/cars-listerne til selectoren i `resource`-mode.
+### 5. `.env`
+Lovable har ingen `.env`. Jeg dropper trinnet, medmindre du eksplicit vil have en `.env.example` committet til reference (kan tilføjes).
 
-## 4. Oversættelser
-
-`planner.conflict.*`:
-- `da`: `resolved: "Konflikt løst"`, `changeTime: "Ændr tidspunkt"`, `changeResource: "Skift medarbejder / bil"`, `thisAssignment: "Denne opgave"`, `conflictsWith: "Konflikt med"`, `save: "Gem"`, `cancel: "Annullér"`.
-- `en`: tilsvarende.
-
-## Ude af scope
-
-- Ingen ændring af `computeConflicts`, RLS, eller datakilder.
-- Ingen ændring af modpart-opgaven (B) — kun "denne" opgave (A) redigeres; brugeren kan åbne B's badge for at justere den anden vej.
-- Ingen drag/drop, batch-resolve, eller persisteret "ignored"-state.
+## Out of scope
+- Ingen ændring af `ScreenDisplayErrorBoundary` (functional, ingen `componentDidCatch`).
+- Ingen Sentry tracing/replay-integrationer udover `tracesSampleRate`.
+- Ingen ændring af bestående fallback-UI'er.
