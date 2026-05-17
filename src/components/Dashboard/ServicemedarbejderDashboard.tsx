@@ -77,8 +77,8 @@ const ServicemedarbejderDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-semibold">Mine Statistikker</CardTitle>
+        <CardHeader className="brand-card-header flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-semibold brand-dot">Mine Statistikker</CardTitle>
           <LastRefreshIndicator 
             lastRefresh={lastRefresh}
             isRefreshing={isRefreshing}
