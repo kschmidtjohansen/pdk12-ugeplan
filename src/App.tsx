@@ -14,6 +14,7 @@ import RouteLoadingFallback from "./components/shared/RouteLoadingFallback";
 import OfflineFallback from "./components/shared/OfflineFallback";
 import { GlobalErrorBoundary } from "./components/ErrorBoundary/GlobalErrorBoundary";
 import MainLayout from "./components/Layout/MainLayout";
+import ListSkeleton from "./components/shared/ListSkeleton";
 // Lazy load pages for better code splitting with retry logic
 const lazyWithRetry = (importFn: () => Promise<any>) => {
   return lazy(() =>

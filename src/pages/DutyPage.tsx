@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, RefreshCw, Shield } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import type { Duty } from '@/types/duty';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 
 export default function DutyPage() {
   const { t } = useTranslation();

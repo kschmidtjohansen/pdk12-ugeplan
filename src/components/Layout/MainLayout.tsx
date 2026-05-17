@@ -10,6 +10,7 @@ import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import { RealtimeChangeNotifier } from '@/components/shared/RealtimeChangeNotifier';
 import { useQueryClient } from '@tanstack/react-query';
 import { notifyOwnAction } from '@/lib/realtimeUtils';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 
 interface MainLayoutProps {
   children: React.ReactNode;

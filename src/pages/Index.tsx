@@ -2,6 +2,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 
 const Index = () => {
   const { isAuthenticated, loading, authReady } = useAuth();

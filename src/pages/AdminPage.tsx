@@ -17,6 +17,7 @@ import WebVitalsOverview from '@/components/Admin/WebVitalsOverview';
 import AutoPublishLogWidget from '@/components/Dashboard/AutoPublishLogWidget';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import { supabase } from '@/integrations/supabase/client';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 
 const AdminPage: React.FC = () => {
   const { user, loading, isDemoMode, demoRole } = useAuth();

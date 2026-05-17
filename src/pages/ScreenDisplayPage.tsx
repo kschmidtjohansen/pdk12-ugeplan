@@ -7,6 +7,7 @@ import { ScreenDisplayErrorBoundary } from '@/components/ScreenDisplay/ScreenDis
 import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 
 type SubDept = { id: string; name: string };
 
