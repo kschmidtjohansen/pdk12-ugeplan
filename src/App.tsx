@@ -139,6 +139,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <Toaster />
+      <OfflineFallback />
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
