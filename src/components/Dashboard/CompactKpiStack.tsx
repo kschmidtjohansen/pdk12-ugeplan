@@ -75,7 +75,7 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate }) => {
   if (loading) {
     return (
       <Card className="p-0 overflow-hidden">
-        <div className="px-4 py-3 border-b border-border bg-muted/30">
+        <div className="px-4 pt-3 brand-card-header">
           <h3 className="text-sm font-semibold brand-dot">{t('dashboard.metrics.title') || 'Nøgletal'}</h3>
         </div>
         <div className="divide-y divide-border">
@@ -147,7 +147,7 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate }) => {
   return (
     <>
       <Card className="p-0 overflow-hidden">
-        <div className="px-4 py-3 border-b border-border brand-card-header">
+        <div className="px-4 pt-3 brand-card-header">
           <h3 className="text-sm font-semibold brand-dot text-foreground">
             {t('dashboard.metrics.title') || 'Nøgletal'}
           </h3>
