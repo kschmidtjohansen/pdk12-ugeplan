@@ -39,7 +39,7 @@ const VacationNotificationsPanel: React.FC = () => {
 
   return (
     <Card className="p-0 overflow-hidden">
-      <div className="px-4 py-3 border-b border-border brand-card-header flex items-center justify-between">
+      <div className="px-4 pt-3 brand-card-header flex items-center justify-between">
         <h3 className="text-sm font-semibold brand-dot text-foreground inline-flex items-center">
           {t('dashboard.vacationNotifications')}
         </h3>
