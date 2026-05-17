@@ -2,7 +2,6 @@ import React, { useState, useMemo, Suspense, lazy } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
-import { useDepartment } from '@/context/DepartmentContext';
 import { groupAssignmentsByDay } from '@/utils/dateUtils';
 import { parseISO } from 'date-fns';
 import { getAllWeekDays } from '@/utils/dates';
