@@ -2,7 +2,6 @@ import React, { useState, useMemo, Suspense, lazy } from 'react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
-import { useDepartment } from '@/context/DepartmentContext';
 import { groupAssignmentsByDay } from '@/utils/dateUtils';
 import { parseISO } from 'date-fns';
 import { getAllWeekDays } from '@/utils/dates';
@@ -11,7 +10,6 @@ import PastAssignments from './PastAssignments';
 import CompactCurrentAndFutureDays from './CompactCurrentAndFutureDays';
 import CompactPastAssignments from './CompactPastAssignments';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
-import { DutyWeekWidget } from './DutyWeekWidget';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 const AssignmentDetailsDialog = lazy(() => import('@/components/Dashboard/AssignmentDetailsDialog'));
@@ -61,7 +59,6 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
-  const { isDutyEnabled } = useDepartment();
   
   const { employees, cars, assignments: allAssignments } = useUnifiedData();
   const { vacations } = useVacations();
@@ -129,31 +126,17 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
 
   return (
     <div className="space-y-4 pb-4">
-      {/* Unassigned Resources and Duty Widget */}
+      {/* Unassigned Resources */}
       {(canEdit || canPublishTasks) && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <div className="lg:col-span-2">
-            <PlannerWidgetErrorBoundary label="Unassigned Resources">
-              <UnassignedResourcesSection
-                assignments={weekAssignments}
-                employees={employees}
-                cars={cars}
-                vacations={vacations}
-                weekDates={weekDates}
-              />
-            </PlannerWidgetErrorBoundary>
-          </div>
-          {isDutyEnabled && (
-            <div>
-              <PlannerWidgetErrorBoundary label="Duty Week">
-                <DutyWeekWidget
-                  selectedWeek={selectedWeek}
-                  selectedYear={selectedYear}
-                />
-              </PlannerWidgetErrorBoundary>
-            </div>
-          )}
-        </div>
+        <PlannerWidgetErrorBoundary label="Unassigned Resources">
+          <UnassignedResourcesSection
+            assignments={weekAssignments}
+            employees={employees}
+            cars={cars}
+            vacations={vacations}
+            weekDates={weekDates}
+          />
+        </PlannerWidgetErrorBoundary>
       )}
 
       {/* Show empty state message if no assignments, but still render the days */}
