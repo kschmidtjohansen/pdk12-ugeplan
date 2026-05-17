@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-17 — UI: standardiseret loading state med ListSkeleton
+
+### UI
+- Erstattet page-level spinners med `<ListSkeleton />` i `RouteLoadingFallback`, `App.tsx` (init), `MainLayout` (translation/auth init + redirect), `Index.tsx` (auth gate), `AdminPage`, `DutyPage` (liste + kalender), `PlannerPage` og `ScreenDisplayPage` for konsistent skeleton-baseret loading på tværs af appen.
+- Fjernet ubrugt `Spinner`-import i `PlannerPage`. `LoadingSpinner` og `ui/spinner` filer bevares til knap-/micro-indikatorer.
+
+
 ## 2026-05-16 — PWA: vite-plugin-pwa med Workbox runtime cache
 
 ### Performance / Offline
