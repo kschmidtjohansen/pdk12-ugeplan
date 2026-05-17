@@ -16,8 +16,8 @@ const OfflineFallback = () => {
 
   let language: 'da' | 'en' = 'da';
   try {
-    const { language: lang } = useTranslation();
-    language = (lang === 'en' ? 'en' : 'da');
+    const { currentLanguage } = useTranslation();
+    language = (currentLanguage === 'en' ? 'en' : 'da');
   } catch {
     // Translation provider may not be ready — default to Danish
   }
