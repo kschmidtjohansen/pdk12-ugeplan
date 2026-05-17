@@ -246,11 +246,24 @@
 
   /* ----- Brand signature utilities (polygon blue) ----- */
 
-  /* Standardised dashboard card header — neutral border-b, no decorative gradient */
+  /* Standardised dashboard card header — subtle brand gradient + thin border-b */
   .brand-card-header {
-    background: transparent;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary) / 0.06) 0%,
+      hsl(var(--primary) / 0.02) 60%,
+      transparent 100%
+    );
     border-bottom: 1px solid hsl(var(--border) / 0.7);
     padding-bottom: 0.75rem;
+  }
+  .dark .brand-card-header {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary) / 0.10) 0%,
+      hsl(var(--primary) / 0.04) 60%,
+      transparent 100%
+    );
   }
 
   /* Section title with leading blue dot */
