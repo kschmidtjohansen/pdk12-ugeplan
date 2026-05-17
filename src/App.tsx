@@ -11,6 +11,7 @@ import { TranslationProvider, useTranslation } from "./context/TranslationContex
 import { NotificationProvider } from "./context/NotificationContext";
 import { ChangeLogProvider } from "./context/ChangeLogContext";
 import RouteLoadingFallback from "./components/shared/RouteLoadingFallback";
+import OfflineFallback from "./components/shared/OfflineFallback";
 import { GlobalErrorBoundary } from "./components/ErrorBoundary/GlobalErrorBoundary";
 import MainLayout from "./components/Layout/MainLayout";
 // Lazy load pages for better code splitting with retry logic
@@ -138,6 +139,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <Toaster />
+      <OfflineFallback />
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
