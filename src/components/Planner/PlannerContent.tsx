@@ -60,8 +60,10 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   selectedIds,
   selectionActive = false,
   onToggleSelect,
+  allExpanded = false,
+  onToggleAllExpanded,
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   
   const { employees, cars, assignments: allAssignments } = useUnifiedData();
