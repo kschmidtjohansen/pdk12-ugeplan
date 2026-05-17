@@ -742,6 +742,8 @@ const PlannerPage: React.FC = () => {
           selectedIds={selectedIds}
           selectionActive={selectedIds.size > 0}
           onToggleSelect={handleToggleSelect}
+          allExpanded={allExpanded}
+          onToggleAllExpanded={handleToggleAllExpanded}
         />
 
         {/* Assignment Dialog */}
