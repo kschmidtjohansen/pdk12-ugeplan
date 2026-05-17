@@ -222,14 +222,14 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
   return (
     <>
       <Card>
-        <CardHeader className="pb-3 brand-card-header">
+        <CardHeader className="brand-card-header">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <div className="p-1.5 rounded-md bg-primary/12 text-primary">
                 <Clock className="h-4 w-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-base truncate brand-dot">
+                <CardTitle className="text-sm font-semibold truncate brand-dot">
                   {t('dashboard.myAssignments')}
                 </CardTitle>
               </div>
