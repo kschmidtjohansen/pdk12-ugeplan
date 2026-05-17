@@ -201,30 +201,6 @@ const PlannerPage: React.FC = () => {
   }, [assignments, weekDates]);
 
   // Filter assignments by search query
-  const filteredWeekAssignments = useMemo(() => {
-    if (!searchQuery.trim()) return weekAssignments;
-    
-    const query = searchQuery.toLowerCase().trim();
-    
-    return weekAssignments.filter(assignment => {
-      // Search in case number
-      if (assignment.case_number?.toLowerCase().includes(query)) return true;
-      
-      // Search in title
-      if (assignment.title?.toLowerCase().includes(query)) return true;
-      
-      // Search in location
-      if (assignment.location?.toLowerCase().includes(query)) return true;
-      
-      // Search in employee names
-      if (assignment.assignedEmployees?.some(emp => 
-        (typeof emp === 'object' ? emp.name : emp)?.toLowerCase().includes(query)
-      )) return true;
-      
-      return false;
-    });
-  }, [weekAssignments, searchQuery]);
-
   // Handlers — reuse memoized weekDates
   const handlePreviousWeek = useCallback(() => {
     const prevWeekStart = addWeeks(weekDates.start, -1);
