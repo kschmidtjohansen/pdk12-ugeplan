@@ -21,9 +21,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { getISOWeek, getISOWeekYear, addWeeks, format } from 'date-fns';
 import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import PlannerSearchFilter from '@/components/Planner/PlannerSearchFilter';
-import FilterChips, { applyPlannerFilters, useActivePlannerFilters } from '@/components/Planner/FilterChips';
-import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
+
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
 import BulkActionBar from '@/components/Planner/BulkActionBar';
@@ -99,8 +97,6 @@ const PlannerPage: React.FC = () => {
     return (saved === 'compact' || saved === 'standard' || saved === 'grid') ? saved : 'standard';
   });
   
-  // Search filter state
-  const [searchQuery, setSearchQuery] = useState('');
   
   // Expanded days state - only today is expanded by default
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
@@ -201,30 +197,6 @@ const PlannerPage: React.FC = () => {
   }, [assignments, weekDates]);
 
   // Filter assignments by search query
-  const filteredWeekAssignments = useMemo(() => {
-    if (!searchQuery.trim()) return weekAssignments;
-    
-    const query = searchQuery.toLowerCase().trim();
-    
-    return weekAssignments.filter(assignment => {
-      // Search in case number
-      if (assignment.case_number?.toLowerCase().includes(query)) return true;
-      
-      // Search in title
-      if (assignment.title?.toLowerCase().includes(query)) return true;
-      
-      // Search in location
-      if (assignment.location?.toLowerCase().includes(query)) return true;
-      
-      // Search in employee names
-      if (assignment.assignedEmployees?.some(emp => 
-        (typeof emp === 'object' ? emp.name : emp)?.toLowerCase().includes(query)
-      )) return true;
-      
-      return false;
-    });
-  }, [weekAssignments, searchQuery]);
-
   // Handlers — reuse memoized weekDates
   const handlePreviousWeek = useCallback(() => {
     const prevWeekStart = addWeeks(weekDates.start, -1);
@@ -443,22 +415,14 @@ const PlannerPage: React.FC = () => {
   }, [assignments, vacations, createAssignment, toast, currentLanguage]);
 
   const sortedWeekAssignments = useMemo(() => {
-    if (!filteredWeekAssignments) return [];
-    return [...filteredWeekAssignments].sort((a, b) => {
+    if (!weekAssignments) return [];
+    return [...weekAssignments].sort((a, b) => {
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
       return a.fromTime.localeCompare(b.fromTime);
     });
-  }, [filteredWeekAssignments]);
-
-  // Apply chip-based filters (URL-driven) on top of search-filtered list
-  const activeChipFilters = useActivePlannerFilters();
-  const { hasConflicts: weekHasConflicts } = useAssignmentConflicts(weekAssignments);
-  const chipFilteredAssignments = useMemo(
-    () => applyPlannerFilters(sortedWeekAssignments, activeChipFilters, user?.id, weekHasConflicts),
-    [sortedWeekAssignments, activeChipFilters, user?.id, weekHasConflicts]
-  );
+  }, [weekAssignments]);
 
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
@@ -719,6 +683,43 @@ const PlannerPage: React.FC = () => {
               </Button>
             </div>
 
+            <div className="hidden sm:flex items-center gap-2">
+              <ToggleGroup
+                type="single"
+                value={viewMode}
+                onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid')}
+                className="bg-muted/50 border border-border rounded-lg p-0.5"
+              >
+                <ToggleGroupItem value="standard" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <List className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="text-xs">{t('planner.viewModeStandard')}</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="grid" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="text-xs">{currentLanguage === 'da' ? 'Gitter' : 'Grid'}</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem value="compact" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <LayoutList className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="text-xs">{t('planner.viewModeCompact')}</span>
+                </ToggleGroupItem>
+              </ToggleGroup>
+
+              {(viewMode === 'standard' || viewMode === 'grid') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleAllExpanded}
+                  className="h-7 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                >
+                  <ChevronsUpDown className="h-3.5 w-3.5 mr-1.5" />
+                  {allExpanded
+                    ? (currentLanguage === 'da' ? 'Fold sammen' : 'Collapse all')
+                    : (currentLanguage === 'da' ? 'Udvid alle' : 'Expand all')
+                  }
+                </Button>
+              )}
+            </div>
+
             <div className="flex items-center gap-2">
               {canPublishTasks && (
                 <Button onClick={handleShowOnScreen} variant="outline" size="sm">
@@ -736,78 +737,9 @@ const PlannerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Search, filter chips and view toggle — single combined row */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 min-w-0 flex-1">
-            <PlannerSearchFilter
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
-            <div className="min-w-0 flex-1">
-              <FilterChips weekAssignments={weekAssignments} />
-            </div>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-2 shrink-0">
-            <span className="text-xs text-muted-foreground hidden sm:inline">
-              {currentLanguage === 'da' ? 'Visning:' : 'View:'}
-            </span>
-            <ToggleGroup
-              type="single"
-              value={viewMode}
-              onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid')}
-              className="bg-muted/50 border border-border rounded-lg p-0.5"
-            >
-              <ToggleGroupItem value="standard" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                <List className="h-3.5 w-3.5 mr-1.5" />
-                <span className="text-xs">{t('planner.viewModeStandard')}</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem value="grid" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
-                <span className="text-xs">{currentLanguage === 'da' ? 'Gitter' : 'Grid'}</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem value="compact" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                <LayoutList className="h-3.5 w-3.5 mr-1.5" />
-                <span className="text-xs">{t('planner.viewModeCompact')}</span>
-              </ToggleGroupItem>
-            </ToggleGroup>
-
-            {(viewMode === 'standard' || viewMode === 'grid') && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggleAllExpanded}
-                className="h-7 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-              >
-                <ChevronsUpDown className="h-3.5 w-3.5 mr-1.5" />
-                {allExpanded
-                  ? (currentLanguage === 'da' ? 'Fold sammen' : 'Collapse all')
-                  : (currentLanguage === 'da' ? 'Udvid alle' : 'Expand all')
-                }
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Search results indicator */}
-        {searchQuery && (
-          <div className="text-sm text-muted-foreground">
-            {chipFilteredAssignments.length === 0 ? (
-              <span>{t('planner.noSearchResults')}</span>
-            ) : (
-              <span>
-                {currentLanguage === 'da' 
-                  ? `${chipFilteredAssignments.length} ${chipFilteredAssignments.length === 1 ? 'opgave' : 'opgaver'} fundet`
-                  : `${chipFilteredAssignments.length} ${chipFilteredAssignments.length === 1 ? 'assignment' : 'assignments'} found`
-                }
-              </span>
-            )}
-          </div>
-        )}
-
         {/* Main Content */}
         <PlannerContent 
-          weekAssignments={chipFilteredAssignments} 
+          weekAssignments={sortedWeekAssignments} 
           operationStates={convertedOperationStates}
           expandedDays={expandedDays}
           onToggleExpansion={handleToggleExpansion}
