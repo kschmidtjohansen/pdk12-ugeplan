@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { useScreenDisplayData } from '@/hooks/useScreenDisplayData';
 import { ScreenDisplayHeader } from '@/components/ScreenDisplay/ScreenDisplayHeader';
@@ -6,6 +6,9 @@ import { ScreenDisplayContent } from '@/components/ScreenDisplay/ScreenDisplayCo
 import { ScreenDisplayErrorBoundary } from '@/components/ScreenDisplay/ScreenDisplayErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+type SubDept = { id: string; name: string };
 
 const ScreenDisplayPage: React.FC = () => {
   const getInitialDate = () => {
