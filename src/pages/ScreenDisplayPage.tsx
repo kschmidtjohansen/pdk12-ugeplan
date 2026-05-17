@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { useScreenDisplayData } from '@/hooks/useScreenDisplayData';
 import { ScreenDisplayHeader } from '@/components/ScreenDisplay/ScreenDisplayHeader';
@@ -6,6 +6,9 @@ import { ScreenDisplayContent } from '@/components/ScreenDisplay/ScreenDisplayCo
 import { ScreenDisplayErrorBoundary } from '@/components/ScreenDisplay/ScreenDisplayErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+type SubDept = { id: string; name: string };
 
 const ScreenDisplayPage: React.FC = () => {
   const getInitialDate = () => {
@@ -44,20 +47,79 @@ const ScreenDisplayPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(getInitialDate);
   const [showAllAssignments] = useState(shouldShowAllAssignments);
   const departmentId = getUrlParam('departmentId');
-  const subDepartmentId = getUrlParam('subDepartmentId');
-  
+  const initialSubDepartmentId = getUrlParam('subDepartmentId');
+
+  // Rotation params
+  const rotateEnabled = getUrlParam('rotate') === 'true';
+  const intervalSeconds = useMemo(() => {
+    const raw = parseInt(getUrlParam('interval') || '', 10);
+    if (!Number.isFinite(raw) || raw <= 0) return 30;
+    return Math.min(600, Math.max(5, raw));
+  }, []);
+
+  const [subDeptList, setSubDeptList] = useState<SubDept[]>([]);
+  const [rotationIndex, setRotationIndex] = useState(0);
+
+  // Fetch sub-departments when rotation is enabled
+  useEffect(() => {
+    if (!rotateEnabled || !departmentId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('sub_departments')
+        .select('id, name')
+        .eq('department_id', departmentId)
+        .order('name');
+      if (cancelled) return;
+      const list = (data || []) as SubDept[];
+      setSubDeptList(list);
+      if (initialSubDepartmentId) {
+        const idx = list.findIndex((s) => s.id === initialSubDepartmentId);
+        if (idx >= 0) setRotationIndex(idx);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [rotateEnabled, departmentId, initialSubDepartmentId]);
+
+  const rotationActive = rotateEnabled && !!departmentId && subDeptList.length >= 2;
+  const activeSubDept = rotationActive
+    ? subDeptList[rotationIndex % subDeptList.length]
+    : null;
+  const subDepartmentId = rotationActive
+    ? (activeSubDept?.id ?? null)
+    : initialSubDepartmentId;
+
+  // Rotation interval
+  useEffect(() => {
+    if (!rotationActive) return;
+    const timer = setInterval(() => {
+      setRotationIndex((i) => (i + 1) % subDeptList.length);
+    }, intervalSeconds * 1000);
+    return () => clearInterval(timer);
+  }, [rotationActive, subDeptList.length, intervalSeconds]);
+
+  // Sync subDepartmentId to URL on rotation
+  useEffect(() => {
+    if (!rotationActive || !activeSubDept) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('subDepartmentId', activeSubDept.id);
+    window.history.replaceState({}, '', url.toString());
+  }, [rotationActive, activeSubDept]);
+
   const selectedDateStr = showAllAssignments ? '' : format(selectedDate, 'yyyy-MM-dd');
-  
+
   if (import.meta.env.DEV) {
     console.log('[ScreenDisplayPage] DATA FETCHING:', {
       selectedDateStr,
       showAllAssignments,
       departmentId,
       subDepartmentId,
+      rotationActive,
+      rotationIndex,
       timestamp: new Date().toISOString()
     });
   }
-  
+
   const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr, departmentId, subDepartmentId);
 
   useEffect(() => {
@@ -110,8 +172,29 @@ const ScreenDisplayPage: React.FC = () => {
     newUrl.searchParams.set('date', format(date, 'yyyy-MM-dd'));
     if (departmentId) newUrl.searchParams.set('departmentId', departmentId);
     if (subDepartmentId) newUrl.searchParams.set('subDepartmentId', subDepartmentId);
+    if (rotateEnabled) newUrl.searchParams.set('rotate', 'true');
+    if (rotateEnabled) newUrl.searchParams.set('interval', String(intervalSeconds));
     window.history.replaceState({}, '', newUrl.toString());
   };
+
+  const rotationOverlay = rotationActive && activeSubDept ? (
+    <>
+      <div className="fixed top-3 right-3 z-50 px-3 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md">
+        {activeSubDept.name}
+      </div>
+      <div className="fixed bottom-0 left-0 right-0 h-1 bg-muted z-50">
+        <div
+          key={rotationIndex}
+          className="h-full bg-primary"
+          style={{
+            width: '0%',
+            animation: `screen-display-countdown ${intervalSeconds}s linear forwards`,
+          }}
+        />
+      </div>
+      <style>{`@keyframes screen-display-countdown { from { width: 100%; } to { width: 0%; } }`}</style>
+    </>
+  ) : null;
 
   const handlePreviousDay = () => {
     const newDate = subDays(selectedDate, 1);
@@ -196,6 +279,7 @@ const ScreenDisplayPage: React.FC = () => {
   return (
     <ScreenDisplayErrorBoundary date={selectedDateStr} onRetry={refetch}>
       {content}
+      {rotationOverlay}
     </ScreenDisplayErrorBoundary>
   );
 };
