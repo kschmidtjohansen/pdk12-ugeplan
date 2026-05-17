@@ -35,6 +35,8 @@ interface PlannerContentProps {
   selectedIds?: Set<string>;
   selectionActive?: boolean;
   onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
+  allExpanded?: boolean;
+  onToggleAllExpanded?: () => void;
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
