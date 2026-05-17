@@ -4,7 +4,7 @@ import QuickAccessGrid from './QuickAccessGrid';
 import CompactKpiStack from './CompactKpiStack';
 import DutySummaryWidget from './DutySummaryWidget';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
-import VacationNotificationsPanel from './VacationNotificationsPanel';
+
 
 import WeeklyAssignments from './WeeklyAssignments';
 import { useDepartment } from '@/context/DepartmentContext';
