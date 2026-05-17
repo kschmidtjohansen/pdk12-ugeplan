@@ -99,8 +99,6 @@ const PlannerPage: React.FC = () => {
     return (saved === 'compact' || saved === 'standard' || saved === 'grid') ? saved : 'standard';
   });
   
-  // Search filter state
-  const [searchQuery, setSearchQuery] = useState('');
   
   // Expanded days state - only today is expanded by default
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() => {
