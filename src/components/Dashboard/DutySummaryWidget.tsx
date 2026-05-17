@@ -42,8 +42,8 @@ const DutySummaryWidget: React.FC = () => {
         }
       }}
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-4 pl-5 pt-3">
-        <CardTitle className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+      <CardHeader className="brand-card-header flex flex-row items-center justify-between space-y-0 px-4 pl-5 pt-3">
+        <CardTitle className="text-sm font-semibold brand-dot">
           {t('duty.todayDuties')}
         </CardTitle>
         <div className="p-1.5 rounded-md bg-muted text-muted-foreground">
