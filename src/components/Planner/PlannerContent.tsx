@@ -1,4 +1,6 @@
 import React, { useState, useMemo, Suspense, lazy } from 'react';
+import { Button } from '@/components/ui/button';
+import { ChevronsUpDown } from 'lucide-react';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
@@ -35,6 +37,8 @@ interface PlannerContentProps {
   selectedIds?: Set<string>;
   selectionActive?: boolean;
   onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
+  allExpanded?: boolean;
+  onToggleAllExpanded?: () => void;
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
@@ -56,8 +60,10 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   selectedIds,
   selectionActive = false,
   onToggleSelect,
+  allExpanded = false,
+  onToggleAllExpanded,
 }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   
   const { employees, cars, assignments: allAssignments } = useUnifiedData();
@@ -137,6 +143,23 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             weekDates={weekDates}
           />
         </PlannerWidgetErrorBoundary>
+      )}
+
+      {/* Expand/Collapse all — sits with the day list */}
+      {onToggleAllExpanded && viewMode !== 'compact' && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleAllExpanded}
+            className="h-7 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+          >
+            <ChevronsUpDown className="h-3.5 w-3.5 mr-1.5" />
+            {allExpanded
+              ? (currentLanguage === 'da' ? 'Fold sammen' : 'Collapse all')
+              : (currentLanguage === 'da' ? 'Udvid alle' : 'Expand all')}
+          </Button>
+        </div>
       )}
 
       {/* Show empty state message if no assignments, but still render the days */}
