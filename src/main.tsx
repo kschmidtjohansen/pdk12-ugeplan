@@ -1,6 +1,9 @@
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { Sentry, initSentry } from './lib/sentry';
+
+initSentry();
 
 // Guard: never run the PWA service worker inside the Lovable editor preview
 // (iframes or *.lovableproject.com / id-preview--*.lovable.app hosts).
@@ -24,4 +27,8 @@ if (isPreviewHost || isInIframe) {
   );
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <Sentry.ErrorBoundary fallback={<div className="p-6 text-sm">Noget gik galt.</div>}>
+    <App />
+  </Sentry.ErrorBoundary>
+);
