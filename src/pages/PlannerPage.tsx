@@ -678,17 +678,14 @@ const PlannerPage: React.FC = () => {
                 onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid')}
                 className="bg-muted/50 border border-border rounded-lg p-0.5"
               >
-                <ToggleGroupItem value="standard" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                  <List className="h-3.5 w-3.5 mr-1.5" />
-                  <span className="text-xs">{t('planner.viewModeStandard')}</span>
+                <ToggleGroupItem value="standard" size="sm" aria-label={t('planner.viewModeStandard')} title={t('planner.viewModeStandard')} className="h-7 w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <List className="h-3.5 w-3.5" />
                 </ToggleGroupItem>
-                <ToggleGroupItem value="grid" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                  <LayoutGrid className="h-3.5 w-3.5 mr-1.5" />
-                  <span className="text-xs">{currentLanguage === 'da' ? 'Gitter' : 'Grid'}</span>
+                <ToggleGroupItem value="grid" size="sm" aria-label={currentLanguage === 'da' ? 'Gitter' : 'Grid'} title={currentLanguage === 'da' ? 'Gitter' : 'Grid'} className="h-7 w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <LayoutGrid className="h-3.5 w-3.5" />
                 </ToggleGroupItem>
-                <ToggleGroupItem value="compact" size="sm" className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                  <LayoutList className="h-3.5 w-3.5 mr-1.5" />
-                  <span className="text-xs">{t('planner.viewModeCompact')}</span>
+                <ToggleGroupItem value="compact" size="sm" aria-label={t('planner.viewModeCompact')} title={t('planner.viewModeCompact')} className="h-7 w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <LayoutList className="h-3.5 w-3.5" />
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
