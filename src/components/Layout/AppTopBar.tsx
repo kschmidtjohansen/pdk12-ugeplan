@@ -9,6 +9,7 @@ import NotificationsDrawer from './NavComponents/NotificationsDrawer';
 import ChangeLogDropdown from './NavComponents/ChangeLogDropdown';
 import UserMenu from './NavComponents/UserMenu';
 import VacationOverviewDropdown from './NavComponents/VacationOverviewDropdown';
+import GlobalAssignmentSearch from './NavComponents/GlobalAssignmentSearch';
 import { useToast } from '@/hooks/use-toast';
 import { usePlannerWeek } from '@/stores/plannerWeekStore';
 
@@ -72,6 +73,7 @@ const AppTopBar: React.FC = () => {
         )}
 
         <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
+          <GlobalAssignmentSearch />
           <NotificationsDrawer />
           {canSeeVacationOverview && <VacationOverviewDropdown />}
           <ChangeLogDropdown />

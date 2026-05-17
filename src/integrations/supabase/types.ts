@@ -1722,6 +1722,44 @@ export type Database = {
         Returns: string
       }
       schedule_maintenance_tasks: { Args: never; Returns: Json }
+      search_assignments: {
+        Args: { dept_id: string; query: string }
+        Returns: {
+          assignment_date: string
+          attachment_files: Json | null
+          car_id: string | null
+          car_ids: string[] | null
+          case_number: string | null
+          city: string | null
+          created_at: string
+          department_id: string | null
+          description: string | null
+          from_time: string
+          group_id: string | null
+          id: string
+          is_demo: boolean
+          lat: number | null
+          lng: number | null
+          location: string
+          onedrive_folder_id: string | null
+          published: boolean | null
+          responsible_user_id: string | null
+          route_distance_km: number | null
+          route_duration_min: number | null
+          sub_department_id: string | null
+          title: string
+          to_time: string
+          type: Database["public"]["Enums"]["assignment_type"] | null
+          updated_at: string
+          zip_code: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "assignments"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       security_health_check: { Args: never; Returns: Json }
       sync_user_roles_to_jwt: { Args: never; Returns: undefined }
       test_query_performance: { Args: never; Returns: Json }
