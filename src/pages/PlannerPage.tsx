@@ -704,9 +704,8 @@ const PlannerPage: React.FC = () => {
               </div>
 
               {canPublishTasks && (
-                <Button onClick={handleShowOnScreen} variant="outline" size="sm">
+                <Button onClick={handleShowOnScreen} variant="outline" size="sm" aria-label={t('planner.showOnScreen')} title={t('planner.showOnScreen')} className="h-8 w-8 p-0">
                   <Monitor className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t('planner.showOnScreen')}</span>
                 </Button>
               )}
               {canCreate && (
