@@ -1,7 +1,6 @@
 import React, { useState, useMemo, Suspense, lazy } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronsUpDown } from 'lucide-react';
-import { useTranslation as _useTranslationUnused } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
