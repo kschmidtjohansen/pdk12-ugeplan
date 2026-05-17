@@ -279,6 +279,7 @@ const ScreenDisplayPage: React.FC = () => {
   return (
     <ScreenDisplayErrorBoundary date={selectedDateStr} onRetry={refetch}>
       {content}
+      {rotationOverlay}
     </ScreenDisplayErrorBoundary>
   );
 };
