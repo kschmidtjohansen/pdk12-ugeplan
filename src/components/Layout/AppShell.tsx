@@ -4,6 +4,7 @@ import AppSidebar from './AppSidebar';
 import AppTopBar from './AppTopBar';
 import MobileBottomNav from './MobileBottomNav';
 import { applyColorScheme, getStoredColorScheme } from '@/hooks/useColorScheme';
+import AssignmentDetailsDialog from '@/components/Planner/AssignmentDetailsDialog';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -38,6 +39,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </div>
         </div>
         <MobileBottomNav />
+        <AssignmentDetailsDialog />
       </SidebarProvider>
     </>
   );
