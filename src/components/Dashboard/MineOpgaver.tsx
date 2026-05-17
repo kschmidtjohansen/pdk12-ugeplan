@@ -201,11 +201,11 @@ const MineOpgaver: React.FC = () => {
 
   return (
     <Card className="h-full overflow-visible">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
+        <CardHeader className="brand-card-header">
+          <CardTitle className="text-sm font-semibold brand-dot flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-primary" />
             {t('dashboard.myTasks') || 'Mine Opgaver'}
-            <span className="text-sm font-normal text-muted-foreground">
+            <span className="text-xs font-normal text-muted-foreground">
               - Uge {getCurrentWeekInfo().week}
             </span>
             <Badge variant="secondary" className="ml-auto">
