@@ -17,6 +17,7 @@ import WebVitalsOverview from '@/components/Admin/WebVitalsOverview';
 import AutoPublishLogWidget from '@/components/Dashboard/AutoPublishLogWidget';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import { supabase } from '@/integrations/supabase/client';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 
 const AdminPage: React.FC = () => {
   const { user, loading, isDemoMode, demoRole } = useAuth();
@@ -39,11 +40,7 @@ const AdminPage: React.FC = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <ListSkeleton />;
   }
 
   if (!user || (!isSuperAdmin && !isAdmin)) {

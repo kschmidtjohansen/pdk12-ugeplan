@@ -17,7 +17,7 @@ const SeriesActionDialog = lazy(() => import('../components/Planner/SeriesAction
 import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
-import { Spinner } from '@/components/ui/spinner';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 import { getISOWeek, getISOWeekYear, addWeeks, format } from 'date-fns';
 import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -625,11 +625,8 @@ const PlannerPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <p className="text-sm font-medium text-muted-foreground">{t('common.loading')}...</p>
-        </div>
+      <div className="min-h-screen w-full bg-background" aria-label={`${t('common.loading')}...`}>
+        <ListSkeleton />
       </div>
     );
   }

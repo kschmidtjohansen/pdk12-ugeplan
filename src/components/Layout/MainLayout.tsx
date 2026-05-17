@@ -10,6 +10,7 @@ import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import { RealtimeChangeNotifier } from '@/components/shared/RealtimeChangeNotifier';
 import { useQueryClient } from '@tanstack/react-query';
 import { notifyOwnAction } from '@/lib/realtimeUtils';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -80,14 +81,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="flex items-center justify-center min-h-screen bg-background">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-border border-t-primary mx-auto"></div>
-            <p className="text-sm text-muted-foreground">{loadingText}</p>
-            <div className="text-xs text-muted-foreground/60">
-              Translation: {isInitialized ? 'Ready' : 'Loading'} | Auth: {authReady ? 'Ready' : 'Initializing'}
-            </div>
-          </div>
+        <div className="min-h-screen bg-background" aria-label={loadingText}>
+          <ListSkeleton />
         </div>
       </SecurityErrorBoundary>
     );
@@ -99,11 +94,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="flex items-center justify-center min-h-screen bg-background">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-border border-t-primary mx-auto"></div>
-            <p className="text-sm text-muted-foreground">Redirecting to login...</p>
-          </div>
+        <div className="min-h-screen bg-background" aria-label="Redirecting to login...">
+          <ListSkeleton />
         </div>
       </SecurityErrorBoundary>
     );

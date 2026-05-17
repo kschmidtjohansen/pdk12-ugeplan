@@ -14,6 +14,7 @@ import RouteLoadingFallback from "./components/shared/RouteLoadingFallback";
 import OfflineFallback from "./components/shared/OfflineFallback";
 import { GlobalErrorBoundary } from "./components/ErrorBoundary/GlobalErrorBoundary";
 import MainLayout from "./components/Layout/MainLayout";
+import ListSkeleton from "./components/shared/ListSkeleton";
 // Lazy load pages for better code splitting with retry logic
 const lazyWithRetry = (importFn: () => Promise<any>) => {
   return lazy(() =>
@@ -127,11 +128,8 @@ const AppContent = () => {
       : 'Loading application...';
     
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">{loadingText}</p>
-        </div>
+      <div className="min-h-screen bg-background" aria-label={loadingText}>
+        <ListSkeleton />
       </div>
     );
   }
