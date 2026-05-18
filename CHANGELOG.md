@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-05-18 — Fix: permission denied for function is_admin_from_jwt
+
+### Fix
+- RLS-politikken `assignments_employees_select_policy` kalder `is_admin_from_jwt()`, men `authenticated`-rollen manglede `EXECUTE`-rettighed på funktionen. Det fik alle opdateringer/sletninger af opgaver (også som Super Admin) til at fejle med `permission denied for function is_admin_from_jwt` når medarbejder-links blev re-linket. Tildelt `EXECUTE` til `authenticated, anon` på `is_admin_from_jwt`, `get_auth_uid`, `get_auth_role` og `get_auth_jwt` så RLS-checks kan køre korrekt for alle roller inkl. Super Admin.
+
 ## 2026-05-18 — UI: sticky DialogHeader og DialogFooter
 
 ### UI
