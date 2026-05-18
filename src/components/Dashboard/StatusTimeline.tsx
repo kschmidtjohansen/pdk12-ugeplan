@@ -27,28 +27,15 @@ const getDotColor = (op: string): string => {
   return 'bg-muted-foreground';
 };
 
-const getLabel = (op: string, lang: string): string => {
-  const o = (op || '').toUpperCase();
-  const da = {
-    CREATE: 'Oprettet',
-    UPDATE: 'Opdateret',
-    PUBLISH: 'Publiceret',
-    DELETE: 'Slettet',
-    COMPLETE: 'Færdiggjort',
-  } as Record<string, string>;
-  const en = {
-    CREATE: 'Created',
-    UPDATE: 'Updated',
-    PUBLISH: 'Published',
-    DELETE: 'Deleted',
-    COMPLETE: 'Completed',
-  } as Record<string, string>;
-  const map = lang === 'da' ? da : en;
-  return map[o] || map[o.replace(/D$/, '')] || op;
-};
 
 const StatusTimeline: React.FC<StatusTimelineProps> = ({ assignmentId }) => {
-  const { currentLanguage } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+
+  const getLabel = (op: string): string => {
+    const o = (op || '').toUpperCase().replace(/D$/, '');
+    const key = ['CREATE', 'UPDATE', 'PUBLISH', 'DELETE', 'COMPLETE'].includes(o) ? o : null;
+    return key ? t(`changeLog.operations.${key}`) : op;
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['planner_change_log', assignmentId],
@@ -72,7 +59,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({ assignmentId }) => {
         <Separator className="my-2" />
         <div className="space-y-4">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            {currentLanguage === 'da' ? 'Historik' : 'History'}
+            {t('changeLog.history')}
           </h4>
           <div className="space-y-3">
             {[0, 1, 2].map((i) => (
@@ -93,7 +80,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({ assignmentId }) => {
       <Separator className="my-2" />
       <div className="space-y-4">
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          {currentLanguage === 'da' ? 'Historik' : 'History'}
+          {t('changeLog.history')}
         </h4>
         <ol className="relative border-l border-border ml-2 space-y-4 pl-4">
           {data.map((row) => (
@@ -102,7 +89,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({ assignmentId }) => {
                 className={`absolute -left-[22px] top-1.5 h-3 w-3 rounded-full ring-2 ring-background ${getDotColor(row.operation)}`}
               />
               <div className="text-sm text-foreground">
-                <span className="font-medium">{getLabel(row.operation, currentLanguage)}</span>
+                <span className="font-medium">{getLabel(row.operation)}</span>
                 {row.changed_by_name && (
                   <span className="text-muted-foreground"> · {row.changed_by_name}</span>
                 )}
