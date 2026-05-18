@@ -27,25 +27,6 @@ const getDotColor = (op: string): string => {
   return 'bg-muted-foreground';
 };
 
-const getLabel = (op: string, lang: string): string => {
-  const o = (op || '').toUpperCase();
-  const da = {
-    CREATE: 'Oprettet',
-    UPDATE: 'Opdateret',
-    PUBLISH: 'Publiceret',
-    DELETE: 'Slettet',
-    COMPLETE: 'Færdiggjort',
-  } as Record<string, string>;
-  const en = {
-    CREATE: 'Created',
-    UPDATE: 'Updated',
-    PUBLISH: 'Published',
-    DELETE: 'Deleted',
-    COMPLETE: 'Completed',
-  } as Record<string, string>;
-  const map = lang === 'da' ? da : en;
-  return map[o] || map[o.replace(/D$/, '')] || op;
-};
 
 const StatusTimeline: React.FC<StatusTimelineProps> = ({ assignmentId }) => {
   const { t, currentLanguage } = useTranslation();
