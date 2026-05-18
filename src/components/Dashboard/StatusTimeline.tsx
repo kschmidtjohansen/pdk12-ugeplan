@@ -48,7 +48,13 @@ const getLabel = (op: string, lang: string): string => {
 };
 
 const StatusTimeline: React.FC<StatusTimelineProps> = ({ assignmentId }) => {
-  const { currentLanguage } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+
+  const getLabel = (op: string): string => {
+    const o = (op || '').toUpperCase().replace(/D$/, '');
+    const key = ['CREATE', 'UPDATE', 'PUBLISH', 'DELETE', 'COMPLETE'].includes(o) ? o : null;
+    return key ? t(`changeLog.operations.${key}`) : op;
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['planner_change_log', assignmentId],
