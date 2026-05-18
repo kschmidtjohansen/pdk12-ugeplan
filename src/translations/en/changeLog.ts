@@ -21,8 +21,10 @@ export const changeLog = {
     CREATE: 'Created',
     UPDATE: 'Updated',
     DELETE: 'Deleted',
-    PUBLISH: 'Published'
+    PUBLISH: 'Published',
+    COMPLETE: 'Completed'
   },
+  history: 'History',
   time: 'Time',
   user: 'User',
   action: 'Action',
