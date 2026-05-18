@@ -21,8 +21,10 @@ export const changeLog = {
     CREATE: 'Oprettet',
     UPDATE: 'Opdateret',
     DELETE: 'Slettet',
-    PUBLISH: 'Publiceret'
+    PUBLISH: 'Publiceret',
+    COMPLETE: 'Færdiggjort'
   },
+  history: 'Historik',
   time: 'Tidspunkt',
   user: 'Bruger',
   action: 'Handling',
