@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import React, { useCallback, useState, useEffect, useMemo, useRef, Suspense, lazy } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '../context/TranslationContext';
 import { useOptimizedAssignments, fetchAssignmentsForQuery } from '../hooks/useOptimizedAssignments';
@@ -211,8 +211,12 @@ const PlannerPage: React.FC = () => {
   }, [weekDates]);
 
   // Prefetch adjacent week assignments on hover for instant navigation.
+  // Debounced (150 ms) so hurtige musebevægelser hen over knapperne ikke trigger overflødige kald.
   // Query key matches useOptimizedAssignments('all') exactly.
-  const handlePrefetchAssignments = useCallback(() => {
+  const prefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const HOVER_PREFETCH_DELAY_MS = 150;
+
+  const runPrefetchAssignments = useCallback(() => {
     if (!user?.id || !user?.role) return;
     queryClient.prefetchQuery({
       queryKey: ['assignments', user.id, user.role, 'all', selectedDepartmentId, selectedSubDepartmentId],
@@ -228,6 +232,27 @@ const PlannerPage: React.FC = () => {
       staleTime: 2 * 60 * 1000,
     });
   }, [queryClient, user?.id, user?.role, user?.email, selectedDepartmentId, selectedSubDepartmentId, allEmployees]);
+
+  const handlePrefetchAssignments = useCallback(() => {
+    if (prefetchTimerRef.current) clearTimeout(prefetchTimerRef.current);
+    prefetchTimerRef.current = setTimeout(() => {
+      prefetchTimerRef.current = null;
+      runPrefetchAssignments();
+    }, HOVER_PREFETCH_DELAY_MS);
+  }, [runPrefetchAssignments]);
+
+  const handleCancelPrefetch = useCallback(() => {
+    if (prefetchTimerRef.current) {
+      clearTimeout(prefetchTimerRef.current);
+      prefetchTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (prefetchTimerRef.current) clearTimeout(prefetchTimerRef.current);
+    };
+  }, []);
 
   const handleOpenCreateDialog = (date: string) => {
     setCurrentAssignment(null);
@@ -689,13 +714,13 @@ const PlannerPage: React.FC = () => {
 
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 py-1">
-                <Button variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} className="h-7 w-7 p-0">
+                <Button variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-7 w-7 p-0">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="font-medium min-w-[80px] text-center text-sm text-foreground">
                   {t('planner.week')} {selectedWeek}
                 </span>
-                <Button variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} className="h-7 w-7 p-0">
+                <Button variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-7 w-7 p-0">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

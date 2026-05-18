@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-05-18 — Performance: debounced prefetch on hover
+
+### Performance
+- `PlannerPage` uge-navigationsknapper (forrige/næste) debounce'er nu `queryClient.prefetchQuery` med 150 ms ved `onMouseEnter`. `onMouseLeave` annullerer pending timer, så hurtige musebevægelser hen over knapperne ikke trigger overflødige netværkskald. Cleanup ved unmount.
+
+
 ## 2026-05-17 — UI: standardiseret loading state med ListSkeleton
 
 ### UI
