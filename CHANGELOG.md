@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-05-18 — UI: sticky DialogHeader og DialogFooter
+
+### UI
+- `DialogHeader` og `DialogFooter` er nu `sticky` i toppen og bunden af `DialogContent`'s scroll-wrapper, så titel og submit/cancel-knapper forbliver synlige under scroll i lange formularer (CarFormDialog, EmployeeFormDialog, VacationFormDialog, UserFormDialog, DutyEditDialog m.fl.) — på både mobile og desktop. Header får `pr-12` for at undgå kollision med Close-X. Footer respekterer iOS safe-area via `pb-[max(1.5rem,env(safe-area-inset-bottom))]`. Zero-touch ændring — ingen consumer-dialoger behøver opdatering.
+
 ## 2026-05-18 — Performance: debounced prefetch on hover
 
 ### Performance
