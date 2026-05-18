@@ -89,7 +89,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({ assignmentId }) => {
                 className={`absolute -left-[22px] top-1.5 h-3 w-3 rounded-full ring-2 ring-background ${getDotColor(row.operation)}`}
               />
               <div className="text-sm text-foreground">
-                <span className="font-medium">{getLabel(row.operation, currentLanguage)}</span>
+                <span className="font-medium">{getLabel(row.operation)}</span>
                 {row.changed_by_name && (
                   <span className="text-muted-foreground"> · {row.changed_by_name}</span>
                 )}
