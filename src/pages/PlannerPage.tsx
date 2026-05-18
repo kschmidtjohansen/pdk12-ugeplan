@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import React, { useCallback, useState, useEffect, useMemo, useRef, Suspense, lazy } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '../context/TranslationContext';
 import { useOptimizedAssignments, fetchAssignmentsForQuery } from '../hooks/useOptimizedAssignments';
