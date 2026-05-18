@@ -714,13 +714,13 @@ const PlannerPage: React.FC = () => {
 
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 py-1">
-                <Button variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} className="h-7 w-7 p-0">
+                <Button variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-7 w-7 p-0">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="font-medium min-w-[80px] text-center text-sm text-foreground">
                   {t('planner.week')} {selectedWeek}
                 </span>
-                <Button variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} className="h-7 w-7 p-0">
+                <Button variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-7 w-7 p-0">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
