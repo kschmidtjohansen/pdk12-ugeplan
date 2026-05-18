@@ -59,7 +59,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({ assignmentId }) => {
         <Separator className="my-2" />
         <div className="space-y-4">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            {currentLanguage === 'da' ? 'Historik' : 'History'}
+            {t('changeLog.history')}
           </h4>
           <div className="space-y-3">
             {[0, 1, 2].map((i) => (
@@ -80,7 +80,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({ assignmentId }) => {
       <Separator className="my-2" />
       <div className="space-y-4">
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          {currentLanguage === 'da' ? 'Historik' : 'History'}
+          {t('changeLog.history')}
         </h4>
         <ol className="relative border-l border-border ml-2 space-y-4 pl-4">
           {data.map((row) => (
