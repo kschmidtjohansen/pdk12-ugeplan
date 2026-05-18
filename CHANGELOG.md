@@ -656,3 +656,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ### Tokens
 - `index.css`: tilføjet globale CSS-regler der skjuler native browser password-reveal-knapper, så kun appens egen øje-toggle vises.
+## 2026-05-18 — StatusTimeline i18n
+- StatusTimeline bruger nu `changeLog.operations.*` og ny `changeLog.history` nøgle i stedet for hardkodede da/en strenge.
+- Tilføjet `operations.COMPLETE` og `history` i både da og en translations.
