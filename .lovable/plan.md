@@ -1,28 +1,15 @@
-## Plan: Translate StatusTimeline labels
+## Plan: Add UPDATE label + dot color to StatusTimeline
 
-Replace the hardcoded `da`/`en` label maps in `src/components/Dashboard/StatusTimeline.tsx` with the existing translation keys under `changeLog.operations.*` and the section title under `changeLog.title`-style keys, so the timeline follows the current app language.
+`getLabel` already maps `UPDATE`/`UPDATED` to `t('changeLog.operations.UPDATE')` ("Opdateret" / "Updated"), but `getDotColor` falls through to the neutral `bg-muted-foreground`, so changed events look indistinct.
 
 ### Changes
 
 **`src/components/Dashboard/StatusTimeline.tsx`**
-- Replace `useTranslation` usage to grab `t` (in addition to `currentLanguage`, still needed for `date-fns` locale).
-- Remove the inline `getLabel(op, lang)` function and the hardcoded `da`/`en` maps.
-- Map operation → translation key:
-  - `CREATE`/`CREATED` → `t('changeLog.operations.CREATE')`
-  - `UPDATE`/`UPDATED` → `t('changeLog.operations.UPDATE')`
-  - `PUBLISH`/`PUBLISHED` → `t('changeLog.operations.PUBLISH')`
-  - `DELETE`/`DELETED` → `t('changeLog.operations.DELETE')`
-  - `COMPLETE`/`COMPLETED` → new key `changeLog.operations.COMPLETE` (no existing equivalent)
-- Replace the inline `'Historik' / 'History'` header with a new translation key `changeLog.history`.
+- In `getDotColor`, add a branch for `UPDATE`/`UPDATED` → `bg-blue-500` (matches the blue used for UPDATE in `AssignmentHistoryTab.tsx`, keeping the timeline visually consistent across the app).
+- Keep the existing fallback for unknown ops.
 
-**`src/translations/da/changeLog.ts`**
-- Add `operations.COMPLETE: 'Færdiggjort'`
-- Add `history: 'Historik'`
-
-**`src/translations/en/changeLog.ts`**
-- Add `operations.COMPLETE: 'Completed'`
-- Add `history: 'History'`
+No translation changes needed — `changeLog.operations.UPDATE` already exists in both `da` and `en`.
 
 ### Out of scope
-- No behavior changes (dot colors, query, ordering, skeleton untouched).
-- Other components using hardcoded strings are not modified.
+- Other operations, query logic, layout, ordering, skeleton.
+- `AssignmentHistoryTab` (already handles UPDATE).
