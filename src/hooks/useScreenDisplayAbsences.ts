@@ -32,7 +32,7 @@ export const useScreenDisplayAbsences = (
     }
     setLoading(true);
     try {
-      // 1) Department user ids via user_access + super_admin via home_department_id
+      // 1) Department user ids: user_access + super_admin via home_department_id
       const [{ data: accessRows }, { data: homeRows }] = await Promise.all([
         supabase.from('user_access').select('user_id').eq('department_id', departmentId),
         supabase.from('profiles').select('id').eq('home_department_id', departmentId),
@@ -47,11 +47,11 @@ export const useScreenDisplayAbsences = (
       }
       const ids = Array.from(deptUserIds);
 
-      // 2) Run vacation + profile queries in parallel
+      // 2) Vacation user-ids for the date + on_leave profiles in parallel
       const [vacRes, profRes] = await Promise.all([
         supabase
           .from('vacations')
-          .select('user_id, profiles:profiles!vacations_user_id_fkey(id, name, status, is_visible_in_planning)')
+          .select('user_id')
           .eq('status', 'approved')
           .lte('start_date', date)
           .gte('end_date', date)
@@ -63,31 +63,28 @@ export const useScreenDisplayAbsences = (
           .or('status.eq.on_leave,on_leave.eq.true'),
       ]);
 
-      const map = new Map<string, AbsentEmployee>();
+      const vacUserIds = Array.from(
+        new Set(((vacRes.data as any[]) || []).map((r) => r.user_id).filter(Boolean))
+      );
 
-      const considerProfile = (p: any) => {
+      let vacProfiles: any[] = [];
+      if (vacUserIds.length > 0) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, name, status, is_visible_in_planning')
+          .in('id', vacUserIds);
+        vacProfiles = data || [];
+      }
+
+      const map = new Map<string, AbsentEmployee>();
+      const consider = (p: any) => {
         if (!p?.id || !p?.name) return;
         if (p.status === 'terminated') return;
         if (p.is_visible_in_planning === false) return;
         if (!map.has(p.id)) map.set(p.id, { id: p.id, name: p.name });
       };
-
-      // Vacations: need profile data; fall back to a follow-up fetch if join missing
-      const vacRows = (vacRes.data as any[]) || [];
-      const missingProfileIds: string[] = [];
-      vacRows.forEach((row: any) => {
-        if (row.profiles) considerProfile(row.profiles);
-        else if (row.user_id) missingProfileIds.push(row.user_id);
-      });
-      if (missingProfileIds.length > 0) {
-        const { data: extra } = await supabase
-          .from('profiles')
-          .select('id, name, status, is_visible_in_planning')
-          .in('id', missingProfileIds);
-        (extra || []).forEach(considerProfile);
-      }
-
-      ((profRes.data as any[]) || []).forEach(considerProfile);
+      vacProfiles.forEach(consider);
+      ((profRes.data as any[]) || []).forEach(consider);
 
       const sorted = Array.from(map.values()).sort((a, b) =>
         a.name.localeCompare(b.name, 'da')
