@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import { useScreenDisplayAbsences } from '@/hooks/useScreenDisplayAbsences';
 
 type SubDept = { id: string; name: string };
 
