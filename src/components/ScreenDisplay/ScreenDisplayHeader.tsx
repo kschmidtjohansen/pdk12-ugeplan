@@ -5,12 +5,6 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import type { AbsentEmployee } from '@/hooks/useScreenDisplayAbsences';
 
 interface ScreenDisplayHeaderProps {
@@ -35,9 +29,7 @@ export const ScreenDisplayHeader: React.FC<ScreenDisplayHeaderProps> = ({
     return format(date, 'EEEE, d. MMMM yyyy', { locale });
   };
 
-  const visibleNames = absences.slice(0, 3).map((a) => a.name);
-  const extraCount = Math.max(0, absences.length - visibleNames.length);
-  const moreLabel = t('screenDisplay.absentMore').replace('{count}', String(extraCount));
+  const allNames = absences.map((a) => a.name).join(', ');
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-xs">
@@ -59,34 +51,20 @@ export const ScreenDisplayHeader: React.FC<ScreenDisplayHeaderProps> = ({
         </div>
 
         {absences.length > 0 && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className="inline-flex items-center gap-2 max-w-full rounded-full bg-warning text-warning-foreground px-3 py-1.5 text-sm font-medium shadow-xs cursor-default"
-                  role="status"
-                  aria-label={`${t('screenDisplay.absent')} ${absences.length}`}
-                >
-                  <UserX className="h-4 w-4 flex-shrink-0" />
-                  <span className="font-semibold">
-                    {t('screenDisplay.absent')} ({absences.length}):
-                  </span>
-                  <span className="truncate">
-                    {visibleNames.join(', ')}
-                    {extraCount > 0 ? ` ${moreLabel}` : ''}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <div className="space-y-0.5">
-                  {absences.map((a) => (
-                    <div key={a.id}>{a.name}</div>
-                  ))}
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div
+            className="inline-flex items-center gap-1.5 max-w-full rounded-full bg-warning text-warning-foreground px-2.5 py-1 text-xs font-medium shadow-xs"
+            role="status"
+            aria-label={`${t('screenDisplay.absent')} ${absences.length}`}
+          >
+            <UserX className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="font-semibold">
+              {t('screenDisplay.absent')} ({absences.length}):
+            </span>
+            <span>{allNames}</span>
+          </div>
         )}
+
+
 
         <div className="flex items-center gap-2">
           <Button onClick={onPreviousDay} variant="outline" size="sm">
