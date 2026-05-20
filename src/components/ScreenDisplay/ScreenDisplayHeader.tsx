@@ -5,12 +5,6 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import type { AbsentEmployee } from '@/hooks/useScreenDisplayAbsences';
 
 interface ScreenDisplayHeaderProps {
