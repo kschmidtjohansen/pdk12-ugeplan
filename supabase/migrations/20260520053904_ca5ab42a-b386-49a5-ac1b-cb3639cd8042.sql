@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.list_accessible_assignments_with_team(uuid, uuid) TO authenticated, anon;
