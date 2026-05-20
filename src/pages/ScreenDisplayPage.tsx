@@ -253,6 +253,7 @@ const ScreenDisplayPage: React.FC = () => {
               onPreviousDay={handlePreviousDay}
               onNextDay={handleNextDay}
               onToday={handleToday}
+              absences={absences}
             />
           )}
 
