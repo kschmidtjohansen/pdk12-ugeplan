@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-20 — Fix: ferie-cleanup fejlede med "Cleanup Failed"
+
+### Fix
+- `delete_old_rejected_vacations()` havde ingen `EXECUTE`-grant, så admin-klientens daglige RPC-kald fejlede med `permission denied for function delete_old_rejected_vacations`. Efter 3 retries blev "Cleanup Failed — Vacation cleanup failed after multiple attempts" toast vist. Tildelt `EXECUTE` til `authenticated`.
+
+
+
 ## 2026-05-20 — Fix: auto-publicering fejlede pga. forkert kolonnenavn
 
 ### Fix

@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.delete_old_rejected_vacations() TO authenticated;
