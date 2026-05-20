@@ -6,7 +6,9 @@ const screenDisplay = {
   statusActive: 'In Progress',
   statusUpcoming: 'Upcoming',
   statusCompleted: 'Completed',
-  statusScheduled: 'Scheduled'
+  statusScheduled: 'Scheduled',
+  absent: 'Absent',
+  absentMore: '+{count} more'
 };
 
 export default screenDisplay;

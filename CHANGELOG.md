@@ -659,3 +659,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 ## 2026-05-18 — StatusTimeline i18n
 - StatusTimeline bruger nu `changeLog.operations.*` og ny `changeLog.history` nøgle i stedet for hardkodede da/en strenge.
 - Tilføjet `operations.COMPLETE` og `history` i både da og en translations.
+
+## 2026-05-20 screen-display absences
+- Storskærmvisning: Header viser nu orange badge med antal og navne på fraværende medarbejdere for den valgte dag (godkendt ferie + on_leave/inaktiv), hele afdelingen.

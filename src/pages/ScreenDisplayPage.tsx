@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import { useScreenDisplayAbsences } from '@/hooks/useScreenDisplayAbsences';
 
 type SubDept = { id: string; name: string };
 
@@ -122,6 +123,8 @@ const ScreenDisplayPage: React.FC = () => {
   }
 
   const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr, departmentId, subDepartmentId);
+  const absencesDate = selectedDateStr || format(new Date(), 'yyyy-MM-dd');
+  const { absences } = useScreenDisplayAbsences(absencesDate, departmentId);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -250,6 +253,7 @@ const ScreenDisplayPage: React.FC = () => {
               onPreviousDay={handlePreviousDay}
               onNextDay={handleNextDay}
               onToday={handleToday}
+              absences={absences}
             />
           )}
 

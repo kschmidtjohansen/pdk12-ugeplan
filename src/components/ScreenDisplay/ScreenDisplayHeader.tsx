@@ -1,23 +1,32 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, UserX } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import type { AbsentEmployee } from '@/hooks/useScreenDisplayAbsences';
 
 interface ScreenDisplayHeaderProps {
   selectedDate: Date;
   onPreviousDay: () => void;
   onNextDay: () => void;
   onToday: () => void;
+  absences?: AbsentEmployee[];
 }
 
 export const ScreenDisplayHeader: React.FC<ScreenDisplayHeaderProps> = ({
   selectedDate,
   onPreviousDay,
   onNextDay,
-  onToday
+  onToday,
+  absences = [],
 }) => {
   const { t, currentLanguage } = useTranslation();
 
@@ -26,16 +35,20 @@ export const ScreenDisplayHeader: React.FC<ScreenDisplayHeaderProps> = ({
     return format(date, 'EEEE, d. MMMM yyyy', { locale });
   };
 
+  const visibleNames = absences.slice(0, 3).map((a) => a.name);
+  const extraCount = Math.max(0, absences.length - visibleNames.length);
+  const moreLabel = t('screenDisplay.absentMore').replace('{count}', String(extraCount));
+
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-xs">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4 min-w-0">
           <Link to="/planner">
             <Button variant="outline" size="sm">
               <Home className="h-4 w-4" />
             </Button>
           </Link>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
               {t('screenDisplay.title')}
             </h1>
@@ -44,7 +57,37 @@ export const ScreenDisplayHeader: React.FC<ScreenDisplayHeaderProps> = ({
             </p>
           </div>
         </div>
-        
+
+        {absences.length > 0 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="inline-flex items-center gap-2 max-w-full rounded-full bg-warning text-warning-foreground px-3 py-1.5 text-sm font-medium shadow-xs cursor-default"
+                  role="status"
+                  aria-label={`${t('screenDisplay.absent')} ${absences.length}`}
+                >
+                  <UserX className="h-4 w-4 flex-shrink-0" />
+                  <span className="font-semibold">
+                    {t('screenDisplay.absent')} ({absences.length}):
+                  </span>
+                  <span className="truncate">
+                    {visibleNames.join(', ')}
+                    {extraCount > 0 ? ` ${moreLabel}` : ''}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <div className="space-y-0.5">
+                  {absences.map((a) => (
+                    <div key={a.id}>{a.name}</div>
+                  ))}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
         <div className="flex items-center gap-2">
           <Button onClick={onPreviousDay} variant="outline" size="sm">
             <ChevronLeft className="h-4 w-4" />
