@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-20 — Fix: auto-publicering fejlede pga. forkert kolonnenavn
+
+### Fix
+- `auto_publish_due_assignments()` refererede til kolonnen `date` på `public.assignments`, men kolonnen hedder `assignment_date`. Pg_cron-jobbet `auto-publish-assignments` har derfor fejlet hvert minut siden 2026-05-15 med `column "date" does not exist`, og ingen kladder blev auto-publiceret. Funktionen er nu rettet til at bruge `assignment_date`, og manuel kørsel publicerede straks de forsinkede kladder. Verificeret via `cron.job_run_details` og `auto_publish_log`.
+
+
+
 ## 2026-05-18 — Fix: permission denied for function is_admin_from_jwt
 
 ### Fix
