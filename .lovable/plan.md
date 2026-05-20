@@ -1,48 +1,62 @@
-## Mål
-I `/screen-display` skal headeren vise et orange badge med antal og navne på fraværende medarbejdere for den valgte dato — for hele afdelingen (uafhængigt af sub-afdeling).
+## Problem
 
-## Hvad tæller som "fraværende"
-1. **Godkendt ferie for dagen**: rækker i `vacations` hvor `status = 'approved'` og `selectedDate` ligger mellem `start_date` og `end_date`, filtreret på `department_id`.
-2. **On leave / inaktiv**: `profiles` hvor `status = 'on_leave'` eller `on_leave = true`, joinet via `user_access` til afdelingen (`home_department_id` eller `user_access.department_id`).
+Cron-jobbet `auto-publish-assignments` kører hvert minut, men fejler hver gang siden migration `20260515161356`. Funktionen `public.auto_publish_due_assignments()` refererer til kolonnen `date` på `public.assignments`, men kolonnen hedder `assignment_date`.
 
-Sammensæt unikt sæt af medarbejdere (dedupliker på `user_id`). Skjul medarbejdere med `status = 'terminated'` eller `is_visible_in_planning = false`.
+Verificeret via `cron.job_run_details`: alle kørsler returnerer:
+```
+ERROR: column "date" does not exist
+QUERY: SELECT DISTINCT department_id FROM public.assignments WHERE published = false AND date <= ...
+```
 
-## Implementering
+Ingen opgaver bliver derfor auto-publiceret, og `auto_publish_log` får ingen nye rækker.
 
-### 1) Ny hook
-`src/hooks/useScreenDisplayAbsences.ts`
-- Input: `date: string`, `departmentId: string | null`
-- Returnerer `{ absences: { id: string; name: string }[]; loading: boolean }`
-- To parallelle Supabase-queries:
-  - `vacations` filtreret på `department_id`, `status=approved`, og dato i interval — joined med `profiles(id, name)`.
-  - `profiles` filtreret på afdelingen (via `user_access` eller `home_department_id`) med `status='on_leave'` eller `on_leave=true`.
-- Merge + dedup på id, sortér alfabetisk.
-- Re-fetch når `date` eller `departmentId` ændres. Ingen realtime (page'en refetcher i forvejen hvert 5. min).
+## Løsning
 
-### 2) Opdater header
-`src/components/ScreenDisplay/ScreenDisplayHeader.tsx`
-- Tilføj props: `absences: { id: string; name: string }[]`
-- Render orange badge til højre for titel-blokken (før date-navigationen, wrap pænt på smal viewport):
-  - Skjul helt hvis `absences.length === 0`.
-  - Format: `Fraværende (N): Navn1, Navn2, Navn3` — efter 3 navne vis `+X mere`.
-  - Tooltip viser fuld liste.
-- Brug semantiske tokens. Tilføj ny token til `index.css` + `tailwind.config.ts`: `--warning` / `--warning-foreground` i HSL (orange), så vi ikke hardkoder farve. Badge bruger `bg-warning text-warning-foreground`.
+Migration der erstatter funktionen med korrekt kolonnenavn `assignment_date` (samme logik som første version af funktionen). Pr.-afdelings-logging til `auto_publish_log` bibeholdes.
 
-### 3) Wire i page
-`src/pages/ScreenDisplayPage.tsx`
-- Kald `useScreenDisplayAbsences(selectedDateStr || format(new Date(),'yyyy-MM-dd'), departmentId)`.
-- Send `absences` til `ScreenDisplayHeader`.
+```sql
+CREATE OR REPLACE FUNCTION public.auto_publish_due_assignments()
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_updated integer := 0;
+  v_total   integer := 0;
+  v_dept    record;
+BEGIN
+  FOR v_dept IN
+    SELECT DISTINCT department_id
+    FROM public.assignments
+    WHERE published = false
+      AND assignment_date <= (now() AT TIME ZONE 'Europe/Copenhagen')::date
+  LOOP
+    WITH upd AS (
+      UPDATE public.assignments
+      SET published = true,
+          updated_at = now()
+      WHERE published = false
+        AND assignment_date <= (now() AT TIME ZONE 'Europe/Copenhagen')::date
+        AND department_id IS NOT DISTINCT FROM v_dept.department_id
+      RETURNING 1
+    )
+    SELECT COUNT(*) INTO v_updated FROM upd;
 
-### 4) Oversættelser
-- `src/translations/da/screenDisplay.ts`: `absent: 'Fraværende'`, `absentMore: '+{count} mere'`.
-- `src/translations/en/screenDisplay.ts`: `absent: 'Absent'`, `absentMore: '+{count} more'`.
+    INSERT INTO public.auto_publish_log (run_at, assignments_updated, department_id, triggered_by)
+    VALUES (now(), v_updated, v_dept.department_id, 'cron');
 
-### 5) Dokumentation
-- `CHANGELOG.md`: kort entry.
-- `docs/implementation-plan/tasks.md`: marker som tilføjet feature.
+    v_total := v_total + v_updated;
+  END LOOP;
 
-## Out of scope
-- Ændringer i rotation-overlay eller `ScreenDisplayContent`.
-- Realtime-opdatering af fravær.
-- Sub-afdelings-filtrering (bevidst hele afdelingen).
-- Ændringer i RLS/migrationer — eksisterende SELECT-policies på `vacations` og `profiles` dækker behovet.
+  RETURN v_total;
+END;
+$$;
+```
+
+Efter migration kører jeg funktionen manuelt én gang for at indhente backlog af kladder hvis dato allerede er passeret, og verificerer via `cron.job_run_details` og `auto_publish_log`.
+
+## Opfølgning
+
+- Opdater `CHANGELOG.md` med fix-noten.
+- Tilføj `[x]`-entry i `docs/implementation-plan/tasks.md` under bug-fixes.
