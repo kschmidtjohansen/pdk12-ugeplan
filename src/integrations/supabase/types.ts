@@ -1479,6 +1479,13 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_department_absences: {
+        Args: { p_date: string; p_department_id: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       get_enhanced_system_metrics: { Args: never; Returns: Json }
       get_profile_detailed: {
         Args: { profile_user_id: string }
