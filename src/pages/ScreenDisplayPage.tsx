@@ -123,6 +123,8 @@ const ScreenDisplayPage: React.FC = () => {
   }
 
   const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr, departmentId, subDepartmentId);
+  const absencesDate = selectedDateStr || format(new Date(), 'yyyy-MM-dd');
+  const { absences } = useScreenDisplayAbsences(absencesDate, departmentId);
 
   useEffect(() => {
     const timer = setInterval(() => {
