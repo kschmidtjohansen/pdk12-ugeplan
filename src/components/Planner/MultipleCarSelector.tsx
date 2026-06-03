@@ -142,6 +142,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         })
         .map(a => a.title || a.case_number || t('planner.assignment'));
       
+      setOpen(false);
       setConfirmDialog({
         isOpen: true,
         carId: car.id,
@@ -314,7 +315,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       )}
 
       <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="z-[80]">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-yellow-500" />

@@ -1,62 +1,15 @@
 ## Problem
-
-Cron-jobbet `auto-publish-assignments` kører hvert minut, men fejler hver gang siden migration `20260515161356`. Funktionen `public.auto_publish_due_assignments()` refererer til kolonnen `date` på `public.assignments`, men kolonnen hedder `assignment_date`.
-
-Verificeret via `cron.job_run_details`: alle kørsler returnerer:
-```
-ERROR: column "date" does not exist
-QUERY: SELECT DISTINCT department_id FROM public.assignments WHERE published = false AND date <= ...
-```
-
-Ingen opgaver bliver derfor auto-publiceret, og `auto_publish_log` får ingen nye rækker.
+I `MultipleCarSelector.tsx` har popoveren med billisten `z-[60]`, mens `AlertDialog` (bekræftelses­dialogen "Bil allerede i brug") bruger standard `z-50` for både overlay og content. Resultatet er, at popoveren tegnes oven på dialogen, så "Brug alligevel"-knappen ikke kan klikkes.
 
 ## Løsning
+Hæv z-index på AlertDialog'ens overlay og content til over popoveren (fx `z-[70]`), så dialogen og dens mørke overlay ligger korrekt øverst.
 
-Migration der erstatter funktionen med korrekt kolonnenavn `assignment_date` (samme logik som første version af funktionen). Pr.-afdelings-logging til `auto_publish_log` bibeholdes.
+### Ændringer
+- `src/components/Planner/MultipleCarSelector.tsx`
+  - Tilføj `className="z-[70]"` på `<AlertDialogContent>`.
+  - Tilføj eksplicit `<AlertDialogOverlay className="z-[70]" />` (importeret fra `@/components/ui/alert-dialog`) inde i `<AlertDialog>` — eller hæv kun content hvis overlayet allerede dækker korrekt. Verificeres ved at tjekke `src/components/ui/alert-dialog.tsx` for default-overlay.
 
-```sql
-CREATE OR REPLACE FUNCTION public.auto_publish_due_assignments()
-RETURNS integer
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-DECLARE
-  v_updated integer := 0;
-  v_total   integer := 0;
-  v_dept    record;
-BEGIN
-  FOR v_dept IN
-    SELECT DISTINCT department_id
-    FROM public.assignments
-    WHERE published = false
-      AND assignment_date <= (now() AT TIME ZONE 'Europe/Copenhagen')::date
-  LOOP
-    WITH upd AS (
-      UPDATE public.assignments
-      SET published = true,
-          updated_at = now()
-      WHERE published = false
-        AND assignment_date <= (now() AT TIME ZONE 'Europe/Copenhagen')::date
-        AND department_id IS NOT DISTINCT FROM v_dept.department_id
-      RETURNING 1
-    )
-    SELECT COUNT(*) INTO v_updated FROM upd;
+Ingen logik- eller backend-ændringer. Rent UI/stacking-fix.
 
-    INSERT INTO public.auto_publish_log (run_at, assignments_updated, department_id, triggered_by)
-    VALUES (now(), v_updated, v_dept.department_id, 'cron');
-
-    v_total := v_total + v_updated;
-  END LOOP;
-
-  RETURN v_total;
-END;
-$$;
-```
-
-Efter migration kører jeg funktionen manuelt én gang for at indhente backlog af kladder hvis dato allerede er passeret, og verificerer via `cron.job_run_details` og `auto_publish_log`.
-
-## Opfølgning
-
-- Opdater `CHANGELOG.md` med fix-noten.
-- Tilføj `[x]`-entry i `docs/implementation-plan/tasks.md` under bug-fixes.
+### Dokumentation
+- Tilføj kort note i `CHANGELOG.md` under dagens dato.
