@@ -153,7 +153,7 @@ serve(async (req) => {
     if (result.error) {
       console.error(`[${requestId}] Failed to ${action} user:`, result.error);
       return new Response(
-        JSON.stringify({ error: result.error.message }),
+        JSON.stringify({ error: `Failed to ${action} user` }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -178,7 +178,7 @@ serve(async (req) => {
     console.error(`[${requestId}] Unexpected error:`, error);
     return new Response(
       JSON.stringify({ 
-        error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        error: 'Internal server error',
         requestId
       }),
       { 

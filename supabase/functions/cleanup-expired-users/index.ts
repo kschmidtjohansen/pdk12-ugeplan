@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     if (error) {
       console.error('Error cleaning up expired users:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to cleanup expired users', details: error.message }),
+        JSON.stringify({ error: 'Failed to cleanup expired users' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error during cleanup:', error);
     return new Response(
-      JSON.stringify({ error: 'Unexpected error during cleanup', details: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
