@@ -17,41 +17,18 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   const { isDemoMode } = useAuth();
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
 
+  // SECURITY: For non-temporary users we MUST go through the `admin-create-user`
+  // edge function — auth.admin.* APIs are not callable from the browser. The
+  // direct path below is only used for temporary (vikar) users, who do not have
+  // an auth record and therefore do not require the Admin API.
   const createUserDirectly = async (userData: any) => {
-    if (import.meta.env.DEV) console.log('[useEmployeeCreation] Attempting direct database user creation');
-    
+    if (!userData.is_temporary) {
+      throw new Error(t('employees.edgeFunctionFailed'));
+    }
+
     try {
-      let userId: string;
-      
-      if (userData.is_temporary) {
-        if (import.meta.env.DEV) console.log('[useEmployeeCreation] Creating temporary user without Auth');
-        userId = crypto.randomUUID();
-      } else {
-        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-          email: userData.email,
-          password: userData.password,
-          email_confirm: true,
-          user_metadata: {
-            name: userData.name,
-            phone: userData.phone,
-            job_title: userData.jobTitle
-          }
-        });
+      const userId = crypto.randomUUID();
 
-        if (authError) {
-          if (import.meta.env.DEV) console.error('[useEmployeeCreation] Auth user creation failed:', authError);
-          throw new Error(`${t('employees.edgeFunctionFailed')}: ${authError.message}`);
-        }
-
-        if (!authUser.user?.id) {
-          throw new Error(t('employees.unexpectedError'));
-        }
-
-        userId = authUser.user.id;
-        if (import.meta.env.DEV) console.log('[useEmployeeCreation] Auth user created');
-      }
-
-      // Fetch GPS coordinates from postcode
       let lat: number | null = null;
       let lng: number | null = null;
       if (userData.home_postcode) {
@@ -70,8 +47,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           job_title: userData.jobTitle || null,
           on_leave: userData.onLeave || false,
           notes: userData.notes || null,
-          is_temporary: userData.is_temporary || false,
-          expires_at: userData.is_temporary && userData.expires_at ? userData.expires_at : null,
+          is_temporary: true,
+          expires_at: userData.expires_at || null,
           has_asbestos_certificate: userData.has_asbestos_certificate || false,
           has_trailer_license: userData.has_trailer_license || false,
           has_forklift_license: userData.has_forklift_license || false,
@@ -89,19 +66,14 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
 
       const { error: roleError } = await client
         .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: userData.is_temporary ? 'vikar' : (userData.role || 'servicemedarbejder')
-        });
+        .insert({ user_id: userId, role: 'vikar' });
 
       if (roleError) {
         if (import.meta.env.DEV) console.error('[useEmployeeCreation] Role assignment failed:', roleError);
         throw new Error(`Role assignment failed: ${roleError.message}`);
       }
 
-      if (import.meta.env.DEV) console.log('[useEmployeeCreation] Direct user creation completed successfully');
       return { success: true, user: { id: userId } };
-
     } catch (err) {
       if (import.meta.env.DEV) console.error('[useEmployeeCreation] Direct creation failed:', err);
       throw err;

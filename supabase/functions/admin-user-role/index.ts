@@ -245,11 +245,7 @@ serve(async (req) => {
   } catch (error) {
     console.error(`[${requestId}] Unexpected error:`, error);
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        requestId
-      }),
+      JSON.stringify({ error: 'Internal server error', requestId }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

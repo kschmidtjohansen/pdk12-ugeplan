@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('[cleanup-change-logs] Fatal error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message, timestamp: new Date().toISOString() }),
+      JSON.stringify({ success: false, error: 'Internal server error', timestamp: new Date().toISOString() }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

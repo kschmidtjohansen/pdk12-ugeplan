@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-06-03 — Security hardening (RLS, storage, edge functions)
+
+### Security
+- **RLS:** Fjernet permissive `{public} USING(true)`-policies på `cars`, `warehouse_items`, `profiles`, `user_roles` og duplikeret `departments`-policy. Uautentificerede brugere kan ikke længere læse brændstofkort, lageradresser, medarbejder-PII eller rolletildelinger. `anon`-rollen er eksplicit revokeret SELECT.
+- **Storage:** `assignment-files` INSERT-policy strammet — kun admin/skadeleder, tildelte medarbejdere eller den ansvarlige bruger kan uploade til en sags mappe. Separat policy oprettet for `avatars` (egen mappe).
+- **Super Admin:** `can_view_assignment_optimized()` tilføjet `super_admin` til rollechecket, så super admins igen kan se alle opgaver.
+- **Performance:** Fjernet `log_security_event_safe()`-kald fra `secure_profile_access_unified` USING-clause — stoppede log-bloat og query-planner-degradering.
+- **SECURITY DEFINER:** EXECUTE-rettigheder revokeret fra `PUBLIC`/`anon` på alle public-schema SECURITY DEFINER-funktioner; tildelt eksplicit til `authenticated` + `service_role`. `log_security_event_safe` kun for `service_role`.
+- **Edge functions:** Sanitiseret rå `error.message` i HTTP-svar fra `admin-create-user`, `admin-list-users`, `admin-user-role`, `admin-user-status`, `cleanup-expired-users`, `cleanup-change-logs`, `send-duty-reminders`, `swap-duties`. Fulde fejl logges kun server-side via `console.error`.
+- **Browser admin API:** Fjernet `supabase.auth.admin.createUser()`-fallback i `useEmployeeCreation.ts`. Direkte sti bruges nu kun til midlertidige (vikar) brugere som ikke har auth-record.
+
+
+
 ## 2026-05-20 — Fix: ferie-cleanup fejlede med "Cleanup Failed"
 
 ### Fix
