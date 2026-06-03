@@ -307,7 +307,7 @@ serve(async (req) => {
     console.error(`[${requestId}] Error stack:`, error.stack);
     return new Response(
       JSON.stringify({ 
-        error: 'Internal server error: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        error: 'Internal server error',
         requestId
       }),
       { 
