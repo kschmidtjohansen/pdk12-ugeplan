@@ -142,6 +142,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         })
         .map(a => a.title || a.case_number || t('planner.assignment'));
       
+      setOpen(false);
       setConfirmDialog({
         isOpen: true,
         carId: car.id,
