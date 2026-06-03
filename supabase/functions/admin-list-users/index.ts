@@ -87,7 +87,7 @@ serve(async (req) => {
     if (authError) {
       console.error(`[${requestId}] Auth verification error:`, authError);
       return new Response(
-        JSON.stringify({ error: 'Authentication failed: ' + authError.message }),
+        JSON.stringify({ error: 'Authentication failed' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -118,7 +118,7 @@ serve(async (req) => {
     if (roleError) {
       console.error(`[${requestId}] Role check error:`, roleError);
       return new Response(
-        JSON.stringify({ error: 'Failed to verify user permissions: ' + roleError.message }),
+        JSON.stringify({ error: 'Failed to verify user permissions' }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -146,8 +146,7 @@ serve(async (req) => {
       console.error(`[${requestId}] User not authorized. Role: ${roleData.role}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ 
-          error: 'Administrator, Skadeleder or Super Admin access required. Current role: ' + roleData.role,
-          allowedRoles: ['administrator', 'skadeleder', 'super_admin'],
+          error: 'Administrator, Skadeleder or Super Admin access required',
           currentRole: roleData.role
         }),
         { 
@@ -179,9 +178,8 @@ serve(async (req) => {
       console.error(`[${requestId}] Failed to fetch profiles:`, profilesError);
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to fetch profiles: ' + profilesError.message,
-          requestId,
-          details: profilesError
+          error: 'Failed to fetch profiles',
+          requestId
         }),
         { 
           status: 500, 
@@ -200,9 +198,8 @@ serve(async (req) => {
       console.error(`[${requestId}] Failed to fetch user roles:`, rolesError);
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to fetch user roles: ' + rolesError.message,
-          requestId,
-          details: rolesError
+          error: 'Failed to fetch user roles',
+          requestId
         }),
         { 
           status: 500, 
