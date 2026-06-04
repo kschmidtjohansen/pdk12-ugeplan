@@ -1,9 +1,9 @@
 # Changelog
 
-## 2026-06-04 — Fix: bil-konflikt dialog overlap (endelig, inline)
+## 2026-06-04 — Fix: bil-konflikt dialog overlap (luk picker før dialog)
 
 ### UI
-- `MultipleCarSelector` viser nu konflikt-bekræftelsen ("Bil allerede i brug" + `Annuller` / `Brug alligevel`) **inde i selve bilvælgerens Popover/Drawer** i stedet for som en separat `AlertDialog`. Dermed findes der kun én portal/overlay ad gangen, og knapperne kan ikke længere ligge bag bil-listen. Den tidligere to-fase/z-index workaround er fjernet.
+- `MultipleCarSelector` viser igen den dedikerede AlertDialog "Bil allerede i brug", men bil-listen (Popover/Drawer) lukkes og unmountes nu fuldstændigt, *før* dialogen åbnes. Konflikten gemmes først i en `pending`-state der tvinger pickeren lukket, og promoveres derefter (efter exit-animation) til den aktive `dialog`-state. Dermed kan dropdownen aldrig overlappe dialogboksen eller skjule "Brug alligevel"-knappen, uanset z-index.
 
 ## 2026-06-03 — Security hardening (RLS, storage, edge functions)
 
