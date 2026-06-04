@@ -2,7 +2,7 @@
 
 ## Løbende rettelser ✅
 
-- [x] Rettet overlap mellem bil-vælgerens popover/drawer og konflikt-dialogen, så "Vælg/Brug alligevel"-knappen altid er synlig.
+- [x] Bil-vælgerens konflikt-bekræftelse er flyttet ind i selve Popover/Drawer (inline), så "Brug alligevel"-knappen altid er synlig og ikke kan dækkes af bil-listen.
 
 ## Fase 1: Sikkerhedsaudit ✅
 

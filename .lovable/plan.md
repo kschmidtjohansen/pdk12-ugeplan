@@ -1,21 +1,20 @@
-Planen er at rette problemet ved at fjerne race condition mellem bilvælgerens popover/drawer og konflikt-dialogen.
+Planen er at fjerne selve årsagen til overlap i stedet for at justere z-index igen.
 
-1. **Gør åbningen sekventiel i stedet for samtidig**
-   - Når en bil-konflikt vælges, skal bil-listen først lukkes helt.
-   - Konflikt-data gemmes midlertidigt som “pending”.
-   - Først i næste render-frame åbnes dialogen “Bil allerede i brug”.
-   - Det forhindrer at Radix Popover-portalen stadig ligger ovenpå dialogen.
+1. Erstat den ekstra `AlertDialog` i `MultipleCarSelector` med en konflikt-visning inde i bilvælgerens egen Popover/Drawer.
+   - Når en optaget bil vælges, skifter listen til en kompakt bekræftelsesvisning i samme panel.
+   - Knapperne `Annuller` og `Brug alligevel` bliver sticky/nederst i samme panel og kan derfor ikke ligge bag listen.
 
-2. **Afmonter bilvælgerens portal mens konflikt-dialogen er aktiv**
-   - Popover/Drawer-content skal ikke bare være `open=false`; den skal slet ikke renderes når der er en aktiv eller pending konflikt.
-   - Det sikrer at listen ikke kan blive hængende visuelt bag/foran dialogen.
+2. Hold desktop og mobil adfærd adskilt, men med samme konflikt-state.
+   - Desktop: Popover bliver åben og viser konfliktbekræftelsen i stedet for bil-listen.
+   - Mobil: Drawer viser samme bekræftelse med synlige touch-venlige knapper.
 
-3. **Bevar eksisterende funktionalitet**
-   - “Brug alligevel” skal stadig tilføje bilen.
-   - “Annuller” skal lukke dialogen og lade brugeren åbne bil-listen igen.
-   - Desktop bruger fortsat Popover, mobil bruger fortsat Drawer.
+3. Fjern den ustabile portal-kombination.
+   - Drop `AlertDialog` import og dialog-state i denne komponent.
+   - Brug kun én overlay/portal ad gangen: enten Popover eller Drawer.
+   - Bevar eksisterende funktionalitet: `Brug alligevel` kalder fortsat `onCarToggle(carId)`, og `Annuller` vender tilbage til bil-listen.
 
-4. **Dokumentation og kvalitetstjek**
-   - Opdatér `CHANGELOG.md` med den endelige overlap-fix.
-   - Opdatér `/docs/implementation-plan/tasks.md` som fuldført.
-   - Kontrollér at ændringen kun påvirker UI-lagdeling og ikke ændrer booking-/konfliktlogikken.
+4. Opdater dokumentation.
+   - Opdater `CHANGELOG.md` med den endelige løsning.
+   - Opdater `/docs/implementation-plan/tasks.md` så den tidligere rettelse beskrives som erstattet af den robuste inline-konfliktløsning.
+
+Teknisk set flyttes konflikt-UI'et fra en sekundær Radix `AlertDialog` til samme render-flow som bilvælgeren, så listen aldrig kan skære ind over bekræftelsesknapperne.
