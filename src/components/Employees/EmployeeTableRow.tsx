@@ -132,6 +132,21 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
               </Tooltip>
             </TooltipProvider>
           )}
+
+          {employee.has_pcb_certificate && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-polygon-blue">
+                    <FlaskConical className="h-4 w-4" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">{t('employees.pcbCertificate')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           
           {employee.has_trailer_license && (
             <TooltipProvider>
