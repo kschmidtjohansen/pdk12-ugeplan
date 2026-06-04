@@ -101,6 +101,8 @@ export const duty = {
   selectCandidates: "Vælg en eller flere kollegaer",
   candidatesCount: "{{count}} valgt",
   swapOfferFrom: "Tilbud fra {{name}}",
+  selected: "valgt",
+  manualDisabledHint: "Ryd valgte medarbejdere for at indtaste navn manuelt.",
 };
 
 export default duty;

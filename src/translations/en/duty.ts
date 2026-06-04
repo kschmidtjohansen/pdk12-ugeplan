@@ -101,6 +101,8 @@ export const duty = {
   selectCandidates: "Select one or more colleagues",
   candidatesCount: "{{count}} selected",
   swapOfferFrom: "Offer from {{name}}",
+  selected: "selected",
+  manualDisabledHint: "Clear the selected employees to enter a name manually.",
 };
 
 export default duty;
