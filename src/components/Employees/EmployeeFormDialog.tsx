@@ -284,6 +284,17 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox 
+                  id="has_pcb_certificate" 
+                  checked={formData.has_pcb_certificate} 
+                  onCheckedChange={checked => onCheckboxChange('has_pcb_certificate', checked as boolean)} 
+                  disabled={isSubmitting} 
+                />
+                <Label htmlFor="has_pcb_certificate" className="text-sm font-normal cursor-pointer">
+                  {t('employees.hasPcbCertificate')}
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
                   id="has_trailer_license" 
                   checked={formData.has_trailer_license} 
                   onCheckedChange={checked => onCheckboxChange('has_trailer_license', checked as boolean)} 
