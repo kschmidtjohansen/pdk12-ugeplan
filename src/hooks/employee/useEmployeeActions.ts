@@ -79,6 +79,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       if (import.meta.env.DEV) console.log('[useEmployeeActions] Certificate values being sent:', {
         has_asbestos_certificate: formData.has_asbestos_certificate ?? false,
+        has_pcb_certificate: formData.has_pcb_certificate ?? false,
         has_trailer_license: formData.has_trailer_license ?? false,
         has_forklift_license: formData.has_forklift_license ?? false
       });
@@ -92,6 +93,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         on_leave: formData.onLeave || false,
         notes: formData.notes || null,
         has_asbestos_certificate: formData.has_asbestos_certificate ?? false,
+        has_pcb_certificate: formData.has_pcb_certificate ?? false,
         has_trailer_license: formData.has_trailer_license ?? false,
         has_forklift_license: formData.has_forklift_license ?? false,
         home_postcode: formData.home_postcode || null,
