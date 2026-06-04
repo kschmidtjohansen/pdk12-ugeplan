@@ -1,5 +1,9 @@
 # Implementeringsfaser
 
+## Løbende rettelser ✅
+
+- [x] Rettet overlap mellem bil-vælgerens popover/drawer og konflikt-dialogen, så "Vælg/Brug alligevel"-knappen altid er synlig.
+
 ## Fase 1: Sikkerhedsaudit ✅
 
 Gennemført 2026-02-15.
