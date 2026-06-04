@@ -45,14 +45,26 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
-  
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
+
+  type ConflictPayload = {
     carId: string;
     carName: string;
     conflictingAssignments: string[];
     conflictDates?: string[];
-  } | null>(null);
+  };
+  // Two-phase: pendingConflict unmounts the picker first; confirmDialog opens on next frame.
+  const [pendingConflict, setPendingConflict] = React.useState<ConflictPayload | null>(null);
+  const [confirmDialog, setConfirmDialog] = React.useState<ConflictPayload | null>(null);
+
+  React.useEffect(() => {
+    if (pendingConflict && !confirmDialog) {
+      const id = requestAnimationFrame(() => {
+        setConfirmDialog(pendingConflict);
+        setPendingConflict(null);
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, [pendingConflict, confirmDialog]);
 
   // Build list of date strings from allSelectedDates
   const selectedDateStrings = useMemo(() => {
