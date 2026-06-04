@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-04 — Fix: bil-konflikt dialog overlap
+
+### UI
+- Rettet overlap i `MultipleCarSelector`, hvor bil-listens popover kunne ligge foran bekræftelsesdialogen "Bil allerede i brug" og skjule knapperne. Bil-listen afmonteres nu når konflikt-dialogen åbner, og dialogen får højere lag-prioritet.
+
 ## 2026-06-03 — Security hardening (RLS, storage, edge functions)
 
 ### Security

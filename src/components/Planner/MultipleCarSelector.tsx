@@ -109,6 +109,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
 
   const selectedCars = cars.filter(car => selectedCarIds.includes(car.id));
   const selectedCount = selectedCarIds.length;
+  const isPickerOpen = open && !confirmDialog?.isOpen;
 
   const getButtonText = () => {
     if (selectedCount === 0) {
@@ -279,43 +280,47 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       )}
 
       {isMobile ? (
-        <Drawer open={open && !confirmDialog?.isOpen} onOpenChange={setOpen}>
+        <Drawer open={isPickerOpen} onOpenChange={setOpen}>
           <DrawerTrigger asChild>
             {triggerButton}
           </DrawerTrigger>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>{t('planner.cars')}</DrawerTitle>
-            </DrawerHeader>
-            <div 
-              className="max-h-[60dvh] overflow-y-auto px-4 pb-4"
-              style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
-            >
-              {renderCarList()}
-            </div>
-          </DrawerContent>
+          {isPickerOpen && (
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>{t('planner.cars')}</DrawerTitle>
+              </DrawerHeader>
+              <div 
+                className="max-h-[60dvh] overflow-y-auto px-4 pb-4"
+                style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+              >
+                {renderCarList()}
+              </div>
+            </DrawerContent>
+          )}
         </Drawer>
       ) : (
-        <Popover modal={true} open={open && !confirmDialog?.isOpen} onOpenChange={setOpen}>
+        <Popover modal={true} open={isPickerOpen} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             {triggerButton}
           </PopoverTrigger>
-          <PopoverContent 
-            className="w-96 p-0 z-[60] bg-popover border shadow-lg" 
-            sideOffset={4}
-          >
-            <div 
-              className="max-h-64 overflow-y-auto"
-              onWheel={(e) => e.stopPropagation()}
+          {isPickerOpen && (
+            <PopoverContent 
+              className="w-96 p-0 z-[60] bg-popover border shadow-lg" 
+              sideOffset={4}
             >
-              {renderCarList()}
-            </div>
-          </PopoverContent>
+              <div 
+                className="max-h-64 overflow-y-auto"
+                onWheel={(e) => e.stopPropagation()}
+              >
+                {renderCarList()}
+              </div>
+            </PopoverContent>
+          )}
         </Popover>
       )}
 
       <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
-        <AlertDialogContent className="z-[100]">
+        <AlertDialogContent className="!z-[200] sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-yellow-500" />
