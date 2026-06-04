@@ -119,12 +119,18 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
           </div>
 
           {/* Certificates */}
-          {(employee.has_asbestos_certificate || employee.has_trailer_license || employee.has_forklift_license) && (
+          {(employee.has_asbestos_certificate || employee.has_pcb_certificate || employee.has_trailer_license || employee.has_forklift_license) && (
             <div className="flex items-center gap-2">
               {employee.has_asbestos_certificate && (
                 <div className="flex items-center gap-1 text-xs text-primary">
                   <HardHat className="h-3.5 w-3.5" />
                   <span>{t('employees.asbestosCertificate')}</span>
+                </div>
+              )}
+              {employee.has_pcb_certificate && (
+                <div className="flex items-center gap-1 text-xs text-primary">
+                  <FlaskConical className="h-3.5 w-3.5" />
+                  <span>{t('employees.pcbCertificate')}</span>
                 </div>
               )}
               {employee.has_trailer_license && (
