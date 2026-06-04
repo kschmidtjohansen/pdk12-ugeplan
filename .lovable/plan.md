@@ -1,20 +1,25 @@
-Planen er at fjerne selve årsagen til overlap i stedet for at justere z-index igen.
+Planen er at ændre bilkonflikt-flowet tilbage til en rigtig bekræftelsesdialog, men sikre at bil-listen/dropdownen fysisk bliver lukket og unmountet først.
 
-1. Erstat den ekstra `AlertDialog` i `MultipleCarSelector` med en konflikt-visning inde i bilvælgerens egen Popover/Drawer.
-   - Når en optaget bil vælges, skifter listen til en kompakt bekræftelsesvisning i samme panel.
-   - Knapperne `Annuller` og `Brug alligevel` bliver sticky/nederst i samme panel og kan derfor ikke ligge bag listen.
+1. Opdater `src/components/Planner/MultipleCarSelector.tsx`
+   - Når en optaget bil vælges, gemmes konfliktdata i en separat state.
+   - Bilvælgerens `Popover`/`Drawer` lukkes straks med `setOpen(false)`.
+   - Først derefter åbnes dialogen “Bil allerede i brug”.
+   - `Popover`/`Drawer` får en afledt `pickerOpen = open && !conflictDialog`, så listen ikke kan være åben samtidig med dialogen.
+   - Dialogen renderes som sibling uden for `Popover`/`Drawer`, ikke inde i dropdownen.
+   - `Brug alligevel` kalder fortsat `onCarToggle(carId)` og lukker dialogen.
+   - `Annuller` lukker kun dialogen.
 
-2. Hold desktop og mobil adfærd adskilt, men med samme konflikt-state.
-   - Desktop: Popover bliver åben og viser konfliktbekræftelsen i stedet for bil-listen.
-   - Mobil: Drawer viser samme bekræftelse med synlige touch-venlige knapper.
+2. Fjern inline-konfliktvisningen
+   - Den seneste inline-løsning fjernes, fordi du specifikt ønsker at dialogboksen stadig skal komme.
+   - Bil-listen skal kun vise listen, aldrig konfliktbekræftelsen.
 
-3. Fjern den ustabile portal-kombination.
-   - Drop `AlertDialog` import og dialog-state i denne komponent.
-   - Brug kun én overlay/portal ad gangen: enten Popover eller Drawer.
-   - Bevar eksisterende funktionalitet: `Brug alligevel` kalder fortsat `onCarToggle(carId)`, og `Annuller` vender tilbage til bil-listen.
+3. Gør layoutet robust
+   - Dialogen får højere stacking end dropdownen via eksisterende `AlertDialog`-komponentens portal.
+   - Dropdownen unmountes ved konflikt, så der ikke kun er tale om z-index, men ingen overlappende liste i DOM’en.
+   - Desktop og mobil følger samme princip: vælger lukkes først, dialog åbnes bagefter.
 
-4. Opdater dokumentation.
+4. Dokumentation
    - Opdater `CHANGELOG.md` med den endelige løsning.
-   - Opdater `/docs/implementation-plan/tasks.md` så den tidligere rettelse beskrives som erstattet af den robuste inline-konfliktløsning.
+   - Opdater `/docs/implementation-plan/tasks.md`, så den tidligere inline-løsning erstattes af den nye “luk picker før dialog”-løsning.
 
-Teknisk set flyttes konflikt-UI'et fra en sekundær Radix `AlertDialog` til samme render-flow som bilvælgeren, så listen aldrig kan skære ind over bekræftelsesknapperne.
+Resultat: Dialogen “Bil allerede i brug” vises stadig, men listen/dropdownen er lukket før dialogen vises og kan derfor ikke skære ind over dialogboksen eller skjule “Brug alligevel”. 

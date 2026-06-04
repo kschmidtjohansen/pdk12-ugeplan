@@ -2,7 +2,7 @@
 
 ## Løbende rettelser ✅
 
-- [x] Bil-vælgerens konflikt-bekræftelse er flyttet ind i selve Popover/Drawer (inline), så "Brug alligevel"-knappen altid er synlig og ikke kan dækkes af bil-listen.
+- [x] Bil-vælgerens konflikt-bekræftelse: bil-listen lukkes og unmountes nu før AlertDialog'en "Bil allerede i brug" åbnes, så dropdownen ikke kan overlappe dialogboksen eller skjule "Brug alligevel"-knappen.
 
 ## Fase 1: Sikkerhedsaudit ✅
 

@@ -1,9 +1,19 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { X, Car, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Car as CarType } from '../../types/car';
@@ -42,13 +52,36 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
-  // Inline conflict confirmation lives INSIDE the picker panel (no second portal).
-  const [conflict, setConflict] = useState<ConflictPayload | null>(null);
+  // Pending conflict: set immediately when a conflicting car is clicked.
+  // The picker (Popover/Drawer) is closed first, and only AFTER it has fully
+  // unmounted do we promote it to `dialog` and show the AlertDialog. This
+  // guarantees the dropdown can never overlap the confirm dialog.
+  const [pending, setPending] = useState<ConflictPayload | null>(null);
+  const [dialog, setDialog] = useState<ConflictPayload | null>(null);
+  const promoteTimer = useRef<number | null>(null);
 
-  // Reset conflict view whenever the picker closes
+  // When a pending conflict exists, close the picker and (after it unmounts)
+  // open the AlertDialog.
   React.useEffect(() => {
-    if (!open && conflict) setConflict(null);
-  }, [open, conflict]);
+    if (!pending) return;
+    if (open) setOpen(false);
+    if (promoteTimer.current) window.clearTimeout(promoteTimer.current);
+    // Allow the popover/drawer exit animation + portal unmount to complete.
+    promoteTimer.current = window.setTimeout(() => {
+      setDialog(pending);
+      setPending(null);
+      promoteTimer.current = null;
+    }, 180);
+    return () => {
+      if (promoteTimer.current) {
+        window.clearTimeout(promoteTimer.current);
+        promoteTimer.current = null;
+      }
+    };
+  }, [pending, open]);
+
+  // The picker is only allowed open when there is no conflict in flight.
+  const pickerOpen = open && !pending && !dialog;
 
   // Build list of date strings from allSelectedDates
   const selectedDateStrings = useMemo(() => {
@@ -131,7 +164,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         })
         .map(a => a.title || a.case_number || t('planner.assignment'));
 
-      setConflict({
+      setPending({
         carId: car.id,
         carName: car.name,
         conflictingAssignments: [...new Set(conflictingAssignmentNames)],
@@ -161,63 +194,6 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       case 'partial': return t('planner.partiallyBooked');
       case 'none': return t('planner.carAlreadyInUse');
     }
-  };
-
-  const renderConflictView = () => {
-    if (!conflict) return null;
-    return (
-      <div className="flex flex-col">
-        <div className={isMobile ? "pb-2 border-b border-border" : "p-3 pb-2 border-b border-border"}>
-          <h4 className="font-medium text-sm flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            {t('planner.carBookingConflict')}
-          </h4>
-        </div>
-        <div className={isMobile ? "pt-3 space-y-3" : "p-3 space-y-3"}>
-          <p className="text-sm">
-            <strong>{conflict.carName}</strong> {t('planner.carAlreadyInUse')}
-          </p>
-          {conflict.conflictingAssignments.length > 0 && (
-            <div>
-              <p className="font-medium text-foreground mb-1 text-sm">{t('planner.conflictingTasks')}:</p>
-              <ul className="list-disc list-inside text-sm text-muted-foreground">
-                {conflict.conflictingAssignments.map((task, i) => (
-                  <li key={i}>{task}</li>
-                ))}
-              </ul>
-              {conflict.conflictDates && conflict.conflictDates.length > 1 && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  ({conflict.conflictDates.length} {t('planner.datesSelected', { count: conflict.conflictDates.length })})
-                </p>
-              )}
-            </div>
-          )}
-          <p className="text-sm text-foreground">{t('planner.confirmDoubleBooking')}</p>
-        </div>
-        <div className={`flex gap-2 justify-end ${isMobile ? "pt-3 border-t border-border" : "p-3 border-t border-border bg-popover"} sticky bottom-0`}>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setConflict(null)}
-          >
-            {t('common.cancel')}
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            className="bg-yellow-600 hover:bg-yellow-700 text-white"
-            onClick={() => {
-              onCarToggle(conflict.carId);
-              setConflict(null);
-              setOpen(false);
-            }}
-          >
-            {t('planner.useAnywayButton')}
-          </Button>
-        </div>
-      </div>
-    );
   };
 
   const renderCarList = () => (
@@ -323,7 +299,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       )}
 
       {isMobile ? (
-        <Drawer open={open} onOpenChange={setOpen}>
+        <Drawer open={pickerOpen} onOpenChange={(o) => { if (!pending && !dialog) setOpen(o); else if (!o) setOpen(false); }}>
           <DrawerTrigger asChild>
             {triggerButton}
           </DrawerTrigger>
@@ -335,12 +311,12 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
               className="max-h-[70dvh] overflow-y-auto px-4 pb-4"
               style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
             >
-              {conflict ? renderConflictView() : renderCarList()}
+              {renderCarList()}
             </div>
           </DrawerContent>
         </Drawer>
       ) : (
-        <Popover modal={true} open={open} onOpenChange={setOpen}>
+        <Popover modal={true} open={pickerOpen} onOpenChange={(o) => { if (!pending && !dialog) setOpen(o); else if (!o) setOpen(false); }}>
           <PopoverTrigger asChild>
             {triggerButton}
           </PopoverTrigger>
@@ -352,11 +328,60 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
               className="max-h-[70vh] overflow-y-auto"
               onWheel={(e) => e.stopPropagation()}
             >
-              {conflict ? renderConflictView() : renderCarList()}
+              {renderCarList()}
             </div>
           </PopoverContent>
         </Popover>
       )}
+
+      <AlertDialog
+        open={!!dialog}
+        onOpenChange={(o) => { if (!o) setDialog(null); }}
+      >
+        <AlertDialogContent className="z-[100]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              {t('planner.carBookingConflict')}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm">
+                <p>
+                  <strong>{dialog?.carName}</strong> {t('planner.carAlreadyInUse')}
+                </p>
+                {dialog && dialog.conflictingAssignments.length > 0 && (
+                  <div>
+                    <p className="font-medium text-foreground mb-1">{t('planner.conflictingTasks')}:</p>
+                    <ul className="list-disc list-inside text-muted-foreground">
+                      {dialog.conflictingAssignments.map((task, i) => (
+                        <li key={i}>{task}</li>
+                      ))}
+                    </ul>
+                    {dialog.conflictDates && dialog.conflictDates.length > 1 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ({dialog.conflictDates.length} {t('planner.datesSelected', { count: dialog.conflictDates.length })})
+                      </p>
+                    )}
+                  </div>
+                )}
+                <p className="text-foreground">{t('planner.confirmDoubleBooking')}</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+              onClick={() => {
+                if (dialog) onCarToggle(dialog.carId);
+                setDialog(null);
+              }}
+            >
+              {t('planner.useAnywayButton')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
