@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS has_pcb_certificate boolean NOT NULL DEFAULT false;
