@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-04 — Security: demo-data lækkede via SECURITY DEFINER RPC
+
+### Security
+- `list_accessible_assignments_with_team` (SECURITY DEFINER) omgik RLS og returnerede demo-opgaver (fx sag "1221") til alle live-brugere i afd. 12, fordi funktionen kører som ejer og dermed forbigår de RESTRICTIVE `hide_demo_data_*` policies. Tilføjet `COALESCE(a.is_demo, false) = false` på begge grene (admin/skadeleder/super_admin og servicemedarbejder), samt filtrering på `assignments_employees.is_demo` og `profiles.is_demo` i team- og responsible_user-joins. Demo-data er nu kun synligt via `list_demo_assignments_with_team` for demo-brugeren.
+
+
 ## 2026-06-04 — Security: demo-data lækkede til live view (RLS)
 
 ### Security
