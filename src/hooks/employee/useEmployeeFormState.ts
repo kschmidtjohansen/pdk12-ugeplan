@@ -15,6 +15,7 @@ export interface EmployeeFormData {
   is_temporary: boolean;
   expires_at: string;
   has_asbestos_certificate: boolean;
+  has_pcb_certificate: boolean;
   has_trailer_license: boolean;
   has_forklift_license: boolean;
   home_postcode: string;
@@ -39,6 +40,7 @@ export const useEmployeeFormState = () => {
     is_temporary: false,
     expires_at: '',
     has_asbestos_certificate: false,
+      has_pcb_certificate: false,
     has_trailer_license: false,
     has_forklift_license: false,
     home_postcode: '',
@@ -59,6 +61,7 @@ export const useEmployeeFormState = () => {
       is_temporary: false,
       expires_at: '',
       has_asbestos_certificate: false,
+      has_pcb_certificate: false,
       has_trailer_license: false,
       has_forklift_license: false,
       home_postcode: '',
@@ -82,6 +85,7 @@ export const useEmployeeFormState = () => {
       is_temporary: false,
       expires_at: '',
       has_asbestos_certificate: false,
+      has_pcb_certificate: false,
       has_trailer_license: false,
       has_forklift_license: false,
       home_postcode: '',
@@ -107,6 +111,7 @@ export const useEmployeeFormState = () => {
       is_temporary: employee.is_temporary || false,
       expires_at: employee.expires_at ? new Date(employee.expires_at).toISOString().split('T')[0] : '',
       has_asbestos_certificate: employee.has_asbestos_certificate || false,
+      has_pcb_certificate: employee.has_pcb_certificate || false,
       has_trailer_license: employee.has_trailer_license || false,
       has_forklift_license: employee.has_forklift_license || false,
       home_postcode: employee.home_postcode || '',
@@ -135,6 +140,7 @@ export const useEmployeeFormState = () => {
       is_temporary: true,
       expires_at: expirationDate.toISOString().split('T')[0],
       has_asbestos_certificate: false,
+      has_pcb_certificate: false,
       has_trailer_license: false,
       has_forklift_license: false,
       home_postcode: '',

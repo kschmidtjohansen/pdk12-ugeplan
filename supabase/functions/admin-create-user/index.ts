@@ -224,6 +224,7 @@ serve(async (req) => {
           is_temporary: userData?.is_temporary || false,
           expires_at: userData?.is_temporary && userData?.expires_at ? userData.expires_at : null,
           has_asbestos_certificate: !!userData?.has_asbestos_certificate,
+          has_pcb_certificate: !!userData?.has_pcb_certificate,
           has_trailer_license: !!userData?.has_trailer_license,
           has_forklift_license: !!userData?.has_forklift_license,
           home_postcode: userData?.home_postcode || null,

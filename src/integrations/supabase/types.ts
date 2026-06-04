@@ -876,6 +876,7 @@ export type Database = {
           has_asbestos_certificate: boolean | null
           has_drivers_license: boolean | null
           has_forklift_license: boolean
+          has_pcb_certificate: boolean
           has_trailer_license: boolean | null
           home_address: string | null
           home_department_id: string | null
@@ -902,6 +903,7 @@ export type Database = {
           has_asbestos_certificate?: boolean | null
           has_drivers_license?: boolean | null
           has_forklift_license?: boolean
+          has_pcb_certificate?: boolean
           has_trailer_license?: boolean | null
           home_address?: string | null
           home_department_id?: string | null
@@ -928,6 +930,7 @@ export type Database = {
           has_asbestos_certificate?: boolean | null
           has_drivers_license?: boolean | null
           has_forklift_license?: boolean
+          has_pcb_certificate?: boolean
           has_trailer_license?: boolean | null
           home_address?: string | null
           home_department_id?: string | null

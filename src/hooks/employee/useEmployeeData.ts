@@ -60,6 +60,7 @@ export const useEmployeeData = () => {
         notes: profile.notes || '',
         avatar_url: profile.avatar_url,
         has_asbestos_certificate: !!profile.has_asbestos_certificate,
+        has_pcb_certificate: !!profile.has_pcb_certificate,
         has_trailer_license: !!profile.has_trailer_license,
         has_drivers_license: !!profile.has_drivers_license,
         has_forklift_license: !!profile.has_forklift_license,
@@ -77,7 +78,7 @@ export const useEmployeeData = () => {
         .from('profiles')
         .select(`
           id, name, email, phone, job_title, on_leave, status, notes, avatar_url,
-          is_temporary, expires_at, has_asbestos_certificate, has_trailer_license,
+          is_temporary, expires_at, has_asbestos_certificate, has_pcb_certificate, has_trailer_license,
           has_drivers_license, has_forklift_license, home_department_id, home_postcode, home_address, lat, lng
         `)
         .eq('is_demo', false)
@@ -114,6 +115,7 @@ export const useEmployeeData = () => {
         is_temporary: profile.is_temporary || false,
         expires_at: profile.expires_at,
         has_asbestos_certificate: !!profile.has_asbestos_certificate,
+        has_pcb_certificate: !!profile.has_pcb_certificate,
         has_trailer_license: !!profile.has_trailer_license,
         has_forklift_license: !!profile.has_forklift_license,
         home_postcode: profile.home_postcode || '',

@@ -150,11 +150,13 @@ const employees = {
   // Certificates
   certificatesSection: 'Certifikater og Kørekort',
   hasAsbestosCertificate: 'Asbestbevis',
+  hasPcbCertificate: 'PCB-bevis',
   hasTrailerLicense: 'Trailerkørekort',
   hasDriversLicense: 'Kørekort',
   hasForkliftLicense: 'Truckbevis',
   certificates: 'Certifikater',
   asbestosCertificate: 'Asbestbevis',
+  pcbCertificate: 'PCB-bevis',
   trailerLicense: 'Trailerkørekort',
   driversLicense: 'Kørekort',
   forkliftLicense: 'Truckbevis',
