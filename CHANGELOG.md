@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-04 — Security: demo-data lækkede til live view (RLS)
+
+### Security
+- Alle `hide_demo_data_*` SELECT-policies (`assignments`, `assignments_employees`, `cars`, `notifications`, `on_call_duties`, `profiles`, `vacations`, `warehouse_items`) var oprettet som **PERMISSIVE**, hvilket betød at de blev OR'et med øvrige SELECT-policies — så enhver bruger med adgang til afd. 12 også så `is_demo=true` rækker (fx "Demo User" og sag "1221") i planneren. Konverteret alle 8 policies til **RESTRICTIVE**, så `is_demo=true` rækker nu kun er synlige for demo-brugeren `165cdbc9-…`. Predicate uændret.
+
 ## 2026-06-04 — Fix: bil-konflikt dialog overlap (luk picker før dialog)
 
 ### UI
