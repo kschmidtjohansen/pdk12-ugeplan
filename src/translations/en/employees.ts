@@ -150,11 +150,13 @@ const employees = {
   // Certificates
   certificatesSection: 'Certificates and Licenses',
   hasAsbestosCertificate: 'Asbestos Certificate',
+  hasPcbCertificate: 'PCB Certificate',
   hasTrailerLicense: 'Trailer License',
   hasDriversLicense: "Driver's License",
   hasForkliftLicense: 'Forklift License',
   certificates: 'Certificates',
   asbestosCertificate: 'Asbestos Cert.',
+  pcbCertificate: 'PCB Cert.',
   trailerLicense: 'Trailer License',
   driversLicense: "Driver's License",
   forkliftLicense: 'Forklift License',
