@@ -705,3 +705,8 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-05-20 screen-display absences
 - Storskærmvisning: Header viser nu orange badge med antal og navne på fraværende medarbejdere for den valgte dag (godkendt ferie + on_leave/inaktiv), hele afdelingen.
+
+## 2026-06-04 - PCB-bevis tilføjet
+- Nyt certifikatfelt `has_pcb_certificate` på medarbejdere (profiles)
+- Vist i medarbejderform, tabel (FlaskConical-ikon) og mobilkort
+- Oversættelser DA/EN tilføjet
