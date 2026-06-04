@@ -121,7 +121,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
 
   const selectedCars = cars.filter(car => selectedCarIds.includes(car.id));
   const selectedCount = selectedCarIds.length;
-  const isPickerOpen = open && !confirmDialog?.isOpen;
+  const isPickerOpen = open && !confirmDialog && !pendingConflict;
 
   const getButtonText = () => {
     if (selectedCount === 0) {
@@ -156,8 +156,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         .map(a => a.title || a.case_number || t('planner.assignment'));
       
       setOpen(false);
-      setConfirmDialog({
-        isOpen: true,
+      setPendingConflict({
         carId: car.id,
         carName: car.name,
         conflictingAssignments: [...new Set(conflictingAssignmentNames)],
