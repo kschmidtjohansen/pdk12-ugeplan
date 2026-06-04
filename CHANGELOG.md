@@ -1,9 +1,9 @@
 # Changelog
 
-## 2026-06-04 — Fix: bil-konflikt dialog overlap
+## 2026-06-04 — Fix: bil-konflikt dialog overlap (endelig)
 
 ### UI
-- Rettet overlap i `MultipleCarSelector`, hvor bil-listens popover kunne ligge foran bekræftelsesdialogen "Bil allerede i brug" og skjule knapperne. Bil-listen afmonteres nu når konflikt-dialogen åbner, og dialogen får højere lag-prioritet.
+- `MultipleCarSelector` bruger nu en to-fase state (`pendingConflict` → `confirmDialog`) så bil-listens Popover/Drawer-portal afmonteres helt i én frame, før konflikt-dialogen åbnes i næste frame via `requestAnimationFrame`. Det eliminerer race conditionen hvor Radix' popover-portal kunne ende oven på AlertDialog'en og skjule "Brug alligevel"-knappen.
 
 ## 2026-06-03 — Security hardening (RLS, storage, edge functions)
 

@@ -45,14 +45,26 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
-  
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
+
+  type ConflictPayload = {
     carId: string;
     carName: string;
     conflictingAssignments: string[];
     conflictDates?: string[];
-  } | null>(null);
+  };
+  // Two-phase: pendingConflict unmounts the picker first; confirmDialog opens on next frame.
+  const [pendingConflict, setPendingConflict] = React.useState<ConflictPayload | null>(null);
+  const [confirmDialog, setConfirmDialog] = React.useState<ConflictPayload | null>(null);
+
+  React.useEffect(() => {
+    if (pendingConflict && !confirmDialog) {
+      const id = requestAnimationFrame(() => {
+        setConfirmDialog(pendingConflict);
+        setPendingConflict(null);
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, [pendingConflict, confirmDialog]);
 
   // Build list of date strings from allSelectedDates
   const selectedDateStrings = useMemo(() => {
@@ -109,7 +121,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
 
   const selectedCars = cars.filter(car => selectedCarIds.includes(car.id));
   const selectedCount = selectedCarIds.length;
-  const isPickerOpen = open && !confirmDialog?.isOpen;
+  const isPickerOpen = open && !confirmDialog && !pendingConflict;
 
   const getButtonText = () => {
     if (selectedCount === 0) {
@@ -144,8 +156,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         .map(a => a.title || a.case_number || t('planner.assignment'));
       
       setOpen(false);
-      setConfirmDialog({
-        isOpen: true,
+      setPendingConflict({
         carId: car.id,
         carName: car.name,
         conflictingAssignments: [...new Set(conflictingAssignmentNames)],
@@ -319,7 +330,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         </Popover>
       )}
 
-      <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
+      <AlertDialog open={!!confirmDialog} onOpenChange={(o) => !o && setConfirmDialog(null)}>
         <AlertDialogContent className="!z-[200] sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
