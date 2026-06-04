@@ -10,16 +10,6 @@ import { Car as CarType } from '../../types/car';
 import { Assignment } from '../../types/assignment';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 type CarAvailability = 'full' | 'partial' | 'none';
 
@@ -33,6 +23,13 @@ interface MultipleCarSelectorProps {
   allSelectedDates?: Date[];
 }
 
+type ConflictPayload = {
+  carId: string;
+  carName: string;
+  conflictingAssignments: string[];
+  conflictDates?: string[];
+};
+
 const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   cars,
   selectedCarIds,
@@ -45,26 +42,13 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
+  // Inline conflict confirmation lives INSIDE the picker panel (no second portal).
+  const [conflict, setConflict] = useState<ConflictPayload | null>(null);
 
-  type ConflictPayload = {
-    carId: string;
-    carName: string;
-    conflictingAssignments: string[];
-    conflictDates?: string[];
-  };
-  // Two-phase: pendingConflict unmounts the picker first; confirmDialog opens on next frame.
-  const [pendingConflict, setPendingConflict] = React.useState<ConflictPayload | null>(null);
-  const [confirmDialog, setConfirmDialog] = React.useState<ConflictPayload | null>(null);
-
+  // Reset conflict view whenever the picker closes
   React.useEffect(() => {
-    if (pendingConflict && !confirmDialog) {
-      const id = requestAnimationFrame(() => {
-        setConfirmDialog(pendingConflict);
-        setPendingConflict(null);
-      });
-      return () => cancelAnimationFrame(id);
-    }
-  }, [pendingConflict, confirmDialog]);
+    if (!open && conflict) setConflict(null);
+  }, [open, conflict]);
 
   // Build list of date strings from allSelectedDates
   const selectedDateStrings = useMemo(() => {
@@ -74,7 +58,6 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     return currentDate ? [currentDate] : [];
   }, [allSelectedDates, currentDate]);
 
-  // Check if a car is booked on a specific date by other assignments
   const isCarBookedOnDate = (carId: string, dateStr: string): boolean => {
     const otherAssignments = currentAssignmentId
       ? assignments.filter(a => a.id !== currentAssignmentId)
@@ -87,7 +70,6 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     });
   };
 
-  // Compute per-car availability across all selected dates
   const carAvailabilityMap = useMemo(() => {
     const map = new Map<string, CarAvailability>();
     if (selectedDateStrings.length === 0) return map;
@@ -114,36 +96,30 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     return map;
   }, [cars, selectedDateStrings, assignments, currentAssignmentId]);
 
-  // Get conflict dates for a specific car
   const getConflictDates = (carId: string): string[] => {
     return selectedDateStrings.filter(dateStr => isCarBookedOnDate(carId, dateStr));
   };
 
   const selectedCars = cars.filter(car => selectedCarIds.includes(car.id));
   const selectedCount = selectedCarIds.length;
-  const isPickerOpen = open && !confirmDialog && !pendingConflict;
 
   const getButtonText = () => {
-    if (selectedCount === 0) {
-      return t('planner.selectCars');
-    } else if (selectedCount === 1) {
-      return selectedCars[0]?.name || t('planner.selectCars');
-    } else {
-      return t('planner.carsSelected', { count: selectedCount });
-    }
+    if (selectedCount === 0) return t('planner.selectCars');
+    if (selectedCount === 1) return selectedCars[0]?.name || t('planner.selectCars');
+    return t('planner.carsSelected', { count: selectedCount });
   };
 
   const handleCarClick = (car: CarType) => {
     if (!car.is_available) return;
-    
+
     const isSelected = selectedCarIds.includes(car.id);
     if (isSelected) {
       onCarToggle(car.id);
       return;
     }
-    
+
     const availability = carAvailabilityMap.get(car.id) || 'full';
-    
+
     if (availability !== 'full') {
       const conflictDates = getConflictDates(car.id);
       const conflictingAssignmentNames = assignments
@@ -154,9 +130,8 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
           return carIds.includes(car.id);
         })
         .map(a => a.title || a.case_number || t('planner.assignment'));
-      
-      setOpen(false);
-      setPendingConflict({
+
+      setConflict({
         carId: car.id,
         carName: car.name,
         conflictingAssignments: [...new Set(conflictingAssignmentNames)],
@@ -164,7 +139,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       });
       return;
     }
-    
+
     onCarToggle(car.id);
   };
 
@@ -188,6 +163,63 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     }
   };
 
+  const renderConflictView = () => {
+    if (!conflict) return null;
+    return (
+      <div className="flex flex-col">
+        <div className={isMobile ? "pb-2 border-b border-border" : "p-3 pb-2 border-b border-border"}>
+          <h4 className="font-medium text-sm flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+            {t('planner.carBookingConflict')}
+          </h4>
+        </div>
+        <div className={isMobile ? "pt-3 space-y-3" : "p-3 space-y-3"}>
+          <p className="text-sm">
+            <strong>{conflict.carName}</strong> {t('planner.carAlreadyInUse')}
+          </p>
+          {conflict.conflictingAssignments.length > 0 && (
+            <div>
+              <p className="font-medium text-foreground mb-1 text-sm">{t('planner.conflictingTasks')}:</p>
+              <ul className="list-disc list-inside text-sm text-muted-foreground">
+                {conflict.conflictingAssignments.map((task, i) => (
+                  <li key={i}>{task}</li>
+                ))}
+              </ul>
+              {conflict.conflictDates && conflict.conflictDates.length > 1 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  ({conflict.conflictDates.length} {t('planner.datesSelected', { count: conflict.conflictDates.length })})
+                </p>
+              )}
+            </div>
+          )}
+          <p className="text-sm text-foreground">{t('planner.confirmDoubleBooking')}</p>
+        </div>
+        <div className={`flex gap-2 justify-end ${isMobile ? "pt-3 border-t border-border" : "p-3 border-t border-border bg-popover"} sticky bottom-0`}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setConflict(null)}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+            onClick={() => {
+              onCarToggle(conflict.carId);
+              setConflict(null);
+              setOpen(false);
+            }}
+          >
+            {t('planner.useAnywayButton')}
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   const renderCarList = () => (
     <>
       <div className={isMobile ? "pb-2 border-b border-border" : "p-3 pb-2 border-b border-border"}>
@@ -199,7 +231,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
           const isGenerallyAvailable = car.is_available;
           const availability = carAvailabilityMap.get(car.id) || 'full';
           const canSelect = isGenerallyAvailable;
-          
+
           return (
             <div
               key={car.id}
@@ -271,7 +303,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">{t('planner.cars')}</label>
-      
+
       {selectedCount > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedCars.map((car) => (
@@ -291,92 +323,40 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       )}
 
       {isMobile ? (
-        <Drawer open={isPickerOpen} onOpenChange={setOpen}>
+        <Drawer open={open} onOpenChange={setOpen}>
           <DrawerTrigger asChild>
             {triggerButton}
           </DrawerTrigger>
-          {isPickerOpen && (
-            <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle>{t('planner.cars')}</DrawerTitle>
-              </DrawerHeader>
-              <div 
-                className="max-h-[60dvh] overflow-y-auto px-4 pb-4"
-                style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
-              >
-                {renderCarList()}
-              </div>
-            </DrawerContent>
-          )}
+          <DrawerContent>
+            <DrawerHeader className="sr-only">
+              <DrawerTitle>{t('planner.cars')}</DrawerTitle>
+            </DrawerHeader>
+            <div
+              className="max-h-[70dvh] overflow-y-auto px-4 pb-4"
+              style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+            >
+              {conflict ? renderConflictView() : renderCarList()}
+            </div>
+          </DrawerContent>
         </Drawer>
       ) : (
-        <Popover modal={true} open={isPickerOpen} onOpenChange={setOpen}>
+        <Popover modal={true} open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             {triggerButton}
           </PopoverTrigger>
-          {isPickerOpen && (
-            <PopoverContent 
-              className="w-96 p-0 z-[60] bg-popover border shadow-lg" 
-              sideOffset={4}
+          <PopoverContent
+            className="w-96 p-0 z-[60] bg-popover border shadow-lg"
+            sideOffset={4}
+          >
+            <div
+              className="max-h-[70vh] overflow-y-auto"
+              onWheel={(e) => e.stopPropagation()}
             >
-              <div 
-                className="max-h-64 overflow-y-auto"
-                onWheel={(e) => e.stopPropagation()}
-              >
-                {renderCarList()}
-              </div>
-            </PopoverContent>
-          )}
+              {conflict ? renderConflictView() : renderCarList()}
+            </div>
+          </PopoverContent>
         </Popover>
       )}
-
-      <AlertDialog open={!!confirmDialog} onOpenChange={(o) => !o && setConfirmDialog(null)}>
-        <AlertDialogContent className="!z-[200] sm:max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
-              {t('planner.carBookingConflict')}
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>
-                  <strong>{confirmDialog?.carName}</strong> {t('planner.carAlreadyInUse')}
-                </p>
-                {confirmDialog?.conflictDates && confirmDialog.conflictDates.length > 0 && (
-                  <div>
-                    <p className="font-medium text-foreground mb-1">{t('planner.conflictingTasks')}:</p>
-                    <ul className="list-disc list-inside text-sm">
-                      {confirmDialog.conflictingAssignments.map((task, i) => (
-                        <li key={i}>{task}</li>
-                      ))}
-                    </ul>
-                    {confirmDialog.conflictDates.length > 1 && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        ({confirmDialog.conflictDates.length} {t('planner.datesSelected', { count: confirmDialog.conflictDates.length })})
-                      </p>
-                    )}
-                  </div>
-                )}
-                <p className="text-foreground">{t('planner.confirmDoubleBooking')}</p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => {
-                if (confirmDialog) {
-                  onCarToggle(confirmDialog.carId);
-                  setConfirmDialog(null);
-                }
-              }}
-              className="bg-yellow-600 hover:bg-yellow-700"
-            >
-              {t('planner.useAnywayButton')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
