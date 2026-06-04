@@ -330,7 +330,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         </Popover>
       )}
 
-      <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
+      <AlertDialog open={!!confirmDialog} onOpenChange={(o) => !o && setConfirmDialog(null)}>
         <AlertDialogContent className="!z-[200] sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
