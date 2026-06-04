@@ -15,6 +15,7 @@ export interface Employee {
   is_temporary?: boolean;
   expires_at?: string;
   has_asbestos_certificate?: boolean;
+  has_pcb_certificate?: boolean;
   has_trailer_license?: boolean;
   has_forklift_license?: boolean;
   home_postcode?: string;
