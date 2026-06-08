@@ -282,9 +282,22 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           }
         });
         
-        if (error) throw new Error(error.message || "Failed to create user");
+        if (error) {
+          // supabase.functions.invoke wraps non-2xx responses in a generic error.
+          // Try to read the actual error body from the underlying Response.
+          let serverMsg: string | null = null;
+          try {
+            const ctx = (error as any)?.context;
+            if (ctx && typeof ctx.json === 'function') {
+              const body = await ctx.json();
+              serverMsg = body?.error || body?.message || null;
+            }
+          } catch { /* ignore parse errors */ }
+          throw new Error(serverMsg || error.message || 'Failed to create user');
+        }
         if (data?.error) throw new Error(data.error);
         if (!data?.user) throw new Error("No user data returned from creation");
+
         
         await new Promise(resolve => setTimeout(resolve, 1000));
         
