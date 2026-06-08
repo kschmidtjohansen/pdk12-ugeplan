@@ -282,9 +282,22 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
           }
         });
         
-        if (error) throw new Error(error.message || "Failed to create user");
+        if (error) {
+          // supabase.functions.invoke wraps non-2xx responses in a generic error.
+          // Try to read the actual error body from the underlying Response.
+          let serverMsg: string | null = null;
+          try {
+            const ctx = (error as any)?.context;
+            if (ctx && typeof ctx.json === 'function') {
+              const body = await ctx.json();
+              serverMsg = body?.error || body?.message || null;
+            }
+          } catch { /* ignore parse errors */ }
+          throw new Error(serverMsg || error.message || 'Failed to create user');
+        }
         if (data?.error) throw new Error(data.error);
         if (!data?.user) throw new Error("No user data returned from creation");
+
         
         await new Promise(resolve => setTimeout(resolve, 1000));
         
@@ -328,8 +341,11 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       let errorMsg = 'An unexpected error occurred';
       if (error instanceof Error) errorMsg = error.message;
       
-      if (errorMsg.includes('User already registered') || errorMsg.includes('email address has already been registered')) {
-        errorMsg = 'A user with this email already exists';
+      if (errorMsg.includes('findes allerede')) {
+        // Already a clear Danish message from the server — keep as-is
+      } else if (errorMsg.includes('User already registered') || errorMsg.includes('email address has already been registered')) {
+        errorMsg = 'En bruger med denne email findes allerede i systemet.';
+
       } else if (errorMsg.includes('Invalid email')) {
         errorMsg = 'Please enter a valid email address';
       } else if (errorMsg.includes('Password')) {

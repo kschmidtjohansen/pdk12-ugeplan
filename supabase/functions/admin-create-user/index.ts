@@ -166,11 +166,30 @@ serve(async (req) => {
 
     if (createError) {
       console.error(`[${requestId}] User creation error:`, createError);
+
+      const msg = createError.message || '';
+      const isEmailExists =
+        (createError as any)?.code === 'email_exists' ||
+        (createError as any)?.status === 422 ||
+        msg.toLowerCase().includes('already been registered') ||
+        msg.toLowerCase().includes('user already registered');
+
+      if (isEmailExists) {
+        return new Response(
+          JSON.stringify({
+            error: 'En bruger med denne email findes allerede i systemet. Find brugeren under "Brugere" og tildel afdelingen i stedet.',
+            code: 'email_exists',
+          }),
+          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       return new Response(
         JSON.stringify({ error: `User creation failed: ${createError.message}` }),
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
 
     if (!newUser.user?.id) {
       console.error(`[${requestId}] No user ID returned from auth creation`);
