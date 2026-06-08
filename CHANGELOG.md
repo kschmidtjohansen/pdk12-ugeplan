@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-08 — Fix: tydelig fejlbesked når email allerede findes ved brugeroprettelse
+
+### Fix
+- `admin-create-user` edge function returnerer nu HTTP 409 med dansk besked når en eksisterende auth-bruger forsøges oprettet igen (i stedet for generisk "Edge Function returned a non-2xx status code"). `UserFormDialog` læser nu også fejl-body fra `FunctionsHttpError.context`, så server-beskeden vises korrekt i toast og inline-fejl.
+
+
+
 ## 2026-06-04 — Security: demo-data lækkede via SECURITY DEFINER RPC
 
 ### Security
