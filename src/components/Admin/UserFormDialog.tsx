@@ -341,8 +341,11 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       let errorMsg = 'An unexpected error occurred';
       if (error instanceof Error) errorMsg = error.message;
       
-      if (errorMsg.includes('User already registered') || errorMsg.includes('email address has already been registered')) {
-        errorMsg = 'A user with this email already exists';
+      if (errorMsg.includes('findes allerede')) {
+        // Already a clear Danish message from the server — keep as-is
+      } else if (errorMsg.includes('User already registered') || errorMsg.includes('email address has already been registered')) {
+        errorMsg = 'En bruger med denne email findes allerede i systemet.';
+
       } else if (errorMsg.includes('Invalid email')) {
         errorMsg = 'Please enter a valid email address';
       } else if (errorMsg.includes('Password')) {
