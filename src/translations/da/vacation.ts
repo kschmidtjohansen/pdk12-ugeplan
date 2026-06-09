@@ -141,6 +141,10 @@ const vacation = {
   // Department filtering
   noDepartmentSelected: 'Ingen afdeling valgt',
   selectDepartmentToViewVacations: 'Vælg en hovedafdeling for at se ferieanmodninger',
+
+  // Auto-fjernelse af medarbejder fra opgaver ved godkendt fri
+  autoUnassignSuccess: 'Fjernet fra {count} opgaver i fri-perioden.',
+  autoUnassignResponsibleCleared: 'Skadeleder-feltet er nulstillet på {count} opgaver.',
 };
 
 export default vacation;

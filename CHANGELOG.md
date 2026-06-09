@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-09 — Feature: auto-fjern medarbejder fra opgaver når fri godkendes
+
+### Feature
+- Ny edge function `vacation-cleanup-assignments` kaldes automatisk når en fri-anmodning godkendes.
+- Sletter alle `assignments_employees`-rækker for medarbejderen i fri-perioden (også publicerede sager).
+- Nulstiller `responsible_user_id` hvis medarbejderen står som skadeleder på en opgave i perioden.
+- Halv-dags fri: kun opgaver med faktisk tidsoverlap berøres.
+- Hver ændring logges i `planner_change_log` (`auto_unassign_vacation` / `auto_clear_responsible_vacation`) og vises i opgavens historik-tab.
+- Berørte skadeledere modtager en aggregeret notifikation: *"{Navn} er fjernet fra X opgaver pga. godkendt fri."*
+- Toast efter godkendelse inkluderer antal berørte opgaver.
+
 ## 2026-06-09 — Feature: VW Vejhjælp + hjælpekøretøjer (trailer/miljøvogn)
 
 ### Feature

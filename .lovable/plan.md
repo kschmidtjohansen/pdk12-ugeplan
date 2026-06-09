@@ -1,68 +1,86 @@
-# Plan: VW Vejhjælp + Hjælpekøretøj-flag
+# Plan: Auto-fjern medarbejder fra opgaver ved godkendt fri
 
-## 1. VW Vejhjælp-knap
+Når en fri-anmodning godkendes, fjernes medarbejderen automatisk fra alle opgaver der overlapper fri-perioden — i dag er det manuelt arbejde, især når sager allerede er publiceret.
 
-Ved siden af "Falck Vejhjælp" på Biler-siden tilføjes en ny knap "VW Vejhjælp".
+## Adfærd
 
-- Ny komponent `src/components/Cars/VWAssistanceButton.tsx` (kopi af `FalckSubscriptionButton`, men uden abonnementsnummer-sektion).
-- Indhold i dialog: kun vagttelefon `80 20 30 80` (klikbar `tel:80203080`).
-- Indsættes i `src/pages/CarsPage.tsx` lige efter `<FalckSubscriptionButton />`.
-- Oversættelser tilføjes til `src/translations/da/cars.ts` og `en/cars.ts`:
-  - `vwAssistance: "VW Vejhjælp"`
-  - `vwPhoneLabel: "Vagttelefon"` / `"Emergency Phone"`
-  - `vwPhoneNumber: "80 20 30 80"`
+Trigger: `approveVacation` i `src/hooks/vacation/useVacationApprovalActions.ts` lige efter status sættes til `approved`.
 
-## 2. Nyt felt: hjælpekøretøj (trailere, miljøvogne m.m.)
+For den pågældende medarbejder (`vacation.user_id`) i datointervallet `start_date..end_date`:
 
-I dag findes `show_in_planner`. Det skjuler bilen alle steder i planlæggeren — også fra valglisten på opgaver. Det passer ikke til ønsket: trailere/miljøvogne **skal** kunne vælges til sager, men ikke optræde under "Tilgængelige biler".
+1. **Hel-dags fri (`request_type = 'full_day'` eller manglende felt):**
+   - Slet alle rækker i `assignments_employees` hvor `user_id = vacation.user_id` og den tilhørende `assignments.assignment_date` falder i fri-perioden.
+   - Hvis medarbejderen er `responsible_user_id` på en opgave i perioden → sæt feltet til `NULL` (skadeleder skal omtildele).
 
-Derfor introduceres et nyt boolesk felt `is_auxiliary` på `cars` (default `false`).
+2. **Halv-dags fri (`request_type = 'partial_day'`):**
+   - Kun datoer der matcher (`is_same_day = true` → samme dato; ellers hele intervallet).
+   - Tjek tidsoverlap mellem fri (`start_time..end_time`) og opgaven (`from_time..to_time`). Overlap → fjern på samme måde som ovenfor. Ingen overlap → urørt.
 
-### Adfærd når `is_auxiliary = true`
+3. **Logning og notifikation:**
+   - Antal opgaver hvor brugeren blev fjernet vises i success-toast: *"Fri godkendt. Fjernet fra X opgaver i perioden."*
+   - Hver berørt opgave logges i `planner_change_log` (handling: `auto_unassign_vacation`) så ændringen kan ses i opgavens historik.
+   - Skadeledere på de berørte opgaver får én samlet notifikation: *"{Navn} er fjernet fra {antal} opgaver pga. godkendt fri ({dato-interval})."* med link til planneren.
 
-| Sted | Adfærd |
-|---|---|
-| Biler-side (liste/tabel) | Vises som normalt, med en lille badge "Hjælpekøretøj" |
-| Opgavedialog / MultipleCarSelector / BulkAssignCar | Kan vælges (uændret) |
-| Planner → "Ikke-tildelte ressourcer" → Tilgængelige biler | **Skjules** |
-| Dashboard-metric "Tilgængelige biler" | **Tælles ikke med** (hverken i tæller eller nævner) |
+## Tekniske ændringer
 
-### Tekniske ændringer
+### Ny edge function: `supabase/functions/vacation-cleanup-assignments/index.ts`
 
-- **DB-migration:** `ALTER TABLE public.cars ADD COLUMN is_auxiliary boolean NOT NULL DEFAULT false;`
-- **Typer:** tilføj `is_auxiliary?: boolean` i `src/types/car.ts` og `src/components/Cars/types.ts`.
-- **CarFormDialog:** nyt checkbox-felt "Hjælpekøretøj (trailer/miljøvogn)" lige under `show_in_planner`. Hjælpetekst forklarer at det skjuler bilen fra tilgængelige-pool, men beholder den valgbar på opgaver.
-- **`useCarFormState`:** medtag `is_auxiliary` i payload til insert/update.
-- **`src/components/Planner/UnassignedResourcesSection.tsx`** (linje ~167): tilføj filter `if (car.is_auxiliary) return false;`.
-- **`src/hooks/useDashboardMetrics.ts`** (linje ~84-118): ekskludér `is_auxiliary` biler i både total og available-tælling for "tilgængelige biler"-metric.
-- **CarsList/Tabel:** vis badge "Hjælpe" når `is_auxiliary` er sat (subtil, `variant="secondary"`).
-- **Oversættelser:** `cars.isAuxiliary`, `cars.isAuxiliaryHint`, `cars.auxiliaryBadge` (da + en).
+Kaldes fra klienten med `{ vacationId }`. Funktionen (service role):
 
-## 3. Dokumentation
+- Henter fri-rækken og validerer at status er `approved`.
+- Henter alle `assignments` for `user_id` i datointervallet via join på `assignments_employees` + `responsible_user_id`.
+- Bygger lister: `assignmentEmployeesToDelete[]` og `responsibleAssignmentsToClear[]` (efter tidsoverlap-tjek for partial_day).
+- Udfører sletninger og opdateringer i transaktioner.
+- Indsætter `planner_change_log`-rækker.
+- Returnerer `{ removedFromCount, clearedResponsibleCount, affectedAssignments: [{id, case_number, date, title, responsible_user_id}] }`.
 
-- `CHANGELOG.md`: log de to ændringer.
-- `docs/implementation-plan/tasks.md`: marker som `[x]` hvis en relateret opgave findes, ellers tilføj punktet.
+Edge function bruges fordi:
+- RLS forhindrer i nogle tilfælde at en admin/skadeleder rører `assignments_employees` på tværs af opgaver.
+- Service-role giver atomisk og forudsigelig kørsel uden RLS-faldgruber.
+- Logning og notifikations-aggregering samles ét sted.
+
+### Klient: `useVacationApprovalActions.approveVacation`
+
+Efter `update vacations`-kaldet og før toast:
+
+```ts
+const { data: cleanup } = await supabase.functions.invoke(
+  'vacation-cleanup-assignments',
+  { body: { vacationId: vacation.id } }
+);
+```
+
+- Hvis `cleanup.removedFromCount > 0` eller `clearedResponsibleCount > 0`, vis udvidet toast på dansk/engelsk.
+- For hver unik `responsible_user_id` i `affectedAssignments`: send notifikation via `addNotification` (eller lad edge function gøre det — anbefales i edge function for konsistens).
+- Invalider React Query: `['assignments']`, `['vacations']`.
+
+### Oversættelser (`vacation.ts` da/en)
+
+- `autoUnassignSuccess` — *"Fjernet fra {count} opgaver i fri-perioden."*
+- `autoUnassignResponsibleCleared` — *"Du var skadeleder på {count} opgaver — feltet er nulstillet og kræver omtildeling."*
+- `autoUnassignNotificationTitle` — *"Medarbejder fjernet fra opgaver"*
+- `autoUnassignNotificationMessage` — *"{name} er fjernet fra {count} opgaver pga. godkendt fri ({from}–{to})."*
+
+### Edge cases
+
+- **Demo-mode:** Spring edge function over (`isDemoMode` check i klienten).
+- **Ingen overlap:** Funktionen returnerer `removedFromCount = 0` og toast viser kun standardbeskeden.
+- **Allerede godkendt:** Hvis brugeren reaktiverer en allerede godkendt fri (sjælden case), kaldes funktionen alligevel — den er idempotent.
+- **Tværgående afdeling:** Hvis medarbejderen er booket i en anden afdeling i samme periode, fjernes vedkommende også derfra (medarbejderen *er* på fri — afdelings-isolation gælder ikke her).
 
 ## Filer der oprettes/ændres
 
 ```text
-+ src/components/Cars/VWAssistanceButton.tsx
-~ src/pages/CarsPage.tsx
-~ src/components/Cars/CarFormDialog.tsx
-~ src/components/Cars/CarsList.tsx (+ tabel/mobilkort for badge)
-~ src/components/Cars/types.ts
-~ src/types/car.ts
-~ src/hooks/car/useCarFormState.ts
-~ src/components/Planner/UnassignedResourcesSection.tsx
-~ src/hooks/useDashboardMetrics.ts
-~ src/translations/da/cars.ts
-~ src/translations/en/cars.ts
++ supabase/functions/vacation-cleanup-assignments/index.ts
+~ src/hooks/vacation/useVacationApprovalActions.ts
+~ src/translations/da/vacation.ts
+~ src/translations/en/vacation.ts
 ~ CHANGELOG.md
 ~ docs/implementation-plan/tasks.md
-+ supabase migration (ny kolonne)
 ```
 
-## Åbne spørgsmål
+## Spørgsmål
 
-1. Skal eksisterende biler med `show_in_planner = false` automatisk migreres til `is_auxiliary = true`? (Standard: nej — `show_in_planner` bibeholdes som separat skjul-funktion.)
-2. Skal badget "Hjælpekøretøj" også vises i planner-valglisten, så brugeren tydeligt ser at det er en trailer/miljøvogn? (Anbefaling: ja.)
+1. Skal `responsible_user_id` (skadeleder) også nulstilles automatisk hvis vedkommende selv går på fri? **Anbefaling: ja**, men feltet kræver manuel omtildeling — derfor særskilt notifikation.
+2. Skal partial_day-fri også udløse fjernelse hvis tidspunktet kun delvist overlapper opgaven? **Anbefaling: ja**, ethvert overlap fjerner medarbejderen — admin kan tilføje igen hvis det er ok.
+3. Skal "fjernede medarbejdere" angives i opgavens historik (audit trail tab) ud over toast? **Anbefaling: ja**, via `planner_change_log`.
