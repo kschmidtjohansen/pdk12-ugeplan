@@ -52,6 +52,11 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 )}
               </div>
               <p className="text-sm text-muted-foreground">{car.name}</p>
+              {(car as any).is_auxiliary && (
+                <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+                  {t('cars.auxiliaryBadge')}
+                </span>
+              )}
             </div>
           </div>
           {isAdmin && (

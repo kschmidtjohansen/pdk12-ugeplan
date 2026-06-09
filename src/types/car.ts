@@ -8,6 +8,7 @@ export interface Car {
   is_available: boolean;
   has_trailer_hitch?: boolean;
   show_in_planner?: boolean;
+  is_auxiliary?: boolean;
   notes?: string;
   towing_capacity_with_brakes?: number | null;
   towing_capacity_without_brakes?: number | null;

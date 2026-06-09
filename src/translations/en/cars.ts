@@ -88,6 +88,16 @@ const cars = {
   falckSubscriptionUpdated: 'Subscription number updated',
   falckPhoneLabel: 'Emergency Phone',
   falckPhoneNumber: '70 10 20 30',
+
+  // VW Roadside Assistance
+  vwAssistance: 'VW Vejhjælp',
+  vwPhoneLabel: 'Emergency Phone',
+  vwPhoneNumber: '80 20 30 80',
+
+  // Auxiliary vehicle (trailer, environmental wagon, etc.)
+  isAuxiliary: 'Auxiliary vehicle (trailer/environmental)',
+  isAuxiliaryHint: 'Hidden from "Available cars" in the planner and dashboard, but still selectable on assignments.',
+  auxiliaryBadge: 'Auxiliary',
 };
 
 export default cars;

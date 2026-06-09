@@ -12,6 +12,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
 import FalckSubscriptionButton from '@/components/Cars/FalckSubscriptionButton';
+import VWAssistanceButton from '@/components/Cars/VWAssistanceButton';
 import ListPageShell from '@/components/shared/ListPageShell';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import SegmentedFilterBar, { FilterSegment } from '@/components/shared/SegmentedFilterBar';
@@ -69,6 +70,7 @@ const CarsPage: React.FC = () => {
             actions={
               <>
                 <FalckSubscriptionButton isAdmin={isAdmin} />
+                <VWAssistanceButton />
                 {isAdmin && (
                   <Button onClick={handleCreateNew} size="sm">
                     <Plus className="h-4 w-4" />

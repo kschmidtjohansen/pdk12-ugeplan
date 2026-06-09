@@ -88,6 +88,16 @@ const cars = {
   falckSubscriptionUpdated: 'Abonnementsnummer opdateret',
   falckPhoneLabel: 'Vagttelefon',
   falckPhoneNumber: '70 10 20 30',
+
+  // VW Vejhjælp
+  vwAssistance: 'VW Vejhjælp',
+  vwPhoneLabel: 'Vagttelefon',
+  vwPhoneNumber: '80 20 30 80',
+
+  // Hjælpekøretøj (trailer, miljøvogn m.m.)
+  isAuxiliary: 'Hjælpekøretøj (trailer/miljøvogn)',
+  isAuxiliaryHint: 'Vises ikke under "Tilgængelige biler" i planlæggeren eller dashboardet, men kan stadig vælges til sager.',
+  auxiliaryBadge: 'Hjælpekøretøj',
 };
 
 export default cars;

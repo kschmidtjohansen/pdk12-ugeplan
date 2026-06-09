@@ -81,10 +81,11 @@ export const useDashboardMetrics = () => {
           })
       );
 
-      // Total cars: count all cars (regardless of show_in_planner)
-      const totalCars = safeCars.length;
+      // Total cars: ekskludér hjælpekøretøjer (trailere, miljøvogne m.m.)
+      const nonAuxiliaryCars = safeCars.filter(car => (car as any).is_auxiliary !== true);
+      const totalCars = nonAuxiliaryCars.length;
       
-      const availableCarsList = safeCars.filter(car => 
+      const availableCarsList = nonAuxiliaryCars.filter(car => 
         car.is_available && 
         car.show_in_planner !== false && 
         !assignedCarIds.has(car.id)
