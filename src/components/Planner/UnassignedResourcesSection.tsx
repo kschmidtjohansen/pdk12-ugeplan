@@ -166,6 +166,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return cars.filter(car => {
       if (!car.is_available) return false;
       if (car.show_in_planner === false) return false;
+      if ((car as any).is_auxiliary === true) return false;
       if (assignedCarIds.has(car.id)) return false;
       return true;
     });

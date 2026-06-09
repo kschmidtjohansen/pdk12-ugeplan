@@ -173,6 +173,18 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
               />
               <Label htmlFor="show_in_planner">{t('cars.showInPlanner')}</Label>
             </div>
+            <div className="flex items-start space-x-2 col-span-full">
+              <Checkbox
+                id="is_auxiliary"
+                checked={formData.is_auxiliary ?? false}
+                onCheckedChange={(checked) => onCheckboxChange?.('is_auxiliary', checked as boolean)}
+                className="mt-0.5"
+              />
+              <div className="flex flex-col">
+                <Label htmlFor="is_auxiliary">{t('cars.isAuxiliary')}</Label>
+                <span className="text-xs text-muted-foreground">{t('cars.isAuxiliaryHint')}</span>
+              </div>
+            </div>
           </div>
 
           {formData.has_trailer_hitch && (
