@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-09 — Feature: VW Vejhjælp + hjælpekøretøjer (trailer/miljøvogn)
+
+### Feature
+- Ny knap **"VW Vejhjælp"** på Biler-siden ved siden af Falck Vejhjælp. Viser vagttelefon `80 20 30 80` (klikbar `tel:80203080`). Ingen abonnementsnummer.
+- Ny `is_auxiliary`-kolonne på `cars`. Når sat på en bil:
+  - Vises stadig på Biler-siden (med "Hjælpekøretøj"-badge på mobilkort).
+  - Kan stadig vælges til opgaver i planneren.
+  - **Skjules** fra "Tilgængelige biler" i `UnassignedResourcesSection`.
+  - **Tælles ikke med** i dashboardets metric "Tilgængelige biler" (hverken tæller eller nævner).
+- Felt redigeres via checkbox i `CarFormDialog` med tydelig hjælpetekst.
+
 ## 2026-06-08 — Fix: tydelig fejlbesked når email allerede findes ved brugeroprettelse
 
 ### Fix
