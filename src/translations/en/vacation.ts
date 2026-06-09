@@ -140,6 +140,10 @@ const vacation = {
   endDate: 'End date',
   selectStartDate: 'Select start date',
   selectEndDate: 'Select end date',
+
+  // Auto-removal from assignments on approval
+  autoUnassignSuccess: 'Removed from {count} assignments in the vacation period.',
+  autoUnassignResponsibleCleared: 'Case manager field cleared on {count} assignments.',
 };
 
 export default vacation;
