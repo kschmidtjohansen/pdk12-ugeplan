@@ -82,16 +82,16 @@ const cars = {
   selectAtLeastOneSubDepartment: 'Vælg mindst én underafdeling',
   
   // Falck
-  falckSubscription: 'Falck Vejhjælp',
+  falckSubscription: 'Falck',
   falckSubscriptionNumber: 'Abonnementsnummer',
   falckSubscriptionEmpty: 'Intet abonnementsnummer registreret',
   falckSubscriptionUpdated: 'Abonnementsnummer opdateret',
-  falckPhoneLabel: 'Vagttelefon',
+  falckPhoneLabel: 'Telefonnummer',
   falckPhoneNumber: '70 10 20 30',
 
-  // VW Vejhjælp
-  vwAssistance: 'VW Vejhjælp',
-  vwPhoneLabel: 'Vagttelefon',
+  // VW
+  vwAssistance: 'VW',
+  vwPhoneLabel: 'Telefonnummer',
   vwPhoneNumber: '80 20 30 80',
 
   // Hjælpekøretøj (trailer, miljøvogn m.m.)
