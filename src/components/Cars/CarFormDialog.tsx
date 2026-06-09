@@ -159,14 +159,6 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="is_available"
-                checked={formData.is_available}
-                onCheckedChange={(checked) => onCheckboxChange?.('is_available', checked as boolean)}
-              />
-              <Label htmlFor="is_available">{t('cars.isAvailable')}</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
                 id="show_in_planner"
                 checked={formData.show_in_planner ?? true}
                 onCheckedChange={(checked) => onCheckboxChange?.('show_in_planner', checked as boolean)}
