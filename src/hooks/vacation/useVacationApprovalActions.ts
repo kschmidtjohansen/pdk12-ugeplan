@@ -38,6 +38,32 @@ export const useVacationApprovalActions = (
       
       if (error) throw error;
       
+      // Auto-remove employee from any overlapping assignments
+      let cleanupSummary = '';
+      try {
+        const { data: cleanup, error: cleanupErr } = await supabase.functions.invoke(
+          'vacation-cleanup-assignments',
+          { body: { vacationId: vacation.id } }
+        );
+        if (cleanupErr) {
+          if (import.meta.env.DEV) console.warn('[approveVacation] cleanup error:', cleanupErr);
+        } else if (cleanup) {
+          const removed = (cleanup as any).removedFromCount || 0;
+          const cleared = (cleanup as any).clearedResponsibleCount || 0;
+          if (removed > 0 || cleared > 0) {
+            const parts: string[] = [];
+            if (removed > 0) parts.push(t('vacation.autoUnassignSuccess', { count: String(removed) }));
+            if (cleared > 0) parts.push(t('vacation.autoUnassignResponsibleCleared', { count: String(cleared) }));
+            cleanupSummary = ' ' + parts.join(' ');
+            // Refresh assignments so UI updates immediately
+            queryClient.invalidateQueries({ queryKey: ['assignments'] });
+            queryClient.invalidateQueries({ queryKey: ['optimizedAssignments'] });
+          }
+        }
+      } catch (cleanupErr) {
+        if (import.meta.env.DEV) console.warn('[approveVacation] cleanup invocation failed:', cleanupErr);
+      }
+      
       // Refresh vacation data
       queryClient.invalidateQueries({ queryKey: ['vacations'] });
       await fetchVacations();
@@ -45,7 +71,7 @@ export const useVacationApprovalActions = (
       // Show success toast
       toast({
         title: t('vacation.requestApproved'),
-        description: t('vacation.requestApprovedMsg', { name: vacation.user?.name || 'Unknown' }),
+        description: t('vacation.requestApprovedMsg', { name: vacation.user?.name || 'Unknown' }) + cleanupSummary,
       });
       
       // Notify the employee
