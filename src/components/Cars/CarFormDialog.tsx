@@ -174,7 +174,6 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
               />
               <div className="flex flex-col">
                 <Label htmlFor="is_auxiliary">{t('cars.isAuxiliary')}</Label>
-                <span className="text-xs text-muted-foreground">{t('cars.isAuxiliaryHint')}</span>
               </div>
             </div>
           </div>
