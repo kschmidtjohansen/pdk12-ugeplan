@@ -1,0 +1,1 @@
+ALTER TABLE public.cars ADD COLUMN IF NOT EXISTS is_auxiliary boolean NOT NULL DEFAULT false;
