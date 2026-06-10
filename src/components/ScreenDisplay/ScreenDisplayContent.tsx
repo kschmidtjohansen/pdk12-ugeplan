@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Clock, MapPin, Users, Car } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Car, UserCheck } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { format } from 'date-fns';
@@ -104,6 +104,16 @@ export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
                   {assignment.location}
                 </span>
               </div>
+
+              {/* Responsible / Case Manager */}
+              {assignment.responsibleUser?.name && (
+                <div className="flex items-center gap-2 text-sm">
+                  <UserCheck className="h-4 w-4 text-primary" />
+                  <span className="text-foreground font-medium truncate">
+                    {assignment.responsibleUser.name}
+                  </span>
+                </div>
+              )}
 
               {/* Employees */}
               {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 && <div className="flex items-start gap-2 text-sm">

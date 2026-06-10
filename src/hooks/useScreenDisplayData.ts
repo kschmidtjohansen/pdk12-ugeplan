@@ -78,7 +78,9 @@ export const useScreenDisplayData = (
                 profiles: { id: m.id, name: m.name },
               }))
             : [],
-          assignment_cars: [],
+          assignment_cars: Array.isArray(a.cars)
+            ? a.cars.map((c: any) => ({ id: c.id, name: c.name }))
+            : [],
         };
         return convertOptimizedAssignmentToAssignment(optimized);
       });

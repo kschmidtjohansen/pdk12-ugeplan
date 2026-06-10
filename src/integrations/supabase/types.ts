@@ -1680,6 +1680,7 @@ export type Database = {
           assignment_date: string
           car_id: string
           car_ids: string[]
+          cars: Json
           case_number: string
           created_at: string
           description: string
