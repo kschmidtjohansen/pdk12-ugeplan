@@ -756,3 +756,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Oversættelser DA/EN tilføjet
 
 - Screen-display: catch-up auto-jump til i dag ved tab visibility/focus, så kiosk-skærmen altid viser dagens dato efter sleep.
+
+## 2026-06-10 - Screen Display viser sagsansvarlig og bil
+- RPC `list_screen_display_assignments` returnerer nu bilnavne (jsonb).
+- Kort på storskærm viser sagsansvarlig (skadeleder) og hvilken bil/trailer der skal bruges.
