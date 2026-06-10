@@ -156,9 +156,27 @@ const ScreenDisplayPage: React.FC = () => {
     };
   }, [departmentId, refetch]);
 
-  // Midnight rollover: kiosk auto-advances selected date to "today" at 00:00
+  // Midnight rollover + visibility/focus catch-up:
+  // - Auto-advances selectedDate to "today" at 00:00:05
+  // - Also catches up if the tab was asleep (visibilitychange/focus) and the
+  //   stored date is no longer today
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const jumpToTodayIfStale = () => {
+      const today = new Date();
+      const todayStr = format(today, 'yyyy-MM-dd');
+      const currentStr = format(selectedDate, 'yyyy-MM-dd');
+      if (currentStr !== todayStr) {
+        if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Stale date detected → jumping to today');
+        setSelectedDate(today);
+        const url = new URL(window.location.href);
+        url.searchParams.set('date', todayStr);
+        window.history.replaceState({}, '', url.toString());
+      }
+      refetch();
+    };
+
     const scheduleMidnight = () => {
       const now = new Date();
       const next = new Date(now);
@@ -166,18 +184,28 @@ const ScreenDisplayPage: React.FC = () => {
       const ms = next.getTime() - now.getTime();
       timeoutId = setTimeout(() => {
         if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Midnight rollover → today');
-        const today = new Date();
-        setSelectedDate(today);
-        const url = new URL(window.location.href);
-        url.searchParams.set('date', format(today, 'yyyy-MM-dd'));
-        window.history.replaceState({}, '', url.toString());
-        refetch();
+        jumpToTodayIfStale();
         scheduleMidnight();
       }, ms);
     };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        jumpToTodayIfStale();
+      }
+    };
+
     scheduleMidnight();
-    return () => { if (timeoutId) clearTimeout(timeoutId); };
-  }, [refetch]);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+    };
+  }, [refetch, selectedDate]);
+
 
   useEffect(() => {
     const handleUrlChange = () => {
