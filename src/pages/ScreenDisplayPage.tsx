@@ -62,18 +62,16 @@ const ScreenDisplayPage: React.FC = () => {
   const [subDeptList, setSubDeptList] = useState<SubDept[]>([]);
   const [rotationIndex, setRotationIndex] = useState(0);
 
-  // Fetch sub-departments when rotation is enabled
+  // Fetch sub-departments when rotation is enabled (public RPC, no auth required)
   useEffect(() => {
     if (!rotateEnabled || !departmentId) return;
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from('sub_departments')
-        .select('id, name')
-        .eq('department_id', departmentId)
-        .order('name');
+      const { data } = await supabase.rpc('list_screen_display_sub_departments', {
+        p_department_id: departmentId,
+      });
       if (cancelled) return;
-      const list = (data || []) as SubDept[];
+      const list = ((data as any[]) || []).map((r) => ({ id: r.id, name: r.name })) as SubDept[];
       setSubDeptList(list);
       if (initialSubDepartmentId) {
         const idx = list.findIndex((s) => s.id === initialSubDepartmentId);
