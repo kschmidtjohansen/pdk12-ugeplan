@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
+import { convertOptimizedAssignmentToAssignment, OptimizedAssignmentData } from '@/utils/assignmentDataConverter';
 
 interface UseScreenDisplayDataResult {
   assignments: Assignment[];
@@ -48,33 +49,39 @@ export const useScreenDisplayData = (
       }
 
       const rows = (data as any[]) || [];
-      const converted: Assignment[] = rows.map((a) => ({
-        id: a.id,
-        title: a.title,
-        description: a.description,
-        assignment_date: a.assignment_date,
-        from_time: a.from_time,
-        to_time: a.to_time,
-        location: a.location,
-        type: a.type,
-        published: a.published,
-        responsible_user_id: a.responsible_user_id,
-        responsible_user: a.responsible_user
-          ? { id: a.responsible_user.id, name: a.responsible_user.name }
-          : null,
-        car_id: a.car_id,
-        car_ids: a.car_ids || [],
-        case_number: a.case_number ?? null,
-        created_at: a.created_at,
-        updated_at: a.updated_at,
-        assignment_employees: Array.isArray(a.team)
-          ? a.team.map((m: any) => ({
-              user_id: m.id,
-              profiles: { id: m.id, name: m.name },
-            }))
-          : [],
-        assignment_cars: [],
-      })) as unknown as Assignment[];
+
+      // Map RPC shape → OptimizedAssignmentData → Assignment (shared converter
+      // gives us camelCase + assignedEmployees etc. that the UI expects)
+      const converted = rows.map((a) => {
+        const optimized: OptimizedAssignmentData = {
+          id: a.id,
+          title: a.title,
+          description: a.description,
+          assignment_date: a.assignment_date,
+          from_time: a.from_time,
+          to_time: a.to_time,
+          location: a.location,
+          type: a.type,
+          published: a.published,
+          responsible_user_id: a.responsible_user_id,
+          created_at: a.created_at,
+          updated_at: a.updated_at,
+          car_id: a.car_id,
+          car_ids: a.car_ids || [],
+          group_id: null,
+          responsible_user: a.responsible_user
+            ? { id: a.responsible_user.id, name: a.responsible_user.name }
+            : null,
+          assignment_employees: Array.isArray(a.team)
+            ? a.team.map((m: any) => ({
+                user_id: m.id,
+                profiles: { id: m.id, name: m.name },
+              }))
+            : [],
+          assignment_cars: [],
+        };
+        return convertOptimizedAssignmentToAssignment(optimized);
+      });
 
       setAssignments(converted);
     } catch (err) {
