@@ -1,46 +1,56 @@
-## 1. Hjælpekøretøj-checkbox kan ikke vælges
+## Problem
 
-**Årsag:** I `src/components/Cars/CarFormDialog.tsx` ligger de tre checkboxe (`has_trailer_hitch`, `show_in_planner`, `is_auxiliary`) i samme `flex items-center space-x-4`-række uden `flex-wrap`. Med danske labels løber rækken ud over dialogens bredde (`max-w-md`), så `is_auxiliary` bliver skubbet uden for synligt/klikbart område. Derudover bruger blokken `col-span-full`, som ikke har nogen effekt i en flex-container, hvilket bekræfter at originalt layout var tænkt som grid.
+Servicemedarbejder (og vikar) ser kun sig selv på `/employees`, fordi RLS-policyen `secure_profile_access_unified` på `public.profiles` kun tillader SELECT for:
 
-**Fix:** Omlæg de tre checkboxe til en lodret stak (eller `flex-wrap gap-3`) inde i dialogen, så `Hjælpekøretøj` altid er synlig og klikbar. Ingen ændringer til datalogik — `handleCheckboxChange('is_auxiliary', …)` er allerede korrekt forbundet via `CarsPage` → `CarDialogs` → `CarFormDialog`, og `initFormWithCar` sætter allerede `is_auxiliary` ved redigering.
+- ejeren selv (`id = auth.uid()`), eller
+- brugere med rollen `administrator`, `skadeleder` eller `super_admin`.
 
-## 2. Skærmvisning (`/screen-display`) skal være offentlig
+Servicemedarbejdere har ingen af de roller, så Supabase returnerer kun deres egen profil. Frontend-koden (`useEmployeeData` + `EmployeesPage`) får dermed kun én række, uanset hvilken segment/visning der vælges.
 
-**Nuværende tilstand:** Route ligger uden for `MainLayout`, så der er ingen redirect i frontend. Men data hentes via Supabase RPC `list_accessible_assignments_with_team` og tabellerne `sub_departments` + `vacations` (absences), som alle kræver autentificeret session pga. RLS — derfor "låses" siden reelt af backend.
+## Løsning
 
-**Plan:**
+Udvid SELECT-policyen så en autentificeret bruger også kan se kolleger der deler mindst én afdeling via `public.user_access`. Det respekterer multi-tenant-isoleringen (Core-reglen: aldrig `USING (true)`), og giver servicemedarbejdere adgang til kolleger i deres egen afdeling — men ikke på tværs af afdelinger.
 
-- **Database (migration):** Opret en ny SECURITY DEFINER-RPC `public.list_screen_display_assignments(p_department_id uuid, p_sub_department_id uuid, p_date date)` der returnerer KUN publicerede sager (`published = true`) for den angivne afdeling/underafdeling/dato, inkl. team-medlemmer og biler — samme shape som `list_accessible_assignments_with_team`. `GRANT EXECUTE` til `anon` og `authenticated`. Funktionen kræver `p_department_id` (returnerer tom, hvis NULL) for at undgå at lække data på tværs af afdelinger.
-- Tilsvarende offentlig RPC `public.list_screen_display_absences(p_department_id uuid, p_date date)` der returnerer minimale fraværsdata (navn, type, datoer) til skærmvisning. `GRANT EXECUTE` til `anon`.
-- Tilsvarende `public.list_screen_display_sub_departments(p_department_id uuid)` til rotationsfunktionen (id + navn), `GRANT EXECUTE` til `anon`.
-- Ingen ændringer til RLS på tabellerne — alt sker via SECURITY DEFINER-funktioner med eksplicit `SET search_path = ''`.
+### Migration (kun RLS, ingen skemaændring)
 
-- **Frontend:**
-  - `src/hooks/useScreenDisplayData.ts`: kald ny RPC i stedet for `OptimizedAssignmentService` når brugeren er uautentificeret (eller altid på `/screen-display`).
-  - `src/hooks/useScreenDisplayAbsences.ts`: brug den nye absences-RPC.
-  - `src/pages/ScreenDisplayPage.tsx`: brug ny sub-department-RPC i rotationsblokken (linje 70).
-
-## 3. Live opdatering + dagsskift på skærmvisning
-
-I `src/pages/ScreenDisplayPage.tsx`:
-
-- **Realtime:** Abonnér på Supabase realtime-kanaler for `assignments`, `assignments_employees`, `vacations` (filtreret på `department_id` hvor muligt) og kald `refetch()` ved ændringer. Eksisterende 5-min interval bevares som fallback.
-- **Dagsskift ved midnat:** Tilføj `useEffect` der beregner ms til næste lokale midnat, sætter `setTimeout` → opdaterer `selectedDate` til `new Date()`, opdaterer URL via `updateUrlDate`, og gen-planlægger sig selv hver 24 t. Kun aktivt når brugeren ikke har navigeret væk fra "i dag" (eller altid — vi vælger altid for kioskbrug, så skærmen automatisk følger med).
-
-## Tekniske detaljer
+Drop og genskab `secure_profile_access_unified` på `public.profiles` med følgende logik:
 
 ```text
-Filer berørt:
-  src/components/Cars/CarFormDialog.tsx        (layout for checkbox-rækken)
-  src/pages/ScreenDisplayPage.tsx              (realtime + midnat + ny sub-dept RPC)
-  src/hooks/useScreenDisplayData.ts            (kald ny public RPC)
-  src/hooks/useScreenDisplayAbsences.ts        (kald ny public RPC)
-  supabase migration                            (3 nye SECURITY DEFINER RPCs + GRANTs)
+USING (
+  id = auth.uid()
+  OR public.has_role(auth.uid(), 'administrator')
+  OR public.has_role(auth.uid(), 'skadeleder')
+  OR public.has_role(auth.uid(), 'super_admin')
+  OR EXISTS (
+        SELECT 1
+        FROM public.user_access me
+        JOIN public.user_access them
+          ON them.department_id = me.department_id
+        WHERE me.user_id = auth.uid()
+          AND them.user_id = profiles.id
+     )
+)
 ```
 
-Ingen ændringer til eksisterende RLS-politikker; alt offentligt scope er indkapslet i SECURITY DEFINER-funktioner med streng input-validering (kræver `p_department_id`).
+- Bruger `public.has_role(...)` (SECURITY DEFINER) for at undgå rekursion.
+- Krydser `user_access` på `department_id` så kun kolleger i samme afdeling bliver synlige.
+- Demo-policyen `hide_demo_data_profiles` røres ikke — demo-isolation bevares.
+- Ingen ændring til `user_roles`, `profiles`-skema eller GRANTs.
 
-## Spørgsmål inden implementering
+### Frontend
 
-1. Skærmvisningen viser i dag også **fravær** (`absences`). Skal det også være synligt for ikke-loggede brugere? (Jeg går ud fra ja — det er en del af kioskvisningen.)
-2. Skal skærmvisningen ved midnat **altid** hoppe til den nye dag (kioskadfærd), eller kun hvis brugeren stod på "i dag"?
+`useEmployeeData` filtrerer i forvejen klient-side på `user_access` for den valgte afdeling og henter `user_roles`. Når RLS åbner for kolleger, vil servicemedarbejderens forespørgsel returnere alle profiler i hans afdeling, og det eksisterende filter virker uændret. Ingen kodeændringer nødvendige.
+
+UI (`EmployeesTable`, `EmployeesPage`) skjuler allerede admin-handlinger bag `isAdmin`, så servicemedarbejdere får kun læseadgang — som ønsket.
+
+### Dokumentation
+
+- `CHANGELOG.md`: tilføj entry ("Servicemedarbejdere kan nu se kolleger i samme afdeling under /employees").
+- `mem://features/department-system` opdateres ikke — reglen om dept-isolation overholdes stadig.
+
+## Verifikation
+
+1. Login som servicemedarbejder → `/employees` viser alle kolleger i den valgte afdeling, ingen handlingsknapper.
+2. Login som servicemedarbejder i afdeling A → ser ikke profiler der kun har `user_access` i afdeling B.
+3. Admin/skadeleder/super_admin: uændret adfærd.
+4. Demo-mode: uændret (separat policy).
