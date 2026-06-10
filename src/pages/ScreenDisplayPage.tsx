@@ -131,6 +131,54 @@ const ScreenDisplayPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [refetch]);
 
+  // Realtime: refetch when assignments/team/vacations change for this department
+  useEffect(() => {
+    if (!departmentId) return;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const triggerRefetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Realtime change → refetch');
+        refetch();
+      }, 1000);
+    };
+
+    const channel = supabase
+      .channel(`screen-display-${departmentId}`)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments', filter: `department_id=eq.${departmentId}` }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments_employees' }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'vacations' }, triggerRefetch)
+      .subscribe();
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [departmentId, refetch]);
+
+  // Midnight rollover: kiosk auto-advances selected date to "today" at 00:00
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const scheduleMidnight = () => {
+      const now = new Date();
+      const next = new Date(now);
+      next.setHours(24, 0, 5, 0); // 5 seconds past midnight for safety
+      const ms = next.getTime() - now.getTime();
+      timeoutId = setTimeout(() => {
+        if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Midnight rollover → today');
+        const today = new Date();
+        setSelectedDate(today);
+        const url = new URL(window.location.href);
+        url.searchParams.set('date', format(today, 'yyyy-MM-dd'));
+        window.history.replaceState({}, '', url.toString());
+        refetch();
+        scheduleMidnight();
+      }, ms);
+    };
+    scheduleMidnight();
+    return () => { if (timeoutId) clearTimeout(timeoutId); };
+  }, [refetch]);
+
   useEffect(() => {
     const handleUrlChange = () => {
       if (import.meta.env.DEV) console.log('[ScreenDisplayPage] URL CHANGED, refreshing date');
