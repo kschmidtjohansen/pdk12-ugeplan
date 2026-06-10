@@ -9,12 +9,13 @@ export interface AbsentEmployee {
 interface Result {
   absences: AbsentEmployee[];
   loading: boolean;
+  refetch: () => Promise<void>;
 }
 
 /**
- * Fetches employees absent on the given date for the whole department,
- * via a SECURITY DEFINER RPC so RLS on vacations/profiles does not block
- * kiosk/screen-display users.
+ * Public RPC used by the kiosk /screen-display page. Works without a logged-in
+ * user; SECURITY DEFINER on the DB side scopes the result to the given
+ * department only.
  */
 export const useScreenDisplayAbsences = (
   date: string,
@@ -30,7 +31,7 @@ export const useScreenDisplayAbsences = (
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_department_absences', {
+      const { data, error } = await supabase.rpc('list_screen_display_absences', {
         p_department_id: departmentId,
         p_date: date,
       });
@@ -52,5 +53,5 @@ export const useScreenDisplayAbsences = (
     fetchAbsences();
   }, [fetchAbsences]);
 
-  return { absences, loading };
+  return { absences, loading, refetch: fetchAbsences };
 };

@@ -148,14 +148,14 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             />
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col gap-3">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="has_trailer_hitch"
                 checked={formData.has_trailer_hitch || false}
                 onCheckedChange={(checked) => onCheckboxChange?.('has_trailer_hitch', checked as boolean)}
               />
-              <Label htmlFor="has_trailer_hitch">{t('cars.hasTrailerHitch')}</Label>
+              <Label htmlFor="has_trailer_hitch" className="cursor-pointer">{t('cars.hasTrailerHitch')}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -163,18 +163,15 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
                 checked={formData.show_in_planner ?? true}
                 onCheckedChange={(checked) => onCheckboxChange?.('show_in_planner', checked as boolean)}
               />
-              <Label htmlFor="show_in_planner">{t('cars.showInPlanner')}</Label>
+              <Label htmlFor="show_in_planner" className="cursor-pointer">{t('cars.showInPlanner')}</Label>
             </div>
-            <div className="flex items-start space-x-2 col-span-full">
+            <div className="flex items-center space-x-2">
               <Checkbox
                 id="is_auxiliary"
                 checked={formData.is_auxiliary ?? false}
                 onCheckedChange={(checked) => onCheckboxChange?.('is_auxiliary', checked as boolean)}
-                className="mt-0.5"
               />
-              <div className="flex flex-col">
-                <Label htmlFor="is_auxiliary">{t('cars.isAuxiliary')}</Label>
-              </div>
+              <Label htmlFor="is_auxiliary" className="cursor-pointer">{t('cars.isAuxiliary')}</Label>
             </div>
           </div>
 

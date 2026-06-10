@@ -62,18 +62,16 @@ const ScreenDisplayPage: React.FC = () => {
   const [subDeptList, setSubDeptList] = useState<SubDept[]>([]);
   const [rotationIndex, setRotationIndex] = useState(0);
 
-  // Fetch sub-departments when rotation is enabled
+  // Fetch sub-departments when rotation is enabled (public RPC, no auth required)
   useEffect(() => {
     if (!rotateEnabled || !departmentId) return;
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from('sub_departments')
-        .select('id, name')
-        .eq('department_id', departmentId)
-        .order('name');
+      const { data } = await supabase.rpc('list_screen_display_sub_departments', {
+        p_department_id: departmentId,
+      });
       if (cancelled) return;
-      const list = (data || []) as SubDept[];
+      const list = ((data as any[]) || []).map((r) => ({ id: r.id, name: r.name })) as SubDept[];
       setSubDeptList(list);
       if (initialSubDepartmentId) {
         const idx = list.findIndex((s) => s.id === initialSubDepartmentId);
@@ -131,6 +129,54 @@ const ScreenDisplayPage: React.FC = () => {
       refetch();
     }, 5 * 60 * 1000);
     return () => clearInterval(timer);
+  }, [refetch]);
+
+  // Realtime: refetch when assignments/team/vacations change for this department
+  useEffect(() => {
+    if (!departmentId) return;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const triggerRefetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Realtime change → refetch');
+        refetch();
+      }, 1000);
+    };
+
+    const channel = supabase
+      .channel(`screen-display-${departmentId}`)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments', filter: `department_id=eq.${departmentId}` }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments_employees' }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'vacations' }, triggerRefetch)
+      .subscribe();
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [departmentId, refetch]);
+
+  // Midnight rollover: kiosk auto-advances selected date to "today" at 00:00
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const scheduleMidnight = () => {
+      const now = new Date();
+      const next = new Date(now);
+      next.setHours(24, 0, 5, 0); // 5 seconds past midnight for safety
+      const ms = next.getTime() - now.getTime();
+      timeoutId = setTimeout(() => {
+        if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Midnight rollover → today');
+        const today = new Date();
+        setSelectedDate(today);
+        const url = new URL(window.location.href);
+        url.searchParams.set('date', format(today, 'yyyy-MM-dd'));
+        window.history.replaceState({}, '', url.toString());
+        refetch();
+        scheduleMidnight();
+      }, ms);
+    };
+    scheduleMidnight();
+    return () => { if (timeoutId) clearTimeout(timeoutId); };
   }, [refetch]);
 
   useEffect(() => {

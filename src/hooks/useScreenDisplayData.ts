@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { OptimizedAssignmentService } from '@/services/optimizedAssignmentService';
 import { Assignment } from '@/types/assignment';
-import { convertOptimizedAssignmentToAssignment } from '@/utils/assignmentDataConverter';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseScreenDisplayDataResult {
   assignments: Assignment[];
@@ -10,81 +9,76 @@ interface UseScreenDisplayDataResult {
   refetch: () => Promise<void>;
 }
 
-export const useScreenDisplayData = (date: string, departmentId?: string | null, subDepartmentId?: string | null): UseScreenDisplayDataResult => {
+/**
+ * Public kiosk data hook. Uses the SECURITY DEFINER RPC
+ * `list_screen_display_assignments` so the /screen-display page works without
+ * authentication. Requires a department id (otherwise returns empty).
+ */
+export const useScreenDisplayData = (
+  date: string,
+  departmentId?: string | null,
+  subDepartmentId?: string | null
+): UseScreenDisplayDataResult => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
-  const fetchData = useCallback(async (attemptNumber = 0) => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const isNewWindow = window.opener !== null;
-      const maxRetries = 3;
-      const retryDelay = attemptNumber * 500;
-      
-      if (import.meta.env.DEV) console.log('[useScreenDisplayData] 🚀 FETCH START:', {
-        date, isEmpty: !date, isNewWindow, attemptNumber, retryDelay
-      });
-      
-      if (isNewWindow && attemptNumber === 0) {
-        if (import.meta.env.DEV) console.log('[useScreenDisplayData] ⏳ NEW WINDOW - Adding initialization delay');
-        await new Promise(resolve => setTimeout(resolve, 300));
+
+      if (!departmentId) {
+        setAssignments([]);
+        return;
       }
-      
-      if (retryDelay > 0) {
-        if (import.meta.env.DEV) console.log(`[useScreenDisplayData] ⏳ RETRY DELAY: ${retryDelay}ms`);
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
+
+      const { data, error: rpcError } = await supabase.rpc(
+        'list_screen_display_assignments',
+        {
+          p_department_id: departmentId,
+          p_sub_department_id: subDepartmentId || null,
+          p_date: date || null,
+        }
+      );
+
+      if (rpcError) {
+        if (import.meta.env.DEV) console.error('[useScreenDisplayData] RPC error:', rpcError);
+        throw new Error(rpcError.message);
       }
-      
-      if (isNewWindow || attemptNumber > 0) {
-        if (import.meta.env.DEV) console.log('[useScreenDisplayData] 🔄 CLEARING CACHE for fresh data');
-        OptimizedAssignmentService.clearCache();
-      }
-      
-      let data;
-      if (!date) {
-        if (import.meta.env.DEV) console.log('[useScreenDisplayData] 🚀 FETCHING ALL published assignments (no date filter)', { departmentId, subDepartmentId });
-        data = await OptimizedAssignmentService.fetchAllPublishedAssignments(undefined, departmentId, subDepartmentId);
-      } else {
-        if (import.meta.env.DEV) console.log('[useScreenDisplayData] 🚀 FETCHING published assignments for date:', date, { departmentId, subDepartmentId });
-        data = await OptimizedAssignmentService.fetchPublishedAssignmentsByDate(date, undefined, departmentId, subDepartmentId);
-      }
-      
-      if (import.meta.env.DEV) console.log('[useScreenDisplayData] 📋 RAW DATA:', {
-        date, isNewWindow, attemptNumber, count: data.length
-      });
-      
-      if (isNewWindow && data.length === 0 && attemptNumber < maxRetries) {
-        if (import.meta.env.DEV) console.log('[useScreenDisplayData] ⚠️ NEW WINDOW got empty data, retrying...');
-        setRetryCount(attemptNumber + 1);
-        return await fetchData(attemptNumber + 1);
-      }
-      
-      const convertedAssignments = data.map(convertOptimizedAssignmentToAssignment);
-      if (import.meta.env.DEV) console.log('[useScreenDisplayData] ✅ FINAL CONVERTED assignments:', {
-        date, count: convertedAssignments.length
-      });
-      
-      setAssignments(convertedAssignments);
-      setRetryCount(0);
-      
+
+      const rows = (data as any[]) || [];
+      const converted: Assignment[] = rows.map((a) => ({
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        assignment_date: a.assignment_date,
+        from_time: a.from_time,
+        to_time: a.to_time,
+        location: a.location,
+        type: a.type,
+        published: a.published,
+        responsible_user_id: a.responsible_user_id,
+        responsible_user: a.responsible_user
+          ? { id: a.responsible_user.id, name: a.responsible_user.name }
+          : null,
+        car_id: a.car_id,
+        car_ids: a.car_ids || [],
+        case_number: a.case_number ?? null,
+        created_at: a.created_at,
+        updated_at: a.updated_at,
+        assignment_employees: Array.isArray(a.team)
+          ? a.team.map((m: any) => ({
+              user_id: m.id,
+              profiles: { id: m.id, name: m.name },
+            }))
+          : [],
+        assignment_cars: [],
+      })) as unknown as Assignment[];
+
+      setAssignments(converted);
     } catch (err) {
-      if (import.meta.env.DEV) console.error('[useScreenDisplayData] 💥 ERROR:', {
-        date, attemptNumber, message: err instanceof Error ? err.message : 'Unknown error'
-      });
-      
-      const isNewWindow = window.opener !== null;
-      const maxRetries = 3;
-      
-      if (isNewWindow && attemptNumber < maxRetries) {
-        if (import.meta.env.DEV) console.log(`[useScreenDisplayData] 🔄 RETRYING (${attemptNumber + 1}/${maxRetries})`);
-        setRetryCount(attemptNumber + 1);
-        return await fetchData(attemptNumber + 1);
-      }
-      
+      if (import.meta.env.DEV) console.error('[useScreenDisplayData] error:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch assignments'));
       setAssignments([]);
     } finally {
@@ -97,10 +91,8 @@ export const useScreenDisplayData = (date: string, departmentId?: string | null,
   }, [fetchData]);
 
   const refetch = useCallback(async () => {
-    if (import.meta.env.DEV) console.log('[useScreenDisplayData] 🔄 REFETCH triggered for date:', date);
-    OptimizedAssignmentService.clearCache();
     await fetchData();
-  }, [fetchData, date]);
+  }, [fetchData]);
 
   return { assignments, loading, error, refetch };
 };
