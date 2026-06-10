@@ -754,3 +754,5 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Nyt certifikatfelt `has_pcb_certificate` på medarbejdere (profiles)
 - Vist i medarbejderform, tabel (FlaskConical-ikon) og mobilkort
 - Oversættelser DA/EN tilføjet
+
+- Screen-display: catch-up auto-jump til i dag ved tab visibility/focus, så kiosk-skærmen altid viser dagens dato efter sleep.
