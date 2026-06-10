@@ -1663,6 +1663,46 @@ export type Database = {
           updated_at: string
         }[]
       }
+      list_screen_display_absences: {
+        Args: { p_date: string; p_department_id: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
+      list_screen_display_assignments: {
+        Args: {
+          p_date?: string
+          p_department_id: string
+          p_sub_department_id?: string
+        }
+        Returns: {
+          assignment_date: string
+          car_id: string
+          car_ids: string[]
+          case_number: string
+          created_at: string
+          description: string
+          from_time: string
+          id: string
+          location: string
+          published: boolean
+          responsible_user: Json
+          responsible_user_id: string
+          team: Json
+          title: string
+          to_time: string
+          type: Database["public"]["Enums"]["assignment_type"]
+          updated_at: string
+        }[]
+      }
+      list_screen_display_sub_departments: {
+        Args: { p_department_id: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       log_data_access_attempt: {
         Args: {
           access_type: string
