@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-06-10 — Fix: Hjælpekøretøj-checkbox + offentlig skærmvisning
+
+### Fix
+- `Hjælpekøretøj`-checkboxen i biloprettelses-/redigeringsdialogen blev skubbet uden for det synlige område. Checkboxene står nu lodret stablet, så `Trækkrog`, `Vis i planlæggeren` og `Hjælpekøretøj` altid er synlige og klikbare.
+
+### Feature
+- `/screen-display` virker nu uden login (kioskbrug på ekstern skærm). Kræver stadig `?departmentId=...` i URL'en for at vise data. Underafdelinger og rotation virker også uden login.
+- Skærmvisningen opdaterer nu **live** når der sker ændringer på opgaver, teammedlemmer eller fri — via Supabase realtime (1 s debounce). 5-minutters fallback bevaret.
+- Skærmvisningen **skifter automatisk til ny dag ved midnat** (00:00), så kiosk-skærme følger med uden manuel indgriben.
+
+### Backend
+- Tre nye SECURITY DEFINER RPCs: `list_screen_display_assignments`, `list_screen_display_absences`, `list_screen_display_sub_departments` — alle med `EXECUTE` til `anon` + `authenticated`, scoped til en obligatorisk `p_department_id`.
+
+
+
 ## 2026-06-09 — Feature: auto-fjern medarbejder fra opgaver når fri godkendes
 
 ### Feature
