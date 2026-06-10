@@ -105,6 +105,16 @@ export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
                 </span>
               </div>
 
+              {/* Responsible / Case Manager */}
+              {assignment.responsibleUser?.name && (
+                <div className="flex items-center gap-2 text-sm">
+                  <UserCheck className="h-4 w-4 text-primary" />
+                  <span className="text-foreground font-medium truncate">
+                    {assignment.responsibleUser.name}
+                  </span>
+                </div>
+              )}
+
               {/* Employees */}
               {assignment.assignedEmployees && assignment.assignedEmployees.length > 0 && <div className="flex items-start gap-2 text-sm">
                   <Users className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
