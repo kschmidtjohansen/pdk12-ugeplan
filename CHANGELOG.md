@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-10 — Screen display: bilnummer foran navn
+
+### UI
+- Screen-display viser nu **bilnummer foran bilnavnet** (f.eks. "B01 - Berlingo").
+
 ## 2026-06-10 — Fix: Hjælpekøretøj-checkbox + offentlig skærmvisning
 
 ### Fix
