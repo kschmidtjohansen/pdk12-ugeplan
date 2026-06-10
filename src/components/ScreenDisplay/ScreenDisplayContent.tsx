@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Clock, MapPin, Users, Car } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Car, UserCheck } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { format } from 'date-fns';
