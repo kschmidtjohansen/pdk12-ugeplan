@@ -79,7 +79,10 @@ export const useScreenDisplayData = (
               }))
             : [],
           assignment_cars: Array.isArray(a.cars)
-            ? a.cars.map((c: any) => ({ id: c.id, name: c.name }))
+            ? a.cars.map((c: any) => ({
+                id: c.id,
+                name: c.car_number ? `${c.car_number} - ${c.name}` : c.name,
+              }))
             : [],
         };
         return convertOptimizedAssignmentToAssignment(optimized);
