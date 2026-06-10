@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-10 — Servicemedarbejdere ser kolleger
+
+### Fix
+- Servicemedarbejdere og vikarer kan nu se alle kolleger under `/employees` for den valgte afdeling. RLS-policyen `secure_profile_access_unified` på `profiles` er udvidet med en check via `user_access`, så brugere ser kolleger der deler mindst én afdeling. Multi-tenant-isolation bevaret (ingen adgang på tværs af afdelinger).
+
+
 ## 2026-06-10 — Screen display: bilnummer foran navn
 
 ### UI
