@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-11 — Fugttekniker ser kun ledige servicemedarbejdere i dashboard-KPI
+
+### Changes
+- `src/hooks/useDashboardMetrics.ts`: Når effektiv rolle er `fugttekniker` eller `servicemedarbejder`, begrænses tællbare medarbejdere altid til `servicemedarbejder` — også når en underafdeling er valgt. Admin/Skadeleder/IT Support uændret.
+
 ## 2026-06-11 — Fix: multi-role admin kunne ikke redigere roller + manglende oversættelse multiRoleHelp
 
 ### Changes

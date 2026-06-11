@@ -190,7 +190,7 @@ export const useDashboardMetrics = () => {
       if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr, selectedSubDepartmentId]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr, selectedSubDepartmentId, effectiveRole]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 
