@@ -465,6 +465,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                     )}
                     <SelectItem value="administrator">{t("employees.administrator")}</SelectItem>
                     <SelectItem value="skadeleder">{t("employees.skadeleder")}</SelectItem>
+                    <SelectItem value="fugttekniker">{t("employees.fugttekniker")}</SelectItem>
                     <SelectItem value="servicemedarbejder">{t("employees.servicemedarbejder")}</SelectItem>
                     <SelectItem value="vikar">{t("employees.vikar")}</SelectItem>
                   </SelectContent>
