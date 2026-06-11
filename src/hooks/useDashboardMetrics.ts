@@ -8,6 +8,7 @@ import { useWarehouseData } from './warehouse/useWarehouseData';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 
 export const useDashboardMetrics = () => {

@@ -1,41 +1,32 @@
 ## Findings
 
-**Rolle-redigering fejler** efter multi-role blev aktiveret:
-- `supabase/functions/admin-user-role/index.ts` verificerer kalderens admin-status med
-  ```ts
-  supabaseAdmin.from('user_roles').select('role').eq('user_id', user.id).maybeSingle()
-  ```
-  Når en administrator nu kan have flere rækker i `user_roles` (fx Administrator + Fugttekniker), returnerer `maybeSingle()` PostgREST-fejlen `PGRST116 ("more than one row returned")`. Edge-funktionen svarer derfor 500 *"Failed to verify user permissions"* — og UI viser "fejl" i stedet for at gemme rollen.
-- Resten af funktionen er allerede multi-role korrekt (sletter alle og indsætter den fulde liste).
+`src/hooks/useDashboardMetrics.ts` afgør "tællbare medarbejdere" sådan:
+- **Ingen underafdeling valgt** → kun `servicemedarbejder` (giver fx 10).
+- **Underafdeling valgt** → `servicemedarbejder` + `fugttekniker` + `skadeleder` (giver de 17 Jonas ser, da han har Fugt-underafdelingen aktiv).
 
-**Manglende oversættelse:**
-- `src/components/Admin/UserFormDialog.tsx:437` slår `admin.userManagement.multiRoleHelp` op, men nøglen findes ikke i `src/translations/{da,en}/admin.ts` (kun `userManagement: {}` containeren findes på linje 247 i begge filer). Derfor falder den til den hardcodede fallback.
+Logikken er rolle-uafhængig; en fugttekniker får derfor samme udvidede tæller som en administrator.
 
 ## Plan
 
-### 1. Edge function: tillad flere roller på kalderen
-I `supabase/functions/admin-user-role/index.ts` (linje ~110-118) udskift admin-check:
-```ts
-const { data: callerRoles, error: roleError } = await supabaseAdmin
-  .from('user_roles')
-  .select('role')
-  .eq('user_id', user.id);
+Fugtteknikere skal — ligesom servicemedarbejdere — kun se ledige servicemedarbejdere i KPI-stakken, uanset om en underafdeling er valgt.
 
-const callerRoleList = (callerRoles ?? []).map(r => r.role);
-const isAdminCaller = callerRoleList.some(r => r === 'administrator' || r === 'super_admin');
-```
-Tilret den efterfølgende `if (!roleData || !['administrator','super_admin'].includes(roleData.role))` til at bruge `isAdminCaller`, og log `callerRoleList` i stedet for `roleData.role`. Ingen øvrige ændringer behøves — sletning + multi-insert er allerede korrekt.
+**`src/hooks/useDashboardMetrics.ts`:**
+1. Importér `useAuth` og hent `effectiveRole`.
+2. Definér `restrictToServicemedarbejder = effectiveRole === 'servicemedarbejder' || effectiveRole === 'fugttekniker'`.
+3. Opdatér `isCountableEmployee`:
+   ```ts
+   if (restrictToServicemedarbejder) return roles.includes('servicemedarbejder');
+   if (selectedSubDepartmentId) return roles.some(r => SUB_DEPT_ROLES.includes(r));
+   return roles.includes('servicemedarbejder');
+   ```
+4. Tilføj `effectiveRole` til `useMemo`-dependencies.
 
-### 2. Tilføj oversættelsen `admin.userManagement.multiRoleHelp`
-- `src/translations/da/admin.ts` (inde i `userManagement` blokken): `multiRoleHelp: 'Vælg én eller flere roller. Rollen med flest rettigheder bestemmer brugerens adgang; medarbejdere med flere roller vises i alle relevante lister.'`
-- `src/translations/en/admin.ts`: `multiRoleHelp: 'Select one or more roles. The most privileged role determines access; employees with multiple roles appear in every relevant list.'`
-- `UserFormDialog.tsx` fallback-strengen lades urørt (sikkerhedsnet).
+Ingen ændringer i `CompactKpiStack.tsx`, ingen DB-/schema-ændringer, ingen ændring for administrator/skadeleder/IT Support.
 
-### 3. Changelog
-Ny entry `2026-06-11 — Fix: multi-role admin kunne ikke redigere roller + manglende oversættelse multiRoleHelp`.
+### Changelog
+`2026-06-11 — Fugttekniker ser kun ledige servicemedarbejdere i dashboard-KPI (samme view som servicemedarbejder)`.
 
 ## Verifikation
-- Som administrator med ekstra rolle (fx Administrator + Fugttekniker): rediger en medarbejders roller → forventet 200 fra `admin-user-role`, ingen 500-fejl, rollerne gemmes.
-- `UserFormDialog`: hjælpetekst under rolle-checkboxes viser den oversatte streng i stedet for fallback.
-
-Ingen DB-/schema-ændringer.
+- Jonas Poulsen (fugttekniker) på dashboardet med Fugt-underafdeling aktiv: "Ledige medarbejdere" viser `x / 10` i stedet for `9 / 17`.
+- Administrator/skadeleder/IT Support: uændret adfærd (17 ved valgt underafdeling).
+- Servicemedarbejder: uændret (10).
