@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-11 — Fix: "Alle"-opgaver lækkede ind i underafdelings-visning
+
+Planneren læser opgaver via RPC'en `list_accessible_assignments_with_team`. WHERE-klausulen indeholdt `OR a.sub_department_id IS NULL`, så opgaver knyttet til hovedafdelingen ("Alle") også dukkede op når man havde valgt en underafdeling. Filteret er nu strikt: underafdeling → kun matchende `sub_department_id`; ingen underafdeling → kun opgaver uden `sub_department_id`.
+
+### Changes
+- **`list_accessible_assignments_with_team`** (migration): begge rolle-grene bruger nu strikt sub_department_id-match uden NULL-fallback.
+
+
 ## 2026-06-11 — Fix: Rolle-redigering brugte direkte `user_roles` write
 
 Admin-dialogen forsøgte at slette/indsætte rækker direkte i `user_roles` fra klienten ved rolleændring. Det ramte korrekt RLS-beskyttelse og gav `403 Forbidden`. Rolleændringer for eksisterende brugere går nu via `admin-user-role` edge function, og den direkte defensive rolle-write efter brugeroprettelse er fjernet.

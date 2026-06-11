@@ -1,49 +1,40 @@
 ## Problem
 
-Sektionen "Ikke-tildelte ressourcer" på Planner viser stadig alle medarbejdere, biler og opgaver, selv når man har valgt en underafdeling (fx Fugt). Den respekterer ikke det valg, der blev lavet ved oprettelsen af underafdelingen (tilknyttede biler + medarbejdere). Det gør, at f.eks. Servicemedarbejdere stadig dukker op, selvom underafdelingen kun indeholder Skadeledere og Fugtteknikere.
+Planner viser stadig alle "Alle"-opgaver (sub_department_id IS NULL) når man har valgt en underafdeling.
 
-## Årsag
+Årsag: RPC'en `list_accessible_assignments_with_team` har en eksplicit fallback i WHERE-klausulen:
 
-`UnassignedResourcesSection` får sine `employees`, `cars` og `assignments` fra `useUnifiedData()` (i `PlannerContent.tsx`). `useUnifiedData` filtrerer kun på `selectedDepartmentId` — den læser ikke `selectedSubDepartmentId` overhovedet. Vores tidligere isolation blev kun lagt ind i `useEmployeeData` og `carSecurityService`, som bruges andre steder.
+```sql
+AND (p_sub_department_id IS NULL OR a.sub_department_id = p_sub_department_id OR a.sub_department_id IS NULL)
+```
+
+Denne `OR a.sub_department_id IS NULL` tillader alle hoveddeparts-opgaver at lække ind i underafdelings-visningen. Frontend-laget (useUnifiedData / unifiedDataService) er allerede strikt, men planneren læser opgaver via denne RPC, og den vinder.
 
 ## Løsning
 
-Udvid `useUnifiedData` + `unifiedDataService` så de også filtrerer strikte på sub-department, når en sub-department er valgt — på samme måde som vi gør andre steder.
+Ny migration som genskaber `list_accessible_assignments_with_team` (samme signatur og body) med strikt sub-dept filter i begge grene:
 
-### Ændringer
+```sql
+AND (
+  (p_sub_department_id IS NULL AND a.sub_department_id IS NULL)
+  OR (p_sub_department_id IS NOT NULL AND a.sub_department_id = p_sub_department_id)
+)
+```
 
-1. **`src/hooks/data/useUnifiedData.ts`**
-   - Hent `selectedSubDepartmentId` fra `useDepartment()`.
-   - Send det med ned i `fetchAllData(...)` og inkludér det i `useEffect`-dependencies + realtime channel key.
+Adfærd:
+- Hoveddept valgt (ingen sub) → kun opgaver uden sub_department_id ("Alle").
+- Underafdeling valgt → kun opgaver med præcis det sub_department_id. "Alle"-opgaver skjules som ønsket.
+- Beholder rolle-grenene (admin/skadeleder/super_admin vs. øvrige), SECURITY DEFINER, search_path='', og logging uændret.
 
-2. **`src/services/data/unifiedDataService.ts`** — udvid alle tre fetch-funktioner med et valgfrit `subDepartmentId`:
-   - **`fetchEmployees`**: Når `subDepartmentId` er sat:
-     - Slå op i `user_access` → hent `user_id`'er med `sub_department_id = subDepartmentId`.
-     - Filtrér `profiles`-query med `.in('id', allowedIds)`. Hvis listen er tom → returnér tomt array (ingen fallback til alle).
-   - **`fetchCars`**: Når `subDepartmentId` er sat:
-     - Slå op i `car_sub_departments` → hent `car_id`'er for valgt sub-department.
-     - Filtrér `cars`-query med `.in('id', allowedIds)`. Ingen `is null`-fallback.
-   - **`fetchAssignments`**: Når `subDepartmentId` er sat:
-     - Tilføj `.eq('sub_department_id', subDepartmentId)` på `assignments`-query. Ingen `IS NULL`-fallback (matcher allerede ændringen i `list_accessible_assignments_with_team`).
-   - Cache-key skal inkludere `subDepartmentId`, så vi ikke får krydskontamineret cache mellem "Alle" og "Fugt".
+## Filer
 
-3. **Rolle-relateret kommentar**: Selve UI-grupperingen i `UnassignedResourcesSection` (Skadeledere / Fugtteknikere / Servicemedarbejdere) ændres ikke — når medarbejderlisten først er korrekt filtreret efter sub-department, vil Servicemedarbejder-gruppen naturligt være tom for "Fugt", da kun Skadeledere og Fugtteknikere er tilknyttet sub-departmentet via `user_access`.
+1. Ny migration `supabase/migrations/<timestamp>_strict_sub_dept_filter_assignments.sql` med `CREATE OR REPLACE FUNCTION public.list_accessible_assignments_with_team(...)`.
+2. `CHANGELOG.md` – tilføj entry under 2026-06-11: "Fix: Underafdeling viser ikke længere 'Alle'-opgaver (strikt sub_department_id-filter i RPC)."
+3. `docs/implementation-plan/tasks.md` – marker tilhørende isolerings-task som færdig.
 
-4. **Dokumentation**
-   - Opdatér `CHANGELOG.md` med en linje under dagens dato.
-   - Marker den relevante delopgave i `docs/implementation-plan/tasks.md` som `[x]`.
+Ingen ændringer i frontend nødvendige – filteret bliver allerede sendt korrekt via `p_sub_department_id`.
 
-### Ingen ændringer
+## Bekræftelse efter deploy
 
-- Ingen DB-migrering — alle nødvendige kolonner og link-tabeller findes allerede.
-- Ingen ændringer i RLS — vi strammer kun client-side queries.
-- Ingen ændringer i andre Planner-widgets (de bruger allerede de hooks vi tidligere har opdateret).
-- Ingen ændring af gruppe-/farve-logikken i `UnassignedResourcesSection.tsx`.
-
-### Verifikation
-
-Når man vælger sub-department "Fugt":
-- Kun medarbejdere med `user_access.sub_department_id = <fugt>` vises (kun Skadeledere + Fugtteknikere → Servicemedarbejder-gruppen er tom).
-- Kun biler linket via `car_sub_departments` til Fugt vises.
-- Kun opgaver med `sub_department_id = <fugt>` indgår i "tildelt"-beregningen.
-Når man skifter tilbage til "Alle", vises alt under hoved-afdelingen som før.
+- Skift til en underafdeling og bekræft at "Alle"-opgaver forsvinder fra Planner.
+- Skift til hoveddept (ingen sub) og bekræft at "Alle"-opgaver stadig vises.
