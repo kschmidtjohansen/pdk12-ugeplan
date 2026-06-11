@@ -1854,6 +1854,7 @@ export type Database = {
         | "servicemedarbejder"
         | "vikar"
         | "super_admin"
+        | "fugttekniker"
       vacation_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -1991,6 +1992,7 @@ export const Constants = {
         "servicemedarbejder",
         "vikar",
         "super_admin",
+        "fugttekniker",
       ],
       vacation_status: ["pending", "approved", "rejected"],
     },

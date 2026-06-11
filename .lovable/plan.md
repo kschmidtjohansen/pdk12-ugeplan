@@ -1,56 +1,39 @@
-## Problem
 
-Servicemedarbejder (og vikar) ser kun sig selv på `/employees`, fordi RLS-policyen `secure_profile_access_unified` på `public.profiles` kun tillader SELECT for:
+## Plan: Ny rolle "Fugttekniker"
 
-- ejeren selv (`id = auth.uid()`), eller
-- brugere med rollen `administrator`, `skadeleder` eller `super_admin`.
+Fugttekniker = samme rettigheder som Servicemedarbejder (kan ikke oprette/redigere opgaver, godkende ferie, se brændstofkoder mv.), MEN bruger Skadeleder/Administrator-dashboardet (DashboardCockpit med metrics) i stedet for det forenklede ServicemedarbejderDashboard.
 
-Servicemedarbejdere har ingen af de roller, så Supabase returnerer kun deres egen profil. Frontend-koden (`useEmployeeData` + `EmployeesPage`) får dermed kun én række, uanset hvilken segment/visning der vælges.
+### 1. Database (migration)
+- `ALTER TYPE user_role ADD VALUE 'fugttekniker';`
+- Ingen ændringer i RLS-funktioner (`is_admin_or_skadeleder`, `can_view_fuel_codes`, `can_access_vacation`) — fugttekniker skal ikke have extra rettigheder.
+- Profiles SELECT-policy (`secure_profile_access_unified`) ramt i tidligere migration via `user_access`-join — fugttekniker ser allerede kolleger automatisk.
 
-## Løsning
+### 2. Edge functions
+- `supabase/functions/admin-user-role/index.ts`: tilføj `'fugttekniker'` til `validRoles`.
 
-Udvid SELECT-policyen så en autentificeret bruger også kan se kolleger der deler mindst én afdeling via `public.user_access`. Det respekterer multi-tenant-isoleringen (Core-reglen: aldrig `USING (true)`), og giver servicemedarbejdere adgang til kolleger i deres egen afdeling — men ikke på tværs af afdelinger.
+### 3. Frontend type & auth
+- `src/context/AuthContext.tsx`: udvid `UserRole` med `'fugttekniker'`. Ingen ændringer i `isAdmin`, `canEdit`, `canCreate`, `canPublishTasks`, `canApproveVacation`, `canViewFuelCardCode` — alle forbliver false som for servicemedarbejder.
+- `src/types/employee.ts`: tilføj `'fugttekniker'` til role-union.
+- `src/utils/roles.ts`: ingen ændringer (skal IKKE tælle som admin/skadeleder).
 
-### Migration (kun RLS, ingen skemaændring)
+### 4. Dashboard-routing
+- `src/pages/DashboardPage.tsx`:
+  - `isServicemedarbejder` → kun `'servicemedarbejder'` (uændret), så fugttekniker rammer `DashboardCockpit`.
+  - `shouldShowMetrics` udvides: `super_admin | administrator | skadeleder | fugttekniker`.
+- `src/components/Dashboard/QuickAccessGrid.tsx`: tilføj `fugttekniker` til betingelsen der viser Medarbejdere/Biler genveje (så dashboardet ligner skadeleders).
 
-Drop og genskab `secure_profile_access_unified` på `public.profiles` med følgende logik:
+### 5. UI / admin
+- `src/components/Admin/UserFormDialog.tsx`: ny `<SelectItem value="fugttekniker">` i rollevælgeren.
+- `src/translations/da/admin.ts` + `en/admin.ts`: tilføj `fugttekniker` label + `fugttekniker Desc`.
+- `docs/product-roadmap/user-personas.md`: tilføj kort sektion om Fugttekniker.
 
-```text
-USING (
-  id = auth.uid()
-  OR public.has_role(auth.uid(), 'administrator')
-  OR public.has_role(auth.uid(), 'skadeleder')
-  OR public.has_role(auth.uid(), 'super_admin')
-  OR EXISTS (
-        SELECT 1
-        FROM public.user_access me
-        JOIN public.user_access them
-          ON them.department_id = me.department_id
-        WHERE me.user_id = auth.uid()
-          AND them.user_id = profiles.id
-     )
-)
-```
+### 6. Changelog
+- Tilføj entry i `CHANGELOG.md`: "Ny rolle: Fugttekniker (samme rettigheder som Servicemedarbejder, ser admin-dashboard)".
 
-- Bruger `public.has_role(...)` (SECURITY DEFINER) for at undgå rekursion.
-- Krydser `user_access` på `department_id` så kun kolleger i samme afdeling bliver synlige.
-- Demo-policyen `hide_demo_data_profiles` røres ikke — demo-isolation bevares.
-- Ingen ændring til `user_roles`, `profiles`-skema eller GRANTs.
+### Verifikation
+- Build skal være grøn.
+- Logget ind som fugttekniker: ser DashboardCockpit med metrics, men kan ikke redigere/oprette opgaver eller godkende ferie.
+- Admin kan tildele rollen i UserFormDialog.
 
-### Frontend
-
-`useEmployeeData` filtrerer i forvejen klient-side på `user_access` for den valgte afdeling og henter `user_roles`. Når RLS åbner for kolleger, vil servicemedarbejderens forespørgsel returnere alle profiler i hans afdeling, og det eksisterende filter virker uændret. Ingen kodeændringer nødvendige.
-
-UI (`EmployeesTable`, `EmployeesPage`) skjuler allerede admin-handlinger bag `isAdmin`, så servicemedarbejdere får kun læseadgang — som ønsket.
-
-### Dokumentation
-
-- `CHANGELOG.md`: tilføj entry ("Servicemedarbejdere kan nu se kolleger i samme afdeling under /employees").
-- `mem://features/department-system` opdateres ikke — reglen om dept-isolation overholdes stadig.
-
-## Verifikation
-
-1. Login som servicemedarbejder → `/employees` viser alle kolleger i den valgte afdeling, ingen handlingsknapper.
-2. Login som servicemedarbejder i afdeling A → ser ikke profiler der kun har `user_access` i afdeling B.
-3. Admin/skadeleder/super_admin: uændret adfærd.
-4. Demo-mode: uændret (separat policy).
+### Spørgsmål
+Skal Fugttekniker også kunne se brændstofkortkoder eller har de samme begrænsning som Servicemedarbejder dér? (Default i planen: samme begrænsning — kan ikke se koder.)
