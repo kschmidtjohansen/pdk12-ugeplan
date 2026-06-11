@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-11 — Rod-årsag: fugttekniker så skadeledere som servicemedarbejdere i dashboard
+
+`user_roles` SELECT-policy tillod kun, at brugeren læste sin egen rolle (medmindre vedkommende var admin/skadeleder). Det betød, at en fugttekniker (f.eks. Jonas Poulsen) fik tom rolle-info for alle kolleger, hvorefter `useEmployeeData` faldt tilbage til `'servicemedarbejder'` — så skadeledere og fugtteknikere blev fejlbehandlet som servicemedarbejdere i KPI'er og "Ledige medarbejdere"-dialogen.
+
+### Changes
+- Migration: udvider `user_roles_select_policy` til alle `authenticated` brugere, så rolle-baseret UI-filtrering virker korrekt for ikke-admins. Insert/update/delete er fortsat låst til `service_role`.
+
+
 ## 2026-06-11 — Fugttekniker ser kun servicemedarbejdere i "Ledige medarbejdere"-dialog
 
 Dialogen filtreres nu også på rollen, så fugtteknikere (og servicemedarbejdere) ikke længere ser skadeleder/fugttekniker i listen — uanset om en underafdeling er valgt eller dato navigeres.
