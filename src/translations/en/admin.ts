@@ -298,7 +298,7 @@ export const admin = {
     selectSubDepartments: 'Select sub-departments',
     totalCount: '{count} users total',
     skipDepartment: 'No department (IT support)',
-    skipDepartmentNote: 'User is created without department affiliation. Suitable for IT support with Super Admin role.',
+    skipDepartmentNote: 'User is created without department affiliation. Suitable for IT Support users.',
     selectAtLeastOneDept: 'Select at least one department for the user'
   },
   passwords: {
@@ -334,7 +334,7 @@ export const admin = {
     deleteWarning: "All items assigned to this location will have their location set to 'None'. This action cannot be undone.",
   },
   roles: {
-    super_admin: 'Super Admin',
+    super_admin: 'IT Support',
     administrator: 'Administrator',
     skadeleder: 'Case Manager',
     servicemedarbejder: 'Service Employee',

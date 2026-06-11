@@ -298,7 +298,7 @@ export const admin = {
     selectSubDepartments: 'Vælg underafdelinger',
     totalCount: '{count} brugere i alt',
     skipDepartment: 'Uden afdeling (IT-support)',
-    skipDepartmentNote: 'Brugeren oprettes uden tilknytning til en afdeling. Velegnet til IT-supportere med Super Admin-rolle.',
+    skipDepartmentNote: 'Brugeren oprettes uden tilknytning til en afdeling. Velegnet til IT Support-brugere.',
     selectAtLeastOneDept: 'Vælg mindst én afdeling for brugeren'
   },
   passwords: {
@@ -334,7 +334,7 @@ export const admin = {
     deleteWarning: "Alle opbevaringer tilknyttet denne lokation vil få deres lokation sat til 'Ingen'. Denne handling kan ikke fortrydes.",
   },
   roles: {
-    super_admin: 'Super Admin',
+    super_admin: 'IT Support',
     administrator: 'Administrator',
     skadeleder: 'Skadeleder',
     servicemedarbejder: 'Servicemedarbejder',

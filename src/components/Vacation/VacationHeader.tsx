@@ -22,7 +22,8 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
   onOpenAdminDialog
 }) => {
   const { t } = useTranslation();
-  const { isEffectiveAdmin } = useAuth();
+  const { isEffectiveAdmin, isEffectiveSkadeleder } = useAuth();
+  const canManageVacations = isEffectiveAdmin || isEffectiveSkadeleder;
   
   return (
     <div className="py-4">
@@ -42,7 +43,7 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
             {t("vacation.applyForVacation")}
           </Button>
           
-          {isEffectiveAdmin && (
+          {canManageVacations && (
             <Button
               onClick={onOpenAdminDialog}
               variant="outline"

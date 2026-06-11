@@ -111,7 +111,7 @@ const employees = {
   markOnLeaveDescription: 'Mark {name} as on leave. Please add a note with the reason.',
   
   // Roles
-  super_admin: 'Super Admin',
+  super_admin: 'IT Support',
   administrator: 'Administrator',
   skadeleder: 'Case Manager',
   servicemedarbejder: 'Service Employee',
