@@ -43,7 +43,7 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
             {t("vacation.applyForVacation")}
           </Button>
           
-          {isEffectiveAdmin && (
+          {canManageVacations && (
             <Button
               onClick={onOpenAdminDialog}
               variant="outline"
