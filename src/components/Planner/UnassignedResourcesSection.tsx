@@ -298,8 +298,12 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
           <CardContent className="pt-3">
             <div className="space-y-4">
               {/* Employees by Role - Compact */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Skadeledere — lilla */}
+              {(() => {
+                const isFugttekniker = user?.role === 'fugttekniker';
+                const visibleColumns = isFugttekniker ? 1 : 3;
+                return (
+              <div className={`grid grid-cols-1 md:grid-cols-${visibleColumns} gap-4`}>
+                {!isFugttekniker && (
                 <div>
                   <h4 className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
                     <UserCheck className="h-4 w-4" />
