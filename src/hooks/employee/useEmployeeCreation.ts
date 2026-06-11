@@ -244,7 +244,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             if (targetRole && targetRole !== 'servicemedarbejder') {
               const { error: roleError } = await client
                 .from('user_roles')
-                .update({ role: targetRole })
+                .update({ role: targetRole as any })
                 .eq('user_id', userId);
 
               if (roleError) {
