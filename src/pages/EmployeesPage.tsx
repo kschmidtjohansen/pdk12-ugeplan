@@ -44,6 +44,7 @@ const EmployeesPage: React.FC = () => {
     prepareForCreateVikar,
     handleInputChange,
     handleSelectChange,
+    handleRoleToggle,
     handleCheckboxChange,
     createEmployee,
     updateEmployee,
