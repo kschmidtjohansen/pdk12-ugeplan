@@ -1,34 +1,32 @@
 ## Mål
-Medarbejder-labels på opgavekort (Ugeplan grid + andre steder) skal vise rolle-farverne fra `getRoleBadgeClass`:
-- Skadeleder → lilla
-- Fugttekniker → blå
-- Servicemedarbejder/Vikar → grøn
-- Admin/Super Admin → lilla / amber
+Bil-selectoren (Popover på desktop) klippes af nederst i dialogboksen, så de sidste biler ikke kan ses eller scrolles til. Den indre scroll bruger `max-h-[70vh]`, men hvis popoveren åbnes tæt på bunden af viewport, ender den alligevel uden for skærmen.
 
-I dag overskygges rolle-farven af klassen `chip-person` (teal) i `src/index.css`, så alle medarbejder-chips ender med samme tealgrønne look uanset rolle.
+## Ændring
+**`src/components/Planner/MultipleCarSelector.tsx`** (linje 323–333):
+- Brug Radix Popover's egen tilgængelige højde via CSS-variablen `--radix-popover-content-available-height` på `PopoverContent`, så den altid passer i viewporten.
+- Sæt `collisionPadding={8}` og `avoidCollisions` (default true) så den flipper/begrænses korrekt.
+- Erstat den indre `max-h-[70vh]` med `max-h-full`, så listen scroller inden for popoverens reelle højde.
 
-## Ændringer
+Konkret:
+```tsx
+<PopoverContent
+  className="w-96 p-0 z-[60] bg-popover border shadow-lg flex flex-col max-h-[min(70vh,var(--radix-popover-content-available-height))]"
+  sideOffset={4}
+  collisionPadding={8}
+>
+  <div
+    className="flex-1 overflow-y-auto overscroll-contain"
+    onWheel={(e) => e.stopPropagation()}
+  >
+    {renderCarList()}
+  </div>
+</PopoverContent>
+```
 
-### 1) `src/components/Planner/AssignmentDetails.tsx`
-- Fjern `chip-person` fra de inline medarbejder-chips, så `getRoleBadgeClass(item.role)` alene styrer baggrund/border/tekstfarve. Behold `chip` og `border` for form og padding.
-  - Linje 154: `className={cn('chip border', getRoleBadgeClass(item.role))}`
-- I tooltippet (når der er >2 medarbejdere) skal prikken bruge `getRoleDotClass(item.role)` i stedet for `getRoleBadgeClass` (som indeholder bg+border+text — prikken skal kun have bg).
-  - Importer `getRoleDotClass` fra `@/utils/roleColors`.
-  - Linje 179: `<span className={cn('h-1.5 w-1.5 rounded-full shrink-0', getRoleDotClass(item.role))} />`
-- "X medarbejdere"-knappen (collapsed state) får en neutral chip-stil, fx `chip border bg-muted text-foreground`, så den ikke fejlagtigt signalerer én bestemt rolle.
+Mobile Drawer-grenen er allerede scrollbar (`max-h-[70dvh] overflow-y-auto`) og rører jeg ikke.
 
-### 2) `src/components/Planner/CompactAssignmentRow.tsx`
-- Brug også rolle-farve på medarbejder-chippen i listevisningen, baseret på den højest rangerede rolle blandt de tilknyttede medarbejdere (genbrug `getEffectiveRole` fra `roleHierarchy` til at vælge tone, da chippen viser ét samlet label).
-- Erstat `chip chip-person` med `chip border ${getRoleBadgeClass(effectiveRole)}`.
-
-### 3) Verifikation
-- Tjek Ugeplan grid-visning: Mark/Ronnie (servicemedarbejder) bliver grønne, en skadeleder bliver lilla, en fugttekniker bliver blå.
-- Tjek compact/list-visning samme sted.
-- Tjek dark mode (badge-klasserne har lyse baggrunde — acceptabelt, samme stil bruges allerede i `EmployeeSelector` og `AssignmentDetails` dialogen).
+## Verifikation
+Åbn "Opret opgave" → Vælg Biler i bunden af viewporten og bekræft at hele listen kan scrolles til (Trailer, Vagt 1, etc. synlige).
 
 ## Changelog
-`2026-06-11 — Medarbejder-labels på opgavekort viser nu rolle-farve (lilla/blå/grøn) i både grid- og listevisning`
-
-## Tekniske noter
-- Ingen ændringer i `roleColors.ts` eller `roleHierarchy.ts` — kun forbrug.
-- `chip-person`-klassen bevares i CSS, men bruges ikke længere på medarbejder-chips. Den kan stå som fallback/forventet brug andre steder uden påvirkning.
+`2026-06-11 — MultipleCarSelector popover begrænses nu til tilgængelig viewport-højde og scroller indvendigt`

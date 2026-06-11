@@ -321,11 +321,12 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
             {triggerButton}
           </PopoverTrigger>
           <PopoverContent
-            className="w-96 p-0 z-[60] bg-popover border shadow-lg"
+            className="w-96 p-0 z-[60] bg-popover border shadow-lg flex flex-col max-h-[min(70vh,var(--radix-popover-content-available-height))]"
             sideOffset={4}
+            collisionPadding={8}
           >
             <div
-              className="max-h-[70vh] overflow-y-auto"
+              className="flex-1 overflow-y-auto overscroll-contain"
               onWheel={(e) => e.stopPropagation()}
             >
               {renderCarList()}
