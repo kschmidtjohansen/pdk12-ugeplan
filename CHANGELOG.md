@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-11 — Fugttekniker: justeringer
+
+### Changes
+- `useDashboardMetrics` tæller nu kun Servicemedarbejdere og Vikarer i "Tilgængelige" og "Fraværende" — Administratorer, Skadeledere og Fugtteknikere ekskluderet.
+- Demo-rolleswitcher viser nu også Fugttekniker (mellem Skadeleder og Servicemedarbejder).
+- Rollevælgeren i brugerformularen viser Fugttekniker over Servicemedarbejder.
+
+
+
 ## 2026-06-11 — Ny rolle: Fugttekniker
 
 ### Feature

@@ -31,6 +31,11 @@ export const DemoRoleSwitcher: React.FC = () => {
       label: t('admin.roles.skadeleder') || 'Skadeleder', 
       description: t('admin.roles.skadelederDesc') || 'Can manage assignments and approve tasks' 
     },
+    {
+      role: 'fugttekniker',
+      label: t('admin.roles.fugttekniker') || 'Fugttekniker',
+      description: t('admin.roles.fugtteknikerDesc') || 'Samme rettigheder som servicemedarbejder, men ser fuldt dashboard'
+    },
     { 
       role: 'servicemedarbejder', 
       label: t('admin.roles.servicemedarbejder') || 'Servicemedarbejder', 

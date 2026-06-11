@@ -1,39 +1,26 @@
 
-## Plan: Ny rolle "Fugttekniker"
+## Plan
 
-Fugttekniker = samme rettigheder som Servicemedarbejder (kan ikke oprette/redigere opgaver, godkende ferie, se brændstofkoder mv.), MEN bruger Skadeleder/Administrator-dashboardet (DashboardCockpit med metrics) i stedet for det forenklede ServicemedarbejderDashboard.
+### 1. `useDashboardMetrics` — ekskludér Skadeleder og Fugttekniker
+Tilføj en helper `isCountableEmployee` der kun tæller roller `servicemedarbejder` og `vikar` (de roller der reelt udfører feltarbejde). Anvendes på:
+- `totalEmployees` (linje 44) — totalen i "Tilgængelige medarbejdere"
+- `availableEmployeesList` filter (linje 47) — listen over ledige
+- `absentEmployeesList` filter (linje 95) — fraværende i dag
+- Debug-log (`servicemedarbejdere`) opdateres tilsvarende.
 
-### 1. Database (migration)
-- `ALTER TYPE user_role ADD VALUE 'fugttekniker';`
-- Ingen ændringer i RLS-funktioner (`is_admin_or_skadeleder`, `can_view_fuel_codes`, `can_access_vacation`) — fugttekniker skal ikke have extra rettigheder.
-- Profiles SELECT-policy (`secure_profile_access_unified`) ramt i tidligere migration via `user_access`-join — fugttekniker ser allerede kolleger automatisk.
+Administratorer, Skadeledere, Fugtteknikere og Super Admins tæller dermed ikke længere med i "Tilgængelige" / "Fraværende"-tal og lister på dashboardet. Bil- og lager-metrics er uafhængige af roller og forbliver uændrede.
 
-### 2. Edge functions
-- `supabase/functions/admin-user-role/index.ts`: tilføj `'fugttekniker'` til `validRoles`.
+### 2. `DemoRoleSwitcher` — tilføj Fugttekniker
+Indsæt nyt rolle-objekt for `fugttekniker` i `roles`-arrayet **lige før** `servicemedarbejder`, så rækkefølgen bliver: Super Admin → Administrator → Skadeleder → Fugttekniker → Servicemedarbejder. Bruger eksisterende `admin.roles.fugttekniker` / `fugtteknikerDesc`-oversættelser.
 
-### 3. Frontend type & auth
-- `src/context/AuthContext.tsx`: udvid `UserRole` med `'fugttekniker'`. Ingen ændringer i `isAdmin`, `canEdit`, `canCreate`, `canPublishTasks`, `canApproveVacation`, `canViewFuelCardCode` — alle forbliver false som for servicemedarbejder.
-- `src/types/employee.ts`: tilføj `'fugttekniker'` til role-union.
-- `src/utils/roles.ts`: ingen ændringer (skal IKKE tælle som admin/skadeleder).
+### 3. `UserFormDialog` rolledropdown — Fugttekniker over Servicemedarbejder
+I `src/components/Admin/UserFormDialog.tsx` byttes rækkefølgen, så `<SelectItem value="fugttekniker">` står **før** `<SelectItem value="servicemedarbejder">`.
 
-### 4. Dashboard-routing
-- `src/pages/DashboardPage.tsx`:
-  - `isServicemedarbejder` → kun `'servicemedarbejder'` (uændret), så fugttekniker rammer `DashboardCockpit`.
-  - `shouldShowMetrics` udvides: `super_admin | administrator | skadeleder | fugttekniker`.
-- `src/components/Dashboard/QuickAccessGrid.tsx`: tilføj `fugttekniker` til betingelsen der viser Medarbejdere/Biler genveje (så dashboardet ligner skadeleders).
-
-### 5. UI / admin
-- `src/components/Admin/UserFormDialog.tsx`: ny `<SelectItem value="fugttekniker">` i rollevælgeren.
-- `src/translations/da/admin.ts` + `en/admin.ts`: tilføj `fugttekniker` label + `fugttekniker Desc`.
-- `docs/product-roadmap/user-personas.md`: tilføj kort sektion om Fugttekniker.
-
-### 6. Changelog
-- Tilføj entry i `CHANGELOG.md`: "Ny rolle: Fugttekniker (samme rettigheder som Servicemedarbejder, ser admin-dashboard)".
+### 4. Changelog
+Tilføj entry: dashboard-metrics tæller kun servicemedarbejdere/vikarer; Fugttekniker tilgængelig i demo-rolleswitcher; rækkefølge i formular justeret.
 
 ### Verifikation
 - Build skal være grøn.
-- Logget ind som fugttekniker: ser DashboardCockpit med metrics, men kan ikke redigere/oprette opgaver eller godkende ferie.
-- Admin kan tildele rollen i UserFormDialog.
-
-### Spørgsmål
-Skal Fugttekniker også kunne se brændstofkortkoder eller har de samme begrænsning som Servicemedarbejder dér? (Default i planen: samme begrænsning — kan ikke se koder.)
+- Dashboard som admin: "Tilgængelige medarbejdere" total falder med antallet af admins/skadeledere/fugtteknikere i afdelingen.
+- Demo: dropdown viser Fugttekniker mellem Skadeleder og Servicemedarbejder og kan vælges.
+- Brugerformular: Fugttekniker står over Servicemedarbejder.
