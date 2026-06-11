@@ -42,10 +42,16 @@ export const useDashboardMetrics = () => {
       const safeVacations = vacations || [];
       const safeWarehouseItems = warehouseItems || [];
 
-      // Kun servicemedarbejdere tæller i dashboard-metrics (ledige medarbejdere)
-      // — admins, skadeledere, fugtteknikere og vikarer udfører ikke feltarbejde
-      const isCountableEmployee = (e: typeof safeEmployees[number]) =>
-        e.role === 'servicemedarbejder';
+      // Kun servicemedarbejdere tæller i dashboard-metrics som default.
+      // Når en underafdeling er valgt, inkluderes også fugtteknikere og skadeledere.
+      const SUB_DEPT_ROLES = ['servicemedarbejder', 'fugttekniker', 'skadeleder'];
+      const isCountableEmployee = (e: typeof safeEmployees[number]) => {
+        const roles = (e.roles && e.roles.length ? e.roles : [e.role]) as string[];
+        if (selectedSubDepartmentId) {
+          return roles.some(r => SUB_DEPT_ROLES.includes(r));
+        }
+        return roles.includes('servicemedarbejder');
+      };
 
       const countableEmployees = safeEmployees.filter(isCountableEmployee);
 
