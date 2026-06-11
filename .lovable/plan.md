@@ -1,57 +1,64 @@
-## Plan: 4 fejlretninger
+## Plan: 4 ændringer (multi-role, kørertøjer i underafdeling, hurtig sub-dept navigation, “Alle”-restriktion)
 
-### 1) Dashboard-metrics: kun servicemedarbejdere som ledige medarbejdere
-**Fil:** `src/hooks/useDashboardMetrics.ts`
-- Ændr `isCountableEmployee` til kun `e.role === 'servicemedarbejder'` (fjern `vikar`), så `availableEmployees`, `absentEmployees` og totals kun tæller servicemedarbejdere. Det matcher kravet om at fugttekniker/skadeleder aldrig optræder.
-- Bekræft i `EmployeeAvailabilityDialog/hooks/useEmployeeDialogData.ts` at `allEmployees.filter(role === 'servicemedarbejder')` allerede filtrerer korrekt (gør det) — ingen ændring nødvendig.
-
-### 2) Prompt for synlige roller når underafdeling oprettes
-**DB:** Ny migration der tilføjer kolonne på `sub_departments`:
+### 1) Multi-role pr. medarbejder
+**DB-migration:**
 ```sql
-ALTER TABLE public.sub_departments
-  ADD COLUMN visible_roles app_role[] NOT NULL
-    DEFAULT ARRAY['skadeleder','fugttekniker','servicemedarbejder']::app_role[];
+ALTER TABLE public.user_roles DROP CONSTRAINT IF EXISTS user_roles_user_id_unique;
+DROP INDEX IF EXISTS public.user_roles_user_id_unique;
+-- bevarer UNIQUE(user_id, role) så samme rolle ikke kan tildeles to gange.
 ```
-Ingen RLS-ændring; eksisterende policies bevares.
 
-**Fil:** `src/components/Admin/SubDepartmentManagement.tsx`
-- Erstat den simple "navn + opret"-række med en lille dialog (`Dialog` fra shadcn) som åbnes via "Opret underafdeling"-knappen. Dialogen indeholder:
-  - Inputfelt: navn.
-  - Checkbox-gruppe: "Hvilke roller skal vises i denne underafdeling?" med tre afkrydsninger (Skadeleder, Fugttekniker, Servicemedarbejder), alle valgt som default.
-- `handleCreate` indsætter `{ name, department_id, visible_roles: selectedRoles }`.
-- Vis valgte roller som badges på listen ud for hver underafdeling, med en "rediger roller"-knap (genbruger samme dialog i edit-tilstand → kalder `update`).
+**Rolle-hierarki (mest → mindst privilegeret)** — ny utility `src/utils/roleHierarchy.ts`:
+```
+super_admin > administrator > skadeleder > fugttekniker > servicemedarbejder > vikar
+```
+Eksporter `getEffectiveRole(roles: UserRole[]): UserRole` og `ROLE_RANK`. Bruges overalt hvor vi i dag aflæser én rolle.
 
-**Oversættelser:** Tilføj nøgler i `src/translations/da/admin.ts` og `en/admin.ts`:
-- `subDepartments.visibleRoles`, `subDepartments.visibleRolesHelp`, `subDepartments.editRoles`.
+**`AuthContext.tsx`:**
+- Skift fetch til `maybeSingle()` → `.select('role').eq('user_id', authUser.id)` (alle rækker).
+- Gem `user.roles: UserRole[]` på `user`-objektet og behold `user.role` som “primær (highest) rolle” for bagudkompatibilitet.
+- `currentRole` (linje 597) beregnes som `getEffectiveRole(user.roles)`; demo-override uændret.
+- Alle `isAdmin`/`isSkadeleder`/`canEdit`-flag baseres fortsat på `currentRole` (= højeste rolle). Dermed får “Skadeleder + Fugttekniker” skadeleder-rettigheder automatisk.
 
-(Filtrering ud fra `visible_roles` andre steder i appen er ikke en del af denne opgave — kun selve prompten/lagringen.)
+**Admin UI — `UserFormDialog.tsx`:**
+- Erstat rolle-`Select` med en multi-select (checkbox-liste med rolle-badge-farver, samme stil som rolle-prompt i underafdelinger). Mindst én rolle krævet.
+- Send `roles: UserRole[]` til edge-funktionerne.
 
-### 3) Arbejdsdagens slut: 16:00 (man-tor), 15:30 (fre) skal regnes som fuldt booket
-**Fil:** `src/utils/employeeAvailability.ts`
-Problem: `Mark` slutter 16:00, men `startsEarlyEnough` (>08:30) er false, så han falder til `partiallyBooked` ("Tilgængelig efter 16:00"). Vi vil gerne have at hvis seneste sluttid ≥ arbejdsdagens slut (uden 30-min tolerance), så er medarbejderen `fullyBooked`, uanset starttid.
+**Edge functions:**
+- `admin-user-role/index.ts`: accepter `roles: string[]` (fallback til `role: string` for bagudkompat). Lav `DELETE FROM user_roles WHERE user_id=$1` + `INSERT` af alle nye roller i én transaktion (eller `upsert` + diff).
+- `admin-create-user/index.ts`: samme — indsæt alle valgte roller.
 
-Ændring i `getEmployeeAvailabilityStatus` (linje 216-246):
-- Behold `workdayEndTime` (16:00 / 15:30 fredag — allerede korrekt).
-- Fjern `subtractMinutes(workdayEndTime, 30)` tolerancen, eller reducer den til 0. Brug:
-  ```ts
-  const endsAtOrAfterClosing = compareTimeStrings(latestEndTime, workdayEndTime) >= 0;
-  if (endsAtOrAfterClosing) return { status: 'fullyBooked', ... };
-  ```
-- Behold den efterfølgende partiallyBooked-gren for tidligere sluttider.
+**Visning:** `UserTableRow` viser rolle-badges for alle roller i den rækkefølge hierarkiet definerer (highest først).
 
-Det betyder: en opgave 08:00–16:00 (man-tor) eller 08:00–15:30 (fre) markerer medarbejderen som fuldt booket. Opgaver der slutter før (fx 14:00) viser stadig "Tilgængelig efter 14:00".
+### 2) Vælg køretøjer ved oprettelse af underafdeling
+Tabel `car_sub_departments(car_id, sub_department_id)` findes allerede — bruges direkte.
 
-### 4) Fugttekniker må ikke kunne redigere fra detaljedialog
-**Filer:**
-- `src/components/Dashboard/AssignmentDetailsDialog.tsx`: Tilføj defensivt tjek — importer `usePermissions` fra `@/context/AuthContext` og vis kun "Rediger"-knappen hvis `canEdit && onEdit`. Det forhindrer at dialogen viser redigeringsknappen uanset hvor den åbnes fra (Planner, Dashboard, MineOpgaver).
-- `src/components/Planner/PlannerContent.tsx`: allerede gated (`onEdit={canEdit ? onEditAssignment : undefined}`) — ingen ændring, men det defensive tjek i dialogen lukker hullet.
-- Verificér også at `AssignmentCard`/`CompactAssignmentRow`'s onClick → kun åbner dialog (visning), aldrig editor, når `canEdit=false`. (Allerede tilfældet — `handleEditClick` kaldes kun via knapper bag `canEdit`.)
+**`SubDepartmentManagement.tsx`** (eksisterende create/edit-dialog udvides):
+- Hent køretøjer for valgt afdeling: `cars.select('id, name, car_number').eq('department_id', selectedDeptId).order('name')`.
+- Tilføj sektion under "Synlige roller": **"Køretøjer"** med checkbox pr. køretøj (samme visuelle stil som rolle-checkboxene). Default: ingen forvalgt ved oprettelse; ved redigering forudfyldt fra `car_sub_departments`.
+- Ved gem:
+  - Insert/update `sub_departments`-rækken som i dag.
+  - `DELETE FROM car_sub_departments WHERE sub_department_id=<id>` + bulk-insert af de afkrydsede `car_id`er.
+- Vis et lille car-tæller-badge på listen ved hver underafdeling (f.eks. "3 køretøjer").
+
+### 3) Hurtig sub-dept-navigation på dashboard
+Ny komponent `src/components/Dashboard/SubDepartmentQuickSwitcher.tsx`:
+- Vises i `DashboardPage` lige under `WelcomeHeader` (kun hvis `userSubDepartments.length > 1`).
+- Horisontal scroll-bar med pille-knapper: én pr. underafdeling + en "Alle"-pille i venstre side (kun synlig hvis brugeren må se "Alle", jf. punkt 4).
+- Aktiv pille fremhæves med primary-bg. Klik = `setSelectedSubDepartmentId(...)`.
+- Brug `getSubDepartmentColor`/badge-styling så det matcher resten af dashboardet (kompakt, `rounded-full`, `text-xs`, `px-3 py-1.5`).
+
+### 4) "Alle"-underafdeling kun for Administrator + Super Admin
+- I `DepartmentContext.tsx` (fetch sub-departments-effect): For ikke-admin brugere skal `selectedSubDepartmentId` aldrig være `null` så længe `userSubDepartments.length > 0` — det er allerede tilfældet, så ingen ændring i context.
+- I `UserMenu.tsx` (linje 119-121) og `DepartmentSwitcherPill.tsx`: vis kun "Alle"-`DropdownMenuRadioItem`/option når `isAdmin || isSuperAdmin` (via `usePermissions`). Ellers udelad punktet.
+- I den nye `SubDepartmentQuickSwitcher`: samme gating.
+- I `DepartmentContext`’s sub-dept-effect: hvis ikke-admin og current `selectedSubDepartmentId === null`, sæt automatisk til første tilgængelige sub-dept (allerede sådan — bare bekræft).
 
 ### Changelog
 Tilføj entry i `CHANGELOG.md`:
-`2026-06-11 — Dashboard-metrics kun servicemedarbejdere · Underafdelinger med synlige roller · Korrekt fuldt-booket ved 16:00/15:30 · Fugttekniker read-only på opgavedialog`
+`2026-06-11 — Multi-rolle pr. medarbejder · Køretøjer i underafdeling · Hurtig sub-dept switch på dashboard · "Alle" begrænset til admin/super admin`
 
 ### Tekniske noter
-- DB-migration kører via supabase--migration; ingen data-tab — default array sikrer eksisterende rækker bevarer alle roller.
-- Ingen RLS-ændringer.
-- Ingen ændring i `useDashboardMetrics` logik for `availableCars`/`warehouseItems`.
+- Ingen RLS-policy ændringer — eksisterende `has_role(_user_id, _role)`-funktion virker stadig med flere rækker.
+- Bagudkompatibilitet: `user.role` bevares som derived "primary role" så ingen anden komponent skal røres.
+- `car_sub_departments` har allerede RLS-politikker (4 stk.) — ingen schema-ændring nødvendig.
