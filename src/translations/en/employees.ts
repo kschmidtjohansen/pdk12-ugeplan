@@ -115,6 +115,7 @@ const employees = {
   administrator: 'Administrator',
   skadeleder: 'Case Manager',
   servicemedarbejder: 'Service Employee',
+  fugttekniker: 'Moisture Technician',
   vikar: 'Substitute',
   
   // Responsible users

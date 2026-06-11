@@ -31,6 +31,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
       case 'super_admin': return t('employees.super_admin');
       case 'administrator': return t('employees.administrator');
       case 'skadeleder': return t('employees.skadeleder');
+      case 'fugttekniker': return t('employees.fugttekniker');
       case 'servicemedarbejder': return t('employees.servicemedarbejder');
       case 'vikar': return t('employees.vikar');
       default: return role;
@@ -41,7 +42,9 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
     switch (role) {
       case 'super_admin': return 'warning' as const;
       case 'administrator': return 'info' as const;
-      case 'skadeleder': return 'success' as const;
+      case 'skadeleder': return 'purple' as const;
+      case 'fugttekniker': return 'info' as const;
+      case 'servicemedarbejder': return 'success' as const;
       default: return 'default' as const;
     }
   };

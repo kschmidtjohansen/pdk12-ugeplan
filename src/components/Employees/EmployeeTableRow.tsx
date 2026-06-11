@@ -30,11 +30,15 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
     switch (role) {
       case 'super_admin':
         return 'warning';
-      case 'administrator': 
+      case 'administrator':
         return 'info';
-      case 'skadeleder': 
+      case 'skadeleder':
+        return 'purple';
+      case 'fugttekniker':
+        return 'info';
+      case 'servicemedarbejder':
         return 'success';
-      default: 
+      default:
         return 'default';
     }
   };
@@ -48,6 +52,8 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         return t('employees.administrator');
       case 'skadeleder':
         return t('employees.skadeleder');
+      case 'fugttekniker':
+        return t('employees.fugttekniker');
       case 'servicemedarbejder':
         return t('employees.servicemedarbejder');
       case 'vikar':
