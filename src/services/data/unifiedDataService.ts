@@ -14,8 +14,9 @@ class UnifiedDataService {
   private cache = new Map<string, { data: any[]; timestamp: number; ttl: number }>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  private getCacheKey(operation: string, departmentId?: string): string {
-    return departmentId ? `unified_${operation}_${departmentId}` : `unified_${operation}`;
+  private getCacheKey(operation: string, departmentId?: string, subDepartmentId?: string | null): string {
+    const sub = subDepartmentId ? `_sub_${subDepartmentId}` : '';
+    return departmentId ? `unified_${operation}_${departmentId}${sub}` : `unified_${operation}${sub}`;
   }
 
   private getFromCache<T>(key: string): T[] | null {
@@ -38,8 +39,8 @@ class UnifiedDataService {
     });
   }
 
-  async fetchEmployees(departmentId?: string): Promise<DataFetchResult<Employee>> {
-    const cacheKey = this.getCacheKey('employees', departmentId);
+  async fetchEmployees(departmentId?: string, subDepartmentId?: string | null): Promise<DataFetchResult<Employee>> {
+    const cacheKey = this.getCacheKey('employees', departmentId, subDepartmentId);
     
     const cachedData = this.getFromCache<Employee>(cacheKey);
     if (cachedData) {
@@ -47,6 +48,27 @@ class UnifiedDataService {
     }
 
     try {
+      // If sub-department is selected, restrict to users linked via user_access.sub_department_id
+      let allowedUserIds: string[] | null = null;
+      if (subDepartmentId) {
+        const { data: accessRows, error: accessError } = await supabase
+          .from('user_access')
+          .select('user_id')
+          .eq('sub_department_id', subDepartmentId);
+
+        if (accessError) {
+          throw new Error(`User access fetch failed: ${accessError.message}`);
+        }
+
+        allowedUserIds = (accessRows || []).map(r => r.user_id).filter(Boolean);
+
+        if (allowedUserIds.length === 0) {
+          const empty: Employee[] = [];
+          this.setCache(cacheKey, empty);
+          return { data: empty, error: null, fromCache: false };
+        }
+      }
+
       let query = supabase
         .from('profiles')
         .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status, home_department_id')
@@ -55,6 +77,10 @@ class UnifiedDataService {
 
       if (departmentId) {
         query = query.eq('home_department_id', departmentId);
+      }
+
+      if (allowedUserIds) {
+        query = query.in('id', allowedUserIds);
       }
 
       const { data: profilesData, error: profilesError } = await query;
@@ -73,20 +99,22 @@ class UnifiedDataService {
         .in('user_id', profilesData.map(p => p.id));
 
       const employees: Employee[] = profilesData.map(profile => {
-        const userRole = rolesData?.find(r => r.user_id === profile.id);
-        
+        const userRoles = rolesData?.filter(r => r.user_id === profile.id) || [];
+        const primaryRole = userRoles[0]?.role || 'servicemedarbejder';
+
         return {
           id: profile.id,
           name: profile.name || 'Unknown',
           email: profile.email || '',
           phone: profile.phone || '',
           jobTitle: profile.job_title || '',
-          role: userRole?.role || 'servicemedarbejder',
+          role: primaryRole,
+          roles: userRoles.map(r => r.role),
           onLeave: profile.on_leave || false,
-          status: profile.status || 'active', // Add status from database
+          status: profile.status || 'active',
           notes: profile.notes || '',
           avatar_url: profile.avatar_url
-        };
+        } as Employee;
       });
 
       this.setCache(cacheKey, employees);
@@ -98,8 +126,8 @@ class UnifiedDataService {
     }
   }
 
-  async fetchAssignments(departmentId?: string): Promise<DataFetchResult<Assignment>> {
-    const cacheKey = this.getCacheKey('assignments', departmentId);
+  async fetchAssignments(departmentId?: string, subDepartmentId?: string | null): Promise<DataFetchResult<Assignment>> {
+    const cacheKey = this.getCacheKey('assignments', departmentId, subDepartmentId);
     
     const cachedData = this.getFromCache<Assignment>(cacheKey);
     if (cachedData) {
@@ -112,13 +140,17 @@ class UnifiedDataService {
         .select(`
           id, title, description, assignment_date, from_time, to_time,
           location, car_id, car_ids, published, responsible_user_id,
-          created_at, updated_at, department_id
+          created_at, updated_at, department_id, sub_department_id
         `)
         .eq('is_demo', false)
         .order('assignment_date', { ascending: true });
 
       if (departmentId) {
         query = query.eq('department_id', departmentId);
+      }
+
+      if (subDepartmentId) {
+        query = query.eq('sub_department_id', subDepartmentId);
       }
 
       const { data: assignmentsData, error: assignmentsError } = await query;
@@ -192,8 +224,8 @@ class UnifiedDataService {
     }
   }
 
-  async fetchCars(departmentId?: string): Promise<DataFetchResult<Car>> {
-    const cacheKey = this.getCacheKey('cars', departmentId);
+  async fetchCars(departmentId?: string, subDepartmentId?: string | null): Promise<DataFetchResult<Car>> {
+    const cacheKey = this.getCacheKey('cars', departmentId, subDepartmentId);
     
     const cachedData = this.getFromCache<Car>(cacheKey);
     if (cachedData) {
@@ -201,6 +233,27 @@ class UnifiedDataService {
     }
 
     try {
+      // If sub-department is selected, restrict to cars linked via car_sub_departments
+      let allowedCarIds: string[] | null = null;
+      if (subDepartmentId) {
+        const { data: linkRows, error: linkError } = await supabase
+          .from('car_sub_departments')
+          .select('car_id')
+          .eq('sub_department_id', subDepartmentId);
+
+        if (linkError) {
+          throw new Error(`Car sub-department fetch failed: ${linkError.message}`);
+        }
+
+        allowedCarIds = (linkRows || []).map(r => r.car_id).filter(Boolean);
+
+        if (allowedCarIds.length === 0) {
+          const empty: Car[] = [];
+          this.setCache(cacheKey, empty);
+          return { data: empty, error: null, fromCache: false };
+        }
+      }
+
       let query = supabase
         .from('cars')
         .select('*')
@@ -209,6 +262,10 @@ class UnifiedDataService {
 
       if (departmentId) {
         query = query.eq('department_id', departmentId);
+      }
+
+      if (allowedCarIds) {
+        query = query.in('id', allowedCarIds);
       }
 
       const { data, error } = await query;
