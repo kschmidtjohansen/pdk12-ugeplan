@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-11 — Multi-rolle på medarbejdere (oprettelse + redigering)
+
+### Changes
+- `EmployeeFormDialog`: rolle-Select erstattet med checkbox-gruppe så en medarbejder kan tildeles flere roller. Effektiv rolle (mest privilegerede) bestemmer adgangen.
+- `useEmployeeFormState`: nyt `roles: UserRole[]` felt + `handleRoleToggle`. `role` udledes automatisk via `getEffectiveRole`.
+- `useEmployeeActions.updateEmployee`: sender nu `roles[]` til `admin-user-role` (edge-function understøtter allerede arrays) ved rolleændring.
+- `useEmployeeCreation`: efter oprettelse kaldes `admin-user-role` med fuld liste hvis >1 rolle valgt.
+- `UnassignedResourcesSection`: kategorisering bruger `roles[]`, så en multi-rolle medarbejder vises i flere sektioner (fx både Skadeledere og Fugtteknikere).
+- `EmployeesPage`: viderefører `handleRoleToggle` til dialogen.
+
+
+
 ## 2026-06-11 — Dashboard "Ledige medarbejdere" respekterer multi-rolle og underafdeling
 
 ### Changes

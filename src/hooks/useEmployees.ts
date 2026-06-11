@@ -63,6 +63,7 @@ export const useEmployees = () => {
     prepareForCreateVikar: formState.prepareForCreateVikar,
     handleInputChange: formState.handleInputChange,
     handleSelectChange: formState.handleSelectChange,
+    handleRoleToggle: formState.handleRoleToggle,
     handleCheckboxChange: formState.handleCheckboxChange,
     createEmployee,
     updateEmployee,

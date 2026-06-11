@@ -146,19 +146,24 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return categorized;
   }, [employees, assignments, vacations, targetDateObj, t]);
 
-  // Categorize available employees by role
+  // Categorize available employees by role (multi-role aware:
+  // a Skadeleder who also has Fugttekniker shows up in both sections)
   const categorizedByRole = useMemo(() => {
     const allAvailable = [...employeeAvailabilityData.available, ...employeeAvailabilityData.partiallyBooked];
+    const rolesOf = (emp: any): string[] => {
+      const r = (emp.roles && emp.roles.length ? emp.roles : [emp.role]) as string[];
+      return r || [];
+    };
 
-    const skadeledere = allAvailable.filter(
-      emp => emp.role === 'skadeleder' || emp.role === 'administrator' || emp.role === 'super_admin'
-    );
-    const fugtteknikere = allAvailable.filter(
-      emp => emp.role === 'fugttekniker'
-    );
-    const servicemedarbejdere = allAvailable.filter(
-      emp => emp.role === 'servicemedarbejder' || emp.role === 'vikar'
-    );
+    const skadeledere = allAvailable.filter(emp => {
+      const r = rolesOf(emp);
+      return r.includes('skadeleder') || r.includes('administrator') || r.includes('super_admin');
+    });
+    const fugtteknikere = allAvailable.filter(emp => rolesOf(emp).includes('fugttekniker'));
+    const servicemedarbejdere = allAvailable.filter(emp => {
+      const r = rolesOf(emp);
+      return r.includes('servicemedarbejder') || r.includes('vikar');
+    });
 
     return { skadeledere, fugtteknikere, servicemedarbejdere };
   }, [employeeAvailabilityData]);
