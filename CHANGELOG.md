@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-11 — Underafdelings-vælger i opgave-dialog
+
+Når man stod på en underafdeling (fx Fugt) blev nye opgaver automatisk tagget med den underafdelings `sub_department_id` — uden mulighed for at vælge "Alle" eller en anden sub-dept. Resultat: opgaver der skulle ligge på hoveddept ("Alle") blev låst fast på Fugt og dukkede op i Fugt-visningen.
+
+### Changes
+- **`AssignmentForm.tsx`:** ny "Underafdeling"-dropdown øverst i dialogen (vises kun når afdelingen har sub-depts). Indeholder "Alle" + alle aktive underafdelinger. Defaulter til aktuel sub-dept ved oprettelse, og til opgavens egen værdi ved redigering.
+- **`useOptimizedAssignments.ts`:** `createAssignment` og `updateAssignment` bruger `data.subDepartmentId` (med fallback til `selectedSubDepartmentId`), så vælgerens valg respekteres.
+- **`optimizedAssignmentService.ts` + `list_accessible_assignments_with_team` (migration):** RPC returnerer nu `sub_department_id` så dialogen kan prefille korrekt værdi ved redigering.
+- **`types/assignment.ts`:** nyt felt `subDepartmentId` på `Assignment`.
+- **Data-fix:** opgave `9d7de1bb-…` (12-00000) er nulstillet til `sub_department_id = NULL` så den fremover ligger korrekt under "Alle".
+
+
 ## 2026-06-11 — Fix: "Alle"-opgaver lækkede ind i underafdelings-visning
 
 Planneren læser opgaver via RPC'en `list_accessible_assignments_with_team`. WHERE-klausulen indeholdt `OR a.sub_department_id IS NULL`, så opgaver knyttet til hovedafdelingen ("Alle") også dukkede op når man havde valgt en underafdeling. Filteret er nu strikt: underafdeling → kun matchende `sub_department_id`; ingen underafdeling → kun opgaver uden `sub_department_id`.
