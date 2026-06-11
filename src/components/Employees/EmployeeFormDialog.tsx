@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth, usePermissions } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Employee } from '@/types/employee';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
