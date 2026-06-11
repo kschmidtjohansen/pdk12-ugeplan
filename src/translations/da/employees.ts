@@ -111,7 +111,7 @@ const employees = {
   markOnLeaveDescription: 'Marker {name} som fraværende. Tilføj venligst en note med årsagen.',
   
   // Roles
-  super_admin: 'Super Admin',
+  super_admin: 'IT Support',
   administrator: 'Administrator',
   skadeleder: 'Skadeleder',
   servicemedarbejder: 'Servicemedarbejder',
