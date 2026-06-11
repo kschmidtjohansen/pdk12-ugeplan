@@ -12,7 +12,7 @@ import { OptimizedAssignmentService } from '@/services/optimizedAssignmentServic
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 
 // Define user roles
-export type UserRole = 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
+export type UserRole = 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'fugttekniker' | 'vikar';
 
 // Export the User type from supabase for components that need it
 export type { User };

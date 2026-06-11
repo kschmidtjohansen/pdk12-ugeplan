@@ -7,7 +7,7 @@ export interface Employee {
   email: string;
   phone?: string;
   jobTitle?: string;
-  role: 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'vikar';
+  role: 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'fugttekniker' | 'vikar';
   onLeave?: boolean; // Keep for backward compatibility
   status: EmployeeStatus; // New status field
   notes?: string;

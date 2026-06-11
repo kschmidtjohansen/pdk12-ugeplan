@@ -64,8 +64,8 @@ const DashboardPage: React.FC = () => {
   // Check if user is servicemedarbejder for specialized dashboard
   const isServicemedarbejder = effectiveRole === 'servicemedarbejder';
   
-  // Check if user should see metrics (administrators and skadeledere)
-  const shouldShowMetrics = effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder';
+  // Check if user should see metrics (administrators, skadeledere og fugtteknikere)
+  const shouldShowMetrics = effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder' || effectiveRole === 'fugttekniker';
 
   return (
     <DataFetchErrorBoundary>
