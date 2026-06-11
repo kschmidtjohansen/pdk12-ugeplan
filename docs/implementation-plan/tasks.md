@@ -3,6 +3,7 @@
 ## Løbende rettelser ✅
 
 - [x] `user_roles` SELECT-policy udvidet til alle authenticated brugere, så fugttekniker/servicemedarbejder ser korrekte kollega-roller i dashboard og dialoger (rod-årsag bag "ledige medarbejdere"-fejlen).
+- [x] Rolle-redigering i Admin bruger nu `admin-user-role` edge function i stedet for direkte klient-write til `user_roles`, så multi-roller kan gemmes uden 403.
 - [x] Bil-vælgerens konflikt-bekræftelse: bil-listen lukkes og unmountes nu før AlertDialog'en "Bil allerede i brug" åbnes, så dropdownen ikke kan overlappe dialogboksen eller skjule "Brug alligevel"-knappen.
 - [x] Strikt underafdelings-isolation: opgaver, biler og medarbejdere uden tilknytning til den valgte underafdeling skjules nu i underafdelings-visningen (gælder alle roller). Medarbejder-redigering har nu et "Underafdeling"-felt der gemmer til `user_access.sub_department_id`.
 

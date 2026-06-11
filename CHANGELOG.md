@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-11 — Fix: Rolle-redigering brugte direkte `user_roles` write
+
+Admin-dialogen forsøgte at slette/indsætte rækker direkte i `user_roles` fra klienten ved rolleændring. Det ramte korrekt RLS-beskyttelse og gav `403 Forbidden`. Rolleændringer for eksisterende brugere går nu via `admin-user-role` edge function, og den direkte defensive rolle-write efter brugeroprettelse er fjernet.
+
+### Changes
+- **`src/components/Admin/UserManagement.tsx`:** `updateUserWithFallback` kalder nu `admin-user-role` med `roles[]`/`role` i stedet for direkte `user_roles` delete/insert.
+- **`src/components/Admin/UserFormDialog.tsx`:** fjernet klient-side fallback write til `user_roles` efter oprettelse, fordi `admin-create-user` allerede gemmer roller via service-role.
+
 ## 2026-06-11 — Planner "Ikke-tildelte ressourcer" respekterer nu underafdeling
 
 Sektionen "Ikke-tildelte ressourcer" viste tidligere alle medarbejdere, biler og opgaver fra hovedafdelingen, selvom man havde valgt en underafdeling (fx Fugt). Nu strikt filtreret efter de medarbejdere/biler/opgaver der er tilknyttet den valgte underafdeling.
