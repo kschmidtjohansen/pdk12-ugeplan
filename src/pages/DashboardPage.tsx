@@ -6,6 +6,7 @@ import { useTranslation } from '../context/TranslationContext';
 import { getDailyQuote } from '@/utils/dailyQuotes';
 import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
 import DashboardCockpit from '@/components/Dashboard/DashboardCockpit';
+import SubDepartmentQuickSwitcher from '@/components/Dashboard/SubDepartmentQuickSwitcher';
 import { DemoDashboard } from '@/components/Demo/DemoDashboard';
 import ServicemedarbejderDashboard from '@/components/Dashboard/ServicemedarbejderDashboard';
 import { PullToRefresh } from '@/components/shared/PullToRefresh';
@@ -88,6 +89,9 @@ const DashboardPage: React.FC = () => {
 
           {/* Welcome Header */}
           <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
+
+          {/* Quick sub-department switcher (only if > 1 sub-dept) */}
+          {!isServicemedarbejder && <SubDepartmentQuickSwitcher />}
 
           {/* Role-based Dashboard Content */}
           {isServicemedarbejder ? (

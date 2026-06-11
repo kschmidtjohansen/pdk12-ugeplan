@@ -22,7 +22,8 @@ export interface AppUser {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: UserRole;        // Highest-privilege role (derived from roles[])
+  roles?: UserRole[];    // All assigned roles
 }
 
 interface AuthContextType {
@@ -200,7 +201,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       const fetchPromise = Promise.all([
         supabase.from('profiles').select('id, name, email').eq('id', authUser.id).maybeSingle(),
-        supabase.from('user_roles').select('user_id, role').eq('user_id', authUser.id).maybeSingle()
+        supabase.from('user_roles').select('role').eq('user_id', authUser.id)
       ]);
 
       const timeoutPromise = new Promise((_, reject) => 
@@ -211,7 +212,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (import.meta.env.DEV) {
         console.log(`[AuthContext] Database queries completed in ${Date.now() - startTime}ms`);
-        if (import.meta.env.DEV) console.log(`[AuthContext] Profile:`, profileResult?.data?.name, `Role:`, roleResult?.data?.role);
       }
 
       if (profileResult.error) {
@@ -232,17 +232,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         name = 'Unknown User';
       }
-      
-      let role: UserRole = 'servicemedarbejder';
-      if (roleResult.data?.role) {
-        role = roleResult.data.role as UserRole;
-      }
+
+      const { getEffectiveRole } = await import('@/utils/roleHierarchy');
+      const allRoles: UserRole[] = (roleResult.data || [])
+        .map((r: any) => r.role as UserRole)
+        .filter(Boolean);
+      const role: UserRole = allRoles.length > 0 ? getEffectiveRole(allRoles) : 'servicemedarbejder';
 
       const enhancedUser: AppUser = {
         id: authUser.id,
         name,
         email: authUser.email || '',
-        role
+        role,
+        roles: allRoles.length > 0 ? allRoles : [role],
       };
 
       if (import.meta.env.DEV) {

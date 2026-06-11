@@ -48,7 +48,8 @@ const UserManagement: React.FC = () => {
     email: '',
     phone: '',
     jobTitle: '',
-    role: 'servicemedarbejder' as UserRole
+    role: 'servicemedarbejder' as UserRole,
+    roles: ['servicemedarbejder'] as UserRole[]
   });
 
   const isSuperAdmin = authUser?.role === 'super_admin';
@@ -97,7 +98,8 @@ const UserManagement: React.FC = () => {
       email: '',
       phone: '',
       jobTitle: '',
-      role: 'vikar' as UserRole
+      role: 'vikar' as UserRole,
+      roles: ['vikar'] as UserRole[]
     });
     setCurrentUser(null);
     setUserDialogOpen(true);
@@ -426,14 +428,22 @@ const UserManagement: React.FC = () => {
       }).eq('id', userId);
       if (profileError) throw profileError;
 
-      // Update role if provided
-      if (updates.role) {
-        const {
-          error: roleError
-        } = await supabase.from('user_roles').update({
-          role: updates.role
-        }).eq('user_id', userId);
+      // Update roles. Multi-role: delete all then insert. Legacy single-role still supported.
+      if (Array.isArray(updates.roles) && updates.roles.length > 0) {
+        const uniqueRoles: UserRole[] = Array.from(new Set(updates.roles as UserRole[]));
+        const { error: delErr } = await supabase.from('user_roles').delete().eq('user_id', userId);
+        if (delErr) throw delErr;
+        const { error: insErr } = await supabase
+          .from('user_roles')
+          .insert(uniqueRoles.map(r => ({ user_id: userId, role: r })));
+        if (insErr) throw insErr;
+      } else if (updates.role) {
+        const { error: roleError } = await supabase.from('user_roles').delete().eq('user_id', userId);
         if (roleError) throw roleError;
+        const { error: insErr } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: updates.role });
+        if (insErr) throw insErr;
       }
       addDebugInfo('User updated successfully');
       return {
@@ -589,18 +599,31 @@ const UserManagement: React.FC = () => {
       email: '',
       phone: '',
       jobTitle: '',
-      role: 'servicemedarbejder'
+      role: 'servicemedarbejder',
+      roles: ['servicemedarbejder']
     });
     setUserDialogOpen(true);
   };
-  const handleEditUser = (user: AdminUser) => {
+  const handleEditUser = async (user: AdminUser) => {
     setCurrentUser(user);
+    // Fetch all roles for multi-role editing
+    let allRoles: UserRole[] = [user.role];
+    try {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      if (data && data.length > 0) {
+        allRoles = data.map(r => r.role as UserRole);
+      }
+    } catch { /* keep fallback */ }
     setFormData({
       name: user.name,
       email: user.email,
       phone: user.phone || '',
       jobTitle: user.jobTitle || '',
-      role: user.role
+      role: user.role,
+      roles: allRoles
     });
     setUserDialogOpen(true);
   };
@@ -686,8 +709,20 @@ const UserManagement: React.FC = () => {
   const handleRoleChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
-      role: value as UserRole
+      role: value as UserRole,
+      roles: [value as UserRole]
     }));
+  };
+  const handleRolesChange = (roles: UserRole[]) => {
+    // Derive primary as the highest-rank role for backward compat
+    const ranks: Record<UserRole, number> = {
+      super_admin: 60, administrator: 50, skadeleder: 40,
+      fugttekniker: 30, servicemedarbejder: 20, vikar: 10
+    };
+    const primary = roles.length > 0
+      ? roles.reduce((b, r) => (ranks[r] > ranks[b] ? r : b), roles[0])
+      : 'servicemedarbejder' as UserRole;
+    setFormData(prev => ({ ...prev, role: primary, roles }));
   };
   const handleSubmitUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -875,7 +910,7 @@ const UserManagement: React.FC = () => {
 
       {/* User Add/Edit Dialog */}
       <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
-        <UserFormDialog currentUser={currentUser} formData={formData} handleInputChange={handleInputChange} handleRoleChange={handleRoleChange} handleSubmit={handleSubmitUser} onClose={() => setUserDialogOpen(false)} />
+        <UserFormDialog currentUser={currentUser} formData={formData} handleInputChange={handleInputChange} handleRoleChange={handleRoleChange} handleRolesChange={handleRolesChange} handleSubmit={handleSubmitUser} onClose={() => setUserDialogOpen(false)} />
       </Dialog>
 
       {/* Delete Confirmation Dialog */}

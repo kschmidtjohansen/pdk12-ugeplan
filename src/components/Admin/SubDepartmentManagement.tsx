@@ -35,6 +35,11 @@ interface SubDepartment {
   department_id: string;
   visible_roles: VisibleRole[];
 }
+interface CarOption {
+  id: string;
+  name: string;
+  car_number: string | null;
+}
 
 const SubDepartmentManagement: React.FC = () => {
   const { user } = useAuth();
@@ -52,6 +57,9 @@ const SubDepartmentManagement: React.FC = () => {
   const [editingSub, setEditingSub] = useState<SubDepartment | null>(null);
   const [formName, setFormName] = useState('');
   const [formRoles, setFormRoles] = useState<VisibleRole[]>([...ALL_ROLES]);
+  const [formCarIds, setFormCarIds] = useState<string[]>([]);
+  const [cars, setCars] = useState<CarOption[]>([]);
+  const [subCarCounts, setSubCarCounts] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const { toast } = useToast();
@@ -63,8 +71,38 @@ const SubDepartmentManagement: React.FC = () => {
       .select('id, name, department_id, visible_roles')
       .eq('department_id', deptId)
       .order('name');
-    setSubDepartments((data as SubDepartment[]) || []);
+    const subs = (data as SubDepartment[]) || [];
+    setSubDepartments(subs);
+
+    // Fetch car counts per sub-department for the list badge
+    if (subs.length > 0) {
+      const { data: links } = await supabase
+        .from('car_sub_departments')
+        .select('sub_department_id, car_id')
+        .in('sub_department_id', subs.map(s => s.id));
+      const counts: Record<string, number> = {};
+      (links || []).forEach((l: any) => {
+        counts[l.sub_department_id] = (counts[l.sub_department_id] || 0) + 1;
+      });
+      setSubCarCounts(counts);
+    } else {
+      setSubCarCounts({});
+    }
   };
+
+  // Load cars for currently selected (main) department — used in the dialog checkbox list
+  useEffect(() => {
+    if (!selectedDeptId) { setCars([]); return; }
+    const fetchCars = async () => {
+      const { data } = await supabase
+        .from('cars')
+        .select('id, name, car_number')
+        .eq('department_id', selectedDeptId)
+        .order('car_number', { ascending: true });
+      setCars((data as CarOption[]) || []);
+    };
+    fetchCars();
+  }, [selectedDeptId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,18 +141,41 @@ const SubDepartmentManagement: React.FC = () => {
     setEditingSub(null);
     setFormName('');
     setFormRoles([...ALL_ROLES]);
+    setFormCarIds([]);
     setDialogOpen(true);
   };
 
-  const openEditDialog = (sub: SubDepartment) => {
+  const openEditDialog = async (sub: SubDepartment) => {
     setEditingSub(sub);
     setFormName(sub.name);
     setFormRoles(sub.visible_roles?.length ? [...sub.visible_roles] : [...ALL_ROLES]);
+    // Pre-load assigned cars
+    const { data: links } = await supabase
+      .from('car_sub_departments')
+      .select('car_id')
+      .eq('sub_department_id', sub.id);
+    setFormCarIds((links || []).map((l: any) => l.car_id));
     setDialogOpen(true);
   };
 
   const toggleRole = (role: VisibleRole, checked: boolean) => {
     setFormRoles(prev => checked ? [...new Set([...prev, role])] : prev.filter(r => r !== role));
+  };
+
+  const toggleCar = (carId: string, checked: boolean) => {
+    setFormCarIds(prev => checked
+      ? Array.from(new Set([...prev, carId]))
+      : prev.filter(id => id !== carId));
+  };
+
+  const syncCars = async (subDepartmentId: string) => {
+    // Replace the full set of car links for this sub-department
+    await supabase.from('car_sub_departments').delete().eq('sub_department_id', subDepartmentId);
+    if (formCarIds.length > 0) {
+      await supabase.from('car_sub_departments').insert(
+        formCarIds.map(carId => ({ car_id: carId, sub_department_id: subDepartmentId }))
+      );
+    }
   };
 
   const handleSubmit = async () => {
@@ -136,17 +197,21 @@ const SubDepartmentManagement: React.FC = () => {
       if (error) {
         toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
       } else {
+        await syncCars(editingSub.id);
         toast({ title: t('common.success'), description: t('admin.subDepartments.renamed') });
         setDialogOpen(false);
         fetchSubs(selectedDeptId);
       }
     } else {
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from('sub_departments')
-        .insert({ name: formName.trim(), department_id: selectedDeptId, visible_roles: formRoles });
+        .insert({ name: formName.trim(), department_id: selectedDeptId, visible_roles: formRoles })
+        .select('id')
+        .single();
       if (error) {
         toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
       } else {
+        if (inserted?.id) await syncCars(inserted.id);
         toast({ title: t('common.success'), description: t('admin.subDepartments.created') });
         setDialogOpen(false);
         fetchSubs(selectedDeptId);
@@ -243,12 +308,17 @@ const SubDepartmentManagement: React.FC = () => {
                 <div key={sub.id} className="flex items-center justify-between px-4 py-3 gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{sub.name}</div>
-                    <div className="flex flex-wrap gap-1 mt-1">
+                    <div className="flex flex-wrap gap-1 mt-1 items-center">
                       {(sub.visible_roles?.length ? sub.visible_roles : ALL_ROLES).map(r => (
                         <Badge key={r} className={`text-[10px] px-1.5 py-0.5 ${getRoleBadgeClass(r)}`}>
                           {roleLabel(r)}
                         </Badge>
                       ))}
+                      {subCarCounts[sub.id] > 0 && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                          {subCarCounts[sub.id]} {t('cars.title') || 'køretøjer'}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -323,6 +393,35 @@ const SubDepartmentManagement: React.FC = () => {
                   );
                 })}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('admin.subDepartments.cars') || 'Køretøjer'}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t('admin.subDepartments.carsHelp') || 'Vælg hvilke køretøjer der hører til denne underafdeling.'}
+              </p>
+              {cars.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t('cars.empty') || 'Ingen køretøjer i afdelingen.'}</p>
+              ) : (
+                <div className="space-y-1.5 max-h-[180px] overflow-y-auto border rounded-md p-2">
+                  {cars.map(car => {
+                    const checked = formCarIds.includes(car.id);
+                    const label = car.car_number ? `${car.car_number} – ${car.name}` : car.name;
+                    return (
+                      <label
+                        key={car.id}
+                        className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-accent/40"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(c) => toggleCar(car.id, c === true)}
+                        />
+                        <span className="text-sm truncate">{label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

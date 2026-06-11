@@ -27,7 +27,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   handleLogout
 }) => {
   const { t } = useTranslation();
-  const { isDemoMode, demoRole, setDemoRole, userDataLoaded } = useAuth();
+  const { isDemoMode, demoRole, setDemoRole, userDataLoaded, isAdmin } = useAuth();
   const { userDepartments, selectedDepartmentId, switchDepartment, userSubDepartments, selectedSubDepartmentId, setSelectedSubDepartmentId } = useDepartment();
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
@@ -116,9 +116,11 @@ const UserMenu: React.FC<UserMenuProps> = ({
                     {t('common.subDepartment') || 'Underafdeling'}
                   </DropdownMenuLabel>
                   <DropdownMenuRadioGroup value={selectedSubDepartmentId || ''} onValueChange={(value) => setSelectedSubDepartmentId(value || null)}>
-                    <DropdownMenuRadioItem value="" className="cursor-pointer">
-                      {t('common.all') || 'Alle'}
-                    </DropdownMenuRadioItem>
+                    {isAdmin && (
+                      <DropdownMenuRadioItem value="" className="cursor-pointer">
+                        {t('common.all') || 'Alle'}
+                      </DropdownMenuRadioItem>
+                    )}
                     {userSubDepartments.map((sub) => (
                       <DropdownMenuRadioItem key={sub.id} value={sub.id} className="cursor-pointer">
                         {sub.name}

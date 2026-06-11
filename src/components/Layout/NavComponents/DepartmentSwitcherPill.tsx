@@ -10,12 +10,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { getDepartmentColorClasses } from '@/utils/departmentColor';
 import { cn } from '@/lib/utils';
 
 const DepartmentSwitcherPill: React.FC = () => {
   const { t } = useTranslation();
+  const { isAdmin } = useAuth();
   const {
     userDepartments,
     selectedDepartmentId,
@@ -86,9 +88,11 @@ const DepartmentSwitcherPill: React.FC = () => {
               value={selectedSubDepartmentId || ''}
               onValueChange={(value) => setSelectedSubDepartmentId(value || null)}
             >
-              <DropdownMenuRadioItem value="" className="cursor-pointer">
-                {t('common.all') || 'Alle'}
-              </DropdownMenuRadioItem>
+              {isAdmin && (
+                <DropdownMenuRadioItem value="" className="cursor-pointer">
+                  {t('common.all') || 'Alle'}
+                </DropdownMenuRadioItem>
+              )}
               {userSubDepartments.map((sub) => (
                 <DropdownMenuRadioItem key={sub.id} value={sub.id} className="cursor-pointer">
                   {sub.name}
