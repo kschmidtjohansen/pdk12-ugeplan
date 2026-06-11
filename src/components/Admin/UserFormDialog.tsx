@@ -272,12 +272,15 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         
         const sanitizedPhone = phoneValidation.sanitized;
         
+        const rolesPayload = formData.roles && formData.roles.length > 0 ? formData.roles : [formData.role];
+
         const { data, error } = await supabase.functions.invoke('admin-create-user', {
           body: { 
             email: formData.email, 
             password: password,
             name: formData.name,
             role: formData.role,
+            roles: rolesPayload,
             userData: {
               phone: sanitizedPhone,
               job_title: formData.jobTitle
@@ -301,15 +304,14 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
         if (data?.error) throw new Error(data.error);
         if (!data?.user) throw new Error("No user data returned from creation");
 
-        
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        if (formData.role !== 'servicemedarbejder') {
-          const { error: roleError } = await supabase
+
+        // Defensive: ensure roles are exactly the selected set (edge function already does this, but legacy fallback)
+        if (rolesPayload.length > 0) {
+          await supabase.from('user_roles').delete().eq('user_id', data.user.id);
+          await supabase
             .from('user_roles')
-            .update({ role: formData.role })
-            .eq('user_id', data.user.id);
-          if (roleError) throw new Error('User created but role update failed');
+            .insert(rolesPayload.map(r => ({ user_id: data.user.id, role: r })));
         }
 
         const { error: profileError } = await supabase
