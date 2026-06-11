@@ -21,6 +21,7 @@ export interface OptimizedAssignmentData {
   car_ids: string[] | null;
   case_number: string | null;
   group_id: string | null;
+  sub_department_id: string | null;
   responsible_user: {
     id: string;
     name: string;
