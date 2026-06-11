@@ -59,7 +59,12 @@ export const admin = {
     empty: 'No sub-departments created yet.',
     renamed: 'Sub-department name updated',
     editName: 'Edit name',
-    hasData: 'Cannot delete – has associated users or data'
+    hasData: 'Cannot delete – has associated users or data',
+    createTitle: 'New sub-department',
+    editTitle: 'Edit sub-department',
+    visibleRoles: 'Visible roles',
+    visibleRolesHelp: 'Select which employee roles should appear in this sub-department.',
+    pickAtLeastOneRole: 'Pick at least one role'
   },
   departmentSwitched: 'Switched to {name}',
   features: {
