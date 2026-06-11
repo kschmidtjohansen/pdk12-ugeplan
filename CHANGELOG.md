@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-11 — Rolle-badge farver
+
+### Changes
+- Rolle-badges har nu konsistente farver: Skadeleder=lilla, Fugttekniker=blå, Servicemedarbejder=grøn. Tilføjet `purple`-variant til `StatusBadge` og opdateret label-mapping for Fugttekniker.
+
+
+
 ## 2026-06-11 — Fugttekniker: justeringer
 
 ### Changes
