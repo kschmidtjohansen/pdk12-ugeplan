@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-11 — Rolle-farver på medarbejder-labels i opgavekort
+
+### Changes
+- `AssignmentDetails`: medarbejder-chips bruger nu kun rolle-farve (lilla=skadeleder, blå=fugttekniker, grøn=service/vikar) — `chip-person` fjernet så `getRoleBadgeClass` ikke overskygges.
+- Prik i medarbejder-tooltip bruger nu `getRoleDotClass`.
+- `CompactAssignmentRow`: medarbejder-chip i listevisning farves efter højest rangerede rolle blandt tilknyttede medarbejdere via `getEffectiveRole`.
+
+
+
 ## 2026-06-11 — Global ekstra top-padding mellem header og sideindhold
 
 ### Changes
