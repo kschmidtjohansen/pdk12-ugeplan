@@ -14,7 +14,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
 import { getRoleBadgeClass } from '@/utils/roleColors';
 import { getEffectiveRole } from '@/utils/roleHierarchy';
-import type { UserRole } from '@/types/user';
+import type { UserRole } from '@/context/AuthContext';
 
 interface CompactAssignmentRowProps {
   assignment: Assignment;
