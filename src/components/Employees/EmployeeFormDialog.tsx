@@ -555,6 +555,35 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                   <Checkbox id="onLeave" checked={formData.onLeave} onCheckedChange={checked => onCheckboxChange('onLeave', checked === true)} disabled={isSubmitting} />
                   <Label htmlFor="onLeave">{t('employees.onLeave')}</Label>
                 </div>}
+
+              {/* Sub-department assignment — strict isolation when set */}
+              {!formData.is_temporary && formData.role !== 'super_admin' && subDepartments.length > 0 && (
+                <div className="grid gap-2">
+                  <Label htmlFor="sub_department_id">Underafdeling</Label>
+                  <Select
+                    value={formData.sub_department_id || '__none__'}
+                    onValueChange={(value) => {
+                      handleInputChange({
+                        target: { name: 'sub_department_id', value: value === '__none__' ? '' : value }
+                      } as any);
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    <SelectTrigger id="sub_department_id">
+                      <SelectValue placeholder="Vælg underafdeling" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Ingen (kun hovedafdeling)</SelectItem>
+                      {subDepartments.map(sd => (
+                        <SelectItem key={sd.id} value={sd.id}>{sd.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Medarbejderen vises kun i den valgte underafdelings visning. "Ingen" gør medarbejderen synlig i hovedafdelingens "Alle"-visning.
+                  </p>
+                </div>
+              )}
             </>}
           
           {/* Notes field - viewable by skadeleder but only editable by admin */}
