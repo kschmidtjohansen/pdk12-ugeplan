@@ -47,6 +47,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
     isSkadeleder
   } = usePermissions();
   const { user: authUser } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const isSuperAdmin = authUser?.role === 'super_admin';
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,9 +55,39 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   const [phoneError, setPhoneError] = useState('');
   const [creationMethod, setCreationMethod] = useState<'attempting' | 'edge-function' | 'direct-database' | 'failed'>('attempting');
   const [convertToPermanent, setConvertToPermanent] = useState(false);
+  const [subDepartments, setSubDepartments] = useState<{ id: string; name: string }[]>([]);
 
   // Check if we're editing a temporary employee
   const isEditingVikar = creationType === 'edit' && currentEmployee?.is_temporary === true;
+
+  // Load sub-departments for current main department
+  useEffect(() => {
+    if (!selectedDepartmentId) { setSubDepartments([]); return; }
+    (async () => {
+      const { data } = await supabase
+        .from('sub_departments')
+        .select('id, name')
+        .eq('department_id', selectedDepartmentId)
+        .order('name');
+      setSubDepartments((data as any[]) || []);
+    })();
+  }, [selectedDepartmentId]);
+
+  // Load existing sub_department_id for the employee being edited
+  useEffect(() => {
+    if (!currentEmployee?.id || !selectedDepartmentId) return;
+    (async () => {
+      const { data } = await supabase
+        .from('user_access')
+        .select('sub_department_id')
+        .eq('user_id', currentEmployee.id)
+        .eq('department_id', selectedDepartmentId)
+        .maybeSingle();
+      const current = (data as any)?.sub_department_id ?? null;
+      handleInputChange({ target: { name: 'sub_department_id', value: current ?? '' } } as any);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentEmployee?.id, selectedDepartmentId]);
 
   // Auto-set password validation to true for temporary users
   useEffect(() => {
