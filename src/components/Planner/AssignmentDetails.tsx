@@ -148,9 +148,12 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
               <Users className="h-3.5 w-3.5" />
             </span>
             {showInline ? (
-              employeeData.names.map((name, i) => (
-                <span key={i} className="chip chip-person">
-                  {name || t('planner.unknownEmployee')}
+              employeeData.items.map((item, i) => (
+                <span
+                  key={i}
+                  className={cn('chip chip-person border', getRoleBadgeClass(item.role))}
+                >
+                  {item.name || t('planner.unknownEmployee')}
                 </span>
               ))
             ) : (
@@ -171,10 +174,10 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
                     className="w-auto max-w-xs p-2"
                   >
                     <ul className="space-y-1">
-                      {employeeData.names.map((name, i) => (
+                      {employeeData.items.map((item, i) => (
                         <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
-                          <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                          {name || t('planner.unknownEmployee')}
+                          <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', getRoleBadgeClass(item.role))} />
+                          {item.name || t('planner.unknownEmployee')}
                         </li>
                       ))}
                     </ul>
