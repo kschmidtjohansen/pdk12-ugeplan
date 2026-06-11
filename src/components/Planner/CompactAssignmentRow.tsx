@@ -12,6 +12,9 @@ import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
+import { getRoleBadgeClass } from '@/utils/roleColors';
+import { getEffectiveRole } from '@/utils/roleHierarchy';
+import type { UserRole } from '@/context/AuthContext';
 
 interface CompactAssignmentRowProps {
   assignment: Assignment;
@@ -64,6 +67,17 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   
   const carNames = getCarNames();
   const employeeNames = getEmployeeNames();
+
+  // Derive most-privileged role across assigned employees for chip color
+  const employeeRoles: UserRole[] = (assignment.assignedEmployees || [])
+    .map((emp: any) => {
+      const id = typeof emp === 'object' ? emp.id : undefined;
+      const name = typeof emp === 'object' ? emp.name : emp;
+      const full = employees.find(e => (id && e.id === id) || e.name === name);
+      return (full?.role as UserRole) || undefined;
+    })
+    .filter(Boolean) as UserRole[];
+  const effectiveRole = employeeRoles.length ? getEffectiveRole(employeeRoles) : undefined;
   
   const carDisplay = carNames.length > 0 
     ? carNames.slice(0, 2).join(', ') + (carNames.length > 2 ? ` +${carNames.length - 2}` : '')
@@ -170,7 +184,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               {employeeNames.length > 0 ? (
-                <span className="chip chip-person max-w-[160px]">
+                <span className={cn('chip border max-w-[160px]', getRoleBadgeClass(effectiveRole))}>
                   <Users className="h-3 w-3" />
                   <span className="truncate">{employeeDisplay}</span>
                 </span>
