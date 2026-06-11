@@ -152,8 +152,8 @@ export const useEmployeeData = () => {
 
         departmentFilteredEmployees = transformedEmployees.filter(emp => {
           if (departmentUserIds.has(emp.id)) return true;
-          const empRole = rolesMap.get(emp.id);
-          if (empRole === 'super_admin') {
+          const empRoles = rolesMap.get(emp.id) || [];
+          if (empRoles.includes('super_admin')) {
             const profile = profiles.find((p: any) => p.id === emp.id);
             return profile?.home_department_id === selectedDepartmentId;
           }
