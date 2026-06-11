@@ -20,7 +20,7 @@ const SubDepartmentQuickSwitcher: React.FC = () => {
     setSelectedSubDepartmentId,
   } = useDepartment();
 
-  if (!userSubDepartments || userSubDepartments.length < 2) return null;
+  if (!userSubDepartments || userSubDepartments.length < 1) return null;
 
   const renderPill = (id: string | null, label: string) => {
     const active = (selectedSubDepartmentId || '') === (id || '');

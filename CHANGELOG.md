@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-11 — Underafdelinger synlige fra første oprettelse + admin defaulter til "Alle"
+
+### Changes
+- `SubDepartmentQuickSwitcher`, `UserMenu` og `DepartmentSwitcherPill`: viser nu underafdelings-kontrol så snart der findes ≥1 underafdeling (tidligere krævede ≥2). Skjules stadig helt når der ingen er.
+- `DepartmentContext.fetchSubDepartments`: administratorer og super_admins defaulter nu til "Alle" (`selectedSubDepartmentId = null`) hvis intet gyldigt valg er gemt i localStorage. Ikke-admins beholder auto-valg af første/eneste underafdeling.
+- Resultat: Når der oprettes en ny underafdeling (fx "Fugt" i afdeling 12), bliver den straks synlig og skiftbar i dashboard quick-switcher, sidebar pill og UserMenu — uden at filtrere admin-visningen utilsigtet.
+
+
+
 ## 2026-06-11 — Manglende oversættelser i underafdeling-dialog
 
 ### Changes

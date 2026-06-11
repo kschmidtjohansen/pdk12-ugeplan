@@ -211,31 +211,43 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     const fetchSubDepartments = async () => {
       try {
         const isSuperAdmin = effectiveRole === 'super_admin';
+        const isAdminLike = isSuperAdmin || effectiveRole === 'administrator';
+
+        const applySelection = (subs: { id: string; name: string }[]) => {
+          setUserSubDepartments(subs);
+          if (subs.length === 0) {
+            setSelectedSubDepartmentIdState(null);
+            localStorage.removeItem('selected_sub_department_id');
+            return;
+          }
+          const storedSubId = localStorage.getItem('selected_sub_department_id');
+          // Admins: respect stored selection (including explicit "Alle" = absent key after clear).
+          // If nothing stored, default to "Alle" (null) so they see full department data.
+          if (isAdminLike) {
+            const validStored = storedSubId ? subs.find(s => s.id === storedSubId) : null;
+            if (validStored) {
+              setSelectedSubDepartmentIdState(validStored.id);
+            } else {
+              setSelectedSubDepartmentIdState(null);
+              localStorage.removeItem('selected_sub_department_id');
+            }
+            return;
+          }
+          // Non-admins: auto-select stored or first sub-department.
+          const validStored = subs.find(s => s.id === storedSubId);
+          const newSubId = validStored ? validStored.id : subs[0].id;
+          setSelectedSubDepartmentIdState(newSubId);
+          localStorage.setItem('selected_sub_department_id', newSubId);
+        };
 
         if (isSuperAdmin) {
-          // Super admins see all sub-departments for the selected department
           const { data } = await supabase
             .from('sub_departments')
             .select('id, name')
             .eq('department_id', selectedDepartmentId)
             .order('name');
-          
-          const subs = data || [];
-          setUserSubDepartments(subs);
-          
-          // Auto-select stored or first sub-department
-          const storedSubId = localStorage.getItem('selected_sub_department_id');
-          if (subs.length > 0) {
-            const validStored = subs.find(s => s.id === storedSubId);
-            const newSubId = validStored ? validStored.id : subs[0].id;
-            setSelectedSubDepartmentIdState(newSubId);
-            localStorage.setItem('selected_sub_department_id', newSubId);
-          } else {
-            setSelectedSubDepartmentIdState(null);
-            localStorage.removeItem('selected_sub_department_id');
-          }
+          applySelection(data || []);
         } else {
-          // Regular users: only see sub-departments they have access to
           const { data: accessData } = await supabase
             .from('user_access')
             .select('sub_department_id')
@@ -251,24 +263,9 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
               .select('id, name')
               .in('id', subIds)
               .order('name');
-            
-            const subs = subData || [];
-            setUserSubDepartments(subs);
-            
-            const storedSubId = localStorage.getItem('selected_sub_department_id');
-            if (subs.length > 0) {
-              const validStored = subs.find(s => s.id === storedSubId);
-              const newSubId = validStored ? validStored.id : subs[0].id;
-              setSelectedSubDepartmentIdState(newSubId);
-              localStorage.setItem('selected_sub_department_id', newSubId);
-            } else {
-              setSelectedSubDepartmentIdState(null);
-              localStorage.removeItem('selected_sub_department_id');
-            }
+            applySelection(subData || []);
           } else {
-            setUserSubDepartments([]);
-            setSelectedSubDepartmentIdState(null);
-            localStorage.removeItem('selected_sub_department_id');
+            applySelection([]);
           }
         }
       } catch (err) {

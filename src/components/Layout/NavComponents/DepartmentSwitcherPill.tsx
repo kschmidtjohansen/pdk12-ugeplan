@@ -31,7 +31,7 @@ const DepartmentSwitcherPill: React.FC = () => {
   if (!currentDept) return null;
 
   const canSwitchDept = userDepartments.length > 1;
-  const canSwitchSub = userSubDepartments.length > 1;
+  const canSwitchSub = userSubDepartments.length > 0;
   if (!canSwitchDept && !canSwitchSub) return null;
 
   const currentSub = userSubDepartments.find((s) => s.id === selectedSubDepartmentId);
