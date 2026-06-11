@@ -184,7 +184,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               {employeeNames.length > 0 ? (
-                <span className="chip chip-person max-w-[160px]">
+                <span className={cn('chip border max-w-[160px]', getRoleBadgeClass(effectiveRole))}>
                   <Users className="h-3 w-3" />
                   <span className="truncate">{employeeDisplay}</span>
                 </span>
