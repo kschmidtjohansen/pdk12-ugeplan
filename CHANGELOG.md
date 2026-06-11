@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-11 — Ny rolle: Fugttekniker
+
+### Feature
+- Tilføjet ny brugerrolle `fugttekniker` med samme rettigheder som Servicemedarbejder (kan ikke oprette/redigere opgaver, godkende ferie eller se brændstofkortkoder), men ser fuldt Skadeleder/Administrator-dashboard (DashboardCockpit med metrics og genveje til Medarbejdere/Biler). Rollen kan tildeles via brugerstyringen.
+
+
+
 ## 2026-06-10 — Servicemedarbejdere ser kolleger
 
 ### Fix
