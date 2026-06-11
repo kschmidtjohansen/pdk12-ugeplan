@@ -168,6 +168,7 @@ const EmployeesPage: React.FC = () => {
           creationType={creationType}
           handleInputChange={handleInputChange}
           handleSelectChange={handleSelectChange}
+          handleRoleToggle={handleRoleToggle}
           handleCheckboxChange={handleCheckboxChange}
           handleSubmit={handleFormSubmit}
           onClose={() => setFormDialogOpen(false)}
