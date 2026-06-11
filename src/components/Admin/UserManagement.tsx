@@ -428,22 +428,20 @@ const UserManagement: React.FC = () => {
       }).eq('id', userId);
       if (profileError) throw profileError;
 
-      // Update roles. Multi-role: delete all then insert. Legacy single-role still supported.
+      // Update roles via service-role edge function. Client-side writes to user_roles are blocked by RLS.
       if (Array.isArray(updates.roles) && updates.roles.length > 0) {
         const uniqueRoles: UserRole[] = Array.from(new Set(updates.roles as UserRole[]));
-        const { error: delErr } = await supabase.from('user_roles').delete().eq('user_id', userId);
-        if (delErr) throw delErr;
-        const { error: insErr } = await supabase
-          .from('user_roles')
-          .insert(uniqueRoles.map(r => ({ user_id: userId, role: r })));
-        if (insErr) throw insErr;
+        const { data, error } = await supabase.functions.invoke('admin-user-role', {
+          body: { userId, roles: uniqueRoles }
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
       } else if (updates.role) {
-        const { error: roleError } = await supabase.from('user_roles').delete().eq('user_id', userId);
-        if (roleError) throw roleError;
-        const { error: insErr } = await supabase
-          .from('user_roles')
-          .insert({ user_id: userId, role: updates.role });
-        if (insErr) throw insErr;
+        const { data, error } = await supabase.functions.invoke('admin-user-role', {
+          body: { userId, role: updates.role }
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
       }
       addDebugInfo('User updated successfully');
       return {

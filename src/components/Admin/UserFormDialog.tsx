@@ -306,14 +306,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
 
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Defensive: ensure roles are exactly the selected set (edge function already does this, but legacy fallback)
-        if (rolesPayload.length > 0) {
-          await supabase.from('user_roles').delete().eq('user_id', data.user.id);
-          await supabase
-            .from('user_roles')
-            .insert(rolesPayload.map(r => ({ user_id: data.user.id, role: r })));
-        }
-
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
