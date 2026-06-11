@@ -95,7 +95,8 @@ const convertToAssignment = (data: OptimizedAssignmentData, allEmployees: Employ
     updatedAt: data.updated_at,
     responsibleUser: data.responsible_user,
     case_number: data.case_number,
-    groupId: data.group_id || undefined
+    groupId: data.group_id || undefined,
+    subDepartmentId: (data as any).sub_department_id ?? null
   };
 };
 
@@ -310,7 +311,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           car_ids: data.cars || null,
           employees: data.employees || [],
           department_id: selectedDepartmentId || null,
-          sub_department_id: selectedSubDepartmentId || null,
+          sub_department_id: data.subDepartmentId !== undefined ? data.subDepartmentId : (selectedSubDepartmentId || null),
         };
         
         for (const date of dates) {
@@ -358,7 +359,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         car_ids: data.cars || null,
         employees: data.employees || [],
         department_id: selectedDepartmentId || null,
-        sub_department_id: selectedSubDepartmentId || null,
+        sub_department_id: data.subDepartmentId !== undefined ? data.subDepartmentId : (selectedSubDepartmentId || null),
       };
 
       // Optimistic assignment
@@ -437,7 +438,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
           car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
           car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
-          employees: data.employees || []
+          employees: data.employees || [],
+          ...(data.subDepartmentId !== undefined ? { sub_department_id: data.subDepartmentId } : {})
         };
         
         await OptimizedAssignmentService.updateAssignment(id, firstDateServiceData, user.email);
@@ -508,7 +510,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
         car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
         car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
-        employees: data.employees || []
+        employees: data.employees || [],
+        ...(data.subDepartmentId !== undefined ? { sub_department_id: data.subDepartmentId } : {})
       };
       
       await OptimizedAssignmentService.updateAssignment(id, serviceData, user.email);

@@ -1637,6 +1637,7 @@ export type Database = {
           published: boolean
           responsible_user: Json
           responsible_user_id: string
+          sub_department_id: string
           team: Json
           title: string
           to_time: string

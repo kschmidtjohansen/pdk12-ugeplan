@@ -266,7 +266,8 @@ const PlannerPage: React.FC = () => {
       location: '',
       car: '',
       employees: [],
-      published: false
+      published: false,
+      subDepartmentId: selectedSubDepartmentId || null
     });
     setIsDialogOpen(true);
   };

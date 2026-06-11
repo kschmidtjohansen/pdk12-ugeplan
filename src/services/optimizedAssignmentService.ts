@@ -21,6 +21,7 @@ export interface OptimizedAssignmentData {
   car_ids: string[] | null;
   case_number: string | null;
   group_id: string | null;
+  sub_department_id?: string | null;
   responsible_user: {
     id: string;
     name: string;
@@ -352,6 +353,7 @@ export class OptimizedAssignmentService {
               car_ids: carIds,
               case_number: assignment.case_number || null,
               group_id: (assignment as any).group_id || null,
+              sub_department_id: (assignment as any).sub_department_id ?? null,
               responsible_user: assignment.responsible_user ? {
                 id: (assignment.responsible_user as any).id || '',
                 name: (assignment.responsible_user as any).name || '',
@@ -381,6 +383,7 @@ export class OptimizedAssignmentService {
               car_ids: [],
               case_number: assignment.case_number || null,
               group_id: (assignment as any).group_id || null,
+              sub_department_id: (assignment as any).sub_department_id ?? null,
               responsible_user: null,
               assignment_employees: [],
               assignment_cars: []

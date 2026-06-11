@@ -1,40 +1,54 @@
 ## Problem
 
-Planner viser stadig alle "Alle"-opgaver (sub_department_id IS NULL) når man har valgt en underafdeling.
+Når du opretter en opgave mens du står på en underafdeling (fx Fugt), tagges opgaven automatisk med den underafdelings `sub_department_id` — uden mulighed for at vælge "Alle". Det er derfor 12-00000 dukker op i Fugt-visningen: koden i `useOptimizedAssignments.createAssignment` sætter `sub_department_id: selectedSubDepartmentId || null` direkte fra context.
 
-Årsag: RPC'en `list_accessible_assignments_with_team` har en eksplicit fallback i WHERE-klausulen:
-
-```sql
-AND (p_sub_department_id IS NULL OR a.sub_department_id = p_sub_department_id OR a.sub_department_id IS NULL)
-```
-
-Denne `OR a.sub_department_id IS NULL` tillader alle hoveddeparts-opgaver at lække ind i underafdelings-visningen. Frontend-laget (useUnifiedData / unifiedDataService) er allerede strikt, men planneren læser opgaver via denne RPC, og den vinder.
+Derudover ligger den nuværende 12-00000 (`9d7de1bb-e980-469e-bf53-c133f29cb32f`) allerede forkert i DB med `sub_department_id = Fugt`. Den skal nulstilles til NULL.
 
 ## Løsning
 
-Ny migration som genskaber `list_accessible_assignments_with_team` (samme signatur og body) med strikt sub-dept filter i begge grene:
+### 1. UI: Sub-dept vælger i opgave-dialogen
 
-```sql
-AND (
-  (p_sub_department_id IS NULL AND a.sub_department_id IS NULL)
-  OR (p_sub_department_id IS NOT NULL AND a.sub_department_id = p_sub_department_id)
-)
-```
+Tilføj en "Underafdeling"-dropdown i `AssignmentDialog` (samme dialog som "Ny Opgave" og redigér). Indhold:
+- `Alle` (= NULL) som default-option
+- Liste over alle aktive underafdelinger for den valgte hovedafdeling
 
-Adfærd:
-- Hoveddept valgt (ingen sub) → kun opgaver uden sub_department_id ("Alle").
-- Underafdeling valgt → kun opgaver med præcis det sub_department_id. "Alle"-opgaver skjules som ønsket.
-- Beholder rolle-grenene (admin/skadeleder/super_admin vs. øvrige), SECURITY DEFINER, search_path='', og logging uændret.
+Default-værdi:
+- Ny opgave: forudvælg `selectedSubDepartmentId` hvis sat, ellers "Alle". Brugeren kan altid skifte.
+- Redigér: vis nuværende værdi fra opgaven.
+
+Vælgeren placeres sammen med de øvrige meta-felter (dato, tid, lokation) — kompakt, samme stil som resten af dialogen.
+
+### 2. Hook: Send det valgte sub_department_id
+
+I `useOptimizedAssignments.createAssignment` og `updateAssignment`:
+- Læs `data.sub_department_id` (sat af dialogen) i stedet for at falde tilbage på `selectedSubDepartmentId`.
+- Hvis feltet er `undefined` (gammelt kald), behold nuværende fallback for bagudkompatibilitet.
+- `department_id` ændres ikke — kommer stadig fra `selectedDepartmentId`.
+
+### 3. Type/Assignment
+
+Tilføj `subDepartmentId?: string | null` til `Assignment`-typen og mapping i `convertToAssignment` (læs `data.sub_department_id`).
+
+### 4. Data-fix
+
+Manuel UPDATE: sæt `sub_department_id = NULL` på opgave `9d7de1bb-e980-469e-bf53-c133f29cb32f`, så den dublerede 12-00000 forsvinder fra Fugt-visningen og kun ligger under "Alle".
+
+### 5. Dokumentation
+
+- `CHANGELOG.md` — entry: "Opgave-dialog: ny underafdelings-vælger (Alle / Fugt / …) så opgaver ikke længere låses fast til den aktive sub-dept."
+- `docs/implementation-plan/tasks.md` — marker som færdig.
 
 ## Filer
 
-1. Ny migration `supabase/migrations/<timestamp>_strict_sub_dept_filter_assignments.sql` med `CREATE OR REPLACE FUNCTION public.list_accessible_assignments_with_team(...)`.
-2. `CHANGELOG.md` – tilføj entry under 2026-06-11: "Fix: Underafdeling viser ikke længere 'Alle'-opgaver (strikt sub_department_id-filter i RPC)."
-3. `docs/implementation-plan/tasks.md` – marker tilhørende isolerings-task som færdig.
+- `src/components/Planner/AssignmentDialog.tsx` (eller den eksisterende create/edit-dialog)
+- `src/hooks/useOptimizedAssignments.ts` — brug `data.sub_department_id`
+- `src/services/optimizedAssignmentService.ts` — `updateAssignment` skal forwarde `sub_department_id`
+- `src/types/assignment.ts` — tilføj felt
+- Migration (data-fix) for den eksisterende række
+- `CHANGELOG.md`, `docs/implementation-plan/tasks.md`
 
-Ingen ændringer i frontend nødvendige – filteret bliver allerede sendt korrekt via `p_sub_department_id`.
+## Bekræftelse
 
-## Bekræftelse efter deploy
-
-- Skift til en underafdeling og bekræft at "Alle"-opgaver forsvinder fra Planner.
-- Skift til hoveddept (ingen sub) og bekræft at "Alle"-opgaver stadig vises.
+- Stå på Fugt → opret opgave, vælg "Alle" → opgaven vises kun i hoveddept-visning, ikke i Fugt.
+- Stå på Fugt → opret opgave, behold "Fugt" → opgaven vises i Fugt-visningen.
+- Redigér eksisterende opgave → vælgeren afspejler nuværende værdi og kan ændres.

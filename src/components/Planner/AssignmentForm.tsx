@@ -6,6 +6,9 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Send, Edit3, AlertTriangle } from 'lucide-react';
@@ -55,6 +58,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
+  const { userSubDepartments } = useDepartment();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [zipCode, setZipCode] = useState(formData.zip_code || '');
@@ -318,6 +322,29 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         <h2 className="text-xl font-semibold">
           {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
         </h2>
+
+        {userSubDepartments.length > 0 && (
+          <div className="space-y-1.5">
+            <Label htmlFor="sub-department">Underafdeling</Label>
+            <Select
+              value={formData.subDepartmentId ?? '__all__'}
+              onValueChange={(val) =>
+                setFormData({ ...formData, subDepartmentId: val === '__all__' ? null : val })
+              }
+            >
+              <SelectTrigger id="sub-department">
+                <SelectValue placeholder="Vælg underafdeling" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Alle</SelectItem>
+                {userSubDepartments.map((sd) => (
+                  <SelectItem key={sd.id} value={sd.id}>{sd.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
 
         <AssignmentFormFields
           title={formData.title || ''}
