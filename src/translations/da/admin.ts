@@ -64,7 +64,9 @@ export const admin = {
     editTitle: 'Rediger underafdeling',
     visibleRoles: 'Synlige roller',
     visibleRolesHelp: 'Vælg hvilke medarbejderroller der skal vises i denne underafdeling.',
-    pickAtLeastOneRole: 'Vælg mindst én rolle'
+    pickAtLeastOneRole: 'Vælg mindst én rolle',
+    cars: 'Køretøjer',
+    carsHelp: 'Vælg hvilke køretøjer der hører til denne underafdeling.'
   },
   departmentSwitched: 'Skiftet til {name}',
   features: {
