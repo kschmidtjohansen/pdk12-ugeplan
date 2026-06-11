@@ -36,7 +36,7 @@ const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({ userRole }) => {
       },
     ];
 
-    if (userRole === 'super_admin' || userRole === 'administrator' || userRole === 'skadeleder') {
+    if (userRole === 'super_admin' || userRole === 'administrator' || userRole === 'skadeleder' || userRole === 'fugttekniker') {
       baseItems.push(
         {
           title: t('dashboard.quickAccessGrid.employees.title'),

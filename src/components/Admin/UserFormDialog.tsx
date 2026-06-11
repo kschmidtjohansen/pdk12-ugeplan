@@ -439,6 +439,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
                   <SelectItem value="administrator">{t('admin.roles.administrator')}</SelectItem>
                   <SelectItem value="skadeleder">{t('admin.roles.skadeleder')}</SelectItem>
                   <SelectItem value="servicemedarbejder">{t('admin.roles.servicemedarbejder')}</SelectItem>
+                  <SelectItem value="fugttekniker">{t('admin.roles.fugttekniker')}</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

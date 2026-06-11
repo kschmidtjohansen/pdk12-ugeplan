@@ -331,11 +331,13 @@ export const admin = {
     administrator: 'Administrator',
     skadeleder: 'Case Manager',
     servicemedarbejder: 'Service Employee',
+    fugttekniker: 'Moisture Technician',
     vikar: 'Substitute',
     super_adminDesc: 'Full access to all cities and features',
     administratorDesc: 'Full access to all features',
     skadelederDesc: 'Can manage assignments and approve tasks',
     servicemedarbejderDesc: 'Can view assigned tasks and request vacation',
+    fugtteknikerDesc: 'Same rights as service employee, but sees full dashboard',
     vikarDesc: 'Temporary access for substitutes'
   },
   vacationCalendar: {
