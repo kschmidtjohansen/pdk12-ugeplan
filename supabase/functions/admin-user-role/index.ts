@@ -101,41 +101,43 @@ serve(async (req) => {
     // Enhanced admin role check with better error handling
     console.log(`[${requestId}] Checking admin role for user: ${user.id}`);
     
-    const { data: roleData, error: roleError } = await supabaseAdmin
+    const { data: callerRolesData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle();
+      .eq('user_id', user.id);
 
-    console.log(`[${requestId}] Role query result:`, { roleData, roleError: roleError?.message });
+    const callerRoles = (callerRolesData ?? []).map((r: { role: string }) => r.role);
+    const isAdminCaller = callerRoles.some(r => r === 'administrator' || r === 'super_admin');
+
+    console.log(`[${requestId}] Role query result:`, { callerRoles, roleError: roleError?.message });
 
     if (roleError) {
       console.error(`[${requestId}] Role query error:`, roleError);
       return new Response(
         JSON.stringify({ error: 'Failed to verify user permissions', details: roleError.message }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
 
-    if (!roleData || !['administrator', 'super_admin'].includes(roleData.role)) {
-      console.error(`[${requestId}] User not admin. Role: ${roleData?.role || 'none'}, User: ${user.email}`);
+    if (!isAdminCaller) {
+      console.error(`[${requestId}] User not admin. Roles: ${callerRoles.join(',') || 'none'}, User: ${user.email}`);
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'Administrator access required',
-          userRole: roleData?.role || 'none',
+          userRoles: callerRoles,
           userId: user.id
         }),
-        { 
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
 
-    console.log(`[${requestId}] Admin verification successful - Role: ${roleData.role}`);
+    console.log(`[${requestId}] Admin verification successful - Roles: ${callerRoles.join(',')}`);
 
     // Parse request body
     const body = await req.json();

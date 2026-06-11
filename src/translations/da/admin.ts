@@ -255,6 +255,7 @@ export const admin = {
     name: 'Navn',
     email: 'Email',
     role: 'Rolle',
+    multiRoleHelp: 'Vælg én eller flere roller. Rollen med flest rettigheder bestemmer brugerens adgang; medarbejdere med flere roller vises i alle relevante lister.',
     phone: 'Telefonnummer',
     position: 'Stilling',
     actions: 'Handlinger',

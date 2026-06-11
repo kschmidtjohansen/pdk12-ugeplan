@@ -255,6 +255,7 @@ export const admin = {
     name: 'Name',
     email: 'Email',
     role: 'Role',
+    multiRoleHelp: 'Select one or more roles. The most privileged role determines access; employees with multiple roles appear in every relevant list.',
     phone: 'Phone Number',
     position: 'Position',
     actions: 'Actions',
