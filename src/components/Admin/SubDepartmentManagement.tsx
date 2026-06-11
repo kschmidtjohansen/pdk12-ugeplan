@@ -197,17 +197,21 @@ const SubDepartmentManagement: React.FC = () => {
       if (error) {
         toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
       } else {
+        await syncCars(editingSub.id);
         toast({ title: t('common.success'), description: t('admin.subDepartments.renamed') });
         setDialogOpen(false);
         fetchSubs(selectedDeptId);
       }
     } else {
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from('sub_departments')
-        .insert({ name: formName.trim(), department_id: selectedDeptId, visible_roles: formRoles });
+        .insert({ name: formName.trim(), department_id: selectedDeptId, visible_roles: formRoles })
+        .select('id')
+        .single();
       if (error) {
         toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
       } else {
+        if (inserted?.id) await syncCars(inserted.id);
         toast({ title: t('common.success'), description: t('admin.subDepartments.created') });
         setDialogOpen(false);
         fetchSubs(selectedDeptId);
