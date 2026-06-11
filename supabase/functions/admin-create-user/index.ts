@@ -112,7 +112,11 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { email, password, name, role, userData } = await req.json();
+    const body = await req.json();
+    const { email, password, name, role, userData } = body;
+    const roles: string[] = Array.isArray(body.roles) && body.roles.length > 0
+      ? body.roles
+      : (role ? [role] : []);
     
     const isTemporary = userData?.is_temporary || false;
 
@@ -269,36 +273,19 @@ serve(async (req) => {
         console.log(`[${requestId}] User created but profile update failed, continuing...`);
       }
 
-      // Create user role entry
-      if (role) {
+      // Create user role entries (multi-role support)
+      if (roles.length > 0) {
+        // Clear any existing rows (defensive) then insert all selected roles
+        await supabaseAdmin.from('user_roles').delete().eq('user_id', userId);
+        const uniqueRoles = Array.from(new Set(roles));
         const { error: roleError } = await supabaseAdmin
           .from('user_roles')
-          .insert({
-            user_id: userId,
-            role: role
-          });
+          .insert(uniqueRoles.map(r => ({ user_id: userId, role: r })));
 
         if (roleError) {
           console.error(`[${requestId}] Role assignment error:`, roleError);
-          
-          // Check for duplicate role assignment (user might already have a role)
-          if (roleError.code === '23505') {
-            console.log(`[${requestId}] User already has role assignment, updating instead...`);
-            // Try to update the existing role
-            const { error: updateRoleError } = await supabaseAdmin
-              .from('user_roles')
-              .update({ role })
-              .eq('user_id', userId);
-              
-            if (updateRoleError) {
-              console.error(`[${requestId}] Role update also failed:`, updateRoleError);
-            } else {
-              console.log(`[${requestId}] Role updated successfully`);
-            }
-          } else {
-            // Don't fail completely for other role assignment errors
-            console.log(`[${requestId}] User and profile created but role assignment failed`);
-          }
+          // Don't fail completely — user + profile are created
+          console.log(`[${requestId}] User and profile created but role assignment failed`);
         }
       }
     }

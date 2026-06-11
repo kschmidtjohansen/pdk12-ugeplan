@@ -139,13 +139,17 @@ serve(async (req) => {
 
     // Parse request body
     const body = await req.json();
-    const { userId, role } = body;
+    const { userId } = body;
+    // Accept either a single role (legacy) or an array of roles (multi-role)
+    const roles: string[] = Array.isArray(body.roles)
+      ? body.roles
+      : (body.role ? [body.role] : []);
 
-    console.log(`[${requestId}] Request body:`, { userId, role });
+    console.log(`[${requestId}] Request body:`, { userId, roles });
 
-    if (!userId || !role) {
+    if (!userId || roles.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'User ID and role are required' }),
+        JSON.stringify({ error: 'User ID and at least one role are required' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -153,11 +157,12 @@ serve(async (req) => {
       );
     }
 
-    // Validate role value
+    // Validate role values
     const validRoles = ['administrator', 'skadeleder', 'servicemedarbejder', 'fugttekniker', 'super_admin', 'vikar'];
-    if (!validRoles.includes(role)) {
+    const invalid = roles.filter(r => !validRoles.includes(r));
+    if (invalid.length > 0) {
       return new Response(
-        JSON.stringify({ error: 'Invalid role specified', validRoles }),
+        JSON.stringify({ error: 'Invalid role(s) specified', invalid, validRoles }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -165,7 +170,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Updating user ${userId} role to: ${role}`);
+    console.log(`[${requestId}] Updating user ${userId} roles to:`, roles);
 
     // Check if user exists first
     const { data: targetUser, error: userCheckError } = await supabaseAdmin
@@ -198,42 +203,44 @@ serve(async (req) => {
 
     console.log(`[${requestId}] Target user found: ${targetUser.name} (${targetUser.email})`);
 
-    // Update user role using upsert to handle both insert and update cases
-    const { error: updateError } = await supabaseAdmin
+    // Replace user's roles atomically: delete all, then insert the requested set
+    const { error: delErr } = await supabaseAdmin
       .from('user_roles')
-      .upsert(
-        { 
-          user_id: userId, 
-          role: role,
-          updated_at: new Date().toISOString() 
-        },
-        { 
-          onConflict: 'user_id'
-        }
-      );
+      .delete()
+      .eq('user_id', userId);
 
-    if (updateError) {
-      console.error(`[${requestId}] Failed to update user role:`, updateError);
+    if (delErr) {
+      console.error(`[${requestId}] Failed to clear existing roles:`, delErr);
       return new Response(
-        JSON.stringify({ error: 'Failed to update user role', details: updateError.message }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ error: 'Failed to clear existing roles', details: delErr.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`[${requestId}] User role updated successfully: ${targetUser.name} -> ${role}`);
+    const uniqueRoles = Array.from(new Set(roles));
+    const { error: insErr } = await supabaseAdmin
+      .from('user_roles')
+      .insert(uniqueRoles.map(r => ({ user_id: userId, role: r })));
+
+    if (insErr) {
+      console.error(`[${requestId}] Failed to insert roles:`, insErr);
+      return new Response(
+        JSON.stringify({ error: 'Failed to update user roles', details: insErr.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`[${requestId}] User roles updated successfully: ${targetUser.name} -> ${uniqueRoles.join(',')}`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'User role updated successfully',
+        message: 'User roles updated successfully',
         user: {
           id: targetUser.id,
           name: targetUser.name,
           email: targetUser.email,
-          newRole: role
+          newRoles: uniqueRoles
         }
       }),
       { 
