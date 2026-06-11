@@ -14,6 +14,7 @@ import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus } from '@/util
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
 import { haversineDistanceKm } from '@/utils/haversine';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { getRoleBadgeClass } from '@/utils/roleColors';
 
 type MultiDateAvailability = 'full' | 'partial' | 'none';
 
@@ -279,6 +280,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                         />
                       )}
                       {employee.name}
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] px-1.5 py-0 h-4 leading-none ${getRoleBadgeClass(employee.role)}`}
+                      >
+                        {t(`employees.${employee.role}`) || employee.role}
+                      </Badge>
                     </span>
                     {isNearby && formattedDist && (
                       <span className={`text-xs flex items-center gap-1 mt-0.5 ${isTop3 ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
