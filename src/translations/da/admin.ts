@@ -334,7 +334,7 @@ export const admin = {
     deleteWarning: "Alle opbevaringer tilknyttet denne lokation vil få deres lokation sat til 'Ingen'. Denne handling kan ikke fortrydes.",
   },
   roles: {
-    super_admin: 'Super Admin',
+    super_admin: 'IT Support',
     administrator: 'Administrator',
     skadeleder: 'Skadeleder',
     servicemedarbejder: 'Servicemedarbejder',
