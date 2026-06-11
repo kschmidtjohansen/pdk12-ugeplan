@@ -58,6 +58,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
+  const { userSubDepartments } = useDepartment();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [zipCode, setZipCode] = useState(formData.zip_code || '');
