@@ -2,7 +2,9 @@
 
 ## Løbende rettelser ✅
 
+- [x] `user_roles` SELECT-policy udvidet til alle authenticated brugere, så fugttekniker/servicemedarbejder ser korrekte kollega-roller i dashboard og dialoger (rod-årsag bag "ledige medarbejdere"-fejlen).
 - [x] Bil-vælgerens konflikt-bekræftelse: bil-listen lukkes og unmountes nu før AlertDialog'en "Bil allerede i brug" åbnes, så dropdownen ikke kan overlappe dialogboksen eller skjule "Brug alligevel"-knappen.
+
 
 ## Fase 1: Sikkerhedsaudit ✅
 
