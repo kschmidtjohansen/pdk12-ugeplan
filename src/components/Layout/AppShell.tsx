@@ -32,7 +32,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
               id="main-content"
               role="main"
               tabIndex={-1}
-              className="flex-1 w-full pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0"
+              className="flex-1 w-full pt-2 md:pt-4 pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0"
             >
               {children}
             </main>
