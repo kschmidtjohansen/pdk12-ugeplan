@@ -125,15 +125,25 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       if (profileError) throw profileError;
       
-      // Handle role update if changed (skip in demo mode — edge function won't work for demo users)
-      if (employee.role !== formData.role && !isDemoMode) {
+      // Handle role(s) update if changed (skip in demo mode — edge function won't work for demo users)
+      const incomingRoles: string[] = Array.isArray(formData.roles) && formData.roles.length
+        ? Array.from(new Set(formData.roles as string[]))
+        : [formData.role];
+      const currentRoles = (employee.roles && employee.roles.length
+        ? employee.roles
+        : [employee.role]) as string[];
+      const rolesChanged =
+        incomingRoles.length !== currentRoles.length ||
+        incomingRoles.some(r => !currentRoles.includes(r));
+
+      if (rolesChanged && !isDemoMode) {
         const { error: roleError } = await supabase.functions.invoke('admin-user-role', {
           body: {
             userId: employee.id,
-            role: formData.role
+            roles: incomingRoles
           }
         });
-        
+
         if (roleError) throw roleError;
       }
       
