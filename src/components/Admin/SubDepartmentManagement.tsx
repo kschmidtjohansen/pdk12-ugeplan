@@ -71,8 +71,38 @@ const SubDepartmentManagement: React.FC = () => {
       .select('id, name, department_id, visible_roles')
       .eq('department_id', deptId)
       .order('name');
-    setSubDepartments((data as SubDepartment[]) || []);
+    const subs = (data as SubDepartment[]) || [];
+    setSubDepartments(subs);
+
+    // Fetch car counts per sub-department for the list badge
+    if (subs.length > 0) {
+      const { data: links } = await supabase
+        .from('car_sub_departments')
+        .select('sub_department_id, car_id')
+        .in('sub_department_id', subs.map(s => s.id));
+      const counts: Record<string, number> = {};
+      (links || []).forEach((l: any) => {
+        counts[l.sub_department_id] = (counts[l.sub_department_id] || 0) + 1;
+      });
+      setSubCarCounts(counts);
+    } else {
+      setSubCarCounts({});
+    }
   };
+
+  // Load cars for currently selected (main) department — used in the dialog checkbox list
+  useEffect(() => {
+    if (!selectedDeptId) { setCars([]); return; }
+    const fetchCars = async () => {
+      const { data } = await supabase
+        .from('cars')
+        .select('id, name, car_number')
+        .eq('department_id', selectedDeptId)
+        .order('car_number', { ascending: true });
+      setCars((data as CarOption[]) || []);
+    };
+    fetchCars();
+  }, [selectedDeptId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -111,18 +141,41 @@ const SubDepartmentManagement: React.FC = () => {
     setEditingSub(null);
     setFormName('');
     setFormRoles([...ALL_ROLES]);
+    setFormCarIds([]);
     setDialogOpen(true);
   };
 
-  const openEditDialog = (sub: SubDepartment) => {
+  const openEditDialog = async (sub: SubDepartment) => {
     setEditingSub(sub);
     setFormName(sub.name);
     setFormRoles(sub.visible_roles?.length ? [...sub.visible_roles] : [...ALL_ROLES]);
+    // Pre-load assigned cars
+    const { data: links } = await supabase
+      .from('car_sub_departments')
+      .select('car_id')
+      .eq('sub_department_id', sub.id);
+    setFormCarIds((links || []).map((l: any) => l.car_id));
     setDialogOpen(true);
   };
 
   const toggleRole = (role: VisibleRole, checked: boolean) => {
     setFormRoles(prev => checked ? [...new Set([...prev, role])] : prev.filter(r => r !== role));
+  };
+
+  const toggleCar = (carId: string, checked: boolean) => {
+    setFormCarIds(prev => checked
+      ? Array.from(new Set([...prev, carId]))
+      : prev.filter(id => id !== carId));
+  };
+
+  const syncCars = async (subDepartmentId: string) => {
+    // Replace the full set of car links for this sub-department
+    await supabase.from('car_sub_departments').delete().eq('sub_department_id', subDepartmentId);
+    if (formCarIds.length > 0) {
+      await supabase.from('car_sub_departments').insert(
+        formCarIds.map(carId => ({ car_id: carId, sub_department_id: subDepartmentId }))
+      );
+    }
   };
 
   const handleSubmit = async () => {
