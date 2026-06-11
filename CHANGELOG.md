@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-11 — Fugttekniker-fixes & underafdelinger med roller
+
+### Changes
+- `useDashboardMetrics`: ledige/fraværende medarbejdere tæller nu kun rollen `servicemedarbejder` (vikar fjernet).
+- `employeeAvailability`: en medarbejder markeres fuldt booket når seneste sluttid når lukketid (16:00 man-tor / 15:30 fre), uanset starttidspunkt — Mark 08:00–16:00 vises nu korrekt som fuldt booket.
+- `sub_departments`: ny kolonne `visible_roles app_role[]` med default alle tre roller.
+- `SubDepartmentManagement`: ny opret/rediger-dialog der spørger hvilke roller (Skadeleder, Fugttekniker, Servicemedarbejder) der skal vises i underafdelingen; valgte roller vises som badges på listen.
+- `Dashboard/AssignmentDetailsDialog`: "Rediger"-knap er nu også gated på `canEdit` — fugtteknikere kan ikke længere redigere fra detaljedialogen.
+
+
 ## 2026-06-11 — Rolle-farver overalt
 
 ### Changes
