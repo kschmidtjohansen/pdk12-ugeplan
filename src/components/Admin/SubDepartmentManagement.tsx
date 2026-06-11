@@ -375,9 +375,6 @@ const SubDepartmentManagement: React.FC = () => {
             <div className="space-y-2">
               <Label>{t('admin.subDepartments.visibleRoles') || 'Synlige roller'}</Label>
               <div className="space-y-2">
-            <div className="space-y-2">
-              <Label>{t('admin.subDepartments.visibleRoles') || 'Synlige roller'}</Label>
-              <div className="space-y-2">
                 {ALL_ROLES.map(role => {
                   const checked = formRoles.includes(role);
                   return (
