@@ -39,9 +39,11 @@ interface UserFormDialogProps {
     phone: string;
     jobTitle: string;
     role: UserRole;
+    roles?: UserRole[];
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleRoleChange: (value: string) => void;
+  handleRolesChange?: (roles: UserRole[]) => void;
   handleSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
 }
@@ -62,6 +64,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
   formData,
   handleInputChange,
   handleRoleChange,
+  handleRolesChange,
   handleSubmit,
   onClose,
 }) => {
