@@ -23,6 +23,7 @@ export interface EmployeeFormData {
   home_postcode: string;
   home_address: string;
   skip_department: boolean;
+  sub_department_id: string | null;
 }
 
 export type CreationType = 'employee' | 'vikar' | 'edit';
@@ -46,6 +47,7 @@ const baseDefaults = (): EmployeeFormData => ({
   home_postcode: '',
   home_address: '',
   skip_department: false,
+  sub_department_id: null,
 });
 
 export const useEmployeeFormState = () => {

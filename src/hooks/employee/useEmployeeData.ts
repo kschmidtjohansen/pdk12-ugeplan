@@ -16,11 +16,11 @@ export const useEmployeeData = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isDemoMode, userDataLoaded } = useAuth();
-  const { selectedDepartmentId } = useDepartment();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
   const backfillRanRef = useRef(false);
   
-  const queryKey = ['employees', isDemoMode, selectedDepartmentId] as const;
+  const queryKey = ['employees', isDemoMode, selectedDepartmentId, selectedSubDepartmentId] as const;
 
   const fetchEmployeesFn = async (): Promise<Employee[]> => {
     if (import.meta.env.DEV) console.log(`[useEmployeeData] Starting employee fetch from ${isDemoMode ? 'demo' : 'public'} schema...`);
@@ -138,13 +138,18 @@ export const useEmployeeData = () => {
         };
       });
 
-      // Filter by department
+      // Filter by department (and optionally sub-department)
       let departmentFilteredEmployees = transformedEmployees;
       if (selectedDepartmentId && !isDemoMode) {
-        const { data: accessData, error: accessError } = await supabase
+        let accessQuery = supabase
           .from('user_access')
           .select('user_id')
           .eq('department_id', selectedDepartmentId);
+        if (selectedSubDepartmentId) {
+          // Strikt isolation pr. underafdeling
+          accessQuery = accessQuery.eq('sub_department_id', selectedSubDepartmentId);
+        }
+        const { data: accessData, error: accessError } = await accessQuery;
 
         if (accessError && import.meta.env.DEV) console.error('[useEmployeeData] user_access fetch error:', accessError);
 
@@ -152,10 +157,13 @@ export const useEmployeeData = () => {
 
         departmentFilteredEmployees = transformedEmployees.filter(emp => {
           if (departmentUserIds.has(emp.id)) return true;
-          const empRoles = rolesMap.get(emp.id) || [];
-          if (empRoles.includes('super_admin')) {
-            const profile = profiles.find((p: any) => p.id === emp.id);
-            return profile?.home_department_id === selectedDepartmentId;
+          // Super_admin uden user_access-r\u00e6kke vises kun n\u00e5r ingen underafdeling er valgt
+          if (!selectedSubDepartmentId) {
+            const empRoles = rolesMap.get(emp.id) || [];
+            if (empRoles.includes('super_admin')) {
+              const profile = profiles.find((p: any) => p.id === emp.id);
+              return profile?.home_department_id === selectedDepartmentId;
+            }
           }
           return false;
         });
