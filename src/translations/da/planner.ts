@@ -259,6 +259,7 @@ const planner = {
   // Employee role categories
   skadeledere: 'Skadeledere',
   servicemedarbejdere: 'Servicemedarbejdere',
+  fugtteknikere: 'Fugtteknikere',
   
   // Search
   searchPlaceholder: 'Søg efter sagsnr., adresse eller medarbejder...',

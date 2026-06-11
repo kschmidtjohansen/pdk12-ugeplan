@@ -8,6 +8,7 @@ import { useEmployees } from '../../hooks/useEmployees';
 import { filterDisplayNames } from '../../utils/people';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { getRoleBadgeClass } from '@/utils/roleColors';
 
 interface AssignmentDetailsProps {
   assignment: Assignment;
@@ -82,43 +83,48 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
 
   // Enhanced employee data processing with improved UUID detection and fallbacks
   const getEmployeeData = (assignment: Assignment): {
-    names: string[];
+    items: { name: string; role?: string }[];
     hasFullData: boolean;
   } => {
-    if (import.meta.env.DEV) {
-      console.log('[AssignmentDetails] Processing employee data for assignment:', assignment.title);
-      if (import.meta.env.DEV) console.log('[AssignmentDetails] Employee data available:', {
-        hasAssignedEmployees: !!assignment.assignedEmployees?.length,
-        assignedEmployees: assignment.assignedEmployees?.map(e => ({ id: e.id, name: e.name })),
-        hasLegacyEmployees: !!assignment.employees?.length,
-        legacyEmployees: assignment.employees
+    const items: { name: string; role?: string }[] = [];
+
+    // Add names from assignedEmployees (new format) — slå rolle op via employees
+    if (assignment.assignedEmployees?.length) {
+      assignment.assignedEmployees.forEach(emp => {
+        const fullEmp = employees.find(e => e.id === emp.id);
+        items.push({
+          name: emp.name || emp.email || '',
+          role: fullEmp?.role,
+        });
       });
     }
-    
-    const names: string[] = [];
-    
-    // Add names from assignedEmployees (new format)
-    if (assignment.assignedEmployees?.length) {
-      names.push(...assignment.assignedEmployees.map(emp => emp.name || emp.email || ''));
-    }
-    
-    // Add names from legacy employees array
+
+    // Add names from legacy employees array (strings) — slå rolle op via navn
     if (assignment.employees?.length) {
-      names.push(...assignment.employees);
+      assignment.employees.forEach(name => {
+        const fullEmp = employees.find(e => e.name === name);
+        items.push({ name, role: fullEmp?.role });
+      });
     }
-    
-    // Use the filterDisplayNames utility to remove UUIDs and duplicates
-    const processedNames = filterDisplayNames(names);
-    
-    if (import.meta.env.DEV) console.log('[AssignmentDetails] Processed names:', processedNames);
-    
+
+    // Filtrer UUID/dubletter på navn
+    const cleanedNames = filterDisplayNames(items.map(i => i.name));
+    const seen = new Set<string>();
+    const cleanedItems = cleanedNames
+      .filter(n => {
+        if (seen.has(n)) return false;
+        seen.add(n);
+        return true;
+      })
+      .map(name => items.find(i => i.name === name) || { name });
+
     return {
-      names: processedNames,
-      hasFullData: !!assignment.assignedEmployees?.length
+      items: cleanedItems,
+      hasFullData: !!assignment.assignedEmployees?.length,
     };
   };
   const employeeData = getEmployeeData(assignment);
-  const employeeCount = employeeData.names.length;
+  const employeeCount = employeeData.items.length;
   const showInline = employeeCount > 0 && employeeCount <= 2;
 
   return (
@@ -142,9 +148,12 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
               <Users className="h-3.5 w-3.5" />
             </span>
             {showInline ? (
-              employeeData.names.map((name, i) => (
-                <span key={i} className="chip chip-person">
-                  {name || t('planner.unknownEmployee')}
+              employeeData.items.map((item, i) => (
+                <span
+                  key={i}
+                  className={cn('chip chip-person border', getRoleBadgeClass(item.role))}
+                >
+                  {item.name || t('planner.unknownEmployee')}
                 </span>
               ))
             ) : (
@@ -165,10 +174,10 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
                     className="w-auto max-w-xs p-2"
                   >
                     <ul className="space-y-1">
-                      {employeeData.names.map((name, i) => (
+                      {employeeData.items.map((item, i) => (
                         <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
-                          <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                          {name || t('planner.unknownEmployee')}
+                          <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', getRoleBadgeClass(item.role))} />
+                          {item.name || t('planner.unknownEmployee')}
                         </li>
                       ))}
                     </ul>

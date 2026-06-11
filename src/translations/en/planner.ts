@@ -301,6 +301,7 @@ const planner = {
   // Employee role categories
   skadeledere: 'Case Managers',
   servicemedarbejdere: 'Service Workers',
+  fugtteknikere: 'Moisture Technicians',
   
   // Search
   searchPlaceholder: 'Search by case no., address or employee...',

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-11 — Rolle-farver overalt
+
+### Changes
+- `UnassignedResourcesSection`: tre rolle-buckets med Skadeleder=lilla, Fugttekniker=blå, Servicemedarbejder=grøn.
+- `EmployeeSelector` (planner): viser rolle-badge ved hver medarbejder i dropdown med samme farveskala.
+- `AssignmentDetails`: medarbejder-chips er farvet efter rolle.
+- Ny utility `src/utils/roleColors.ts` med centrale rolle-farver.
+
+
+
 ## 2026-06-11 — Rolle-badge farver
 
 ### Changes
