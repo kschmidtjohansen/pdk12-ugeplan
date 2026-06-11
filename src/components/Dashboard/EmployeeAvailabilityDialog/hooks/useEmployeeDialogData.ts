@@ -38,7 +38,10 @@ export const useEmployeeDialogData = ({
       if (import.meta.env.DEV) console.log(`[EmployeeDialogData] Using pre-filtered employees (${initialEmployees.length}) for original date ${selectedDate}`);
       return initialEmployees;
     } else {
-      const serviceEmployees = allEmployees.filter(employee => employee.role === 'servicemedarbejder');
+      const serviceEmployees = allEmployees.filter(employee => {
+        const roles = (employee.roles && employee.roles.length ? employee.roles : [employee.role]) as string[];
+        return roles.includes('servicemedarbejder');
+      });
       if (import.meta.env.DEV) console.log(`[EmployeeDialogData] Using all service employees (${serviceEmployees.length}) for navigated date ${viewedDate}`);
       
       const availableEmployees = serviceEmployees.filter(employee => {
