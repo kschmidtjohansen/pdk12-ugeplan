@@ -97,33 +97,46 @@ export const useEmployeeData = () => {
 
       if (rolesError && import.meta.env.DEV) console.error('[useEmployeeData] User roles fetch error:', rolesError);
 
-      const rolesMap = new Map<string, string>();
+      const rolesMap = new Map<string, string[]>();
       if (userRoles && Array.isArray(userRoles)) {
-        userRoles.forEach((userRole: any) => rolesMap.set(userRole.user_id, userRole.role));
+        userRoles.forEach((userRole: any) => {
+          const arr = rolesMap.get(userRole.user_id) || [];
+          if (!arr.includes(userRole.role)) arr.push(userRole.role);
+          rolesMap.set(userRole.user_id, arr);
+        });
       }
 
-      const transformedEmployees: Employee[] = profiles.map((profile: any) => ({
-        id: profile.id,
-        name: profile.name || 'Unknown',
-        email: profile.email || '',
-        phone: profile.phone || '',
-        jobTitle: profile.job_title || '',
-        role: (rolesMap.get(profile.id) || 'servicemedarbejder') as Employee['role'],
-        onLeave: profile.on_leave || false,
-        status: profile.status || 'active',
-        notes: profile.notes || '',
-        avatar_url: profile.avatar_url,
-        is_temporary: profile.is_temporary || false,
-        expires_at: profile.expires_at,
-        has_asbestos_certificate: !!profile.has_asbestos_certificate,
-        has_pcb_certificate: !!profile.has_pcb_certificate,
-        has_trailer_license: !!profile.has_trailer_license,
-        has_forklift_license: !!profile.has_forklift_license,
-        home_postcode: profile.home_postcode || '',
-        home_address: profile.home_address || '',
-        lat: profile.lat ?? undefined,
-        lng: profile.lng ?? undefined,
-      }));
+      const { getEffectiveRole } = await import('@/utils/roleHierarchy');
+
+      const transformedEmployees: Employee[] = profiles.map((profile: any) => {
+        const roles = rolesMap.get(profile.id) || [];
+        const effective = roles.length
+          ? getEffectiveRole(roles as any)
+          : 'servicemedarbejder';
+        return {
+          id: profile.id,
+          name: profile.name || 'Unknown',
+          email: profile.email || '',
+          phone: profile.phone || '',
+          jobTitle: profile.job_title || '',
+          role: effective as Employee['role'],
+          roles: (roles.length ? roles : [effective]) as Employee['roles'],
+          onLeave: profile.on_leave || false,
+          status: profile.status || 'active',
+          notes: profile.notes || '',
+          avatar_url: profile.avatar_url,
+          is_temporary: profile.is_temporary || false,
+          expires_at: profile.expires_at,
+          has_asbestos_certificate: !!profile.has_asbestos_certificate,
+          has_pcb_certificate: !!profile.has_pcb_certificate,
+          has_trailer_license: !!profile.has_trailer_license,
+          has_forklift_license: !!profile.has_forklift_license,
+          home_postcode: profile.home_postcode || '',
+          home_address: profile.home_address || '',
+          lat: profile.lat ?? undefined,
+          lng: profile.lng ?? undefined,
+        };
+      });
 
       // Filter by department
       let departmentFilteredEmployees = transformedEmployees;
