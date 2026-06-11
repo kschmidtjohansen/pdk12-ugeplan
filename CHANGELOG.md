@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-11 — Global ekstra top-padding mellem header og sideindhold
+
+### Changes
+- `AppShell`: tilføjet `pt-2 md:pt-4` på `<main>` for mere luft under topbaren på alle sider.
+
+
+
 ## 2026-06-11 — Multi-rolle, køretøjer i underafdeling, hurtig sub-dept switch, "Alle"-restriktion
 
 ### Changes
