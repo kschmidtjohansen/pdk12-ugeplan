@@ -13,7 +13,9 @@ interface VacationPageContainerProps {
 
 const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
   const { t } = useTranslation();
-  const { isEffectiveAdmin, isEffectiveSkadeleder, isEffectiveServicemedarbejder } = useAuth();
+  const { isEffectiveAdmin, isEffectiveSkadeleder, isEffectiveServicemedarbejder, effectiveRole } = useAuth();
+  const canManageVacations = isEffectiveAdmin || isEffectiveSkadeleder;
+  const viewAsServicemedarbejder = isEffectiveServicemedarbejder || effectiveRole === 'fugttekniker';
   const [activeTab, setActiveTab] = React.useState("all");
   
   const {
