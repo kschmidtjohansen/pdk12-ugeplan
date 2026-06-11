@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-11 — Mere luft mellem header og indhold i dialoger og cards
+
+### Changes
+- `DialogHeader`: øget `pb-3 mb-4` → `pb-4 mb-6` for bedre adskillelse mellem titel/beskrivelse og formularindhold.
+- `CardHeader`: tilføjet `mb-2` og øget `pb-2` → `pb-3` for samme effekt på alle kort.
+
+
 ## 2026-06-11 — Multi-rolle på medarbejdere (oprettelse + redigering)
 
 ### Changes
