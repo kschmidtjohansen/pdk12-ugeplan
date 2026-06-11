@@ -21,6 +21,7 @@ interface EmployeeFormDialogProps {
   creationType: 'employee' | 'vikar' | 'edit';
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (value: string) => void;
+  handleRoleToggle?: (role: string, checked: boolean) => void;
   handleCheckboxChange?: (field: string, checked: boolean) => void;
   handleSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
