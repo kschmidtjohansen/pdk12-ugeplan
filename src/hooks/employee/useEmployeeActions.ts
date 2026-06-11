@@ -146,6 +146,44 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
 
         if (roleError) throw roleError;
       }
+
+      // Persist sub-department assignment (per current department)
+      if (!isDemoMode && 'sub_department_id' in formData) {
+        try {
+          // Hent brugerens user_access rækker (vi opdaterer alle rækker for brugeren
+          // hvis vi ikke har en aktiv afdelings-kontekst, ellers kun for den aktive)
+          const { data: accessRows } = await supabase
+            .from('user_access')
+            .select('id, department_id')
+            .eq('user_id', employee.id);
+
+          if (accessRows && accessRows.length > 0) {
+            // Hvis underafdelingen tilhører en specifik afdeling, opdatér kun den række
+            let targetDeptId: string | null = null;
+            if (formData.sub_department_id) {
+              const { data: subDept } = await supabase
+                .from('sub_departments')
+                .select('department_id')
+                .eq('id', formData.sub_department_id)
+                .maybeSingle();
+              targetDeptId = (subDept as any)?.department_id || null;
+            }
+
+            const rowsToUpdate = targetDeptId
+              ? accessRows.filter((r: any) => r.department_id === targetDeptId)
+              : accessRows;
+
+            for (const row of rowsToUpdate) {
+              await supabase
+                .from('user_access')
+                .update({ sub_department_id: formData.sub_department_id || null })
+                .eq('id', (row as any).id);
+            }
+          }
+        } catch (e) {
+          if (import.meta.env.DEV) console.warn('[useEmployeeActions] sub_department_id update failed:', e);
+        }
+      }
       
       toast({
         title: t('employees.employeeUpdated'),

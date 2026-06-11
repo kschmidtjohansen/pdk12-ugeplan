@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-11 — Strikt underafdelings-isolation for opgaver, biler og medarbejdere
+
+Når en bruger vælger en underafdeling (f.eks. "Fugt"), vises **kun** data der eksplicit tilhører den underafdeling. Tidligere lækkede opgaver/biler uden `sub_department_id` ind i underafdelings-visningen, og medarbejdere blev slet ikke filtreret. Gælder alle roller, inkl. admin og super admin.
+
+### Changes
+- **Migration:** `list_accessible_assignments_with_team` fjerner `OR a.sub_department_id IS NULL` fallback — opgaver uden underafdelings-tilknytning er nu kun synlige i "Alle".
+- **`src/services/carSecurityService.ts`:** strikt `.in('id', carIds)` filter via `car_sub_departments`. Tom liste ⇒ ingen biler vises i underafdelings-visningen (fjernet `OR sub_department_id IS NULL` og afdelings-fallback).
+- **`src/hooks/employee/useEmployeeData.ts`:** filtrerer nu medarbejdere på `user_access.sub_department_id` når en underafdeling er valgt. Super_admins er kun synlige i hovedafdelings-visningen.
+- **`EmployeeFormDialog` + form-state + actions:** nyt felt "Underafdeling" i medarbejder-redigering — gemmer til `user_access.sub_department_id` for den relevante afdelings-række.
+
+
+
 ## 2026-06-11 — Rod-årsag: fugttekniker så skadeledere som servicemedarbejdere i dashboard
 
 `user_roles` SELECT-policy tillod kun, at brugeren læste sin egen rolle (medmindre vedkommende var admin/skadeleder). Det betød, at en fugttekniker (f.eks. Jonas Poulsen) fik tom rolle-info for alle kolleger, hvorefter `useEmployeeData` faldt tilbage til `'servicemedarbejder'` — så skadeledere og fugtteknikere blev fejlbehandlet som servicemedarbejdere i KPI'er og "Ledige medarbejdere"-dialogen.

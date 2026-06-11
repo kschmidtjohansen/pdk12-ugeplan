@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth, usePermissions } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Employee } from '@/types/employee';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -45,6 +47,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
     isSkadeleder
   } = usePermissions();
   const { user: authUser } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const isSuperAdmin = authUser?.role === 'super_admin';
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,9 +55,39 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   const [phoneError, setPhoneError] = useState('');
   const [creationMethod, setCreationMethod] = useState<'attempting' | 'edge-function' | 'direct-database' | 'failed'>('attempting');
   const [convertToPermanent, setConvertToPermanent] = useState(false);
+  const [subDepartments, setSubDepartments] = useState<{ id: string; name: string }[]>([]);
 
   // Check if we're editing a temporary employee
   const isEditingVikar = creationType === 'edit' && currentEmployee?.is_temporary === true;
+
+  // Load sub-departments for current main department
+  useEffect(() => {
+    if (!selectedDepartmentId) { setSubDepartments([]); return; }
+    (async () => {
+      const { data } = await supabase
+        .from('sub_departments')
+        .select('id, name')
+        .eq('department_id', selectedDepartmentId)
+        .order('name');
+      setSubDepartments((data as any[]) || []);
+    })();
+  }, [selectedDepartmentId]);
+
+  // Load existing sub_department_id for the employee being edited
+  useEffect(() => {
+    if (!currentEmployee?.id || !selectedDepartmentId) return;
+    (async () => {
+      const { data } = await supabase
+        .from('user_access')
+        .select('sub_department_id')
+        .eq('user_id', currentEmployee.id)
+        .eq('department_id', selectedDepartmentId)
+        .maybeSingle();
+      const current = (data as any)?.sub_department_id ?? null;
+      handleInputChange({ target: { name: 'sub_department_id', value: current ?? '' } } as any);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentEmployee?.id, selectedDepartmentId]);
 
   // Auto-set password validation to true for temporary users
   useEffect(() => {
@@ -522,6 +555,35 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                   <Checkbox id="onLeave" checked={formData.onLeave} onCheckedChange={checked => onCheckboxChange('onLeave', checked === true)} disabled={isSubmitting} />
                   <Label htmlFor="onLeave">{t('employees.onLeave')}</Label>
                 </div>}
+
+              {/* Sub-department assignment — strict isolation when set */}
+              {!formData.is_temporary && formData.role !== 'super_admin' && subDepartments.length > 0 && (
+                <div className="grid gap-2">
+                  <Label htmlFor="sub_department_id">Underafdeling</Label>
+                  <Select
+                    value={formData.sub_department_id || '__none__'}
+                    onValueChange={(value) => {
+                      handleInputChange({
+                        target: { name: 'sub_department_id', value: value === '__none__' ? '' : value }
+                      } as any);
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    <SelectTrigger id="sub_department_id">
+                      <SelectValue placeholder="Vælg underafdeling" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Ingen (kun hovedafdeling)</SelectItem>
+                      {subDepartments.map(sd => (
+                        <SelectItem key={sd.id} value={sd.id}>{sd.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Medarbejderen vises kun i den valgte underafdelings visning. "Ingen" gør medarbejderen synlig i hovedafdelingens "Alle"-visning.
+                  </p>
+                </div>
+              )}
             </>}
           
           {/* Notes field - viewable by skadeleder but only editable by admin */}

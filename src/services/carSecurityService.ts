@@ -13,17 +13,17 @@ export class CarSecurityService {
         query = query.eq('department_id', departmentId);
       }
       if (!isDemoMode && subDepartmentId) {
+        // Strikt isolation: vis kun biler eksplicit tilknyttet denne underafdeling
         const { data: carSubDepts } = await supabase
           .from('car_sub_departments')
           .select('car_id')
           .eq('sub_department_id', subDepartmentId);
-        
+
         const carIds = (carSubDepts || []).map(r => (r as any).car_id);
-        if (carIds.length > 0) {
-          query = query.or(`id.in.(${carIds.join(',')}),sub_department_id.is.null`);
+        if (carIds.length === 0) {
+          return [];
         }
-        // Hvis ingen biler er specifikt tilknyttet underafdelingen,
-        // vis alle i hovedafdelingen (allerede filtreret via department_id)
+        query = query.in('id', carIds);
       }
       
       const { data, error } = await query;
