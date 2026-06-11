@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-11 — Scroll-fix på MultipleCarSelector popover
+
+### Changes
+- Popover begrænses nu af `--radix-popover-content-available-height` så lange bil-lister altid kan scrolles inden for viewporten (sidste biler var skåret af nederst i dialogboksen).
+
+
+
 ## 2026-06-11 — Rolle-farver på medarbejder-labels i opgavekort
 
 ### Changes
