@@ -969,6 +969,7 @@ export type Database = {
           id: string
           name: string
           updated_at: string
+          visible_roles: Database["public"]["Enums"]["user_role"][]
         }
         Insert: {
           created_at?: string
@@ -976,6 +977,7 @@ export type Database = {
           id?: string
           name: string
           updated_at?: string
+          visible_roles?: Database["public"]["Enums"]["user_role"][]
         }
         Update: {
           created_at?: string
@@ -983,6 +985,7 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+          visible_roles?: Database["public"]["Enums"]["user_role"][]
         }
         Relationships: [
           {

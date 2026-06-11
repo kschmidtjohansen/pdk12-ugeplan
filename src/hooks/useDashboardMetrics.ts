@@ -40,10 +40,10 @@ export const useDashboardMetrics = () => {
       const safeVacations = vacations || [];
       const safeWarehouseItems = warehouseItems || [];
 
-      // Only servicemedarbejdere og vikarer tæller i dashboard-metrics
-      // (admins, skadeledere og fugtteknikere udfører ikke feltarbejde)
+      // Kun servicemedarbejdere tæller i dashboard-metrics (ledige medarbejdere)
+      // — admins, skadeledere, fugtteknikere og vikarer udfører ikke feltarbejde
       const isCountableEmployee = (e: typeof safeEmployees[number]) =>
-        e.role === 'servicemedarbejder' || e.role === 'vikar';
+        e.role === 'servicemedarbejder';
 
       const countableEmployees = safeEmployees.filter(isCountableEmployee);
 

@@ -220,12 +220,11 @@ export const getEmployeeAvailabilityStatus = (
   const latestEndTime = getLatestEndTime(employeeAssignments);
   const earliestStartTime = getEarliestStartTime(employeeAssignments);
   
-  // Check if assignments cover the full workday (with 30-minute tolerance)
-  const toleranceThreshold = subtractMinutes(workdayEndTime, 30);
-  const startsEarlyEnough = compareTimeStrings(earliestStartTime, "08:30") <= 0;
-  const endsLateEnough = compareTimeStrings(latestEndTime, toleranceThreshold) >= 0;
+  // Fully booked when the latest assignment runs to (or past) closing time —
+  // regardless of when in the day the employee started.
+  const endsAtOrAfterClosing = compareTimeStrings(latestEndTime, workdayEndTime) >= 0;
   
-  if (startsEarlyEnough && endsLateEnough) {
+  if (endsAtOrAfterClosing) {
     return {
       status: 'fullyBooked',
       statusText: t('employees.status.fullyBooked'),

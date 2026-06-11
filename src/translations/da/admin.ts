@@ -59,7 +59,12 @@ export const admin = {
     empty: 'Ingen underafdelinger oprettet endnu.',
     renamed: 'Underafdelingsnavn opdateret',
     editName: 'Rediger navn',
-    hasData: 'Kan ikke slettes – har tilknyttede brugere eller data'
+    hasData: 'Kan ikke slettes – har tilknyttede brugere eller data',
+    createTitle: 'Ny underafdeling',
+    editTitle: 'Rediger underafdeling',
+    visibleRoles: 'Synlige roller',
+    visibleRolesHelp: 'Vælg hvilke medarbejderroller der skal vises i denne underafdeling.',
+    pickAtLeastOneRole: 'Vælg mindst én rolle'
   },
   departmentSwitched: 'Skiftet til {name}',
   features: {

@@ -13,6 +13,7 @@ import StatusTimeline from '@/components/Dashboard/StatusTimeline';
 import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
 import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages';
 import { useDepartment } from '@/context/DepartmentContext';
+import { usePermissions } from '@/context/AuthContext';
  
  interface AssignmentDetailsDialogProps {
    assignment: Assignment | null;
@@ -35,6 +36,7 @@ import { useDepartment } from '@/context/DepartmentContext';
  }) => {
   const { t, currentLanguage } = useTranslation();
   const { isChatEnabled, isFilesEnabled } = useDepartment();
+  const { canEdit } = usePermissions();
   const [showFiles, setShowFiles] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -125,7 +127,7 @@ import { useDepartment } from '@/context/DepartmentContext';
                 <Badge variant={assignment.published ? "default" : "secondary"}>
                   {assignment.published ? t('planner.published') : t('planner.notPublished')}
                 </Badge>
-                {onEdit && (
+                {onEdit && canEdit && (
                   <Button 
                     variant="outline" 
                     size="sm" 
