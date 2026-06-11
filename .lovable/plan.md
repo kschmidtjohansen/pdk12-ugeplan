@@ -1,55 +1,35 @@
-## Mål
-"Ledige medarbejdere" på dashboardet skal kun vise servicemedarbejdere — også når brugeren har en multi-rolle (fx Servicemedarbejder + Fugttekniker, eller Skadeleder + Servicemedarbejder). I dag dropper filtreringen folk hvis deres "primære" rolle er noget andet end servicemedarbejder, og omvendt vises folk hvis deres effektive rolle tilfældigvis er servicemedarbejder selvom de også er skadeleder/fugttekniker.
+## Problem
+Du har oprettet underafdelingen **Fugt** i afdeling 12, men den vises ingen steder. Årsagen er at alle tre steder hvor underafdelinger surfaces er gated på "mere end én":
 
-Undtagelse: når en **underafdeling** er valgt, skal listen vise begge dele (servicemedarbejdere + fugtteknikere + skadeledere), så sub-dept fungerer som "alle relevante medarbejdere i denne underafdeling".
+- `SubDepartmentQuickSwitcher` (dashboard): `userSubDepartments.length < 2` → returnerer `null`
+- `UserMenu` (profil-dropdown): `userSubDepartments.length > 1`
+- `DepartmentSwitcherPill` (sidebar-pill): `canSwitchSub = userSubDepartments.length > 1`
 
-## Rod
-1. `src/hooks/employee/useEmployeeData.ts` bygger `rolesMap: Map<userId, string>` og overskriver ved hver række — multi-rolle brugere får kun én vilkårlig rolle.
-2. `src/hooks/useDashboardMetrics.ts` filtrerer på `e.role === 'servicemedarbejder'` (én rolle), uden hensyn til om brugeren også har servicemedarbejder.
-3. Ingen sub-dept-bevidsthed i dashboard-metrics.
+Med kun én underafdeling rammer du `length === 1` overalt, og samtidig auto-vælger `DepartmentContext` den ene sub-dept som standard — så data filtreres uden at du nogensinde ser kontrollen eller "Alle"-muligheden.
 
-## Ændringer
+## Plan
 
-### 1) `src/types/employee.ts`
-- Tilføj valgfri `roles?: UserRole[]` på `Employee` for at bære alle roller (uden at bryde eksisterende `role`-felt).
+1. **Vis sub-dept UI når der er ≥1 underafdeling** (ikke kun ≥2):
+   - `src/components/Dashboard/SubDepartmentQuickSwitcher.tsx`: ændre guard til `length < 1`
+   - `src/components/Layout/NavComponents/UserMenu.tsx`: betingelse `> 0`
+   - `src/components/Layout/NavComponents/DepartmentSwitcherPill.tsx`: `canSwitchSub = userSubDepartments.length > 0`
+   - Hvis 0 underafdelinger findes, vises intet (uændret).
 
-### 2) `src/hooks/employee/useEmployeeData.ts`
-- Ændr `rolesMap` til `Map<string, string[]>` og push alle roller per user_id.
-- For hver employee:
-  - `roles`: array fra map.
-  - `role`: bestem via `getEffectiveRole(roles)` (højest rangerede) — bagudkompatibel med eksisterende UI.
-- Realtime subscription på `user_roles` re-fetcher allerede.
+2. **Standardvalg for administratorer = "Alle"** i `src/context/DepartmentContext.tsx`:
+   - I `fetchSubDepartments` (både super-admin og almindelig sti): hvis brugeren er admin/super_admin og der ikke er gemt et gyldigt `selected_sub_department_id` i localStorage, så defaulte til `null` (Alle) i stedet for første sub.
+   - Ikke-admins beholder nuværende adfærd (auto-vælg første/eneste sub).
+   - Sikrer at en admin der opretter sin første underafdeling stadig ser hele afdelingens data og bevidst kan skifte til Fugt.
 
-### 3) `src/hooks/useDashboardMetrics.ts`
-- Importer `useDepartment` og brug `selectedSubDepartmentId`.
-- Ny `isCountableEmployee`:
-  ```ts
-  const isCountableEmployee = (e) => {
-    const roles = e.roles || [e.role];
-    if (selectedSubDepartmentId) {
-      // I underafdeling: inkludér service + fugttekniker + skadeleder
-      return roles.some(r => ['servicemedarbejder','fugttekniker','skadeleder'].includes(r));
-    }
-    // Default: kun rene servicemedarbejdere
-    return roles.includes('servicemedarbejder');
-  };
-  ```
-- Brug samme filter både til `availableEmployees` og `absentEmployees`.
-- Tilføj `selectedSubDepartmentId` til `useMemo` deps.
+3. **Dashboard quick switcher**:
+   - Allerede placeret i `DashboardPage` og rendereres af `SubDepartmentQuickSwitcher`. Med ændring (1) viser den `Alle` + alle sub-dept pills så snart der findes mindst én — præcis det du efterspørger ("Fugt" + senere "Løsøre"). Skjules helt når 0.
 
-### 4) `src/components/Dashboard/EmployeeAvailabilityDialog/hooks/useEmployeeDialogData.ts`
-- Samme servicemedarbejder-filter i navigations-grenen skal også respektere multi-rolle: `employee.roles?.includes('servicemedarbejder') ?? employee.role === 'servicemedarbejder'`. Sub-dept logik kan vente — initialEmployees kommer fra metrics, så når sub-dept er valgt og dato ikke ændres, ser man allerede de rigtige.
+4. **Changelog**:
+   - `2026-06-11 — Underafdelinger synlige fra første oprettelse + admin defaulter til "Alle"`.
 
 ## Verifikation
-- Som fugttekniker-bruger på dashboard (uden sub-dept valgt): "Ledige medarbejdere" viser kun servicemedarbejdere.
-- En bruger med multi-rolle (Skadeleder + Servicemedarbejder) tæller med som ledig.
-- En ren skadeleder/fugttekniker tæller IKKE med.
-- Når en underafdeling er valgt: listen viser servicemedarbejdere + fugtteknikere + skadeledere.
+- Med 0 underafdelinger: ingen pill, ingen switcher, ingen menu-sektion (uændret).
+- Med 1 underafdeling (Fugt): admin ser dashboard quick switcher med `Alle | Fugt`, defaultet til Alle. UserMenu og sidebar-pill viser også sub-dept-sektionen.
+- Med 2+ underafdelinger: som i dag, plus admin starter på Alle med mindre andet er gemt.
+- Skift mellem Alle og Fugt opdaterer data via eksisterende `unifiedDataService.clearCache()` i `setSelectedSubDepartmentId`.
 
-## Changelog
-`2026-06-11 — Dashboard "Ledige medarbejdere" respekterer multi-rolle og underafdelings-kontekst (kun servicemedarbejdere uden sub-dept, alle 3 roller med sub-dept)`
-
-## Tekniske noter
-- Ingen DB-ændringer.
-- `getEffectiveRole` findes i `src/utils/roleHierarchy.ts`.
-- `Employee.role` bevares for bagudkompatibilitet — sættes til den højest rangerede rolle som før.
+Ingen DB-/schema-ændringer. Kun frontend-justeringer.
