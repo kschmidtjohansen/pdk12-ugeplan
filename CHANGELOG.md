@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-11 — Planner "Ikke-tildelte ressourcer" respekterer nu underafdeling
+
+Sektionen "Ikke-tildelte ressourcer" viste tidligere alle medarbejdere, biler og opgaver fra hovedafdelingen, selvom man havde valgt en underafdeling (fx Fugt). Nu strikt filtreret efter de medarbejdere/biler/opgaver der er tilknyttet den valgte underafdeling.
+
+### Changes
+- **`src/services/data/unifiedDataService.ts`:** `fetchEmployees`, `fetchCars` og `fetchAssignments` accepterer nu `subDepartmentId`. Medarbejdere filtreres via `user_access.sub_department_id`, biler via `car_sub_departments`, opgaver via `assignments.sub_department_id`. Cache-key inkluderer sub-department.
+- **`src/hooks/data/useUnifiedData.ts`:** sender `selectedSubDepartmentId` videre, lytter på `user_access`/`car_sub_departments` realtime, og refetcher når sub-departmentet skifter.
+
+
+
 ## 2026-06-11 — Strikt underafdelings-isolation for opgaver, biler og medarbejdere
 
 Når en bruger vælger en underafdeling (f.eks. "Fugt"), vises **kun** data der eksplicit tilhører den underafdeling. Tidligere lækkede opgaver/biler uden `sub_department_id` ind i underafdelings-visningen, og medarbejdere blev slet ikke filtreret. Gælder alle roller, inkl. admin og super admin.

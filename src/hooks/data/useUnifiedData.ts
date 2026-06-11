@@ -25,14 +25,18 @@ interface UseUnifiedDataResult {
 
 export const useUnifiedData = (): UseUnifiedDataResult => {
   const { isDemoMode } = useAuth();
-  const { selectedDepartmentId } = useDepartment();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAllData = async (filterDemoUser: boolean, departmentId: string | null) => {
+  const fetchAllData = async (
+    filterDemoUser: boolean,
+    departmentId: string | null,
+    subDepartmentId: string | null
+  ) => {
     try {
       setLoading(true);
       setError(null);
@@ -50,9 +54,9 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       }
 
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
-        unifiedDataService.fetchEmployees(deptId),
-        unifiedDataService.fetchAssignments(deptId),
-        unifiedDataService.fetchCars(deptId)
+        unifiedDataService.fetchEmployees(deptId, subDepartmentId),
+        unifiedDataService.fetchAssignments(deptId, subDepartmentId),
+        unifiedDataService.fetchCars(deptId, subDepartmentId)
       ]);
 
       if (employeesResult.error || assignmentsResult.error || carsResult.error) {
@@ -85,7 +89,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
 
   const refetch = async () => {
     unifiedDataService.clearCache();
-    await fetchAllData(!isDemoMode, selectedDepartmentId);
+    await fetchAllData(!isDemoMode, selectedDepartmentId, selectedSubDepartmentId);
   };
 
   useEffect(() => {
@@ -94,7 +98,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
     
     const loadData = async () => {
       if (isMounted) {
-        await fetchAllData(filterDemoUser, selectedDepartmentId);
+        await fetchAllData(filterDemoUser, selectedDepartmentId, selectedSubDepartmentId);
       }
     };
 
@@ -114,10 +118,12 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
     };
 
     const unsubscribe = subscribeToTables(
-      `useUnifiedData:${selectedDepartmentId ?? 'all'}`,
+      `useUnifiedData:${selectedDepartmentId ?? 'all'}:${selectedSubDepartmentId ?? 'all'}`,
       [
         { table: 'cars' },
         { table: 'profiles' },
+        { table: 'user_access' },
+        { table: 'car_sub_departments' },
       ],
       (table) => handleRealtimeChange(table)
     );
@@ -129,7 +135,8 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       if (debounceTimer) clearTimeout(debounceTimer);
       unsubscribe();
     };
-  }, [isDemoMode, selectedDepartmentId]);
+  }, [isDemoMode, selectedDepartmentId, selectedSubDepartmentId]);
+
 
   return {
     employees,
