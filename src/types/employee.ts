@@ -8,6 +8,7 @@ export interface Employee {
   phone?: string;
   jobTitle?: string;
   role: 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'fugttekniker' | 'vikar';
+  roles?: Array<'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'fugttekniker' | 'vikar'>;
   onLeave?: boolean; // Keep for backward compatibility
   status: EmployeeStatus; // New status field
   notes?: string;

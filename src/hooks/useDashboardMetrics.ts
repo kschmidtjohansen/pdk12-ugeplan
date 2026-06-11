@@ -7,6 +7,7 @@ import { useVacationData } from './vacation/useVacationData';
 import { useWarehouseData } from './warehouse/useWarehouseData';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { format } from 'date-fns';
 
 export const useDashboardMetrics = () => {
@@ -16,6 +17,7 @@ export const useDashboardMetrics = () => {
   const { vacations, loading: vacationsLoading } = useVacationData();
   const { items: warehouseItems, loading: warehouseLoading } = useWarehouseData();
   const { t } = useTranslation();
+  const { selectedSubDepartmentId } = useDepartment();
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
@@ -40,10 +42,16 @@ export const useDashboardMetrics = () => {
       const safeVacations = vacations || [];
       const safeWarehouseItems = warehouseItems || [];
 
-      // Kun servicemedarbejdere tæller i dashboard-metrics (ledige medarbejdere)
-      // — admins, skadeledere, fugtteknikere og vikarer udfører ikke feltarbejde
-      const isCountableEmployee = (e: typeof safeEmployees[number]) =>
-        e.role === 'servicemedarbejder';
+      // Kun servicemedarbejdere tæller i dashboard-metrics som default.
+      // Når en underafdeling er valgt, inkluderes også fugtteknikere og skadeledere.
+      const SUB_DEPT_ROLES = ['servicemedarbejder', 'fugttekniker', 'skadeleder'];
+      const isCountableEmployee = (e: typeof safeEmployees[number]) => {
+        const roles = (e.roles && e.roles.length ? e.roles : [e.role]) as string[];
+        if (selectedSubDepartmentId) {
+          return roles.some(r => SUB_DEPT_ROLES.includes(r));
+        }
+        return roles.includes('servicemedarbejder');
+      };
 
       const countableEmployees = safeEmployees.filter(isCountableEmployee);
 
@@ -172,7 +180,7 @@ export const useDashboardMetrics = () => {
       if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr, selectedSubDepartmentId]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 

@@ -1,32 +1,55 @@
 ## Mål
-Bil-selectoren (Popover på desktop) klippes af nederst i dialogboksen, så de sidste biler ikke kan ses eller scrolles til. Den indre scroll bruger `max-h-[70vh]`, men hvis popoveren åbnes tæt på bunden af viewport, ender den alligevel uden for skærmen.
+"Ledige medarbejdere" på dashboardet skal kun vise servicemedarbejdere — også når brugeren har en multi-rolle (fx Servicemedarbejder + Fugttekniker, eller Skadeleder + Servicemedarbejder). I dag dropper filtreringen folk hvis deres "primære" rolle er noget andet end servicemedarbejder, og omvendt vises folk hvis deres effektive rolle tilfældigvis er servicemedarbejder selvom de også er skadeleder/fugttekniker.
 
-## Ændring
-**`src/components/Planner/MultipleCarSelector.tsx`** (linje 323–333):
-- Brug Radix Popover's egen tilgængelige højde via CSS-variablen `--radix-popover-content-available-height` på `PopoverContent`, så den altid passer i viewporten.
-- Sæt `collisionPadding={8}` og `avoidCollisions` (default true) så den flipper/begrænses korrekt.
-- Erstat den indre `max-h-[70vh]` med `max-h-full`, så listen scroller inden for popoverens reelle højde.
+Undtagelse: når en **underafdeling** er valgt, skal listen vise begge dele (servicemedarbejdere + fugtteknikere + skadeledere), så sub-dept fungerer som "alle relevante medarbejdere i denne underafdeling".
 
-Konkret:
-```tsx
-<PopoverContent
-  className="w-96 p-0 z-[60] bg-popover border shadow-lg flex flex-col max-h-[min(70vh,var(--radix-popover-content-available-height))]"
-  sideOffset={4}
-  collisionPadding={8}
->
-  <div
-    className="flex-1 overflow-y-auto overscroll-contain"
-    onWheel={(e) => e.stopPropagation()}
-  >
-    {renderCarList()}
-  </div>
-</PopoverContent>
-```
+## Rod
+1. `src/hooks/employee/useEmployeeData.ts` bygger `rolesMap: Map<userId, string>` og overskriver ved hver række — multi-rolle brugere får kun én vilkårlig rolle.
+2. `src/hooks/useDashboardMetrics.ts` filtrerer på `e.role === 'servicemedarbejder'` (én rolle), uden hensyn til om brugeren også har servicemedarbejder.
+3. Ingen sub-dept-bevidsthed i dashboard-metrics.
 
-Mobile Drawer-grenen er allerede scrollbar (`max-h-[70dvh] overflow-y-auto`) og rører jeg ikke.
+## Ændringer
+
+### 1) `src/types/employee.ts`
+- Tilføj valgfri `roles?: UserRole[]` på `Employee` for at bære alle roller (uden at bryde eksisterende `role`-felt).
+
+### 2) `src/hooks/employee/useEmployeeData.ts`
+- Ændr `rolesMap` til `Map<string, string[]>` og push alle roller per user_id.
+- For hver employee:
+  - `roles`: array fra map.
+  - `role`: bestem via `getEffectiveRole(roles)` (højest rangerede) — bagudkompatibel med eksisterende UI.
+- Realtime subscription på `user_roles` re-fetcher allerede.
+
+### 3) `src/hooks/useDashboardMetrics.ts`
+- Importer `useDepartment` og brug `selectedSubDepartmentId`.
+- Ny `isCountableEmployee`:
+  ```ts
+  const isCountableEmployee = (e) => {
+    const roles = e.roles || [e.role];
+    if (selectedSubDepartmentId) {
+      // I underafdeling: inkludér service + fugttekniker + skadeleder
+      return roles.some(r => ['servicemedarbejder','fugttekniker','skadeleder'].includes(r));
+    }
+    // Default: kun rene servicemedarbejdere
+    return roles.includes('servicemedarbejder');
+  };
+  ```
+- Brug samme filter både til `availableEmployees` og `absentEmployees`.
+- Tilføj `selectedSubDepartmentId` til `useMemo` deps.
+
+### 4) `src/components/Dashboard/EmployeeAvailabilityDialog/hooks/useEmployeeDialogData.ts`
+- Samme servicemedarbejder-filter i navigations-grenen skal også respektere multi-rolle: `employee.roles?.includes('servicemedarbejder') ?? employee.role === 'servicemedarbejder'`. Sub-dept logik kan vente — initialEmployees kommer fra metrics, så når sub-dept er valgt og dato ikke ændres, ser man allerede de rigtige.
 
 ## Verifikation
-Åbn "Opret opgave" → Vælg Biler i bunden af viewporten og bekræft at hele listen kan scrolles til (Trailer, Vagt 1, etc. synlige).
+- Som fugttekniker-bruger på dashboard (uden sub-dept valgt): "Ledige medarbejdere" viser kun servicemedarbejdere.
+- En bruger med multi-rolle (Skadeleder + Servicemedarbejder) tæller med som ledig.
+- En ren skadeleder/fugttekniker tæller IKKE med.
+- Når en underafdeling er valgt: listen viser servicemedarbejdere + fugtteknikere + skadeledere.
 
 ## Changelog
-`2026-06-11 — MultipleCarSelector popover begrænses nu til tilgængelig viewport-højde og scroller indvendigt`
+`2026-06-11 — Dashboard "Ledige medarbejdere" respekterer multi-rolle og underafdelings-kontekst (kun servicemedarbejdere uden sub-dept, alle 3 roller med sub-dept)`
+
+## Tekniske noter
+- Ingen DB-ændringer.
+- `getEffectiveRole` findes i `src/utils/roleHierarchy.ts`.
+- `Employee.role` bevares for bagudkompatibilitet — sættes til den højest rangerede rolle som før.

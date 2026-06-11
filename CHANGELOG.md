@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-11 — Dashboard "Ledige medarbejdere" respekterer multi-rolle og underafdeling
+
+### Changes
+- `useEmployeeData`: aggregerer nu alle roller per bruger (`roles: string[]`) i stedet for kun den seneste; `role` sættes via `getEffectiveRole`.
+- `Employee`-type: tilføjet valgfri `roles[]`.
+- `useDashboardMetrics`: bruger `selectedSubDepartmentId` — uden sub-dept vises kun brugere med rolle `servicemedarbejder` (multi-rolle understøttet); med sub-dept vises også fugttekniker + skadeleder.
+- `useEmployeeDialogData`: bruger `roles[]` ved navigation til andre datoer.
+
+
+
 ## 2026-06-11 — Scroll-fix på MultipleCarSelector popover
 
 ### Changes
