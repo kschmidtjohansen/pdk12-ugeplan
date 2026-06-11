@@ -428,24 +428,42 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
             <Input id="jobTitle" name="jobTitle" value={formData.jobTitle} onChange={handleInputChange} className="col-span-3" />
           </div>
           
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="role" className="text-right">{t('admin.userManagement.role')}</Label>
-            <Select value={formData.role} onValueChange={handleRoleChange}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder={t('admin.userManagement.selectRole')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {isSuperAdmin && (
-                    <SelectItem value="super_admin">{t('admin.roles.super_admin')}</SelectItem>
-                  )}
-                  <SelectItem value="administrator">{t('admin.roles.administrator')}</SelectItem>
-                  <SelectItem value="skadeleder">{t('admin.roles.skadeleder')}</SelectItem>
-                  <SelectItem value="fugttekniker">{t('admin.roles.fugttekniker')}</SelectItem>
-                  <SelectItem value="servicemedarbejder">{t('admin.roles.servicemedarbejder')}</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="text-right pt-1">{t('admin.userManagement.role')}</Label>
+            <div className="col-span-3 space-y-1.5 border rounded-md p-2">
+              <p className="text-xs text-muted-foreground mb-1">
+                {t('admin.userManagement.multiRoleHelp') || 'Vælg én eller flere roller. Højeste rolle bestemmer adgangen.'}
+              </p>
+              {([
+                ...(isSuperAdmin ? ['super_admin'] : []),
+                'administrator', 'skadeleder', 'fugttekniker', 'servicemedarbejder'
+              ] as UserRole[]).map(roleOption => {
+                const currentRoles = formData.roles ?? [formData.role];
+                const checked = currentRoles.includes(roleOption);
+                return (
+                  <label
+                    key={roleOption}
+                    className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-accent/40"
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(c) => {
+                        const next = c === true
+                          ? Array.from(new Set([...currentRoles, roleOption]))
+                          : currentRoles.filter(r => r !== roleOption);
+                        if (next.length === 0) return; // require at least one
+                        if (handleRolesChange) {
+                          handleRolesChange(next);
+                        } else {
+                          handleRoleChange(next[0]);
+                        }
+                      }}
+                    />
+                    <span className="text-sm">{t(`admin.roles.${roleOption}`)}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
 
           {/* Skip department checkbox for super_admin */}
