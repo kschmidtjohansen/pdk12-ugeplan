@@ -12,6 +12,9 @@ import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
+import { getRoleBadgeClass } from '@/utils/roleColors';
+import { getEffectiveRole } from '@/utils/roleHierarchy';
+import type { UserRole } from '@/types/user';
 
 interface CompactAssignmentRowProps {
   assignment: Assignment;
