@@ -8,6 +8,7 @@ import { useWarehouseData } from './warehouse/useWarehouseData';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 
 export const useDashboardMetrics = () => {
@@ -18,6 +19,7 @@ export const useDashboardMetrics = () => {
   const { items: warehouseItems, loading: warehouseLoading } = useWarehouseData();
   const { t } = useTranslation();
   const { selectedSubDepartmentId } = useDepartment();
+  const { effectiveRole } = useAuth();
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
@@ -44,9 +46,17 @@ export const useDashboardMetrics = () => {
 
       // Kun servicemedarbejdere tæller i dashboard-metrics som default.
       // Når en underafdeling er valgt, inkluderes også fugtteknikere og skadeledere.
+      // Kun servicemedarbejdere tæller i dashboard-metrics som default.
+      // Når en underafdeling er valgt, inkluderes også fugtteknikere og skadeledere
+      // — men fugttekniker/servicemedarbejder selv ser altid kun servicemedarbejdere.
       const SUB_DEPT_ROLES = ['servicemedarbejder', 'fugttekniker', 'skadeleder'];
+      const restrictToServicemedarbejder =
+        effectiveRole === 'servicemedarbejder' || effectiveRole === 'fugttekniker';
       const isCountableEmployee = (e: typeof safeEmployees[number]) => {
         const roles = (e.roles && e.roles.length ? e.roles : [e.role]) as string[];
+        if (restrictToServicemedarbejder) {
+          return roles.includes('servicemedarbejder');
+        }
         if (selectedSubDepartmentId) {
           return roles.some(r => SUB_DEPT_ROLES.includes(r));
         }
@@ -180,7 +190,7 @@ export const useDashboardMetrics = () => {
       if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr, selectedSubDepartmentId]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr, selectedSubDepartmentId, effectiveRole]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 
