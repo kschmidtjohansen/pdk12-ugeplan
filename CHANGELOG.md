@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-06-11 — Multi-rolle, køretøjer i underafdeling, hurtig sub-dept switch, "Alle"-restriktion
+
+### Changes
+- **Multi-rolle pr. medarbejder**: brugere kan nu have flere roller samtidigt (fx både Skadeleder og Fugttekniker). Den højest-rangerede rolle bestemmer adgangsniveauet (`super_admin > administrator > skadeleder > fugttekniker > servicemedarbejder > vikar`).
+  - DB-migration: fjerner UNIQUE-constraint `user_roles_user_id_unique`.
+  - Ny utility `src/utils/roleHierarchy.ts` med `getEffectiveRole()` og `ROLE_RANK`.
+  - `AuthContext`: henter alle roller; sætter `user.role` til primær (højeste) + ny `user.roles[]`.
+  - `UserFormDialog`: rolle-Select erstattet af multi-checkbox; mindst én krævet.
+  - Edge functions `admin-create-user` og `admin-user-role` accepterer nu `roles: string[]` (delete+insert), bagudkompatible med legacy `role`.
+  - `UserManagement.updateUserWithFallback`: håndterer `roles`-array via delete+insert.
+- **Køretøjer i underafdeling**: `SubDepartmentManagement` opret/rediger-dialog har nu også checkbox-liste over afdelingens køretøjer; gemmes via `car_sub_departments`. Listen viser et tæller-badge med antal tilknyttede køretøjer.
+- **Dashboard hurtig sub-dept-switch**: ny komponent `SubDepartmentQuickSwitcher` vises på dashboardet (under WelcomeHeader) hvis brugeren har adgang til >1 underafdeling — horisontal pill-bar uden behov for at åbne UserMenu.
+- **"Alle"-underafdeling restriktion**: `Alle`-valget i `UserMenu`, `DepartmentSwitcherPill` og `SubDepartmentQuickSwitcher` vises kun for Administrator + Super Admin. Andre roller kan kun vælge mellem de underafdelinger de er tilknyttet.
+
+
+
 ## 2026-06-11 — Fugttekniker-fixes & underafdelinger med roller
 
 ### Changes
