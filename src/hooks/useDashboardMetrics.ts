@@ -40,14 +40,20 @@ export const useDashboardMetrics = () => {
       const safeVacations = vacations || [];
       const safeWarehouseItems = warehouseItems || [];
 
-      // Total employees: count all active employees (not inactive)
-      const totalEmployees = safeEmployees.filter(e => e.status !== 'inactive').length;
-      
+      // Only servicemedarbejdere og vikarer tæller i dashboard-metrics
+      // (admins, skadeledere og fugtteknikere udfører ikke feltarbejde)
+      const isCountableEmployee = (e: typeof safeEmployees[number]) =>
+        e.role === 'servicemedarbejder' || e.role === 'vikar';
+
+      const countableEmployees = safeEmployees.filter(isCountableEmployee);
+
+      // Total employees: count all active countable employees (not inactive)
+      const totalEmployees = countableEmployees.filter(e => e.status !== 'inactive').length;
+
       // Calculate available employees (all active employees, not fully booked, on vacation, or on leave)
-      const availableEmployeesList = safeEmployees.filter(employee => {
-        // Count all active employees regardless of role
+      const availableEmployeesList = countableEmployees.filter(employee => {
         if (employee.status === 'inactive') return false;
-        
+
         const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
         return status.status === 'available' || status.status === 'partiallyBooked';
       }).map(employee => {
@@ -92,7 +98,7 @@ export const useDashboardMetrics = () => {
       );
 
       // Calculate absent employees (on vacation or leave)
-      const absentEmployeesList = safeEmployees.filter(employee => {
+      const absentEmployeesList = countableEmployees.filter(employee => {
         const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
         return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
       }).map(employee => {
@@ -115,7 +121,7 @@ export const useDashboardMetrics = () => {
       const totalWarehouseQuantity = safeWarehouseItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
       if (import.meta.env.DEV) {
-        const servicemedarbejdere = safeEmployees.filter(e => e.role === 'servicemedarbejder');
+        const servicemedarbejdere = countableEmployees;
         const carsInPlanner = safeCars.filter(c => c.show_in_planner !== false);
         const todaysAssignments = safeAssignments.filter(assignment => {
           const assignmentDate = (assignment as any).date || (assignment as any).assignment_date;
