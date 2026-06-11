@@ -8,7 +8,7 @@ import { useEmployees } from '../../hooks/useEmployees';
 import { filterDisplayNames } from '../../utils/people';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { getRoleBadgeClass } from '@/utils/roleColors';
+import { getRoleBadgeClass, getRoleDotClass } from '@/utils/roleColors';
 
 interface AssignmentDetailsProps {
   assignment: Assignment;
