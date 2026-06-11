@@ -383,6 +383,7 @@ export class OptimizedAssignmentService {
               car_ids: [],
               case_number: assignment.case_number || null,
               group_id: (assignment as any).group_id || null,
+              sub_department_id: (assignment as any).sub_department_id ?? null,
               responsible_user: null,
               assignment_employees: [],
               assignment_cars: []
