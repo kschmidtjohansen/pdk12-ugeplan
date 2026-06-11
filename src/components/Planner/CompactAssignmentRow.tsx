@@ -67,6 +67,17 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   
   const carNames = getCarNames();
   const employeeNames = getEmployeeNames();
+
+  // Derive most-privileged role across assigned employees for chip color
+  const employeeRoles: UserRole[] = (assignment.assignedEmployees || [])
+    .map((emp: any) => {
+      const id = typeof emp === 'object' ? emp.id : undefined;
+      const name = typeof emp === 'object' ? emp.name : emp;
+      const full = employees.find(e => (id && e.id === id) || e.name === name);
+      return (full?.role as UserRole) || undefined;
+    })
+    .filter(Boolean) as UserRole[];
+  const effectiveRole = employeeRoles.length ? getEffectiveRole(employeeRoles) : undefined;
   
   const carDisplay = carNames.length > 0 
     ? carNames.slice(0, 2).join(', ') + (carNames.length > 2 ? ` +${carNames.length - 2}` : '')
