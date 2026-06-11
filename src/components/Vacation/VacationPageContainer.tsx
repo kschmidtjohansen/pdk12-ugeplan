@@ -75,18 +75,18 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setAdminDialogOpen(true);
   };
   
-  // Handle approval action - only allow admin
+  // Handle approval action - allow admin and skadeleder
   const handleApprove = (vacation: any) => {
-    if (!isEffectiveAdmin) return;
+    if (!canManageVacations) return;
     
     setCurrentVacation(vacation);
     setActionType("approve");
     setActionDialogOpen(true);
   };
   
-  // Handle rejection action - only allow admin
+  // Handle rejection action - allow admin and skadeleder
   const handleReject = (vacation: any) => {
-    if (!isEffectiveAdmin) return;
+    if (!canManageVacations) return;
     
     setCurrentVacation(vacation);
     setActionType("reject");
@@ -95,7 +95,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   
   // Submit approval/rejection
   const handleActionSubmit = () => {
-    if (!currentVacation || !isEffectiveAdmin) return;
+    if (!currentVacation || !canManageVacations) return;
     
     if (actionType === "approve") {
       approveVacation(currentVacation, note);
@@ -107,23 +107,23 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     setNote("");
   };
   
-  // Handle edit vacation - only allow admin
+  // Handle edit vacation - allow admin and skadeleder
   const handleEdit = (vacation: any) => {
-    if (!isEffectiveAdmin) return;
+    if (!canManageVacations) return;
     
     handleEditVacation(vacation);
   };
   
-  // Handle delete vacation - only allow admin
+  // Handle delete vacation - allow admin and skadeleder
   const handleDelete = (vacation: any) => {
-    if (!isEffectiveAdmin) return;
+    if (!canManageVacations) return;
     
     handleDeleteVacation(vacation);
   };
   
-  // Wrapper for admin vacation request submission - Updated to close the dialog
+  // Wrapper for admin/skadeleder vacation request submission - Updated to close the dialog
   const submitAdminVacationRequest = (e: React.FormEvent) => {
-    if (isEffectiveAdmin) {
+    if (canManageVacations) {
       submitVacationRequest(e, true);
       // Close the admin dialog after submission
       setAdminDialogOpen(false);
@@ -135,7 +135,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
       {headerComponent}
       
       <VacationHeader 
-        isServicemedarbejder={isEffectiveServicemedarbejder}
+        isServicemedarbejder={viewAsServicemedarbejder}
         activeTab={activeTab}
         onChangeTab={setActiveTab}
         onOpenRequestDialog={handleOpenDialog}
