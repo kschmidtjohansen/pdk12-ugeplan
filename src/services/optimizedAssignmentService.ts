@@ -353,6 +353,7 @@ export class OptimizedAssignmentService {
               car_ids: carIds,
               case_number: assignment.case_number || null,
               group_id: (assignment as any).group_id || null,
+              sub_department_id: (assignment as any).sub_department_id ?? null,
               responsible_user: assignment.responsible_user ? {
                 id: (assignment.responsible_user as any).id || '',
                 name: (assignment.responsible_user as any).name || '',
