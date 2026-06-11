@@ -32,6 +32,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   creationType,
   handleInputChange,
   handleSelectChange,
+  handleRoleToggle,
   handleCheckboxChange,
   handleSubmit,
   onClose
