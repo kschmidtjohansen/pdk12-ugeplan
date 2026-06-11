@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-11 — Fix: multi-role admin kunne ikke redigere roller + manglende oversættelse multiRoleHelp
+
+### Changes
+- `supabase/functions/admin-user-role/index.ts`: Admin-verifikation hentede kalderens rolle med `.maybeSingle()`, hvilket fejlede (PGRST116) hvis admin selv havde flere roller. Erstattet med multi-row query + `isAdminCaller` check.
+- `src/translations/{da,en}/admin.ts`: Tilføjet manglende nøgle `userManagement.multiRoleHelp`.
+
 ## 2026-06-11 — Fugttekniker = Servicemedarbejder på Fridage, Skadeleder fuld vacation-adgang, "Super Admin" omdøbt til "IT Support"
 
 ### Changes
