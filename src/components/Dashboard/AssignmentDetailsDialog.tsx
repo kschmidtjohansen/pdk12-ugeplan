@@ -36,6 +36,7 @@ import { usePermissions } from '@/context/AuthContext';
  }) => {
   const { t, currentLanguage } = useTranslation();
   const { isChatEnabled, isFilesEnabled } = useDepartment();
+  const { canEdit } = usePermissions();
   const [showFiles, setShowFiles] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
