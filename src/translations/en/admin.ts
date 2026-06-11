@@ -64,7 +64,9 @@ export const admin = {
     editTitle: 'Edit sub-department',
     visibleRoles: 'Visible roles',
     visibleRolesHelp: 'Select which employee roles should appear in this sub-department.',
-    pickAtLeastOneRole: 'Pick at least one role'
+    pickAtLeastOneRole: 'Pick at least one role',
+    cars: 'Vehicles',
+    carsHelp: 'Select which vehicles belong to this sub-department.'
   },
   departmentSwitched: 'Switched to {name}',
   features: {
