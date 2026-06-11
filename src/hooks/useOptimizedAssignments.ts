@@ -311,7 +311,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           car_ids: data.cars || null,
           employees: data.employees || [],
           department_id: selectedDepartmentId || null,
-          sub_department_id: selectedSubDepartmentId || null,
+          sub_department_id: data.subDepartmentId !== undefined ? data.subDepartmentId : (selectedSubDepartmentId || null),
         };
         
         for (const date of dates) {
