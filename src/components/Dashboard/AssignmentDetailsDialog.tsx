@@ -127,7 +127,7 @@ import { usePermissions } from '@/context/AuthContext';
                 <Badge variant={assignment.published ? "default" : "secondary"}>
                   {assignment.published ? t('planner.published') : t('planner.notPublished')}
                 </Badge>
-                {onEdit && (
+                {onEdit && canEdit && (
                   <Button 
                     variant="outline" 
                     size="sm" 
