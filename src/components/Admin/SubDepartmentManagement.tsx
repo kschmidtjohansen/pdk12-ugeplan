@@ -308,12 +308,17 @@ const SubDepartmentManagement: React.FC = () => {
                 <div key={sub.id} className="flex items-center justify-between px-4 py-3 gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{sub.name}</div>
-                    <div className="flex flex-wrap gap-1 mt-1">
+                    <div className="flex flex-wrap gap-1 mt-1 items-center">
                       {(sub.visible_roles?.length ? sub.visible_roles : ALL_ROLES).map(r => (
                         <Badge key={r} className={`text-[10px] px-1.5 py-0.5 ${getRoleBadgeClass(r)}`}>
                           {roleLabel(r)}
                         </Badge>
                       ))}
+                      {subCarCounts[sub.id] > 0 && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                          {subCarCounts[sub.id]} {t('cars.title') || 'køretøjer'}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -370,6 +375,9 @@ const SubDepartmentManagement: React.FC = () => {
             <div className="space-y-2">
               <Label>{t('admin.subDepartments.visibleRoles') || 'Synlige roller'}</Label>
               <div className="space-y-2">
+            <div className="space-y-2">
+              <Label>{t('admin.subDepartments.visibleRoles') || 'Synlige roller'}</Label>
+              <div className="space-y-2">
                 {ALL_ROLES.map(role => {
                   const checked = formRoles.includes(role);
                   return (
@@ -388,6 +396,35 @@ const SubDepartmentManagement: React.FC = () => {
                   );
                 })}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('admin.subDepartments.cars') || 'Køretøjer'}</Label>
+              <p className="text-xs text-muted-foreground">
+                {t('admin.subDepartments.carsHelp') || 'Vælg hvilke køretøjer der hører til denne underafdeling.'}
+              </p>
+              {cars.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t('cars.empty') || 'Ingen køretøjer i afdelingen.'}</p>
+              ) : (
+                <div className="space-y-1.5 max-h-[180px] overflow-y-auto border rounded-md p-2">
+                  {cars.map(car => {
+                    const checked = formCarIds.includes(car.id);
+                    const label = car.car_number ? `${car.car_number} – ${car.name}` : car.name;
+                    return (
+                      <label
+                        key={car.id}
+                        className="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-accent/40"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(c) => toggleCar(car.id, c === true)}
+                        />
+                        <span className="text-sm truncate">{label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
