@@ -1,5 +1,6 @@
 
 const cars = {
+  title: "Køretøjer",
   // Basic car information
   vehicleInfo: "Køretøjsinformation",
   vehicleName: "Køretøjsnavn",
