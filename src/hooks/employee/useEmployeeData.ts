@@ -55,6 +55,7 @@ export const useEmployeeData = () => {
         phone: profile.phone || '',
         jobTitle: profile.job_title || '',
         role: (profile.role || 'servicemedarbejder') as Employee['role'],
+        roles: [(profile.role || 'servicemedarbejder') as NonNullable<Employee['roles']>[number]],
         onLeave: profile.on_leave || false,
         status: profile.status || 'active',
         notes: profile.notes || '',
