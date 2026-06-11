@@ -323,6 +323,29 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
         </h2>
 
+        {userSubDepartments.length > 0 && (
+          <div className="space-y-1.5">
+            <Label htmlFor="sub-department">Underafdeling</Label>
+            <Select
+              value={formData.subDepartmentId ?? '__all__'}
+              onValueChange={(val) =>
+                setFormData({ ...formData, subDepartmentId: val === '__all__' ? null : val })
+              }
+            >
+              <SelectTrigger id="sub-department">
+                <SelectValue placeholder="Vælg underafdeling" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Alle</SelectItem>
+                {userSubDepartments.map((sd) => (
+                  <SelectItem key={sd.id} value={sd.id}>{sd.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+
         <AssignmentFormFields
           title={formData.title || ''}
           setTitle={value => {
