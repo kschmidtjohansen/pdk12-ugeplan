@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-11 — Fugttekniker = Servicemedarbejder på Fridage, Skadeleder fuld vacation-adgang, "Super Admin" omdøbt til "IT Support"
+
+### Changes
+- `VacationPageContainer`: Fugttekniker behandles nu som Servicemedarbejder på `/vacation` (samme forenklede header/tabs). Skadeleder får fuld manage-adgang (godkend/afvis/rediger/slet + "Anmod for medarbejder") sammen med Administrator og IT Support via ny `canManageVacations`-flag.
+- `VacationHeader`: "Anmod for medarbejder"-knap vises nu også for Skadeleder.
+- Lager: bekræftet ingen ekstra rollegates ud over `canEdit` (super_admin/administrator/skadeleder). Fugttekniker har samme læse-visning som Servicemedarbejder.
+- Oversættelser: rolle-label `super_admin` ændret fra "Super Admin" til "IT Support" i da/en for `admin.roles`, `common.roles` og `employees.roles`. Tilhørende `skipDepartmentNote` opdateret. Intern DB-/TS-rolle-nøgle `super_admin` er uændret.
+
+
+
 ## 2026-06-11 — Underafdelinger synlige fra første oprettelse + admin defaulter til "Alle"
 
 ### Changes
