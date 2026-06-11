@@ -334,7 +334,7 @@ export const admin = {
     deleteWarning: "All items assigned to this location will have their location set to 'None'. This action cannot be undone.",
   },
   roles: {
-    super_admin: 'Super Admin',
+    super_admin: 'IT Support',
     administrator: 'Administrator',
     skadeleder: 'Case Manager',
     servicemedarbejder: 'Service Employee',
