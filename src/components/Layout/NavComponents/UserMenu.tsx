@@ -109,7 +109,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
                   </DropdownMenuRadioItem>
                 ))}
               </DropdownMenuRadioGroup>
-              {userSubDepartments.length > 1 && (
+              {userSubDepartments.length > 0 && (
                 <>
                   <DropdownMenuLabel className="flex items-center gap-2 pt-1">
                     <Layers className="h-4 w-4 text-muted-foreground" />
