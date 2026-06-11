@@ -17,6 +17,7 @@ export const useDashboardMetrics = () => {
   const { vacations, loading: vacationsLoading } = useVacationData();
   const { items: warehouseItems, loading: warehouseLoading } = useWarehouseData();
   const { t } = useTranslation();
+  const { selectedSubDepartmentId } = useDepartment();
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
