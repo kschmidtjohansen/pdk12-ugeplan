@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-11 — Fugttekniker ser kun servicemedarbejdere i "Ledige medarbejdere"-dialog
+
+Dialogen filtreres nu også på rollen, så fugtteknikere (og servicemedarbejdere) ikke længere ser skadeleder/fugttekniker i listen — uanset om en underafdeling er valgt eller dato navigeres.
+
 ## 2026-06-11 — Fugttekniker ser kun ledige servicemedarbejdere i dashboard-KPI
 
 ### Changes
