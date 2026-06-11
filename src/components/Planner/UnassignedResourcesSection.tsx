@@ -149,15 +149,18 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   // Categorize available employees by role
   const categorizedByRole = useMemo(() => {
     const allAvailable = [...employeeAvailabilityData.available, ...employeeAvailabilityData.partiallyBooked];
-    
+
     const skadeledere = allAvailable.filter(
       emp => emp.role === 'skadeleder' || emp.role === 'administrator' || emp.role === 'super_admin'
+    );
+    const fugtteknikere = allAvailable.filter(
+      emp => emp.role === 'fugttekniker'
     );
     const servicemedarbejdere = allAvailable.filter(
       emp => emp.role === 'servicemedarbejder' || emp.role === 'vikar'
     );
-    
-    return { skadeledere, servicemedarbejdere };
+
+    return { skadeledere, fugtteknikere, servicemedarbejdere };
   }, [employeeAvailabilityData]);
 
   // Calculate available cars
@@ -295,10 +298,10 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
           <CardContent className="pt-3">
             <div className="space-y-4">
               {/* Employees by Role - Compact */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Skadeledere */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Skadeledere — lilla */}
                 <div>
-                  <h4 className="text-sm font-semibold text-emerald-700 mb-2 flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
                     <UserCheck className="h-4 w-4" />
                     {t('planner.skadeledere')} ({categorizedByRole.skadeledere.length})
                   </h4>
@@ -308,12 +311,12 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                         <TooltipProvider key={emp.id} delayDuration={200}>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Badge 
-                                variant="outline" 
+                              <Badge
+                                variant="outline"
                                 className={`text-xs cursor-default ${
-                                  emp.availabilityInfo?.status === 'partiallyBooked' 
-                                    ? 'bg-amber-50 border-amber-200 text-amber-700' 
-                                    : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                  emp.availabilityInfo?.status === 'partiallyBooked'
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                    : 'bg-purple-50 border-purple-200 text-purple-700'
                                 }`}
                               >
                                 {emp.name.split(' ')[0]}
@@ -337,9 +340,50 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   )}
                 </div>
 
-                {/* Servicemedarbejdere */}
+                {/* Fugtteknikere — blå */}
                 <div>
                   <h4 className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-1.5">
+                    <Wrench className="h-4 w-4" />
+                    {t('planner.fugtteknikere')} ({categorizedByRole.fugtteknikere.length})
+                  </h4>
+                  {categorizedByRole.fugtteknikere.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {categorizedByRole.fugtteknikere.map(emp => (
+                        <TooltipProvider key={emp.id} delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className={`text-xs cursor-default ${
+                                  emp.availabilityInfo?.status === 'partiallyBooked'
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                    : 'bg-blue-50 border-blue-200 text-blue-700'
+                                }`}
+                              >
+                                {emp.name.split(' ')[0]}
+                                {emp.availabilityInfo?.status === 'partiallyBooked' && (
+                                  <Clock className="h-3 w-3 ml-1" />
+                                )}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-medium">{emp.name}</p>
+                              {emp.availabilityInfo?.text && (
+                                <p className="text-xs text-muted-foreground">{emp.availabilityInfo.text}</p>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{currentLanguage === 'da' ? 'Ingen tilgængelige' : 'None available'}</p>
+                  )}
+                </div>
+
+                {/* Servicemedarbejdere — grøn */}
+                <div>
+                  <h4 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-1.5">
                     <Wrench className="h-4 w-4" />
                     {t('planner.servicemedarbejdere')} ({categorizedByRole.servicemedarbejdere.length})
                   </h4>
@@ -349,12 +393,12 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                         <TooltipProvider key={emp.id} delayDuration={200}>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Badge 
-                                variant="outline" 
+                              <Badge
+                                variant="outline"
                                 className={`text-xs cursor-default ${
-                                  emp.availabilityInfo?.status === 'partiallyBooked' 
-                                    ? 'bg-amber-50 border-amber-200 text-amber-700' 
-                                    : 'bg-blue-50 border-blue-200 text-blue-700'
+                                  emp.availabilityInfo?.status === 'partiallyBooked'
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                    : 'bg-green-50 border-green-200 text-green-700'
                                 }`}
                               >
                                 {emp.name.split(' ')[0]}
