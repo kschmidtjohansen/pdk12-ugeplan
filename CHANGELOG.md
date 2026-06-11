@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-11 — Manglende oversættelser i underafdeling-dialog
+
+### Changes
+- Tilføjet `admin.subDepartments.cars` og `admin.subDepartments.carsHelp` (da/en).
+- Tilføjet `cars.title` (da: "Køretøjer", en: "Vehicles") så tællelabel på underafdelinger vises korrekt.
+
+
 ## 2026-06-11 — Mere luft mellem header og indhold i dialoger og cards
 
 ### Changes
