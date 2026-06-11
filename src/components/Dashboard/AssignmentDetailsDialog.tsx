@@ -13,6 +13,7 @@ import StatusTimeline from '@/components/Dashboard/StatusTimeline';
 import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
 import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages';
 import { useDepartment } from '@/context/DepartmentContext';
+import { usePermissions } from '@/context/AuthContext';
  
  interface AssignmentDetailsDialogProps {
    assignment: Assignment | null;
