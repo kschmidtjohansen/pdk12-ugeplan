@@ -151,7 +151,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
               employeeData.items.map((item, i) => (
                 <span
                   key={i}
-                  className={cn('chip chip-person border', getRoleBadgeClass(item.role))}
+                  className={cn('chip border', getRoleBadgeClass(item.role))}
                 >
                   {item.name || t('planner.unknownEmployee')}
                 </span>
@@ -162,7 +162,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      className="chip chip-person hover:opacity-80 transition-opacity cursor-help"
+                      className="chip border bg-muted text-foreground hover:opacity-80 transition-opacity cursor-help"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {employeeCount} {t('planner.employees') || 'medarbejdere'}
@@ -176,7 +176,7 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
                     <ul className="space-y-1">
                       {employeeData.items.map((item, i) => (
                         <li key={i} className="text-xs text-foreground flex items-center gap-1.5">
-                          <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', getRoleBadgeClass(item.role))} />
+                          <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', getRoleDotClass(item.role))} />
                           {item.name || t('planner.unknownEmployee')}
                         </li>
                       ))}
