@@ -225,15 +225,31 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             if (import.meta.env.DEV) console.warn('[useEmployeeCreation] Profile update warning:', profileError);
           }
 
-          const targetRole = formData.is_temporary ? 'vikar' : formData.role;
-          if (targetRole && targetRole !== 'servicemedarbejder') {
-            const { error: roleError } = await client
-              .from('user_roles')
-              .update({ role: targetRole })
-              .eq('user_id', userId);
-              
-            if (roleError) {
-              if (import.meta.env.DEV) console.warn('[useEmployeeCreation] Role update warning:', roleError);
+          const desiredRoles: string[] = formData.is_temporary
+            ? ['vikar']
+            : (Array.isArray(formData.roles) && formData.roles.length
+                ? Array.from(new Set(formData.roles as string[]))
+                : [formData.role || 'servicemedarbejder']);
+
+          if (desiredRoles.length > 1 && !isDemoMode) {
+            // Multi-role: replace via edge function (handles auth + RLS bypass)
+            const { error: rolesErr } = await supabase.functions.invoke('admin-user-role', {
+              body: { userId, roles: desiredRoles }
+            });
+            if (rolesErr && import.meta.env.DEV) {
+              console.warn('[useEmployeeCreation] Multi-role assignment warning:', rolesErr);
+            }
+          } else {
+            const targetRole = desiredRoles[0];
+            if (targetRole && targetRole !== 'servicemedarbejder') {
+              const { error: roleError } = await client
+                .from('user_roles')
+                .update({ role: targetRole })
+                .eq('user_id', userId);
+
+              if (roleError) {
+                if (import.meta.env.DEV) console.warn('[useEmployeeCreation] Role update warning:', roleError);
+              }
             }
           }
 
