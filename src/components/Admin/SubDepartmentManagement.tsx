@@ -35,6 +35,11 @@ interface SubDepartment {
   department_id: string;
   visible_roles: VisibleRole[];
 }
+interface CarOption {
+  id: string;
+  name: string;
+  car_number: string | null;
+}
 
 const SubDepartmentManagement: React.FC = () => {
   const { user } = useAuth();
@@ -52,6 +57,9 @@ const SubDepartmentManagement: React.FC = () => {
   const [editingSub, setEditingSub] = useState<SubDepartment | null>(null);
   const [formName, setFormName] = useState('');
   const [formRoles, setFormRoles] = useState<VisibleRole[]>([...ALL_ROLES]);
+  const [formCarIds, setFormCarIds] = useState<string[]>([]);
+  const [cars, setCars] = useState<CarOption[]>([]);
+  const [subCarCounts, setSubCarCounts] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const { toast } = useToast();
