@@ -382,6 +382,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   )}
                 </div>
 
+                </>
+                )}
+
                 {/* Servicemedarbejdere — grøn */}
                 <div>
                   <h4 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-1.5">
