@@ -69,6 +69,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   
   const { employees, cars, assignments: allAssignments } = useUnifiedData();
   const { vacations } = useVacations();
+  const { crossBusyByDate } = useCrossSubDeptBusy({ weekDates });
   
   // State for assignment details dialog
   const [detailsDialogAssignment, setDetailsDialogAssignment] = useState<Assignment | null>(null);
