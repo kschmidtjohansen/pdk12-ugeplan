@@ -179,7 +179,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return { skadeledere, fugtteknikere, servicemedarbejdere };
   }, [employeeAvailabilityData, crossBusyEmployeeIds]);
 
-  // Calculate available cars
+  // Calculate available cars (also excludes cars booked in other sub-departments)
   const availableCars = useMemo(() => {
     if (!cars || !Array.isArray(cars)) return [];
     return cars.filter(car => {
@@ -187,9 +187,10 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       if (car.show_in_planner === false) return false;
       if ((car as any).is_auxiliary === true) return false;
       if (assignedCarIds.has(car.id)) return false;
+      if (crossBusyCarIds.has(car.id)) return false;
       return true;
     });
-  }, [cars, assignedCarIds]);
+  }, [cars, assignedCarIds, crossBusyCarIds]);
 
   // Summary statistics
   const stats = useMemo(() => {
