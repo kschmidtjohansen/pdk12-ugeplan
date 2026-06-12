@@ -143,6 +143,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             cars={cars}
             vacations={vacations}
             weekDates={weekDates}
+            crossBusyByDate={crossBusyByDate}
           />
         </PlannerWidgetErrorBoundary>
       )}
