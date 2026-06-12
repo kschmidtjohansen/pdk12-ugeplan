@@ -14,6 +14,7 @@ import CompactPastAssignments from './CompactPastAssignments';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
+import { useCrossSubDeptBusy } from '@/hooks/useCrossSubDeptBusy';
 const AssignmentDetailsDialog = lazy(() => import('@/components/Dashboard/AssignmentDetailsDialog'));
 import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
@@ -68,6 +69,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   
   const { employees, cars, assignments: allAssignments } = useUnifiedData();
   const { vacations } = useVacations();
+  const { crossBusyByDate } = useCrossSubDeptBusy({ weekDates });
   
   // State for assignment details dialog
   const [detailsDialogAssignment, setDetailsDialogAssignment] = useState<Assignment | null>(null);
@@ -141,6 +143,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             cars={cars}
             vacations={vacations}
             weekDates={weekDates}
+            crossBusyByDate={crossBusyByDate}
           />
         </PlannerWidgetErrorBoundary>
       )}

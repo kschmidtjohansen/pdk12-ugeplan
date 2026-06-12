@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-12 — Cross-sub-department ledighed i planneren
+
+Medarbejdere og biler bookede i én underafdeling (fx Fugt) fremstod stadig som "ledige" når man skiftede til "Alle" eller en anden underafdeling, fordi opgaverne for andre scopes ikke trækkes ind i visningen. Det er nu rettet uden at lække de fremmede opgaver ind i planneren.
+
+### Changes
+- **Ny RPC `list_cross_subdept_busy_resources`** (migration): returnerer optagne `employee_ids`/`car_ids` fra alle andre sub-department-scopes i samme hoveddepartment for en given dato-range. `SECURITY DEFINER`, `SET search_path = ''`, samme rolle-/published-logik som `list_accessible_assignments_with_team`.
+- **Ny hook `useCrossSubDeptBusy.ts`:** kalder RPC'en for den aktuelle uge og returnerer `Set<string>` af optagne medarbejdere/biler per dato.
+- **`PlannerContent.tsx`:** henter cross-busy og videregiver til `UnassignedResourcesSection`.
+- **`UnassignedResourcesSection.tsx`:** filtrerer optagne medarbejdere/biler ud af "ledige"-listerne for den valgte dato. Selve opgavekortene fra fremmede underafdelinger vises stadig ikke (scope-isolation bevaret).
+
+
 ## 2026-06-11 — Underafdelings-vælger i opgave-dialog
 
 Når man stod på en underafdeling (fx Fugt) blev nye opgaver automatisk tagget med den underafdelings `sub_department_id` — uden mulighed for at vælge "Alle" eller en anden sub-dept. Resultat: opgaver der skulle ligge på hoveddept ("Alle") blev låst fast på Fugt og dukkede op i Fugt-visningen.
