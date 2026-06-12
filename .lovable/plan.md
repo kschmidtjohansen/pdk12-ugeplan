@@ -1,54 +1,64 @@
 ## Problem
 
-Når du opretter en opgave mens du står på en underafdeling (fx Fugt), tagges opgaven automatisk med den underafdelings `sub_department_id` — uden mulighed for at vælge "Alle". Det er derfor 12-00000 dukker op i Fugt-visningen: koden i `useOptimizedAssignments.createAssignment` sætter `sub_department_id: selectedSubDepartmentId || null` direkte fra context.
+På "Alle"-visningen henter `list_accessible_assignments_with_team` kun opgaver hvor `sub_department_id IS NULL`. Opgaver bookede på fx Fugt er derfor "usynlige", og Kasper/Nick/Mads vises som ledige i `UnassignedResourcesSection`. Samme problem gælder for biler. Symmetrisk vil en medarbejder/bil booket i Fugt heller ikke fremstå optaget, hvis man vælger en anden underafdeling.
 
-Derudover ligger den nuværende 12-00000 (`9d7de1bb-e980-469e-bf53-c133f29cb32f`) allerede forkert i DB med `sub_department_id = Fugt`. Den skal nulstilles til NULL.
+Vi må IKKE bare slå opgaverne sammen igen — det ville genindføre den fejl vi lige rettede (Alle-opgaver dukkede op i Fugt). Vi har brug for at vide, hvilke medarbejdere/biler der er optaget *på tværs af underafdelinger* inden for samme hoveddepartment, uden at trække selve opgavekortene ind i planneren.
 
 ## Løsning
 
-### 1. UI: Sub-dept vælger i opgave-dialogen
+Tilføj en let RPC der returnerer "busy"-ressourcer på tværs af alle sub-departments i hoveddepartmentet for en given dato-range. Brug resultatet til at filtrere medarbejdere/biler ud af "ledige"-listerne — uden at ændre selve opgavedata i planneren.
 
-Tilføj en "Underafdeling"-dropdown i `AssignmentDialog` (samme dialog som "Ny Opgave" og redigér). Indhold:
-- `Alle` (= NULL) som default-option
-- Liste over alle aktive underafdelinger for den valgte hovedafdeling
+### 1. Ny RPC: `list_cross_subdept_busy_resources`
 
-Default-værdi:
-- Ny opgave: forudvælg `selectedSubDepartmentId` hvis sat, ellers "Alle". Brugeren kan altid skifte.
-- Redigér: vis nuværende værdi fra opgaven.
+```text
+input:  p_department_id uuid, p_date_from date, p_date_to date, p_exclude_sub_department_id uuid
+output: assignment_date date, from_time time, to_time time,
+        employee_ids uuid[], car_ids uuid[], sub_department_id uuid
+```
 
-Vælgeren placeres sammen med de øvrige meta-felter (dato, tid, lokation) — kompakt, samme stil som resten af dialogen.
+- Returnerer alle opgaver i `p_department_id` hvor `sub_department_id IS DISTINCT FROM p_exclude_sub_department_id` (dvs. "alle andre scopes end det aktive").
+  - Når `p_exclude_sub_department_id IS NULL` (Alle-visning) → returnerer alle opgaver med `sub_department_id IS NOT NULL`.
+  - Når sat (Fugt-visning) → returnerer alle opgaver i andre underafdelinger + Alle-opgaver.
+- `SECURITY DEFINER`, `SET search_path = ''`, samme rolle-/published-logik som `list_accessible_assignments_with_team`.
+- Returnerer kun de felter der bruges til availability — ingen titel/beskrivelse/team-payload (let).
 
-### 2. Hook: Send det valgte sub_department_id
+### 2. Ny hook: `src/hooks/useCrossSubDeptBusy.ts`
 
-I `useOptimizedAssignments.createAssignment` og `updateAssignment`:
-- Læs `data.sub_department_id` (sat af dialogen) i stedet for at falde tilbage på `selectedSubDepartmentId`.
-- Hvis feltet er `undefined` (gammelt kald), behold nuværende fallback for bagudkompatibilitet.
-- `department_id` ændres ikke — kommer stadig fra `selectedDepartmentId`.
+- Tager `selectedDepartmentId`, `selectedSubDepartmentId`, `weekDates`.
+- Kalder den nye RPC med ugens fra/til-dato.
+- Returnerer per dato: `Set<string>` med busy employee-ids og `Set<string>` med busy car-ids. Eksponerer også `findRange(date) → {from, to}[]` hvis vi senere skal lave delvist-booket-status.
+- Standard React Query cache-key: `['cross-subdept-busy', deptId, subDeptId, weekKey]`.
 
-### 3. Type/Assignment
+### 3. PlannerPage + UnassignedResourcesSection
 
-Tilføj `subDepartmentId?: string | null` til `Assignment`-typen og mapping i `convertToAssignment` (læs `data.sub_department_id`).
+- `PlannerPage` henter `crossBusyByDate` via hooken og giver det videre som prop til `UnassignedResourcesSection`.
+- `UnassignedResourcesSection` udvider availability-beregning:
+  - Når en employee er i `crossBusyByDate[selectedDate].employees` → flyt fra `available` til en ny kategori "Booket i anden afdeling" (eller bare ud af listen). Tilsvarende for biler.
+- Visuelt: medarbejdere/biler optaget i anden under-afdeling vises ikke som ledige; tooltip/sektion afhænger af hvad vi vil vise (se spørgsmål nedenfor).
 
-### 4. Data-fix
+### 4. Andre planner-visninger (Day/Week/Schedule)
 
-Manuel UPDATE: sæt `sub_department_id = NULL` på opgave `9d7de1bb-e980-469e-bf53-c133f29cb32f`, så den dublerede 12-00000 forsvinder fra Fugt-visningen og kun ligger under "Alle".
+- Tjek `Planner/` views der bruger "ledige" badges og send `crossBusyByDate` ind på samme måde, så biler/medarbejdere markeres optaget på tværs.
+- Hvis et view kun viser opgavekort (ingen ledighedsliste), kræver det ingen ændring.
 
 ### 5. Dokumentation
 
-- `CHANGELOG.md` — entry: "Opgave-dialog: ny underafdelings-vælger (Alle / Fugt / …) så opgaver ikke længere låses fast til den aktive sub-dept."
-- `docs/implementation-plan/tasks.md` — marker som færdig.
+- `CHANGELOG.md`: "Cross-sub-department booking-synlighed for medarbejdere og biler i planner-availability."
+- `docs/implementation-plan/tasks.md`: marker som ny opgave + `[x]`.
+- Opdater memory `mem://features/department-system` med reglen: "Availability beregnes på tværs af alle sub-departments i samme main department; opgaver vises fortsat scope-isoleret."
 
-## Filer
+## Berørte filer
 
-- `src/components/Planner/AssignmentDialog.tsx` (eller den eksisterende create/edit-dialog)
-- `src/hooks/useOptimizedAssignments.ts` — brug `data.sub_department_id`
-- `src/services/optimizedAssignmentService.ts` — `updateAssignment` skal forwarde `sub_department_id`
-- `src/types/assignment.ts` — tilføj felt
-- Migration (data-fix) for den eksisterende række
+- `supabase/migrations/<ny>.sql` (RPC)
+- `src/hooks/useCrossSubDeptBusy.ts` (ny)
+- `src/pages/PlannerPage.tsx`
+- `src/components/Planner/UnassignedResourcesSection.tsx`
+- evt. andre `src/components/Planner/*` views der viser ledige ressourcer
 - `CHANGELOG.md`, `docs/implementation-plan/tasks.md`
 
-## Bekræftelse
+## Spørgsmål inden implementering
 
-- Stå på Fugt → opret opgave, vælg "Alle" → opgaven vises kun i hoveddept-visning, ikke i Fugt.
-- Stå på Fugt → opret opgave, behold "Fugt" → opgaven vises i Fugt-visningen.
-- Redigér eksisterende opgave → vælgeren afspejler nuværende værdi og kan ændres.
+1. Hvordan skal de optagne ressourcer vises i "Alle"-visning?
+   - **A.** Skjules helt fra "ledige" (renest, men man kan ikke se hvor de er booket).
+   - **B.** Flyttes til en ny sektion "Booket i anden underafdeling" med tooltip der nævner underafdelingen.
+2. Skal samme cross-scope-logik også gælde **vagter** (`on_call_duties`) og **ferier**, eller kun assignments + biler nu?
