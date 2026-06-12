@@ -14,6 +14,7 @@ import CompactPastAssignments from './CompactPastAssignments';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
+import { useCrossSubDeptBusy } from '@/hooks/useCrossSubDeptBusy';
 const AssignmentDetailsDialog = lazy(() => import('@/components/Dashboard/AssignmentDetailsDialog'));
 import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
