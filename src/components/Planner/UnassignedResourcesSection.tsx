@@ -148,10 +148,19 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return categorized;
   }, [employees, assignments, vacations, targetDateObj, t]);
 
+  // Cross-sub-department busy sets for the selected date (employees/cars
+  // booked in OTHER sub-departments of the same main department).
+  const crossBusy = crossBusyByDate?.[targetDate];
+  const crossBusyEmployeeIds = crossBusy?.employees ?? new Set<string>();
+  const crossBusyCarIds = crossBusy?.cars ?? new Set<string>();
+
   // Categorize available employees by role (multi-role aware:
   // a Skadeleder who also has Fugttekniker shows up in both sections)
   const categorizedByRole = useMemo(() => {
-    const allAvailable = [...employeeAvailabilityData.available, ...employeeAvailabilityData.partiallyBooked];
+    const allAvailable = [
+      ...employeeAvailabilityData.available,
+      ...employeeAvailabilityData.partiallyBooked,
+    ].filter(emp => !crossBusyEmployeeIds.has(emp.id));
     const rolesOf = (emp: any): string[] => {
       const r = (emp.roles && emp.roles.length ? emp.roles : [emp.role]) as string[];
       return r || [];
@@ -168,7 +177,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     });
 
     return { skadeledere, fugtteknikere, servicemedarbejdere };
-  }, [employeeAvailabilityData]);
+  }, [employeeAvailabilityData, crossBusyEmployeeIds]);
 
   // Calculate available cars
   const availableCars = useMemo(() => {
