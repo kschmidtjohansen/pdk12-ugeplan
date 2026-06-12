@@ -23,7 +23,17 @@ interface UnassignedResourcesSectionProps {
     start: Date;
     end: Date;
   };
+  crossBusyByDate?: Record<string, { employees: Set<string>; cars: Set<string> }>;
 }
+
+const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
+  assignments,
+  employees,
+  cars,
+  vacations,
+  weekDates,
+  crossBusyByDate,
+}) => {
 
 const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   assignments,
