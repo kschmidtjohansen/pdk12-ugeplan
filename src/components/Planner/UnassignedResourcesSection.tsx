@@ -34,14 +34,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   weekDates,
   crossBusyByDate,
 }) => {
-
-const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
-  assignments,
-  employees,
-  cars,
-  vacations,
-  weekDates
-}) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
 
