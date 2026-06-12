@@ -1645,6 +1645,22 @@ export type Database = {
           updated_at: string
         }[]
       }
+      list_cross_subdept_busy_resources: {
+        Args: {
+          p_date_from: string
+          p_date_to: string
+          p_department_id: string
+          p_exclude_sub_department_id?: string
+        }
+        Returns: {
+          assignment_date: string
+          car_ids: string[]
+          employee_ids: string[]
+          from_time: string
+          sub_department_id: string
+          to_time: string
+        }[]
+      }
       list_demo_assignments_with_team: {
         Args: never
         Returns: {
