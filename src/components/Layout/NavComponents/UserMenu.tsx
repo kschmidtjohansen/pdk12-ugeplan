@@ -116,7 +116,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
                     {t('common.subDepartment') || 'Underafdeling'}
                   </DropdownMenuLabel>
                   <DropdownMenuRadioGroup value={selectedSubDepartmentId || ''} onValueChange={(value) => setSelectedSubDepartmentId(value || null)}>
-                    {isAdmin && (
+                    {(isAdmin || isSkadeleder) && (
                       <DropdownMenuRadioItem value="" className="cursor-pointer">
                         {t('common.all') || 'Alle'}
                       </DropdownMenuRadioItem>
