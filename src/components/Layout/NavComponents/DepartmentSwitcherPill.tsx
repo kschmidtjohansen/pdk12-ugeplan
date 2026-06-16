@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 
 const DepartmentSwitcherPill: React.FC = () => {
   const { t } = useTranslation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSkadeleder } = useAuth();
   const {
     userDepartments,
     selectedDepartmentId,
