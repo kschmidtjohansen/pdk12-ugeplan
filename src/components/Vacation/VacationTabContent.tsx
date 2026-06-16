@@ -63,6 +63,14 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
     });
   }, [vacations, tabValue, user, isEffectiveAdmin, isEffectiveServicemedarbejder]);
 
+  if (tabValue === 'calendar') {
+    return (
+      <div className="mt-6">
+        <VacationCalendarOverview />
+      </div>
+    );
+  }
+
   return (
     <div className="mt-6">
       <VacationList 
