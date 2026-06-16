@@ -1008,3 +1008,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 ## 2026-06-10 - Screen Display viser sagsansvarlig og bil
 - RPC `list_screen_display_assignments` returnerer nu bilnavne (jsonb).
 - Kort på storskærm viser sagsansvarlig (skadeleder) og hvilken bil/trailer der skal bruges.
+
+## 2026-06-16
+- Erstattede måneds-kalender på /vacation "Ferieoversigt" med grid-visning (medarbejdere som rækker, dage som kolonner, ræde celler = godkendt ferie). Bruger vælger selv periode (maks 92 dage), sticky navnekolonne, uge-nummer-header.
