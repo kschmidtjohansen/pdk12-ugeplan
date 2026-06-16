@@ -27,7 +27,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   handleLogout
 }) => {
   const { t } = useTranslation();
-  const { isDemoMode, demoRole, setDemoRole, userDataLoaded, isAdmin } = useAuth();
+  const { isDemoMode, demoRole, setDemoRole, userDataLoaded, isAdmin, isSkadeleder } = useAuth();
   const { userDepartments, selectedDepartmentId, switchDepartment, userSubDepartments, selectedSubDepartmentId, setSelectedSubDepartmentId } = useDepartment();
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
