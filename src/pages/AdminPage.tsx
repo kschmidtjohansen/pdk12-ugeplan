@@ -145,9 +145,8 @@ const AdminPage: React.FC = () => {
             </TabsContent>
           )}
 
-          <TabsContent value="vacationCalendar" className="animate-fade-in">
-            <VacationCalendarOverview />
-          </TabsContent>
+
+
 
           {(isSuperAdmin || isAdmin) && (
             <TabsContent value="autoPublish" className="animate-fade-in">
