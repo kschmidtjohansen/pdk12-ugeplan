@@ -88,7 +88,7 @@ const DepartmentSwitcherPill: React.FC = () => {
               value={selectedSubDepartmentId || ''}
               onValueChange={(value) => setSelectedSubDepartmentId(value || null)}
             >
-              {isAdmin && (
+              {(isAdmin || isSkadeleder) && (
                 <DropdownMenuRadioItem value="" className="cursor-pointer">
                   {t('common.all') || 'Alle'}
                 </DropdownMenuRadioItem>
