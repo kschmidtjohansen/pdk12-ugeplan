@@ -91,10 +91,7 @@ const AdminPage: React.FC = () => {
                 {t('admin.tabs.locations') || 'Lokationer'}
               </TabsTrigger>
             )}
-            <TabsTrigger value="vacationCalendar" className="gap-2">
-              <CalendarDays className="h-4 w-4" />
-              {t('admin.tabs.vacationCalendar')}
-            </TabsTrigger>
+
             {(isSuperAdmin || isAdmin) && (
               <TabsTrigger value="autoPublish" className="gap-2">
                 <Clock className="h-4 w-4" />
