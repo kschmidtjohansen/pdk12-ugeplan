@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-16 — Skadeledere kan vælge "Alle" i sub-department-selector
+
+Skadeledere blev tidligere låst på deres første tildelte underafdeling (fx Fugt) og kunne hverken se "Alle" i UserMenu/DepartmentSwitcherPill eller bytte mellem underafdelinger. Det betød at de — selv med korrekte skadeleder-rettigheder — ikke kunne oprette/redigere opgaver på hoveddepartementets niveau.
+
+### Changes
+- **`DepartmentContext.tsx`:** `isAdminLike` udvidet til også at omfatte `skadeleder`, så stored sub-dept-valg respekteres og default er NULL ("Alle") i stedet for auto-låst på første underafdeling.
+- **`UserMenu.tsx` + `DepartmentSwitcherPill.tsx`:** "Alle"-rækken i sub-dept-radio-gruppen vises nu også for skadeledere.
+- Ingen DB-ændringer; `user_access` styrer fortsat hvilke underafdelinger skadelederen kan se.
+
+
+
 ## 2026-06-12 — Cross-sub-department ledighed i planneren
 
 Medarbejdere og biler bookede i én underafdeling (fx Fugt) fremstod stadig som "ledige" når man skiftede til "Alle" eller en anden underafdeling, fordi opgaverne for andre scopes ikke trækkes ind i visningen. Det er nu rettet uden at lække de fremmede opgaver ind i planneren.

@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 
 const DepartmentSwitcherPill: React.FC = () => {
   const { t } = useTranslation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSkadeleder } = useAuth();
   const {
     userDepartments,
     selectedDepartmentId,
@@ -88,7 +88,7 @@ const DepartmentSwitcherPill: React.FC = () => {
               value={selectedSubDepartmentId || ''}
               onValueChange={(value) => setSelectedSubDepartmentId(value || null)}
             >
-              {isAdmin && (
+              {(isAdmin || isSkadeleder) && (
                 <DropdownMenuRadioItem value="" className="cursor-pointer">
                   {t('common.all') || 'Alle'}
                 </DropdownMenuRadioItem>
