@@ -12,7 +12,7 @@ import DepartmentManagement from '@/components/Admin/DepartmentManagement';
 import SubDepartmentManagement from '@/components/Admin/SubDepartmentManagement';
 import FeatureToggleManagement from '@/components/Admin/FeatureToggleManagement';
 import LocationManagement from '@/components/Admin/LocationManagement';
-import VacationCalendarOverview from '@/components/Admin/VacationCalendarOverview';
+
 import WebVitalsOverview from '@/components/Admin/WebVitalsOverview';
 import AutoPublishLogWidget from '@/components/Dashboard/AutoPublishLogWidget';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
