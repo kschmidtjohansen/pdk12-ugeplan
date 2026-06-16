@@ -21,9 +21,9 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
   onOpenAdminDialog
 }) => {
   const { t } = useTranslation();
-  const { isEffectiveAdmin, isEffectiveSkadeleder, isSuperAdmin } = useAuth();
+  const { isEffectiveAdmin, isEffectiveSkadeleder, effectiveRole } = useAuth();
   const canManageVacations = isEffectiveAdmin || isEffectiveSkadeleder;
-  const canViewCalendar = isEffectiveAdmin || isEffectiveSkadeleder || isSuperAdmin;
+  const canViewCalendar = isEffectiveAdmin || isEffectiveSkadeleder || effectiveRole === 'super_admin';
   const isCalendarTab = activeTab === 'calendar';
 
   return (
