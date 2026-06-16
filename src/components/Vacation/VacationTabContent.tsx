@@ -1,5 +1,5 @@
 import VacationList from './VacationList';
-import VacationCalendarOverview from '@/components/Admin/VacationCalendarOverview';
+import VacationGridOverview from './VacationGridOverview';
 import React from 'react';
 import { Vacation } from '@/types/vacation';
 import { useAuth } from '@/context/AuthContext';
@@ -66,7 +66,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   if (tabValue === 'calendar') {
     return (
       <div className="mt-6">
-        <VacationCalendarOverview />
+        <VacationGridOverview />
       </div>
     );
   }
