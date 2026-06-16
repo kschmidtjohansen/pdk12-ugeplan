@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-16 — Ferieoversigt flyttet fra Admin til /vacation
+
+Ferieoversigt (kalender) er flyttet fra Admin-siden til ferie-siden som ny fane "Ferieoversigt". Synlig for Administrator, Skadeleder og IT Support (super_admin). Anmodnings-knapperne skjules når kalenderfanen er aktiv.
+
+
 ## 2026-06-16 — Skadeledere kan vælge "Alle" i sub-department-selector
 
 Skadeledere blev tidligere låst på deres første tildelte underafdeling (fx Fugt) og kunne hverken se "Alle" i UserMenu/DepartmentSwitcherPill eller bytte mellem underafdelinger. Det betød at de — selv med korrekte skadeleder-rettigheder — ikke kunne oprette/redigere opgaver på hoveddepartementets niveau.

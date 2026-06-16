@@ -123,7 +123,8 @@ const vacation = {
     all: "All",
     pending: "Pending",
     approved: "Approved",
-    rejected: "Rejected"
+    rejected: "Rejected",
+    calendar: "Vacation calendar"
   },
   
   // Admin notification for pending requests

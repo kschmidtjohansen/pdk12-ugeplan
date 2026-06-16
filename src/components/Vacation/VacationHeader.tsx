@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -22,9 +21,11 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
   onOpenAdminDialog
 }) => {
   const { t } = useTranslation();
-  const { isEffectiveAdmin, isEffectiveSkadeleder } = useAuth();
+  const { isEffectiveAdmin, isEffectiveSkadeleder, effectiveRole } = useAuth();
   const canManageVacations = isEffectiveAdmin || isEffectiveSkadeleder;
-  
+  const canViewCalendar = isEffectiveAdmin || isEffectiveSkadeleder || effectiveRole === 'super_admin';
+  const isCalendarTab = activeTab === 'calendar';
+
   return (
     <div className="py-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -32,28 +33,31 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
           isServicemedarbejder={isServicemedarbejder}
           activeTab={activeTab} 
           onChange={onChangeTab}
+          canViewCalendar={canViewCalendar}
         />
         
-        <div className="flex gap-2">
-          <Button
-            onClick={onOpenRequestDialog}
-            className="flex-1 md:flex-none"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {t("vacation.applyForVacation")}
-          </Button>
-          
-          {canManageVacations && (
+        {!isCalendarTab && (
+          <div className="flex gap-2">
             <Button
-              onClick={onOpenAdminDialog}
-              variant="outline"
+              onClick={onOpenRequestDialog}
               className="flex-1 md:flex-none"
             >
               <Plus className="mr-2 h-4 w-4" />
-              {t("vacation.requestForEmployee")}
+              {t("vacation.applyForVacation")}
             </Button>
-          )}
-        </div>
+            
+            {canManageVacations && (
+              <Button
+                onClick={onOpenAdminDialog}
+                variant="outline"
+                className="flex-1 md:flex-none"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t("vacation.requestForEmployee")}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
