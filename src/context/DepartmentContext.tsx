@@ -211,7 +211,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     const fetchSubDepartments = async () => {
       try {
         const isSuperAdmin = effectiveRole === 'super_admin';
-        const isAdminLike = isSuperAdmin || effectiveRole === 'administrator';
+        // Skadeleder treated like admin for sub-dept navigation: may select "Alle" (null).
+        const isAdminLike = isSuperAdmin || effectiveRole === 'administrator' || effectiveRole === 'skadeleder';
 
         const applySelection = (subs: { id: string; name: string }[]) => {
           setUserSubDepartments(subs);
