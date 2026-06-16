@@ -66,7 +66,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   if (tabValue === 'calendar') {
     return (
       <div className="mt-6">
-        <VacationCalendarOverview />
+        <VacationGridOverview />
       </div>
     );
   }
