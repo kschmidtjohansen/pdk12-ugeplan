@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-17 — Kursus redigering/sletning + kompakt opdater-notifier
+
+- Kursus-dialog viser nu eksisterende kurser for medarbejderen med mulighed for at redigere eller slette.
+- "Opdatér"-bjælken er flyttet fra topbar til en kompakt toast nederst til højre og filtreres nu på den valgte afdeling (ændringer i andre afdelinger udløser ikke længere notifikation).
+
+
+
 ## 2026-06-17 — Ferieoversigt udvidet: rolle-grupper, vagter, fravær og kursus
 
 Ferieoversigten på `/vacation` er udvidet:

@@ -1,83 +1,36 @@
+## Plan: Rediger/fjern kursus + opdatering af "Opdater"-bjælke
 
-## Mål
-Udvide `/vacation` grid-oversigten med rolleopdeling, fuld bredde, vagter, fravær og kursus. Tilføj "Kursus"-knap på medarbejdere.
+### 1. Kursus: rediger og fjern markering
+**Problem:** Når Henrik tilføjes til kursus 11. maj–22. juni vises intet i ferieoversigten, og der findes ingen måde at redigere/slette på.
 
-## 1. Grid: Rolleopdeling + farver
-Fil: `src/components/Vacation/VacationGridOverview.tsx`
+**Diagnose af den manglende visning:**
+- `EmployeeTrainingDialog` inviterer querycachen `['training-grid']` korrekt, men `VacationGridOverview` kører kun forespørgslen når `selectedDepartmentId` er sat. Hvis afdelingen ikke matcher det `department_id`, der blev gemt (eller hvis trainings-RLS ikke giver brugeren SELECT i den valgte afdeling), kommer rækken ikke med.
+- Verificér via `supabase--read_query` at den indsatte træning faktisk har `department_id = selectedDepartmentId` og at SELECT-policy på `trainings` returnerer rækken for den indloggede bruger. Hvis policy mangler, tilføj migration der giver admin/skadeleder + bruger selv læseadgang i deres afdeling.
+- Sikr at `trainings` er tilføjet `supabase_realtime`-publikationen (ellers opdateres grid ikke automatisk efter insert/delete).
 
-- Erstat flad `sortedEmployees` med tre sektioner i rækkefølge: Skadeleder, Fugttekniker, Servicemedarbejder (Administrator + super_admin tæller som skadeleder/admin-gruppe, vises øverst; vikar samles under Servicemedarbejder).
-- For hver gruppe: en `<tr>` med gruppeoverskrift (colSpan = days+1), navn + lille rolle-prik via `getRoleDotClass(role)`. Baggrund i tilsvarende lys tone (`bg-purple-50/40`, `bg-blue-50/40`, `bg-green-50/40`).
-- Medarbejdernavn-cellen får venstre 3px border i rollefarve (`getRoleDotClass` → mapper til border-class) så rollen er synlig pr. række.
+**Nyt UI – kursusadministration:**
+- Udvid `EmployeeTrainingDialog.tsx` så den både opretter nye kurser og viser eksisterende:
+  - Hent aktive/kommende kurser for `employee.id` (fra i dag og frem) ved åbning.
+  - Liste med titel, datointerval og `Slet`-knap (skraldespand-ikon). Sletning kalder `supabase.from('trainings').delete().eq('id', ...)` og invaliderer `['training-grid']` + den lokale liste.
+  - "Redigér" på en eksisterende række fylder formularens datoer/titel/noter og skifter knappen til `Opdatér kursus` (UPDATE i stedet for INSERT).
+  - Behold "Tilføj nyt" som primær handling når intet er valgt.
+- Dialogtitlen skifter til "Kurser for {navn}". Tilføj `Sheet`-lignende sektioner: "Aktive kurser" øverst, "Nyt kursus" nederst.
 
-## 2. Grid: Fuld bredde
-- Fjern `min-w-[28px] w-[28px]` på dag-headers, brug `w-auto` med `min-w-0`.
-- Wrapper får `w-full`; tabel får `w-full table-fixed` så kolonnerne strækker sig til containerens bredde.
-- Behold `overflow-x-auto` som fallback hvis perioden er meget lang (>~60 dage på smal skærm) ved at sætte `min-w-[20px]` på dag-celler.
-- Sticky "Medarbejder"-kolonne får fast bredde `w-[160px]`.
+### 2. RealtimeChangeNotifier: afdelingsfiltreret + flyttes ned i højre hjørne
+- Læs `selectedDepartmentId` fra `DepartmentContext` i `RealtimeChangeNotifier.tsx`.
+- I `handleChange(payload)`: ignorér payload hvis `payload.new?.department_id` (eller `payload.old?.department_id` ved DELETE) er sat og forskellig fra den valgte afdeling. Tabeller uden `department_id` (fx `profiles`) beholder eksisterende adfærd.
+- Skift containeren fra fuldbredde topbjælke til kompakt toast nederst til højre:
+  - `fixed bottom-4 right-4 z-40 max-w-xs` med `rounded-xl shadow-lg border bg-card text-card-foreground p-3`.
+  - Mindre tekst, ikon + "Opdatér"-knap + luk-kryds i samme række.
+  - Bevar `animate-fade-in`.
+- Ingen ændringer i debounce/own-action-logik.
 
-## 3. Kursus på medarbejdere
-### Database (ny tabel `trainings`)
-```sql
-CREATE TABLE public.trainings (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  department_id bigint NOT NULL,
-  start_date date NOT NULL,
-  end_date date NOT NULL,
-  title text,
-  notes text,
-  is_demo boolean NOT NULL DEFAULT false,
-  created_by uuid,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.trainings TO authenticated;
-GRANT ALL ON public.trainings TO service_role;
-ALTER TABLE public.trainings ENABLE ROW LEVEL SECURITY;
--- policies: select for same department (has_role/department helper),
---           insert/update/delete kun for admin/skadeleder/super_admin via has_role
-```
-Følger eksisterende department-isolation mønster fra `vacations`.
+### 3. Dokumentation
+- `CHANGELOG.md`: ny entry under dagens dato med to bullets (kursusredigering/-sletning, ny notifier-placering + afdelingsfilter).
+- `docs/implementation-plan/tasks.md`: marker relevante opgaver som `[x]` hvis de findes; ellers tilføj nye linjer under "Ferie/Kursus".
 
-### UI
-- `src/components/Employees/EmployeeTableRow.tsx`: Tilføj ny knap "Kursus" (ikon `GraduationCap`) til venstre for "Marker som fraværende", kun synlig for admin/skadeleder.
-- Ny dialog `src/components/Employees/EmployeeTrainingDialog.tsx`: start/slut-dato, titel, noter. Bruger DAWA-fri `Calendar`-popover (samme stil som `VacationDateSelector`).
-- Ny hook `src/hooks/training/useTrainings.ts` (CRUD + react-query invalidering).
-- Translations: `employees.trainingButton`, `employees.trainingDialog.*` i `da/employees.ts` og `en/employees.ts`.
-
-## 4. Vagter + Kursus + Fravær i grid
-Udvid `VacationGridOverview` med tre ekstra queries (parallel via `useQuery`):
-
-- `on_call_duties` (samme periode + department) → map `user_id` → `Map<dayKey, 'skadeleder_vagt'|'kørevagt'>`.
-- `trainings` → `Set<dayKey>` pr. user.
-- "Fravær" = `profiles.status='on_leave'` (eksisterende). Det er ikke datointerval, men permanent flag → vis hele rækken med en svag rød baggrund OG fyldte røde celler på alle dage. (Bemærkning i UI: rød = på fravær i hele perioden.)
-
-### Cell-farve prioritet (højest først)
-1. **Sort** = godkendt ferie (`vacations` approved) — `bg-foreground`
-2. **Gul** = kursus — `bg-yellow-400`
-3. **Rød** = fravær (`status='on_leave'`) — `bg-red-500`
-4. **Blå** = skadelederVagt — `bg-blue-500`
-5. **Grøn** = kørevagt — `bg-green-500`
-6. Tom
-
-(Ferie sort som ny standard pr. brugerens kravliste; tidligere rød fjernes.)
-
-### Forklaring/legend
-Opdater legend nederst:
-```
-■ Skadelederv.  ■ Kørevagt  ■ Fravær  ■ Kursus  ■ Ferie  □ Weekend  | I dag
-```
-
-## 5. Dokumentation
-- `CHANGELOG.md`: Ny entry 2026-06-17.
-- `docs/implementation-plan/tasks.md`: Marker grid-udvidelse + kursus-feature.
-
-## Teknisk noter
-- Ingen ændringer i `useEmployees` (rolle findes allerede).
-- React Query keys: `['vacation-grid', ...]`, `['duty-grid', ...]`, `['training-grid', ...]`.
-- Realtime: Subscribe til `on_call_duties`, `trainings`, `vacations` for live opdatering.
-- Tooltip på hver farvet celle viser type + evt. titel/note.
-
-## Ud af scope
-- Redigering/sletning af kursus direkte fra grid (sker via medarbejder-knappen).
-- Eksport.
+### Tekniske detaljer
+- Filer ændres: `src/components/Employees/EmployeeTrainingDialog.tsx`, `src/components/shared/RealtimeChangeNotifier.tsx`, `CHANGELOG.md`, `docs/implementation-plan/tasks.md`.
+- Evt. migration: `ALTER PUBLICATION supabase_realtime ADD TABLE public.trainings;` + tilføj manglende SELECT-policy hvis verifikation viser hul. Ingen skemaændringer ud over det.
+- Query keys: bevar `['training-grid']`; tilføj `['trainings-for-employee', employeeId]` i dialogen.
+- Ingen ændringer i `VacationGridOverview` ud over at den allerede lytter via `qc.invalidateQueries`.
