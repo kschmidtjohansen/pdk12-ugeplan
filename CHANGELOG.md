@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-17 — Kursus-status på medarbejderside
+
+- Medarbejdere med aktivt kursus (dags dato inden for kursus-perioden) vises nu med gul "Kursus"-label i statuskolonnen i stedet for "Tilgængelig".
+- De tælles desuden med under fanen "Fraværende" og fjernes fra "Tilgængelige".
+
 ## 2026-06-17 — Kursus redigering/sletning + kompakt opdater-notifier
 
 - Kursus-dialog viser nu eksisterende kurser for medarbejderen med mulighed for at redigere eller slette.
