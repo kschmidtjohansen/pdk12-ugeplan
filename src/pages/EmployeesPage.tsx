@@ -7,6 +7,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { Button } from '@/components/ui/button';
 import { Plus, UserPlus } from 'lucide-react';
 import EmployeesTable from '@/components/Employees/EmployeesTable';
+import EmployeeTrainingDialog from '@/components/Employees/EmployeeTrainingDialog';
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
 import ListPageShell from '@/components/shared/ListPageShell';
@@ -26,6 +27,8 @@ const EmployeesPage: React.FC = () => {
   const { isSubstituteEnabled } = useDepartment();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [trainingDialogOpen, setTrainingDialogOpen] = useState(false);
+  const [trainingEmployee, setTrainingEmployee] = useState<Employee | null>(null);
   const [segment, setSegment] = useState<EmployeeSegment>('all');
   const [search, setSearch] = useState('');
 
@@ -113,6 +116,11 @@ const EmployeesPage: React.FC = () => {
   const handleToggleLeave = async (employee: Employee) => {
     if (!isAdmin) return;
     await toggleEmployeeLeave(employee, !employee.onLeave);
+  };
+  const handleTraining = (employee: Employee) => {
+    if (!isAdmin) return;
+    setTrainingEmployee(employee);
+    setTrainingDialogOpen(true);
   };
 
   return (
