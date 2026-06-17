@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-17 — Ferieoversigt udvidet: rolle-grupper, vagter, fravær og kursus
+
+Ferieoversigten på `/vacation` er udvidet:
+- Medarbejdere grupperes nu under Skadeleder / Fugttekniker / Servicemedarbejder med rolle-farver i venstre kant og gruppeoverskrifter.
+- Grid fylder hele containerens bredde (`table-fixed` + `w-full`).
+- Cellefarver: sort = ferie, gul = kursus, rød = fravær, blå = skadeledervagt, grøn = kørevagt.
+- Ny "Kursus"-knap i medarbejderlisten (desktop + mobil) åbner dialog til at melde en medarbejder på kursus over en datoperiode.
+- Ny tabel `public.trainings` med RLS (admin/skadeleder kan oprette/redigere; egne kursus-rækker er synlige for medarbejderen selv); realtime aktiveret.
+
+
+
 ## 2026-06-16 — Ferieoversigt flyttet fra Admin til /vacation
 
 Ferieoversigt (kalender) er flyttet fra Admin-siden til ferie-siden som ny fane "Ferieoversigt". Synlig for Administrator, Skadeleder og IT Support (super_admin). Anmodnings-knapperne skjules når kalenderfanen er aktiv.
