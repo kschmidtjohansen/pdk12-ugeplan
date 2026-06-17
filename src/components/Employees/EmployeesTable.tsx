@@ -18,6 +18,7 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 interface EmployeesTableProps {
   employees: Employee[];
   vacations: Vacation[];
+  trainingIds?: Set<string>;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave: (employee: Employee) => void;
@@ -36,6 +37,7 @@ const ROW_HEIGHT = 56;
 const EmployeesTable: React.FC<EmployeesTableProps> = ({
   employees,
   vacations,
+  trainingIds,
   onEdit,
   onDelete,
   onToggleLeave,
