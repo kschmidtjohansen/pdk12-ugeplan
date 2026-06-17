@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift, FlaskConical } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift, FlaskConical, GraduationCap } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
@@ -16,9 +16,10 @@ interface MobileEmployeeCardProps {
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave?: (employee: Employee) => void;
+  onTraining?: (employee: Employee) => void;
 }
 
-const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacations, onEdit, onDelete, onToggleLeave }) => {
+const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining }) => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
 
@@ -74,6 +75,17 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
               <Button variant="ghost" size="sm" onClick={() => onEdit(employee)} className="h-8 w-8 p-0">
                 <Edit className="h-4 w-4" />
               </Button>
+              {onTraining && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onTraining(employee)}
+                  className="h-8 w-8 p-0 text-yellow-600"
+                  aria-label="Kursus"
+                >
+                  <GraduationCap className="h-4 w-4" />
+                </Button>
+              )}
               {onToggleLeave && (
                 <Button
                   variant="ghost"
