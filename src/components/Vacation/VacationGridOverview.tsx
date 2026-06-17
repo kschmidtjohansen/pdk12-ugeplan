@@ -24,8 +24,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
 import { useEmployees } from '@/hooks/useEmployees';
-import { useTranslation } from '@/context/TranslationContext';
 import { cn } from '@/lib/utils';
+import type { Employee } from '@/types/employee';
 
 const MAX_DAYS = 92;
 
@@ -35,9 +35,62 @@ interface VacationRow {
   start_date: string;
   end_date: string;
 }
+interface TrainingRow {
+  id: string;
+  user_id: string;
+  start_date: string;
+  end_date: string;
+  title: string | null;
+}
+interface DutyRow {
+  id: string;
+  employee_id: string;
+  duty_date: string;
+  duty_type: 'skadeleder_vagt' | 'kørevagt';
+}
+
+type CellKind = 'vacation' | 'training' | 'leave' | 'skadeleder_vagt' | 'kørevagt';
+
+type Group = { key: 'skadeleder' | 'fugttekniker' | 'servicemedarbejder'; label: string; tone: string; rowTone: string; border: string };
+
+const GROUPS: Group[] = [
+  { key: 'skadeleder',         label: 'Skadeleder',         tone: 'bg-purple-100 text-purple-800', rowTone: 'bg-purple-50/30', border: 'border-l-purple-500' },
+  { key: 'fugttekniker',       label: 'Fugttekniker',       tone: 'bg-blue-100 text-blue-800',     rowTone: 'bg-blue-50/30',   border: 'border-l-blue-500' },
+  { key: 'servicemedarbejder', label: 'Servicemedarbejder', tone: 'bg-green-100 text-green-800',   rowTone: 'bg-green-50/30',  border: 'border-l-green-500' },
+];
+
+const groupForRole = (role?: string): Group['key'] => {
+  switch (role) {
+    case 'skadeleder':
+    case 'administrator':
+    case 'super_admin':
+      return 'skadeleder';
+    case 'fugttekniker':
+      return 'fugttekniker';
+    case 'servicemedarbejder':
+    case 'vikar':
+    default:
+      return 'servicemedarbejder';
+  }
+};
+
+const cellColor: Record<CellKind, string> = {
+  vacation: 'bg-foreground',           // sort
+  training: 'bg-yellow-400',           // gul
+  leave: 'bg-red-500',                 // rød
+  skadeleder_vagt: 'bg-blue-500',      // blå
+  'kørevagt': 'bg-green-500',          // grøn
+};
+
+const cellLabel: Record<CellKind, string> = {
+  vacation: 'Ferie',
+  training: 'Kursus',
+  leave: 'Fravær',
+  skadeleder_vagt: 'Skadelederv.',
+  'kørevagt': 'Kørevagt',
+};
 
 const VacationGridOverview: React.FC = () => {
-  const { t } = useTranslation();
   const { selectedDepartmentId } = useDepartment();
   const { isDemoMode } = useAuth();
   const { regularEmployees, loading: employeesLoading } = useEmployees();
@@ -57,48 +110,96 @@ const VacationGridOverview: React.FC = () => {
   const rangeStart = format(fromDate, 'yyyy-MM-dd');
   const rangeEnd = format(toDate, 'yyyy-MM-dd');
 
+  const queryEnabled = !!selectedDepartmentId && !tooManyDays && totalDays > 0;
+
   const { data: vacations = [] } = useQuery({
     queryKey: ['vacation-grid', selectedDepartmentId, rangeStart, rangeEnd, isDemoMode],
-    enabled: !!selectedDepartmentId && !tooManyDays,
+    enabled: queryEnabled,
     queryFn: async (): Promise<VacationRow[]> => {
-      let query = supabase
+      let q = supabase
         .from('vacations')
         .select('id, user_id, start_date, end_date, department_id')
         .eq('status', 'approved')
         .eq('is_demo', isDemoMode)
         .lte('start_date', rangeEnd)
         .gte('end_date', rangeStart);
-
-      if (selectedDepartmentId) {
-        query = query.eq('department_id', selectedDepartmentId);
-      }
-      const { data, error } = await query;
+      if (selectedDepartmentId) q = q.eq('department_id', selectedDepartmentId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as VacationRow[];
     },
   });
 
-  // Map user_id -> Set of day keys (yyyy-MM-dd) on vacation
-  const vacByUser = useMemo(() => {
-    const map = new Map<string, Set<string>>();
-    for (const v of vacations) {
-      const start = parseISO(v.start_date);
-      const end = parseISO(v.end_date);
-      const vDays = eachDayOfInterval({
-        start: start < fromDate ? fromDate : start,
-        end: end > toDate ? toDate : end,
-      });
-      let set = map.get(v.user_id);
-      if (!set) {
-        set = new Set();
-        map.set(v.user_id, set);
+  const { data: trainings = [] } = useQuery({
+    queryKey: ['training-grid', selectedDepartmentId, rangeStart, rangeEnd, isDemoMode],
+    enabled: queryEnabled,
+    queryFn: async (): Promise<TrainingRow[]> => {
+      let q = supabase
+        .from('trainings')
+        .select('id, user_id, start_date, end_date, title, department_id')
+        .eq('is_demo', isDemoMode)
+        .lte('start_date', rangeEnd)
+        .gte('end_date', rangeStart);
+      if (selectedDepartmentId) q = q.eq('department_id', selectedDepartmentId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as TrainingRow[];
+    },
+  });
+
+  const { data: duties = [] } = useQuery({
+    queryKey: ['duty-grid', selectedDepartmentId, rangeStart, rangeEnd, isDemoMode],
+    enabled: queryEnabled,
+    queryFn: async (): Promise<DutyRow[]> => {
+      let q = supabase
+        .from('on_call_duties')
+        .select('id, employee_id, duty_date, duty_type, department_id')
+        .eq('is_demo', isDemoMode)
+        .gte('duty_date', rangeStart)
+        .lte('duty_date', rangeEnd);
+      if (selectedDepartmentId) q = q.eq('department_id', selectedDepartmentId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as DutyRow[];
+    },
+  });
+
+  // Maps user_id -> Map<dayKey, CellKind[]>
+  const cellsByUser = useMemo(() => {
+    const map = new Map<string, Map<string, Set<CellKind>>>();
+    const ensure = (uid: string, key: string) => {
+      let inner = map.get(uid);
+      if (!inner) { inner = new Map(); map.set(uid, inner); }
+      let set = inner.get(key);
+      if (!set) { set = new Set(); inner.set(key, set); }
+      return set;
+    };
+    const addRange = (uid: string, sIso: string, eIso: string, kind: CellKind) => {
+      const s = parseISO(sIso);
+      const e = parseISO(eIso);
+      const start = s < fromDate ? fromDate : s;
+      const end = e > toDate ? toDate : e;
+      if (end < start) return;
+      for (const d of eachDayOfInterval({ start, end })) {
+        ensure(uid, format(d, 'yyyy-MM-dd')).add(kind);
       }
-      for (const d of vDays) set.add(format(d, 'yyyy-MM-dd'));
+    };
+    for (const v of vacations) addRange(v.user_id, v.start_date, v.end_date, 'vacation');
+    for (const t of trainings) addRange(t.user_id, t.start_date, t.end_date, 'training');
+    for (const d of duties) {
+      ensure(d.employee_id, d.duty_date).add(d.duty_type);
     }
     return map;
-  }, [vacations, fromDate, toDate]);
+  }, [vacations, trainings, duties, fromDate, toDate]);
 
-  // Week groupings for header row 3
+  const onLeaveSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of regularEmployees) {
+      if (e.onLeave || e.status === 'on_leave') set.add(e.id);
+    }
+    return set;
+  }, [regularEmployees]);
+
   const weekGroups = useMemo(() => {
     const groups: { weekNum: number; span: number }[] = [];
     for (const d of days) {
@@ -110,10 +211,18 @@ const VacationGridOverview: React.FC = () => {
     return groups;
   }, [days]);
 
-  const sortedEmployees = useMemo(
-    () => [...regularEmployees].sort((a, b) => a.name.localeCompare(b.name, 'da')),
-    [regularEmployees]
-  );
+  const grouped = useMemo(() => {
+    const buckets: Record<Group['key'], Employee[]> = {
+      skadeleder: [], fugttekniker: [], servicemedarbejder: [],
+    };
+    for (const e of regularEmployees) {
+      buckets[groupForRole(e.role)].push(e);
+    }
+    for (const k of Object.keys(buckets) as Group['key'][]) {
+      buckets[k].sort((a, b) => a.name.localeCompare(b.name, 'da'));
+    }
+    return buckets;
+  }, [regularEmployees]);
 
   const dayNamesShort = ['man', 'tir', 'ons', 'tor', 'fre', 'lør', 'søn'];
 
@@ -131,11 +240,7 @@ const VacationGridOverview: React.FC = () => {
     }
   };
 
-  const DatePickerButton: React.FC<{ date: Date; onChange: (d: Date) => void; label: string }> = ({
-    date,
-    onChange,
-    label,
-  }) => (
+  const DatePickerButton: React.FC<{ date: Date; onChange: (d: Date) => void; label: string }> = ({ date, onChange, label }) => (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="justify-start text-left font-normal gap-2">
@@ -158,6 +263,64 @@ const VacationGridOverview: React.FC = () => {
     </Popover>
   );
 
+  // Determine the dominant cell kind (priority order)
+  const pickKind = (kinds: Set<CellKind> | undefined, leave: boolean): CellKind | null => {
+    if (!kinds && !leave) return null;
+    if (kinds?.has('vacation')) return 'vacation';
+    if (kinds?.has('training')) return 'training';
+    if (leave) return 'leave';
+    if (kinds?.has('skadeleder_vagt')) return 'skadeleder_vagt';
+    if (kinds?.has('kørevagt')) return 'kørevagt';
+    return null;
+  };
+
+  const renderEmployeeRow = (emp: Employee, group: Group) => {
+    const userMap = cellsByUser.get(emp.id);
+    const leave = onLeaveSet.has(emp.id);
+    return (
+      <tr key={emp.id} className="hover:bg-muted/30">
+        <td
+          className={cn(
+            'sticky left-0 z-10 bg-background border-b border-r px-2 py-1 whitespace-nowrap font-medium text-[12px] border-l-2',
+            group.border
+          )}
+        >
+          {emp.name}
+        </td>
+        {days.map((d) => {
+          const key = format(d, 'yyyy-MM-dd');
+          const kinds = userMap?.get(key);
+          const kind = pickKind(kinds, leave);
+          const isToday = isSameDay(d, today);
+          const weekend = isWeekend(d);
+          const cellBase = cn(
+            'border-b border-r p-0 h-6',
+            !kind && weekend && 'bg-muted/20',
+            !kind && isToday && 'bg-primary/5',
+            isToday && 'border-l-2 border-l-primary'
+          );
+          if (!kind) return <td key={`${emp.id}-${key}`} className={cellBase} />;
+          return (
+            <td key={`${emp.id}-${key}`} className={cellBase}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={cn('w-full h-full', cellColor[kind])} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="text-xs">
+                    {emp.name} — {cellLabel[kind]} {format(d, 'd. MMM', { locale: da })}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </td>
+          );
+        })}
+      </tr>
+    );
+  };
+
+  const totalCols = days.length + 1;
+
   return (
     <Card>
       <CardHeader>
@@ -168,22 +331,16 @@ const VacationGridOverview: React.FC = () => {
               Ferieoversigt
             </CardTitle>
             <CardDescription>
-              Grid-visning af godkendte ferier pr. medarbejder i valgt periode.
+              Grid-visning grupperet pr. rolle. Viser ferie, kursus, fravær og vagter.
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <DatePickerButton date={fromDate} onChange={setFromDate} label="Fra" />
             <DatePickerButton date={toDate} onChange={setToDate} label="Til" />
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" onClick={() => setQuick('thisMonth')}>
-                Denne måned
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setQuick('nextMonth')}>
-                Næste måned
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setQuick('threeMonths')}>
-                3 måneder
-              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setQuick('thisMonth')}>Denne måned</Button>
+              <Button variant="ghost" size="sm" onClick={() => setQuick('nextMonth')}>Næste måned</Button>
+              <Button variant="ghost" size="sm" onClick={() => setQuick('threeMonths')}>3 måneder</Button>
             </div>
           </div>
         </div>
@@ -200,13 +357,18 @@ const VacationGridOverview: React.FC = () => {
 
         {!tooManyDays && totalDays > 0 && (
           <TooltipProvider delayDuration={200}>
-            <div className="overflow-x-auto border rounded-xl">
-              <table className="border-collapse text-xs">
+            <div className="w-full overflow-x-auto border rounded-xl">
+              <table className="w-full border-collapse text-xs table-fixed">
+                <colgroup>
+                  <col style={{ width: 160 }} />
+                  {days.map((d) => (
+                    <col key={`col-${d.toISOString()}`} />
+                  ))}
+                </colgroup>
                 <thead>
-                  {/* Week row */}
                   <tr>
                     <th
-                      className="sticky left-0 z-20 bg-muted/50 border-b border-r px-2 py-1 text-left min-w-[140px]"
+                      className="sticky left-0 z-20 bg-muted/50 border-b border-r px-2 py-1 text-left"
                       rowSpan={3}
                     >
                       <span className="font-medium">Medarbejder</span>
@@ -221,7 +383,6 @@ const VacationGridOverview: React.FC = () => {
                       </th>
                     ))}
                   </tr>
-                  {/* Day number row */}
                   <tr>
                     {days.map((d) => {
                       const isToday = isSameDay(d, today);
@@ -229,7 +390,7 @@ const VacationGridOverview: React.FC = () => {
                         <th
                           key={`dn-${d.toISOString()}`}
                           className={cn(
-                            'border-b border-r text-center font-normal py-0.5 w-[28px] min-w-[28px]',
+                            'border-b border-r text-center font-normal py-0.5 min-w-[20px]',
                             isWeekend(d) && 'bg-muted/30',
                             isToday && 'bg-primary/10 font-bold'
                           )}
@@ -239,7 +400,6 @@ const VacationGridOverview: React.FC = () => {
                       );
                     })}
                   </tr>
-                  {/* Day-of-week row */}
                   <tr>
                     {days.map((d) => {
                       const isToday = isSameDay(d, today);
@@ -261,56 +421,36 @@ const VacationGridOverview: React.FC = () => {
                 <tbody>
                   {employeesLoading && (
                     <tr>
-                      <td colSpan={days.length + 1} className="text-center py-4 text-muted-foreground">
+                      <td colSpan={totalCols} className="text-center py-4 text-muted-foreground">
                         Indlæser...
                       </td>
                     </tr>
                   )}
-                  {!employeesLoading && sortedEmployees.length === 0 && (
+                  {!employeesLoading && regularEmployees.length === 0 && (
                     <tr>
-                      <td colSpan={days.length + 1} className="text-center py-4 text-muted-foreground">
+                      <td colSpan={totalCols} className="text-center py-4 text-muted-foreground">
                         Ingen medarbejdere i valgt afdeling.
                       </td>
                     </tr>
                   )}
-                  {sortedEmployees.map((emp) => {
-                    const userDays = vacByUser.get(emp.id);
+                  {!employeesLoading && GROUPS.map((g) => {
+                    const list = grouped[g.key];
+                    if (!list || list.length === 0) return null;
                     return (
-                      <tr key={emp.id} className="hover:bg-muted/20">
-                        <td className="sticky left-0 z-10 bg-background border-b border-r px-2 py-1 whitespace-nowrap font-medium">
-                          {emp.name}
-                        </td>
-                        {days.map((d) => {
-                          const key = format(d, 'yyyy-MM-dd');
-                          const onVacation = userDays?.has(key);
-                          const isToday = isSameDay(d, today);
-                          const weekend = isWeekend(d);
-                          return (
-                            <td
-                              key={`${emp.id}-${key}`}
-                              className={cn(
-                                'border-b border-r p-0 h-6 w-[28px] min-w-[28px]',
-                                weekend && !onVacation && 'bg-muted/20',
-                                isToday && !onVacation && 'bg-primary/5',
-                                isToday && 'border-l-2 border-l-primary'
-                              )}
-                            >
-                              {onVacation ? (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="w-full h-full bg-red-500/85 hover:bg-red-500" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <div className="text-xs">
-                                      {emp.name} — ferie {format(d, 'd. MMM', { locale: da })}
-                                    </div>
-                                  </TooltipContent>
-                                </Tooltip>
-                              ) : null}
-                            </td>
-                          );
-                        })}
-                      </tr>
+                      <React.Fragment key={g.key}>
+                        <tr className={cn('border-t', g.rowTone)}>
+                          <td
+                            colSpan={totalCols}
+                            className={cn(
+                              'sticky left-0 z-10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide',
+                              g.tone
+                            )}
+                          >
+                            {g.label} <span className="opacity-60 font-normal normal-case">({list.length})</span>
+                          </td>
+                        </tr>
+                        {list.map((emp) => renderEmployeeRow(emp, g))}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
@@ -319,9 +459,21 @@ const VacationGridOverview: React.FC = () => {
           </TooltipProvider>
         )}
 
-        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-red-500/85 rounded-sm" /> Godkendt ferie
+            <span className="inline-block w-3 h-3 bg-blue-500 rounded-sm" /> Skadelederv.
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 bg-green-500 rounded-sm" /> Kørevagt
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 bg-red-500 rounded-sm" /> Fravær
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 bg-yellow-400 rounded-sm" /> Kursus
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 bg-foreground rounded-sm" /> Ferie
           </div>
           <div className="flex items-center gap-1.5">
             <span className="inline-block w-3 h-3 bg-muted/40 border rounded-sm" /> Weekend

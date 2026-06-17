@@ -21,6 +21,7 @@ interface EmployeesTableProps {
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave: (employee: Employee) => void;
+  onTraining?: (employee: Employee) => void;
   error: string | null;
   loading: boolean;
   onRetry: () => void;
@@ -38,6 +39,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   onEdit,
   onDelete,
   onToggleLeave,
+  onTraining,
   error,
   loading,
   onRetry
@@ -107,6 +109,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             onEdit={onEdit}
             onDelete={onDelete}
             onToggleLeave={onToggleLeave}
+                onTraining={onTraining}
           />
         ))}
         <SimplePagination
@@ -171,6 +174,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onToggleLeave={onToggleLeave}
+                onTraining={onTraining}
                         
                       />
                     );
@@ -207,6 +211,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onToggleLeave={onToggleLeave}
+                onTraining={onTraining}
                 />
               ))}
             </TableBody>

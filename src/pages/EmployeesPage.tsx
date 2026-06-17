@@ -7,6 +7,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { Button } from '@/components/ui/button';
 import { Plus, UserPlus } from 'lucide-react';
 import EmployeesTable from '@/components/Employees/EmployeesTable';
+import EmployeeTrainingDialog from '@/components/Employees/EmployeeTrainingDialog';
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
 import ListPageShell from '@/components/shared/ListPageShell';
@@ -26,6 +27,8 @@ const EmployeesPage: React.FC = () => {
   const { isSubstituteEnabled } = useDepartment();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [trainingDialogOpen, setTrainingDialogOpen] = useState(false);
+  const [trainingEmployee, setTrainingEmployee] = useState<Employee | null>(null);
   const [segment, setSegment] = useState<EmployeeSegment>('all');
   const [search, setSearch] = useState('');
 
@@ -114,6 +117,11 @@ const EmployeesPage: React.FC = () => {
     if (!isAdmin) return;
     await toggleEmployeeLeave(employee, !employee.onLeave);
   };
+  const handleTraining = (employee: Employee) => {
+    if (!isAdmin) return;
+    setTrainingEmployee(employee);
+    setTrainingDialogOpen(true);
+  };
 
   return (
     <DataFetchErrorBoundary>
@@ -155,6 +163,7 @@ const EmployeesPage: React.FC = () => {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onToggleLeave={handleToggleLeave}
+          onTraining={isAdmin ? handleTraining : undefined}
           error={error}
           loading={loading}
           onRetry={fetchEmployees}
@@ -178,6 +187,12 @@ const EmployeesPage: React.FC = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <EmployeeDeleteDialog employee={currentEmployee} onConfirmDelete={confirmDelete} />
       </AlertDialog>
+
+      <EmployeeTrainingDialog
+        open={trainingDialogOpen}
+        onOpenChange={setTrainingDialogOpen}
+        employee={trainingEmployee}
+      />
     </DataFetchErrorBoundary>
   );
 };

@@ -1021,6 +1021,51 @@ export type Database = {
         }
         Relationships: []
       }
+      trainings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          end_date: string
+          id: string
+          is_demo: boolean
+          notes: string | null
+          start_date: string
+          sub_department_id: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          end_date: string
+          id?: string
+          is_demo?: boolean
+          notes?: string | null
+          start_date: string
+          sub_department_id?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          end_date?: string
+          id?: string
+          is_demo?: boolean
+          notes?: string | null
+          start_date?: string
+          sub_department_id?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_access: {
         Row: {
           created_at: string
