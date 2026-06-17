@@ -20,9 +20,10 @@ interface EmployeeTableRowProps {
   onDelete: (employee: Employee) => void;
   onToggleLeave?: (employee: Employee) => void;
   onTraining?: (employee: Employee) => void;
+  isOnTraining?: boolean;
 }
 
-const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining }) => {
+const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isOnTraining }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
 
@@ -196,9 +197,13 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         </TableCell>
       )}
       <TableCell>
-        <StatusBadge variant={availabilityInfo.badgeVariant}>
-          {availabilityInfo.statusText}
-        </StatusBadge>
+        {isOnTraining ? (
+          <StatusBadge variant="warning">Kursus</StatusBadge>
+        ) : (
+          <StatusBadge variant={availabilityInfo.badgeVariant}>
+            {availabilityInfo.statusText}
+          </StatusBadge>
+        )}
       </TableCell>
       {isAdmin && (
         <TableCell>

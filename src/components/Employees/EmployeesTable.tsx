@@ -112,6 +112,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             onDelete={onDelete}
             onToggleLeave={onToggleLeave}
                 onTraining={onTraining}
+                isOnTraining={trainingIds?.has(employee.id) ?? false}
           />
         ))}
         <SimplePagination
@@ -177,6 +178,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                         onDelete={onDelete}
                         onToggleLeave={onToggleLeave}
                 onTraining={onTraining}
+                isOnTraining={trainingIds?.has(employee.id) ?? false}
                         
                       />
                     );
@@ -214,6 +216,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                   onDelete={onDelete}
                   onToggleLeave={onToggleLeave}
                 onTraining={onTraining}
+                isOnTraining={trainingIds?.has(employee.id) ?? false}
                 />
               ))}
             </TableBody>

@@ -17,9 +17,10 @@ interface MobileEmployeeCardProps {
   onDelete: (employee: Employee) => void;
   onToggleLeave?: (employee: Employee) => void;
   onTraining?: (employee: Employee) => void;
+  isOnTraining?: boolean;
 }
 
-const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining }) => {
+const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isOnTraining }) => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
 
@@ -162,9 +163,13 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
           )}
 
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
-            <StatusBadge variant={availabilityInfo.badgeVariant}>
-              {availabilityInfo.statusText}
-            </StatusBadge>
+            {isOnTraining ? (
+              <StatusBadge variant="warning">Kursus</StatusBadge>
+            ) : (
+              <StatusBadge variant={availabilityInfo.badgeVariant}>
+                {availabilityInfo.statusText}
+              </StatusBadge>
+            )}
           </div>
         </div>
       </CardContent>
