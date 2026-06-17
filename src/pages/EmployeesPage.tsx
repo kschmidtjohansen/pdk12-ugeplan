@@ -16,6 +16,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useVacations } from '@/hooks/useVacations';
+import { useActiveTrainings } from '@/hooks/useActiveTrainings';
 import { Employee } from '@/types/employee';
 import { format } from 'date-fns';
 
@@ -56,6 +57,7 @@ const EmployeesPage: React.FC = () => {
   } = useEmployees();
 
   const { vacations } = useVacations();
+  const { trainingIds } = useActiveTrainings();
 
   // Compute today's vacation employee IDs for "På fridage" segment
   const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -69,8 +71,8 @@ const EmployeesPage: React.FC = () => {
 
   const filteredEmployees = useMemo(() => {
     let list: Employee[] = employees;
-    if (segment === 'active') list = regularEmployees.filter((e) => !e.onLeave);
-    else if (segment === 'onleave') list = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id));
+    if (segment === 'active') list = regularEmployees.filter((e) => !e.onLeave && !onLeaveTodayIds.has(e.id) && !trainingIds.has(e.id));
+    else if (segment === 'onleave') list = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id));
     else if (segment === 'vikarer') list = vikarer;
 
     if (search.trim()) {
@@ -83,20 +85,21 @@ const EmployeesPage: React.FC = () => {
       );
     }
     return list;
-  }, [employees, regularEmployees, vikarer, segment, search, onLeaveTodayIds]);
+  }, [employees, regularEmployees, vikarer, segment, search, onLeaveTodayIds, trainingIds]);
 
   const segments: FilterSegment[] = useMemo(() => {
-    const onLeaveCount = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id)).length;
+    const onLeaveCount = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id)).length;
+    const activeCount = regularEmployees.filter((e) => !e.onLeave && !onLeaveTodayIds.has(e.id) && !trainingIds.has(e.id)).length;
     const base: FilterSegment[] = [
       { key: 'all', label: t('common.all') || 'Alle', count: employees.length },
-      { key: 'active', label: t('employees.activeSegment') || 'Tilgængelige', count: regularEmployees.filter((e) => !e.onLeave).length },
+      { key: 'active', label: t('employees.activeSegment') || 'Tilgængelige', count: activeCount },
       { key: 'onleave', label: t('employees.onLeaveSegment') || 'Fraværende', count: onLeaveCount, highlight: onLeaveCount > 0 },
     ];
     if (isSubstituteEnabled) {
       base.push({ key: 'vikarer', label: 'Vikarer', count: vikarer.length });
     }
     return base;
-  }, [employees, regularEmployees, vikarer, isSubstituteEnabled, t, onLeaveTodayIds]);
+  }, [employees, regularEmployees, vikarer, isSubstituteEnabled, t, onLeaveTodayIds, trainingIds]);
 
   const handleCreateNew = () => { prepareForCreate(); setFormDialogOpen(true); };
   const handleCreateVikar = () => { prepareForCreateVikar(); setFormDialogOpen(true); };
@@ -160,6 +163,7 @@ const EmployeesPage: React.FC = () => {
         <EmployeesTable
           employees={filteredEmployees}
           vacations={vacations}
+          trainingIds={trainingIds}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onToggleLeave={handleToggleLeave}

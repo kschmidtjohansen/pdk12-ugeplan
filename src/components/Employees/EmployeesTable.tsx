@@ -18,6 +18,7 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 interface EmployeesTableProps {
   employees: Employee[];
   vacations: Vacation[];
+  trainingIds?: Set<string>;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave: (employee: Employee) => void;
@@ -36,6 +37,7 @@ const ROW_HEIGHT = 56;
 const EmployeesTable: React.FC<EmployeesTableProps> = ({
   employees,
   vacations,
+  trainingIds,
   onEdit,
   onDelete,
   onToggleLeave,
@@ -110,6 +112,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             onDelete={onDelete}
             onToggleLeave={onToggleLeave}
                 onTraining={onTraining}
+                isOnTraining={trainingIds?.has(employee.id) ?? false}
           />
         ))}
         <SimplePagination
@@ -175,6 +178,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                         onDelete={onDelete}
                         onToggleLeave={onToggleLeave}
                 onTraining={onTraining}
+                isOnTraining={trainingIds?.has(employee.id) ?? false}
                         
                       />
                     );
@@ -212,6 +216,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                   onDelete={onDelete}
                   onToggleLeave={onToggleLeave}
                 onTraining={onTraining}
+                isOnTraining={trainingIds?.has(employee.id) ?? false}
                 />
               ))}
             </TableBody>
