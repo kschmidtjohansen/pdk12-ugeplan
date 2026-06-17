@@ -163,6 +163,7 @@ const EmployeesPage: React.FC = () => {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onToggleLeave={handleToggleLeave}
+          onTraining={isAdmin ? handleTraining : undefined}
           error={error}
           loading={loading}
           onRetry={fetchEmployees}
@@ -186,6 +187,12 @@ const EmployeesPage: React.FC = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <EmployeeDeleteDialog employee={currentEmployee} onConfirmDelete={confirmDelete} />
       </AlertDialog>
+
+      <EmployeeTrainingDialog
+        open={trainingDialogOpen}
+        onOpenChange={setTrainingDialogOpen}
+        employee={trainingEmployee}
+      />
     </DataFetchErrorBoundary>
   );
 };
