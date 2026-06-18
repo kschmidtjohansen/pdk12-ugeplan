@@ -28,7 +28,7 @@ export const useCarFormState = ({
 }: UseCarFormStateProps) => {
   const { canViewFuelCardCode } = usePermissions();
   const { isDemoMode } = useAuth();
-  const { userSubDepartments } = useDepartment();
+  
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
