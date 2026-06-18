@@ -6,7 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { EmployeeAvailabilityInfo } from '@/utils/employeeAvailability';
-import { ActiveTrainingInfo } from '@/hooks/useActiveTrainings';
+import type { ActiveTrainingInfo } from '@/hooks/useActiveTrainings';
 import { format } from 'date-fns';
 
 interface AbsentEmployee extends Employee {
