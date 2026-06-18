@@ -79,3 +79,57 @@ export function useActiveTrainingsForDate(date: Date | string) {
       : format(date, 'yyyy-MM-dd');
   return useTrainingsForDate(dateStr);
 }
+
+/**
+ * Fetch trainings overlapping a date range [startStr, endStr] for the selected department.
+ * Used by the dashboard so kursus-medarbejdere surfaces hvor som helst i den valgte uge.
+ */
+export function useActiveTrainingsForRange(startStr: string, endStr: string) {
+  const { selectedDepartmentId } = useDepartment();
+  const queryClient = useQueryClient();
+
+  const query = useQuery<TrainingsForDateResult>({
+    queryKey: ['active-trainings-range', selectedDepartmentId, startStr, endStr],
+    enabled: !!selectedDepartmentId && !!startStr && !!endStr,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trainings')
+        .select('user_id, title, end_date, start_date')
+        .eq('department_id', selectedDepartmentId!)
+        .lte('start_date', endStr)
+        .gte('end_date', startStr);
+      if (error) throw error;
+      const ids = new Set<string>();
+      const info = new Map<string, ActiveTrainingInfo>();
+      (data || []).forEach((t: any) => {
+        ids.add(t.user_id);
+        info.set(t.user_id, { title: t.title, end_date: t.end_date });
+      });
+      return { ids, info };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (!selectedDepartmentId) return;
+    const channel = supabase
+      .channel(`active-trainings-range-${selectedDepartmentId}-${startStr}-${endStr}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'trainings', filter: `department_id=eq.${selectedDepartmentId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['active-trainings-range', selectedDepartmentId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedDepartmentId, startStr, endStr, queryClient]);
+
+  return {
+    trainingIds: query.data?.ids ?? new Set<string>(),
+    trainingInfo: query.data?.info ?? new Map<string, ActiveTrainingInfo>(),
+    isLoading: query.isLoading,
+  };
+}
