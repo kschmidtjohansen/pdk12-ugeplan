@@ -2,6 +2,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
@@ -82,9 +83,9 @@ const AbsentEmployeesModal: React.FC<AbsentEmployeesModalProps> = ({
                 
                 <div className="flex flex-col items-end gap-1">
                   {employee.onTraining ? (
-                    <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200" variant="outline">
+                    <StatusBadge variant="warning">
                       Kursus
-                    </Badge>
+                    </StatusBadge>
                   ) : (
                     <Badge 
                       className={employee.availabilityStatus.badgeColor}
