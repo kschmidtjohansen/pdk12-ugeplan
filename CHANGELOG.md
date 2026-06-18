@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-18 — Vagter i fremtidige måneder vises korrekt efter oprettelse
+
+- Datointervallet for hentning af vagter i `DutyPage` følger nu den måned, kalenderen viser (med en måneds buffer i hver retning), i stedet for at være låst til indeværende måned + 2. Vagter oprettet i fx september og frem dukker derfor op med det samme i både kalender og liste.
+
+
 ## 2026-06-18 — Tom underafdelingsliste = ingen tilknytning
 
 - Når alle underafdelinger fravælges på en bil, gemmes bilen nu uden tilknytning til nogen underafdeling (junction-tabellen `car_sub_departments` ryddes for bilen). Bilen vises kun, når der ikke er filtreret på en specifik underafdeling. Tidligere fyldte vi automatisk listen med alle underafdelinger, hvilket forhindrede brugeren i reelt at fjerne fx "Fugt".
