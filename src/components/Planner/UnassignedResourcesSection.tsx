@@ -518,6 +518,43 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 </div>
               )}
 
+              {/* Employees on Training - yellow */}
+              {employeesOnTraining.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-yellow-700 mb-2 flex items-center gap-1.5">
+                    <AlertCircle className="h-4 w-4" />
+                    {t('planner.onTrainingEmployees')} ({employeesOnTraining.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {employeesOnTraining.map(employee => {
+                      const info = trainingInfo.get(employee.id);
+                      return (
+                        <TooltipProvider key={employee.id} delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-yellow-50 border-yellow-200 text-yellow-800 cursor-default"
+                              >
+                                {employee.name.split(' ')[0]}
+                                <span className="ml-1 font-semibold">· Kursus</span>
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-medium">{employee.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {info?.title || 'Kursus'}
+                                {info?.end_date && ` · til ${format(parseISO(info.end_date), 'dd/MM/yyyy')}`}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Empty State */}
               {stats.totalAvailableEmployees === 0 && stats.availableCars === 0 && (
                 <div className="text-center py-4">
