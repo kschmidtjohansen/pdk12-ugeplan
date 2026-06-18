@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-18 — Bil uden valgt underafdeling gemmes under alle
+
+- Hvis ingen underafdeling er valgt ved oprettelse/redigering af en bil, gemmes bilen automatisk under alle afdelingens underafdelinger. Hjælpetekst tilføjet i `CarFormDialog`.
+
 ## 2026-06-18 — Underafdeling valgfri ved bil-oprettelse
 
 - Det er ikke længere et krav at vælge en underafdeling ved oprettelse eller redigering af biler. Feltet bevares som valgfrit i `CarFormDialog`.

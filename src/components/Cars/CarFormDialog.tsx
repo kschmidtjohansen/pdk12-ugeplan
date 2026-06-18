@@ -134,6 +134,7 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
                   </div>
                 ))}
               </div>
+              <p className="text-xs text-muted-foreground">{t('cars.subDepartmentOptionalHint')}</p>
             </div>
           )}
 

@@ -81,6 +81,7 @@ const cars = {
   fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.',
   noCarsInSubDepartment: 'Der er ingen biler tilknyttet denne underafdeling',
   selectAtLeastOneSubDepartment: 'Vælg mindst én underafdeling',
+  subDepartmentOptionalHint: 'Hvis ingen vælges, gemmes bilen under alle underafdelinger.',
   
   // Falck
   falckSubscription: 'Falck',

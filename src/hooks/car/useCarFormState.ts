@@ -4,6 +4,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { usePermissions, useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
@@ -27,6 +28,7 @@ export const useCarFormState = ({
 }: UseCarFormStateProps) => {
   const { canViewFuelCardCode } = usePermissions();
   const { isDemoMode } = useAuth();
+  const { userSubDepartments } = useDepartment();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
@@ -133,19 +135,27 @@ export const useCarFormState = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (import.meta.env.DEV) console.log('[useCarFormState] Form submitted with data:', { formData, currentCar });
+    // Hvis ingen underafdeling er valgt, gem bilen under alle tilgængelige underafdelinger
+    const selectedSubDeptIds = formData.sub_department_ids || [];
+    const effectiveSubDeptIds =
+      selectedSubDeptIds.length === 0 && userSubDepartments.length > 0
+        ? userSubDepartments.map((s) => s.id)
+        : selectedSubDeptIds;
+    const effectiveFormData = { ...formData, sub_department_ids: effectiveSubDeptIds };
+    
+    if (import.meta.env.DEV) console.log('[useCarFormState] Form submitted with data:', { effectiveFormData, currentCar });
     
     try {
       if (currentCar) {
         if (import.meta.env.DEV) console.log('[useCarFormState] Updating existing car:', currentCar.id);
         const updatedCar = await CarSecurityService.updateCar(
           currentCar.id, 
-          formData, 
+          effectiveFormData, 
           canViewFuelCardCode
         );
         
         // Sync sub-department assignments
-        await syncSubDepartments(currentCar.id, formData.sub_department_ids || []);
+        await syncSubDepartments(currentCar.id, effectiveSubDeptIds);
         
         const filteredUpdatedCar = canViewFuelCardCode ? updatedCar : { ...updatedCar, fuel_card_code: '' };
         setCars(
@@ -154,28 +164,28 @@ export const useCarFormState = ({
         
         toast({
           title: t('cars.vehicleUpdated'),
-          description: t('cars.vehicleUpdatedMsg', { name: formData.name })
+          description: t('cars.vehicleUpdatedMsg', { name: effectiveFormData.name })
         });
       } else {
         if (import.meta.env.DEV) console.log('[useCarFormState] Creating new car');
         if (createCar) {
-          const success = await createCar(formData);
+          const success = await createCar(effectiveFormData);
           if (!success) {
             return; // Fejl er allerede vist via toast i createCar
           }
         } else {
           if (import.meta.env.DEV) console.log('[useCarFormState] Using fallback security service');
-          const newCar = await CarSecurityService.createCar(formData, canViewFuelCardCode);
+          const newCar = await CarSecurityService.createCar(effectiveFormData, canViewFuelCardCode);
           
           // Sync sub-department assignments for new car
-          await syncSubDepartments(newCar.id, formData.sub_department_ids || []);
+          await syncSubDepartments(newCar.id, effectiveSubDeptIds);
           
           const filteredNewCar = canViewFuelCardCode ? newCar : { ...newCar, fuel_card_code: '' };
           setCars([...cars, filteredNewCar]);
           
           toast({
             title: t('cars.vehicleAdded'),
-            description: t('cars.vehicleAddedMsg', { name: formData.name })
+            description: t('cars.vehicleAddedMsg', { name: effectiveFormData.name })
           });
         }
       }
