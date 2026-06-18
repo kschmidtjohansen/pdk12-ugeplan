@@ -131,18 +131,21 @@ const compareTimeStrings = (time1: string, time2: string): number => {
   return num1 - num2;
 };
 
-// Helper function to determine workday end time based on day of week
-const getWorkdayEndTime = (selectedDate: Date): string => {
-  const dayOfWeek = selectedDate.getDay();
-  
-  if (dayOfWeek === 5) {
-    return "15:30";
-  } else if (dayOfWeek >= 1 && dayOfWeek <= 4) {
-    return "16:00";
-  }
-  
-  return "16:00";
+// Sum total assignment duration in minutes (sum of each assignment's length)
+const getTotalAssignmentMinutes = (assignments: Assignment[]): number => {
+  return assignments.reduce((total, a) => {
+    const from = normalizeTime(a.fromTime);
+    const to = normalizeTime(a.toTime);
+    if (!from || !to) return total;
+    const [fh, fm] = from.split(':').map(Number);
+    const [th, tm] = to.split(':').map(Number);
+    const diff = (th * 60 + tm) - (fh * 60 + fm);
+    return total + (diff > 0 ? diff : 0);
+  }, 0);
 };
+
+// Threshold: 8 hours = 480 minutes
+const FULLY_BOOKED_MINUTES = 480;
 
 export const getEmployeeAvailabilityStatus = (
   employee: Employee,
@@ -213,18 +216,13 @@ export const getEmployeeAvailabilityStatus = (
     };
   }
 
-  // Get the correct workday end time based on the day of the week
-  const workdayEndTime = getWorkdayEndTime(selectedDate);
-  
-  // Calculate coverage
+  // Calculate total booked minutes and latest end time
+  const totalMinutes = getTotalAssignmentMinutes(employeeAssignments);
   const latestEndTime = getLatestEndTime(employeeAssignments);
-  const earliestStartTime = getEarliestStartTime(employeeAssignments);
-  
-  // Fully booked when the latest assignment runs to (or past) closing time —
-  // regardless of when in the day the employee started.
-  const endsAtOrAfterClosing = compareTimeStrings(latestEndTime, workdayEndTime) >= 0;
-  
-  if (endsAtOrAfterClosing) {
+
+  // Fully booked when total assignment duration is >= 8 hours,
+  // regardless of department working hours.
+  if (totalMinutes >= FULLY_BOOKED_MINUTES) {
     return {
       status: 'fullyBooked',
       statusText: t('employees.status.fullyBooked'),

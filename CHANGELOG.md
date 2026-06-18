@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-18 — Fuldt booket baseret på ≥ 8 timers opgavetid
+
+- "Fuldt booket"-status beregnes nu ud fra den samlede varighed af medarbejderens opgaver på dagen (≥ 8 timer = 480 minutter), uafhængigt af afdelingens arbejdstid (tidligere bundet til 08:00–16:00 / 08:00–15:30 fredag). Dette tilpasser status til afdelinger med afvigende mødetidspunkter.
+- Fjernet `getWorkdayEndTime` helper i `src/utils/employeeAvailability.ts`; ny `getTotalAssignmentMinutes` summerer opgavetid.
+
+
+
 ## 2026-06-18 — Kursus i fraværende-metric matches på hele valgte uge
 
 - Dashboardets "Fraværende"-metric matcher nu kursusperioder mod hele den valgte ISO-uge i stedet for kun mandagen. Medarbejdere på kursus hvor som helst i ugen (fx Henrik på Rengøringskursus 11. maj – 22. juni 2026) vises nu altid med gul "Kursus"-label.
