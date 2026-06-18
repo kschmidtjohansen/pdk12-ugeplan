@@ -45,7 +45,7 @@ export const useDashboardMetrics = (
       warehouseItems: { count: 0, items: [] }
     };
 
-    if (employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading) {
+    if (employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading || weekTrainingsLoading) {
       return defaultMetrics;
     }
 
