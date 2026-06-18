@@ -35,15 +35,17 @@ export default function DutyPage() {
   const [selectedDuty, setSelectedDuty] = useState<Duty | null>(null);
   const [dutyToSwap, setDutyToSwap] = useState<Duty | null>(null);
   const [pendingNewDate, setPendingNewDate] = useState<Date | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   
   const today = new Date();
   const todayStart = new Date(today);
   todayStart.setHours(0, 0, 0, 0);
   
-  const startDate = startOfMonth(selectedMonth);
-  const endDate = endOfMonth(addMonths(selectedMonth, 2));
+  // Datointerval følger den måned brugeren har åben i kalenderen, med en
+  // måneds buffer i hver retning så vagter i synlige overflow-uger og
+  // kommende-listen også hentes.
+  const startDate = startOfMonth(subMonths(calendarMonth, 1));
+  const endDate = endOfMonth(addMonths(calendarMonth, 1));
 
   const { duties, loading: dutiesLoading, error, refetch } = useDutyData(startDate, endDate);
   const { employees, loading: employeesLoading } = useEmployeeData();
