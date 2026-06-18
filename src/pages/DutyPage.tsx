@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, RefreshCw, Shield } from 'lucide-react';
-import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import type { Duty } from '@/types/duty';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 
