@@ -77,7 +77,13 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   const targetDate = selectedDate;
   const targetDateObj = parseISO(targetDate);
-  const { trainingIds } = useActiveTrainingsForDate(targetDate);
+  const { trainingIds, trainingInfo } = useActiveTrainingsForDate(targetDate);
+
+  // Employees on training for the selected date (yellow "Kursus" label)
+  const employeesOnTraining = useMemo(() => {
+    if (!employees || !Array.isArray(employees)) return [];
+    return employees.filter(emp => trainingIds.has(emp.id));
+  }, [employees, trainingIds]);
 
   // Get assigned car IDs for the target date
   const assignedCarIds = useMemo(() => {
