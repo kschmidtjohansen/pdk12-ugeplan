@@ -15,6 +15,7 @@ import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUt
 import { haversineDistanceKm } from '@/utils/haversine';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getRoleBadgeClass } from '@/utils/roleColors';
+import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
 
 type MultiDateAvailability = 'full' | 'partial' | 'none';
 
@@ -48,6 +49,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
+  const { trainingIds: trainingIdsForDate } = useActiveTrainingsForDate(currentDate);
 
   // Haversine sort — deps: employee list + assignment GPS coords
   const distanceMap = useMemo(() => {
@@ -227,9 +229,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             availabilityInfo = { status: 'available', statusText: '', badgeColor: '' };
           }
           
+          const isOnTraining = trainingIdsForDate.has(employee.id);
           const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') 
             || isManuallyOnLeave 
             || isExpired
+            || isOnTraining
             || employee.status === 'terminated'
             || employee.status === 'inactive';
           
@@ -295,6 +299,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                     )}
                   </div>
                   <div className="flex gap-1 ml-2 flex-shrink-0">
+                    {isOnTraining && (
+                      <Badge size="sm" className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-100">
+                        Kursus
+                      </Badge>
+                    )}
                     {isExpired && (
                       <Badge variant="destructive" size="sm">
                         {t('employees.statusExpired')}

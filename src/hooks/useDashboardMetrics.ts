@@ -9,6 +9,7 @@ import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveTrainings } from '@/hooks/useActiveTrainings';
 import { format } from 'date-fns';
 
 export const useDashboardMetrics = () => {
@@ -20,6 +21,7 @@ export const useDashboardMetrics = () => {
   const { t } = useTranslation();
   const { selectedSubDepartmentId } = useDepartment();
   const { effectiveRole } = useAuth();
+  const { trainingIds } = useActiveTrainings();
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
@@ -71,6 +73,7 @@ export const useDashboardMetrics = () => {
       // Calculate available employees (all active employees, not fully booked, on vacation, or on leave)
       const availableEmployeesList = countableEmployees.filter(employee => {
         if (employee.status === 'inactive') return false;
+        if (trainingIds.has(employee.id)) return false;
 
         const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
         return status.status === 'available' || status.status === 'partiallyBooked';
@@ -117,6 +120,7 @@ export const useDashboardMetrics = () => {
 
       // Calculate absent employees (on vacation or leave)
       const absentEmployeesList = countableEmployees.filter(employee => {
+        if (trainingIds.has(employee.id)) return true;
         const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
         return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
       }).map(employee => {
@@ -131,7 +135,8 @@ export const useDashboardMetrics = () => {
         return {
           ...employee,
           availabilityStatus: status,
-          vacation: vacation
+          vacation: vacation,
+          onTraining: trainingIds.has(employee.id)
         };
       });
 
@@ -190,7 +195,7 @@ export const useDashboardMetrics = () => {
       if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr, selectedSubDepartmentId, effectiveRole]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr, selectedSubDepartmentId, effectiveRole, trainingIds]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 

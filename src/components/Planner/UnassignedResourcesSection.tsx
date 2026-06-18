@@ -10,6 +10,7 @@ import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
+import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -76,6 +77,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   const targetDate = selectedDate;
   const targetDateObj = parseISO(targetDate);
+  const { trainingIds } = useActiveTrainingsForDate(targetDate);
 
   // Get assigned car IDs for the target date
   const assignedCarIds = useMemo(() => {
@@ -160,7 +162,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const allAvailable = [
       ...employeeAvailabilityData.available,
       ...employeeAvailabilityData.partiallyBooked,
-    ].filter(emp => !crossBusyEmployeeIds.has(emp.id));
+    ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id));
     const rolesOf = (emp: any): string[] => {
       const r = (emp.roles && emp.roles.length ? emp.roles : [emp.role]) as string[];
       return r || [];
@@ -177,7 +179,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     });
 
     return { skadeledere, fugtteknikere, servicemedarbejdere };
-  }, [employeeAvailabilityData, crossBusyEmployeeIds]);
+  }, [employeeAvailabilityData, crossBusyEmployeeIds, trainingIds]);
 
   // Calculate available cars (also excludes cars booked in other sub-departments)
   const availableCars = useMemo(() => {
