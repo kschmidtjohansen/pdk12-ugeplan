@@ -130,15 +130,17 @@ export const useDashboardMetrics = (
         !assignedCarIds.has(car.id)
       );
 
-      // Calculate absent employees (on vacation, leave or training)
-      // Training-employees included regardless of countable role filter, så de altid vises.
+      // Calculate absent employees (on vacation, leave or training).
+      // Training overlap is matched across the full week range (rangeStart..rangeEnd) so
+      // that a kursus aktivt hvor som helst i den valgte uge altid surfacer i metric'en.
+      // Vacation/leave matches the anchor metric date as before.
       const absentSeen = new Set<string>();
       const absentRaw = [
         ...countableEmployees.filter(employee => {
           const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
           return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
         }),
-        ...safeEmployees.filter(employee => trainingIds.has(employee.id)),
+        ...safeEmployees.filter(employee => weekTrainingIds.has(employee.id)),
       ].filter(emp => {
         if (absentSeen.has(emp.id)) return false;
         absentSeen.add(emp.id);
@@ -153,14 +155,14 @@ export const useDashboardMetrics = (
           new Date(v.start_date) <= metricDate &&
           new Date(v.end_date) >= metricDate
         );
-        const isOnTraining = trainingIds.has(employee.id);
+        const isOnTraining = weekTrainingIds.has(employee.id);
 
         return {
           ...employee,
           availabilityStatus: status,
           vacation: vacation,
           onTraining: isOnTraining,
-          training: isOnTraining ? trainingInfo.get(employee.id) : undefined
+          training: isOnTraining ? weekTrainingInfo.get(employee.id) : undefined
         };
       });
 
