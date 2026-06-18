@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-18 — Underafdeling valgfri ved bil-oprettelse
+
+- Det er ikke længere et krav at vælge en underafdeling ved oprettelse eller redigering af biler. Feltet bevares som valgfrit i `CarFormDialog`.
+
+
+
 ## 2026-06-18 — Fuldt booket baseret på ≥ 8 timers opgavetid
 
 - "Fuldt booket"-status beregnes nu ud fra den samlede varighed af medarbejderens opgaver på dagen (≥ 8 timer = 480 minutter), uafhængigt af afdelingens arbejdstid (tidligere bundet til 08:00–16:00 / 08:00–15:30 fredag). Dette tilpasser status til afdelinger med afvigende mødetidspunkter.
