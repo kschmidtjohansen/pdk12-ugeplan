@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-18 — Kursus-label i dashboard metrics-dialoger
+
+- Dashboardets medarbejder-metrics bruger nu den valgte KPI-dato til kursus-tjek, så medarbejdere på kursus fjernes fra "Tilgængelige" og vises under "Fraværende".
+- Fraværs-dialogen viser nu en gul "Kursus"-label og kursusdetalje for medarbejdere på aktivt kursus.
+
 ## 2026-06-17 — Kursus blokerer tildeling og tæller som ikke-tilgængelig
 
 - Medarbejdere på aktivt kursus tæller ikke længere som tilgængelige i dashboard-metrics (lægges i "Fraværende").
