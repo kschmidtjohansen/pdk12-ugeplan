@@ -135,12 +135,9 @@ export const useCarFormState = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Hvis ingen underafdeling er valgt, gem bilen under alle tilgængelige underafdelinger
-    const selectedSubDeptIds = formData.sub_department_ids || [];
-    const effectiveSubDeptIds =
-      selectedSubDeptIds.length === 0 && userSubDepartments.length > 0
-        ? userSubDepartments.map((s) => s.id)
-        : selectedSubDeptIds;
+    // Tom underafdelingsliste betyder "ingen tilknytning" — bilen vises kun
+    // når der ikke er filtreret på en specifik underafdeling.
+    const effectiveSubDeptIds = formData.sub_department_ids || [];
     const effectiveFormData = { ...formData, sub_department_ids: effectiveSubDeptIds };
     
     if (import.meta.env.DEV) console.log('[useCarFormState] Form submitted with data:', { effectiveFormData, currentCar });
