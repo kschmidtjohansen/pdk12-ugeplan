@@ -398,7 +398,8 @@ const planner = {
   // Enhanced unassigned resources
   fullyAvailableEmployees: 'Fully Available Employees',
   partiallyAvailableEmployees: 'Partially Available Employees',
-  onVacationEmployees: 'Employees on Vacation',
+  onVacationEmployees: 'Absent Employees',
+  onTrainingEmployees: 'Employees on Training',
   availableCount: 'Available',
   onVacationCount: 'On Vacation',
   partiallyBookedCount: 'Partially Booked',

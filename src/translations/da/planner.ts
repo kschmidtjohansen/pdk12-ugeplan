@@ -219,7 +219,8 @@ const planner = {
   // Additional translations for enhanced unassigned resources
   fullyAvailableEmployees: 'Fuldt Tilgængelige Medarbejdere',
   partiallyAvailableEmployees: 'Delvist Tilgængelige Medarbejdere',
-  onVacationEmployees: 'Medarbejdere på Ferie',
+  onVacationEmployees: 'Medarbejdere fraværende',
+  onTrainingEmployees: 'Medarbejdere på Kursus',
   availableCount: 'Tilgængelige',
   onVacationCount: 'På Ferie',
   partiallyBookedCount: 'Delvist Optaget',
