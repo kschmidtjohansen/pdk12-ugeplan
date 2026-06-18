@@ -216,18 +216,13 @@ export const getEmployeeAvailabilityStatus = (
     };
   }
 
-  // Get the correct workday end time based on the day of the week
-  const workdayEndTime = getWorkdayEndTime(selectedDate);
-  
-  // Calculate coverage
+  // Calculate total booked minutes and latest end time
+  const totalMinutes = getTotalAssignmentMinutes(employeeAssignments);
   const latestEndTime = getLatestEndTime(employeeAssignments);
-  const earliestStartTime = getEarliestStartTime(employeeAssignments);
-  
-  // Fully booked when the latest assignment runs to (or past) closing time —
-  // regardless of when in the day the employee started.
-  const endsAtOrAfterClosing = compareTimeStrings(latestEndTime, workdayEndTime) >= 0;
-  
-  if (endsAtOrAfterClosing) {
+
+  // Fully booked when total assignment duration is >= 8 hours,
+  // regardless of department working hours.
+  if (totalMinutes >= FULLY_BOOKED_MINUTES) {
     return {
       status: 'fullyBooked',
       statusText: t('employees.status.fullyBooked'),
