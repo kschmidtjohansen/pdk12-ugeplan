@@ -4,7 +4,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { usePermissions, useAuth } from '@/context/AuthContext';
-import { useDepartment } from '@/context/DepartmentContext';
+
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
