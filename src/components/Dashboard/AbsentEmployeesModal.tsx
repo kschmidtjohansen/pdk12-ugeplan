@@ -6,11 +6,14 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { EmployeeAvailabilityInfo } from '@/utils/employeeAvailability';
+import { ActiveTrainingInfo } from '@/hooks/useActiveTrainings';
 import { format } from 'date-fns';
 
 interface AbsentEmployee extends Employee {
   availabilityStatus: EmployeeAvailabilityInfo;
   vacation?: Vacation;
+  onTraining?: boolean;
+  training?: ActiveTrainingInfo;
 }
 
 interface AbsentEmployeesModalProps {
@@ -56,6 +59,14 @@ const AbsentEmployeesModal: React.FC<AbsentEmployeesModalProps> = ({
                 <div className="flex-1">
                   <h4 className="font-medium text-sm">{employee.name}</h4>
                   
+                  {employee.onTraining && employee.training && (
+                    <div className="mt-1 text-xs">
+                      <p className="text-muted-foreground">
+                        {employee.training.title || 'Kursus'} · til {format(new Date(employee.training.end_date), 'dd/MM/yyyy')}
+                      </p>
+                    </div>
+                  )}
+
                   {employee.vacation && (
                     <div className="mt-1 text-xs">
                       <p className="text-muted-foreground">
@@ -70,12 +81,18 @@ const AbsentEmployeesModal: React.FC<AbsentEmployeesModalProps> = ({
                 </div>
                 
                 <div className="flex flex-col items-end gap-1">
-                  <Badge 
-                    className={employee.availabilityStatus.badgeColor}
-                    variant="outline"
-                  >
-                    {employee.availabilityStatus.statusText}
-                  </Badge>
+                  {employee.onTraining ? (
+                    <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200" variant="outline">
+                      Kursus
+                    </Badge>
+                  ) : (
+                    <Badge 
+                      className={employee.availabilityStatus.badgeColor}
+                      variant="outline"
+                    >
+                      {employee.availabilityStatus.statusText}
+                    </Badge>
+                  )}
                   
                   {employee.vacation && (
                     <span className="text-xs text-muted-foreground">
