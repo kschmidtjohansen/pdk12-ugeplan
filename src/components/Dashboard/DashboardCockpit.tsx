@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks, format } from 'date-fns';
+import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks, format } from 'date-fns';
 import QuickAccessGrid from './QuickAccessGrid';
 import CompactKpiStack from './CompactKpiStack';
 import DutySummaryWidget from './DutySummaryWidget';
