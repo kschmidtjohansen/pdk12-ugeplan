@@ -1,19 +1,24 @@
-## Plan
+## Mål
+"Fuldt booket"-status skal ikke længere være afhængig af afdelingens arbejdstid (8–16 / 8–15:30), men beregnes ud fra den samlede varighed af medarbejderens opgaver på dagen. Hvis summen er ≥ 8 timer → Fuldt booket.
 
-1. **Ret KPI-dato for fraværende-metric**
-   - Behold ugevalget i dashboardet.
-   - Når den valgte uge ikke er den aktuelle uge, skal fraværende-metric ikke kun kigge på mandag.
-   - Den skal finde medarbejdere med ferie/fravær/kursus på en relevant dato i hele den valgte uge, så Henrik vises i uge 20+ hvor kurset faktisk er aktivt.
+## Ændringer
 
-2. **Bevar korrekt datovisning i dialogen**
-   - Dialogen skal stadig vise den dato, metric’en beregnes ud fra.
-   - Hvis Henrik er på kursus i ugen, skal han vises med gul `Kursus`-label og kursusdetaljer.
+### `src/utils/employeeAvailability.ts`
+- Fjern `getWorkdayEndTime` (ikke længere relevant).
+- Tilføj hjælpefunktion `getTotalAssignmentMinutes(assignments)` der summerer `(toTime − fromTime)` i minutter for alle dagens opgaver for medarbejderen.
+- Erstat `endsAtOrAfterClosing`-tjekket med:
+  - `totalMinutes >= 480` (8 timer) → `fullyBooked`
+  - Ellers `partiallyBooked` med `availableAt = latestEndTime` (uændret tekst "ledig efter HH:MM").
+- Bevar `getLatestEndTime` (bruges stadig til at vise hvornår de er ledige igen).
 
-3. **Dokumentation**
-   - Opdater `docs/implementation-plan/tasks.md` og `CHANGELOG.md` med rettelsen.
+### Dokumentation
+- `CHANGELOG.md`: Tilføj punkt under 2026-06-18: "Fuldt booket beregnes nu ud fra ≥ 8 timers samlet opgavetid i stedet for afdelingens arbejdstid."
+- `docs/implementation-plan/tasks.md`: Markér tilsvarende opgave som `[x]`.
 
-## Teknisk
+## Tekniske detaljer
+- Tærskel: præcis 8 timer = 480 minutter (≥ giver fuldt booket).
+- Overlappende opgaver tælles som summen af deres varigheder (samme adfærd som hidtil — der laves ikke deduplikering med mindre du ønsker det).
+- Ingen ændringer til DB, RLS eller andre komponenter — `getEmployeeAvailabilityStatus`'s signatur og returtype er uændrede.
 
-- `DashboardCockpit.tsx`: beregn ugestart/-slut for valgt uge og send ugekontekst til KPI-komponenten.
-- `CompactKpiStack.tsx` / `useDashboardMetrics.ts`: udvid fraværende-beregningen, så kursus kan matches på hele den valgte uge frem for kun én ankredato.
-- Ingen databaseændringer.
+## Spørgsmål
+Hvis to opgaver overlapper tidsmæssigt (fx 08–12 og 10–14), skal det da tælle som 8 timer (sum) eller 6 timer (faktisk dækning)? Default i planen er **sum** for at holde det simpelt og konsistent med nuværende beregningsstil.
