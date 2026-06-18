@@ -1,21 +1,19 @@
 ## Plan
 
-### 1. Fjern "· Kursus" suffix i Ikke-tildelte Ressourcer
-I `src/components/Planner/UnassignedResourcesSection.tsx` viser sektionen "Medarbejdere på Kursus" i dag badges som `Henrik · Kursus`. Da sektionens overskrift allerede er "Medarbejdere på Kursus", er suffixet redundant.
+1. **Ret KPI-dato for fraværende-metric**
+   - Behold ugevalget i dashboardet.
+   - Når den valgte uge ikke er den aktuelle uge, skal fraværende-metric ikke kun kigge på mandag.
+   - Den skal finde medarbejdere med ferie/fravær/kursus på en relevant dato i hele den valgte uge, så Henrik vises i uge 20+ hvor kurset faktisk er aktivt.
 
-- Ændr badge-indholdet til kun fornavn (samme mønster som de øvrige rolle-sektioner: `emp.name.split(' ')[0]`).
-- Behold den gule farve, ikon og tooltip med fuldt navn + kursustitel + slutdato.
+2. **Bevar korrekt datovisning i dialogen**
+   - Dialogen skal stadig vise den dato, metric’en beregnes ud fra.
+   - Hvis Henrik er på kursus i ugen, skal han vises med gul `Kursus`-label og kursusdetaljer.
 
-### 2. Dashboard metric (punkt 1)
-Logikken er allerede korrekt: Henriks kursus løber 11. maj – 22. juni 2026, så på 27.4.2026 (uge 18) er han ikke på kursus, og derfor figurerer han ikke i "Fraværende"-modalen for den dato. Du bekræftede, at jeg ikke skal ændre datologikken — du tester selv med en dato i kursusperioden.
+3. **Dokumentation**
+   - Opdater `docs/implementation-plan/tasks.md` og `CHANGELOG.md` med rettelsen.
 
-- Ingen kodeændring her.
+## Teknisk
 
-### 3. Dokumentation
-- Opdatér `CHANGELOG.md` med kort note om label-rensningen.
-- Opdatér `docs/implementation-plan/tasks.md` hvis relevant.
-
-### Filer der ændres
-- `src/components/Planner/UnassignedResourcesSection.tsx`
-- `CHANGELOG.md`
-- `docs/implementation-plan/tasks.md`
+- `DashboardCockpit.tsx`: beregn ugestart/-slut for valgt uge og send ugekontekst til KPI-komponenten.
+- `CompactKpiStack.tsx` / `useDashboardMetrics.ts`: udvid fraværende-beregningen, så kursus kan matches på hele den valgte uge frem for kun én ankredato.
+- Ingen databaseændringer.

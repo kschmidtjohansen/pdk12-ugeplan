@@ -9,10 +9,13 @@ import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
-import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
+import { useActiveTrainingsForDate, useActiveTrainingsForRange } from '@/hooks/useActiveTrainings';
 import { format } from 'date-fns';
 
-export const useDashboardMetrics = (selectedDate?: string) => {
+export const useDashboardMetrics = (
+  selectedDate?: string,
+  weekRange?: { startStr: string; endStr: string }
+) => {
   const { employees, loading: employeesLoading, error: employeesError } = useEmployeeData();
   const { cars, loading: carsLoading, error: carsError } = useCarData();
   const { assignments, loading: assignmentsLoading, error: assignmentsError } = useAssignments();
@@ -25,6 +28,15 @@ export const useDashboardMetrics = (selectedDate?: string) => {
   const metricDateStr = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const { trainingIds, trainingInfo, isLoading: trainingsLoading } = useActiveTrainingsForDate(metricDateStr);
 
+  // Fallback to single-date range when no week range supplied (keeps behaviour for callers that don't pass a week).
+  const rangeStart = weekRange?.startStr || metricDateStr;
+  const rangeEnd = weekRange?.endStr || metricDateStr;
+  const {
+    trainingIds: weekTrainingIds,
+    trainingInfo: weekTrainingInfo,
+    isLoading: weekTrainingsLoading,
+  } = useActiveTrainingsForRange(rangeStart, rangeEnd);
+
   const metrics = useMemo(() => {
     const defaultMetrics = {
       availableEmployees: { count: 0, total: 0, employees: [] },
@@ -33,7 +45,7 @@ export const useDashboardMetrics = (selectedDate?: string) => {
       warehouseItems: { count: 0, items: [] }
     };
 
-    if (employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading) {
+    if (employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading || weekTrainingsLoading) {
       return defaultMetrics;
     }
 
@@ -118,15 +130,17 @@ export const useDashboardMetrics = (selectedDate?: string) => {
         !assignedCarIds.has(car.id)
       );
 
-      // Calculate absent employees (on vacation, leave or training)
-      // Training-employees included regardless of countable role filter, så de altid vises.
+      // Calculate absent employees (on vacation, leave or training).
+      // Training overlap is matched across the full week range (rangeStart..rangeEnd) so
+      // that a kursus aktivt hvor som helst i den valgte uge altid surfacer i metric'en.
+      // Vacation/leave matches the anchor metric date as before.
       const absentSeen = new Set<string>();
       const absentRaw = [
         ...countableEmployees.filter(employee => {
           const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
           return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
         }),
-        ...safeEmployees.filter(employee => trainingIds.has(employee.id)),
+        ...safeEmployees.filter(employee => weekTrainingIds.has(employee.id)),
       ].filter(emp => {
         if (absentSeen.has(emp.id)) return false;
         absentSeen.add(emp.id);
@@ -141,14 +155,14 @@ export const useDashboardMetrics = (selectedDate?: string) => {
           new Date(v.start_date) <= metricDate &&
           new Date(v.end_date) >= metricDate
         );
-        const isOnTraining = trainingIds.has(employee.id);
+        const isOnTraining = weekTrainingIds.has(employee.id);
 
         return {
           ...employee,
           availabilityStatus: status,
           vacation: vacation,
           onTraining: isOnTraining,
-          training: isOnTraining ? trainingInfo.get(employee.id) : undefined
+          training: isOnTraining ? weekTrainingInfo.get(employee.id) : undefined
         };
       });
 
@@ -207,7 +221,7 @@ export const useDashboardMetrics = (selectedDate?: string) => {
       if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, trainingsLoading, t, metricDateStr, selectedSubDepartmentId, effectiveRole, trainingIds, trainingInfo]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, trainingsLoading, weekTrainingsLoading, t, metricDateStr, selectedSubDepartmentId, effectiveRole, trainingIds, trainingInfo, weekTrainingIds, weekTrainingInfo]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 
@@ -221,7 +235,7 @@ export const useDashboardMetrics = (selectedDate?: string) => {
 
   return {
     metrics,
-    loading: employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading,
+    loading: employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading || weekTrainingsLoading,
     error: derivedError,
     assignments,
     vacations

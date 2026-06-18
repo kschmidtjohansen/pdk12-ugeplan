@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks, format } from 'date-fns';
+import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks, format } from 'date-fns';
 import QuickAccessGrid from './QuickAccessGrid';
 import CompactKpiStack from './CompactKpiStack';
 import DutySummaryWidget from './DutySummaryWidget';
@@ -69,6 +69,14 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
     return format(monday, 'yyyy-MM-dd');
   }, [selectedWeek, selectedYear]);
 
+  // Full ISO-week range so kursus/fravær opdages overalt i den valgte uge.
+  const kpiWeekRange = useMemo(() => {
+    const jan4 = new Date(selectedYear, 0, 4);
+    const monday = startOfISOWeek(addWeeks(jan4, selectedWeek - 1));
+    const sunday = endOfISOWeek(monday);
+    return { startStr: format(monday, 'yyyy-MM-dd'), endStr: format(sunday, 'yyyy-MM-dd') };
+  }, [selectedWeek, selectedYear]);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* LEFT — main work surface (2/3) */}
@@ -85,7 +93,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
 
       {/* RIGHT — sticky cockpit panel (1/3) */}
       <aside className="space-y-4 lg:sticky lg:top-14 lg:self-start">
-        {showMetrics && <CompactKpiStack selectedDate={kpiDate} />}
+        {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
         
         
         {isDutyEnabled && <DutySummaryWidget />}

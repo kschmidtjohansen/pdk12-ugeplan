@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-18 — Kursus i fraværende-metric matches på hele valgte uge
+
+- Dashboardets "Fraværende"-metric matcher nu kursusperioder mod hele den valgte ISO-uge i stedet for kun mandagen. Medarbejdere på kursus hvor som helst i ugen (fx Henrik på Rengøringskursus 11. maj – 22. juni 2026) vises nu altid med gul "Kursus"-label.
+- Ny `useActiveTrainingsForRange` hook (range-baseret kursus-overlap) bruges af `useDashboardMetrics` parallelt med dato-tjekket, der stadig styrer "Tilgængelige".
+
+
 ## 2026-06-18 — Renset Kursus-label i Ikke-tildelte Ressourcer
 
 - Fjernet redundant "· Kursus"-suffix på medarbejder-badges i "Medarbejdere på Kursus"-sektionen i Ikke-tildelte Ressourcer (sektionens overskrift angiver allerede status). Fuld kursusinfo bevares i tooltip.

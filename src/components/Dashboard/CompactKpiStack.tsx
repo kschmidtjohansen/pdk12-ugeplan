@@ -57,13 +57,15 @@ const KpiRow: React.FC<KpiRowProps> = ({ label, value, total, icon: Icon, onClic
 interface CompactKpiStackProps {
   /** ISO yyyy-MM-dd. Defaults to today. */
   selectedDate?: string;
+  /** Optional ISO yyyy-MM-dd week range; expands kursus-tjek til hele ugen. */
+  weekRange?: { startStr: string; endStr: string };
 }
 
-const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate }) => {
+const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, weekRange }) => {
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
   const effectiveDate = selectedDate || todayStr;
-  const { metrics, loading, error, assignments, vacations } = useDashboardMetrics(effectiveDate);
+  const { metrics, loading, error, assignments, vacations } = useDashboardMetrics(effectiveDate, weekRange);
   const { t } = useTranslation();
   const { isWarehouseEnabled } = useDepartment();
   const navigate = useNavigate();
