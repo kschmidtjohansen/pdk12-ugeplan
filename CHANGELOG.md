@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-18 — Kursus i fraværende-metric og Ikke-tildelte ressourcer
+
+- Dashboardets "Fraværende"-metric inkluderer nu altid medarbejdere på kursus (også når rolle-filteret normalt ville udelade dem), så Henrik m.fl. fremgår med gul "Kursus"-label.
+- Ny "Medarbejdere på Kursus"-sektion i Ikke-tildelte Ressourcer (Planner) med gul label og tooltip med kursustitel og slutdato.
+- Tekst i Ikke-tildelte Ressourcer ændret: "Medarbejdere på Ferie" → "Medarbejdere fraværende".
+
+
 ## 2026-06-18 — Kursus-label i dashboard metrics-dialoger
 
 - Dashboardets medarbejder-metrics bruger nu den valgte KPI-dato til kursus-tjek, så medarbejdere på kursus fjernes fra "Tilgængelige" og vises under "Fraværende".
