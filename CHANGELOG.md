@@ -1,8 +1,8 @@
 # Changelog
 
-## 2026-06-18 — Bil uden valgt underafdeling gemmes under alle
+## 2026-06-18 — Tom underafdelingsliste = ingen tilknytning
 
-- Hvis ingen underafdeling er valgt ved oprettelse/redigering af en bil, gemmes bilen automatisk under alle afdelingens underafdelinger. Hjælpetekst tilføjet i `CarFormDialog`.
+- Når alle underafdelinger fravælges på en bil, gemmes bilen nu uden tilknytning til nogen underafdeling (junction-tabellen `car_sub_departments` ryddes for bilen). Bilen vises kun, når der ikke er filtreret på en specifik underafdeling. Tidligere fyldte vi automatisk listen med alle underafdelinger, hvilket forhindrede brugeren i reelt at fjerne fx "Fugt".
 
 ## 2026-06-18 — Underafdeling valgfri ved bil-oprettelse
 

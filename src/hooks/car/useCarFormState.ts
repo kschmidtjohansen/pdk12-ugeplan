@@ -4,7 +4,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { CarData, CarFormData } from '@/components/Cars/types';
 import { CarSecurityService } from '@/services/carSecurityService';
 import { usePermissions, useAuth } from '@/context/AuthContext';
-import { useDepartment } from '@/context/DepartmentContext';
+
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
@@ -28,7 +28,7 @@ export const useCarFormState = ({
 }: UseCarFormStateProps) => {
   const { canViewFuelCardCode } = usePermissions();
   const { isDemoMode } = useAuth();
-  const { userSubDepartments } = useDepartment();
+  
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
@@ -135,12 +135,9 @@ export const useCarFormState = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Hvis ingen underafdeling er valgt, gem bilen under alle tilgængelige underafdelinger
-    const selectedSubDeptIds = formData.sub_department_ids || [];
-    const effectiveSubDeptIds =
-      selectedSubDeptIds.length === 0 && userSubDepartments.length > 0
-        ? userSubDepartments.map((s) => s.id)
-        : selectedSubDeptIds;
+    // Tom underafdelingsliste betyder "ingen tilknytning" — bilen vises kun
+    // når der ikke er filtreret på en specifik underafdeling.
+    const effectiveSubDeptIds = formData.sub_department_ids || [];
     const effectiveFormData = { ...formData, sub_department_ids: effectiveSubDeptIds };
     
     if (import.meta.env.DEV) console.log('[useCarFormState] Form submitted with data:', { effectiveFormData, currentCar });

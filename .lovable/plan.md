@@ -1,21 +1,26 @@
+## Problem
+Min tidligere ændring fyldte automatisk `sub_department_ids` med ALLE underafdelinger, når brugeren fravalgte alle. Det betyder at "Fugt" bliver tilføjet igen, selvom brugeren netop har fjernet den. Bilen vises derfor stadig under Fugt.
+
 ## Mål
-Når ingen underafdeling er valgt på en bil, skal bilen automatisk gemmes under **alle** afdelingens underafdelinger (i stedet for ingen). Sikrer også at gem-knappen virker uden valg.
+Når brugeren fravælger alle underafdelinger og gemmer:
+- Bilen gemmes uden tilknytning til nogen specifik underafdeling.
+- Junction-tabellen `car_sub_departments` får slettet alle rækker for bilen (ingen indsættes).
+- Bilen vises kun, når underafdelingsfilteret er "Alle" (intet specifikt underafdeling-filter aktivt). Den optræder ikke længere under "Fugt".
 
 ## Ændringer
 
+**`src/hooks/car/useCarFormState.ts`**
+- Fjern auto-fill-logikken (`effectiveSubDeptIds` der peger på alle underafdelinger). Brug `formData.sub_department_ids || []` direkte i `createCar`, `updateCar` og `syncSubDepartments`.
+- Fjern import af `useDepartment` igen — ikke længere nødvendig her.
+- `syncSubDepartments` håndterer allerede tom liste korrekt (sletter alle, indsætter ingen).
+
 **`src/components/Cars/CarFormDialog.tsx`**
-- Importér `useDepartment` (allerede gjort) og udvid submit: før `onSubmit(e)` kaldes, hvis `formData.sub_department_ids` er tom og `userSubDepartments.length > 0`, fyld `setFormData` med alle `userSubDepartments.map(s => s.id)`. 
-- Da setState er asynkron, er den enkleste løsning: wrap `onSubmit` i en lokal `handleSubmitWrapper` der bygger en udvidet `formData` og kalder `onSubmit` direkte, men da onSubmit læser formData via lukning i `useCarFormState`, skal vi sætte state først og kalde onSubmit i et `useEffect`-mønster — for at undgå dette flytter vi logikken til `useCarFormState.handleSubmit`.
+- Opdater hjælpeteksten: "Hvis ingen vælges, vises bilen kun, når der ikke er filtreret på en underafdeling."
 
-**Foretrukken løsning — `src/hooks/car/useCarFormState.ts`**
-- Tilføj `userSubDepartments` via `useDepartment()` context i hook'en.
-- I `handleSubmit`, lige efter `e.preventDefault()`: hvis `(formData.sub_department_ids || []).length === 0` og `userSubDepartments.length > 0`, byg `effectiveFormData = { ...formData, sub_department_ids: userSubDepartments.map(s => s.id) }`. Brug `effectiveFormData` videre i stedet for `formData` til både `createCar`, `updateCar` og `syncSubDepartments`-kald.
-
-**UI hint — `src/components/Cars/CarFormDialog.tsx`**
-- Tilføj en lille gråtonet hjælpetekst under underafdeling-checkboxene: "Hvis ingen vælges, gemmes bilen under alle underafdelinger." (dansk) / engelsk pendant. Tilføj nye nøgler i `src/translations/{da,en}/cars.ts`.
+**Translations**
+- `src/translations/da/cars.ts` og `src/translations/en/cars.ts`: opdater `subDepartmentOptionalHint`.
 
 ## Dokumentation
-- `CHANGELOG.md`: Note om "tom underafdeling = alle".
-- `docs/implementation-plan/tasks.md`: Marker som fuldført.
+- `CHANGELOG.md`: Note om at tom underafdelingsliste nu betyder "ingen tilknytning" i stedet for "alle".
 
 Ingen DB- eller RLS-ændringer.
