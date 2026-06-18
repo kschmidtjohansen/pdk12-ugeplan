@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-17 — Kursus blokerer tildeling og tæller som ikke-tilgængelig
+
+- Medarbejdere på aktivt kursus tæller ikke længere som tilgængelige i dashboard-metrics (lægges i "Fraværende").
+- Ikke-tildelte ressourcer i Planner ekskluderer nu medarbejdere på kursus for den valgte dato.
+- Medarbejder-vælger (Planner-tildeling) deaktiverer kursus-medarbejdere og viser en gul "Kursus"-label.
+- Vagt-vælger (Skadelederv./Kørevagt) deaktiverer ligeledes medarbejdere på kursus med Kursus-label.
+
+
 ## 2026-06-17 — Kursus-status på medarbejderside
 
 - Medarbejdere med aktivt kursus (dags dato inden for kursus-perioden) vises nu med gul "Kursus"-label i statuskolonnen i stedet for "Tilgængelig".
