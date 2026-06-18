@@ -229,9 +229,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             availabilityInfo = { status: 'available', statusText: '', badgeColor: '' };
           }
           
+          const isOnTraining = trainingIdsForDate.has(employee.id);
           const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') 
             || isManuallyOnLeave 
             || isExpired
+            || isOnTraining
             || employee.status === 'terminated'
             || employee.status === 'inactive';
           
