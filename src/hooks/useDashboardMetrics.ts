@@ -235,7 +235,7 @@ export const useDashboardMetrics = (
 
   return {
     metrics,
-    loading: employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading,
+    loading: employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading || weekTrainingsLoading,
     error: derivedError,
     assignments,
     vacations
