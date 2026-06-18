@@ -60,17 +60,16 @@ interface CompactKpiStackProps {
 }
 
 const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate }) => {
-  const { metrics, loading, error, assignments, vacations } = useDashboardMetrics();
+  const today = new Date();
+  const todayStr = format(today, 'yyyy-MM-dd');
+  const effectiveDate = selectedDate || todayStr;
+  const { metrics, loading, error, assignments, vacations } = useDashboardMetrics(effectiveDate);
   const { t } = useTranslation();
   const { isWarehouseEnabled } = useDepartment();
   const navigate = useNavigate();
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [carModalOpen, setCarModalOpen] = useState(false);
   const [absentModalOpen, setAbsentModalOpen] = useState(false);
-
-  const today = new Date();
-  const todayStr = format(today, 'yyyy-MM-dd');
-  const effectiveDate = selectedDate || todayStr;
 
   if (loading) {
     return (

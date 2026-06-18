@@ -7,6 +7,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
 
 interface UseEmployeeDialogDataProps {
   initialEmployees: Employee[];
@@ -25,6 +26,7 @@ export const useEmployeeDialogData = ({
   const { employees: allEmployees } = useEmployees();
   const { effectiveRole } = useAuth();
   const [viewedDate, setViewedDate] = useState<string>(selectedDate);
+  const { trainingIds } = useActiveTrainingsForDate(viewedDate);
 
   // Fugttekniker og servicemedarbejder må kun se servicemedarbejdere i dialogen,
   // også når en underafdeling er valgt og KPI-listen ellers ville inkludere
@@ -52,12 +54,14 @@ export const useEmployeeDialogData = ({
         ? initialEmployees.filter(isServicemedarbejder)
         : initialEmployees;
       if (import.meta.env.DEV) console.log(`[EmployeeDialogData] Using pre-filtered employees (${base.length}) for original date ${selectedDate}`);
-      return base;
+      return base.filter(employee => !trainingIds.has(employee.id));
     } else {
       const serviceEmployees = allEmployees.filter(isServicemedarbejder);
       if (import.meta.env.DEV) console.log(`[EmployeeDialogData] Using all service employees (${serviceEmployees.length}) for navigated date ${viewedDate}`);
       
       const availableEmployees = serviceEmployees.filter(employee => {
+        if (trainingIds.has(employee.id)) return false;
+
         const availabilityInfo = getEmployeeAvailabilityStatus(
           employee,
           currentDate,
@@ -74,7 +78,7 @@ export const useEmployeeDialogData = ({
       if (import.meta.env.DEV) console.log(`[EmployeeDialogData] Filtered available employees for ${viewedDate}: ${availableEmployees.length}`);
       return availableEmployees;
     }
-  }, [viewedDate, selectedDate, initialEmployees, allEmployees, currentDate, assignments, vacations, t, restrictToServicemedarbejder]);
+  }, [viewedDate, selectedDate, initialEmployees, allEmployees, currentDate, assignments, vacations, t, restrictToServicemedarbejder, trainingIds]);
 
   return {
     viewedDate,

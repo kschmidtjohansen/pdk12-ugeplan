@@ -9,10 +9,10 @@ import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
-import { useActiveTrainings } from '@/hooks/useActiveTrainings';
+import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
 import { format } from 'date-fns';
 
-export const useDashboardMetrics = () => {
+export const useDashboardMetrics = (selectedDate?: string) => {
   const { employees, loading: employeesLoading, error: employeesError } = useEmployeeData();
   const { cars, loading: carsLoading, error: carsError } = useCarData();
   const { assignments, loading: assignmentsLoading, error: assignmentsError } = useAssignments();
@@ -21,10 +21,9 @@ export const useDashboardMetrics = () => {
   const { t } = useTranslation();
   const { selectedSubDepartmentId } = useDepartment();
   const { effectiveRole } = useAuth();
-  const { trainingIds } = useActiveTrainings();
 
-  const today = new Date();
-  const todayStr = format(today, 'yyyy-MM-dd');
+  const metricDateStr = selectedDate || format(new Date(), 'yyyy-MM-dd');
+  const { trainingIds, trainingInfo, isLoading: trainingsLoading } = useActiveTrainingsForDate(metricDateStr);
 
   const metrics = useMemo(() => {
     const defaultMetrics = {
@@ -34,11 +33,12 @@ export const useDashboardMetrics = () => {
       warehouseItems: { count: 0, items: [] }
     };
 
-    if (employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading) {
+    if (employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading) {
       return defaultMetrics;
     }
 
     try {
+      const metricDate = new Date(`${metricDateStr}T12:00:00`);
       // Defensive guards against undefined arrays
       const safeEmployees = employees || [];
       const safeAssignments = assignments || [];
@@ -75,10 +75,10 @@ export const useDashboardMetrics = () => {
         if (employee.status === 'inactive') return false;
         if (trainingIds.has(employee.id)) return false;
 
-        const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
+        const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
         return status.status === 'available' || status.status === 'partiallyBooked';
       }).map(employee => {
-        const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
+        const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
         return {
           ...employee,
           availabilityStatus: status
@@ -91,7 +91,7 @@ export const useDashboardMetrics = () => {
         safeAssignments
           .filter(assignment => {
             const assignmentDate = (assignment as any).date || (assignment as any).assignment_date;
-            return assignmentDate === todayStr;
+            return assignmentDate === metricDateStr;
           })
           .flatMap(assignment => {
             const carIds = [];
@@ -121,22 +121,24 @@ export const useDashboardMetrics = () => {
       // Calculate absent employees (on vacation or leave)
       const absentEmployeesList = countableEmployees.filter(employee => {
         if (trainingIds.has(employee.id)) return true;
-        const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
+        const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
         return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
       }).map(employee => {
-        const status = getEmployeeAvailabilityStatus(employee, today, safeAssignments, safeVacations, t);
+        const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
         const vacation = safeVacations.find(v =>
           v.user_id === employee.id && 
           v.status === 'approved' &&
-          new Date(v.start_date) <= today &&
-          new Date(v.end_date) >= today
+          new Date(v.start_date) <= metricDate &&
+          new Date(v.end_date) >= metricDate
         );
+        const isOnTraining = trainingIds.has(employee.id);
         
         return {
           ...employee,
           availabilityStatus: status,
           vacation: vacation,
-          onTraining: trainingIds.has(employee.id)
+          onTraining: isOnTraining,
+          training: isOnTraining ? trainingInfo.get(employee.id) : undefined
         };
       });
 
@@ -148,7 +150,7 @@ export const useDashboardMetrics = () => {
         const carsInPlanner = safeCars.filter(c => c.show_in_planner !== false);
         const todaysAssignments = safeAssignments.filter(assignment => {
           const assignmentDate = (assignment as any).date || (assignment as any).assignment_date;
-          return assignmentDate === todayStr;
+          return assignmentDate === metricDateStr;
         });
 
         if (import.meta.env.DEV) console.log('[useDashboardMetrics] COMPREHENSIVE METRICS DEBUG', {
@@ -195,7 +197,7 @@ export const useDashboardMetrics = () => {
       if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, t, todayStr, selectedSubDepartmentId, effectiveRole, trainingIds]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, trainingsLoading, t, metricDateStr, selectedSubDepartmentId, effectiveRole, trainingIds, trainingInfo]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 
@@ -209,7 +211,7 @@ export const useDashboardMetrics = () => {
 
   return {
     metrics,
-    loading: employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading,
+    loading: employeesLoading || carsLoading || assignmentsLoading || vacationsLoading || warehouseLoading || trainingsLoading,
     error: derivedError,
     assignments,
     vacations
