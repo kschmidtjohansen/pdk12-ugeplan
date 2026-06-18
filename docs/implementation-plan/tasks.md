@@ -2,6 +2,7 @@
 
 ## Løbende rettelser ✅
 
+- [x] Kursus-status er nu gennemført i dashboardets metrics-dialoger: kursusmedarbejdere fjernes fra tilgængelige og vises med gul Kursus-label under fravær.
 - [x] `user_roles` SELECT-policy udvidet til alle authenticated brugere, så fugttekniker/servicemedarbejder ser korrekte kollega-roller i dashboard og dialoger (rod-årsag bag "ledige medarbejdere"-fejlen).
 - [x] Rolle-redigering i Admin bruger nu `admin-user-role` edge function i stedet for direkte klient-write til `user_roles`, så multi-roller kan gemmes uden 403.
 - [x] Bil-vælgerens konflikt-bekræftelse: bil-listen lukkes og unmountes nu før AlertDialog'en "Bil allerede i brug" åbnes, så dropdownen ikke kan overlappe dialogboksen eller skjule "Brug alligevel"-knappen.
