@@ -9,10 +9,13 @@ import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
-import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
+import { useActiveTrainingsForDate, useActiveTrainingsForRange } from '@/hooks/useActiveTrainings';
 import { format } from 'date-fns';
 
-export const useDashboardMetrics = (selectedDate?: string) => {
+export const useDashboardMetrics = (
+  selectedDate?: string,
+  weekRange?: { startStr: string; endStr: string }
+) => {
   const { employees, loading: employeesLoading, error: employeesError } = useEmployeeData();
   const { cars, loading: carsLoading, error: carsError } = useCarData();
   const { assignments, loading: assignmentsLoading, error: assignmentsError } = useAssignments();
@@ -24,6 +27,15 @@ export const useDashboardMetrics = (selectedDate?: string) => {
 
   const metricDateStr = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const { trainingIds, trainingInfo, isLoading: trainingsLoading } = useActiveTrainingsForDate(metricDateStr);
+
+  // Fallback to single-date range when no week range supplied (keeps behaviour for callers that don't pass a week).
+  const rangeStart = weekRange?.startStr || metricDateStr;
+  const rangeEnd = weekRange?.endStr || metricDateStr;
+  const {
+    trainingIds: weekTrainingIds,
+    trainingInfo: weekTrainingInfo,
+    isLoading: weekTrainingsLoading,
+  } = useActiveTrainingsForRange(rangeStart, rangeEnd);
 
   const metrics = useMemo(() => {
     const defaultMetrics = {
