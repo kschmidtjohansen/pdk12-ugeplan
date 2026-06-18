@@ -2,6 +2,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSc
 import { useTranslation } from '@/context/TranslationContext';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import type { DutyType } from '@/types/duty';
+import { useActiveTrainings } from '@/hooks/useActiveTrainings';
 
 interface Employee {
   id: string;
@@ -23,6 +24,7 @@ export const DutyEmployeeSelector = ({
   dutyType,
 }: DutyEmployeeSelectorProps) => {
   const { t } = useTranslation();
+  const { trainingIds } = useActiveTrainings();
 
   // Filter employees based on duty type
   const filteredEmployees = dutyType === 'skadeleder_vagt'
@@ -50,11 +52,25 @@ export const DutyEmployeeSelector = ({
         </SelectScrollUpButton>
         
         <div className="max-h-[270px] overflow-y-auto">
-          {filteredEmployees.map(employee => (
-            <SelectItem key={employee.id} value={employee.id}>
-              {employee.name}
-            </SelectItem>
-          ))}
+          {filteredEmployees.map(employee => {
+            const isOnTraining = trainingIds.has(employee.id);
+            return (
+              <SelectItem
+                key={employee.id}
+                value={employee.id}
+                disabled={isOnTraining}
+              >
+                <span className="flex items-center gap-2">
+                  {employee.name}
+                  {isOnTraining && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-300">
+                      Kursus
+                    </span>
+                  )}
+                </span>
+              </SelectItem>
+            );
+          })}
         </div>
         
         <SelectScrollDownButton className="flex items-center justify-center py-1">

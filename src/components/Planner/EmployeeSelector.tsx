@@ -299,6 +299,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                     )}
                   </div>
                   <div className="flex gap-1 ml-2 flex-shrink-0">
+                    {isOnTraining && (
+                      <Badge size="sm" className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-100">
+                        Kursus
+                      </Badge>
+                    )}
                     {isExpired && (
                       <Badge variant="destructive" size="sm">
                         {t('employees.statusExpired')}
