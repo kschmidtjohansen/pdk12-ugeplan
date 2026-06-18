@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-18 — Renset Kursus-label i Ikke-tildelte Ressourcer
+
+- Fjernet redundant "· Kursus"-suffix på medarbejder-badges i "Medarbejdere på Kursus"-sektionen i Ikke-tildelte Ressourcer (sektionens overskrift angiver allerede status). Fuld kursusinfo bevares i tooltip.
+
+
 ## 2026-06-18 — Kursus i fraværende-metric og Ikke-tildelte ressourcer
 
 - Dashboardets "Fraværende"-metric inkluderer nu altid medarbejdere på kursus (også når rolle-filteret normalt ville udelade dem), så Henrik m.fl. fremgår med gul "Kursus"-label.
