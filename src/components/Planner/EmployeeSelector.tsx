@@ -15,6 +15,7 @@ import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUt
 import { haversineDistanceKm } from '@/utils/haversine';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getRoleBadgeClass } from '@/utils/roleColors';
+import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
 
 type MultiDateAvailability = 'full' | 'partial' | 'none';
 
@@ -48,6 +49,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
+  const { trainingIds: trainingIdsForDate } = useActiveTrainingsForDate(currentDate);
 
   // Haversine sort — deps: employee list + assignment GPS coords
   const distanceMap = useMemo(() => {
