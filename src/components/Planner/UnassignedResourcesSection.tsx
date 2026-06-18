@@ -537,7 +537,6 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                                 className="text-xs bg-yellow-50 border-yellow-200 text-yellow-800 cursor-default"
                               >
                                 {employee.name.split(' ')[0]}
-                                <span className="ml-1 font-semibold">· Kursus</span>
                               </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
