@@ -77,7 +77,13 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   const targetDate = selectedDate;
   const targetDateObj = parseISO(targetDate);
-  const { trainingIds } = useActiveTrainingsForDate(targetDate);
+  const { trainingIds, trainingInfo } = useActiveTrainingsForDate(targetDate);
+
+  // Employees on training for the selected date (yellow "Kursus" label)
+  const employeesOnTraining = useMemo(() => {
+    if (!employees || !Array.isArray(employees)) return [];
+    return employees.filter(emp => trainingIds.has(emp.id));
+  }, [employees, trainingIds]);
 
   // Get assigned car IDs for the target date
   const assignedCarIds = useMemo(() => {
@@ -508,6 +514,43 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                         </Tooltip>
                       </TooltipProvider>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Employees on Training - yellow */}
+              {employeesOnTraining.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-yellow-700 mb-2 flex items-center gap-1.5">
+                    <AlertCircle className="h-4 w-4" />
+                    {t('planner.onTrainingEmployees')} ({employeesOnTraining.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {employeesOnTraining.map(employee => {
+                      const info = trainingInfo.get(employee.id);
+                      return (
+                        <TooltipProvider key={employee.id} delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-yellow-50 border-yellow-200 text-yellow-800 cursor-default"
+                              >
+                                {employee.name.split(' ')[0]}
+                                <span className="ml-1 font-semibold">· Kursus</span>
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-medium">{employee.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {info?.title || 'Kursus'}
+                                {info?.end_date && ` · til ${format(parseISO(info.end_date), 'dd/MM/yyyy')}`}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      );
+                    })}
                   </div>
                 </div>
               )}

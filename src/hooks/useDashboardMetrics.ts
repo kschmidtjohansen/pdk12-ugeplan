@@ -118,21 +118,31 @@ export const useDashboardMetrics = (selectedDate?: string) => {
         !assignedCarIds.has(car.id)
       );
 
-      // Calculate absent employees (on vacation or leave)
-      const absentEmployeesList = countableEmployees.filter(employee => {
-        if (trainingIds.has(employee.id)) return true;
-        const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
-        return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
-      }).map(employee => {
+      // Calculate absent employees (on vacation, leave or training)
+      // Training-employees included regardless of countable role filter, så de altid vises.
+      const absentSeen = new Set<string>();
+      const absentRaw = [
+        ...countableEmployees.filter(employee => {
+          const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
+          return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
+        }),
+        ...safeEmployees.filter(employee => trainingIds.has(employee.id)),
+      ].filter(emp => {
+        if (absentSeen.has(emp.id)) return false;
+        absentSeen.add(emp.id);
+        return true;
+      });
+
+      const absentEmployeesList = absentRaw.map(employee => {
         const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
         const vacation = safeVacations.find(v =>
-          v.user_id === employee.id && 
+          v.user_id === employee.id &&
           v.status === 'approved' &&
           new Date(v.start_date) <= metricDate &&
           new Date(v.end_date) >= metricDate
         );
         const isOnTraining = trainingIds.has(employee.id);
-        
+
         return {
           ...employee,
           availabilityStatus: status,
