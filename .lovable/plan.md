@@ -1,23 +1,21 @@
-Plan:
+## Plan
 
-1. Dashboard fraværende metric
-- Gennemgå hvorfor Henrik ikke ender i `absentEmployees` selvom `trainingIds` findes.
-- Sikre at dashboard-metrics bruger samme dato og afdeling som den synlige KPI.
-- Sikre at medarbejdere på kursus altid lægges i `absentEmployees` med `onTraining` og kursusinfo, også hvis normal availability-status ellers er “available”.
+### 1. Fjern "· Kursus" suffix i Ikke-tildelte Ressourcer
+I `src/components/Planner/UnassignedResourcesSection.tsx` viser sektionen "Medarbejdere på Kursus" i dag badges som `Henrik · Kursus`. Da sektionens overskrift allerede er "Medarbejdere på Kursus", er suffixet redundant.
 
-2. Fraværende-dialog på dashboard
-- Vise Henrik i listen når han er på kursus.
-- Vise gul `Kursus` label ved medarbejderen.
-- Beholde eksisterende ferie/fravær labels for andre medarbejdere.
+- Ændr badge-indholdet til kun fornavn (samme mønster som de øvrige rolle-sektioner: `emp.name.split(' ')[0]`).
+- Behold den gule farve, ikon og tooltip med fuldt navn + kursustitel + slutdato.
 
-3. Ikke-tildelte ressourcer i Planner
-- Udvide `UnassignedResourcesSection`, så medarbejdere på kursus ikke kun fjernes fra “tilgængelige”, men også vises i fraværende-sektionen med gul `Kursus` label.
-- Sørge for at tælleren for fraværende inkluderer både ferie, fravær og kursus.
+### 2. Dashboard metric (punkt 1)
+Logikken er allerede korrekt: Henriks kursus løber 11. maj – 22. juni 2026, så på 27.4.2026 (uge 18) er han ikke på kursus, og derfor figurerer han ikke i "Fraværende"-modalen for den dato. Du bekræftede, at jeg ikke skal ændre datologikken — du tester selv med en dato i kursusperioden.
 
-4. Tekstændring
-- Ændre teksten “Medarbejdere på ferie” til “Medarbejdere fraværende” i Ikke-tildelte Ressourcer.
-- Opdatere relevant dansk translation-key/visning uden at ændre unødige tekster andre steder.
+- Ingen kodeændring her.
 
-5. Dokumentation og kontrol
-- Opdatere `CHANGELOG.md` og `docs/implementation-plan/tasks.md`.
-- Kontrollere at ændringen følger eksisterende UI-patterns og ikke påvirker multi-tenant/afdelingsisolering.
+### 3. Dokumentation
+- Opdatér `CHANGELOG.md` med kort note om label-rensningen.
+- Opdatér `docs/implementation-plan/tasks.md` hvis relevant.
+
+### Filer der ændres
+- `src/components/Planner/UnassignedResourcesSection.tsx`
+- `CHANGELOG.md`
+- `docs/implementation-plan/tasks.md`
