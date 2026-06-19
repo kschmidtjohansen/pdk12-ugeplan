@@ -469,29 +469,43 @@ const VacationGridOverview: React.FC = () => {
           </TooltipProvider>
         )}
 
-        <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-blue-500 rounded-sm" /> Skadelederv.
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-green-500 rounded-sm" /> Kørevagt
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-red-500 rounded-sm" /> Fravær
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-yellow-400 rounded-sm" /> Kursus
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-foreground rounded-sm" /> Ferie
-          </div>
-          <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-2 mt-3 text-xs">
+          <span className="text-muted-foreground mr-1">Filter:</span>
+          {([
+            { kind: 'vacation' as CellKind, color: 'bg-foreground', label: 'Ferie' },
+            { kind: 'training' as CellKind, color: 'bg-yellow-400', label: 'Kursus' },
+            { kind: 'leave' as CellKind, color: 'bg-red-500', label: 'Fravær' },
+            { kind: 'skadeleder_vagt' as CellKind, color: 'bg-blue-500', label: 'Skadelederv.' },
+            { kind: 'kørevagt' as CellKind, color: 'bg-green-500', label: 'Kørevagt' },
+          ]).map(({ kind, color, label }) => {
+            const active = activeKinds[kind];
+            return (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => toggleKind(kind)}
+                aria-pressed={active}
+                className={cn(
+                  'flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all',
+                  active
+                    ? 'bg-background border-border hover:bg-muted/50'
+                    : 'bg-muted/30 border-transparent text-muted-foreground opacity-60 hover:opacity-100'
+                )}
+              >
+                <span className={cn('inline-block w-3 h-3 rounded-sm', color, !active && 'opacity-40')} />
+                {label}
+              </button>
+            );
+          })}
+          <span className="mx-2 h-4 w-px bg-border" />
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             <span className="inline-block w-3 h-3 bg-muted/40 border rounded-sm" /> Weekend
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             <span className="inline-block w-3 h-3 border-l-2 border-primary" /> I dag
           </div>
         </div>
+
       </CardContent>
     </Card>
   );
