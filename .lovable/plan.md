@@ -1,22 +1,29 @@
-## Diagnose
-I `src/pages/DutyPage.tsx` styres data-hentningen af `selectedMonth` (linje 38, 45–48), men kalenderens navigation skifter kun `calendarMonth` (linje 39, 197). `selectedMonth` initialiseres til dags dato (juni 2026) og opdateres aldrig, så `useDutyData` henter kun vagter for juni–august. Når man navigerer til september og opretter en vagt, gemmes den korrekt i DB, men ligger uden for det hentede datointerval, så den vises ikke i kalenderen eller listen før man genindlæser siden i en kontekst hvor september er inden for vinduet.
+## Filter i Ferieoversigt (Grid-visning)
 
-## Løsning
-Forenkl ved at fjerne `selectedMonth` og bruge `calendarMonth` som eneste sandhed for både kalender-navigation og datointerval. Datointervallet skal dække den viste måned plus en buffer, så vagter for forrige/næste måned der er synlige i kalenderens første/sidste uge også hentes.
+### Mål
+Tilføj en filter-bar i toppen af grid-visningen, så brugeren kan slå farverne til og fra individuelt. Dvs. man kan vælge kun at se ferie, kun kursus, kun fravær, kun vagter — eller en kombination.
 
-## Ændringer
+### Hvad bygges
+1. **Filter-komponent** placeres under dato-vælgeren i `VacationGridOverview`.
+   - Små toggle-knapper med farvet prik + label for hver type:
+     - Ferie (sort)
+     - Kursus (gul)
+     - Fravær (rød)
+     - Skadeledervagt (blå)
+     - Kørevagt (grøn)
+   - Klik på en knap slår den pågældende type til/fra.
+   - Som standard er alle slået til.
 
-**`src/pages/DutyPage.tsx`**
-- Fjern `selectedMonth`/`setSelectedMonth` (linje 38).
-- Beregn datointerval ud fra `calendarMonth`:
-  - `startDate = startOfMonth(subMonths(calendarMonth, 1))`
-  - `endDate = endOfMonth(addMonths(calendarMonth, 1))`
-  
-  (1 måned før + 1 måned efter dækker både kalender-grid-overflow og kommende-vagt-listen tilstrækkeligt; React Query cacher pr. interval).
-- Importér `subMonths` fra `date-fns`.
+2. **Grid-rendering** i `VacationGridOverview`:
+   - `pickKind()` tjekker kun aktiverede typer.
+   - Hvis en dag kun har inaktiverede typer, vises cellen som tom.
 
-Ingen ændringer i `useDutyData`, dialoger, DB eller RLS.
+### Tekniske detaljer
+- State: `Set<CellKind>` eller `Record<CellKind, boolean>` – React `useState`.
+- Ingen DB-ændringer. Pure frontend-filter.
+- Hvis alle filtre slås fra, vises grid tomt (intet farvet).
+- Oversættelser opdateres i `da/vacation.ts` og `en/vacation.ts`.
 
-## Dokumentation
-- `CHANGELOG.md`: Note om at vagter i fremtidige måneder nu vises korrekt efter oprettelse.
-- `docs/implementation-plan/tasks.md`: Marker som fuldført.
+### Dokumentation
+- `CHANGELOG.md` opdateres.
+- `.lovable/plan.md` opdateres hvis aktiv.
