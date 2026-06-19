@@ -1087,3 +1087,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-06-16
 - Erstattede måneds-kalender på /vacation "Ferieoversigt" med grid-visning (medarbejdere som rækker, dage som kolonner, ræde celler = godkendt ferie). Bruger vælger selv periode (maks 92 dage), sticky navnekolonne, uge-nummer-header.
+
+## 2026-06-19
+- Ferieoversigt (grid): Filter-knapper tilføjet under tabellen, så ferie, kursus, fravær, skadeledervagt og kørevagt kan slås til/fra individuelt.
