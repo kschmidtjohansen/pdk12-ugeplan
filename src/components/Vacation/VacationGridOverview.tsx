@@ -98,6 +98,16 @@ const VacationGridOverview: React.FC = () => {
   const today = useMemo(() => new Date(), []);
   const [fromDate, setFromDate] = useState<Date>(today);
   const [toDate, setToDate] = useState<Date>(addDays(today, 30));
+  const [activeKinds, setActiveKinds] = useState<Record<CellKind, boolean>>({
+    vacation: true,
+    training: true,
+    leave: true,
+    skadeleder_vagt: true,
+    'kørevagt': true,
+  });
+  const toggleKind = (k: CellKind) =>
+    setActiveKinds((prev) => ({ ...prev, [k]: !prev[k] }));
+
 
   const totalDays = differenceInCalendarDays(toDate, fromDate) + 1;
   const tooManyDays = totalDays > MAX_DAYS;
