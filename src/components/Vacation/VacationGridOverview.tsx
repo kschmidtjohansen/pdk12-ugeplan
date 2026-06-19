@@ -273,16 +273,16 @@ const VacationGridOverview: React.FC = () => {
     </Popover>
   );
 
-  // Determine the dominant cell kind (priority order)
+  // Determine the dominant cell kind (priority order), respecting active filters
   const pickKind = (kinds: Set<CellKind> | undefined, leave: boolean): CellKind | null => {
-    if (!kinds && !leave) return null;
-    if (kinds?.has('vacation')) return 'vacation';
-    if (kinds?.has('training')) return 'training';
-    if (leave) return 'leave';
-    if (kinds?.has('skadeleder_vagt')) return 'skadeleder_vagt';
-    if (kinds?.has('kørevagt')) return 'kørevagt';
+    if (kinds?.has('vacation') && activeKinds.vacation) return 'vacation';
+    if (kinds?.has('training') && activeKinds.training) return 'training';
+    if (leave && activeKinds.leave) return 'leave';
+    if (kinds?.has('skadeleder_vagt') && activeKinds.skadeleder_vagt) return 'skadeleder_vagt';
+    if (kinds?.has('kørevagt') && activeKinds['kørevagt']) return 'kørevagt';
     return null;
   };
+
 
   const renderEmployeeRow = (emp: Employee, group: Group) => {
     const userMap = cellsByUser.get(emp.id);
