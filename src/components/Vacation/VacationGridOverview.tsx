@@ -98,6 +98,16 @@ const VacationGridOverview: React.FC = () => {
   const today = useMemo(() => new Date(), []);
   const [fromDate, setFromDate] = useState<Date>(today);
   const [toDate, setToDate] = useState<Date>(addDays(today, 30));
+  const [activeKinds, setActiveKinds] = useState<Record<CellKind, boolean>>({
+    vacation: true,
+    training: true,
+    leave: true,
+    skadeleder_vagt: true,
+    'kørevagt': true,
+  });
+  const toggleKind = (k: CellKind) =>
+    setActiveKinds((prev) => ({ ...prev, [k]: !prev[k] }));
+
 
   const totalDays = differenceInCalendarDays(toDate, fromDate) + 1;
   const tooManyDays = totalDays > MAX_DAYS;
@@ -263,16 +273,16 @@ const VacationGridOverview: React.FC = () => {
     </Popover>
   );
 
-  // Determine the dominant cell kind (priority order)
+  // Determine the dominant cell kind (priority order), respecting active filters
   const pickKind = (kinds: Set<CellKind> | undefined, leave: boolean): CellKind | null => {
-    if (!kinds && !leave) return null;
-    if (kinds?.has('vacation')) return 'vacation';
-    if (kinds?.has('training')) return 'training';
-    if (leave) return 'leave';
-    if (kinds?.has('skadeleder_vagt')) return 'skadeleder_vagt';
-    if (kinds?.has('kørevagt')) return 'kørevagt';
+    if (kinds?.has('vacation') && activeKinds.vacation) return 'vacation';
+    if (kinds?.has('training') && activeKinds.training) return 'training';
+    if (leave && activeKinds.leave) return 'leave';
+    if (kinds?.has('skadeleder_vagt') && activeKinds.skadeleder_vagt) return 'skadeleder_vagt';
+    if (kinds?.has('kørevagt') && activeKinds['kørevagt']) return 'kørevagt';
     return null;
   };
+
 
   const renderEmployeeRow = (emp: Employee, group: Group) => {
     const userMap = cellsByUser.get(emp.id);
@@ -459,29 +469,43 @@ const VacationGridOverview: React.FC = () => {
           </TooltipProvider>
         )}
 
-        <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-blue-500 rounded-sm" /> Skadelederv.
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-green-500 rounded-sm" /> Kørevagt
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-red-500 rounded-sm" /> Fravær
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-yellow-400 rounded-sm" /> Kursus
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 bg-foreground rounded-sm" /> Ferie
-          </div>
-          <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-2 mt-3 text-xs">
+          <span className="text-muted-foreground mr-1">Filter:</span>
+          {([
+            { kind: 'vacation' as CellKind, color: 'bg-foreground', label: 'Ferie' },
+            { kind: 'training' as CellKind, color: 'bg-yellow-400', label: 'Kursus' },
+            { kind: 'leave' as CellKind, color: 'bg-red-500', label: 'Fravær' },
+            { kind: 'skadeleder_vagt' as CellKind, color: 'bg-blue-500', label: 'Skadelederv.' },
+            { kind: 'kørevagt' as CellKind, color: 'bg-green-500', label: 'Kørevagt' },
+          ]).map(({ kind, color, label }) => {
+            const active = activeKinds[kind];
+            return (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => toggleKind(kind)}
+                aria-pressed={active}
+                className={cn(
+                  'flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all',
+                  active
+                    ? 'bg-background border-border hover:bg-muted/50'
+                    : 'bg-muted/30 border-transparent text-muted-foreground opacity-60 hover:opacity-100'
+                )}
+              >
+                <span className={cn('inline-block w-3 h-3 rounded-sm', color, !active && 'opacity-40')} />
+                {label}
+              </button>
+            );
+          })}
+          <span className="mx-2 h-4 w-px bg-border" />
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             <span className="inline-block w-3 h-3 bg-muted/40 border rounded-sm" /> Weekend
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             <span className="inline-block w-3 h-3 border-l-2 border-primary" /> I dag
           </div>
         </div>
+
       </CardContent>
     </Card>
   );
