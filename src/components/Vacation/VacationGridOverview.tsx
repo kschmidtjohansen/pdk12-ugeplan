@@ -99,6 +99,7 @@ const VacationGridOverview: React.FC = () => {
   const today = useMemo(() => new Date(), []);
   const [fromDate, setFromDate] = useState<Date>(today);
   const [toDate, setToDate] = useState<Date>(addDays(today, 30));
+  const [weekAnchor, setWeekAnchor] = useState<Date>(startOfISOWeek(today));
   const [activeKinds, setActiveKinds] = useState<Record<CellKind, boolean>>({
     vacation: true,
     training: true,
