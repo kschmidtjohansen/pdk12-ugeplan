@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-22 — Oversigt: ugentlig statusbar og omdøbning
+
+- "Ferieoversigt" hedder nu blot "Oversigt" — opdateret i CardTitle, navigation, admin- og vacation-oversættelser (DA + EN).
+- Ny ugentlig statusbar i bunden af `VacationGridOverview` med navigation (forrige/næste uge + "I dag") og tællere for ferie, kursus, fravær, skadelederv. og kørevagt — antal unikke medarbejdere pr. kategori i den valgte uge. Uafhængig af det øvrige fra/til-range, så man kan bladre uger uden at ændre selve grid-perioden.
+
 ## 2026-06-18 — Vagter i fremtidige måneder vises korrekt efter oprettelse
 
 - Datointervallet for hentning af vagter i `DutyPage` følger nu den måned, kalenderen viser (med en måneds buffer i hver retning), i stedet for at være låst til indeværende måned + 2. Vagter oprettet i fx september og frem dukker derfor op med det samme i både kalender og liste.
