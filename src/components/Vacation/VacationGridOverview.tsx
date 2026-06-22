@@ -610,6 +610,17 @@ const VacationGridOverview: React.FC = () => {
             return merged;
           };
 
+          const coversWholeWeek = (merged: DateInterval[]): boolean =>
+            merged.length === 1 &&
+            isSameDay(merged[0].start, weekStart) &&
+            isSameDay(merged[0].end, weekEnd);
+
+          const formatPeriod = (merged: DateInterval[]): string | null => {
+            if (merged.length === 0) return null;
+            if (coversWholeWeek(merged)) return 'Hele ugen';
+            return merged.map((i) => fmtRange(i.start, i.end)).join(', ');
+          };
+
           const entriesForRanges = (
             rows: { user_id: string; start_date: string; end_date: string }[]
           ) => {
@@ -625,7 +636,7 @@ const VacationGridOverview: React.FC = () => {
             return Array.from(byUser.entries())
               .map(([uid, intervals]) => ({
                 name: nameOf(uid),
-                period: mergeIntervals(intervals).map((i) => fmtRange(i.start, i.end)).join(', '),
+                period: formatPeriod(mergeIntervals(intervals)),
               }))
               .sort((a, b) => a.name.localeCompare(b.name, 'da'));
           };
@@ -649,13 +660,13 @@ const VacationGridOverview: React.FC = () => {
             return Array.from(byName.entries())
               .map(([name, dates]) => ({
                 name,
-                period: mergeIntervals(
-                  dates
-                    .sort((a, b) => a.getTime() - b.getTime())
-                    .map((d) => ({ start: d, end: d }))
-                )
-                  .map((i) => fmtRange(i.start, i.end))
-                  .join(', '),
+                period: formatPeriod(
+                  mergeIntervals(
+                    dates
+                      .sort((a, b) => a.getTime() - b.getTime())
+                      .map((d) => ({ start: d, end: d }))
+                  )
+                ),
               }))
               .sort((a, b) => a.name.localeCompare(b.name, 'da'));
           };
