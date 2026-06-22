@@ -350,7 +350,7 @@ export const admin = {
     vikarDesc: 'Vikarer med midlertidig adgang'
   },
   vacationCalendar: {
-    title: 'Ferieoversigt',
+    title: 'Oversigt',
     description: 'Oversigt over godkendte ferier og medarbejdertilgængelighed',
     availableEmployees: 'Tilgængelige servicemedarbejdere',
     totalServiceEmployees: 'servicemedarbejdere i alt',
