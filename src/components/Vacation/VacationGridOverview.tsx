@@ -573,19 +573,9 @@ const VacationGridOverview: React.FC = () => {
         {(() => {
           const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
           const weekDayKeys = new Set(weekDays.map((d) => format(d, 'yyyy-MM-dd')));
-          const inWeekUsers = (rows: { user_id: string; start_date: string; end_date: string }[]) => {
-            const set = new Set<string>();
-            for (const r of rows) {
-              const s = parseISO(r.start_date);
-              const e = parseISO(r.end_date);
-              if (e >= weekStart && s <= weekEnd) set.add(r.user_id);
-            }
-            return set;
-          };
-          const vacationUsers = inWeekUsers(weekVacations);
-          const trainingUsers = inWeekUsers(weekTrainings);
           const nameOf = (uid: string) =>
             regularEmployees.find((e) => e.id === uid)?.name ?? 'Ukendt';
+
           // Extract a manually entered name from a duty's notes field.
           // Format used elsewhere: "EKSTERN: <name> [INI]\n<optional notes>"
           const extractManualName = (notes: string | null | undefined): string | null => {
@@ -598,28 +588,90 @@ const VacationGridOverview: React.FC = () => {
             if (d.employee_id) return nameOf(d.employee_id);
             return extractManualName(d.notes) ?? 'Ukendt';
           };
-          const skadelederNames = new Set<string>();
-          const korevagtNames = new Set<string>();
-          for (const d of weekDuties) {
-            if (!weekDayKeys.has(d.duty_date)) continue;
-            const name = dutyNameOf(d);
-            if (d.duty_type === 'skadeleder_vagt') skadelederNames.add(name);
-            else if (d.duty_type === 'kørevagt') korevagtNames.add(name);
-          }
-          const leaveUsers = new Set<string>(onLeaveSet);
-          const namesFor = (set: Set<string>) =>
-            Array.from(set)
-              .map(nameOf)
-              .sort((a, b) => a.localeCompare(b, 'da'));
-          const sortNames = (set: Set<string>) =>
-            Array.from(set).sort((a, b) => a.localeCompare(b, 'da'));
-          const sections: { kind: CellKind; color: string; label: string; names: string[] }[] = [
-            { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', names: namesFor(vacationUsers) },
-            { kind: 'training', color: 'bg-yellow-400', label: 'Kursus', names: namesFor(trainingUsers) },
-            { kind: 'leave', color: 'bg-red-500', label: 'Fravær', names: namesFor(leaveUsers) },
-            { kind: 'skadeleder_vagt', color: 'bg-blue-500', label: 'Skadelederv.', names: sortNames(skadelederNames) },
-            { kind: 'kørevagt', color: 'bg-green-500', label: 'Kørevagt', names: sortNames(korevagtNames) },
+
+          type DateInterval = { start: Date; end: Date };
+          const clampToWeek = (d: Date) => (d < weekStart ? weekStart : d > weekEnd ? weekEnd : d);
+          const fmtDay = (d: Date) => format(d, 'dd.MM', { locale: da });
+          const fmtRange = (s: Date, e: Date) =>
+            isSameDay(s, e) ? fmtDay(s) : `${fmtDay(s)}–${fmtDay(e)}`;
+
+          const mergeIntervals = (intervals: DateInterval[]): DateInterval[] => {
+            if (intervals.length === 0) return [];
+            const sorted = [...intervals].sort((a, b) => a.start.getTime() - b.start.getTime());
+            const merged: DateInterval[] = [];
+            for (const cur of sorted) {
+              const last = merged[merged.length - 1];
+              if (last && cur.start <= addDays(last.end, 1)) {
+                if (cur.end > last.end) last.end = cur.end;
+              } else {
+                merged.push({ start: cur.start, end: cur.end });
+              }
+            }
+            return merged;
+          };
+
+          const entriesForRanges = (
+            rows: { user_id: string; start_date: string; end_date: string }[]
+          ) => {
+            const byUser = new Map<string, DateInterval[]>();
+            for (const r of rows) {
+              const s = clampToWeek(parseISO(r.start_date));
+              const e = clampToWeek(parseISO(r.end_date));
+              if (e < s) continue;
+              const arr = byUser.get(r.user_id) ?? [];
+              arr.push({ start: s, end: e });
+              byUser.set(r.user_id, arr);
+            }
+            return Array.from(byUser.entries())
+              .map(([uid, intervals]) => ({
+                name: nameOf(uid),
+                period: mergeIntervals(intervals).map((i) => fmtRange(i.start, i.end)).join(', '),
+              }))
+              .sort((a, b) => a.name.localeCompare(b.name, 'da'));
+          };
+
+          const vacationEntries = entriesForRanges(weekVacations);
+          const trainingEntries = entriesForRanges(weekTrainings);
+
+          const leaveEntries = Array.from(onLeaveSet)
+            .map((uid) => ({ name: nameOf(uid), period: null as string | null }))
+            .sort((a, b) => a.name.localeCompare(b.name, 'da'));
+
+          const dutyEntriesForType = (type: 'skadeleder_vagt' | 'kørevagt') => {
+            const byName = new Map<string, Date[]>();
+            for (const d of weekDuties) {
+              if (d.duty_type !== type || !weekDayKeys.has(d.duty_date)) continue;
+              const name = dutyNameOf(d);
+              const arr = byName.get(name) ?? [];
+              arr.push(parseISO(d.duty_date));
+              byName.set(name, arr);
+            }
+            return Array.from(byName.entries())
+              .map(([name, dates]) => ({
+                name,
+                period: mergeIntervals(
+                  dates
+                    .sort((a, b) => a.getTime() - b.getTime())
+                    .map((d) => ({ start: d, end: d }))
+                )
+                  .map((i) => fmtRange(i.start, i.end))
+                  .join(', '),
+              }))
+              .sort((a, b) => a.name.localeCompare(b.name, 'da'));
+          };
+
+          const skadelederEntries = dutyEntriesForType('skadeleder_vagt');
+          const korevagtEntries = dutyEntriesForType('kørevagt');
+
+          type StatusEntry = { name: string; period: string | null };
+          const sections: { kind: CellKind; color: string; label: string; entries: StatusEntry[] }[] = [
+            { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', entries: vacationEntries },
+            { kind: 'training', color: 'bg-yellow-400', label: 'Kursus', entries: trainingEntries },
+            { kind: 'leave', color: 'bg-red-500', label: 'Fravær', entries: leaveEntries },
+            { kind: 'skadeleder_vagt', color: 'bg-blue-500', label: 'Skadelederv.', entries: skadelederEntries },
+            { kind: 'kørevagt', color: 'bg-green-500', label: 'Kørevagt', entries: korevagtEntries },
           ];
+
           const weekNum = getISOWeek(weekStart);
           const isCurrentWeek = isSameDay(weekStart, startOfISOWeek(today));
           return (
@@ -668,16 +720,19 @@ const VacationGridOverview: React.FC = () => {
                       <span className={cn('inline-block w-3 h-3 rounded-sm', s.color)} />
                       <span className="font-medium">{s.label}</span>
                       <span className="ml-auto text-muted-foreground tabular-nums">
-                        {s.names.length}
+                        {s.entries.length}
                       </span>
                     </div>
-                    {s.names.length === 0 ? (
+                    {s.entries.length === 0 ? (
                       <div className="text-muted-foreground italic">Ingen</div>
                     ) : (
                       <ul className="space-y-0.5">
-                        {s.names.map((n) => (
-                          <li key={n} className="truncate" title={n}>
-                            {n}
+                        {s.entries.map((entry, idx) => (
+                          <li key={`${entry.name}-${idx}`} className="flex items-center gap-1.5 min-w-0">
+                            <span className="truncate" title={entry.name}>{entry.name}</span>
+                            {entry.period && (
+                              <span className="ml-auto text-muted-foreground whitespace-nowrap">{entry.period}</span>
+                            )}
                           </li>
                         ))}
                       </ul>

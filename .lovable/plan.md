@@ -29,6 +29,19 @@ Tilføj nederst i `VacationGridOverview.tsx` (under filterrækken) en ny boks de
 
 Tilføj entry i `CHANGELOG.md` og opdater `.lovable/plan.md`.
 
+### 4. Periode bag navnet i ugentlig statusbar
+
+I den ugentlige statusbar skal hver medarbejder vises med den periode i ugen, vedkommende er fraværende/på kursus/har vagt:
+
+- Ferie og kursus: datoerne klemmes til ugen (`dd.MM–dd.MM` hvis flere dage, ellers `dd.MM`).
+- Skadeledervagt og kørevagt: samles fra `on_call_duties.duty_date` og vises på samme måde.
+- Fravær vises uden periode, da det er en status uden datointerval.
+- Ingen DB/RLS-ændringer.
+
+### 5. Dokumentation
+
+Opdater `CHANGELOG.md` og `docs/implementation-plan/tasks.md`.
+
 ### Tekniske noter
 
 - Ingen DB/RLS ændringer.

@@ -4,6 +4,7 @@
 
 - "Ferieoversigt" hedder nu blot "Oversigt" — opdateret i CardTitle, navigation, admin- og vacation-oversættelser (DA + EN).
 - Ny ugentlig statusbar i bunden af `VacationGridOverview` med navigation (forrige/næste uge + "I dag") og tællere for ferie, kursus, fravær, skadelederv. og kørevagt — antal unikke medarbejdere pr. kategori i den valgte uge. Uafhængig af det øvrige fra/til-range, så man kan bladre uger uden at ændre selve grid-perioden.
+- Statusbaren viser nu fraværsperioden bag hvert navn for ferie, kursus, skadeledervagt og kørevagt (fx "Henrik · 23.06–25.06"), så det er tydeligt hvilke dage i ugen det drejer sig om. Fravær vises uden dato, da det er en status uden datointerval.
 
 ## 2026-06-18 — Vagter i fremtidige måneder vises korrekt efter oprettelse
 

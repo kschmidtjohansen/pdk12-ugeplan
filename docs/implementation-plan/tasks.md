@@ -2,6 +2,7 @@
 
 ## Løbende rettelser ✅
 
+- [x] Oversigtens ugentlige statusbar viser nu den konkrete periode bag hvert navn for ferie, kursus, skadeledervagt og kørevagt (fx "23.06–25.06"), så man kan se hvilke dage i ugen fraværet gælder.
 - [x] Dashboardets fraværende-metric matcher kursus mod hele den valgte ISO-uge (ikke kun ankerdato), så Henrik m.fl. på kursus vises i "Fraværende" med gul Kursus-label uanset hvilken dag i ugen man kigger på.
 - [x] Dashboardets fraværende-metric viser nu altid medarbejdere på kursus med gul Kursus-label, og Ikke-tildelte Ressourcer har egen "Medarbejdere på Kursus"-sektion. "Medarbejdere på Ferie" omdøbt til "Medarbejdere fraværende".
 - [x] Kursus-status er nu gennemført i dashboardets metrics-dialoger: kursusmedarbejdere fjernes fra tilgængelige og vises med gul Kursus-label under fravær.
