@@ -176,6 +176,66 @@ const VacationGridOverview: React.FC = () => {
     },
   });
 
+  // ===== Ugentlig oversigt (uafhængig af fra/til-range) =====
+  const weekStart = weekAnchor;
+  const weekEnd = addDays(weekAnchor, 6);
+  const weekStartIso = format(weekStart, 'yyyy-MM-dd');
+  const weekEndIso = format(weekEnd, 'yyyy-MM-dd');
+  const weekQueryEnabled = !!selectedDepartmentId;
+
+  const { data: weekVacations = [] } = useQuery({
+    queryKey: ['vacation-week', selectedDepartmentId, weekStartIso, weekEndIso, isDemoMode],
+    enabled: weekQueryEnabled,
+    queryFn: async (): Promise<VacationRow[]> => {
+      let q = supabase
+        .from('vacations')
+        .select('id, user_id, start_date, end_date, department_id')
+        .eq('status', 'approved')
+        .eq('is_demo', isDemoMode)
+        .lte('start_date', weekEndIso)
+        .gte('end_date', weekStartIso);
+      if (selectedDepartmentId) q = q.eq('department_id', selectedDepartmentId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as VacationRow[];
+    },
+  });
+
+  const { data: weekTrainings = [] } = useQuery({
+    queryKey: ['training-week', selectedDepartmentId, weekStartIso, weekEndIso, isDemoMode],
+    enabled: weekQueryEnabled,
+    queryFn: async (): Promise<TrainingRow[]> => {
+      let q = supabase
+        .from('trainings')
+        .select('id, user_id, start_date, end_date, title, department_id')
+        .eq('is_demo', isDemoMode)
+        .lte('start_date', weekEndIso)
+        .gte('end_date', weekStartIso);
+      if (selectedDepartmentId) q = q.eq('department_id', selectedDepartmentId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as TrainingRow[];
+    },
+  });
+
+  const { data: weekDuties = [] } = useQuery({
+    queryKey: ['duty-week', selectedDepartmentId, weekStartIso, weekEndIso, isDemoMode],
+    enabled: weekQueryEnabled,
+    queryFn: async (): Promise<DutyRow[]> => {
+      let q = supabase
+        .from('on_call_duties')
+        .select('id, employee_id, duty_date, duty_type, department_id')
+        .eq('is_demo', isDemoMode)
+        .gte('duty_date', weekStartIso)
+        .lte('duty_date', weekEndIso);
+      if (selectedDepartmentId) q = q.eq('department_id', selectedDepartmentId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as DutyRow[];
+    },
+  });
+
+
   // Maps user_id -> Map<dayKey, CellKind[]>
   const cellsByUser = useMemo(() => {
     const map = new Map<string, Map<string, Set<CellKind>>>();
