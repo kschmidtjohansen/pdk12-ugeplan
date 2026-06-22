@@ -1,29 +1,36 @@
-## Filter i Ferieoversigt (Grid-visning)
+## Ændringer i Ferieoversigt
 
-### Mål
-Tilføj en filter-bar i toppen af grid-visningen, så brugeren kan slå farverne til og fra individuelt. Dvs. man kan vælge kun at se ferie, kun kursus, kun fravær, kun vagter — eller en kombination.
+### 1. Omdøb "Ferieoversigt" → "Oversigt"
 
-### Hvad bygges
-1. **Filter-komponent** placeres under dato-vælgeren i `VacationGridOverview`.
-   - Små toggle-knapper med farvet prik + label for hver type:
-     - Ferie (sort)
-     - Kursus (gul)
-     - Fravær (rød)
-     - Skadeledervagt (blå)
-     - Kørevagt (grøn)
-   - Klik på en knap slår den pågældende type til/fra.
-   - Som standard er alle slået til.
+Erstat label i:
+- `src/components/Vacation/VacationGridOverview.tsx` (CardTitle, linje 341)
+- `src/translations/da/vacation.ts` (`calendar: "Ferieoversigt"`)
+- `src/translations/da/admin.ts` (`vacationCalendar` og `title`)
+- `src/components/Layout/NavComponents/VacationOverviewDropdown.tsx` (fallback aria-label/title)
+- Tilsvarende engelske strenge i `src/translations/en/...` opdateres til "Overview"
 
-2. **Grid-rendering** i `VacationGridOverview`:
-   - `pickKind()` tjekker kun aktiverede typer.
-   - Hvis en dag kun har inaktiverede typer, vises cellen som tom.
+### 2. Ugevisning i bunden med tællere
 
-### Tekniske detaljer
-- State: `Set<CellKind>` eller `Record<CellKind, boolean>` – React `useState`.
-- Ingen DB-ændringer. Pure frontend-filter.
-- Hvis alle filtre slås fra, vises grid tomt (intet farvet).
-- Oversættelser opdateres i `da/vacation.ts` og `en/vacation.ts`.
+Tilføj nederst i `VacationGridOverview.tsx` (under filterrækken) en ny boks der viser status for **én valgt uge ad gangen**:
 
-### Dokumentation
-- `CHANGELOG.md` opdateres.
-- `.lovable/plan.md` opdateres hvis aktiv.
+```text
+[‹] Uge 26 · 22.–28. jun 2026 [›]   [I dag]
+   • Ferie: 3   • Kursus: 1   • Fravær: 0   • Skadelederv.: 2   • Kørevagt: 1
+```
+
+- State: `weekAnchor: Date` (initialiseres til mandagen i indeværende uge via `startOfWeek(today, { weekStartsOn: 1 })`).
+- `‹` / `›` skifter en uge ad gangen (`addDays(weekAnchor, ±7)`); knappen "I dag" hopper tilbage til indeværende uge.
+- Tællere beregnes som **antal unikke medarbejdere** der har den givne kategori i mindst én dag af ugen — uafhængigt af det øvrige `fromDate`/`toDate`-range, så brugeren kan skifte ugevis uden at ændre selve grid-perioden.
+- Hver tæller får farveprik der matcher kategoriens farve (sort/gul/rød/blå/grøn) og et lille ikon/label.
+- Data hentes via en separat `useQuery` for ugen (samme tre tabeller: `vacations`, `trainings`, `on_call_duties`), filtreret pr. afdeling og `is_demo`. `leave` tælles fra `regularEmployees` der er på `onLeave`/`on_leave` (uafhængig af dato — som i resten af komponenten).
+- Ugen vises altid (uafhængigt af filter-toggles), så det fungerer som et selvstændigt overbliksbånd.
+
+### 3. CHANGELOG
+
+Tilføj entry i `CHANGELOG.md` og opdater `.lovable/plan.md`.
+
+### Tekniske noter
+
+- Ingen DB/RLS ændringer.
+- Ingen ændringer til selve grid-rækkerne eller eksisterende fra/til-pickers.
+- Følger eksisterende farvetokens (`bg-foreground`, `bg-yellow-400`, osv.) som allerede bruges i komponenten.

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { CalendarDays, CalendarIcon } from 'lucide-react';
+import { CalendarDays, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import {
   format,
@@ -18,6 +18,7 @@ import {
   endOfMonth,
   addMonths,
   differenceInCalendarDays,
+  startOfISOWeek,
 } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
@@ -98,6 +99,7 @@ const VacationGridOverview: React.FC = () => {
   const today = useMemo(() => new Date(), []);
   const [fromDate, setFromDate] = useState<Date>(today);
   const [toDate, setToDate] = useState<Date>(addDays(today, 30));
+  const [weekAnchor, setWeekAnchor] = useState<Date>(startOfISOWeek(today));
   const [activeKinds, setActiveKinds] = useState<Record<CellKind, boolean>>({
     vacation: true,
     training: true,
@@ -173,6 +175,66 @@ const VacationGridOverview: React.FC = () => {
       return (data ?? []) as DutyRow[];
     },
   });
+
+  // ===== Ugentlig oversigt (uafhængig af fra/til-range) =====
+  const weekStart = weekAnchor;
+  const weekEnd = addDays(weekAnchor, 6);
+  const weekStartIso = format(weekStart, 'yyyy-MM-dd');
+  const weekEndIso = format(weekEnd, 'yyyy-MM-dd');
+  const weekQueryEnabled = !!selectedDepartmentId;
+
+  const { data: weekVacations = [] } = useQuery({
+    queryKey: ['vacation-week', selectedDepartmentId, weekStartIso, weekEndIso, isDemoMode],
+    enabled: weekQueryEnabled,
+    queryFn: async (): Promise<VacationRow[]> => {
+      let q = supabase
+        .from('vacations')
+        .select('id, user_id, start_date, end_date, department_id')
+        .eq('status', 'approved')
+        .eq('is_demo', isDemoMode)
+        .lte('start_date', weekEndIso)
+        .gte('end_date', weekStartIso);
+      if (selectedDepartmentId) q = q.eq('department_id', selectedDepartmentId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as VacationRow[];
+    },
+  });
+
+  const { data: weekTrainings = [] } = useQuery({
+    queryKey: ['training-week', selectedDepartmentId, weekStartIso, weekEndIso, isDemoMode],
+    enabled: weekQueryEnabled,
+    queryFn: async (): Promise<TrainingRow[]> => {
+      let q = supabase
+        .from('trainings')
+        .select('id, user_id, start_date, end_date, title, department_id')
+        .eq('is_demo', isDemoMode)
+        .lte('start_date', weekEndIso)
+        .gte('end_date', weekStartIso);
+      if (selectedDepartmentId) q = q.eq('department_id', selectedDepartmentId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as TrainingRow[];
+    },
+  });
+
+  const { data: weekDuties = [] } = useQuery({
+    queryKey: ['duty-week', selectedDepartmentId, weekStartIso, weekEndIso, isDemoMode],
+    enabled: weekQueryEnabled,
+    queryFn: async (): Promise<DutyRow[]> => {
+      let q = supabase
+        .from('on_call_duties')
+        .select('id, employee_id, duty_date, duty_type, department_id')
+        .eq('is_demo', isDemoMode)
+        .gte('duty_date', weekStartIso)
+        .lte('duty_date', weekEndIso);
+      if (selectedDepartmentId) q = q.eq('department_id', selectedDepartmentId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as DutyRow[];
+    },
+  });
+
 
   // Maps user_id -> Map<dayKey, CellKind[]>
   const cellsByUser = useMemo(() => {
@@ -338,7 +400,7 @@ const VacationGridOverview: React.FC = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <CalendarDays className="h-5 w-5" />
-              Ferieoversigt
+              Oversigt
             </CardTitle>
             <CardDescription>
               Grid-visning grupperet pr. rolle. Viser ferie, kursus, fravær og vagter.
@@ -506,7 +568,92 @@ const VacationGridOverview: React.FC = () => {
           </div>
         </div>
 
+        {/* ===== Ugentlig statusbar ===== */}
+        {(() => {
+          const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+          const weekDayKeys = new Set(weekDays.map((d) => format(d, 'yyyy-MM-dd')));
+          const inWeekUsers = (rows: { user_id: string; start_date: string; end_date: string }[]) => {
+            const set = new Set<string>();
+            for (const r of rows) {
+              const s = parseISO(r.start_date);
+              const e = parseISO(r.end_date);
+              if (e >= weekStart && s <= weekEnd) set.add(r.user_id);
+            }
+            return set;
+          };
+          const vacationUsers = inWeekUsers(weekVacations);
+          const trainingUsers = inWeekUsers(weekTrainings);
+          const skadelederUsers = new Set<string>();
+          const korevagtUsers = new Set<string>();
+          for (const d of weekDuties) {
+            if (!weekDayKeys.has(d.duty_date)) continue;
+            if (d.duty_type === 'skadeleder_vagt') skadelederUsers.add(d.employee_id);
+            else if (d.duty_type === 'kørevagt') korevagtUsers.add(d.employee_id);
+          }
+          const leaveUsers = onLeaveSet;
+          const counts: { kind: CellKind; color: string; label: string; count: number }[] = [
+            { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', count: vacationUsers.size },
+            { kind: 'training', color: 'bg-yellow-400', label: 'Kursus', count: trainingUsers.size },
+            { kind: 'leave', color: 'bg-red-500', label: 'Fravær', count: leaveUsers.size },
+            { kind: 'skadeleder_vagt', color: 'bg-blue-500', label: 'Skadelederv.', count: skadelederUsers.size },
+            { kind: 'kørevagt', color: 'bg-green-500', label: 'Kørevagt', count: korevagtUsers.size },
+          ];
+          const weekNum = getISOWeek(weekStart);
+          const isCurrentWeek = isSameDay(weekStart, startOfISOWeek(today));
+          return (
+            <div className="mt-4 border rounded-xl p-3 bg-muted/20">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setWeekAnchor((w) => addDays(w, -7))}
+                  aria-label="Forrige uge"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-sm font-medium">
+                  Uge {weekNum}
+                  <span className="text-muted-foreground font-normal">
+                    {' · '}
+                    {format(weekStart, 'd. MMM', { locale: da })} – {format(weekEnd, 'd. MMM yyyy', { locale: da })}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setWeekAnchor((w) => addDays(w, 7))}
+                  aria-label="Næste uge"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                {!isCurrentWeek && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7"
+                    onClick={() => setWeekAnchor(startOfISOWeek(today))}
+                  >
+                    I dag
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+                {counts.map((c) => (
+                  <div key={c.kind} className="flex items-center gap-1.5">
+                    <span className={cn('inline-block w-3 h-3 rounded-sm', c.color)} />
+                    <span className="text-muted-foreground">{c.label}:</span>
+                    <span className="font-semibold tabular-nums">{c.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
       </CardContent>
+
     </Card>
   );
 };

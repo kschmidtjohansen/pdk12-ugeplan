@@ -54,8 +54,8 @@ const VacationOverviewDropdown: React.FC = () => {
           variant="ghost"
           size="sm"
           className="relative h-8 px-2 gap-1.5 rounded-md bg-primary/8 hover:bg-primary/14 text-primary border border-primary/20"
-          aria-label={t('navigation.vacation') || 'Ferieoversigt'}
-          title={t('navigation.vacation') || 'Ferieoversigt'}
+          aria-label={t('navigation.vacation') || 'Oversigt'}
+          title={t('navigation.vacation') || 'Oversigt'}
         >
           <CalendarDays className="h-4 w-4" />
           <span

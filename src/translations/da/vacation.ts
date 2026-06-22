@@ -109,7 +109,7 @@ const vacation = {
     pending: "Afventende",
     approved: "Godkendt",
     rejected: "Afvist",
-    calendar: "Ferieoversigt"
+    calendar: "Oversigt"
   },
   
   // Admin notification for pending requests
