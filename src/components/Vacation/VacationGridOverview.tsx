@@ -225,7 +225,7 @@ const VacationGridOverview: React.FC = () => {
     queryFn: async (): Promise<DutyRow[]> => {
       let q = supabase
         .from('on_call_duties')
-        .select('id, employee_id, duty_date, duty_type, department_id')
+        .select('id, employee_id, duty_date, duty_type, department_id, notes')
         .eq('is_demo', isDemoMode)
         .gte('duty_date', weekStartIso)
         .lte('duty_date', weekEndIso);
