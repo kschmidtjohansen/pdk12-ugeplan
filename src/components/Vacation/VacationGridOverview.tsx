@@ -584,26 +584,41 @@ const VacationGridOverview: React.FC = () => {
           };
           const vacationUsers = inWeekUsers(weekVacations);
           const trainingUsers = inWeekUsers(weekTrainings);
-          const skadelederUsers = new Set<string>();
-          const korevagtUsers = new Set<string>();
-          for (const d of weekDuties) {
-            if (!weekDayKeys.has(d.duty_date)) continue;
-            if (d.duty_type === 'skadeleder_vagt') skadelederUsers.add(d.employee_id);
-            else if (d.duty_type === 'kørevagt') korevagtUsers.add(d.employee_id);
-          }
-          const leaveUsers = new Set<string>(onLeaveSet);
           const nameOf = (uid: string) =>
             regularEmployees.find((e) => e.id === uid)?.name ?? 'Ukendt';
+          // Extract a manually entered name from a duty's notes field.
+          // Format used elsewhere: "EKSTERN: <name> [INI]\n<optional notes>"
+          const extractManualName = (notes: string | null | undefined): string | null => {
+            if (!notes) return null;
+            const firstLine = notes.split('\n')[0] ?? '';
+            const m = firstLine.match(/^EKSTERN:\s*(.+?)(?:\s*\[[^\]]*\])?\s*$/i);
+            return m ? m[1].trim() : null;
+          };
+          const dutyNameOf = (d: DutyRow): string => {
+            if (d.employee_id) return nameOf(d.employee_id);
+            return extractManualName(d.notes) ?? 'Ukendt';
+          };
+          const skadelederNames = new Set<string>();
+          const korevagtNames = new Set<string>();
+          for (const d of weekDuties) {
+            if (!weekDayKeys.has(d.duty_date)) continue;
+            const name = dutyNameOf(d);
+            if (d.duty_type === 'skadeleder_vagt') skadelederNames.add(name);
+            else if (d.duty_type === 'kørevagt') korevagtNames.add(name);
+          }
+          const leaveUsers = new Set<string>(onLeaveSet);
           const namesFor = (set: Set<string>) =>
             Array.from(set)
               .map(nameOf)
               .sort((a, b) => a.localeCompare(b, 'da'));
+          const sortNames = (set: Set<string>) =>
+            Array.from(set).sort((a, b) => a.localeCompare(b, 'da'));
           const sections: { kind: CellKind; color: string; label: string; names: string[] }[] = [
             { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', names: namesFor(vacationUsers) },
             { kind: 'training', color: 'bg-yellow-400', label: 'Kursus', names: namesFor(trainingUsers) },
             { kind: 'leave', color: 'bg-red-500', label: 'Fravær', names: namesFor(leaveUsers) },
-            { kind: 'skadeleder_vagt', color: 'bg-blue-500', label: 'Skadelederv.', names: namesFor(skadelederUsers) },
-            { kind: 'kørevagt', color: 'bg-green-500', label: 'Kørevagt', names: namesFor(korevagtUsers) },
+            { kind: 'skadeleder_vagt', color: 'bg-blue-500', label: 'Skadelederv.', names: sortNames(skadelederNames) },
+            { kind: 'kørevagt', color: 'bg-green-500', label: 'Kørevagt', names: sortNames(korevagtNames) },
           ];
           const weekNum = getISOWeek(weekStart);
           const isCurrentWeek = isSameDay(weekStart, startOfISOWeek(today));
