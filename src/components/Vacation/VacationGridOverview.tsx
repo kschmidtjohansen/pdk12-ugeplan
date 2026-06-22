@@ -590,19 +590,25 @@ const VacationGridOverview: React.FC = () => {
             if (d.duty_type === 'skadeleder_vagt') skadelederUsers.add(d.employee_id);
             else if (d.duty_type === 'kørevagt') korevagtUsers.add(d.employee_id);
           }
-          const leaveUsers = onLeaveSet;
-          const counts: { kind: CellKind; color: string; label: string; count: number }[] = [
-            { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', count: vacationUsers.size },
-            { kind: 'training', color: 'bg-yellow-400', label: 'Kursus', count: trainingUsers.size },
-            { kind: 'leave', color: 'bg-red-500', label: 'Fravær', count: leaveUsers.size },
-            { kind: 'skadeleder_vagt', color: 'bg-blue-500', label: 'Skadelederv.', count: skadelederUsers.size },
-            { kind: 'kørevagt', color: 'bg-green-500', label: 'Kørevagt', count: korevagtUsers.size },
+          const leaveUsers = new Set<string>(onLeaveSet);
+          const nameOf = (uid: string) =>
+            regularEmployees.find((e) => e.id === uid)?.name ?? 'Ukendt';
+          const namesFor = (set: Set<string>) =>
+            Array.from(set)
+              .map(nameOf)
+              .sort((a, b) => a.localeCompare(b, 'da'));
+          const sections: { kind: CellKind; color: string; label: string; names: string[] }[] = [
+            { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', names: namesFor(vacationUsers) },
+            { kind: 'training', color: 'bg-yellow-400', label: 'Kursus', names: namesFor(trainingUsers) },
+            { kind: 'leave', color: 'bg-red-500', label: 'Fravær', names: namesFor(leaveUsers) },
+            { kind: 'skadeleder_vagt', color: 'bg-blue-500', label: 'Skadelederv.', names: namesFor(skadelederUsers) },
+            { kind: 'kørevagt', color: 'bg-green-500', label: 'Kørevagt', names: namesFor(korevagtUsers) },
           ];
           const weekNum = getISOWeek(weekStart);
           const isCurrentWeek = isSameDay(weekStart, startOfISOWeek(today));
           return (
             <div className="mt-4 border rounded-xl p-3 bg-muted/20">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
                 <Button
                   variant="outline"
                   size="icon"
@@ -639,12 +645,27 @@ const VacationGridOverview: React.FC = () => {
                   </Button>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
-                {counts.map((c) => (
-                  <div key={c.kind} className="flex items-center gap-1.5">
-                    <span className={cn('inline-block w-3 h-3 rounded-sm', c.color)} />
-                    <span className="text-muted-foreground">{c.label}:</span>
-                    <span className="font-semibold tabular-nums">{c.count}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+                {sections.map((s) => (
+                  <div key={s.kind} className="border rounded-lg p-2 bg-background">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className={cn('inline-block w-3 h-3 rounded-sm', s.color)} />
+                      <span className="font-medium">{s.label}</span>
+                      <span className="ml-auto text-muted-foreground tabular-nums">
+                        {s.names.length}
+                      </span>
+                    </div>
+                    {s.names.length === 0 ? (
+                      <div className="text-muted-foreground italic">Ingen</div>
+                    ) : (
+                      <ul className="space-y-0.5">
+                        {s.names.map((n) => (
+                          <li key={n} className="truncate" title={n}>
+                            {n}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 ))}
               </div>
