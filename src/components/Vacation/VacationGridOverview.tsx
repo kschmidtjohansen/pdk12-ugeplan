@@ -339,7 +339,7 @@ const VacationGridOverview: React.FC = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <CalendarDays className="h-5 w-5" />
-              Ferieoversigt
+              Oversigt
             </CardTitle>
             <CardDescription>
               Grid-visning grupperet pr. rolle. Viser ferie, kursus, fravær og vagter.
