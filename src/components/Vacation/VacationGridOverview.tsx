@@ -45,9 +45,10 @@ interface TrainingRow {
 }
 interface DutyRow {
   id: string;
-  employee_id: string;
+  employee_id: string | null;
   duty_date: string;
   duty_type: 'skadeleder_vagt' | 'kørevagt';
+  notes?: string | null;
 }
 
 type CellKind = 'vacation' | 'training' | 'leave' | 'skadeleder_vagt' | 'kørevagt';
