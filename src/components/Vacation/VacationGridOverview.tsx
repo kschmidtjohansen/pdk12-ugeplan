@@ -568,7 +568,92 @@ const VacationGridOverview: React.FC = () => {
           </div>
         </div>
 
+        {/* ===== Ugentlig statusbar ===== */}
+        {(() => {
+          const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+          const weekDayKeys = new Set(weekDays.map((d) => format(d, 'yyyy-MM-dd')));
+          const inWeekUsers = (rows: { user_id: string; start_date: string; end_date: string }[]) => {
+            const set = new Set<string>();
+            for (const r of rows) {
+              const s = parseISO(r.start_date);
+              const e = parseISO(r.end_date);
+              if (e >= weekStart && s <= weekEnd) set.add(r.user_id);
+            }
+            return set;
+          };
+          const vacationUsers = inWeekUsers(weekVacations);
+          const trainingUsers = inWeekUsers(weekTrainings);
+          const skadelederUsers = new Set<string>();
+          const korevagtUsers = new Set<string>();
+          for (const d of weekDuties) {
+            if (!weekDayKeys.has(d.duty_date)) continue;
+            if (d.duty_type === 'skadeleder_vagt') skadelederUsers.add(d.employee_id);
+            else if (d.duty_type === 'kørevagt') korevagtUsers.add(d.employee_id);
+          }
+          const leaveUsers = onLeaveSet;
+          const counts: { kind: CellKind; color: string; label: string; count: number }[] = [
+            { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', count: vacationUsers.size },
+            { kind: 'training', color: 'bg-yellow-400', label: 'Kursus', count: trainingUsers.size },
+            { kind: 'leave', color: 'bg-red-500', label: 'Fravær', count: leaveUsers.size },
+            { kind: 'skadeleder_vagt', color: 'bg-blue-500', label: 'Skadelederv.', count: skadelederUsers.size },
+            { kind: 'kørevagt', color: 'bg-green-500', label: 'Kørevagt', count: korevagtUsers.size },
+          ];
+          const weekNum = getISOWeek(weekStart);
+          const isCurrentWeek = isSameDay(weekStart, startOfISOWeek(today));
+          return (
+            <div className="mt-4 border rounded-xl p-3 bg-muted/20">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setWeekAnchor((w) => addDays(w, -7))}
+                  aria-label="Forrige uge"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-sm font-medium">
+                  Uge {weekNum}
+                  <span className="text-muted-foreground font-normal">
+                    {' · '}
+                    {format(weekStart, 'd. MMM', { locale: da })} – {format(weekEnd, 'd. MMM yyyy', { locale: da })}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setWeekAnchor((w) => addDays(w, 7))}
+                  aria-label="Næste uge"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                {!isCurrentWeek && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7"
+                    onClick={() => setWeekAnchor(startOfISOWeek(today))}
+                  >
+                    I dag
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+                {counts.map((c) => (
+                  <div key={c.kind} className="flex items-center gap-1.5">
+                    <span className={cn('inline-block w-3 h-3 rounded-sm', c.color)} />
+                    <span className="text-muted-foreground">{c.label}:</span>
+                    <span className="font-semibold tabular-nums">{c.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
       </CardContent>
+
     </Card>
   );
 };
