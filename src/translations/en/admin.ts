@@ -349,7 +349,7 @@ export const admin = {
     vikarDesc: 'Temporary access for substitutes'
   },
   vacationCalendar: {
-    title: 'Vacation Overview',
+    title: 'Overview',
     description: 'Overview of approved vacations and employee availability',
     availableEmployees: 'Available service employees',
     totalServiceEmployees: 'service employees total',
