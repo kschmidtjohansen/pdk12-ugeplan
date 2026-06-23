@@ -93,15 +93,15 @@ serve(async (req) => {
 
     console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
 
-    // Check if user has admin role
-    const { data: roleData, error: roleError } = await supabaseAdmin
+    // Check if user has admin role (user may have multiple roles)
+    const { data: roleRows, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single();
+      .in('role', ['administrator', 'super_admin']);
 
-    if (roleError || !['administrator', 'super_admin'].includes(roleData?.role)) {
-      console.error(`[${requestId}] User not admin. Role: ${roleData?.role}, User: ${user.email}`);
+    if (roleError || !roleRows || roleRows.length === 0) {
+      console.error(`[${requestId}] User not admin. Roles: ${JSON.stringify(roleRows)}, Error: ${roleError?.message}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ error: 'Administrator access required' }),
         { 
