@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-08 — Fix: tom planner ved stale afdelingsvalg i localStorage
+
+- `DepartmentContext` validerer nu det gemte `selected_department_id` mod brugerens faktiske afdelinger. Hvis værdien er ugyldig (fx gammelt login, slettet afdeling, demo-mode), nulstilles den til brugerens første tilladte afdeling i stedet for at blive sendt videre til RPC'en. Løser problem hvor servicemedarbejdere så "Ingen opgaver i denne uge", selvom de var tilknyttet publicerede opgaver.
+
+
+
 ## 2026-06-22 — Oversigt: ugentlig statusbar og omdøbning
 
 - "Ferieoversigt" hedder nu blot "Oversigt" — opdateret i CardTitle, navigation, admin- og vacation-oversættelser (DA + EN).
