@@ -151,9 +151,19 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
               files_enabled: (d as any).files_enabled ?? true,
             }));
             setUserDepartments(mapped);
-            if (mapped.length > 0 && !selectedDepartmentId) {
-              setSelectedDepartmentIdState(mapped[0].id);
-              localStorage.setItem('selected_department_id', mapped[0].id);
+            // Validate stored selection against actual allowed departments.
+            // A stale localStorage value (from another login, deleted dept, demo mode)
+            // would otherwise be sent as p_department_id and return 0 assignments.
+            const storedId = selectedDepartmentId;
+            const isValid = storedId && mapped.some(d => d.id === storedId);
+            if (!isValid) {
+              if (mapped.length > 0) {
+                setSelectedDepartmentIdState(mapped[0].id);
+                localStorage.setItem('selected_department_id', mapped[0].id);
+              } else {
+                setSelectedDepartmentIdState(null);
+                localStorage.removeItem('selected_department_id');
+              }
             }
           }
         } else {
@@ -183,11 +193,20 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
             depts.sort((a, b) => a.name.localeCompare(b.name));
             setUserDepartments(depts);
 
-            if (depts.length > 0 && !selectedDepartmentId) {
-              setSelectedDepartmentIdState(depts[0].id);
-              localStorage.setItem('selected_department_id', depts[0].id);
+            // Validate stored selection against actual allowed departments.
+            const storedId = selectedDepartmentId;
+            const isValid = storedId && depts.some(d => d.id === storedId);
+            if (!isValid) {
+              if (depts.length > 0) {
+                setSelectedDepartmentIdState(depts[0].id);
+                localStorage.setItem('selected_department_id', depts[0].id);
+              } else {
+                setSelectedDepartmentIdState(null);
+                localStorage.removeItem('selected_department_id');
+              }
             }
           }
+
         }
       } catch (err) {
         if (import.meta.env.DEV) console.error('[DepartmentContext] Error fetching user departments:', err);

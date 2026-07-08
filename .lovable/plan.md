@@ -1,49 +1,34 @@
-## Ændringer i Ferieoversigt
 
-### 1. Omdøb "Ferieoversigt" → "Oversigt"
+## Diagnose
 
-Erstat label i:
-- `src/components/Vacation/VacationGridOverview.tsx` (CardTitle, linje 341)
-- `src/translations/da/vacation.ts` (`calendar: "Ferieoversigt"`)
-- `src/translations/da/admin.ts` (`vacationCalendar` og `title`)
-- `src/components/Layout/NavComponents/VacationOverviewDropdown.tsx` (fallback aria-label/title)
-- Tilsvarende engelske strenge i `src/translations/en/...` opdateres til "Overview"
+Jonas Grønbæk Krause er oprettet korrekt i databasen:
+- `home_department_id` og `user_access` peger på Vejle (`ca52e77e-…`)
+- Rolle: `servicemedarbejder`
+- Status: `active`, `is_visible_in_planning=true`
+- Han er tilføjet til 5 publicerede opgaver i uge 28 (2026-07-06 → 2026-07-10)
 
-### 2. Ugevisning i bunden med tællere
+RLS (`can_view_assignment_optimized`) og RPC'en `list_accessible_assignments_with_team` giver ham korrekt adgang til disse opgaver.
 
-Tilføj nederst i `VacationGridOverview.tsx` (under filterrækken) en ny boks der viser status for **én valgt uge ad gangen**:
+Årsag til det tomme "Ingen opgaver i denne uge" er i frontenden: `DepartmentContext` initialiserer `selectedDepartmentId` fra `localStorage` og **validerer aldrig værdien mod brugerens faktiske afdelinger**. Hvis der ligger et gammelt/ugyldigt `selected_department_id` i browserens `localStorage` (fra et tidligere login, en slettet afdeling, demo-mode osv.), bliver det ID sendt videre som `p_department_id` til RPC'en, som så returnerer 0 rækker — og både Planner og Dashboard viser tomme lister, selvom brugeren er tilknyttet opgaver.
 
-```text
-[‹] Uge 26 · 22.–28. jun 2026 [›]   [I dag]
-   • Ferie: 3   • Kursus: 1   • Fravær: 0   • Skadelederv.: 2   • Kørevagt: 1
-```
+I dag sætter koden kun default-afdelingen når `!selectedDepartmentId` (linje 154/187), så en stale værdi bliver aldrig ryddet.
 
-- State: `weekAnchor: Date` (initialiseres til mandagen i indeværende uge via `startOfWeek(today, { weekStartsOn: 1 })`).
-- `‹` / `›` skifter en uge ad gangen (`addDays(weekAnchor, ±7)`); knappen "I dag" hopper tilbage til indeværende uge.
-- Tællere beregnes som **antal unikke medarbejdere** der har den givne kategori i mindst én dag af ugen — uafhængigt af det øvrige `fromDate`/`toDate`-range, så brugeren kan skifte ugevis uden at ændre selve grid-perioden.
-- Hver tæller får farveprik der matcher kategoriens farve (sort/gul/rød/blå/grøn) og et lille ikon/label.
-- Data hentes via en separat `useQuery` for ugen (samme tre tabeller: `vacations`, `trainings`, `on_call_duties`), filtreret pr. afdeling og `is_demo`. `leave` tælles fra `regularEmployees` der er på `onLeave`/`on_leave` (uafhængig af dato — som i resten af komponenten).
-- Ugen vises altid (uafhængigt af filter-toggles), så det fungerer som et selvstændigt overbliksbånd.
+## Fix
 
-### 3. CHANGELOG
+I `src/context/DepartmentContext.tsx`, inde i `fetchUserDepartments` (både super_admin- og user_access-grenen):
 
-Tilføj entry i `CHANGELOG.md` og opdater `.lovable/plan.md`.
+1. Efter listen af tilladte afdelinger (`mapped` / `depts`) er hentet, tjek om det aktuelle `selectedDepartmentId` findes i listen.
+2. Hvis ikke (eller hvis intet er valgt): vælg den første tilladte afdeling, kald `setSelectedDepartmentIdState(...)`, og skriv den til `localStorage`. Hvis listen er tom: sæt til `null` og fjern nøglen.
+3. Ingen backend-ændringer, ingen nye afhængigheder — kun frontend/DepartmentContext.
 
-### 4. Periode bag navnet i ugentlig statusbar
+Dette matcher det mønster, sub-department-effekten allerede bruger (linje 217-241) og gør Planner/Dashboard robust over for stale localStorage.
 
-I den ugentlige statusbar skal hver medarbejder vises med den periode i ugen, vedkommende er fraværende/på kursus/har vagt:
+## Verify
 
-- Ferie og kursus: datoerne klemmes til ugen (`dd.MM–dd.MM` hvis flere dage, ellers `dd.MM`).
-- Skadeledervagt og kørevagt: samles fra `on_call_duties.duty_date` og vises på samme måde.
-- Fravær vises uden periode, da det er en status uden datointerval.
-- Ingen DB/RLS-ændringer.
+- Bede brugeren nulstille cache/localStorage én gang (som umiddelbar workaround).
+- Efter deploy: log ind som Jonas → Planner uge 28 skal vise de 5 opgaver uden manuel oprydning.
+- Ingen ændring for brugere hvor stored ID stadig er gyldigt.
 
-### 5. Dokumentation
+## Docs
 
-Opdater `CHANGELOG.md` og `docs/implementation-plan/tasks.md`.
-
-### Tekniske noter
-
-- Ingen DB/RLS ændringer.
-- Ingen ændringer til selve grid-rækkerne eller eksisterende fra/til-pickers.
-- Følger eksisterende farvetokens (`bg-foreground`, `bg-yellow-400`, osv.) som allerede bruges i komponenten.
+Opdater `CHANGELOG.md` og `docs/implementation-plan/tasks.md` med en kort note om fixet.
