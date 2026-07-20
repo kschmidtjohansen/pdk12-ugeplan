@@ -2,6 +2,7 @@
 
 ## 2026-07-20 — Fix: /changelog viser medarbejder- og ferieændringer igen
 
+- Fixet at filteret “Godkendte fri” kunne vise tomt, fordi vacation-queryen forsøgte at embedde `reviewed_by` som relation. Navne for medarbejder/godkender hentes nu separat, så godkendte fri-events vises stabilt.
 - `/changelog` henter nu ændringer robust på tværs af `planner_change_log`, `vacations` og `profiles`, så én manglende/fejlende kilde ikke resulterer i en tom changelog.
 - Nyoprettede medarbejdere i den valgte afdeling vises nu som changelog-events via `profiles.created_at` (inkl. Phillip Fogh/Mette Larsen fra eksisterende data), og fremtidige medarbejder-opret/redigér/slet logges eksplicit i `planner_change_log`.
 - Ferie/fravær vises efter relevant hændelsestidspunkt (`created_at`, `reviewed_at` eller `updated_at`) og scopes fortsat til den valgte afdeling.
