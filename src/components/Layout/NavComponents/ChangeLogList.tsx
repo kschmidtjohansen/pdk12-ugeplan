@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { Plus, Edit, Trash2, Send } from 'lucide-react';
+import { Plus, Edit, Trash2, Send, CalendarPlus, CalendarCheck, CalendarX, CalendarClock } from 'lucide-react';
 import { useChangeLogs } from '@/context/ChangeLogContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
