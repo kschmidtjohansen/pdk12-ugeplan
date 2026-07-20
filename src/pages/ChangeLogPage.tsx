@@ -211,6 +211,8 @@ const ChangeLogPage: React.FC = () => {
                   <SelectItem value="7">{t('changeLog.last7Days')}</SelectItem>
                   <SelectItem value="14">{t('changeLog.last14Days')}</SelectItem>
                   <SelectItem value="30">{t('changeLog.last30Days')}</SelectItem>
+                  <SelectItem value="60">{t('changeLog.last60Days') || 'Sidste 60 dage'}</SelectItem>
+                  <SelectItem value="90">{t('changeLog.last90Days') || 'Sidste 90 dage'}</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -224,9 +226,14 @@ const ChangeLogPage: React.FC = () => {
                   <SelectItem value="UPDATE">{t('changeLog.operations.UPDATE')}</SelectItem>
                   <SelectItem value="DELETE">{t('changeLog.operations.DELETE')}</SelectItem>
                   <SelectItem value="PUBLISH">{t('changeLog.operations.PUBLISH')}</SelectItem>
+                  <SelectItem value="VACATION_REQUESTED">{t('changeLog.vacationRequested')}</SelectItem>
+                  <SelectItem value="VACATION_APPROVED">{t('changeLog.vacationApproved')}</SelectItem>
+                  <SelectItem value="VACATION_REJECTED">{t('changeLog.vacationRejected')}</SelectItem>
+                  <SelectItem value="VACATION_CANCELLED">{t('changeLog.vacationCancelled')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
 
             {/* Table */}
             {isLoading ? (
