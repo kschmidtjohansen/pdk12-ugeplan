@@ -21,7 +21,7 @@ export interface EmployeeConflict {
   employeeId: string;
   employeeName: string;
   date: string;
-  reason: 'booking' | 'vacation' | 'partialVacation' | 'onLeave';
+  reason: 'booking' | 'vacation' | 'partialVacation' | 'onLeave' | 'training';
   details: string;
 }
 
