@@ -203,7 +203,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       }
     }
     return conflicts;
-  }, [formData, employees, vacations, assignments, currentAssignment, t]);
+  }, [formData, employees, vacations, assignments, currentAssignment, trainingRows, t]);
+
+  // Absence reasons that block saving entirely (no "proceed anyway")
+  const hasBlockingConflicts = (c: EmployeeConflict[]) =>
+    c.some((x) => x.reason === 'vacation' || x.reason === 'onLeave' || x.reason === 'training' || x.reason === 'partialVacation');
 
   // Proceed with actual submission
   const executeSubmit = async () => {
