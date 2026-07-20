@@ -30,5 +30,9 @@ export const changeLog = {
   action: 'Handling',
   caseNumber: 'Sagsnummer',
   recentChanges: 'Seneste Ændringer',
-  noRecentChanges: 'Ingen seneste ændringer'
+  noRecentChanges: 'Ingen seneste ændringer',
+  vacationRequested: 'Anmodede om fri',
+  vacationApproved: 'Godkendte fri',
+  vacationRejected: 'Afviste fri',
+  vacationCancelled: 'Annullerede fri'
 };
