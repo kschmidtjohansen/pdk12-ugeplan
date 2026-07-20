@@ -228,4 +228,82 @@ export class PlannerChangeLogger {
       if (import.meta.env.DEV) console.error('[PlannerChangeLogger] Failed to log PUBLISH:', error);
     }
   }
+
+  static async logEmployeeCreated(employeeId: string, employeeName: string, departmentId?: string | null): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const userFirstName = await this.getCurrentUserFirstName();
+
+      await supabase
+        .from('planner_change_log')
+        .insert({
+          assignment_id: null,
+          operation: 'EMPLOYEE_CREATED',
+          changed_by: user.id,
+          changed_by_name: userFirstName,
+          changed_by_first_name: userFirstName,
+          change_details: {
+            employee_id: employeeId,
+            employee_name: employeeName,
+            department_id: departmentId || null,
+          }
+        });
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[PlannerChangeLogger] Failed to log EMPLOYEE_CREATED:', error);
+    }
+  }
+
+  static async logEmployeeUpdated(employeeId: string, employeeName: string, departmentId?: string | null): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const userFirstName = await this.getCurrentUserFirstName();
+
+      await supabase
+        .from('planner_change_log')
+        .insert({
+          assignment_id: null,
+          operation: 'EMPLOYEE_UPDATED',
+          changed_by: user.id,
+          changed_by_name: userFirstName,
+          changed_by_first_name: userFirstName,
+          change_details: {
+            employee_id: employeeId,
+            employee_name: employeeName,
+            department_id: departmentId || null,
+          }
+        });
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[PlannerChangeLogger] Failed to log EMPLOYEE_UPDATED:', error);
+    }
+  }
+
+  static async logEmployeeDeleted(employeeId: string, employeeName: string, departmentId?: string | null): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const userFirstName = await this.getCurrentUserFirstName();
+
+      await supabase
+        .from('planner_change_log')
+        .insert({
+          assignment_id: null,
+          operation: 'EMPLOYEE_DELETED',
+          changed_by: user.id,
+          changed_by_name: userFirstName,
+          changed_by_first_name: userFirstName,
+          change_details: {
+            employee_id: employeeId,
+            employee_name: employeeName,
+            department_id: departmentId || null,
+          }
+        });
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[PlannerChangeLogger] Failed to log EMPLOYEE_DELETED:', error);
+    }
+  }
 }
