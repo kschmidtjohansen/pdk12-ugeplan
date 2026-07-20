@@ -393,7 +393,27 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         approved_by: user?.id,
         notes: notes
       });
-      
+
+      // Auto-remove employee from overlapping assignments
+      if (!isDemoMode) {
+        try {
+          const { data: cleanup } = await supabase.functions.invoke(
+            'vacation-cleanup-assignments',
+            { body: { vacationId: vacation.id } }
+          );
+          if (cleanup) {
+            const removed = (cleanup as any).removedFromCount || 0;
+            const cleared = (cleanup as any).clearedResponsibleCount || 0;
+            if (removed > 0 || cleared > 0) {
+              queryClient.invalidateQueries({ queryKey: ['assignments'] });
+              queryClient.invalidateQueries({ queryKey: ['optimizedAssignments'] });
+            }
+          }
+        } catch (cleanupErr) {
+          if (import.meta.env.DEV) console.warn('[approveVacation] cleanup failed:', cleanupErr);
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['vacations'] });
       await refreshVacations();
       
