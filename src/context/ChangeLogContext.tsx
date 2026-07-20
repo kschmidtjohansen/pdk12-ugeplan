@@ -191,7 +191,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .order('created_at', { ascending: false });
 
       let vacQ = client.from('vacations')
-        .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, reviewed_by, reviewed_at, user:profiles!user_id(name), reviewer:profiles!reviewed_by(name)')
+        .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, reviewed_by, reviewed_at')
         .order('updated_at', { ascending: false });
       if (deptUserIds !== null) {
         if (deptUserIds.length === 0) {
@@ -203,6 +203,9 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       const [{ data: plannerData, error: pErr }, vacResult] = await Promise.all([plannerQ, vacQ]);
       if (pErr) throw pErr;
+      if (vacResult.error && import.meta.env.DEV) {
+        console.warn('[ChangeLogContext] vacations fetch failed', vacResult.error);
+      }
 
       // Determine which assignment_ids referenced by logs actually exist —
       // any missing ones represent deleted assignments and should still show.
@@ -258,8 +261,33 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       }
 
-      const vacEntries = (vacResult.data || [])
-        .map(vacationRowToEntry)
+      const vacationRows = vacResult.error ? [] : (vacResult.data || []);
+      const vacationUserIds = Array.from(new Set(
+        vacationRows
+          .flatMap((row: any) => [row.user_id, row.reviewed_by])
+          .filter((id: any): id is string => !!id)
+      ));
+      const vacationNameMap = new Map<string, string>();
+      if (vacationUserIds.length > 0) {
+        const { data: vacationProfiles, error: vacationProfilesErr } = await client
+          .from('profiles')
+          .select('id, name')
+          .in('id', vacationUserIds);
+        if (vacationProfilesErr) {
+          if (import.meta.env.DEV) console.warn('[ChangeLogContext] vacation profile names fetch failed', vacationProfilesErr);
+        } else {
+          (vacationProfiles || []).forEach((profile: any) => {
+            vacationNameMap.set(profile.id, profile.name);
+          });
+        }
+      }
+
+      const vacEntries = vacationRows
+        .map((row: any) => vacationRowToEntry({
+          ...row,
+          user: { name: vacationNameMap.get(row.user_id) || 'Medarbejder' },
+          reviewer: row.reviewed_by ? { name: vacationNameMap.get(row.reviewed_by) || null } : null,
+        }))
         .filter((e): e is ChangeLogEntry => e !== null)
         .filter((e) => isInRange(e.created_at, startDate, endDate));
       return [...(filteredPlanner as ChangeLogEntry[]), ...vacEntries, ...employeeEntries]
