@@ -317,6 +317,35 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         { event: 'INSERT', schema, table: 'planner_change_log' },
         async (payload) => {
           let newLog = payload.new as ChangeLogEntry;
+          if (selectedDepartmentId && !isDemoMode) {
+            if (newLog.operation?.startsWith?.('EMPLOYEE_')) {
+              const employeeDeptId = newLog.change_details?.department_id;
+              const employeeId = newLog.change_details?.employee_id;
+              const deptUserIds = await getDepartmentUserIds();
+              if (employeeDeptId !== selectedDepartmentId && (!employeeId || !deptUserIds?.includes(employeeId))) {
+                return;
+              }
+            } else if (newLog.assignment_id) {
+              const client = getSchemaClient(isDemoMode);
+              const { data: assignment } = await client
+                .from('assignments')
+                .select('department_id, case_number, title')
+                .eq('id', newLog.assignment_id)
+                .maybeSingle();
+              if (assignment && (assignment as any).department_id !== selectedDepartmentId) {
+                return;
+              }
+              if (assignment && !newLog.change_details?.case_number) {
+                newLog = {
+                  ...newLog,
+                  change_details: {
+                    ...newLog.change_details,
+                    case_number: (assignment as any).case_number || (assignment as any).title,
+                  },
+                };
+              }
+            }
+          }
           if (newLog.assignment_id && !newLog.change_details?.case_number) {
             const client = getSchemaClient(isDemoMode);
             const { data: assignment } = await client
