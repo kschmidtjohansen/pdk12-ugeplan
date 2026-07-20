@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, subDays } from 'date-fns';
-import { FileEdit, FilePlus, FileX, Upload, Search, CalendarPlus, CalendarCheck, CalendarX, CalendarClock } from 'lucide-react';
+import { FileEdit, FilePlus, FileX, Upload, Search, CalendarPlus, CalendarCheck, CalendarX, CalendarClock, UserPlus, UserPen, UserMinus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { formatDateForDisplay } from '@/utils/dateUtils';
@@ -68,6 +68,12 @@ const ChangeLogPage: React.FC = () => {
         return <CalendarX className="h-4 w-4 text-red-500" />;
       case 'VACATION_CANCELLED':
         return <CalendarClock className="h-4 w-4 text-muted-foreground" />;
+      case 'EMPLOYEE_CREATED':
+        return <UserPlus className="h-4 w-4 text-primary" />;
+      case 'EMPLOYEE_UPDATED':
+        return <UserPen className="h-4 w-4 text-primary" />;
+      case 'EMPLOYEE_DELETED':
+        return <UserMinus className="h-4 w-4 text-destructive" />;
       default:
         return null;
     }
@@ -104,6 +110,18 @@ const ChangeLogPage: React.FC = () => {
     }
 
     const caseNumber = details.case_number || details.title || '-';
+
+    if (log.operation === 'EMPLOYEE_CREATED') {
+      return `${t('changeLog.employeeCreated')} ${details.employee_name || log.changed_by_name || ''}`;
+    }
+
+    if (log.operation === 'EMPLOYEE_UPDATED') {
+      return `${t('changeLog.employeeUpdated')} ${details.employee_name || log.changed_by_name || ''}`;
+    }
+
+    if (log.operation === 'EMPLOYEE_DELETED') {
+      return `${t('changeLog.employeeDeleted')} ${details.employee_name || log.changed_by_name || ''}`;
+    }
     
     if (log.operation === 'CREATE') {
       return `${t('changeLog.created')} ${caseNumber}`;
@@ -150,8 +168,9 @@ const ChangeLogPage: React.FC = () => {
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
       const caseNumber = log.change_details?.case_number || '';
+      const employeeName = log.change_details?.employee_name || log.change_details?.user_name || '';
       const userName = (log.changed_by_first_name || log.changed_by_name || '').toLowerCase();
-      return caseNumber.toLowerCase().includes(searchLower) || userName.includes(searchLower);
+      return caseNumber.toLowerCase().includes(searchLower) || userName.includes(searchLower) || employeeName.toLowerCase().includes(searchLower);
     }
     
     return true;
@@ -230,6 +249,9 @@ const ChangeLogPage: React.FC = () => {
                   <SelectItem value="VACATION_APPROVED">{t('changeLog.vacationApproved')}</SelectItem>
                   <SelectItem value="VACATION_REJECTED">{t('changeLog.vacationRejected')}</SelectItem>
                   <SelectItem value="VACATION_CANCELLED">{t('changeLog.vacationCancelled')}</SelectItem>
+                  <SelectItem value="EMPLOYEE_CREATED">{t('changeLog.operations.EMPLOYEE_CREATED')}</SelectItem>
+                  <SelectItem value="EMPLOYEE_UPDATED">{t('changeLog.operations.EMPLOYEE_UPDATED')}</SelectItem>
+                  <SelectItem value="EMPLOYEE_DELETED">{t('changeLog.operations.EMPLOYEE_DELETED')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
