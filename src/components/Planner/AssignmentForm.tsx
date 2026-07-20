@@ -458,7 +458,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
             {t('planner.conflicts.title')}
           </div>
-          <p className="text-sm text-muted-foreground">{t('planner.conflicts.description')}</p>
+          <p className="text-sm text-muted-foreground">
+            {hasBlockingConflicts(conflictDetails)
+              ? t('planner.conflicts.absenceBlockDescription')
+              : t('planner.conflicts.description')}
+          </p>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {conflictDetails.map((conflict, idx) => (
               <div key={idx} className="rounded-md border border-destructive/20 bg-background p-3 text-sm">
@@ -478,17 +482,21 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             <Button type="button" variant="outline" onClick={() => setConflictDetails([])} className="flex-1">
               {t('common.cancel')}
             </Button>
-            <Button type="button" variant="secondary" onClick={handleBookAvailableOnly} className="flex-1">
-              {t('planner.conflicts.bookAvailableOnly')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={async () => { setConflictDetails([]); await executeSubmit(); }}
-              className="flex-1"
-            >
-              {t('planner.conflicts.proceedAnyway')}
-            </Button>
+            {!hasBlockingConflicts(conflictDetails) && (
+              <>
+                <Button type="button" variant="secondary" onClick={handleBookAvailableOnly} className="flex-1">
+                  {t('planner.conflicts.bookAvailableOnly')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={async () => { setConflictDetails([]); await executeSubmit(); }}
+                  className="flex-1"
+                >
+                  {t('planner.conflicts.proceedAnyway')}
+                </Button>
+              </>
+            )}
           </div>
         </Card>
       )}
