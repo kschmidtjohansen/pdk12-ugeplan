@@ -216,17 +216,41 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const isDemoMode = user.email === 'test@polygongroup.com';
       const client = getSchemaClient(isDemoMode);
 
-      const [{ data: plannerData, error: pErr }, vacResult] = await Promise.all([
-        client.from('planner_change_log').select('*')
-          .gte('created_at', startDate.toISOString())
-          .lte('created_at', endDate.toISOString())
-          .order('created_at', { ascending: false }),
-        client.from('vacations')
-          .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, user:profiles!user_id(name)')
-          .gte('updated_at', startDate.toISOString())
-          .lte('updated_at', endDate.toISOString())
-          .order('updated_at', { ascending: false }),
-      ]);
+      // Department scoping (same rules as fetchChangeLogs)
+      let assignmentIdsForDept: string[] | null = null;
+      if (selectedDepartmentId && !isDemoMode) {
+        const { data: deptAssignments } = await client
+          .from('assignments').select('id').eq('department_id', selectedDepartmentId);
+        assignmentIdsForDept = (deptAssignments || []).map((a: any) => a.id);
+      }
+      const deptUserIds = await getDepartmentUserIds();
+
+      let plannerQ = client.from('planner_change_log').select('*')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
+        .order('created_at', { ascending: false });
+      if (assignmentIdsForDept !== null) {
+        if (assignmentIdsForDept.length === 0) {
+          plannerQ = plannerQ.eq('id', '00000000-0000-0000-0000-000000000000');
+        } else {
+          plannerQ = plannerQ.in('assignment_id', assignmentIdsForDept);
+        }
+      }
+
+      let vacQ = client.from('vacations')
+        .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, reviewed_by, reviewed_at, user:profiles!user_id(name), reviewer:profiles!reviewed_by(name)')
+        .gte('updated_at', startDate.toISOString())
+        .lte('updated_at', endDate.toISOString())
+        .order('updated_at', { ascending: false });
+      if (deptUserIds !== null) {
+        if (deptUserIds.length === 0) {
+          vacQ = vacQ.eq('id', '00000000-0000-0000-0000-000000000000');
+        } else {
+          vacQ = vacQ.in('user_id', deptUserIds);
+        }
+      }
+
+      const [{ data: plannerData, error: pErr }, vacResult] = await Promise.all([plannerQ, vacQ]);
       if (pErr) throw pErr;
 
       const vacEntries = (vacResult.data || [])
@@ -239,6 +263,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return [];
     }
   };
+
 
   const fetchChangeLogsByCaseNumber = async (caseNumber: string): Promise<ChangeLogEntry[]> => {
     if (!isAuthenticated || !user) return [];
