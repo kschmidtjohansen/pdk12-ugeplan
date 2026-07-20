@@ -117,6 +117,40 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
         if (error) throw error;
         toast({ title: 'Kursus registreret', description: `${employee.name} er meldt på kursus.` });
       }
+
+      // Auto-remove employee from assignments in the training period (skip demo mode)
+      if (!isDemoMode) {
+        try {
+          const { data: cleanup } = await supabase.functions.invoke(
+            'vacation-cleanup-assignments',
+            {
+              body: {
+                userId: employee.id,
+                startDate: payload.start_date,
+                endDate: payload.end_date,
+                reason: 'training',
+              },
+            }
+          );
+          const removed = (cleanup as any)?.removedFromCount || 0;
+          const cleared = (cleanup as any)?.clearedResponsibleCount || 0;
+          if (removed > 0 || cleared > 0) {
+            toast({
+              title: 'Opgaver opdateret',
+              description: `${employee.name} er fjernet fra ${removed + cleared} opgave(r) i kursusperioden.`,
+            });
+            qc.invalidateQueries({ queryKey: ['assignments'] });
+            qc.invalidateQueries({ queryKey: ['optimizedAssignments'] });
+          }
+        } catch (cleanupErr: any) {
+          toast({
+            title: 'Kunne ikke fjerne fra opgaver',
+            description: cleanupErr?.message ?? 'Ukendt fejl — tjek opgaver manuelt',
+            variant: 'destructive',
+          });
+        }
+      }
+
       invalidateGrids();
       resetForm();
     } catch (e: any) {
