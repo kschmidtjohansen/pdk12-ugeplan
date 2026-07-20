@@ -216,26 +216,22 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const isDemoMode = user.email === 'test@polygongroup.com';
       const client = getSchemaClient(isDemoMode);
 
-      // Department scoping (same rules as fetchChangeLogs)
-      let assignmentIdsForDept: string[] | null = null;
+      // Fetch dept scoping sets (used to filter client-side)
+      let deptAssignmentIdSet: Set<string> | null = null;
       if (selectedDepartmentId && !isDemoMode) {
         const { data: deptAssignments } = await client
           .from('assignments').select('id').eq('department_id', selectedDepartmentId);
-        assignmentIdsForDept = (deptAssignments || []).map((a: any) => a.id);
+        deptAssignmentIdSet = new Set((deptAssignments || []).map((a: any) => a.id));
       }
       const deptUserIds = await getDepartmentUserIds();
 
-      let plannerQ = client.from('planner_change_log').select('*')
+      // Planner logs: fetch unfiltered, filter client-side so we don't drop
+      // rows with NULL assignment_id (bulk events) or rows whose assignment
+      // has since been deleted (DELETE events).
+      const plannerQ = client.from('planner_change_log').select('*')
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString())
         .order('created_at', { ascending: false });
-      if (assignmentIdsForDept !== null) {
-        if (assignmentIdsForDept.length === 0) {
-          plannerQ = plannerQ.eq('id', '00000000-0000-0000-0000-000000000000');
-        } else {
-          plannerQ = plannerQ.in('assignment_id', assignmentIdsForDept);
-        }
-      }
 
       let vacQ = client.from('vacations')
         .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, reviewed_by, reviewed_at, user:profiles!user_id(name), reviewer:profiles!reviewed_by(name)')
@@ -253,10 +249,33 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const [{ data: plannerData, error: pErr }, vacResult] = await Promise.all([plannerQ, vacQ]);
       if (pErr) throw pErr;
 
+      // Determine which assignment_ids referenced by logs actually exist —
+      // any missing ones represent deleted assignments and should still show.
+      let existingAssignmentIds: Set<string> = new Set();
+      const referencedIds = Array.from(new Set(
+        (plannerData || [])
+          .map((l: any) => l.assignment_id)
+          .filter((id: any): id is string => !!id)
+      ));
+      if (referencedIds.length > 0) {
+        const { data: existing } = await client
+          .from('assignments').select('id').in('id', referencedIds);
+        existingAssignmentIds = new Set((existing || []).map((a: any) => a.id));
+      }
+
+      const filteredPlanner = (plannerData || []).filter((log: any) => {
+        if (deptAssignmentIdSet === null) return true; // no dept selected — show all
+        if (!log.assignment_id) return true;           // bulk/system events
+        if (deptAssignmentIdSet.has(log.assignment_id)) return true; // this dept
+        if (!existingAssignmentIds.has(log.assignment_id)) return true; // deleted assignment
+        return false;
+      });
+
+
       const vacEntries = (vacResult.data || [])
         .map(vacationRowToEntry)
         .filter((e): e is ChangeLogEntry => e !== null);
-      return [...(plannerData as any[] || []) as ChangeLogEntry[], ...vacEntries]
+      return [...(filteredPlanner as ChangeLogEntry[]), ...vacEntries]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } catch (error) {
       if (import.meta.env.DEV) console.error('[ChangeLogContext] Failed to fetch logs by date range:', error);
