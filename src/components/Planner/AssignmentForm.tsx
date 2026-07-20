@@ -73,6 +73,34 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     defaultValues: formData
   });
 
+  // Fetch trainings for currently selected employees within the date range
+  const selectedEmployeeIds = useMemo(() => normalizeEmployees(formData.employees), [formData.employees]);
+  const selectedDatesForQuery: string[] = useMemo(() => {
+    const arr = (formData as any).dates?.length > 0 ? (formData as any).dates : (formData.date ? [formData.date] : []);
+    return arr;
+  }, [formData]);
+  const dateRangeKey = useMemo(() => {
+    if (selectedDatesForQuery.length === 0) return { start: '', end: '' };
+    const sorted = [...selectedDatesForQuery].sort();
+    return { start: sorted[0], end: sorted[sorted.length - 1] };
+  }, [selectedDatesForQuery]);
+
+  const { data: trainingRows = [] } = useQuery({
+    queryKey: ['assignment-form-trainings', selectedEmployeeIds, dateRangeKey.start, dateRangeKey.end],
+    enabled: selectedEmployeeIds.length > 0 && !!dateRangeKey.start,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trainings')
+        .select('user_id, start_date, end_date, title')
+        .in('user_id', selectedEmployeeIds)
+        .lte('start_date', dateRangeKey.end)
+        .gte('end_date', dateRangeKey.start);
+      if (error) throw error;
+      return (data || []) as Array<{ user_id: string; start_date: string; end_date: string; title: string | null }>;
+    },
+    staleTime: 60_000,
+  });
+
   // Helper: check if two time ranges overlap
   const timeRangesOverlap = (startA: string, endA: string, startB: string, endB: string): boolean => {
     return startA < endB && startB < endA;
