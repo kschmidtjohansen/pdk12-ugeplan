@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
 import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Employee } from '@/types/employee';
@@ -16,6 +17,7 @@ import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
 import { getEmployeeVacationStatus } from '@/utils/employeeAvailability';
 import { Card } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface EmployeeConflict {
   employeeId: string;
