@@ -452,29 +452,61 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       </div>
 
       {/* Inline Conflict Warning Banner */}
-      {conflictDetails.length > 0 && (
+      {conflictDetails.length > 0 && (() => {
+        const blocking = hasBlockingConflicts(conflictDetails);
+        // Group conflicts by employee for a cleaner overview
+        const grouped = new Map<string, EmployeeConflict[]>();
+        conflictDetails.forEach((c) => {
+          const list = grouped.get(c.employeeId) || [];
+          list.push(c);
+          grouped.set(c.employeeId, list);
+        });
+        const blockedEmployeeIds = new Set(
+          conflictDetails
+            .filter((c) => c.reason === 'vacation' || c.reason === 'onLeave' || c.reason === 'training' || c.reason === 'partialVacation')
+            .map((c) => c.employeeId)
+        );
+        const handleRemoveBlocked = async () => {
+          const current = normalizeEmployees(formData.employees);
+          const remaining = current.filter((id) => !blockedEmployeeIds.has(id));
+          const updated: any = { ...formData, employees: remaining, zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng };
+          setFormData(updated);
+          setConflictDetails([]);
+          setIsSubmitting(true);
+          try {
+            await onSubmit(updated);
+          } finally {
+            setIsSubmitting(false);
+          }
+        };
+        return (
         <Card className="rounded-2xl border-destructive/40 bg-destructive/5 p-4 space-y-3">
           <div className="flex items-center gap-2 text-destructive font-semibold">
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
             {t('planner.conflicts.title')}
           </div>
           <p className="text-sm text-muted-foreground">
-            {hasBlockingConflicts(conflictDetails)
+            {blocking
               ? t('planner.conflicts.absenceBlockDescription')
               : t('planner.conflicts.description')}
           </p>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {conflictDetails.map((conflict, idx) => (
-              <div key={idx} className="rounded-md border border-destructive/20 bg-background p-3 text-sm">
-                <div className="font-medium text-foreground">
-                  {conflict.employeeName} {t('planner.conflicts.warningPrefix')} {formatConflictDate(conflict.date)}
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {Array.from(grouped.entries()).map(([empId, list]) => (
+              <div key={empId} className="rounded-md border border-destructive/20 bg-background p-3 text-sm">
+                <div className="font-medium text-foreground mb-1">
+                  {list[0].employeeName}
                 </div>
-                <div className="text-muted-foreground mt-1">
-                  <span className="inline-block rounded bg-destructive/10 px-1.5 py-0.5 text-xs font-medium text-destructive mr-2">
-                    {getConflictReasonLabel(conflict.reason)}
-                  </span>
-                  {conflict.details}
-                </div>
+                <ul className="space-y-1">
+                  {list.map((conflict, idx) => (
+                    <li key={idx} className="flex flex-wrap items-center gap-2 text-muted-foreground">
+                      <span className="inline-block rounded bg-destructive/10 px-1.5 py-0.5 text-xs font-medium text-destructive">
+                        {getConflictReasonLabel(conflict.reason)}
+                      </span>
+                      <span className="text-foreground">{formatConflictDate(conflict.date)}</span>
+                      <span>· {conflict.details}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
@@ -482,7 +514,12 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             <Button type="button" variant="outline" onClick={() => setConflictDetails([])} className="flex-1">
               {t('common.cancel')}
             </Button>
-            {!hasBlockingConflicts(conflictDetails) && (
+            {blocking && blockedEmployeeIds.size > 0 && (
+              <Button type="button" variant="secondary" onClick={handleRemoveBlocked} className="flex-1">
+                {t('planner.conflicts.removeBlockedAndContinue') || 'Fjern blokerede og fortsæt'}
+              </Button>
+            )}
+            {!blocking && (
               <>
                 <Button type="button" variant="secondary" onClick={handleBookAvailableOnly} className="flex-1">
                   {t('planner.conflicts.bookAvailableOnly')}
@@ -499,7 +536,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             )}
           </div>
         </Card>
-      )}
+        );
+      })()}
+
 
       <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-3 flex flex-col sm:flex-row gap-3 z-10">
         <Button type="submit" disabled={isSubmitting || conflictDetails.length > 0} className="flex-1">
