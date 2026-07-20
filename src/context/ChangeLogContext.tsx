@@ -275,7 +275,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const vacEntries = (vacResult.data || [])
         .map(vacationRowToEntry)
         .filter((e): e is ChangeLogEntry => e !== null);
-      return [...(plannerData as any[] || []) as ChangeLogEntry[], ...vacEntries]
+      return [...(filteredPlanner as ChangeLogEntry[]), ...vacEntries]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } catch (error) {
       if (import.meta.env.DEV) console.error('[ChangeLogContext] Failed to fetch logs by date range:', error);
