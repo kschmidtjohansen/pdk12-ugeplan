@@ -60,13 +60,49 @@ const ChangeLogPage: React.FC = () => {
         return <FileX className="h-4 w-4 text-red-500" />;
       case 'PUBLISH':
         return <Upload className="h-4 w-4 text-purple-500" />;
+      case 'VACATION_REQUESTED':
+        return <CalendarPlus className="h-4 w-4 text-amber-500" />;
+      case 'VACATION_APPROVED':
+        return <CalendarCheck className="h-4 w-4 text-green-500" />;
+      case 'VACATION_REJECTED':
+        return <CalendarX className="h-4 w-4 text-red-500" />;
+      case 'VACATION_CANCELLED':
+        return <CalendarClock className="h-4 w-4 text-muted-foreground" />;
       default:
         return null;
     }
   };
 
+  const formatRange = (start?: string, end?: string): string => {
+    if (!start) return '';
+    try {
+      const s = formatDateForDisplay(start);
+      if (!end || start === end) return s;
+      return `${s} – ${formatDateForDisplay(end)}`;
+    } catch {
+      return start;
+    }
+  };
+
   const getChangeDescription = (log: any): string => {
     const details = log.change_details || {};
+
+    if (log.operation?.startsWith?.('VACATION_')) {
+      const name = details.user_name || log.changed_by_name || '';
+      const period = formatRange(details.start_date, details.end_date);
+      const suffix = period ? ` (${period})` : '';
+      switch (log.operation) {
+        case 'VACATION_REQUESTED':
+          return `${t('changeLog.vacationRequested')} · ${name}${suffix}`;
+        case 'VACATION_APPROVED':
+          return `${t('changeLog.vacationApproved')} · ${name}${suffix}`;
+        case 'VACATION_REJECTED':
+          return `${t('changeLog.vacationRejected')} · ${name}${suffix}`;
+        case 'VACATION_CANCELLED':
+          return `${t('changeLog.vacationCancelled')} · ${name}${suffix}`;
+      }
+    }
+
     const caseNumber = details.case_number || details.title || '-';
     
     if (log.operation === 'CREATE') {
@@ -102,6 +138,7 @@ const ChangeLogPage: React.FC = () => {
     
     return 'Unknown operation';
   };
+
 
   const filteredLogs = logs.filter(log => {
     // Filter by operation type
