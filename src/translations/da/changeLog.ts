@@ -13,6 +13,8 @@ export const changeLog = {
   last14Days: 'Sidste 14 dage',
   last7Days: 'Sidste 7 dage',
   last30Days: 'Sidste 30 dage',
+  last60Days: 'Sidste 60 dage',
+  last90Days: 'Sidste 90 dage',
   filterByType: 'Filtrer efter type',
   searchPlaceholder: 'Søg efter sagsnummer eller navn',
   noChanges: 'Ingen ændringer i denne periode',
