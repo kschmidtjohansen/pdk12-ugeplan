@@ -161,7 +161,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (deptUserIds === null || deptUserIds.length > 0) {
         let vacQuery = client
           .from('vacations')
-          .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, user:profiles!user_id(name)')
+          .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, reviewed_by, reviewed_at, user:profiles!user_id(name), reviewer:profiles!reviewed_by(name)')
           .order('updated_at', { ascending: false })
           .limit(50);
         if (deptUserIds !== null) {
