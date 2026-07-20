@@ -63,18 +63,26 @@ const vacationRowToEntry = (row: any): ChangeLogEntry | null => {
   } else {
     return null;
   }
-  const userName = row.user?.name || row.profiles?.name || 'Medarbejder';
+  const employeeName = row.user?.name || row.profiles?.name || 'Medarbejder';
+  const reviewerName: string | null = row.reviewer?.name || null;
+  const isReviewEvent = status === 'approved' || status === 'rejected' || status === 'cancelled';
+  const actorName = isReviewEvent && reviewerName ? reviewerName : employeeName;
+  const actorId = isReviewEvent && row.reviewed_by ? row.reviewed_by : row.user_id;
+  if (isReviewEvent && row.reviewed_at) {
+    ts = row.reviewed_at;
+  }
   return {
     id: `vacation-${row.id}-${status}`,
     assignment_id: null,
     operation,
-    changed_by: row.user_id,
-    changed_by_name: userName,
-    changed_by_first_name: (userName || '').split(' ')[0] || userName,
+    changed_by: actorId,
+    changed_by_name: actorName,
+    changed_by_first_name: (actorName || '').split(' ')[0] || actorName,
     change_details: {
       vacation_id: row.id,
       user_id: row.user_id,
-      user_name: userName,
+      user_name: employeeName,
+      reviewer_name: reviewerName,
       start_date: row.start_date,
       end_date: row.end_date,
       request_type: row.request_type,
@@ -84,6 +92,7 @@ const vacationRowToEntry = (row: any): ChangeLogEntry | null => {
     created_at: ts,
   };
 };
+
 
 export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
