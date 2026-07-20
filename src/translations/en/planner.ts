@@ -271,6 +271,7 @@ const planner = {
     onLeaveDetails: 'Employee is marked as absent',
     trainingDetails: 'Employee is on training',
     absenceBlockDescription: 'One or more employees are on vacation, absence or training in the selected period. Remove the employee or pick another date to continue.',
+    removeBlockedAndContinue: 'Remove blocked and continue',
     fullDayVacation: 'Full-day vacation approved',
     partialVacationDetails: 'Vacation from {from} to {to}',
     bookingDetails: 'Booked {from}–{to} ({title})',
