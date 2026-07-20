@@ -338,6 +338,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       case 'vacation': return t('planner.conflicts.reasonVacation');
       case 'partialVacation': return t('planner.conflicts.reasonPartialVacation');
       case 'onLeave': return t('planner.conflicts.reasonOnLeave');
+      case 'training': return t('planner.conflicts.reasonTraining');
       default: return reason;
     }
   };
