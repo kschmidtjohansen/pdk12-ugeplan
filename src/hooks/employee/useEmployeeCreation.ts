@@ -280,7 +280,8 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           }
 
           if (!isDemoMode) {
-            await PlannerChangeLogger.logEmployeeCreated(userId, formData.name, selectedDepartmentId);
+            const logDepartmentId = !formData.skip_department ? selectedDepartmentId : null;
+            await PlannerChangeLogger.logEmployeeCreated(userId, formData.name, logDepartmentId);
           }
         }
         
