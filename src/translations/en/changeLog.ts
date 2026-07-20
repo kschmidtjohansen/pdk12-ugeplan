@@ -24,7 +24,10 @@ export const changeLog = {
     UPDATE: 'Updated',
     DELETE: 'Deleted',
     PUBLISH: 'Published',
-    COMPLETE: 'Completed'
+    COMPLETE: 'Completed',
+    EMPLOYEE_CREATED: 'Employee created',
+    EMPLOYEE_UPDATED: 'Employee updated',
+    EMPLOYEE_DELETED: 'Employee removed'
   },
   history: 'History',
   time: 'Time',
@@ -36,5 +39,8 @@ export const changeLog = {
   vacationRequested: 'Requested vacation',
   vacationApproved: 'Approved vacation',
   vacationRejected: 'Rejected vacation',
-  vacationCancelled: 'Cancelled vacation'
+  vacationCancelled: 'Cancelled vacation',
+  employeeCreated: 'Created employee',
+  employeeUpdated: 'Updated employee',
+  employeeDeleted: 'Removed employee'
 };

@@ -24,7 +24,10 @@ export const changeLog = {
     UPDATE: 'Opdateret',
     DELETE: 'Slettet',
     PUBLISH: 'Publiceret',
-    COMPLETE: 'Færdiggjort'
+    COMPLETE: 'Færdiggjort',
+    EMPLOYEE_CREATED: 'Medarbejder oprettet',
+    EMPLOYEE_UPDATED: 'Medarbejder opdateret',
+    EMPLOYEE_DELETED: 'Medarbejder fjernet'
   },
   history: 'Historik',
   time: 'Tidspunkt',
@@ -36,5 +39,8 @@ export const changeLog = {
   vacationRequested: 'Anmodede om fri',
   vacationApproved: 'Godkendte fri',
   vacationRejected: 'Afviste fri',
-  vacationCancelled: 'Annullerede fri'
+  vacationCancelled: 'Annullerede fri',
+  employeeCreated: 'Oprettede medarbejder',
+  employeeUpdated: 'Opdaterede medarbejder',
+  employeeDeleted: 'Fjernede medarbejder'
 };

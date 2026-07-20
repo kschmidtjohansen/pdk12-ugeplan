@@ -9,11 +9,14 @@ import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { useAuth } from '@/context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
+import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
+import { useDepartment } from '@/context/DepartmentContext';
 
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { isDemoMode } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
 
   const toggleEmployeeLeave = async (employee: Employee, setOnLeave: boolean, notes: string | null = null) => {
@@ -208,6 +211,10 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           if (import.meta.env.DEV) console.warn('[useEmployeeActions] sub_department_id update failed:', e);
         }
       }
+
+      if (!isDemoMode) {
+        await PlannerChangeLogger.logEmployeeUpdated(employee.id, formData.name, selectedDepartmentId);
+      }
       
       toast({
         title: t('employees.employeeUpdated'),
@@ -248,7 +255,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
           .eq('is_demo', true);
         
         if (error) throw error;
-        
+
         toast({
           title: t('employees.employeeDeleted'),
           description: t('employees.employeeDeletedMsg', { name: employee.name })
@@ -265,6 +272,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       if (error) throw new Error(`Server error: ${error.message}`);
       if (data?.error) throw new Error(data.error);
+
+      await PlannerChangeLogger.logEmployeeDeleted(employeeId, employee.name, selectedDepartmentId);
       
       toast({
         title: t('employees.employeeDeleted'),

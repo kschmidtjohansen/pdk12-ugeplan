@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-20 — Fix: /changelog viser medarbejder- og ferieændringer igen
+
+- `/changelog` henter nu ændringer robust på tværs af `planner_change_log`, `vacations` og `profiles`, så én manglende/fejlende kilde ikke resulterer i en tom changelog.
+- Nyoprettede medarbejdere i den valgte afdeling vises nu som changelog-events via `profiles.created_at` (inkl. Phillip Fogh/Mette Larsen fra eksisterende data), og fremtidige medarbejder-opret/redigér/slet logges eksplicit i `planner_change_log`.
+- Ferie/fravær vises efter relevant hændelsestidspunkt (`created_at`, `reviewed_at` eller `updated_at`) og scopes fortsat til den valgte afdeling.
+
 ## 2026-07-08 — Fix: tom planner ved stale afdelingsvalg i localStorage
 
 - `DepartmentContext` validerer nu det gemte `selected_department_id` mod brugerens faktiske afdelinger. Hvis værdien er ugyldig (fx gammelt login, slettet afdeling, demo-mode), nulstilles den til brugerens første tilladte afdeling i stedet for at blive sendt videre til RPC'en. Løser problem hvor servicemedarbejdere så "Ingen opgaver i denne uge", selvom de var tilknyttet publicerede opgaver.

@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
+import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
 
 export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   const queryClient = useQueryClient();
@@ -276,6 +277,11 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             if (homeDeptError && import.meta.env.DEV) {
               console.warn('[useEmployeeCreation] home_department_id update warning:', homeDeptError);
             }
+          }
+
+          if (!isDemoMode) {
+            const logDepartmentId = !formData.skip_department ? selectedDepartmentId : null;
+            await PlannerChangeLogger.logEmployeeCreated(userId, formData.name, logDepartmentId);
           }
         }
         
