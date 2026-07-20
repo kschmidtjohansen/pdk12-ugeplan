@@ -502,6 +502,8 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
         .update({
           status: 'rejected' as const,
           notes: reason,
+          reviewed_by: user?.id ?? null,
+          reviewed_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('id', vacation.id);
