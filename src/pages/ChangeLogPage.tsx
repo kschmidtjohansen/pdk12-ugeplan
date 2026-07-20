@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, subDays } from 'date-fns';
-import { FileEdit, FilePlus, FileX, Upload, Search } from 'lucide-react';
+import { FileEdit, FilePlus, FileX, Upload, Search, CalendarPlus, CalendarCheck, CalendarX, CalendarClock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import MainLayout from '@/components/Layout/MainLayout';
+
 import { formatDateForDisplay } from '@/utils/dateUtils';
 import {
   Table,
@@ -60,13 +60,49 @@ const ChangeLogPage: React.FC = () => {
         return <FileX className="h-4 w-4 text-red-500" />;
       case 'PUBLISH':
         return <Upload className="h-4 w-4 text-purple-500" />;
+      case 'VACATION_REQUESTED':
+        return <CalendarPlus className="h-4 w-4 text-amber-500" />;
+      case 'VACATION_APPROVED':
+        return <CalendarCheck className="h-4 w-4 text-green-500" />;
+      case 'VACATION_REJECTED':
+        return <CalendarX className="h-4 w-4 text-red-500" />;
+      case 'VACATION_CANCELLED':
+        return <CalendarClock className="h-4 w-4 text-muted-foreground" />;
       default:
         return null;
     }
   };
 
+  const formatRange = (start?: string, end?: string): string => {
+    if (!start) return '';
+    try {
+      const s = formatDateForDisplay(start);
+      if (!end || start === end) return s;
+      return `${s} – ${formatDateForDisplay(end)}`;
+    } catch {
+      return start;
+    }
+  };
+
   const getChangeDescription = (log: any): string => {
     const details = log.change_details || {};
+
+    if (log.operation?.startsWith?.('VACATION_')) {
+      const name = details.user_name || log.changed_by_name || '';
+      const period = formatRange(details.start_date, details.end_date);
+      const suffix = period ? ` (${period})` : '';
+      switch (log.operation) {
+        case 'VACATION_REQUESTED':
+          return `${t('changeLog.vacationRequested')} · ${name}${suffix}`;
+        case 'VACATION_APPROVED':
+          return `${t('changeLog.vacationApproved')} · ${name}${suffix}`;
+        case 'VACATION_REJECTED':
+          return `${t('changeLog.vacationRejected')} · ${name}${suffix}`;
+        case 'VACATION_CANCELLED':
+          return `${t('changeLog.vacationCancelled')} · ${name}${suffix}`;
+      }
+    }
+
     const caseNumber = details.case_number || details.title || '-';
     
     if (log.operation === 'CREATE') {
@@ -103,6 +139,7 @@ const ChangeLogPage: React.FC = () => {
     return 'Unknown operation';
   };
 
+
   const filteredLogs = logs.filter(log => {
     // Filter by operation type
     if (operationFilter !== 'ALL' && log.operation !== operationFilter) {
@@ -129,25 +166,24 @@ const ChangeLogPage: React.FC = () => {
   // Role-gate: Only admin and skadeleder can access
   if (!isEffectiveAdmin && !isEffectiveSkadeleder) {
     return (
-      <MainLayout>
-        <div className="container mx-auto p-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('accessDenied.title')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">{t('accessDenied.restricted')}</p>
-            </CardContent>
-          </Card>
-        </div>
-      </MainLayout>
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('accessDenied.title')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">{t('accessDenied.restricted')}</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
+
   return (
     <DataFetchErrorBoundary>
-    <MainLayout>
       <div className="container mx-auto p-6 space-y-6">
+
         <Card>
           <CardHeader>
             <CardTitle>{t('changeLog.title')}</CardTitle>
@@ -175,6 +211,8 @@ const ChangeLogPage: React.FC = () => {
                   <SelectItem value="7">{t('changeLog.last7Days')}</SelectItem>
                   <SelectItem value="14">{t('changeLog.last14Days')}</SelectItem>
                   <SelectItem value="30">{t('changeLog.last30Days')}</SelectItem>
+                  <SelectItem value="60">{t('changeLog.last60Days') || 'Sidste 60 dage'}</SelectItem>
+                  <SelectItem value="90">{t('changeLog.last90Days') || 'Sidste 90 dage'}</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -188,9 +226,14 @@ const ChangeLogPage: React.FC = () => {
                   <SelectItem value="UPDATE">{t('changeLog.operations.UPDATE')}</SelectItem>
                   <SelectItem value="DELETE">{t('changeLog.operations.DELETE')}</SelectItem>
                   <SelectItem value="PUBLISH">{t('changeLog.operations.PUBLISH')}</SelectItem>
+                  <SelectItem value="VACATION_REQUESTED">{t('changeLog.vacationRequested')}</SelectItem>
+                  <SelectItem value="VACATION_APPROVED">{t('changeLog.vacationApproved')}</SelectItem>
+                  <SelectItem value="VACATION_REJECTED">{t('changeLog.vacationRejected')}</SelectItem>
+                  <SelectItem value="VACATION_CANCELLED">{t('changeLog.vacationCancelled')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
 
             {/* Table */}
             {isLoading ? (
@@ -245,8 +288,8 @@ const ChangeLogPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
     </DataFetchErrorBoundary>
+
   );
 };
 

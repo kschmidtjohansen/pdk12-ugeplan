@@ -13,6 +13,8 @@ export const changeLog = {
   last14Days: 'Last 14 days',
   last7Days: 'Last 7 days',
   last30Days: 'Last 30 days',
+  last60Days: 'Last 60 days',
+  last90Days: 'Last 90 days',
   filterByType: 'Filter by type',
   searchPlaceholder: 'Search by case number or name',
   noChanges: 'No changes in this period',

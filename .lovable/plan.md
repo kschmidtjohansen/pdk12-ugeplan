@@ -1,56 +1,48 @@
-## Mål
+## 1. Vis hvem der har godkendt/afvist ferie i "Seneste ændringer"
 
-1. Udvid "Seneste ændringer" til også at vise ferie-hændelser (oprettet, godkendt, afvist, annulleret) for **den aktivt valgte afdeling**.
-2. Fjern automatisk medarbejdere fra opgaver, når de bliver fraværende (ferie godkendt, `on_leave` sat, eller kursus oprettet) — også på fremtidige dage.
-3. Blokér oprettelse/redigering af flerdags-opgaver, hvis en valgt medarbejder har fri/fravær/kursus på én eller flere af dagene, med en tydelig fejlbesked der navngiver personen og dagen.
+**Problem:** `vacations`-rækker gemmer ikke hvem der reviewede anmodningen, så `ChangeLogContext` bruger ferie-ejerens navn i alle events (også ved afvisning/godkendelse). Man kan derfor ikke se hvem der har afvist Ronnies fri-ønske.
 
----
+**Løsning:**
 
-## 1. Ferie-hændelser i "Seneste ændringer"
+**DB-migration** (`vacations`):
+- Tilføj `reviewed_by uuid references auth.users(id)` og `reviewed_at timestamptz`.
+- Ingen ændringer i RLS-politikker (kolonnerne bruger eksisterende UPDATE-adgang for administrator/skadeleder).
 
-**Datakilde:** `vacations` har allerede `status`, `updated_at`, `user_id`. Vi behøver ikke en ny tabel — vi mapper `vacations`-rækker til virtuelle log-poster i `ChangeLogContext`.
+**Kode:**
+- `useVacationActions.ts`: Sæt `reviewed_by = user?.id, reviewed_at = now()` i UPDATE-payload for approve, reject **og** cancel-when-admin-cancels-someone-else.
+- `ChangeLogContext.tsx`:
+  - Udvid vacations-select med `reviewed_by, reviewer:profiles!reviewed_by(name)`.
+  - I `vacationRowToEntry`: For status `approved | rejected | cancelled` sæt `changed_by = reviewed_by || user_id` og `changed_by_name/first_name = reviewer?.name`. Behold `change_details.user_name` som den ansatte det gælder.
+- `ChangeLogList.tsx` + `ChangeLogPage.tsx`: Beskrivelserne viser allerede `changed_by_first_name` foran teksten (fx "Mads · Godkendte fri · Ronnie (11.06–15.06)"). Justér `getChangeDescription` så ejerens navn altid vises efter operationen, uafhængigt af hvem der reviewede.
+- Tilføj ferie-ikoner + operations-filter (`VACATION_REQUESTED/APPROVED/REJECTED/CANCELLED`) i `ChangeLogPage.tsx`, så man kan filtrere på fri-hændelser (i dag mangler de i `getOperationIcon` og select).
 
-Ændringer:
-- `src/context/ChangeLogContext.tsx`: hent seneste 50 vacations for brugere i den valgte afdeling (join via `user_access.department_id` + `profiles.home_department_id`), sammen med planner_change_log. Konvertér til `ChangeLogEntry`-lignende poster med `operation` = `VACATION_REQUEST | VACATION_APPROVED | VACATION_REJECTED | VACATION_CANCELLED`, sortér samlet på `created_at`/`updated_at`, slice(50).
-- Realtime: tilføj `vacations`-INSERT/UPDATE subscription filtreret på schema.
-- `src/components/Layout/NavComponents/ChangeLogList.tsx`: udvid `getOperationIcon` + `getChangeDescription` for de nye ferie-operationer (ikon: `CalendarCheck`, `CalendarX`, `Calendar`). Brug ansøgerens navn + periode (`dd.MM–dd.MM` eller "Hele ugen" konsistent med resten).
-- `src/pages/ChangeLogPage.tsx`: udvid filter-options.
-- Oversættelser: `changeLog.vacationRequested/Approved/Rejected/Cancelled` i `da/en`.
+**"Tidligere ændringer":** Nuværende `fetchChangeLogs` limit=50. Bevar limit i dropdown-panelet, men `/changelog`-siden bruger allerede `fetchChangeLogsByDateRange` (7/14/30 dage). Bekræft at date-range-funktionen også afdelings-filtrerer (den gør den ikke i dag) — tilføj samme dept-filter som `fetchChangeLogs`.
 
-## 2. Auto-fjern fra opgaver ved fravær
+## 2. Dobbelt header på `/changelog`
 
-Nuværende tilstand: `vacation-cleanup-assignments` køres kun ved *godkendelse*. Mark-eksemplet 22. juli tyder på, at ferien enten stadig er `pending` eller blev oprettet efter opgaven blev tildelt uden opdatering.
+**Årsag:** `App.tsx` line 158 wrapper allerede routen: `<MainLayout><ChangeLogPage /></MainLayout>`, og `ChangeLogPage` wrapper igen med `<MainLayout>` internt. To top-bars renders.
 
-Ændringer:
-- **Ferie-oprettelse:** Kald `vacation-cleanup-assignments` også når en ferie oprettes med `status='approved'` (fx admin der registrerer ferie direkte) — tilføj kald i `useVacationActions.createVacation` efter succesfuld insert, hvis status er approved.
-- **Manuel `on_leave`:** I `useEmployeeActions` (medarbejder-opdatering), når `on_leave` skifter fra false→true, kald en ny variant af edge-funktionen (eller udvid eksisterende med `mode: 'on_leave' | 'vacation'`) der fjerner brugeren fra alle **fremtidige** `assignments_employees` og nulstiller `responsible_user_id`, uanset dato-interval (evt. fra dagens dato).
-- **Kursus-oprettelse:** I `EmployeeTrainingDialog`s save-flow, kald samme cleanup for det angivne datointerval.
-- **Edge function:** `supabase/functions/vacation-cleanup-assignments/index.ts` udvides så den accepterer `{ userId, startDate, endDate }` som alternativ til `vacationId`, så den kan bruges af både ferie, on_leave og kursus.
-- UI-refresh: invalider `assignments` + `optimizedAssignments` query-cache efter cleanup.
+**Løsning:** Fjern det indre `<MainLayout>`-wrap (og access-denied-varianten) i `ChangeLogPage.tsx` og behold kun det ydre wrap fra routen. Bevar `DataFetchErrorBoundary`.
 
-## 3. Validering ved oprettelse af flerdags-opgaver
+## 3. Detaljeret fejl ved fravær/ferie-blok på flerdags-oprettelse
 
-Nuværende `useAssignmentConflicts` håndterer kun tidsoverlap — ikke fravær.
+**Nuværende:** `AssignmentForm` viser allerede en inline banner med række-liste (navn + dato + reason-badge). Toast'en `allDatesConflict` er meget kortfattet.
 
-Ændringer:
-- Ny helper `src/utils/assignmentAvailabilityValidation.ts` med `validateEmployeesAvailable(employeeIds, dateRange, { vacations, employees, trainings })` → returnerer array af `{ employeeId, name, date, reason: 'vacation' | 'on_leave' | 'training' }`.
-- `src/components/Planner/AssignmentForm.tsx` (`handleSubmit`): efter eksisterende konfliktcheck, kør availability-validering for hele datointervallet (fra `startDate` til `endDate` når det er en serie, ellers enkelt dato). Ved fund: `toast.error` med besked som _"Kan ikke oprette opgaven: Mark har fri onsdag 22. juli"_ (multi-linje ved flere fund) og `return` uden at gemme.
-- Oversættelser: `planner.errors.employeeUnavailableOnDate` + varianter for `vacation/onLeave/training` i `da/en`.
-- Gælder både oprettelse og redigering. Skadeleder/admin får samme validering (ingen bypass) medmindre I ønsker en override — spørges ikke om her, default = ingen override.
+**Løsning i `AssignmentForm.tsx`:**
+- Gruppér `conflictDetails` per medarbejder i banneren: én blok pr. person med navn + samlet liste af datoer og årsag pr. dato (fx "Henrik · Kursus: 11.05–22.06 (5 datoer)"). Sammenkæd sammenhængende datoer til intervaller (samme helper som `VacationGridOverview`'s coversWholeWeek/mergeRanges).
+- Skift banner-overskrift til `t('planner.conflicts.absenceBlockTitle')` når `hasBlockingConflicts` er sandt, og udvid `absenceBlockDescription` med antal blokerende medarbejdere/datoer.
+- Behold "Fortsæt alligevel"/"Book kun ledige" skjult ved absence-konflikter (allerede tilfældet), men vis en sekundær handling "Fjern medarbejder(e) og fortsæt" der auto-filtrerer de blokerede employee-IDs fra `formData.employees` inden re-submit.
+- Erstat `allDatesConflict`-toast med en toast der siger "X medarbejdere blokerer på Y datoer — se detaljer nedenfor" og scroll banneret ind i view.
 
-## Dokumentation
+Nye oversættelser i `planner.conflicts`: `absenceBlockTitle`, `absenceBlockSummary`, `removeBlockedAndContinue`, `datesLabel`.
 
-- `CHANGELOG.md`: kort punktopstilling af de tre ændringer.
-- `docs/implementation-plan/tasks.md`: markér med `[x]`.
+## Filer der ændres
 
----
-
-## Teknisk noter
-
-- Afdelingsfilter til ferie-feed: brug samme mønster som `ChangeLogContext` allerede har med `assignments` — men her via `user_access` + `home_department_id`. Skadeleder/admin med adgang til flere afdelinger ser stadig kun den *valgte*.
-- Edge-funktionen skal fortsat validere caller-rettigheder (er allerede sat op via service role).
-- Kursus-cleanup må ikke fejle stille — vis toast ved fejl så admin ved besked.
-
-## Ingen ændringer
-- Ingen ny tabel, ingen RLS-ændringer.
-- Ingen ændring af hvordan planner_change_log genereres for opgaver.
+- `supabase` migration: `vacations.reviewed_by`, `vacations.reviewed_at`
+- `src/hooks/vacation/useVacationActions.ts`
+- `src/context/ChangeLogContext.tsx`
+- `src/components/Layout/NavComponents/ChangeLogList.tsx`
+- `src/pages/ChangeLogPage.tsx` (fjern dobbelt MainLayout + tilføj ferie-filter)
+- `src/components/Planner/AssignmentForm.tsx`
+- `src/translations/{da,en}/planner.ts` og `changeLog.ts`
+- `CHANGELOG.md` + `docs/implementation-plan/tasks.md`

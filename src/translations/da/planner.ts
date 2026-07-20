@@ -387,6 +387,7 @@ const planner = {
     onLeaveDetails: 'Medarbejderen er registreret som fraværende',
     trainingDetails: 'Medarbejderen er på kursus',
     absenceBlockDescription: 'En eller flere medarbejdere har ferie, fravær eller kursus i den valgte periode. Fjern medarbejderen eller vælg en anden dato for at fortsætte.',
+    removeBlockedAndContinue: 'Fjern blokerede og fortsæt',
     fullDayVacation: 'Heldagsferie godkendt',
     partialVacationDetails: 'Ferie fra {from} til {to}',
     bookingDetails: 'Optaget {from}–{to} ({title})',
