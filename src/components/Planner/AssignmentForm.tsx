@@ -134,6 +134,23 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           continue; // no need to check further for this emp+date
         }
 
+        // 1b. Check training for this employee on this date
+        const activeTraining = trainingRows.find(
+          (tr) => tr.user_id === empId && tr.start_date <= dateStr && tr.end_date >= dateStr
+        );
+        if (activeTraining) {
+          conflicts.push({
+            employeeId: empId,
+            employeeName: emp.name,
+            date: dateStr,
+            reason: 'training',
+            details: activeTraining.title
+              ? `${t('planner.conflicts.trainingDetails')} · ${activeTraining.title}`
+              : t('planner.conflicts.trainingDetails'),
+          });
+          continue;
+        }
+
         // 2. Check vacations
         const vacStatus = getEmployeeVacationStatus(empId, dateObj, vacations);
         if (vacStatus.isOnVacation) {
