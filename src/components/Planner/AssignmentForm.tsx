@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
 import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Employee } from '@/types/employee';
@@ -16,12 +17,13 @@ import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
 import { getEmployeeVacationStatus } from '@/utils/employeeAvailability';
 import { Card } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface EmployeeConflict {
   employeeId: string;
   employeeName: string;
   date: string;
-  reason: 'booking' | 'vacation' | 'partialVacation' | 'onLeave';
+  reason: 'booking' | 'vacation' | 'partialVacation' | 'onLeave' | 'training';
   details: string;
 }
 
@@ -71,6 +73,34 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     defaultValues: formData
   });
 
+  // Fetch trainings for currently selected employees within the date range
+  const selectedEmployeeIds = useMemo(() => normalizeEmployees(formData.employees), [formData.employees]);
+  const selectedDatesForQuery: string[] = useMemo(() => {
+    const arr = (formData as any).dates?.length > 0 ? (formData as any).dates : (formData.date ? [formData.date] : []);
+    return arr;
+  }, [formData]);
+  const dateRangeKey = useMemo(() => {
+    if (selectedDatesForQuery.length === 0) return { start: '', end: '' };
+    const sorted = [...selectedDatesForQuery].sort();
+    return { start: sorted[0], end: sorted[sorted.length - 1] };
+  }, [selectedDatesForQuery]);
+
+  const { data: trainingRows = [] } = useQuery({
+    queryKey: ['assignment-form-trainings', selectedEmployeeIds, dateRangeKey.start, dateRangeKey.end],
+    enabled: selectedEmployeeIds.length > 0 && !!dateRangeKey.start,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trainings')
+        .select('user_id, start_date, end_date, title')
+        .in('user_id', selectedEmployeeIds)
+        .lte('start_date', dateRangeKey.end)
+        .gte('end_date', dateRangeKey.start);
+      if (error) throw error;
+      return (data || []) as Array<{ user_id: string; start_date: string; end_date: string; title: string | null }>;
+    },
+    staleTime: 60_000,
+  });
+
   // Helper: check if two time ranges overlap
   const timeRangesOverlap = (startA: string, endA: string, startB: string, endB: string): boolean => {
     return startA < endB && startB < endA;
@@ -102,6 +132,23 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             details: t('planner.conflicts.onLeaveDetails')
           });
           continue; // no need to check further for this emp+date
+        }
+
+        // 1b. Check training for this employee on this date
+        const activeTraining = trainingRows.find(
+          (tr) => tr.user_id === empId && tr.start_date <= dateStr && tr.end_date >= dateStr
+        );
+        if (activeTraining) {
+          conflicts.push({
+            employeeId: empId,
+            employeeName: emp.name,
+            date: dateStr,
+            reason: 'training',
+            details: activeTraining.title
+              ? `${t('planner.conflicts.trainingDetails')} · ${activeTraining.title}`
+              : t('planner.conflicts.trainingDetails'),
+          });
+          continue;
         }
 
         // 2. Check vacations
@@ -156,7 +203,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       }
     }
     return conflicts;
-  }, [formData, employees, vacations, assignments, currentAssignment, t]);
+  }, [formData, employees, vacations, assignments, currentAssignment, trainingRows, t]);
+
+  // Absence reasons that block saving entirely (no "proceed anyway")
+  const hasBlockingConflicts = (c: EmployeeConflict[]) =>
+    c.some((x) => x.reason === 'vacation' || x.reason === 'onLeave' || x.reason === 'training' || x.reason === 'partialVacation');
 
   // Proceed with actual submission
   const executeSubmit = async () => {
@@ -287,6 +338,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       case 'vacation': return t('planner.conflicts.reasonVacation');
       case 'partialVacation': return t('planner.conflicts.reasonPartialVacation');
       case 'onLeave': return t('planner.conflicts.reasonOnLeave');
+      case 'training': return t('planner.conflicts.reasonTraining');
       default: return reason;
     }
   };
@@ -406,7 +458,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
             {t('planner.conflicts.title')}
           </div>
-          <p className="text-sm text-muted-foreground">{t('planner.conflicts.description')}</p>
+          <p className="text-sm text-muted-foreground">
+            {hasBlockingConflicts(conflictDetails)
+              ? t('planner.conflicts.absenceBlockDescription')
+              : t('planner.conflicts.description')}
+          </p>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {conflictDetails.map((conflict, idx) => (
               <div key={idx} className="rounded-md border border-destructive/20 bg-background p-3 text-sm">
@@ -426,17 +482,21 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             <Button type="button" variant="outline" onClick={() => setConflictDetails([])} className="flex-1">
               {t('common.cancel')}
             </Button>
-            <Button type="button" variant="secondary" onClick={handleBookAvailableOnly} className="flex-1">
-              {t('planner.conflicts.bookAvailableOnly')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={async () => { setConflictDetails([]); await executeSubmit(); }}
-              className="flex-1"
-            >
-              {t('planner.conflicts.proceedAnyway')}
-            </Button>
+            {!hasBlockingConflicts(conflictDetails) && (
+              <>
+                <Button type="button" variant="secondary" onClick={handleBookAvailableOnly} className="flex-1">
+                  {t('planner.conflicts.bookAvailableOnly')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={async () => { setConflictDetails([]); await executeSubmit(); }}
+                  className="flex-1"
+                >
+                  {t('planner.conflicts.proceedAnyway')}
+                </Button>
+              </>
+            )}
           </div>
         </Card>
       )}

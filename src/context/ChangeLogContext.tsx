@@ -4,10 +4,14 @@ import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 
+export type ChangeLogOperation =
+  | 'CREATE' | 'UPDATE' | 'DELETE' | 'PUBLISH'
+  | 'VACATION_REQUESTED' | 'VACATION_APPROVED' | 'VACATION_REJECTED' | 'VACATION_CANCELLED';
+
 export interface ChangeLogEntry {
   id: string;
   assignment_id: string | null;
-  operation: 'CREATE' | 'UPDATE' | 'DELETE' | 'PUBLISH';
+  operation: ChangeLogOperation;
   changed_by: string;
   changed_by_name: string;
   changed_by_first_name: string | null;
@@ -41,6 +45,46 @@ export const useChangeLogs = () => useContext(ChangeLogContext);
 
 const LAST_VIEWED_KEY = 'planner-changes-last-viewed';
 
+// Map a vacations row to a virtual ChangeLogEntry
+const vacationRowToEntry = (row: any): ChangeLogEntry | null => {
+  if (!row) return null;
+  const status = row.status as string;
+  let operation: ChangeLogOperation;
+  let ts: string = row.updated_at || row.created_at;
+  if (status === 'pending') {
+    operation = 'VACATION_REQUESTED';
+    ts = row.created_at || ts;
+  } else if (status === 'approved') {
+    operation = 'VACATION_APPROVED';
+  } else if (status === 'rejected') {
+    operation = 'VACATION_REJECTED';
+  } else if (status === 'cancelled') {
+    operation = 'VACATION_CANCELLED';
+  } else {
+    return null;
+  }
+  const userName = row.user?.name || row.profiles?.name || 'Medarbejder';
+  return {
+    id: `vacation-${row.id}-${status}`,
+    assignment_id: null,
+    operation,
+    changed_by: row.user_id,
+    changed_by_name: userName,
+    changed_by_first_name: (userName || '').split(' ')[0] || userName,
+    change_details: {
+      vacation_id: row.id,
+      user_id: row.user_id,
+      user_name: userName,
+      start_date: row.start_date,
+      end_date: row.end_date,
+      request_type: row.request_type,
+      reason: row.reason,
+      notes: row.notes,
+    },
+    created_at: ts,
+  };
+};
+
 export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
   const { selectedDepartmentId } = useDepartment();
@@ -50,86 +94,106 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.getItem(LAST_VIEWED_KEY)
   );
 
+  // Get user IDs belonging to the selected department (via user_access + home_department_id)
+  const getDepartmentUserIds = async (): Promise<string[] | null> => {
+    if (!selectedDepartmentId) return null;
+    try {
+      const [{ data: access }, { data: homes }] = await Promise.all([
+        supabase.from('user_access').select('user_id').eq('department_id', selectedDepartmentId),
+        supabase.from('profiles').select('id').eq('home_department_id', selectedDepartmentId),
+      ]);
+      const ids = new Set<string>();
+      (access || []).forEach((r: any) => r?.user_id && ids.add(r.user_id));
+      (homes || []).forEach((r: any) => r?.id && ids.add(r.id));
+      return Array.from(ids);
+    } catch (e) {
+      if (import.meta.env.DEV) console.warn('[ChangeLogContext] getDepartmentUserIds failed', e);
+      return null;
+    }
+  };
+
   const fetchChangeLogs = async () => {
     if (!isAuthenticated || !user) return;
 
     try {
       setLoading(true);
-      
-      // Use schema-aware client for demo isolation
       const isDemoMode = user.email === 'test@polygongroup.com';
       const client = getSchemaClient(isDemoMode);
-      
-      // Fetch last 50 change logs, filtered by department
-      let query = client
+
+      // Assignment change logs, department-filtered
+      let assignmentIdsForDept: string[] | null = null;
+      if (selectedDepartmentId && !isDemoMode) {
+        const { data: deptAssignments } = await client
+          .from('assignments').select('id').eq('department_id', selectedDepartmentId);
+        assignmentIdsForDept = (deptAssignments || []).map((a: any) => a.id);
+      }
+
+      let plannerQuery = client
         .from('planner_change_log')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
-
-      // If we have a department selected and not demo, filter via assignment_id
-      // We need to get assignment IDs for this department first
-      if (selectedDepartmentId && !isDemoMode) {
-        const { data: deptAssignments } = await client
-          .from('assignments')
-          .select('id')
-          .eq('department_id', selectedDepartmentId);
-        
-        if (deptAssignments && deptAssignments.length > 0) {
-          const assignmentIds = deptAssignments.map(a => a.id);
-          query = query.in('assignment_id', assignmentIds);
+      if (assignmentIdsForDept !== null) {
+        if (assignmentIdsForDept.length === 0) {
+          // No planner logs for this dept; still fetch vacation logs
         } else {
-          // No assignments for this department, return empty
-          setChangeLogs([]);
-          setLoading(false);
-          return;
+          plannerQuery = plannerQuery.in('assignment_id', assignmentIdsForDept);
+        }
+      }
+      const plannerRes = assignmentIdsForDept !== null && assignmentIdsForDept.length === 0
+        ? { data: [], error: null as any }
+        : await plannerQuery;
+      if (plannerRes.error) throw plannerRes.error;
+      let logs = (plannerRes.data || []) as ChangeLogEntry[];
+
+      // Vacation events, department-filtered by user
+      let vacationEntries: ChangeLogEntry[] = [];
+      const deptUserIds = await getDepartmentUserIds();
+      if (deptUserIds === null || deptUserIds.length > 0) {
+        let vacQuery = client
+          .from('vacations')
+          .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, user:profiles!user_id(name)')
+          .order('updated_at', { ascending: false })
+          .limit(50);
+        if (deptUserIds !== null) {
+          vacQuery = vacQuery.in('user_id', deptUserIds);
+        }
+        const { data: vacs, error: vacErr } = await vacQuery;
+        if (vacErr) {
+          if (import.meta.env.DEV) console.warn('[ChangeLogContext] vacations fetch failed', vacErr);
+        } else {
+          vacationEntries = (vacs || [])
+            .map(vacationRowToEntry)
+            .filter((e): e is ChangeLogEntry => e !== null);
         }
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      let logs = (data || []) as ChangeLogEntry[];
-
-      // Enrich logs with missing case_numbers (fallback to title)
+      // Enrich planner logs with missing case_number
       const logsWithoutCaseNumber = logs.filter(
-        log => log.assignment_id && !log.change_details?.case_number
+        (log) => log.assignment_id && !log.change_details?.case_number
       );
-
       if (logsWithoutCaseNumber.length > 0) {
-        const assignmentIds = [...new Set(logsWithoutCaseNumber.map(log => log.assignment_id))].filter(Boolean) as string[];
-        
-        const isDemoMode = user.email === 'test@polygongroup.com';
-        const client = getSchemaClient(isDemoMode);
-        
+        const assignmentIds = [...new Set(logsWithoutCaseNumber.map((log) => log.assignment_id))].filter(Boolean) as string[];
         const { data: assignments } = await client
-          .from('assignments')
-          .select('id, case_number, title')
-          .in('id', assignmentIds);
-
+          .from('assignments').select('id, case_number, title').in('id', assignmentIds);
         if (assignments) {
-          const caseNumberMap = new Map(assignments.map(a => [a.id, a.case_number || a.title]));
-          
-          logs = logs.map(log => {
+          const caseNumberMap = new Map(assignments.map((a: any) => [a.id, a.case_number || a.title]));
+          logs = logs.map((log) => {
             if (log.assignment_id && !log.change_details?.case_number) {
-              const caseNumber = caseNumberMap.get(log.assignment_id);
-              if (caseNumber) {
-                return {
-                  ...log,
-                  change_details: {
-                    ...log.change_details,
-                    case_number: caseNumber
-                  }
-                };
-              }
+              const cn = caseNumberMap.get(log.assignment_id);
+              if (cn) return { ...log, change_details: { ...log.change_details, case_number: cn } };
             }
             return log;
           });
         }
       }
 
-      setChangeLogs(logs);
+      // Merge, sort, slice
+      const merged = [...logs, ...vacationEntries]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 50);
+
+      setChangeLogs(merged);
     } catch (error) {
       if (import.meta.env.DEV) console.error('[ChangeLogContext] Failed to fetch change logs:', error);
     } finally {
@@ -139,20 +203,28 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const fetchChangeLogsByDateRange = async (startDate: Date, endDate: Date): Promise<ChangeLogEntry[]> => {
     if (!isAuthenticated || !user) return [];
-
     try {
       const isDemoMode = user.email === 'test@polygongroup.com';
       const client = getSchemaClient(isDemoMode);
-      
-      const { data, error } = await client
-        .from('planner_change_log')
-        .select('*')
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString())
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return (data || []) as ChangeLogEntry[];
+      const [{ data: plannerData, error: pErr }, vacResult] = await Promise.all([
+        client.from('planner_change_log').select('*')
+          .gte('created_at', startDate.toISOString())
+          .lte('created_at', endDate.toISOString())
+          .order('created_at', { ascending: false }),
+        client.from('vacations')
+          .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, user:profiles!user_id(name)')
+          .gte('updated_at', startDate.toISOString())
+          .lte('updated_at', endDate.toISOString())
+          .order('updated_at', { ascending: false }),
+      ]);
+      if (pErr) throw pErr;
+
+      const vacEntries = (vacResult.data || [])
+        .map(vacationRowToEntry)
+        .filter((e): e is ChangeLogEntry => e !== null);
+      return [...(plannerData as any[] || []) as ChangeLogEntry[], ...vacEntries]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } catch (error) {
       if (import.meta.env.DEV) console.error('[ChangeLogContext] Failed to fetch logs by date range:', error);
       return [];
@@ -161,17 +233,13 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const fetchChangeLogsByCaseNumber = async (caseNumber: string): Promise<ChangeLogEntry[]> => {
     if (!isAuthenticated || !user) return [];
-
     try {
       const isDemoMode = user.email === 'test@polygongroup.com';
       const client = getSchemaClient(isDemoMode);
-      
       const { data, error } = await client
-        .from('planner_change_log')
-        .select('*')
+        .from('planner_change_log').select('*')
         .contains('change_details', { case_number: caseNumber })
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       return (data || []) as ChangeLogEntry[];
     } catch (error) {
@@ -186,58 +254,53 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setLastViewedTime(now);
   };
 
-  // Calculate unviewed count
-  const unviewedCount = changeLogs.filter(log => {
+  const unviewedCount = changeLogs.filter((log) => {
     if (!lastViewedTime) return true;
     return new Date(log.created_at) > new Date(lastViewedTime);
   }).length;
 
-  // Fetch on mount and when user/department changes
   useEffect(() => {
     fetchChangeLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, isAuthenticated, selectedDepartmentId]);
 
-  // Set up real-time subscription
+  // Realtime: planner_change_log + vacations
   useEffect(() => {
     if (!isAuthenticated || !user) return;
-
     const isDemoMode = user.email === 'test@polygongroup.com';
     const schema = isDemoMode ? 'demo' : 'public';
 
     const channel = supabase
-      .channel('planner_change_log_changes')
+      .channel('changelog-and-vacations')
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: schema,
-          table: 'planner_change_log'
-        },
+        { event: 'INSERT', schema, table: 'planner_change_log' },
         async (payload) => {
           let newLog = payload.new as ChangeLogEntry;
-          
-          // Enrich with case_number if missing (fallback to title)
           if (newLog.assignment_id && !newLog.change_details?.case_number) {
             const client = getSchemaClient(isDemoMode);
             const { data: assignment } = await client
-              .from('assignments')
-              .select('case_number, title')
-              .eq('id', newLog.assignment_id)
-              .single();
-            
+              .from('assignments').select('case_number, title')
+              .eq('id', newLog.assignment_id).single();
             if (assignment) {
               newLog = {
                 ...newLog,
                 change_details: {
                   ...newLog.change_details,
-                  case_number: assignment.case_number || assignment.title
-                }
+                  case_number: (assignment as any).case_number || (assignment as any).title,
+                },
               };
             }
           }
-          
-          if (import.meta.env.DEV) console.log('[ChangeLogContext] New change log entry:', newLog);
-          setChangeLogs(prev => [newLog, ...prev].slice(0, 50));
+          setChangeLogs((prev) => [newLog, ...prev].slice(0, 50));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema, table: 'vacations' },
+        () => {
+          // Simple approach: refetch to keep department filter & user names correct
+          fetchChangeLogs();
         }
       )
       .subscribe();
@@ -245,7 +308,8 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isAuthenticated, user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.id, selectedDepartmentId]);
 
   return (
     <ChangeLogContext.Provider value={{ changeLogs, unviewedCount, loading, fetchChangeLogs, fetchChangeLogsByDateRange, fetchChangeLogsByCaseNumber, markAsViewed }}>

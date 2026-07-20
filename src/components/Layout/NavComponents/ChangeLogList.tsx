@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { Plus, Edit, Trash2, Send } from 'lucide-react';
+import { Plus, Edit, Trash2, Send, CalendarPlus, CalendarCheck, CalendarX, CalendarClock } from 'lucide-react';
 import { useChangeLogs } from '@/context/ChangeLogContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -33,33 +33,69 @@ const ChangeLogList: React.FC<ChangeLogListProps> = ({ onNavigate, hideHeader = 
         return <Trash2 className="h-4 w-4 text-red-500" />;
       case 'PUBLISH':
         return <Send className="h-4 w-4 text-purple-500" />;
+      case 'VACATION_REQUESTED':
+        return <CalendarPlus className="h-4 w-4 text-amber-500" />;
+      case 'VACATION_APPROVED':
+        return <CalendarCheck className="h-4 w-4 text-green-500" />;
+      case 'VACATION_REJECTED':
+        return <CalendarX className="h-4 w-4 text-red-500" />;
+      case 'VACATION_CANCELLED':
+        return <CalendarClock className="h-4 w-4 text-muted-foreground" />;
       default:
         return null;
     }
   };
 
+  const formatRange = (start?: string, end?: string): string => {
+    if (!start) return '';
+    try {
+      const s = formatDateForDisplay(start);
+      if (!end || start === end) return s;
+      return `${s} – ${formatDateForDisplay(end)}`;
+    } catch {
+      return start;
+    }
+  };
+
   const getChangeDescription = (log: any): string => {
     const details = log.change_details || {};
+
+    // Vacation events
+    if (log.operation?.startsWith?.('VACATION_')) {
+      const name = details.user_name || log.changed_by_name || '';
+      const period = formatRange(details.start_date, details.end_date);
+      switch (log.operation) {
+        case 'VACATION_REQUESTED':
+          return `${t('changeLog.vacationRequested')} · ${name}${period ? ` (${period})` : ''}`;
+        case 'VACATION_APPROVED':
+          return `${t('changeLog.vacationApproved')} · ${name}${period ? ` (${period})` : ''}`;
+        case 'VACATION_REJECTED':
+          return `${t('changeLog.vacationRejected')} · ${name}${period ? ` (${period})` : ''}`;
+        case 'VACATION_CANCELLED':
+          return `${t('changeLog.vacationCancelled')} · ${name}${period ? ` (${period})` : ''}`;
+      }
+    }
+
     const caseNumber = details.case_number || details.title || '-';
-    
+
     if (log.operation === 'CREATE') {
       return `${t('changeLog.created')} ${caseNumber}`;
     }
-    
+
     if (log.operation === 'DELETE') {
       const formattedDate = details.date ? formatDateForDisplay(details.date) : '';
       const dateText = formattedDate ? ` ${t('changeLog.fromDate')} ${formattedDate}` : '';
       return `${t('changeLog.deleted')} ${caseNumber}${dateText}`;
     }
-    
+
     if (log.operation === 'PUBLISH') {
       const count = details.count || 1;
       return `${t('changeLog.published')} ${count} ${t('changeLog.tasks')}`;
     }
-    
+
     if (log.operation === 'UPDATE') {
       const changes = details.changes || {};
-      
+
       if (changes.employees) {
         const { added, removed } = changes.employees;
         if (removed && removed.length > 0) {
@@ -69,10 +105,10 @@ const ChangeLogList: React.FC<ChangeLogListProps> = ({ onNavigate, hideHeader = 
           return `${t('changeLog.added')} ${added.join(', ')} ${t('changeLog.to')} ${caseNumber}`;
         }
       }
-      
+
       return `Opdateret ${caseNumber}`;
     }
-    
+
     return 'Unknown operation';
   };
 
