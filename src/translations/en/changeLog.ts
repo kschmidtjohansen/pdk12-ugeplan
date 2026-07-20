@@ -30,5 +30,9 @@ export const changeLog = {
   action: 'Action',
   caseNumber: 'Case Number',
   recentChanges: 'Recent Changes',
-  noRecentChanges: 'No recent changes'
+  noRecentChanges: 'No recent changes',
+  vacationRequested: 'Requested vacation',
+  vacationApproved: 'Approved vacation',
+  vacationRejected: 'Rejected vacation',
+  vacationCancelled: 'Cancelled vacation'
 };
