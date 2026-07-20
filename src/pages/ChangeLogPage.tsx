@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, subDays } from 'date-fns';
-import { FileEdit, FilePlus, FileX, Upload, Search } from 'lucide-react';
+import { FileEdit, FilePlus, FileX, Upload, Search, CalendarPlus, CalendarCheck, CalendarX, CalendarClock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import MainLayout from '@/components/Layout/MainLayout';
+
 import { formatDateForDisplay } from '@/utils/dateUtils';
 import {
   Table,
