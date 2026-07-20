@@ -1141,6 +1141,8 @@ export type Database = {
           notes: string | null
           reason: string | null
           request_type: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           start_date: string
           start_time: string | null
           status: Database["public"]["Enums"]["vacation_status"] | null
@@ -1159,6 +1161,8 @@ export type Database = {
           notes?: string | null
           reason?: string | null
           request_type?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           start_date: string
           start_time?: string | null
           status?: Database["public"]["Enums"]["vacation_status"] | null
@@ -1177,6 +1181,8 @@ export type Database = {
           notes?: string | null
           reason?: string | null
           request_type?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           start_date?: string
           start_time?: string | null
           status?: Database["public"]["Enums"]["vacation_status"] | null
