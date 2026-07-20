@@ -244,8 +244,8 @@ const ChangeLogPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
     </DataFetchErrorBoundary>
+
   );
 };
 
