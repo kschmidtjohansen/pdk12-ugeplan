@@ -1,50 +1,43 @@
-## Plan
+## Mål
 
-Jeg vil rette `/changelog`, så den igen viser både seneste og tidligere ændringer for den valgte afdeling — inkl. ny medarbejder og fri/ferie for Phillip Fogh.
+Bring `on_call_duties` for afdeling 12 (Fredericia), `duty_type = 'kørevagt'`, uge 19–52 (2026) i overensstemmelse med den uploadede liste.
 
 ## Bekræftet nuværende tilstand
 
-- Phillip Fogh blev oprettet i `profiles` d. 20/7 kl. 12:32 og har afdeling `8c542620-9156-4155-b686-564b14a4ca62`.
-- Phillip Fogh har en godkendt ferie/fraværsrække i `vacations` fra 20/7–26/7, oprettet kl. 12:33.
-- `/changelog` henter kun fra `planner_change_log` + virtuelle events fra `vacations`.
-- Medarbejderoprettelse bliver ikke skrevet til nogen changelog-kilde i den nuværende kode.
-- Ferie-events hentes kun via `updated_at` indenfor datointervallet, og nuværende visning kan derfor miste relevante historiske events hvis status/tidsstempler ikke matcher forventningen.
+- Afdeling 12 = `8c542620-9156-4155-b686-564b14a4ca62`.
+- Der findes allerede kørevagt-rækker fra 2026-05-04 og frem i `on_call_duties`. Flere dage matcher ikke listen (fx uge 19 mandag = Henrik i DB — OK, men uge 20/21 og flere efterfølgende uger afviger).
+- Kørevagter opbevares som én række pr. dag pr. medarbejder — ingen periodemodel.
 
-## Ændringer
+## Navnemapping (fra listen → profiles i afd. 12)
 
-1. **Udvid changelog-modellen**
-   - Tilføj nye operationstyper til `ChangeLogContext`:
-     - `EMPLOYEE_CREATED`
-     - `EMPLOYEE_UPDATED`
-     - `EMPLOYEE_DELETED` hvis eksisterende delete-flow kan logges sikkert uden større omlægning
-   - Bevar eksisterende opgave- og ferie-events.
+| Kort navn | Fuldt navn i DB |
+|---|---|
+| Henrik | Henrik Jørgensen |
+| Mads F | Mads Fournaise |
+| Julius | Julius Pedersen |
+| Lars | Lars Hoeg |
+| Mark | Mark Hansen |
+| Nicolai | Nicolai Jørgensen |
+| Ronnie | Ronnie Jensen |
+| Richard | Richard Gensborg |
+| Mads H | Mads Amtorp Hansen |
+| Petrie | ? (ikke fundet i afd. 12 endnu) |
 
-2. **Vis medarbejderoprettelser i `/changelog`**
-   - Lad `fetchChangeLogsByDateRange` hente relevante `profiles` indenfor datointervallet for den valgte afdeling.
-   - Konverter dem til virtuelle changelog-rækker, så nyoprettede medarbejdere som Mette/Phillip vises uden database-migration.
-   - Scope efter `home_department_id` og/eller `user_access.department_id`, så der ikke vises data på tværs af afdelinger.
+"Petrie" optræder i uge 21 onsdag. Jeg skal have bekræftet hvem det er før migrationen kan skrives.
 
-3. **Gør ferie/fravær-events mere robuste**
-   - Hent ferie/fravær på både `created_at`, `updated_at` og `reviewed_at` hvor relevant.
-   - For pending vises oprettelsestidspunktet.
-   - For approved/rejected/cancelled vises review-tidspunktet når det findes, ellers `updated_at`.
-   - Sørg for at Phillip Fogh-rækken vises i `/changelog` som en ferie/fraværsændring.
+## Fremgangsmåde
 
-4. **Opdater `/changelog` UI**
-   - Tilføj ikoner/filter-labels for medarbejder-events.
-   - Vis tydelig tekst som fx “Oprettet medarbejder Phillip Fogh”.
-   - Bevar eksisterende kompakte layout og undgå dobbelt header.
+1. Byg fuld målliste (uge 19 mandag 2026-05-04 → uge 52 søndag 2026-12-27) fra det uploadede skema — én række pr. dag.
+2. I én migration:
+   - Slet alle eksisterende `kørevagt`-rækker for afd. 12 i intervallet 2026-05-04 → 2026-12-27 (scope via `employee_id IN` afd. 12-profiler samt eksterne rækker uden employee_id i samme interval).
+   - Indsæt de korrekte rækker jf. skemaet med `created_by` = super admin/systembruger.
+3. Verificér via `SELECT` at hver dag i intervallet nu matcher listen præcist.
+4. Opdater `CHANGELOG.md` og `/docs/implementation-plan/tasks.md`.
 
-5. **Dokumentation**
-   - Opdater `/docs/implementation-plan/tasks.md` med fuldført rettelse.
-   - Opdater `CHANGELOG.md` med præcis beskrivelse.
-   - Bekræft at ændringen følger tekniske specs og UI-guidelines.
+## Åbne spørgsmål
 
-## Verifikation
+- **Hvem er "Petrie"?** (uge 21 onsdag 2026-05-20). Fuldt navn eller profil-ID, tak — eller skal det stå som ekstern (notes = `EKSTERN: Petrie`)?
+- **Bevar eksisterende skadeleder_vagt-rækker urørt?** (Jeg rører kun kørevagt).
+- **Overskriv også hvis en dag allerede matcher?** (Simpleste er wipe+insert i intervallet — genererer clean state, men laver nye `created_at`/`created_by` værdier).
 
-- Tjek at `/changelog` med 14/30/90 dage viser:
-  - Phillip Fogh oprettet som medarbejder.
-  - Phillip Fogh fri/fravær oprettet/godkendt.
-  - Eksisterende planner events stadig vises.
-- Tjek at events kun scopes til den valgte afdeling.
-- Kør relevant statisk/type-verifikation hvis nødvendigt efter implementering.
+Når "Petrie" er afklaret, kører jeg migrationen.
