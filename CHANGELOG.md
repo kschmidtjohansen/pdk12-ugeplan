@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-21 — Fix: kørevagter synlige i vagtlisten
+
+- Backfilled 238 kørevagter i `on_call_duties`, som manglede `department_id`, til medarbejderens hjemmeafdeling. Det bevarer streng afdelingsscoping og gør kørevagterne synlige i den korrekte afdelings vagtplan/liste.
+- Den ene eksterne kørevagt uden medarbejdertilknytning blev placeret i Fredericia sammen med den importerede kørevagt-liste.
+- Bekræftet at der ikke længere findes live-kørevagter uden afdeling.
+
 ## 2026-07-20 — Fix: /changelog viser medarbejder- og ferieændringer igen
 
 - Fixet at filteret “Godkendte fri” kunne vise tomt, fordi vacation-queryen forsøgte at embedde `reviewed_by` som relation. Navne for medarbejder/godkender hentes nu separat, så godkendte fri-events vises stabilt.

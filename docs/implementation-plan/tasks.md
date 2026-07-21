@@ -2,6 +2,7 @@
 
 ## Løbende rettelser ✅
 
+- [x] Kørevagter importeret uden `department_id` er backfilled til den korrekte afdeling ud fra medarbejderens hjemmeafdeling; den ene eksterne kørevagt uden medarbejder er placeret i Fredericia, så listen og kalenderen igen viser kørevagter i afdelingsscopet.
 - [x] `/changelog` viser nu godkendte/afviste fri-events igen uden at afhænge af en skrøbelig embedded reviewer-relation i Supabase-queryen. Reviewer- og medarbejdernavne hentes separat, så feriehistorikken ikke bliver tom hvis relationen mangler.
 - [x] `/changelog` viser nu både opgave-, ferie/fraværs- og medarbejderændringer for den valgte afdeling. Eksisterende medarbejderoprettelser vises via `profiles.created_at`, og fremtidige medarbejder-opret/redigér/slet logges eksplicit i `planner_change_log`.
 - [x] Oversigtens ugentlige statusbar viser nu den konkrete periode bag hvert navn for ferie, kursus, skadeledervagt og kørevagt (fx "23.06–25.06"). Dækker fraværet/hele vagten hele ugen, vises "Hele ugen" i stedet for datoerne.
