@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Package, Shield, UserPlus, MessageSquare, Files } from 'lucide-react';
+import { Settings, Package, Shield, UserPlus, MessageSquare, Files, Share2 } from 'lucide-react';
 
 const FeatureToggleManagement: React.FC = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { selectedDepartment, selectedDepartmentId, refetchDepartments } = useDepartment();
+  const { selectedDepartment, selectedDepartmentId, departments, refetchDepartments } = useDepartment();
 
   const [warehouseEnabled, setWarehouseEnabled] = useState(true);
   const [dutyEnabled, setDutyEnabled] = useState(true);
@@ -19,6 +20,8 @@ const FeatureToggleManagement: React.FC = () => {
   const [chatEnabled, setChatEnabled] = useState(true);
   const [filesEnabled, setFilesEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sharedDutyDeptIds, setSharedDutyDeptIds] = useState<string[]>([]);
+  const [savingShared, setSavingShared] = useState(false);
 
   useEffect(() => {
     if (selectedDepartment) {
@@ -29,6 +32,83 @@ const FeatureToggleManagement: React.FC = () => {
       setFilesEnabled(selectedDepartment.files_enabled);
     }
   }, [selectedDepartment]);
+
+  // Fetch shared duty departments for the current department
+  useEffect(() => {
+    if (!selectedDepartmentId) { setSharedDutyDeptIds([]); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('department_settings')
+        .select('setting_value')
+        .eq('department_id', selectedDepartmentId)
+        .eq('setting_key', 'shared_duty_departments')
+        .maybeSingle();
+      if (cancelled) return;
+      if (!data?.setting_value) { setSharedDutyDeptIds([]); return; }
+      try {
+        const parsed = JSON.parse(data.setting_value);
+        setSharedDutyDeptIds(Array.isArray(parsed) ? parsed.filter((x: any) => typeof x === 'string') : []);
+      } catch {
+        setSharedDutyDeptIds([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedDepartmentId]);
+
+  const toggleSharedDept = async (deptId: string, checked: boolean) => {
+    if (!selectedDepartmentId) return;
+    setSavingShared(true);
+    const next = checked
+      ? Array.from(new Set([...sharedDutyDeptIds, deptId]))
+      : sharedDutyDeptIds.filter(id => id !== deptId);
+    setSharedDutyDeptIds(next);
+
+    // Upsert on this department
+    const { error } = await supabase
+      .from('department_settings')
+      .upsert(
+        {
+          department_id: selectedDepartmentId,
+          setting_key: 'shared_duty_departments',
+          setting_value: JSON.stringify(next),
+        },
+        { onConflict: 'department_id,setting_key' }
+      );
+
+    // Mirror the relationship on the other department so sharing works both ways
+    if (!error) {
+      const { data: other } = await supabase
+        .from('department_settings')
+        .select('setting_value')
+        .eq('department_id', deptId)
+        .eq('setting_key', 'shared_duty_departments')
+        .maybeSingle();
+      let otherList: string[] = [];
+      try { otherList = other?.setting_value ? JSON.parse(other.setting_value) : []; } catch { otherList = []; }
+      const otherNext = checked
+        ? Array.from(new Set([...otherList, selectedDepartmentId]))
+        : otherList.filter((id: string) => id !== selectedDepartmentId);
+      await supabase
+        .from('department_settings')
+        .upsert(
+          {
+            department_id: deptId,
+            setting_key: 'shared_duty_departments',
+            setting_value: JSON.stringify(otherNext),
+          },
+          { onConflict: 'department_id,setting_key' }
+        );
+    }
+
+    if (error) {
+      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+      setSharedDutyDeptIds(sharedDutyDeptIds);
+    } else {
+      toast({ title: t('admin.features.updated') });
+    }
+    setSavingShared(false);
+  };
 
   const setterMap: Record<string, (v: boolean) => void> = {
     warehouse_enabled: setWarehouseEnabled,
@@ -168,6 +248,45 @@ const FeatureToggleManagement: React.FC = () => {
             disabled={saving}
           />
         </div>
+
+        {dutyEnabled && (
+          <div className="p-4 border rounded-lg space-y-3">
+            <div className="flex items-center gap-3">
+              <Share2 className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <Label className="text-base font-medium">Delte vagtafdelinger</Label>
+                <p className="text-sm text-muted-foreground">
+                  Vælg afdelinger som deler vagter med <strong>{selectedDepartment.name}</strong>. Deling gælder begge veje.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
+              {departments
+                .filter(d => d.id !== selectedDepartmentId)
+                .map(d => {
+                  const checked = sharedDutyDeptIds.includes(d.id);
+                  return (
+                    <label
+                      key={d.id}
+                      htmlFor={`share-dept-${d.id}`}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded border cursor-pointer transition-colors hover:bg-muted/50 ${checked ? 'bg-primary/5 border-primary/30' : ''}`}
+                    >
+                      <Checkbox
+                        id={`share-dept-${d.id}`}
+                        checked={checked}
+                        disabled={savingShared}
+                        onCheckedChange={(v) => toggleSharedDept(d.id, !!v)}
+                      />
+                      <span className="text-sm">{d.name}</span>
+                    </label>
+                  );
+                })}
+              {departments.filter(d => d.id !== selectedDepartmentId).length === 0 && (
+                <p className="text-sm text-muted-foreground">Ingen andre afdelinger tilgængelige.</p>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

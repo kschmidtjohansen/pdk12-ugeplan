@@ -25,6 +25,8 @@ interface Employee {
   id: string;
   name: string;
   role?: string;
+  department_id?: string | null;
+  department_name?: string | null;
 }
 
 interface DutyAssignmentDialogProps {
@@ -219,6 +221,11 @@ export const DutyAssignmentDialog = ({
                               onCheckedChange={() => toggleEmployee(emp.id)}
                             />
                             <span className="text-sm flex-1">{emp.name}</span>
+                            {emp.department_name && (
+                              <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
+                                {emp.department_name}
+                              </Badge>
+                            )}
                           </label>
                         );
                       })

@@ -4,7 +4,8 @@ import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions, useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
-import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
+import { useDutyEmployees } from '@/hooks/duty/useDutyEmployees';
+import { useSharedDutyDepartments } from '@/hooks/duty/useSharedDutyDepartments';
 import { useDutySwapRequests } from '@/hooks/duty/useDutySwapRequests';
 import { DutyAssignmentDialog } from '@/components/Duty/DutyAssignmentDialog';
 import { DutyEditDialog } from '@/components/Duty/DutyEditDialog';
@@ -25,7 +26,7 @@ export default function DutyPage() {
   const { t } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
   const { user } = useAuth();
-  const { isDutyEnabled } = useDepartment();
+  const { isDutyEnabled, selectedDepartmentId, departments } = useDepartment();
   const canManage = isAdmin || isSkadeleder;
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -48,35 +49,48 @@ export default function DutyPage() {
   const endDate = endOfMonth(addMonths(calendarMonth, 1));
 
   const { duties, loading: dutiesLoading, error, refetch } = useDutyData(startDate, endDate);
-  const { employees, loading: employeesLoading } = useEmployeeData();
+  const { employees, loading: employeesLoading } = useDutyEmployees();
+  const { sharedDepartmentIds } = useSharedDutyDepartments();
   const { incoming, outgoing, refetch: refetchSwap } = useDutySwapRequests();
 
   const loading = dutiesLoading || employeesLoading;
 
-  // Enrich duties with employee roles from the employees data
+  // Build a department name map for shared-dept badge labels
+  const departmentNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    departments.forEach((d) => { map[d.id] = d.name; });
+    return map;
+  }, [departments]);
+
+  // Enrich duties with employee roles + shared department label
   const dutiesWithRoles = useMemo(() => {
     return duties.map(duty => {
-      if (!duty.employee_id) return duty; // External duties have no employee
-      
+      const isShared = !!duty.department_id
+        && duty.department_id !== selectedDepartmentId
+        && sharedDepartmentIds.includes(duty.department_id);
+      const sharedDepartmentName = isShared ? (departmentNameMap[duty.department_id!] || null) : null;
+
+      if (!duty.employee_id) {
+        return { ...duty, sharedDepartmentName } as Duty & { sharedDepartmentName: string | null };
+      }
+
       const employee = employees.find(emp => emp.id === duty.employee_id);
       if (employee && duty.employee) {
         return {
           ...duty,
-          employee: {
-            ...duty.employee,
-            role: employee.role
-          }
-        };
+          employee: { ...duty.employee, role: employee.role },
+          sharedDepartmentName,
+        } as Duty & { sharedDepartmentName: string | null };
       }
-      return duty;
+      return { ...duty, sharedDepartmentName } as Duty & { sharedDepartmentName: string | null };
     });
-  }, [duties, employees]);
+  }, [duties, employees, selectedDepartmentId, sharedDepartmentIds, departmentNameMap]);
 
   const upcomingDuties = dutiesWithRoles.filter(
     duty => new Date(duty.duty_date) >= todayStart
   );
 
-  const employeesWithRoles = employees.map(emp => ({
+  const employeesWithRoles = employees.map((emp: any) => ({
     id: emp.id,
     name: emp.name,
     role: emp.role,
@@ -84,6 +98,8 @@ export default function DutyPage() {
     jobTitle: emp.jobTitle,
     status: emp.status,
     onLeave: emp.onLeave,
+    department_id: emp.department_id ?? null,
+    department_name: emp.department_id && emp.department_id !== selectedDepartmentId ? emp.department_name : null,
   }));
 
   const handleDutyClick = (duty: Duty) => {
