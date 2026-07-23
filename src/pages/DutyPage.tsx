@@ -49,7 +49,8 @@ export default function DutyPage() {
   const endDate = endOfMonth(addMonths(calendarMonth, 1));
 
   const { duties, loading: dutiesLoading, error, refetch } = useDutyData(startDate, endDate);
-  const { employees, loading: employeesLoading } = useEmployeeData();
+  const { employees, loading: employeesLoading } = useDutyEmployees();
+  const { sharedDepartmentIds } = useSharedDutyDepartments();
   const { incoming, outgoing, refetch: refetchSwap } = useDutySwapRequests();
 
   const loading = dutiesLoading || employeesLoading;
