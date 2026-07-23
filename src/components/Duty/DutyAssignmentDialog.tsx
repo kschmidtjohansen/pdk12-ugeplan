@@ -25,6 +25,8 @@ interface Employee {
   id: string;
   name: string;
   role?: string;
+  department_id?: string | null;
+  department_name?: string | null;
 }
 
 interface DutyAssignmentDialogProps {
