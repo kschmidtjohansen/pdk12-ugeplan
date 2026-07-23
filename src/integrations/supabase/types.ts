@@ -1352,6 +1352,10 @@ export type Database = {
         Args: { vacation_user_id: string }
         Returns: boolean
       }
+      can_manage_duty_department: {
+        Args: { _duty_department_id: string }
+        Returns: boolean
+      }
       can_user_access_assignment: {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean
@@ -1639,6 +1643,10 @@ export type Database = {
           event_type: string
           last_occurrence: string
         }[]
+      }
+      get_shared_duty_department_ids: {
+        Args: { _department_id: string }
+        Returns: string[]
       }
       get_user_department_ids: {
         Args: { _user_id?: string }
