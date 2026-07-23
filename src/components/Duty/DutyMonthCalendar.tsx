@@ -216,6 +216,11 @@ export const DutyMonthCalendar = ({
                             <div className="text-[12px] font-semibold leading-tight truncate">
                               {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'} · {initials}
                             </div>
+                            {(duty as any).sharedDepartmentName && (
+                              <div className="text-[9px] font-medium opacity-70 truncate mt-0.5">
+                                {(duty as any).sharedDepartmentName}
+                              </div>
+                            )}
                           </button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-3" side="top">
@@ -224,6 +229,11 @@ export const DutyMonthCalendar = ({
                             <p className="text-xs text-muted-foreground">
                               {getDutyTypeName(duty.duty_type)}
                             </p>
+                            {(duty as any).sharedDepartmentName && (
+                              <p className="text-xs text-muted-foreground">
+                                {(duty as any).sharedDepartmentName}
+                              </p>
+                            )}
                             <p className="text-xs text-muted-foreground">
                               {format(new Date(duty.duty_date), 'd. MMMM yyyy', { locale })}
                             </p>
@@ -243,7 +253,7 @@ export const DutyMonthCalendar = ({
                           canManage && colors.hover,
                           canManage ? "cursor-pointer" : "cursor-default"
                         )}
-                        title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}`}
+                        title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}${(duty as any).sharedDepartmentName ? ' · ' + (duty as any).sharedDepartmentName : ''}`}
                       >
                         <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
                           {initials}
@@ -251,6 +261,11 @@ export const DutyMonthCalendar = ({
                         <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
                           {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
                         </div>
+                        {(duty as any).sharedDepartmentName && (
+                          <div className="text-[9px] md:text-[10px] opacity-70 truncate italic">
+                            {(duty as any).sharedDepartmentName}
+                          </div>
+                        )}
                       </button>
                     );
                   })}
