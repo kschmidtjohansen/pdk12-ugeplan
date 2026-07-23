@@ -99,7 +99,7 @@ export default function DutyPage() {
     status: emp.status,
     onLeave: emp.onLeave,
     department_id: emp.department_id ?? null,
-    department_name: emp.department_name ?? null,
+    department_name: emp.department_id && emp.department_id !== selectedDepartmentId ? emp.department_name : null,
   }));
 
   const handleDutyClick = (duty: Duty) => {
