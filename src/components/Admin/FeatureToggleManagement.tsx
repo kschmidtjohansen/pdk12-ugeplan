@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Package, Shield, UserPlus, MessageSquare, Files } from 'lucide-react';
+import { Settings, Package, Shield, UserPlus, MessageSquare, Files, Share2 } from 'lucide-react';
 
 const FeatureToggleManagement: React.FC = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { selectedDepartment, selectedDepartmentId, refetchDepartments } = useDepartment();
+  const { selectedDepartment, selectedDepartmentId, departments, refetchDepartments } = useDepartment();
 
   const [warehouseEnabled, setWarehouseEnabled] = useState(true);
   const [dutyEnabled, setDutyEnabled] = useState(true);
