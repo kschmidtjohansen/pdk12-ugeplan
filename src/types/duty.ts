@@ -9,6 +9,8 @@ export interface Duty {
   created_by: string;
   created_at: string;
   updated_at: string;
+  department_id?: string | null;
+  sub_department_id?: string | null;
   employee?: {
     id: string;
     name: string;
