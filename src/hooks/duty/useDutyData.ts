@@ -5,6 +5,7 @@ import { subscribeToTable } from '@/lib/realtimeChannels';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useSharedDutyDepartments } from './useSharedDutyDepartments';
 import type { Duty } from '@/types/duty';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
@@ -12,12 +13,14 @@ import { isDemoNonHomeDepartment } from '@/constants/demo';
 export const useDutyData = (startDate?: Date, endDate?: Date) => {
   const { user, isDemoMode } = useAuth();
   const { selectedDepartmentId } = useDepartment();
+  const { sharedDepartmentIds } = useSharedDutyDepartments();
   const queryClient = useQueryClient();
 
   const startDateStr = startDate ? startDate.toISOString().split('T')[0] : undefined;
   const endDateStr = endDate ? endDate.toISOString().split('T')[0] : undefined;
 
-  const queryKey = ['duties', user?.email, startDateStr, endDateStr, selectedDepartmentId] as const;
+  const sharedKey = sharedDepartmentIds.slice().sort().join(',');
+  const queryKey = ['duties', user?.email, startDateStr, endDateStr, selectedDepartmentId, sharedKey] as const;
 
   const fetchDutiesFn = async (): Promise<Duty[]> => {
     const isDemoMode = user?.email === 'test@polygongroup.com';
