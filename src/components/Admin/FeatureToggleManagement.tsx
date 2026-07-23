@@ -248,6 +248,45 @@ const FeatureToggleManagement: React.FC = () => {
             disabled={saving}
           />
         </div>
+
+        {dutyEnabled && (
+          <div className="p-4 border rounded-lg space-y-3">
+            <div className="flex items-center gap-3">
+              <Share2 className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <Label className="text-base font-medium">Delte vagtafdelinger</Label>
+                <p className="text-sm text-muted-foreground">
+                  Vælg afdelinger som deler vagter med <strong>{selectedDepartment.name}</strong>. Deling gælder begge veje.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
+              {departments
+                .filter(d => d.id !== selectedDepartmentId)
+                .map(d => {
+                  const checked = sharedDutyDeptIds.includes(d.id);
+                  return (
+                    <label
+                      key={d.id}
+                      htmlFor={`share-dept-${d.id}`}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded border cursor-pointer transition-colors hover:bg-muted/50 ${checked ? 'bg-primary/5 border-primary/30' : ''}`}
+                    >
+                      <Checkbox
+                        id={`share-dept-${d.id}`}
+                        checked={checked}
+                        disabled={savingShared}
+                        onCheckedChange={(v) => toggleSharedDept(d.id, !!v)}
+                      />
+                      <span className="text-sm">{d.name}</span>
+                    </label>
+                  );
+                })}
+              {departments.filter(d => d.id !== selectedDepartmentId).length === 0 && (
+                <p className="text-sm text-muted-foreground">Ingen andre afdelinger tilgængelige.</p>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
