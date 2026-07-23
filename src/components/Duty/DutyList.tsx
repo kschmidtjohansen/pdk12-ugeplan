@@ -103,6 +103,11 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
                   {duty.notes?.startsWith('EKSTERN:') && (
                     <Badge variant="outline" className="text-xs">Ekstern</Badge>
                   )}
+                  {(duty as any).sharedDepartmentName && (
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
+                      {(duty as any).sharedDepartmentName}
+                    </Badge>
+                  )}
                   <Badge 
                     variant={duty.duty_type === 'skadeleder_vagt' ? 'default' : 'secondary'}
                     className={duty.duty_type === 'kørevagt' ? 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' : ''}
