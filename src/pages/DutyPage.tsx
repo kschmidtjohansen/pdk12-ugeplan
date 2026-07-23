@@ -3,6 +3,7 @@ import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErro
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions, useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useDutyEmployees } from '@/hooks/duty/useDutyEmployees';
 import { useSharedDutyDepartments } from '@/hooks/duty/useSharedDutyDepartments';
