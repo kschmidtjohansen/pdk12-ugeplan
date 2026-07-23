@@ -20,6 +20,8 @@ const FeatureToggleManagement: React.FC = () => {
   const [chatEnabled, setChatEnabled] = useState(true);
   const [filesEnabled, setFilesEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sharedDutyDeptIds, setSharedDutyDeptIds] = useState<string[]>([]);
+  const [savingShared, setSavingShared] = useState(false);
 
   useEffect(() => {
     if (selectedDepartment) {
