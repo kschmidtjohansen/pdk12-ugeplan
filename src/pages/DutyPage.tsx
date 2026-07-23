@@ -26,7 +26,7 @@ export default function DutyPage() {
   const { t } = useTranslation();
   const { isAdmin, isSkadeleder } = usePermissions();
   const { user } = useAuth();
-  const { isDutyEnabled } = useDepartment();
+  const { isDutyEnabled, selectedDepartmentId, departments } = useDepartment();
   const canManage = isAdmin || isSkadeleder;
 
   const [dialogOpen, setDialogOpen] = useState(false);
