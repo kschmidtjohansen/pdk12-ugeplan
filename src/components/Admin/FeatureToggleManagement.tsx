@@ -33,6 +33,83 @@ const FeatureToggleManagement: React.FC = () => {
     }
   }, [selectedDepartment]);
 
+  // Fetch shared duty departments for the current department
+  useEffect(() => {
+    if (!selectedDepartmentId) { setSharedDutyDeptIds([]); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('department_settings')
+        .select('setting_value')
+        .eq('department_id', selectedDepartmentId)
+        .eq('setting_key', 'shared_duty_departments')
+        .maybeSingle();
+      if (cancelled) return;
+      if (!data?.setting_value) { setSharedDutyDeptIds([]); return; }
+      try {
+        const parsed = JSON.parse(data.setting_value);
+        setSharedDutyDeptIds(Array.isArray(parsed) ? parsed.filter((x: any) => typeof x === 'string') : []);
+      } catch {
+        setSharedDutyDeptIds([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedDepartmentId]);
+
+  const toggleSharedDept = async (deptId: string, checked: boolean) => {
+    if (!selectedDepartmentId) return;
+    setSavingShared(true);
+    const next = checked
+      ? Array.from(new Set([...sharedDutyDeptIds, deptId]))
+      : sharedDutyDeptIds.filter(id => id !== deptId);
+    setSharedDutyDeptIds(next);
+
+    // Upsert on this department
+    const { error } = await supabase
+      .from('department_settings')
+      .upsert(
+        {
+          department_id: selectedDepartmentId,
+          setting_key: 'shared_duty_departments',
+          setting_value: JSON.stringify(next),
+        },
+        { onConflict: 'department_id,setting_key' }
+      );
+
+    // Mirror the relationship on the other department so sharing works both ways
+    if (!error) {
+      const { data: other } = await supabase
+        .from('department_settings')
+        .select('setting_value')
+        .eq('department_id', deptId)
+        .eq('setting_key', 'shared_duty_departments')
+        .maybeSingle();
+      let otherList: string[] = [];
+      try { otherList = other?.setting_value ? JSON.parse(other.setting_value) : []; } catch { otherList = []; }
+      const otherNext = checked
+        ? Array.from(new Set([...otherList, selectedDepartmentId]))
+        : otherList.filter((id: string) => id !== selectedDepartmentId);
+      await supabase
+        .from('department_settings')
+        .upsert(
+          {
+            department_id: deptId,
+            setting_key: 'shared_duty_departments',
+            setting_value: JSON.stringify(otherNext),
+          },
+          { onConflict: 'department_id,setting_key' }
+        );
+    }
+
+    if (error) {
+      toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+      setSharedDutyDeptIds(sharedDutyDeptIds);
+    } else {
+      toast({ title: t('admin.features.updated') });
+    }
+    setSavingShared(false);
+  };
+
   const setterMap: Record<string, (v: boolean) => void> = {
     warehouse_enabled: setWarehouseEnabled,
     duty_enabled: setDutyEnabled,
