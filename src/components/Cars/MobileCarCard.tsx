@@ -103,6 +103,19 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 </TooltipContent>
               </Tooltip>
 
+              {onSchedule && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" onClick={() => onSchedule(car)} className="h-8 w-8 p-0">
+                      <span className="sr-only">Planlæg værkstedsbesøg</span>
+                      <Wrench className="h-4 w-4 text-amber-600" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>Planlæg værkstedsbesøg</p></TooltipContent>
+                </Tooltip>
+              )}
+
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
