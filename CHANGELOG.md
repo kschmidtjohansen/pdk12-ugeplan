@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-27 — Feature: planlagt utilgængelighed for biler (værkstedsbesøg)
+
+- Ny tabel `car_unavailability` gør det muligt at planlægge, at en bil er ikke tilgængelig i en periode (enkelt dag eller fra-til), fx ved værkstedsbesøg.
+- Ny handling på bil-listen: "Planlæg værkstedsbesøg" (mobil + desktop). Dialogen viser konfliktende opgaver i perioden, fjerner automatisk bilen fra dem, og markerer bilen som ikke tilgængelig hvis startdatoen er nået.
+- Bilen forbliver ikke tilgængelig indtil den frigives manuelt via "Marker som tilgængelig" (som samtidig frigiver aktive planlægninger) eller via "Frigiv"-knappen i dialogen.
+- Filterbar udvidet med segmentet "Planlagt værksted"; badges vises på bil-kort/-række for aktive og kommende planlægninger.
+- RLS: kun brugere med adgang til bilens afdeling kan se markeringerne; kun administratorer/skadeledere kan oprette og ændre dem.
+
+
 ## 2026-07-21 — Fix: kørevagter synlige i vagtlisten
 
 - Backfilled 238 kørevagter i `on_call_duties`, som manglede `department_id`, til medarbejderens hjemmeafdeling. Det bevarer streng afdelingsscoping og gør kørevagterne synlige i den korrekte afdelings vagtplan/liste.
