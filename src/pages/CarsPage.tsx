@@ -172,6 +172,12 @@ const CarsPage: React.FC = () => {
             onConfirmKeepNote={markCarAvailableKeepNote}
             onConfirmDeleteNote={markCarAvailableDeleteNote}
           />
+
+          <CarScheduledUnavailabilityDialog
+            open={scheduleDialogOpen}
+            onOpenChange={setScheduleDialogOpen}
+            car={currentCar}
+          />
         </TooltipProvider>
       </PullToRefresh>
     </DataFetchErrorBoundary>
