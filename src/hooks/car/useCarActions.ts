@@ -6,6 +6,7 @@ import { CarData } from '@/components/Cars/types';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePermissions, useAuth } from '@/context/AuthContext';
+import { CarUnavailabilityService } from '@/services/carUnavailabilityService';
 // DemoUserService removed — demo car actions now go through DB with is_demo=true
 
 export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.SetStateAction<CarData[]>>) => {
@@ -16,6 +17,12 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [unavailableDialogOpen, setUnavailableDialogOpen] = useState<boolean>(false);
   const [availableDialogOpen, setAvailableDialogOpen] = useState<boolean>(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState<boolean>(false);
+
+  const handleScheduleUnavailability = (car: CarData) => {
+    setCurrentCar(car);
+    setScheduleDialogOpen(true);
+  };
   
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -276,7 +283,18 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
           description: t('cars.vehicleUnavailableMsg', { name: car.name })
         });
       }
+
+      // If marking available, release any active scheduled unavailability
+      if (isAvailable && !isDemoMode) {
+        try {
+          await CarUnavailabilityService.releaseActiveForCar(car.id);
+        } catch (e) {
+          if (import.meta.env.DEV) console.warn('[useCarActions] Could not release scheduled unavailability:', e);
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['cars'] });
+      queryClient.invalidateQueries({ queryKey: ['car-unavailability'] });
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error updating car availability:', err);
       toast({
@@ -296,12 +314,16 @@ export const useCarActions = (cars: CarData[], setCars: React.Dispatch<React.Set
     setUnavailableDialogOpen,
     availableDialogOpen,
     setAvailableDialogOpen,
+    scheduleDialogOpen,
+    setScheduleDialogOpen,
+    handleScheduleUnavailability,
     handleEdit,
     handleDelete,
     confirmDelete,
     handleToggleAvailability,
     markCarUnavailable,
     markCarAvailableKeepNote,
-    markCarAvailableDeleteNote
+    markCarAvailableDeleteNote,
   };
 };
+

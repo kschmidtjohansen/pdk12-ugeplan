@@ -16,6 +16,7 @@ interface CarsListProps {
   onEdit: (car: CarData) => void;
   onDelete: (car: CarData) => void;
   onToggleAvailability: (car: CarData) => void;
+  onSchedule?: (car: CarData) => void;
 }
 
 const PAGE_SIZE = 25;
@@ -27,7 +28,8 @@ const CarsList: React.FC<CarsListProps> = ({
   isAdmin,
   onEdit,
   onDelete,
-  onToggleAvailability
+  onToggleAvailability,
+  onSchedule,
 }) => {
   const { t } = useTranslation();
   const sortedCars = useMemo(
@@ -70,6 +72,7 @@ const CarsList: React.FC<CarsListProps> = ({
               onEdit={onEdit}
               onDelete={onDelete}
               onToggleAvailability={onToggleAvailability}
+              onSchedule={onSchedule}
             />
           ))}
         </div>
@@ -83,6 +86,7 @@ const CarsList: React.FC<CarsListProps> = ({
             onEdit={onEdit}
             onDelete={onDelete}
             onToggleAvailability={onToggleAvailability}
+            onSchedule={onSchedule}
           />
         </div>
 
