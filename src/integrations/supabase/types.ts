@@ -329,6 +329,66 @@ export type Database = {
           },
         ]
       }
+      car_unavailability: {
+        Row: {
+          car_id: string
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          end_date: string
+          id: string
+          notes: string | null
+          reason: string
+          released_at: string | null
+          released_by: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          car_id: string
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          end_date: string
+          id?: string
+          notes?: string | null
+          reason?: string
+          released_at?: string | null
+          released_by?: string | null
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          car_id?: string
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          end_date?: string
+          id?: string
+          notes?: string | null
+          reason?: string
+          released_at?: string | null
+          released_by?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_unavailability_car_id_fkey"
+            columns: ["car_id"]
+            isOneToOne: false
+            referencedRelation: "cars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "car_unavailability_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cars: {
         Row: {
           car_number: string

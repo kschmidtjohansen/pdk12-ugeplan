@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Truck, Recycle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Truck, Recycle, ChevronDown, ChevronUp, Wrench, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
@@ -18,6 +18,7 @@ interface MobileCarCardProps {
   onEdit: (car: CarData) => void;
   onDelete: (car: CarData) => void;
   onToggleAvailability: (car: CarData) => void;
+  onSchedule?: (car: CarData) => void;
 }
 
 const MobileCarCard: React.FC<MobileCarCardProps> = ({
@@ -26,10 +27,14 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
   isAdmin,
   onEdit,
   onDelete,
-  onToggleAvailability
+  onToggleAvailability,
+  onSchedule,
 }) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
+  const scheduledActive = (car as any)._scheduledActive as { end_date: string } | null | undefined;
+  const scheduledUpcoming = (car as any)._scheduledUpcoming as { start_date: string } | null | undefined;
+
 
   const hasDetails = car.has_trailer_hitch && (car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) || (car.notes && car.notes.trim() !== '');
   
@@ -52,11 +57,23 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 )}
               </div>
               <p className="text-sm text-muted-foreground">{car.name}</p>
-              {(car as any).is_auxiliary && (
-                <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
-                  {t('cars.auxiliaryBadge')}
-                </span>
-              )}
+              <div className="flex flex-wrap gap-1 mt-1">
+                {(car as any).is_auxiliary && (
+                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+                    {t('cars.auxiliaryBadge')}
+                  </span>
+                )}
+                {scheduledActive && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+                    <Wrench className="h-3 w-3" />Værksted til {scheduledActive.end_date}
+                  </span>
+                )}
+                {!scheduledActive && scheduledUpcoming && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200">
+                    <CalendarClock className="h-3 w-3" />Planlagt {scheduledUpcoming.start_date}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           {isAdmin && (
@@ -85,6 +102,19 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                   </p>
                 </TooltipContent>
               </Tooltip>
+
+              {onSchedule && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" onClick={() => onSchedule(car)} className="h-8 w-8 p-0">
+                      <span className="sr-only">Planlæg værkstedsbesøg</span>
+                      <Wrench className="h-4 w-4 text-amber-600" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>Planlæg værkstedsbesøg</p></TooltipContent>
+                </Tooltip>
+              )}
+
 
               <Tooltip>
                 <TooltipTrigger asChild>

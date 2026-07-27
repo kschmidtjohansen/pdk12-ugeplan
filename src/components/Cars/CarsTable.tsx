@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle, CalendarClock, Wrench } from 'lucide-react';
 import { 
   Table,
   TableBody,
@@ -25,6 +25,7 @@ interface CarsTableProps {
   onEdit: (car: CarData) => void;
   onDelete: (car: CarData) => void;
   onToggleAvailability: (car: CarData) => void;
+  onSchedule?: (car: CarData) => void;
 }
 
 const CarsTable: React.FC<CarsTableProps> = ({
@@ -33,7 +34,8 @@ const CarsTable: React.FC<CarsTableProps> = ({
   isAdmin,
   onEdit,
   onDelete,
-  onToggleAvailability
+  onToggleAvailability,
+  onSchedule,
 }) => {
   const { t } = useTranslation();
   
@@ -139,6 +141,18 @@ const CarsTable: React.FC<CarsTableProps> = ({
                       <span className="text-foreground">{t('common.unavailable')}</span>
                     </div>
                   )}
+                  {(car as any)._scheduledActive && (
+                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+                      <Wrench className="h-3 w-3" />
+                      Værksted til {(car as any)._scheduledActive.end_date}
+                    </span>
+                  )}
+                  {!(car as any)._scheduledActive && (car as any)._scheduledUpcoming && (
+                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200">
+                      <CalendarClock className="h-3 w-3" />
+                      Planlagt {(car as any)._scheduledUpcoming.start_date}
+                    </span>
+                  )}
                   {car.notes && car.notes.trim() !== '' && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -178,6 +192,26 @@ const CarsTable: React.FC<CarsTableProps> = ({
                         </p>
                       </TooltipContent>
                     </Tooltip>
+
+                    {onSchedule && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onSchedule(car)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <span className="sr-only">Planlæg værkstedsbesøg</span>
+                            <Wrench className="h-4 w-4 text-amber-600" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Planlæg værkstedsbesøg</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+
                     
                     <Tooltip>
                       <TooltipTrigger asChild>
