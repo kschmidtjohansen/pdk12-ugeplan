@@ -179,6 +179,21 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     }
 
     const availability = carAvailabilityMap.get(car.id) || 'full';
+    const maintenanceDates = getMaintenanceConflictDates(car.id);
+    const allMaintenance =
+      maintenanceDates.length > 0 && maintenanceDates.length === selectedDateStrings.length;
+
+    if (allMaintenance) {
+      const first = getMaintenanceForDate(car.id, maintenanceDates[0]);
+      toast({
+        title: 'Bilen er på værksted',
+        description: first
+          ? `${car.name} er planlagt til værksted ${first.start_date} → ${first.end_date}${first.reason ? ` (${first.reason})` : ''}.`
+          : `${car.name} er ikke tilgængelig i den valgte periode.`,
+        variant: 'destructive',
+      });
+      return;
+    }
 
     if (availability !== 'full') {
       const conflictDates = getConflictDates(car.id);
@@ -191,10 +206,12 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         })
         .map(a => a.title || a.case_number || t('planner.assignment'));
 
+      const maintenanceLabels = maintenanceDates.map((d) => `Værksted ${d}`);
+
       setPending({
         carId: car.id,
         carName: car.name,
-        conflictingAssignments: [...new Set(conflictingAssignmentNames)],
+        conflictingAssignments: [...new Set([...conflictingAssignmentNames, ...maintenanceLabels])],
         conflictDates,
       });
       return;
@@ -216,12 +233,18 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
 
   const getAvailabilityLabel = (car: CarType, availability: CarAvailability): string => {
     if (!car.is_available) return t('cars.unavailable');
+    const maintenanceDates = getMaintenanceConflictDates(car.id);
+    const allMaintenance =
+      maintenanceDates.length > 0 && maintenanceDates.length === selectedDateStrings.length;
+    if (allMaintenance) return 'Værksted';
+    if (maintenanceDates.length > 0 && availability !== 'full') return 'Værksted (delvis)';
     switch (availability) {
       case 'full': return t('cars.available');
       case 'partial': return t('planner.partiallyBooked');
       case 'none': return t('planner.carAlreadyInUse');
     }
   };
+
 
   const renderCarList = () => (
     <>
