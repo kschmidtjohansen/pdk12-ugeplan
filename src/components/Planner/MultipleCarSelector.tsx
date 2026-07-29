@@ -20,6 +20,9 @@ import { Car as CarType } from '../../types/car';
 import { Assignment } from '../../types/assignment';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
+import { useCarUnavailability } from '@/hooks/car/useCarUnavailability';
+import { useToast } from '@/hooks/use-toast';
+
 
 type CarAvailability = 'full' | 'partial' | 'none';
 
@@ -51,7 +54,10 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
 }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const { periods: maintenancePeriods } = useCarUnavailability();
   const [open, setOpen] = useState(false);
+
   // Pending conflict: set immediately when a conflicting car is clicked.
   // The picker (Popover/Drawer) is closed first, and only AFTER it has fully
   // unmounted do we promote it to `dialog` and show the AlertDialog. This
@@ -103,6 +109,20 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     });
   };
 
+  const getMaintenanceForDate = (carId: string, dateStr: string) => {
+    return maintenancePeriods.find(
+      (p) =>
+        p.car_id === carId &&
+        p.released_at === null &&
+        p.start_date <= dateStr &&
+        p.end_date >= dateStr,
+    );
+  };
+
+  const isCarInMaintenanceOnDate = (carId: string, dateStr: string): boolean => {
+    return !!getMaintenanceForDate(carId, dateStr);
+  };
+
   const carAvailabilityMap = useMemo(() => {
     const map = new Map<string, CarAvailability>();
     if (selectedDateStrings.length === 0) return map;
@@ -114,7 +134,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       }
       let conflictCount = 0;
       for (const dateStr of selectedDateStrings) {
-        if (isCarBookedOnDate(car.id, dateStr)) {
+        if (isCarBookedOnDate(car.id, dateStr) || isCarInMaintenanceOnDate(car.id, dateStr)) {
           conflictCount++;
         }
       }
@@ -127,11 +147,18 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       }
     }
     return map;
-  }, [cars, selectedDateStrings, assignments, currentAssignmentId]);
+  }, [cars, selectedDateStrings, assignments, currentAssignmentId, maintenancePeriods]);
 
   const getConflictDates = (carId: string): string[] => {
-    return selectedDateStrings.filter(dateStr => isCarBookedOnDate(carId, dateStr));
+    return selectedDateStrings.filter(
+      (dateStr) => isCarBookedOnDate(carId, dateStr) || isCarInMaintenanceOnDate(carId, dateStr),
+    );
   };
+
+  const getMaintenanceConflictDates = (carId: string): string[] => {
+    return selectedDateStrings.filter((dateStr) => isCarInMaintenanceOnDate(carId, dateStr));
+  };
+
 
   const selectedCars = cars.filter(car => selectedCarIds.includes(car.id));
   const selectedCount = selectedCarIds.length;
@@ -152,6 +179,21 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     }
 
     const availability = carAvailabilityMap.get(car.id) || 'full';
+    const maintenanceDates = getMaintenanceConflictDates(car.id);
+    const allMaintenance =
+      maintenanceDates.length > 0 && maintenanceDates.length === selectedDateStrings.length;
+
+    if (allMaintenance) {
+      const first = getMaintenanceForDate(car.id, maintenanceDates[0]);
+      toast({
+        title: 'Bilen er på værksted',
+        description: first
+          ? `${car.name} er planlagt til værksted ${first.start_date} → ${first.end_date}${first.reason ? ` (${first.reason})` : ''}.`
+          : `${car.name} er ikke tilgængelig i den valgte periode.`,
+        variant: 'destructive',
+      });
+      return;
+    }
 
     if (availability !== 'full') {
       const conflictDates = getConflictDates(car.id);
@@ -164,10 +206,12 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         })
         .map(a => a.title || a.case_number || t('planner.assignment'));
 
+      const maintenanceLabels = maintenanceDates.map((d) => `Værksted ${d}`);
+
       setPending({
         carId: car.id,
         carName: car.name,
-        conflictingAssignments: [...new Set(conflictingAssignmentNames)],
+        conflictingAssignments: [...new Set([...conflictingAssignmentNames, ...maintenanceLabels])],
         conflictDates,
       });
       return;
@@ -189,12 +233,18 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
 
   const getAvailabilityLabel = (car: CarType, availability: CarAvailability): string => {
     if (!car.is_available) return t('cars.unavailable');
+    const maintenanceDates = getMaintenanceConflictDates(car.id);
+    const allMaintenance =
+      maintenanceDates.length > 0 && maintenanceDates.length === selectedDateStrings.length;
+    if (allMaintenance) return 'Værksted';
+    if (maintenanceDates.length > 0 && availability !== 'full') return 'Værksted (delvis)';
     switch (availability) {
       case 'full': return t('cars.available');
       case 'partial': return t('planner.partiallyBooked');
       case 'none': return t('planner.carAlreadyInUse');
     }
   };
+
 
   const renderCarList = () => (
     <>
