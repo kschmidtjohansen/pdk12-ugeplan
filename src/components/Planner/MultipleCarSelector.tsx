@@ -109,6 +109,20 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     });
   };
 
+  const getMaintenanceForDate = (carId: string, dateStr: string) => {
+    return maintenancePeriods.find(
+      (p) =>
+        p.car_id === carId &&
+        p.released_at === null &&
+        p.start_date <= dateStr &&
+        p.end_date >= dateStr,
+    );
+  };
+
+  const isCarInMaintenanceOnDate = (carId: string, dateStr: string): boolean => {
+    return !!getMaintenanceForDate(carId, dateStr);
+  };
+
   const carAvailabilityMap = useMemo(() => {
     const map = new Map<string, CarAvailability>();
     if (selectedDateStrings.length === 0) return map;
@@ -120,7 +134,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       }
       let conflictCount = 0;
       for (const dateStr of selectedDateStrings) {
-        if (isCarBookedOnDate(car.id, dateStr)) {
+        if (isCarBookedOnDate(car.id, dateStr) || isCarInMaintenanceOnDate(car.id, dateStr)) {
           conflictCount++;
         }
       }
@@ -133,11 +147,18 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       }
     }
     return map;
-  }, [cars, selectedDateStrings, assignments, currentAssignmentId]);
+  }, [cars, selectedDateStrings, assignments, currentAssignmentId, maintenancePeriods]);
 
   const getConflictDates = (carId: string): string[] => {
-    return selectedDateStrings.filter(dateStr => isCarBookedOnDate(carId, dateStr));
+    return selectedDateStrings.filter(
+      (dateStr) => isCarBookedOnDate(carId, dateStr) || isCarInMaintenanceOnDate(carId, dateStr),
+    );
   };
+
+  const getMaintenanceConflictDates = (carId: string): string[] => {
+    return selectedDateStrings.filter((dateStr) => isCarInMaintenanceOnDate(carId, dateStr));
+  };
+
 
   const selectedCars = cars.filter(car => selectedCarIds.includes(car.id));
   const selectedCount = selectedCarIds.length;
