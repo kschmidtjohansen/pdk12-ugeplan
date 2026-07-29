@@ -54,7 +54,10 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
 }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const { periods: maintenancePeriods } = useCarUnavailability();
   const [open, setOpen] = useState(false);
+
   // Pending conflict: set immediately when a conflicting car is clicked.
   // The picker (Popover/Drawer) is closed first, and only AFTER it has fully
   // unmounted do we promote it to `dialog` and show the AlertDialog. This
