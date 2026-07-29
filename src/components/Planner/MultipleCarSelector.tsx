@@ -20,6 +20,9 @@ import { Car as CarType } from '../../types/car';
 import { Assignment } from '../../types/assignment';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
+import { useCarUnavailability } from '@/hooks/car/useCarUnavailability';
+import { useToast } from '@/hooks/use-toast';
+
 
 type CarAvailability = 'full' | 'partial' | 'none';
 
