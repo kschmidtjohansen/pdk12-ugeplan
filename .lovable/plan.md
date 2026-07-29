@@ -1,58 +1,25 @@
-## Mål
-Man skal kunne planlægge en periode (enkelt dag eller fra-til) hvor en bil er ikke tilgængelig — fx værkstedsbesøg. Når startdatoen indtræffer bliver bilen automatisk markeret ikke tilgængelig i planlægger/dashboard, og den forbliver ikke tilgængelig indtil brugeren aktivt frigiver den igen. Eksisterende opgaver der bruger bilen i perioden får bilen fjernet automatisk (samme mønster som ferie/fravær for medarbejdere).
+# Bil på værksted skal blokere valg i planlægningen
 
-## Datamodel
-Ny tabel `car_unavailability` i public-skemaet:
-- `car_id` (FK til cars)
-- `start_date`, `end_date` (date; end_date >= start_date, enkelt dag = samme værdi)
-- `reason` (text, fx "Værkstedsbesøg")
-- `notes` (text, valgfri)
-- `department_id` (nedarvet fra bilen — bruges til RLS/isolation)
-- `released_at` (timestamptz, null = stadig aktiv; sættes når brugeren manuelt frigiver bilen)
-- `released_by` (uuid, hvem der frigav)
-- `created_by`, `created_at`, `updated_at`
+## Problem
+Vagtbil 41 (Hillerød) er planlagt til værksted 6/8, men kan stadig vælges når man opretter/redigerer en opgave på den dato. `MultipleCarSelector` filtrerer kun på `car.is_available` (som først bliver `false` på selve startdatoen), og tager ikke højde for `car_unavailability`-perioder.
 
-Grants + RLS: læs for authenticated i egen afdeling, skriv for admin/skadeleder i egen afdeling. Service role fuld adgang.
+## Løsning
+Læs aktive værkstedsperioder ind i bil-vælgeren og behandl dem som en dato-specifik blokering (samme mønster som eksisterende bookings).
 
-## Automatik (edge function + cron)
-Ny edge function `car-availability-sync` som kører hvert 5. minut:
-1. For hver aktiv `car_unavailability` hvor `start_date <= i dag` og `released_at IS NULL`: sæt `cars.is_available = false` hvis ikke allerede.
-2. Fjern bilen fra alle `assignments` (både `car_id` og `car_ids`) der ligger inden for perioden — genbruger samme oprydningslogik som `vacation-cleanup-assignments`. Logger til `planner_change_log`.
-3. Rører IKKE `end_date` — bilen frigives kun manuelt (jf. valget "utilgængelig indtil manuelt frigivet").
+### Ændringer
+1. **`src/components/Planner/MultipleCarSelector.tsx`**
+   - Hent perioder via `useCarUnavailability()`.
+   - Ny helper `isCarInMaintenance(carId, dateStr)` der matcher periode hvor `released_at IS NULL` og `start_date <= dateStr <= end_date`.
+   - Udvid `carAvailabilityMap`: en dato hvor bilen er på værksted tælles som konflikt (fuldt blokeret hvis alle valgte datoer rammer værksted → `none`, ellers `partial`).
+   - I `handleCarClick`: hvis alle valgte datoer er værksted-blokerede, blokér valg og vis en toast "Bilen er på værksted i perioden {start}–{slut}". Ved delvis konflikt: brug samme confirm-dialog som ved booking-konflikt, men med tydelig værksted-tekst og de berørte datoer.
+   - Vis en gul "Værksted"-badge/label + tooltip med periode ved biler der har en aktiv eller kommende periode der overlapper de valgte datoer.
 
-Samme oprydning køres også synkront når en ny markering oprettes, så brugeren straks ser konflikterne fjernet.
+2. **Ingen backend-ændringer** — `car_unavailability` findes allerede, hook er dept-scoped, og eksisterende `is_available`-flip på startdagen bevares.
 
-## UI
-**På /cars siden:**
-- Ny handling pr. bil: "Planlæg værkstedsbesøg" (i eksisterende actions-menu ved siden af "Marker ikke tilgængelig").
-- Dialog `CarScheduledUnavailabilityDialog`: datepicker for start + end (end default = start, kan slås til "flere dage"), felt for årsag (default "Værkstedsbesøg"), noter, liste over konfliktende opgaver med besked "Bilen fjernes fra disse opgaver".
-- Bilens kort viser badge "Planlagt værksted d. DD.MM" hvis der findes en fremtidig eller aktiv markering.
-- Når bilen er i aktiv periode: eksisterende "Marker som tilgængelig"-handling frigiver også `car_unavailability` (sætter `released_at`), så automatikken ikke straks slår den utilgængelig igen.
-- Nyt filter-segment "Planlagt værksted" udover Alle/Tilgængelige/Optaget.
+## Ikke omfattet
+- Bulk-tildeling (`BulkAssignCarDialog`) og enkelt-bil felter behandles ikke i denne omgang, medmindre du ønsker det. Sig til hvis de også skal opdateres.
 
-**I planlægger/dashboard:**
-- Bilen filtreres væk fra "Tilgængelige biler" som i dag (via `is_available`), og får en tydelig "Værksted"-label i selectors — samme mønster som "Kursus"-label for medarbejdere.
-
-## Ændringer i eksisterende filer
-- `src/services/carSecurityService.ts` — hjælpefunktioner til at hente/oprette/frigive markeringer.
-- `src/hooks/car/useCarActions.ts` — nye actions `scheduleUnavailability`, `releaseUnavailability`; `markCarAvailable*` frigiver også aktive perioder.
-- `src/hooks/car/useCarData.ts` — henter aktive/kommende markeringer sammen med biler.
-- `src/components/Cars/CarsList.tsx` + `MobileCarCard.tsx` + `CarsTable.tsx` — badge og ny handling.
-- `src/components/Cars/CarDialogs.tsx` — inkludér den nye dialog.
-- Bil-selector komponenter (planner) — vis "Værksted"-label når `is_available=false` og bilen har aktiv `car_unavailability`.
-- Oversættelser (`da/cars.ts`, `en/cars.ts`).
-
-## Migration + edge function schedule
-- SQL-migration opretter tabel, grants, RLS-policies, updated_at-trigger, samt cron-schedule (pg_cron) der kalder edge functionen hvert 5. minut.
-
-## Dokumentation
-- `docs/implementation-plan/tasks.md`: nyt punkt afkrydset.
-- `CHANGELOG.md`: notér feature.
-- `docs/technical-specs/data-models.md`: beskriv `car_unavailability`.
-
-## Rækkefølge
-1. DB-migration (tabel, RLS, cron).
-2. Edge function `car-availability-sync` + genbrug af oprydningslogik.
-3. Service + hooks.
-4. UI (dialog, badges, actions, selector-labels).
-5. Oversættelser + docs/changelog.
+## Verifikation
+- Åbn opgave 6/8 i Hillerød → Vagt 41 vises som "Værksted" og kan ikke vælges.
+- Opret opgave 5/8–7/8 → delvis konflikt-dialog nævner 6/8 som værksted.
+- Frigiv værkstedsperioden → bilen kan straks vælges igen (realtime invalidation findes allerede).
