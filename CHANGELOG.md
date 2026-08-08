@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-08 — Kritisk fix: rettigheder genoprettet + kiosk-visning
+
+- **Rodårsag:** en tidligere oprydning i databasens sikkerhedsadvarsler fjernede `EXECUTE` fra 105 af 121 funktioner i `public`. Da RLS-politikkerne selv kalder hjælpefunktioner (`is_super_admin`, `is_admin_user`, `get_user_department_ids`, `get_auth_uid`), fejlede stort set alle forespørgsler med `permission denied for function`. Brugere som Kasper Johansen (super_admin) faldt derfor tilbage til `servicemedarbejder` og så fejl overalt.
+- `EXECUTE` er genoprettet for `authenticated` og `service_role` på alle app-funktioner, og `ALTER DEFAULT PRIVILEGES` sikrer fremtidige funktioner.
+- `anon` har nu adgang til præcis tre kiosk-funktioner (`list_screen_display_assignments/absences/sub_departments`) — intet andet.
+- Interne drifts-/vedligeholdelsesfunktioner (logoprydning, partitionering, maintenance, health checks, krypto-helpers) er bevidst revokeret fra `anon`/`authenticated`. Linter-advarsler: 108 → 91, ingen ERROR.
+- Tilføjet manglende `swap_duty_employees` (atomisk vagtbytte, kun `service_role`); edge-funktionen `swap-duties` brugte hidtil altid sin fallback.
+- Kiosk (`/screen-display`): `assignments_employees` tilføjet til realtidspublikationen; visningen lytter nu også på `trainings`, `cars` og `on_call_duties`. Døgnskifte sikres af et minut-ur oveni midnats-timeren, og fejlskærmen genforsøger automatisk hvert 30. sekund.
+- `DepartmentContext` henter ikke længere afdelinger uden login (fjerner 42501-fejl på kiosk) og henter nu også `chat_enabled`/`files_enabled`.
+
+
 ## 2026-07-27 — Feature: planlagt utilgængelighed for biler (værkstedsbesøg)
 
 - Ny tabel `car_unavailability` gør det muligt at planlægge, at en bil er ikke tilgængelig i en periode (enkelt dag eller fra-til), fx ved værkstedsbesøg.

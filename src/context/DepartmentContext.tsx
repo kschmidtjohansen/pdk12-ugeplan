@@ -82,13 +82,19 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     setFetchCounter(c => c + 1);
   }, []);
 
-  // Fetch all departments
+  // Fetch all departments (requires an authenticated session — the kiosk view
+  // runs unauthenticated and must not trigger a permission error here)
   useEffect(() => {
+    if (!isAuthenticated || !user?.id) {
+      setDepartments([]);
+      return;
+    }
+
     const fetchDepartments = async () => {
       try {
         const { data, error } = await supabase
           .from('departments')
-          .select('id, name, warehouse_enabled, duty_enabled, substitute_enabled')
+          .select('id, name, warehouse_enabled, duty_enabled, substitute_enabled, chat_enabled, files_enabled')
           .order('name');
 
         if (error) {
@@ -110,7 +116,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     };
 
     fetchDepartments();
-  }, [fetchCounter]);
+  }, [fetchCounter, isAuthenticated, user?.id]);
+
 
   // Fetch user-specific departments based on role
   useEffect(() => {

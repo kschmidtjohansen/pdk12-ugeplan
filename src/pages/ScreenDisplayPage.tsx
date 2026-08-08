@@ -148,7 +148,11 @@ const ScreenDisplayPage: React.FC = () => {
       .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments', filter: `department_id=eq.${departmentId}` }, triggerRefetch)
       .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments_employees' }, triggerRefetch)
       .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'vacations' }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'trainings' }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'cars' }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'on_call_duties' }, triggerRefetch)
       .subscribe();
+
 
     return () => {
       if (debounceTimer) clearTimeout(debounceTimer);
@@ -163,18 +167,19 @@ const ScreenDisplayPage: React.FC = () => {
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const jumpToTodayIfStale = () => {
+    const jumpToTodayIfStale = (alwaysRefetch = true) => {
       const today = new Date();
       const todayStr = format(today, 'yyyy-MM-dd');
       const currentStr = format(selectedDate, 'yyyy-MM-dd');
-      if (currentStr !== todayStr) {
+      const stale = currentStr !== todayStr;
+      if (stale) {
         if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Stale date detected → jumping to today');
         setSelectedDate(today);
         const url = new URL(window.location.href);
         url.searchParams.set('date', todayStr);
         window.history.replaceState({}, '', url.toString());
       }
-      refetch();
+      if (stale || alwaysRefetch) refetch();
     };
 
     const scheduleMidnight = () => {
@@ -195,16 +200,22 @@ const ScreenDisplayPage: React.FC = () => {
       }
     };
 
+    // Safety net for kiosk screens that never get focus/visibility events and
+    // where a long setTimeout may drift or be throttled: check every minute.
+    const minuteTicker = setInterval(() => jumpToTodayIfStale(false), 60_000);
+
     scheduleMidnight();
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('focus', handleVisibility);
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
+      clearInterval(minuteTicker);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', handleVisibility);
     };
   }, [refetch, selectedDate]);
+
 
 
   useEffect(() => {
@@ -292,6 +303,16 @@ const ScreenDisplayPage: React.FC = () => {
     updateUrlDate(today);
   };
 
+  // Kiosk: auto-retry on error so an unattended screen recovers on its own
+  useEffect(() => {
+    if (!error) return;
+    const timer = setInterval(() => {
+      if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Auto-retry after error');
+      refetch();
+    }, 30_000);
+    return () => clearInterval(timer);
+  }, [error, refetch]);
+
   let content: React.ReactNode;
   if (loading) {
     content = (
@@ -304,19 +325,21 @@ const ScreenDisplayPage: React.FC = () => {
       <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
           <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Assignments</h2>
+            <h2 className="text-xl font-semibold text-destructive mb-2">Kunne ikke hente opgaver</h2>
             <p className="text-muted-foreground mb-4">{error.message}</p>
+            <p className="text-xs text-muted-foreground mb-4">Prøver automatisk igen hvert 30. sekund.</p>
             <button
               onClick={refetch}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
             >
               <RefreshCw className="h-4 w-4" />
-              Try Again
+              Prøv igen
             </button>
           </CardContent>
         </Card>
       </div>
     );
+
   } else {
     content = (
       <div className="min-h-screen w-full bg-background">
