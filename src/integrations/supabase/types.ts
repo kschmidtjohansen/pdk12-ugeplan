@@ -1954,6 +1954,15 @@ export type Database = {
         }
       }
       security_health_check: { Args: never; Returns: Json }
+      swap_duty_employees: {
+        Args: {
+          p_duty1_id: string
+          p_duty2_id: string
+          p_employee1_id: string
+          p_employee2_id: string
+        }
+        Returns: undefined
+      }
       sync_user_roles_to_jwt: { Args: never; Returns: undefined }
       test_query_performance: { Args: never; Returns: Json }
       user_has_role: {
