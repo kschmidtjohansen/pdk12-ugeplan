@@ -1,25 +1,45 @@
-# Bil på værksted skal blokere valg i planlægningen
+# Genopretning af rettigheder + kiosk-visning
 
-## Problem
-Vagtbil 41 (Hillerød) er planlagt til værksted 6/8, men kan stadig vælges når man opretter/redigerer en opgave på den dato. `MultipleCarSelector` filtrerer kun på `car.is_available` (som først bliver `false` på selve startdatoen), og tager ikke højde for `car_unavailability`-perioder.
+## Hovedårsag (verificeret)
 
-## Løsning
-Læs aktive værkstedsperioder ind i bil-vælgeren og behandl dem som en dato-specifik blokering (samme mønster som eksisterende bookings).
+Da databasens sikkerhedsadvarsler blev udbedret, blev `EXECUTE`-rettigheden fjernet fra stort set alle databasefunktioner. Konkret måling i den nuværende database:
 
-### Ændringer
-1. **`src/components/Planner/MultipleCarSelector.tsx`**
-   - Hent perioder via `useCarUnavailability()`.
-   - Ny helper `isCarInMaintenance(carId, dateStr)` der matcher periode hvor `released_at IS NULL` og `start_date <= dateStr <= end_date`.
-   - Udvid `carAvailabilityMap`: en dato hvor bilen er på værksted tælles som konflikt (fuldt blokeret hvis alle valgte datoer rammer værksted → `none`, ellers `partial`).
-   - I `handleCarClick`: hvis alle valgte datoer er værksted-blokerede, blokér valg og vis en toast "Bilen er på værksted i perioden {start}–{slut}". Ved delvis konflikt: brug samme confirm-dialog som ved booking-konflikt, men med tydelig værksted-tekst og de berørte datoer.
-   - Vis en gul "Værksted"-badge/label + tooltip med periode ved biler der har en aktiv eller kommende periode der overlapper de valgte datoer.
+- 121 funktioner i alt — kun 16 af dem kan kaldes af indloggede brugere (`authenticated`) eller af kiosk-visningen (`anon`).
+- Det rammer også hjælpefunktioner som `is_super_admin`, `get_user_department_ids`, `is_admin_user`, `get_auth_uid` — de bruges *inde i* adgangsreglerne (RLS) på tabellerne. Når funktionen ikke må køres, fejler hele forespørgslen med en rettighedsfejl.
 
-2. **Ingen backend-ændringer** — `car_unavailability` findes allerede, hook er dept-scoped, og eksisterende `is_available`-flip på startdagen bevares.
+Det forklarer punkt 1 og 2 samlet:
+- Kasper Johansen har faktisk rollerne `super_admin`, `administrator`, `skadeleder`, `fugttekniker` i databasen. Appen kan bare ikke læse/anvende dem, fordi rolle- og adgangsopslagene fejler — appen falder derfor tilbage til "servicemedarbejder" og viser fejl.
+- Kioskvisningen (`/screen-display`) bruger `list_screen_display_assignments`, `list_screen_display_absences` og `list_screen_display_sub_departments`. Ingen af dem må køres af `anon` længere → tom skærm/fejl.
 
-## Ikke omfattet
-- Bulk-tildeling (`BulkAssignCarDialog`) og enkelt-bil felter behandles ikke i denne omgang, medmindre du ønsker det. Sig til hvis de også skal opdateres.
+## Hvad der bliver lavet
 
-## Verifikation
-- Åbn opgave 6/8 i Hillerød → Vagt 41 vises som "Værksted" og kan ikke vælges.
-- Opret opgave 5/8–7/8 → delvis konflikt-dialog nævner 6/8 som værksted.
-- Frigiv værkstedsperioden → bilen kan straks vælges igen (realtime invalidation findes allerede).
+### 1. Rettigheder (database-migration)
+- Giv `EXECUTE` tilbage til `authenticated` og `service_role` på alle app-funktioner i `public`.
+- Giv `EXECUTE` til `anon` udelukkende på de tre kiosk-funktioner (ingen andre) — kiosken skal virke uden login, men intet andet åbnes.
+- Sæt standardrettigheder for fremtidige funktioner, så problemet ikke opstår igen ved næste migration.
+- Ingen ændring af RLS-politikker: dataadgangen forbliver præcis som i dag, den kan bare fungere igen.
+
+Verifikation: efter migrationen tælles funktioner uden `EXECUTE` (skal være 0 for `authenticated`), og der køres et opslag som en almindelig bruger og som super_admin for at bekræfte, at profil, roller og afdelinger hentes.
+
+### 2. Kioskvisning
+- Tabellen `assignments_employees` mangler i realtidspublikationen, så kiosken opdager ikke, når personer tilføjes/fjernes fra en opgave. Tilføjes til realtid.
+- Kioskens realtidslytning udvides til også at reagere på biler (`cars`), vagter (`on_call_duties`) og kursus (`trainings`), så visningen opdateres ved alle relevante ændringer.
+- Døgnskifte: den eksisterende midnats-timer bevares, men suppleres med et minut-ur, der tjekker om datoen er skiftet. TV-skærme uden fokus/synlighedsevents får derfor stadig automatisk næste dag. Datoen i URL'en opdateres samtidig.
+- Fejlbilledet i kiosken får automatisk genforsøg i stedet for kun manuel knap.
+
+### 3. 360-graders gennemgang
+Efter rettighederne er genoprettet, gennemgås systematisk:
+- Alle `supabase.rpc(...)`-kald i koden holdes op mod de funktioner, der faktisk findes i databasen (finder kald til fjernede/omdøbte funktioner).
+- Adgangsregler pr. rolle: super_admin, administrator, skadeleder, fugttekniker, servicemedarbejder, vikar — kontrol af at hver rolle kan læse det, den skal, på de centrale sider (dashboard, planlægning, medarbejdere, biler, vagtplan, oversigt, admin).
+- Kontrol af at ingen tabel er utilgængelig for indloggede brugere (`logs`-tabellerne er bevidst lukkede og forbliver det).
+- Sikkerhedsscanner + database-linter køres til sidst, så vi ikke genindfører de advarsler, der oprindeligt blev ryddet op i.
+- Fund samles i en liste; kritiske fejl rettes med det samme, resten rapporteres til dig.
+
+Dokumentation og `CHANGELOG.md` opdateres til sidst.
+
+## Teknisk resumé
+
+- Migration: `GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated, service_role` + `ALTER DEFAULT PRIVILEGES`, plus målrettet `GRANT EXECUTE` til `anon` på de tre `list_screen_display_*`-funktioner. `SECURITY DEFINER`-funktioner beholder deres `SET search_path`.
+- Frontend: `src/pages/ScreenDisplayPage.tsx` (realtidskanaler + dato-ur), `src/components/ScreenDisplay/ScreenDisplayErrorBoundary.tsx` (auto-retry).
+- Realtid: `ALTER PUBLICATION supabase_realtime ADD TABLE public.assignments_employees;` (+ `REPLICA IDENTITY FULL`).
+- Ingen ændringer i `AuthContext`s rollelogik — den er korrekt; den fejlede kun pga. manglende funktionsrettigheder.
