@@ -303,6 +303,16 @@ const ScreenDisplayPage: React.FC = () => {
     updateUrlDate(today);
   };
 
+  // Kiosk: auto-retry on error so an unattended screen recovers on its own
+  useEffect(() => {
+    if (!error) return;
+    const timer = setInterval(() => {
+      if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Auto-retry after error');
+      refetch();
+    }, 30_000);
+    return () => clearInterval(timer);
+  }, [error, refetch]);
+
   let content: React.ReactNode;
   if (loading) {
     content = (
@@ -315,19 +325,21 @@ const ScreenDisplayPage: React.FC = () => {
       <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
           <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Assignments</h2>
+            <h2 className="text-xl font-semibold text-destructive mb-2">Kunne ikke hente opgaver</h2>
             <p className="text-muted-foreground mb-4">{error.message}</p>
+            <p className="text-xs text-muted-foreground mb-4">Prøver automatisk igen hvert 30. sekund.</p>
             <button
               onClick={refetch}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
             >
               <RefreshCw className="h-4 w-4" />
-              Try Again
+              Prøv igen
             </button>
           </CardContent>
         </Card>
       </div>
     );
+
   } else {
     content = (
       <div className="min-h-screen w-full bg-background">
