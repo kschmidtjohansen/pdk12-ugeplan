@@ -148,7 +148,11 @@ const ScreenDisplayPage: React.FC = () => {
       .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments', filter: `department_id=eq.${departmentId}` }, triggerRefetch)
       .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments_employees' }, triggerRefetch)
       .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'vacations' }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'trainings' }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'cars' }, triggerRefetch)
+      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'on_call_duties' }, triggerRefetch)
       .subscribe();
+
 
     return () => {
       if (debounceTimer) clearTimeout(debounceTimer);
