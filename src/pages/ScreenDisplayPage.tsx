@@ -167,18 +167,19 @@ const ScreenDisplayPage: React.FC = () => {
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const jumpToTodayIfStale = () => {
+    const jumpToTodayIfStale = (alwaysRefetch = true) => {
       const today = new Date();
       const todayStr = format(today, 'yyyy-MM-dd');
       const currentStr = format(selectedDate, 'yyyy-MM-dd');
-      if (currentStr !== todayStr) {
+      const stale = currentStr !== todayStr;
+      if (stale) {
         if (import.meta.env.DEV) console.log('[ScreenDisplayPage] Stale date detected → jumping to today');
         setSelectedDate(today);
         const url = new URL(window.location.href);
         url.searchParams.set('date', todayStr);
         window.history.replaceState({}, '', url.toString());
       }
-      refetch();
+      if (stale || alwaysRefetch) refetch();
     };
 
     const scheduleMidnight = () => {
@@ -199,16 +200,22 @@ const ScreenDisplayPage: React.FC = () => {
       }
     };
 
+    // Safety net for kiosk screens that never get focus/visibility events and
+    // where a long setTimeout may drift or be throttled: check every minute.
+    const minuteTicker = setInterval(() => jumpToTodayIfStale(false), 60_000);
+
     scheduleMidnight();
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('focus', handleVisibility);
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
+      clearInterval(minuteTicker);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', handleVisibility);
     };
   }, [refetch, selectedDate]);
+
 
 
   useEffect(() => {
