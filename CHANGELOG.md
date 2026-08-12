@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-12 — Tydelig fejlbesked ved oprettelse af medarbejder
+
+- `useEmployeeCreation` læser nu serverens faktiske fejlsvar fra `error.context` ved non-2xx fra `admin-create-user`, i stedet for den generiske "Edge Function returned a non-2xx status code".
+- Endelige afvisninger (400/401/403/409/422, fx "email findes allerede") springer fallback-oprettelsen over og vises som én kort, forståelig besked i stedet for den sammenkædede "Alle oprettelsesmetoder fejlede".
+
+
+
 ## 2026-08-12 — Entydige fornavne ved dubletter
 
 - Ny hjælpefunktion `buildFirstNameResolver` / `getDisplayFirstName` i `src/utils/people.ts`: er et fornavn unikt i afdelingen, vises kun fornavnet; ved dubletter tilføjes efternavnets korteste unikke begyndelse ("Mette J" / "Mette L", og "Mette Je" / "Mette Jø" hvis nødvendigt).

@@ -162,12 +162,37 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         
         if (error) {
           if (import.meta.env.DEV) console.error('[useEmployeeCreation] Edge function error:', error);
-          throw new Error(`${t('employees.edgeFunctionFailed')}: ${error.message}`);
+          // Supabase-klienten skjuler serverens svar ved non-2xx. Læs det rigtige
+          // fejlsvar fra Response-objektet i error.context.
+          let serverMessage: string | null = null;
+          let status: number | null = null;
+          const ctx: any = (error as any)?.context;
+          if (ctx && typeof ctx.json === 'function') {
+            status = typeof ctx.status === 'number' ? ctx.status : null;
+            try {
+              const body = await ctx.clone().json();
+              if (body?.error) serverMessage = String(body.error);
+            } catch {
+              try {
+                const text = await ctx.clone().text();
+                if (text) serverMessage = text;
+              } catch { /* ignore */ }
+            }
+          }
+
+          const finalError: any = new Error(
+            serverMessage || `${t('employees.edgeFunctionFailed')}: ${error.message}`
+          );
+          // Reelle afvisninger skal ikke udløse fallback-oprettelse
+          finalError.isFinal = !!serverMessage || (status !== null && [400, 401, 403, 409, 422].includes(status));
+          throw finalError;
         }
         
         if (data?.error) {
           if (import.meta.env.DEV) console.error('[useEmployeeCreation] Edge function returned error:', data.error);
-          throw new Error(data.error);
+          const finalError: any = new Error(data.error);
+          finalError.isFinal = true;
+          throw finalError;
         }
         
         if (data && (data.user?.id || data.id)) {
@@ -182,7 +207,13 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           if (import.meta.env.DEV) console.error('[useEmployeeCreation] Edge function returned unexpected data');
           throw new Error(t('employees.edgeFunctionFailed'));
         }
-      } catch (edgeError) {
+      } catch (edgeError: any) {
+        // Endelige afvisninger (fx email findes allerede) vises direkte
+        if (edgeError?.isFinal) {
+          if (import.meta.env.DEV) console.error('[useEmployeeCreation] Final edge function rejection:', edgeError.message);
+          throw new Error(edgeError.message);
+        }
+
         if (import.meta.env.DEV) console.log('[useEmployeeCreation] Edge function failed, trying direct method');
         
         // Method 2: Direct database creation
@@ -190,11 +221,12 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           const directFormData = { ...formData, email: finalEmail };
           result = await createUserDirectly(directFormData);
           method = 'direct-database';
-        } catch (directError) {
+        } catch (directError: any) {
           if (import.meta.env.DEV) console.error('[useEmployeeCreation] Direct creation also failed:', directError);
-          throw new Error(`${t('employees.allMethodsFailed')}. ${t('employees.edgeFunctionFailed')}: ${edgeError.message}. ${t('employees.directCreationFailed')}: ${directError.message}`);
+          throw new Error(edgeError?.message || directError?.message || t('employees.allMethodsFailed'));
         }
       }
+
 
       if (result?.user?.id || result?.success || result?.id || (result?.message && result.message.includes('successfully'))) {
         const userId = result.user?.id || result.id;
