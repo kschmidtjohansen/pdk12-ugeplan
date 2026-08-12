@@ -14,6 +14,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { cn } from '@/lib/utils';
 import { getRoleBadgeClass } from '@/utils/roleColors';
 import { getEffectiveRole } from '@/utils/roleHierarchy';
+import { buildFirstNameResolver } from '@/utils/people';
 import type { UserRole } from '@/context/AuthContext';
 
 interface CompactAssignmentRowProps {
@@ -67,6 +68,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   
   const carNames = getCarNames();
   const employeeNames = getEmployeeNames();
+  const displayFirstName = React.useMemo(() => buildFirstNameResolver(employees), [employees]);
 
   // Derive most-privileged role across assigned employees for chip color
   const employeeRoles: UserRole[] = (assignment.assignedEmployees || [])
@@ -84,7 +86,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
     : '-';
   
   const employeeDisplay = employeeNames.length > 0
-    ? employeeNames.slice(0, 2).map(n => n.split(' ')[0]).join(', ') + (employeeNames.length > 2 ? ` +${employeeNames.length - 2}` : '')
+    ? employeeNames.slice(0, 2).map(n => displayFirstName(n)).join(', ') + (employeeNames.length > 2 ? ` +${employeeNames.length - 2}` : '')
     : '-';
 
   const isLoading = operationState != null;

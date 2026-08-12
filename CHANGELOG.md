@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-12 — Entydige fornavne ved dubletter
+
+- Ny hjælpefunktion `buildFirstNameResolver` / `getDisplayFirstName` i `src/utils/people.ts`: er et fornavn unikt i afdelingen, vises kun fornavnet; ved dubletter tilføjes efternavnets korteste unikke begyndelse ("Mette J" / "Mette L", og "Mette Je" / "Mette Jø" hvis nødvendigt).
+- Anvendt i Planner: ikke-tildelte ressourcer (alle medarbejder-chips, inkl. fravær og kursus) og den kompakte opgaverække.
+
+
+
 ## 2026-08-08 — Kritisk fix: rettigheder genoprettet + kiosk-visning
 
 - **Rodårsag:** en tidligere oprydning i databasens sikkerhedsadvarsler fjernede `EXECUTE` fra 105 af 121 funktioner i `public`. Da RLS-politikkerne selv kalder hjælpefunktioner (`is_super_admin`, `is_admin_user`, `get_user_department_ids`, `get_auth_uid`), fejlede stort set alle forespørgsler med `permission denied for function`. Brugere som Kasper Johansen (super_admin) faldt derfor tilbage til `servicemedarbejder` og så fejl overalt.

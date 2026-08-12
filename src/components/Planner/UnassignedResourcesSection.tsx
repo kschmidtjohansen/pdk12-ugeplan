@@ -14,6 +14,7 @@ import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { buildFirstNameResolver } from '@/utils/people';
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
@@ -37,6 +38,11 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
+
+  // Disambiguate first names across the whole department list (Mette J / Mette L)
+  const displayFirstName = useMemo(() => buildFirstNameResolver(employees), [employees]);
+
+
 
   // State for collapsible functionality
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -345,7 +351,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                                     : 'bg-purple-50 border-purple-200 text-purple-700'
                                 }`}
                               >
-                                {emp.name.split(' ')[0]}
+                                {displayFirstName(emp.name)}
                                 {emp.availabilityInfo?.status === 'partiallyBooked' && (
                                   <Clock className="h-3 w-3 ml-1" />
                                 )}
@@ -386,7 +392,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                                     : 'bg-blue-50 border-blue-200 text-blue-700'
                                 }`}
                               >
-                                {emp.name.split(' ')[0]}
+                                {displayFirstName(emp.name)}
                                 {emp.availabilityInfo?.status === 'partiallyBooked' && (
                                   <Clock className="h-3 w-3 ml-1" />
                                 )}
@@ -430,7 +436,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                                     : 'bg-green-50 border-green-200 text-green-700'
                                 }`}
                               >
-                                {emp.name.split(' ')[0]}
+                                {displayFirstName(emp.name)}
                                 {emp.availabilityInfo?.status === 'partiallyBooked' && (
                                   <Clock className="h-3 w-3 ml-1" />
                                 )}
@@ -502,7 +508,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                               variant="outline" 
                               className="text-xs bg-orange-50 border-orange-200 text-orange-700 cursor-default"
                             >
-                              {employee.name.split(' ')[0]}
+                              {displayFirstName(employee.name)}
                             </Badge>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -536,7 +542,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                                 variant="outline"
                                 className="text-xs bg-yellow-50 border-yellow-200 text-yellow-800 cursor-default"
                               >
-                                {employee.name.split(' ')[0]}
+                                {displayFirstName(employee.name)}
                               </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
