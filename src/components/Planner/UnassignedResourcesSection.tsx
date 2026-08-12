@@ -39,6 +39,11 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
 
+  // Disambiguate first names across the whole department list (Mette J / Mette L)
+  const displayFirstName = useMemo(() => buildFirstNameResolver(employees), [employees]);
+
+
+
   // State for collapsible functionality
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('unassignedResourcesCollapsed');
