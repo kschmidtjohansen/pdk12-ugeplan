@@ -26,7 +26,9 @@ interface CarsTableProps {
   onDelete: (car: CarData) => void;
   onToggleAvailability: (car: CarData) => void;
   onSchedule?: (car: CarData) => void;
+  onEditNote?: (car: CarData) => void;
 }
+
 
 const CarsTable: React.FC<CarsTableProps> = ({
   cars,
