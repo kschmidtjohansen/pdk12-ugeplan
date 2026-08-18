@@ -76,8 +76,21 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
               </div>
             </div>
           </div>
-          {isAdmin && (
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
+            {onEditNote && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEditNote(car)}
+                className="h-8 w-8 p-0"
+              >
+                <span className="sr-only">Note</span>
+                <StickyNote className="h-4 w-4 text-blue-500" />
+              </Button>
+            )}
+            {isAdmin && (
+            <>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
