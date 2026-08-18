@@ -7,6 +7,8 @@ import CarDialogs from '@/components/Cars/CarDialogs';
 import CarMarkUnavailableDialog from '@/components/Cars/CarMarkUnavailableDialog';
 import CarMarkAvailableDialog from '@/components/Cars/CarMarkAvailableDialog';
 import CarScheduledUnavailabilityDialog from '@/components/Cars/CarScheduledUnavailabilityDialog';
+import CarNoteDialog from '@/components/Cars/CarNoteDialog';
+
 import { useCars } from '@/hooks/car';
 import { useCarUnavailability } from '@/hooks/car/useCarUnavailability';
 import { isCarScheduledUnavailableToday, nextScheduledUnavailability } from '@/services/carUnavailabilityService';
