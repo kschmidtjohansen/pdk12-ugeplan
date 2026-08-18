@@ -27,6 +27,9 @@ const CarsPage: React.FC = () => {
   const { t } = useTranslation();
   const [segment, setSegment] = useState<CarSegment>('all');
   const [search, setSearch] = useState('');
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [noteCar, setNoteCar] = useState<any>(null);
+
 
   const {
     cars, loading, error, currentCar, formData, setFormData,
