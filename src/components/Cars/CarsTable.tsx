@@ -38,7 +38,9 @@ const CarsTable: React.FC<CarsTableProps> = ({
   onDelete,
   onToggleAvailability,
   onSchedule,
+  onEditNote,
 }) => {
+
   const { t } = useTranslation();
   
   return (
