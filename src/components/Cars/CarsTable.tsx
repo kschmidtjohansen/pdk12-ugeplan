@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle, CalendarClock, Wrench } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle, CalendarClock, Wrench, StickyNote } from 'lucide-react';
 import { 
   Table,
   TableBody,
