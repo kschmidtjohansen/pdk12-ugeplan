@@ -340,7 +340,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                   </div>
                 </div>
               </div>
-            </div>
+            </button>
+
           );
         } catch (err) {
           if (import.meta.env.DEV) console.error(`[EmployeeSelector] Error rendering employee ${employee?.name || 'unknown'}:`, err);
