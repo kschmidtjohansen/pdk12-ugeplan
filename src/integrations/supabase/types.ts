@@ -1965,6 +1965,10 @@ export type Database = {
       }
       sync_user_roles_to_jwt: { Args: never; Returns: undefined }
       test_query_performance: { Args: never; Returns: Json }
+      update_car_note: {
+        Args: { _car_id: string; _note: string }
+        Returns: undefined
+      }
       user_has_role: {
         Args: { check_role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
