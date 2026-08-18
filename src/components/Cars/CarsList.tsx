@@ -17,6 +17,7 @@ interface CarsListProps {
   onDelete: (car: CarData) => void;
   onToggleAvailability: (car: CarData) => void;
   onSchedule?: (car: CarData) => void;
+  onEditNote?: (car: CarData) => void;
 }
 
 const PAGE_SIZE = 25;
@@ -30,7 +31,9 @@ const CarsList: React.FC<CarsListProps> = ({
   onDelete,
   onToggleAvailability,
   onSchedule,
+  onEditNote,
 }) => {
+
   const { t } = useTranslation();
   const sortedCars = useMemo(
     () => [...cars].sort((a, b) => a.car_number.localeCompare(b.car_number)),
