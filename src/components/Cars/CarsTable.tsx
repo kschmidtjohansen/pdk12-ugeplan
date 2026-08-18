@@ -169,10 +169,28 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   )}
                 </div>
               </TableCell>
-              {isAdmin && (
-                <TableCell>
-                  <div className="flex items-center gap-1">
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  {onEditNote && (
                     <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditNote(car)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <span className="sr-only">Note</span>
+                          <StickyNote className="h-4 w-4 text-blue-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent><p>Tilføj/ret note</p></TooltipContent>
+                    </Tooltip>
+                  )}
+                  {isAdmin && (
+                    <>
+                    <Tooltip>
+
                       <TooltipTrigger asChild>
                         <Button
                           variant="ghost"
