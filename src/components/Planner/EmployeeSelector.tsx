@@ -247,20 +247,27 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             : null;
           
           return (
-            <div
+            <button
               key={employee.id}
-              className={`flex items-center gap-3 py-3 px-4 transition-colors ${
+              type="button"
+              disabled={isDisabled}
+              className={`w-full text-left flex items-center gap-3 py-3 px-4 transition-colors ${
                 index < sortedEmployees.length - 1 ? 'border-b border-border/40' : ''
               } ${
                 isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
               } ${
                 isSelected ? 'bg-accent/30' : ''
               }`}
-              onClick={(e) => {
+              onPointerUp={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 if (!isDisabled) {
                   onToggle(employee.id);
                 }
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
               }}
             >
               <Checkbox
@@ -268,6 +275,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 disabled={isDisabled}
                 className="pointer-events-none"
               />
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col min-w-0">
