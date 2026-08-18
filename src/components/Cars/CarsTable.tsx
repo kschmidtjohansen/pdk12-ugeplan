@@ -268,9 +268,11 @@ const CarsTable: React.FC<CarsTableProps> = ({
                         <p>{t('common.delete')}</p>
                       </TooltipContent>
                     </Tooltip>
-                  </div>
-                </TableCell>
-              )}
+                    </>
+                  )}
+                </div>
+              </TableCell>
+
             </TableRow>
           ))}
         </TableBody>
