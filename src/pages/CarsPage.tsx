@@ -7,6 +7,8 @@ import CarDialogs from '@/components/Cars/CarDialogs';
 import CarMarkUnavailableDialog from '@/components/Cars/CarMarkUnavailableDialog';
 import CarMarkAvailableDialog from '@/components/Cars/CarMarkAvailableDialog';
 import CarScheduledUnavailabilityDialog from '@/components/Cars/CarScheduledUnavailabilityDialog';
+import CarNoteDialog from '@/components/Cars/CarNoteDialog';
+
 import { useCars } from '@/hooks/car';
 import { useCarUnavailability } from '@/hooks/car/useCarUnavailability';
 import { isCarScheduledUnavailableToday, nextScheduledUnavailability } from '@/services/carUnavailabilityService';
@@ -27,6 +29,9 @@ const CarsPage: React.FC = () => {
   const { t } = useTranslation();
   const [segment, setSegment] = useState<CarSegment>('all');
   const [search, setSearch] = useState('');
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [noteCar, setNoteCar] = useState<any>(null);
+
 
   const {
     cars, loading, error, currentCar, formData, setFormData,
@@ -136,7 +141,9 @@ const CarsPage: React.FC = () => {
                     onDelete={handleDelete}
                     onToggleAvailability={handleToggleAvailability}
                     onSchedule={handleScheduleUnavailability}
+                    onEditNote={(car) => { setNoteCar(car); setNoteDialogOpen(true); }}
                   />
+
                 )}
               </div>
             )}
@@ -178,6 +185,14 @@ const CarsPage: React.FC = () => {
             onOpenChange={setScheduleDialogOpen}
             car={currentCar}
           />
+
+          <CarNoteDialog
+            open={noteDialogOpen}
+            onOpenChange={setNoteDialogOpen}
+            car={noteCar}
+            onSaved={fetchCars}
+          />
+
         </TooltipProvider>
       </PullToRefresh>
     </DataFetchErrorBoundary>

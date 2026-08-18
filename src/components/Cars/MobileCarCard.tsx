@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Truck, Recycle, ChevronDown, ChevronUp, Wrench, CalendarClock } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Truck, Recycle, ChevronDown, ChevronUp, Wrench, CalendarClock, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
@@ -19,6 +19,7 @@ interface MobileCarCardProps {
   onDelete: (car: CarData) => void;
   onToggleAvailability: (car: CarData) => void;
   onSchedule?: (car: CarData) => void;
+  onEditNote?: (car: CarData) => void;
 }
 
 const MobileCarCard: React.FC<MobileCarCardProps> = ({
@@ -29,7 +30,9 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
   onDelete,
   onToggleAvailability,
   onSchedule,
+  onEditNote,
 }) => {
+
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const scheduledActive = (car as any)._scheduledActive as { end_date: string } | null | undefined;
@@ -76,8 +79,21 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
               </div>
             </div>
           </div>
-          {isAdmin && (
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
+            {onEditNote && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEditNote(car)}
+                className="h-8 w-8 p-0"
+              >
+                <span className="sr-only">Note</span>
+                <StickyNote className="h-4 w-4 text-blue-500" />
+              </Button>
+            )}
+            {isAdmin && (
+            <>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -149,8 +165,10 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                   <p>{t('common.delete')}</p>
                 </TooltipContent>
               </Tooltip>
-            </div>
-          )}
+            </>
+            )}
+          </div>
+
         </div>
         
         <div className="space-y-3">

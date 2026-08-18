@@ -70,18 +70,21 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
 
   const renderUserList = () => (
     <div className="py-1">
-      <div
-        onClick={(e) => {
+      <button
+        type="button"
+        onPointerUp={(e) => {
           e.stopPropagation();
+          e.preventDefault();
           handleUserSelect('none');
         }}
-        className={`flex items-center gap-3 py-3 px-4 cursor-pointer transition-colors border-b border-border/40 ${
+        onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+        className={`w-full text-left flex items-center gap-3 py-3 px-4 cursor-pointer transition-colors border-b border-border/40 ${
           !selectedUserId || selectedUserId === '' ? 'bg-accent/30' : 'hover:bg-accent/50'
         }`}
       >
         <UserCheck className="h-4 w-4 text-muted-foreground" />
         <span className="font-medium text-foreground">{t('planner.noResponsibleUser')}</span>
-      </div>
+      </button>
       
       {eligibleUsers.length === 0 ? (
         <div className="p-4 text-muted-foreground text-sm">
@@ -89,13 +92,16 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
         </div>
       ) : (
         eligibleUsers.map((eligibleUser, index) => (
-          <div
+          <button
             key={eligibleUser.id}
-            onClick={(e) => {
+            type="button"
+            onPointerUp={(e) => {
               e.stopPropagation();
+              e.preventDefault();
               handleUserSelect(eligibleUser.id);
             }}
-            className={`flex items-center gap-3 py-3 px-4 cursor-pointer transition-colors ${
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+            className={`w-full text-left flex items-center gap-3 py-3 px-4 cursor-pointer transition-colors ${
               index < eligibleUsers.length - 1 ? 'border-b border-border/40' : ''
             } ${
               selectedUserId === eligibleUser.id ? 'bg-accent/30' : 'hover:bg-accent/50'
@@ -103,11 +109,12 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
           >
             <UserCheck className="h-4 w-4 text-primary" />
             <span className="truncate font-medium text-foreground">{eligibleUser.name}</span>
-          </div>
+          </button>
         ))
       )}
     </div>
   );
+
 
   const triggerButton = (
     <Button variant="outline" className="w-full justify-between h-11 px-4 py-2 border-border hover:border-border">

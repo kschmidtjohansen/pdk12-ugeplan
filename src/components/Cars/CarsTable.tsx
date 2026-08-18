@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle, CalendarClock, Wrench } from 'lucide-react';
+import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle, CalendarClock, Wrench, StickyNote } from 'lucide-react';
 import { 
   Table,
   TableBody,
@@ -26,7 +26,9 @@ interface CarsTableProps {
   onDelete: (car: CarData) => void;
   onToggleAvailability: (car: CarData) => void;
   onSchedule?: (car: CarData) => void;
+  onEditNote?: (car: CarData) => void;
 }
+
 
 const CarsTable: React.FC<CarsTableProps> = ({
   cars,
@@ -36,7 +38,9 @@ const CarsTable: React.FC<CarsTableProps> = ({
   onDelete,
   onToggleAvailability,
   onSchedule,
+  onEditNote,
 }) => {
+
   const { t } = useTranslation();
   
   return (
@@ -50,7 +54,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
             {canViewFuelCardCode && <TableHead className="text-muted-foreground font-medium">{t('cars.fuelCardCode')}</TableHead>}
             <TableHead className="text-muted-foreground font-medium">{t('cars.hasTrailerHitch')}</TableHead>
             <TableHead className="text-muted-foreground font-medium">{t('cars.isAvailable')}</TableHead>
-            {isAdmin && <TableHead className="w-[150px] text-muted-foreground font-medium">{t('common.actions')}</TableHead>}
+            <TableHead className="w-[190px] text-muted-foreground font-medium">{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -165,10 +169,28 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   )}
                 </div>
               </TableCell>
-              {isAdmin && (
-                <TableCell>
-                  <div className="flex items-center gap-1">
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  {onEditNote && (
                     <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditNote(car)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <span className="sr-only">Note</span>
+                          <StickyNote className="h-4 w-4 text-blue-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent><p>Tilføj/ret note</p></TooltipContent>
+                    </Tooltip>
+                  )}
+                  {isAdmin && (
+                    <>
+                    <Tooltip>
+
                       <TooltipTrigger asChild>
                         <Button
                           variant="ghost"
@@ -246,9 +268,11 @@ const CarsTable: React.FC<CarsTableProps> = ({
                         <p>{t('common.delete')}</p>
                       </TooltipContent>
                     </Tooltip>
-                  </div>
-                </TableCell>
-              )}
+                    </>
+                  )}
+                </div>
+              </TableCell>
+
             </TableRow>
           ))}
         </TableBody>
