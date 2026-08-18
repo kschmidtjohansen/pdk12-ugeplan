@@ -192,10 +192,14 @@ const UserMenu: React.FC<UserMenuProps> = ({
           </DropdownMenuRadioGroup>
           
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+          <DropdownMenuItem
+            onClick={handleLogout}
+            className="cursor-pointer sticky bottom-0 bg-popover border-t"
+          >
             <LogIn className="mr-2 h-4 w-4 rotate-180" />
             <span>{t('common.logout')}</span>
           </DropdownMenuItem>
+
         </DropdownMenuContent>
       </DropdownMenu>
 
