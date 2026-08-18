@@ -54,7 +54,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
             {canViewFuelCardCode && <TableHead className="text-muted-foreground font-medium">{t('cars.fuelCardCode')}</TableHead>}
             <TableHead className="text-muted-foreground font-medium">{t('cars.hasTrailerHitch')}</TableHead>
             <TableHead className="text-muted-foreground font-medium">{t('cars.isAvailable')}</TableHead>
-            {isAdmin && <TableHead className="w-[150px] text-muted-foreground font-medium">{t('common.actions')}</TableHead>}
+            <TableHead className="w-[190px] text-muted-foreground font-medium">{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
