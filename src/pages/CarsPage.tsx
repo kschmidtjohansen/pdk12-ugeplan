@@ -136,7 +136,9 @@ const CarsPage: React.FC = () => {
                     onDelete={handleDelete}
                     onToggleAvailability={handleToggleAvailability}
                     onSchedule={handleScheduleUnavailability}
+                    onEditNote={(car) => { setNoteCar(car); setNoteDialogOpen(true); }}
                   />
+
                 )}
               </div>
             )}
