@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-12 — Mobilfixes og noter på biler
+
+- `UserMenu` er nu scrollbar på mobil (`max-h-[75dvh]`), og "Log ud" er fastholdt i bunden.
+- `ResponsibleUserSelector` og `EmployeeSelector` bruger nu rigtige knapper med `onPointerUp`, så valg af sagsansvarlig og medarbejdere virker i mobil-drawer.
+- Alle indloggede medarbejdere kan nu tilføje/rette en note på en bil (fx fejl på bilen) via ny note-dialog og `SECURITY DEFINER`-funktionen `update_car_note`; øvrige bil-felter kræver stadig admin/skadeleder.
+
+
+
 ## 2026-08-12 — Tydelig fejlbesked ved oprettelse af medarbejder
 
 - `useEmployeeCreation` læser nu serverens faktiske fejlsvar fra `error.context` ved non-2xx fra `admin-create-user`, i stedet for den generiske "Edge Function returned a non-2xx status code".
