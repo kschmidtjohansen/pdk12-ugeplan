@@ -183,6 +183,14 @@ const CarsPage: React.FC = () => {
             onOpenChange={setScheduleDialogOpen}
             car={currentCar}
           />
+
+          <CarNoteDialog
+            open={noteDialogOpen}
+            onOpenChange={setNoteDialogOpen}
+            car={noteCar}
+            onSaved={fetchCars}
+          />
+
         </TooltipProvider>
       </PullToRefresh>
     </DataFetchErrorBoundary>
