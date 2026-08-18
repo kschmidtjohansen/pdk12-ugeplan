@@ -92,7 +92,9 @@ const CarsList: React.FC<CarsListProps> = ({
             onDelete={onDelete}
             onToggleAvailability={onToggleAvailability}
             onSchedule={onSchedule}
+            onEditNote={onEditNote}
           />
+
         </div>
 
         <SimplePagination
