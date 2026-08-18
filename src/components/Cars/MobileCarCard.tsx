@@ -162,8 +162,10 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                   <p>{t('common.delete')}</p>
                 </TooltipContent>
               </Tooltip>
-            </div>
-          )}
+            </>
+            )}
+          </div>
+
         </div>
         
         <div className="space-y-3">
