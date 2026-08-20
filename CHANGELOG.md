@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-20 — Biloversigt på kioskvisning
+
+- Ny sektion "Biler & bemanding" nederst på `/screen-display`, der viser hvilke medarbejdere der er koblet på hvilke biler for den valgte dag.
+- Kun biler i brug den dag vises; listen bygges på de allerede hentede opgavedata (ingen nye kald), så rotation, realtime og dagsskifte virker uændret.
+
+
+
 ## 2026-08-12 — Mobilfixes og noter på biler
 
 - `UserMenu` er nu scrollbar på mobil (`max-h-[75dvh]`), og "Log ud" er fastholdt i bunden.
