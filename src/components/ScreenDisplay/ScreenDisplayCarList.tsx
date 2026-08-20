@@ -9,7 +9,8 @@ interface ScreenDisplayCarListProps {
 
 /**
  * Kiosk overview: which employees are attached to which cars for the selected
- * day. Optimised for TV screens — large type, card grid, no dense rows.
+ * day. Compact list style so it fits below the task cards without taking over
+ * the screen.
  */
 export const ScreenDisplayCarList: React.FC<ScreenDisplayCarListProps> = ({ assignments }) => {
   const { t } = useTranslation();
