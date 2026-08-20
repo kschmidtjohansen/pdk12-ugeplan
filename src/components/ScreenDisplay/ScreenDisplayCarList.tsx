@@ -9,7 +9,8 @@ interface ScreenDisplayCarListProps {
 
 /**
  * Kiosk overview: which employees are attached to which cars for the selected
- * day. Optimised for TV screens — large type, card grid, no dense rows.
+ * day. Compact list style so it fits below the task cards without taking over
+ * the screen.
  */
 export const ScreenDisplayCarList: React.FC<ScreenDisplayCarListProps> = ({ assignments }) => {
   const { t } = useTranslation();
@@ -43,43 +44,44 @@ export const ScreenDisplayCarList: React.FC<ScreenDisplayCarListProps> = ({ assi
   if (rows.length === 0) return null;
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center gap-3 border-b border-border pb-2">
-        <Car className="h-7 w-7 xl:h-8 xl:w-8 text-primary shrink-0" />
-        <h2 className="text-2xl xl:text-3xl font-bold tracking-tight text-foreground">
+    <section className="space-y-2">
+      <div className="flex items-center gap-2 border-b border-border pb-1.5">
+        <Car className="h-4 w-4 text-primary shrink-0" />
+        <h2 className="text-sm font-semibold tracking-tight text-foreground uppercase">
           {t('screenDisplay.carsAndCrew')}
         </h2>
-        <span className="ml-auto text-xl xl:text-2xl font-semibold text-muted-foreground tabular-nums">
+        <span className="ml-auto text-xs font-medium text-muted-foreground tabular-nums">
           {rows.length}
         </span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rows.map((row) => (
           <div
             key={row.car}
-            className="rounded-xl border border-border/60 bg-card shadow-sm overflow-hidden"
+            className="rounded-lg border border-border/60 bg-card/50 overflow-hidden"
           >
-            <div className="bg-primary/10 px-4 py-2.5 border-b border-border/50">
-              <span className="text-xl xl:text-2xl font-bold text-foreground leading-none">
+            <div className="bg-primary/5 px-2.5 py-1 border-b border-border/40 flex items-center gap-2">
+              <Car className="h-3 w-3 text-primary/70 shrink-0" />
+              <span className="text-sm font-semibold text-foreground truncate">
                 {row.car}
               </span>
             </div>
-            <div className="px-4 py-3">
+            <div className="px-2.5 py-1.5">
               {row.employees.length > 0 ? (
-                <ul className="space-y-1.5">
+                <ul className="flex flex-wrap gap-x-3 gap-y-1">
                   {row.employees.map((name) => (
                     <li
                       key={name}
-                      className="flex items-center gap-2.5 text-lg xl:text-xl font-medium text-foreground leading-tight"
+                      className="flex items-center gap-1.5 text-xs text-foreground"
                     >
-                      <span className="h-2.5 w-2.5 rounded-full bg-primary shrink-0" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                       <span className="truncate">{name}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <span className="text-lg xl:text-xl text-muted-foreground italic">
+                <span className="text-xs text-muted-foreground italic">
                   {t('screenDisplay.noCrew')}
                 </span>
               )}
