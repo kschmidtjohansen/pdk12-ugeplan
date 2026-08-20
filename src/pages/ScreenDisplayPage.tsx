@@ -366,6 +366,9 @@ const ScreenDisplayPage: React.FC = () => {
             assignments={assignments}
             selectedDate={selectedDate}
           />
+
+          <ScreenDisplayCarList assignments={assignments} />
+
         </div>
       </div>
     );
