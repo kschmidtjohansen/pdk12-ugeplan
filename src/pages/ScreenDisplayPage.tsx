@@ -3,6 +3,7 @@ import { format, addDays, subDays, parseISO } from 'date-fns';
 import { useScreenDisplayData } from '@/hooks/useScreenDisplayData';
 import { ScreenDisplayHeader } from '@/components/ScreenDisplay/ScreenDisplayHeader';
 import { ScreenDisplayContent } from '@/components/ScreenDisplay/ScreenDisplayContent';
+import { ScreenDisplayCarList } from '@/components/ScreenDisplay/ScreenDisplayCarList';
 import { ScreenDisplayErrorBoundary } from '@/components/ScreenDisplay/ScreenDisplayErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
