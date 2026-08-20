@@ -8,7 +8,9 @@ const screenDisplay = {
   statusCompleted: 'Færdig',
   statusScheduled: 'Planlagt',
   absent: 'Fraværende',
-  absentMore: '+{count} mere'
+  absentMore: '+{count} mere',
+  carsAndCrew: 'Biler & bemanding',
+  noCrew: 'Ingen bemanding'
 };
 
 export default screenDisplay;

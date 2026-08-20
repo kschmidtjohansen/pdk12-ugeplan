@@ -8,7 +8,9 @@ const screenDisplay = {
   statusCompleted: 'Completed',
   statusScheduled: 'Scheduled',
   absent: 'Absent',
-  absentMore: '+{count} more'
+  absentMore: '+{count} more',
+  carsAndCrew: 'Cars & crew',
+  noCrew: 'No crew'
 };
 
 export default screenDisplay;
