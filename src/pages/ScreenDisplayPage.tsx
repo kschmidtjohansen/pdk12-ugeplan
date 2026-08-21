@@ -167,6 +167,7 @@ const ScreenDisplayPage: React.FC = () => {
   //   stored date is no longer today
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let catchUpId: ReturnType<typeof setTimeout> | null = null;
 
     const jumpToTodayIfStale = (alwaysRefetch = true) => {
       const today = new Date();
@@ -179,8 +180,14 @@ const ScreenDisplayPage: React.FC = () => {
         const url = new URL(window.location.href);
         url.searchParams.set('date', todayStr);
         window.history.replaceState({}, '', url.toString());
+        // IMPORTANT: do NOT call refetch() here — it still closes over the old
+        // date and could resolve last, overwriting the new day's data.
+        // The date change alone re-triggers the fetch. One delayed catch-up
+        // picks up assignments created right around midnight.
+        catchUpId = setTimeout(() => refetch(), 10_000);
+        return;
       }
-      if (stale || alwaysRefetch) refetch();
+      if (alwaysRefetch) refetch();
     };
 
     const scheduleMidnight = () => {
@@ -211,11 +218,13 @@ const ScreenDisplayPage: React.FC = () => {
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
+      if (catchUpId) clearTimeout(catchUpId);
       clearInterval(minuteTicker);
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', handleVisibility);
     };
   }, [refetch, selectedDate]);
+
 
 
 
