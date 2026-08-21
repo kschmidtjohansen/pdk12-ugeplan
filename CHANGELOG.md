@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-21 — Kioskvisning viser korrekte opgaver ved dagsskifte
+
+- `useScreenDisplayData` og `useScreenDisplayAbsences` har nu kapløbssikring: kun svaret fra den nyeste forespørgsel skriver til state, så et forsinket svar med gårsdagens dato ikke kan overskrive dagens data.
+- Ved midnatsskifte kaldes den manuelle `refetch()` ikke længere med den gamle dato; datoændringen udløser selv hentningen, og et enkelt catch-up-kald efter 10 sekunder fanger opgaver oprettet omkring midnat.
+
+
+
 ## 2026-08-20 — Biloversigt på kioskvisning
 
 - Ny sektion "Biler & bemanding" nederst på `/screen-display`, der viser hvilke medarbejdere der er koblet på hvilke biler for den valgte dag.

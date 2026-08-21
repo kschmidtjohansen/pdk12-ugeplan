@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
 import { convertOptimizedAssignmentToAssignment, OptimizedAssignmentData } from '@/utils/assignmentDataConverter';
@@ -23,14 +23,20 @@ export const useScreenDisplayData = (
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  // Race guard: only the newest in-flight request may write to state.
+  // Without this, a request started with a stale date (e.g. right at the
+  // midnight rollover) can resolve last and overwrite today's data.
+  const requestIdRef = useRef(0);
 
   const fetchData = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+    const isCurrent = () => requestId === requestIdRef.current;
     try {
       setLoading(true);
       setError(null);
 
       if (!departmentId) {
-        setAssignments([]);
+        if (isCurrent()) setAssignments([]);
         return;
       }
 
@@ -46,6 +52,11 @@ export const useScreenDisplayData = (
       if (rpcError) {
         if (import.meta.env.DEV) console.error('[useScreenDisplayData] RPC error:', rpcError);
         throw new Error(rpcError.message);
+      }
+
+      if (!isCurrent()) {
+        if (import.meta.env.DEV) console.log('[useScreenDisplayData] Discarded stale response');
+        return;
       }
 
       const rows = (data as any[]) || [];
@@ -91,12 +102,14 @@ export const useScreenDisplayData = (
       setAssignments(converted);
     } catch (err) {
       if (import.meta.env.DEV) console.error('[useScreenDisplayData] error:', err);
+      if (!isCurrent()) return;
       setError(err instanceof Error ? err : new Error('Failed to fetch assignments'));
       setAssignments([]);
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, [date, departmentId, subDepartmentId]);
+
 
   useEffect(() => {
     fetchData();
