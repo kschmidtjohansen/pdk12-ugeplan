@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Assignment } from '@/types/assignment';
 import { supabase } from '@/integrations/supabase/client';
 import { convertOptimizedAssignmentToAssignment, OptimizedAssignmentData } from '@/utils/assignmentDataConverter';
