@@ -23,8 +23,12 @@ export const useScreenDisplayAbsences = (
 ): Result => {
   const [absences, setAbsences] = useState<AbsentEmployee[]>([]);
   const [loading, setLoading] = useState(false);
+  // Race guard: discard responses from superseded requests (see useScreenDisplayData)
+  const requestIdRef = useRef(0);
 
   const fetchAbsences = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+    const isCurrent = () => requestId === requestIdRef.current;
     if (!date || !departmentId) {
       setAbsences([]);
       return;
@@ -35,6 +39,7 @@ export const useScreenDisplayAbsences = (
         p_department_id: departmentId,
         p_date: date,
       });
+      if (!isCurrent()) return;
       if (error) {
         if (import.meta.env.DEV) console.error('[useScreenDisplayAbsences] rpc error:', error.message);
         setAbsences([]);
@@ -43,11 +48,12 @@ export const useScreenDisplayAbsences = (
       setAbsences(((data as any[]) || []).map((r) => ({ id: r.id, name: r.name })));
     } catch (err) {
       if (import.meta.env.DEV) console.error('[useScreenDisplayAbsences] error:', err);
-      setAbsences([]);
+      if (isCurrent()) setAbsences([]);
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, [date, departmentId]);
+
 
   useEffect(() => {
     fetchAbsences();
