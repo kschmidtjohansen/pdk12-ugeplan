@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-25 — Delte vagtafdelinger: medarbejdere synlige på tværs
+
+- Læse-adgangsreglen på `user_access` inkluderer nu afdelinger, der deler vagt med brugerens egne afdelinger (`shared_duty_departments`).
+- Administratorer i fx 03 - Hillerød kan igen se og vælge medarbejdere fra 14 - Asnæs i vagtmodulet. Medarbejderlisten under `/employees` er uændret og fortsat isoleret pr. afdeling.
+
+
+
 ## 2026-08-21 — Kioskvisning viser korrekte opgaver ved dagsskifte
 
 - `useScreenDisplayData` og `useScreenDisplayAbsences` har nu kapløbssikring: kun svaret fra den nyeste forespørgsel skriver til state, så et forsinket svar med gårsdagens dato ikke kan overskrive dagens data.
