@@ -8,8 +8,21 @@ import { useTranslation } from '@/context/TranslationContext';
 import { DutyEmployeeSelector } from './DutyEmployeeSelector';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import type { Duty, DutyType } from '@/types/duty';
+import { Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
+
 
 interface Employee {
   id: string;
