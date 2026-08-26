@@ -1178,3 +1178,5 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-06-19
 - Ferieoversigt (grid): Filter-knapper tilføjet under tabellen, så ferie, kursus, fravær, skadeledervagt og kørevagt kan slås til/fra individuelt.
+
+- Vagtplan: mulighed for at slette enkelte vagter direkte i kalendervisningen (hover-ikon/mobil-popover), massesletning via "Vælg flere", samt sletteknap i redigeringsdialogen.
