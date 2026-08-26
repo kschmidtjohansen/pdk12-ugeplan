@@ -273,6 +273,32 @@ export const DutyMonthCalendar = ({
                       ? getInitials(employeeName) 
                       : getExternalInitials(duty.notes);
                     
+                    const isSelected = selectedIds.includes(duty.id);
+
+                    if (canManage && selectionMode) {
+                      return (
+                        <button
+                          key={duty.id}
+                          type="button"
+                          onClick={() => toggleSelected(duty.id)}
+                          className={cn(
+                            "w-full flex items-center gap-2 text-left px-2 py-1.5 rounded border text-xs transition-colors",
+                            colors.bg,
+                            colors.border,
+                            colors.text,
+                            colors.hover,
+                            isSelected && "ring-2 ring-destructive"
+                          )}
+                          title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}`}
+                        >
+                          <Checkbox checked={isSelected} className="pointer-events-none h-3.5 w-3.5" />
+                          <span className="truncate font-medium text-[11px]">
+                            {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'} · {initials}
+                          </span>
+                        </button>
+                      );
+                    }
+
                     return isMobile ? (
                       <Popover key={duty.id}>
                         <PopoverTrigger asChild>
@@ -310,37 +336,65 @@ export const DutyMonthCalendar = ({
                             <p className="text-xs text-muted-foreground">
                               {format(new Date(duty.duty_date), 'd. MMMM yyyy', { locale })}
                             </p>
+                            {canManage && (
+                              <div className="pt-2 flex flex-col gap-1">
+                                <Button size="sm" variant="outline" onClick={() => onDutyClick(duty)}>
+                                  {t('duty.edit')}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setDutyToDelete(duty)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                  {t('duty.remove')}
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </PopoverContent>
                       </Popover>
                     ) : (
-                      <button
-                        key={duty.id}
-                        onClick={() => canManage && onDutyClick(duty)}
-                        disabled={!canManage}
-                        className={cn(
-                          "w-full text-left px-2 py-1.5 md:py-1 rounded border text-xs transition-colors",
-                          colors.bg,
-                          colors.border,
-                          colors.text,
-                          canManage && colors.hover,
-                          canManage ? "cursor-pointer" : "cursor-default"
-                        )}
-                        title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}${(duty as any).sharedDepartmentName ? ' · ' + (duty as any).sharedDepartmentName : ''}`}
-                      >
-                        <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
-                          {initials}
-                        </div>
-                        <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
-                          {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
-                        </div>
-                        {(duty as any).sharedDepartmentName && (
-                          <div className="text-[9px] md:text-[10px] opacity-70 truncate italic">
-                            {(duty as any).sharedDepartmentName}
+                      <div key={duty.id} className="relative group">
+                        <button
+                          onClick={() => canManage && onDutyClick(duty)}
+                          disabled={!canManage}
+                          className={cn(
+                            "w-full text-left px-2 py-1.5 md:py-1 rounded border text-xs transition-colors",
+                            colors.bg,
+                            colors.border,
+                            colors.text,
+                            canManage && colors.hover,
+                            canManage ? "cursor-pointer" : "cursor-default"
+                          )}
+                          title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}${(duty as any).sharedDepartmentName ? ' · ' + (duty as any).sharedDepartmentName : ''}`}
+                        >
+                          <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
+                            {initials}
                           </div>
+                          <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
+                            {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
+                          </div>
+                          {(duty as any).sharedDepartmentName && (
+                            <div className="text-[9px] md:text-[10px] opacity-70 truncate italic">
+                              {(duty as any).sharedDepartmentName}
+                            </div>
+                          )}
+                        </button>
+                        {canManage && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setDutyToDelete(duty); }}
+                            className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 focus:opacity-100 rounded bg-background/80 hover:bg-destructive/10 text-destructive p-0.5 transition-opacity"
+                            title={t('duty.remove')}
+                            aria-label={t('duty.remove')}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
                         )}
-                      </button>
+                      </div>
                     );
+
                   })}
                 </div>
               </div>
