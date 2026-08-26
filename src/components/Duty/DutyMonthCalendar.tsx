@@ -417,7 +417,53 @@ export const DutyMonthCalendar = ({
             </span>
           </div>
         </div>
+
+        <AlertDialog open={!!dutyToDelete} onOpenChange={(o) => !o && setDutyToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('duty.confirmRemove')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('duty.confirmRemoveMessage')}
+                {dutyToDelete && (
+                  <span className="block mt-2 font-medium text-foreground">
+                    {getDisplayName(dutyToDelete)} — {getDutyTypeName(dutyToDelete.duty_type)} · {format(new Date(dutyToDelete.duty_date), 'd. MMMM yyyy', { locale })}
+                  </span>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteSingle}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {t('duty.remove')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={bulkConfirmOpen} onOpenChange={setBulkConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('duty.confirmRemoveMultiple')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {(t('duty.confirmRemoveMultipleMessage') || 'Er du sikker på, at du vil fjerne {{count}} vagter?').replace('{{count}}', String(selectedIds.length))}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteBulk}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {t('duty.remove')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
+
     </Card>
   );
 };
