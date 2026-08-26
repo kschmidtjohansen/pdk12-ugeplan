@@ -396,6 +396,8 @@ export const useDutyActions = (onSuccess?: () => void) => {
     assignDuty,
     updateDuty,
     removeDuty,
+    removeDuties,
+
     reassignDuty,
     swapDuty,
     swapDuties,
