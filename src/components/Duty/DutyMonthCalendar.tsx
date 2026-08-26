@@ -155,7 +155,20 @@ export const DutyMonthCalendar = ({
           <CardTitle className="text-xl">
             {format(month, 'MMMM yyyy', { locale })}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            {canManage && (
+              selectionMode ? (
+                <Button variant="outline" size="sm" onClick={exitSelection}>
+                  <X className="h-4 w-4 mr-1" />
+                  {t('duty.cancelSelection')}
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => setSelectionMode(true)}>
+                  <CheckSquare className="h-4 w-4 mr-1" />
+                  {t('duty.selectMultiple')}
+                </Button>
+              )
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -181,8 +194,25 @@ export const DutyMonthCalendar = ({
             </Button>
           </div>
         </div>
+        {canManage && selectionMode && (
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-3 py-2">
+            <span className="text-sm font-medium">
+              {(t('duty.selectedCount') || '{{count}} vagter valgt').replace('{{count}}', String(selectedIds.length))}
+            </span>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={selectedIds.length === 0 || deleting}
+              onClick={() => setBulkConfirmOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              {t('duty.deleteSelected')}
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
+
         <div className="grid grid-cols-7 gap-2">
           {/* Day headers */}
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
