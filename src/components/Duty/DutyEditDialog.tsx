@@ -175,19 +175,48 @@ export const DutyEditDialog = ({
             />
           </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              {t('duty.cancel')}
-            </Button>
-            <Button type="submit" disabled={loading || !employeeId || !!validationError}>
-              {loading ? t('common.saving') : t('duty.save')}
-            </Button>
+          <DialogFooter className="sm:justify-between gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="destructive" disabled={loading}>
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  {t('duty.remove')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('duty.confirmRemove')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('duty.confirmRemoveMessage')}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      const ok = await removeDuty(duty.id);
+                      if (ok) onOpenChange(false);
+                    }}
+                    className="bg-destructive hover:bg-destructive/90"
+                  >
+                    {t('duty.remove')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <div className="flex gap-2 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={loading}
+              >
+                {t('duty.cancel')}
+              </Button>
+              <Button type="submit" disabled={loading || !employeeId || !!validationError}>
+                {loading ? t('common.saving') : t('duty.save')}
+              </Button>
+            </div>
           </DialogFooter>
+
         </form>
       </DialogContent>
     </Dialog>
