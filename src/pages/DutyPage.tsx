@@ -215,6 +215,8 @@ export default function DutyPage() {
               onMonthChange={setCalendarMonth}
               onDutyClick={handleDutyClick}
               canManage={canManage}
+              onSuccess={refetch}
+
               onAddDuty={canManage ? (date) => {
                 setPendingNewDate(date);
                 setDialogOpen(true);

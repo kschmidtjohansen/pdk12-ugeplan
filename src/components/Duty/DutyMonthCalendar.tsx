@@ -1,9 +1,22 @@
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ChevronLeft, ChevronRight, Plus, Trash2, CheckSquare, X } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useDutyActions } from '@/hooks/duty/useDutyActions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { Duty } from '@/types/duty';
 import { 
   startOfMonth, 
@@ -27,6 +40,7 @@ interface DutyMonthCalendarProps {
   onDutyClick: (duty: Duty) => void;
   canManage: boolean;
   onAddDuty?: (date: Date) => void;
+  onSuccess?: () => void;
 }
 
 export const DutyMonthCalendar = ({
@@ -36,10 +50,39 @@ export const DutyMonthCalendar = ({
   onDutyClick,
   canManage,
   onAddDuty,
+  onSuccess,
 }: DutyMonthCalendarProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
   const isMobile = useIsMobile();
+  const { removeDuty, removeDuties, loading: deleting } = useDutyActions(onSuccess);
+
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [dutyToDelete, setDutyToDelete] = useState<Duty | null>(null);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+  };
+
+  const exitSelection = () => {
+    setSelectionMode(false);
+    setSelectedIds([]);
+  };
+
+  const handleDeleteSingle = async () => {
+    if (!dutyToDelete) return;
+    await removeDuty(dutyToDelete.id);
+    setDutyToDelete(null);
+  };
+
+  const handleDeleteBulk = async () => {
+    await removeDuties(selectedIds);
+    setBulkConfirmOpen(false);
+    exitSelection();
+  };
+
 
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
@@ -112,7 +155,20 @@ export const DutyMonthCalendar = ({
           <CardTitle className="text-xl">
             {format(month, 'MMMM yyyy', { locale })}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            {canManage && (
+              selectionMode ? (
+                <Button variant="outline" size="sm" onClick={exitSelection}>
+                  <X className="h-4 w-4 mr-1" />
+                  {t('duty.cancelSelection')}
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => setSelectionMode(true)}>
+                  <CheckSquare className="h-4 w-4 mr-1" />
+                  {t('duty.selectMultiple')}
+                </Button>
+              )
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -138,8 +194,25 @@ export const DutyMonthCalendar = ({
             </Button>
           </div>
         </div>
+        {canManage && selectionMode && (
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-3 py-2">
+            <span className="text-sm font-medium">
+              {(t('duty.selectedCount') || '{{count}} vagter valgt').replace('{{count}}', String(selectedIds.length))}
+            </span>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={selectedIds.length === 0 || deleting}
+              onClick={() => setBulkConfirmOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              {t('duty.deleteSelected')}
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
+
         <div className="grid grid-cols-7 gap-2">
           {/* Day headers */}
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
@@ -200,6 +273,32 @@ export const DutyMonthCalendar = ({
                       ? getInitials(employeeName) 
                       : getExternalInitials(duty.notes);
                     
+                    const isSelected = selectedIds.includes(duty.id);
+
+                    if (canManage && selectionMode) {
+                      return (
+                        <button
+                          key={duty.id}
+                          type="button"
+                          onClick={() => toggleSelected(duty.id)}
+                          className={cn(
+                            "w-full flex items-center gap-2 text-left px-2 py-1.5 rounded border text-xs transition-colors",
+                            colors.bg,
+                            colors.border,
+                            colors.text,
+                            colors.hover,
+                            isSelected && "ring-2 ring-destructive"
+                          )}
+                          title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}`}
+                        >
+                          <Checkbox checked={isSelected} className="pointer-events-none h-3.5 w-3.5" />
+                          <span className="truncate font-medium text-[11px]">
+                            {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'} · {initials}
+                          </span>
+                        </button>
+                      );
+                    }
+
                     return isMobile ? (
                       <Popover key={duty.id}>
                         <PopoverTrigger asChild>
@@ -237,37 +336,65 @@ export const DutyMonthCalendar = ({
                             <p className="text-xs text-muted-foreground">
                               {format(new Date(duty.duty_date), 'd. MMMM yyyy', { locale })}
                             </p>
+                            {canManage && (
+                              <div className="pt-2 flex flex-col gap-1">
+                                <Button size="sm" variant="outline" onClick={() => onDutyClick(duty)}>
+                                  {t('duty.edit')}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setDutyToDelete(duty)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                  {t('duty.remove')}
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </PopoverContent>
                       </Popover>
                     ) : (
-                      <button
-                        key={duty.id}
-                        onClick={() => canManage && onDutyClick(duty)}
-                        disabled={!canManage}
-                        className={cn(
-                          "w-full text-left px-2 py-1.5 md:py-1 rounded border text-xs transition-colors",
-                          colors.bg,
-                          colors.border,
-                          colors.text,
-                          canManage && colors.hover,
-                          canManage ? "cursor-pointer" : "cursor-default"
-                        )}
-                        title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}${(duty as any).sharedDepartmentName ? ' · ' + (duty as any).sharedDepartmentName : ''}`}
-                      >
-                        <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
-                          {initials}
-                        </div>
-                        <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
-                          {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
-                        </div>
-                        {(duty as any).sharedDepartmentName && (
-                          <div className="text-[9px] md:text-[10px] opacity-70 truncate italic">
-                            {(duty as any).sharedDepartmentName}
+                      <div key={duty.id} className="relative group">
+                        <button
+                          onClick={() => canManage && onDutyClick(duty)}
+                          disabled={!canManage}
+                          className={cn(
+                            "w-full text-left px-2 py-1.5 md:py-1 rounded border text-xs transition-colors",
+                            colors.bg,
+                            colors.border,
+                            colors.text,
+                            canManage && colors.hover,
+                            canManage ? "cursor-pointer" : "cursor-default"
+                          )}
+                          title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}${(duty as any).sharedDepartmentName ? ' · ' + (duty as any).sharedDepartmentName : ''}`}
+                        >
+                          <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
+                            {initials}
                           </div>
+                          <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
+                            {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
+                          </div>
+                          {(duty as any).sharedDepartmentName && (
+                            <div className="text-[9px] md:text-[10px] opacity-70 truncate italic">
+                              {(duty as any).sharedDepartmentName}
+                            </div>
+                          )}
+                        </button>
+                        {canManage && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setDutyToDelete(duty); }}
+                            className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 focus:opacity-100 rounded bg-background/80 hover:bg-destructive/10 text-destructive p-0.5 transition-opacity"
+                            title={t('duty.remove')}
+                            aria-label={t('duty.remove')}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
                         )}
-                      </button>
+                      </div>
                     );
+
                   })}
                 </div>
               </div>
@@ -290,7 +417,53 @@ export const DutyMonthCalendar = ({
             </span>
           </div>
         </div>
+
+        <AlertDialog open={!!dutyToDelete} onOpenChange={(o) => !o && setDutyToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('duty.confirmRemove')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('duty.confirmRemoveMessage')}
+                {dutyToDelete && (
+                  <span className="block mt-2 font-medium text-foreground">
+                    {getDisplayName(dutyToDelete)} — {getDutyTypeName(dutyToDelete.duty_type)} · {format(new Date(dutyToDelete.duty_date), 'd. MMMM yyyy', { locale })}
+                  </span>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteSingle}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {t('duty.remove')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={bulkConfirmOpen} onOpenChange={setBulkConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('duty.confirmRemoveMultiple')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {(t('duty.confirmRemoveMultipleMessage') || 'Er du sikker på, at du vil fjerne {{count}} vagter?').replace('{{count}}', String(selectedIds.length))}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteBulk}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {t('duty.remove')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
+
     </Card>
   );
 };

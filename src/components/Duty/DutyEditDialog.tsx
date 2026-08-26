@@ -8,8 +8,21 @@ import { useTranslation } from '@/context/TranslationContext';
 import { DutyEmployeeSelector } from './DutyEmployeeSelector';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import type { Duty, DutyType } from '@/types/duty';
+import { Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
+
 
 interface Employee {
   id: string;
@@ -34,7 +47,7 @@ export const DutyEditDialog = ({
 }: DutyEditDialogProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
-  const { updateDuty, loading } = useDutyActions(onSuccess);
+  const { updateDuty, removeDuty, loading } = useDutyActions(onSuccess);
 
   const [dutyType, setDutyType] = useState<DutyType>('skadeleder_vagt');
   const [employeeId, setEmployeeId] = useState<string>('');
@@ -175,19 +188,48 @@ export const DutyEditDialog = ({
             />
           </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              {t('duty.cancel')}
-            </Button>
-            <Button type="submit" disabled={loading || !employeeId || !!validationError}>
-              {loading ? t('common.saving') : t('duty.save')}
-            </Button>
+          <DialogFooter className="sm:justify-between gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="destructive" disabled={loading}>
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  {t('duty.remove')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('duty.confirmRemove')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('duty.confirmRemoveMessage')}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('duty.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      const ok = await removeDuty(duty.id);
+                      if (ok) onOpenChange(false);
+                    }}
+                    className="bg-destructive hover:bg-destructive/90"
+                  >
+                    {t('duty.remove')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <div className="flex gap-2 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={loading}
+              >
+                {t('duty.cancel')}
+              </Button>
+              <Button type="submit" disabled={loading || !employeeId || !!validationError}>
+                {loading ? t('common.saving') : t('duty.save')}
+              </Button>
+            </div>
           </DialogFooter>
+
         </form>
       </DialogContent>
     </Dialog>

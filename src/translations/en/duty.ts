@@ -103,6 +103,13 @@ export const duty = {
   swapOfferFrom: "Offer from {{name}}",
   selected: "selected",
   manualDisabledHint: "Clear the selected employees to enter a name manually.",
+  selectMultiple: "Select multiple",
+  cancelSelection: "Cancel selection",
+  deleteSelected: "Delete selected",
+  selectedCount: "{{count}} duties selected",
+  confirmRemoveMultiple: "Confirm removal",
+  confirmRemoveMultipleMessage: "Are you sure you want to remove {{count}} duties? This cannot be undone.",
+  removeMultipleSuccess: "{{count}} duties removed",
 };
 
 export default duty;

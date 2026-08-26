@@ -103,6 +103,13 @@ export const duty = {
   swapOfferFrom: "Tilbud fra {{name}}",
   selected: "valgt",
   manualDisabledHint: "Ryd valgte medarbejdere for at indtaste navn manuelt.",
+  selectMultiple: "Vælg flere",
+  cancelSelection: "Annullér markering",
+  deleteSelected: "Slet valgte",
+  selectedCount: "{{count}} vagter valgt",
+  confirmRemoveMultiple: "Bekræft sletning",
+  confirmRemoveMultipleMessage: "Er du sikker på, at du vil fjerne {{count}} vagter? Handlingen kan ikke fortrydes.",
+  removeMultipleSuccess: "{{count}} vagter fjernet",
 };
 
 export default duty;
