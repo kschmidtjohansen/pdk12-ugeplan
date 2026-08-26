@@ -47,7 +47,7 @@ export const DutyEditDialog = ({
 }: DutyEditDialogProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
-  const { updateDuty, loading } = useDutyActions(onSuccess);
+  const { updateDuty, removeDuty, loading } = useDutyActions(onSuccess);
 
   const [dutyType, setDutyType] = useState<DutyType>('skadeleder_vagt');
   const [employeeId, setEmployeeId] = useState<string>('');
