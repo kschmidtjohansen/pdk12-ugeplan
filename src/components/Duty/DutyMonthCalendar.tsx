@@ -1,9 +1,22 @@
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ChevronLeft, ChevronRight, Plus, Trash2, CheckSquare, X } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useDutyActions } from '@/hooks/duty/useDutyActions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { Duty } from '@/types/duty';
 import { 
   startOfMonth, 
@@ -27,6 +40,7 @@ interface DutyMonthCalendarProps {
   onDutyClick: (duty: Duty) => void;
   canManage: boolean;
   onAddDuty?: (date: Date) => void;
+  onSuccess?: () => void;
 }
 
 export const DutyMonthCalendar = ({
@@ -36,10 +50,39 @@ export const DutyMonthCalendar = ({
   onDutyClick,
   canManage,
   onAddDuty,
+  onSuccess,
 }: DutyMonthCalendarProps) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
   const isMobile = useIsMobile();
+  const { removeDuty, removeDuties, loading: deleting } = useDutyActions(onSuccess);
+
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [dutyToDelete, setDutyToDelete] = useState<Duty | null>(null);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+  };
+
+  const exitSelection = () => {
+    setSelectionMode(false);
+    setSelectedIds([]);
+  };
+
+  const handleDeleteSingle = async () => {
+    if (!dutyToDelete) return;
+    await removeDuty(dutyToDelete.id);
+    setDutyToDelete(null);
+  };
+
+  const handleDeleteBulk = async () => {
+    await removeDuties(selectedIds);
+    setBulkConfirmOpen(false);
+    exitSelection();
+  };
+
 
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
