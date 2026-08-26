@@ -161,6 +161,42 @@ export const useDutyActions = (onSuccess?: () => void) => {
     }
   };
 
+  const removeDuties = async (dutyIds: string[]) => {
+    notifyOwnAction();
+    if (!user || dutyIds.length === 0) return false;
+
+    try {
+      setLoading(true);
+      const isDemoMode = user.email === 'test@polygongroup.com';
+      const client = getSchemaClient(isDemoMode);
+
+      const { error } = await client
+        .from('on_call_duties')
+        .delete()
+        .in('id', dutyIds);
+
+      if (error) throw error;
+
+      toast.success(
+        (t('duty.removeMultipleSuccess') || '{{count}} vagter fjernet').replace(
+          '{{count}}',
+          String(dutyIds.length),
+        ),
+      );
+      queryClient.invalidateQueries({ queryKey: ['duties'] });
+      onSuccess?.();
+      return true;
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Error removing duties:', err);
+      toast.error((err as any)?.message || 'Failed to remove duties');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
   const reassignDuty = async (dutyId: string, newEmployeeId: string) => {
     notifyOwnAction();
     if (!user) return false;
