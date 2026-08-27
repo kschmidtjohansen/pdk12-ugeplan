@@ -41,14 +41,15 @@ serve(async (req) => {
       )
     }
 
-    // Check if user is admin
-    const { data: userRole } = await supabaseAdmin
+    // Check if user is admin (users can have multiple roles — never use .single())
+    const { data: roleRows } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single()
 
-    if (!['administrator', 'super_admin'].includes(userRole?.role)) {
+    const roles = (roleRows || []).map((r: { role: string }) => r.role)
+
+    if (!roles.some((r) => ['administrator', 'super_admin'].includes(r))) {
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
