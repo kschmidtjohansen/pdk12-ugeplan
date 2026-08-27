@@ -84,7 +84,20 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
       });
 
       if (error) {
-        throw new Error(error.message || `Request failed`);
+        let serverMessage: string | null = null;
+        const ctx: any = (error as any)?.context;
+        if (ctx && typeof ctx.clone === 'function') {
+          try {
+            const body = await ctx.clone().json();
+            if (body?.error) serverMessage = String(body.error);
+          } catch {
+            try {
+              const text = await ctx.clone().text();
+              if (text) serverMessage = text;
+            } catch { /* ignore */ }
+          }
+        }
+        throw new Error(serverMessage || error.message || `Request failed`);
       }
       
       toast({

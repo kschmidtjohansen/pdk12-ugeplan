@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-27 — Fejl ved kodeskift og sletning af medarbejder
+
+- `admin-reset-password` og `admin-user-delete` slog rollen op med `.single()`, hvilket fejlede for brugere med flere roller (fx administrator + skadeleder + super_admin) og gav "manglende rettigheder". Rollekontrollen henter nu alle roller og godkender, hvis `administrator` eller `super_admin` findes.
+- `admin-user-delete` nulstiller nu `created_by`-referencer i `warehouse_items`, `case_folder_mappings` og `case_onedrive_mappings` (FK'er uden cascade), så sletning ikke blokeres.
+- Serverens faktiske fejlbesked vises nu i toasten ved sletning (`useEmployeeActions`) og kodeskift (`PasswordChangeDialog`).
+
+
+
 ## 2026-08-25 — Delte vagtafdelinger: medarbejdere synlige på tværs
 
 - Læse-adgangsreglen på `user_access` inkluderer nu afdelinger, der deler vagt med brugerens egne afdelinger (`shared_duty_departments`).

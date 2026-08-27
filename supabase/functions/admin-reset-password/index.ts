@@ -191,13 +191,16 @@ serve(async (req) => {
       console.log(`[admin-reset-password:${requestId}] User verified, checking role`);
 
       // Check if user is admin using the anon client (RLS will handle access control)
-      const { data: roleData, error: roleError } = await supabaseAnon
+      // NOTE: users can have multiple roles — never use .single() here
+      const { data: roleRows, error: roleError } = await supabaseAnon
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      if (roleError || !roleData || !['administrator', 'super_admin'].includes(roleData.role)) {
+      const roles = (roleRows || []).map((r: { role: string }) => r.role);
+      const isAdmin = roles.some((r) => ['administrator', 'super_admin'].includes(r));
+
+      if (roleError || !isAdmin) {
         console.error(`[admin-reset-password:${requestId}] Access denied - insufficient role`);
         
         // Log security event using service client

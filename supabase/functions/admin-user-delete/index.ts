@@ -41,14 +41,15 @@ serve(async (req) => {
       )
     }
 
-    // Check if user is admin
-    const { data: userRole } = await supabaseAdmin
+    // Check if user is admin (users can have multiple roles — never use .single())
+    const { data: roleRows } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single()
 
-    if (!['administrator', 'super_admin'].includes(userRole?.role)) {
+    const roles = (roleRows || []).map((r: { role: string }) => r.role)
+
+    if (!roles.some((r) => ['administrator', 'super_admin'].includes(r))) {
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -71,6 +72,23 @@ serve(async (req) => {
       event_details: { target_user_id: userId, admin_user_id: user.id },
       severity: 'warning'
     })
+
+    // Clear references that block deletion (FKs without ON DELETE CASCADE/SET NULL)
+    const blockingRefs: Array<{ table: string; column: string }> = [
+      { table: 'warehouse_items', column: 'created_by' },
+      { table: 'case_folder_mappings', column: 'created_by' },
+      { table: 'case_onedrive_mappings', column: 'created_by' },
+    ]
+
+    for (const ref of blockingRefs) {
+      const { error: refError } = await supabaseAdmin
+        .from(ref.table)
+        .update({ [ref.column]: null })
+        .eq(ref.column, userId)
+      if (refError) {
+        console.error(`Failed clearing ${ref.table}.${ref.column}:`, refError.message)
+      }
+    }
 
     // Delete user from auth.users (this will cascade to related tables)
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
