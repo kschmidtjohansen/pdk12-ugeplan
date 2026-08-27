@@ -270,7 +270,23 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         body: { userId: employeeId }
       });
       
-      if (error) throw new Error(`Server error: ${error.message}`);
+      if (error) {
+        // Supabase-klienten skjuler serverens svar ved non-2xx — læs det rigtige svar
+        let serverMessage: string | null = null;
+        const ctx: any = (error as any)?.context;
+        if (ctx && typeof ctx.clone === 'function') {
+          try {
+            const body = await ctx.clone().json();
+            if (body?.error) serverMessage = String(body.error);
+          } catch {
+            try {
+              const text = await ctx.clone().text();
+              if (text) serverMessage = text;
+            } catch { /* ignore */ }
+          }
+        }
+        throw new Error(serverMessage || `Server error: ${error.message}`);
+      }
       if (data?.error) throw new Error(data.error);
 
       await PlannerChangeLogger.logEmployeeDeleted(employeeId, employee.name, selectedDepartmentId);
