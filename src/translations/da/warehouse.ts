@@ -62,6 +62,11 @@ export const warehouse = {
     title: "Ingen opbevaringer på lageret",
     description: "Begynd ved at tilføje din første opbevaring"
   },
+
+  noResults: {
+    title: "Ingen resultater",
+    description: "Prøv at ændre din søgning eller filtrering"
+  },
   
   cleanedStatus: {
     ja: "Ja",

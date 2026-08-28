@@ -62,6 +62,11 @@ export const warehouse = {
     title: "No items in warehouse",
     description: "Start by adding your first warehouse item"
   },
+
+  noResults: {
+    title: "No results",
+    description: "Try adjusting your search or filters"
+  },
   
   cleanedStatus: {
     ja: "Yes",
