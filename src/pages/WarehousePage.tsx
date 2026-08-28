@@ -85,30 +85,32 @@ const WarehousePage = () => {
             </Button>
           )
         }
+        filterBar={
+          <SegmentedFilterBar
+            segments={segments}
+            activeKey={cleanedFilter}
+            onSegmentChange={(key) => setCleanedFilter(key)}
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder={t('warehouse.searchPlaceholder')}
+            trailing={
+              locations.length > 0 && (
+                <Select value={hallFilter} onValueChange={setHallFilter}>
+                  <SelectTrigger className="h-8 w-[160px] text-xs">
+                    <SelectValue placeholder={t('warehouse.fields.hall')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('warehouse.allLocations')}</SelectItem>
+                    {locations.map((loc) => (
+                      <SelectItem key={loc.key} value={loc.key}>{loc.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )
+            }
+          />
+        }
       >
-        <SegmentedFilterBar
-          segments={segments}
-          activeKey={cleanedFilter}
-          onSegmentChange={(key) => setCleanedFilter(key)}
-          searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
-          searchPlaceholder={t('warehouse.searchPlaceholder')}
-          trailing={
-            locations.length > 0 && (
-              <Select value={hallFilter} onValueChange={setHallFilter}>
-                <SelectTrigger className="h-8 w-[160px] text-xs">
-                  <SelectValue placeholder={t('warehouse.fields.hall')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('warehouse.allLocations')}</SelectItem>
-                  {locations.map((loc) => (
-                    <SelectItem key={loc.key} value={loc.key}>{loc.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )
-          }
-        />
         {loading ? (
           <ListSkeleton />
         ) : error ? (
