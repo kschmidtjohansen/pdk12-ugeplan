@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useWarehouse } from '@/hooks/warehouse';
+import { useLocations } from '@/hooks/warehouse/useLocations';
 import WarehouseList from '@/components/Warehouse/WarehouseList';
 import WarehouseFormDialog from '@/components/Warehouse/WarehouseFormDialog';
 import WarehouseDeleteDialog from '@/components/Warehouse/WarehouseDeleteDialog';
@@ -13,6 +15,7 @@ import WarehouseDeleteDialog from '@/components/Warehouse/WarehouseDeleteDialog'
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import ListPageShell from '@/components/shared/ListPageShell';
+import SegmentedFilterBar from '@/components/shared/SegmentedFilterBar';
 
 const WarehousePage = () => {
   const { t } = useTranslation();
