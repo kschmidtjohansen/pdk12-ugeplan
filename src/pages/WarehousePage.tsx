@@ -20,7 +20,11 @@ import SegmentedFilterBar from '@/components/shared/SegmentedFilterBar';
 const WarehousePage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { isWarehouseEnabled } = useDepartment();
+  const { isWarehouseEnabled, selectedDepartmentId } = useDepartment();
+  const { locations } = useLocations(selectedDepartmentId);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [cleanedFilter, setCleanedFilter] = useState<string>('all');
+  const [hallFilter, setHallFilter] = useState<string>('all');
   const {
     items, loading, error, isFormOpen, editingItem, isDeleteOpen, deletingItem,
     openAddDialog, openEditDialog, closeFormDialog, openDeleteDialog, closeDeleteDialog,
@@ -28,6 +32,27 @@ const WarehousePage = () => {
   } = useWarehouse();
 
   const canEdit = user?.role === 'super_admin' || user?.role === 'administrator' || user?.role === 'skadeleder';
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return items.filter((item) => {
+      if (cleanedFilter !== 'all' && item.is_cleaned !== cleanedFilter) return false;
+      if (hallFilter !== 'all' && item.hall !== hallFilter) return false;
+      if (!q) return true;
+      return [item.address, item.case_number, item.notes]
+        .some((field) => field?.toLowerCase().includes(q));
+    });
+  }, [items, searchQuery, cleanedFilter, hallFilter]);
+
+  const countFor = (key: string) =>
+    key === 'all' ? items.length : items.filter((i) => i.is_cleaned === key).length;
+
+  const segments = [
+    { key: 'all', label: t('common.all'), count: items.length },
+    { key: 'ja', label: t('warehouse.cleanedStatus.ja'), count: countFor('ja') },
+    { key: 'nej', label: t('warehouse.cleanedStatus.nej'), count: countFor('nej') },
+    { key: 'ikke_noedvendigt', label: t('warehouse.cleanedStatus.ikke_noedvendigt'), count: countFor('ikke_noedvendigt') },
+  ];
 
   const handleSubmit = async (data: any) => {
     if (editingItem) await updateItem(editingItem.id, data);
