@@ -1,8 +1,11 @@
 export const warehouse = {
   title: "Lager",
+  description: "Oversigt over opbevarede effekter",
   addNew: "Tilføj til opbevaring",
   editItem: "Rediger opbevaring",
   deleteItem: "Slet opbevaring",
+  searchPlaceholder: "Søg efter adresse, sagsnummer eller noter...",
+  allLocations: "Alle lokationer",
   
   fields: {
     address: "Adresse",
@@ -58,6 +61,11 @@ export const warehouse = {
   empty: {
     title: "Ingen opbevaringer på lageret",
     description: "Begynd ved at tilføje din første opbevaring"
+  },
+
+  noResults: {
+    title: "Ingen resultater",
+    description: "Prøv at ændre din søgning eller filtrering"
   },
   
   cleanedStatus: {
