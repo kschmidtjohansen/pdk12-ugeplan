@@ -147,7 +147,8 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
 
       const { error: profileError } = await client
         .from('profiles')
-        .update(updatePayload)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(updatePayload as any)
         .eq('id', employee.id);
       
       if (profileError) throw profileError;
