@@ -86,6 +86,29 @@ const WarehousePage = () => {
           )
         }
       >
+        <SegmentedFilterBar
+          segments={segments}
+          activeKey={cleanedFilter}
+          onSegmentChange={(key) => setCleanedFilter(key)}
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder={t('warehouse.searchPlaceholder')}
+          trailing={
+            locations.length > 0 && (
+              <Select value={hallFilter} onValueChange={setHallFilter}>
+                <SelectTrigger className="h-8 w-[160px] text-xs">
+                  <SelectValue placeholder={t('warehouse.fields.hall')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('warehouse.allLocations')}</SelectItem>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.key} value={loc.key}>{loc.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )
+          }
+        />
         {loading ? (
           <ListSkeleton />
         ) : error ? (
@@ -93,18 +116,18 @@ const WarehousePage = () => {
             <p className="text-destructive">{t('warehouse.messages.loadError')}</p>
             <p className="text-sm text-muted-foreground">{error}</p>
           </div>
-        ) : items.length === 0 ? (
+        ) : filteredItems.length === 0 ? (
           <div className="p-6">
             <EmptyState
-              title={t('warehouse.empty.title')}
-              description={t('warehouse.empty.description')}
-              icon={<Package className="h-12 w-12" />}
+              title={items.length === 0 ? t('warehouse.empty.title') : t('warehouse.noResults.title')}
+              description={items.length === 0 ? t('warehouse.empty.description') : t('warehouse.noResults.description')}
+              icon={items.length === 0 ? <Package className="h-12 w-12" /> : <Search className="h-12 w-12" />}
             />
           </div>
         ) : (
           <div className="p-3 sm:p-6">
             <WarehouseList
-              items={items}
+              items={filteredItems}
               onEdit={openEditDialog}
               onDelete={openDeleteDialog}
               canEdit={canEdit}
