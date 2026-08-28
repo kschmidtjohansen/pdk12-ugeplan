@@ -76,7 +76,6 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
     };
 
     channel.on(
-      // @ts-expect-error — supabase-js types are strict here, runtime accepts string.
       'postgres_changes',
       {
         event,

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-28 — Sikkerhedsopdatering af afhængigheder
+
+- Opdateret `@supabase/supabase-js` (2.112.4), `react-router-dom` (7.18.2), `@testing-library/jest-dom` (7.0.1), `@testing-library/react` (16.3.3), `@types/jest`, `jsdom` (30.0.1), `rollup-plugin-visualizer` (7.1.1) og `vitest` (4.1.11) for at fjerne kendte sikkerhedssårbarheder.
+- `bun.lockb` (binær) erstattet af tekstbaseret `bun.lock` via `bun install --save-text-lockfile`.
+- Rettet to typefejl efter supabase-js-opdateringen: fjernet forældet `@ts-expect-error` i `realtimeChannels.ts` og cast af dynamisk `updatePayload` i `useEmployeeActions.ts`.
+- Verificeret: `bun run build` og `tsgo --noEmit` består; dependency-scan viser ingen high/critical sårbarheder.
+
 ## 2026-08-28 — Søgning og filtrering i Lager
 
 - Lagersiden (`WarehousePage`) har nu søgefelt (adresse, sagsnummer, noter), status-segmenter for "Er rengjort?" (Alle/Ja/Nej/Ikke nødvendigt) samt lokationsfilter via `SegmentedFilterBar`. Filtrering sker client-side.
