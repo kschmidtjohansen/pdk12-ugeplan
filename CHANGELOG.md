@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-28 — Søgning og filtrering i Lager
+
+- Lagersiden (`WarehousePage`) har nu søgefelt (adresse, sagsnummer, noter), status-segmenter for "Er rengjort?" (Alle/Ja/Nej/Ikke nødvendigt) samt lokationsfilter via `SegmentedFilterBar`. Filtrering sker client-side.
+- Tilføjet manglende oversættelse `warehouse.description` (da/en) samt nye nøgler: `searchPlaceholder`, `allLocations` og `noResults`.
+
+
+
 ## 2026-08-27 — Fejl ved kodeskift og sletning af medarbejder
 
 - `admin-reset-password` og `admin-user-delete` slog rollen op med `.single()`, hvilket fejlede for brugere med flere roller (fx administrator + skadeleder + super_admin) og gav "manglende rettigheder". Rollekontrollen henter nu alle roller og godkender, hvis `administrator` eller `super_admin` findes.
