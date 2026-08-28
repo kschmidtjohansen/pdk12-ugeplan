@@ -1,8 +1,11 @@
 export const warehouse = {
   title: "Warehouse List",
+  description: "Overview of stored items",
   addNew: "Add New Item",
   editItem: "Edit Item",
   deleteItem: "Delete Item",
+  searchPlaceholder: "Search by address, case number or notes...",
+  allLocations: "All locations",
   
   fields: {
     address: "Address",
