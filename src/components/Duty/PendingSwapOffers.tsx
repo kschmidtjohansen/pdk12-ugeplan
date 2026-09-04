@@ -97,13 +97,25 @@ export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
                       <p className="text-sm text-muted-foreground">{dateStr}</p>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAccept(req.id)}
-                    disabled={loading}
-                  >
-                    {t('duty.acceptSwap')}
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setDeclineTarget(req)}
+                      disabled={loading}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      {t('duty.declineSwap')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleAccept(req.id)}
+                      disabled={loading}
+                    >
+                      {t('duty.acceptSwap')}
+                    </Button>
+                  </div>
+
                 </div>
               );
             })}
