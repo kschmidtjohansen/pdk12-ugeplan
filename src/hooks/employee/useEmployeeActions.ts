@@ -39,29 +39,11 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       
       if (error) throw error;
       
-      // Auto-remove employee from future assignments when marked on leave
-      let cleanupSummary = '';
-      if (setOnLeave && !isDemoMode) {
-        try {
-          const today = new Date().toISOString().split('T')[0];
-          const farFuture = '2099-12-31';
-          const { data: cleanup } = await supabase.functions.invoke(
-            'vacation-cleanup-assignments',
-            { body: { userId: employee.id, startDate: today, endDate: farFuture, reason: 'on_leave' } }
-          );
-          if (cleanup) {
-            const removed = (cleanup as any).removedFromCount || 0;
-            const cleared = (cleanup as any).clearedResponsibleCount || 0;
-            if (removed > 0 || cleared > 0) {
-              cleanupSummary = ` Fjernet fra ${removed} opgave(r).`;
-              queryClient.invalidateQueries({ queryKey: ['assignments'] });
-              queryClient.invalidateQueries({ queryKey: ['optimizedAssignments'] });
-            }
-          }
-        } catch (cleanupErr) {
-          if (import.meta.env.DEV) console.warn('[toggleEmployeeLeave] cleanup failed:', cleanupErr);
-        }
-      }
+      // NOTE: Marking someone "on leave" has no end date, so we deliberately do NOT
+      // auto-remove them from future assignments (that was destructive and irreversible).
+      // Assignment cleanup only happens for approved absences with a bounded date range.
+      const cleanupSummary = '';
+
 
       toast({
         title: setOnLeave 

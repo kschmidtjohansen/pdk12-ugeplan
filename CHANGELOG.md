@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-04 — Orlovsmarkering sletter ikke længere fremtidige opgaver
+
+- `toggleEmployeeLeave` kaldte `vacation-cleanup-assignments` med slutdato 2099-12-31, hvilket permanent fjernede medarbejderen fra ALLE fremtidige opgaver og nulstillede sagsansvar — uden fortrydelsesmulighed. Kaldet er fjernet; automatisk oprydning sker nu kun ved godkendt fravær med konkret start- og slutdato.
+
+
 ## 2026-09-04 — Dubleret "kommer"-sag i Hillerød
 
 - Slettet to identiske dublet-opgaver ("kommer", Tammosevej 22, 04-09-2026) uden afdelingstilknytning; den korrekte sag bevares med alle tre medarbejdere tilknyttet. Oprydningen krævede midlertidig deaktivering af `assignment_deletion_logger`-triggeren (genaktiveret efterfølgende).
