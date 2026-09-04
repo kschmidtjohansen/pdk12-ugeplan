@@ -39,22 +39,10 @@ const LoginPage = () => {
       {/* Brand-strimmel øverst — solid Polygon-blå farveanker */}
       <div aria-hidden className="h-1.5 w-full bg-polygon-blue shrink-0" />
 
-      {/* Baggrund: blødt blåt glow + diskret kalender-grid mønster */}
+      {/* Baggrund: blødt blåt glow + diskret kalender-grid mønster (tokens i index.css) */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div
-          className="absolute -top-40 left-1/2 -translate-x-1/2 h-[480px] w-[900px] max-w-[140vw] rounded-full opacity-25 blur-3xl"
-          style={{ background: 'radial-gradient(closest-side, hsl(var(--polygon-blue)), transparent)' }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.05]"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px)',
-            backgroundSize: '72px 72px',
-            maskImage: 'radial-gradient(ellipse 90% 60% at 50% 0%, black 40%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 90% 60% at 50% 0%, black 40%, transparent 100%)',
-          }}
-        />
+        <div className="login-ambient-glow absolute -top-40 left-1/2 -translate-x-1/2 h-[480px] w-[900px] max-w-[140vw] rounded-full opacity-25 blur-3xl" />
+        <div className="login-grid-pattern absolute inset-0" />
       </div>
 
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 sm:px-6 py-10 sm:py-14">
