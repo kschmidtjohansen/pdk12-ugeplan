@@ -472,15 +472,18 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             .map((c) => c.employeeId)
         );
         const handleRemoveBlocked = async () => {
+          if (submittingRef.current) return;
           const current = normalizeEmployees(formData.employees);
           const remaining = current.filter((id) => !blockedEmployeeIds.has(id));
           const updated: any = { ...formData, employees: remaining, zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng };
           setFormData(updated);
           setConflictDetails([]);
+          submittingRef.current = true;
           setIsSubmitting(true);
           try {
             await onSubmit(updated);
           } finally {
+            submittingRef.current = false;
             setIsSubmitting(false);
           }
         };
