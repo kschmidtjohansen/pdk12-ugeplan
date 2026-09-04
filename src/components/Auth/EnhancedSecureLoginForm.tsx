@@ -254,23 +254,18 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5 group">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">{t('common.password')}</Label>
+              <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1 transition-colors group-focus-within:text-primary">{t('common.password')}</Label>
             </div>
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); if (errorKind) clearError(); }}
-                placeholder={t('login.passwordPlaceholder')}
-                required
-                disabled={isLoading || isBlocked}
+...
                 autoComplete="current-password"
                 aria-invalid={errorKind === 'invalid' || errorKind === 'required'}
                 aria-required="true"
-                className="pr-10"
+                className="h-12 px-4 pr-10 rounded-xl bg-muted/40 border-border transition-all duration-300 focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:border-primary"
               />
               <Button
                 type="button"
@@ -345,7 +340,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full h-12 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all duration-300 active:scale-[0.98] group"
             disabled={isLoading || isBlocked || loginTimeout || !isOnline}
             aria-busy={isLoading}
           >
@@ -355,7 +350,10 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
                 <span>{t('login.buttonLoading')}</span>
               </span>
             ) : (
-              t('login.button')
+              <span className="flex items-center justify-center gap-2">
+                {t('login.button')}
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden />
+              </span>
             )}
           </Button>
         </form>
