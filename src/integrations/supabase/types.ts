@@ -1459,6 +1459,7 @@ export type Database = {
       clear_sick_leave_data: { Args: never; Returns: Json }
       create_logs_partition_for_month: { Args: never; Returns: undefined }
       debug_auth_info: { Args: never; Returns: Json }
+      decline_duty_swap: { Args: { _request_id: string }; Returns: string }
       delete_expired_approved_vacations: { Args: never; Returns: undefined }
       delete_old_rejected_vacations: { Args: never; Returns: undefined }
       emergency_log_cleanup: { Args: never; Returns: Json }
