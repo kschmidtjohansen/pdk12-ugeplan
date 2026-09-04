@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertTriangle, Eye, EyeOff, CheckCircle2, WifiOff } from 'lucide-react';
+import { AlertTriangle, Eye, EyeOff, CheckCircle2, WifiOff, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface EnhancedSecureLoginFormProps {
@@ -261,7 +261,12 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
             <div className="relative">
               <Input
                 id="password"
-...
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); if (errorKind) clearError(); }}
+                placeholder={t('login.passwordPlaceholder')}
+                required
+                disabled={isLoading || isBlocked}
                 autoComplete="current-password"
                 aria-invalid={errorKind === 'invalid' || errorKind === 'required'}
                 aria-required="true"
