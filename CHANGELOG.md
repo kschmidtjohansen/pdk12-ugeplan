@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-04 — Revamp af login-siden
+
+- `src/pages/LoginPage.tsx` er redesignet: ny centreret komposition med kompakt login-kort, blødt blåt brand-glow og diskret kalender-grid i baggrunden, solid Polygon-blå brandstrimmel øverst samt feature-piller (Ugeplan, Vagter & ferie, Adgang pr. afdeling) under kortet. Samme brandfarver som før; ensartet visning på mobil og desktop (det gamle 50/50-split og fuldblå mobilbanner er fjernet).
+- Nye token-baserede baggrundseffekter i `src/index.css` (`.login-ambient-glow`, `.login-grid-pattern`) — ingen hardcoded farver i komponenten.
+- Auth-flow, oversættelser, "velkommen tilbage"-navn og afdelingsvisning er uændret.
+
+
 ## 2026-09-04 — Fuldt booket = ikke vælgbar + orlovs-bekræftelse
 
 - Medarbejdere med 8+ bookede timer ("Fuldt booket") kan nu ikke længere vælges i medarbejdervælgeren i planlægningen (`EmployeeSelector.tsx`). Delvist bookede medarbejdere (under 8 timer) kan fortsat vælges til flere opgaver.
