@@ -13,6 +13,7 @@ import { Employee } from '@/types/employee';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { AlertTriangle, Wifi, WifiOff, Calendar, UserCheck } from 'lucide-react';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { format } from 'date-fns';
@@ -56,6 +57,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   const [creationMethod, setCreationMethod] = useState<'attempting' | 'edge-function' | 'direct-database' | 'failed'>('attempting');
   const [convertToPermanent, setConvertToPermanent] = useState(false);
   const [subDepartments, setSubDepartments] = useState<{ id: string; name: string }[]>([]);
+  const [showOnLeaveConfirm, setShowOnLeaveConfirm] = useState(false);
 
   // Check if we're editing a temporary employee
   const isEditingVikar = creationType === 'edit' && currentEmployee?.is_temporary === true;
@@ -199,7 +201,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         return null;
     }
   };
-  return <DialogContent className="sm:max-w-[425px]">
+  return <>
+    <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
         <DialogTitle>
           {creationType === 'edit' ? t("employees.editEmployee") : 
@@ -552,7 +555,15 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
               )}
               
               {(!formData.is_temporary || convertToPermanent) && <div className="flex items-center space-x-2 mt-4">
-                  <Checkbox id="onLeave" checked={formData.onLeave} onCheckedChange={checked => onCheckboxChange('onLeave', checked === true)} disabled={isSubmitting} />
+                  <Checkbox id="onLeave" checked={formData.onLeave} onCheckedChange={checked => {
+                    // Turning ON leave requires confirmation so the effect on assignments is clear.
+                    // Turning OFF applies immediately.
+                    if (checked === true && !formData.onLeave) {
+                      setShowOnLeaveConfirm(true);
+                    } else {
+                      onCheckboxChange('onLeave', checked === true);
+                    }
+                  }} disabled={isSubmitting} />
                   <Label htmlFor="onLeave">{t('employees.onLeave')}</Label>
                 </div>}
 
@@ -603,6 +614,26 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           </Button>
         </DialogFooter>
       </form>
-    </DialogContent>;
+    </DialogContent>
+    <AlertDialog open={showOnLeaveConfirm} onOpenChange={setShowOnLeaveConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('employees.onLeaveConfirmTitle')}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t('employees.onLeaveConfirmDescription')}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+          <AlertDialogAction onClick={() => {
+            onCheckboxChange('onLeave', true);
+            setShowOnLeaveConfirm(false);
+          }}>
+            {t('employees.onLeaveConfirmAction')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>;
 };
 export default EmployeeFormDialog;

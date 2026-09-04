@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-04 — Fuldt booket = ikke vælgbar + orlovs-bekræftelse
+
+- Medarbejdere med 8+ bookede timer ("Fuldt booket") kan nu ikke længere vælges i medarbejdervælgeren i planlægningen (`EmployeeSelector.tsx`). Delvist bookede medarbejdere (under 8 timer) kan fortsat vælges til flere opgaver.
+- Ny bekræftelsesdialog i medarbejderformularen (`EmployeeFormDialog.tsx`), når "Fraværende" (på orlov) slås til: forklarer at medarbejderen ikke kan vælges til nye opgaver/vagter, at eksisterende opgaver IKKE fjernes automatisk, og at handlingen kan fortrydes. Oversættelser tilføjet (da/en).
+
 ## 2026-09-04 — Orlovsmarkering sletter ikke længere fremtidige opgaver
 
 - `toggleEmployeeLeave` kaldte `vacation-cleanup-assignments` med slutdato 2099-12-31, hvilket permanent fjernede medarbejderen fra ALLE fremtidige opgaver og nulstillede sagsansvar — uden fortrydelsesmulighed. Kaldet er fjernet; automatisk oprydning sker nu kun ved godkendt fravær med konkret start- og slutdato.

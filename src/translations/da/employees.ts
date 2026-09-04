@@ -64,6 +64,9 @@ const employees = {
   employeeAvailable: 'Medarbejder Tilgængelig',
   employeeOnLeaveMsg: '{name} er nu markeret som fraværende',
   employeeAvailableMsg: '{name} er nu markeret som tilgængelig',
+  onLeaveConfirmTitle: 'Markér som fraværende?',
+  onLeaveConfirmDescription: 'Medarbejderen markeres som fraværende og kan ikke vælges til nye opgaver eller vagter. Eksisterende og fremtidige opgaver fjernes IKKE automatisk — brug fri-ønsker/fravær med konkrete datoer for at frigøre opgaver. Du kan fortryde ved at slå fravær fra igen.',
+  onLeaveConfirmAction: 'Markér fraværende',
   
   // Validation
   nameRequired: 'Navn er påkrævet',

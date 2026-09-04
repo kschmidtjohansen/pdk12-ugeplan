@@ -230,14 +230,16 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           }
           
           const isOnTraining = trainingIdsForDate.has(employee.id);
+          // Fully booked (8+ hours across assignments on the selected date) => not selectable.
+          // Partially booked (< 8 hours) stays selectable for additional assignments.
+          const isFullyBooked = availabilityInfo.status === 'fullyBooked';
           const isDisabled = (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') 
             || isManuallyOnLeave 
             || isExpired
             || isOnTraining
+            || isFullyBooked
             || employee.status === 'terminated'
             || employee.status === 'inactive';
-          
-          const isFullyBooked = availabilityInfo.status === 'fullyBooked';
 
           const dist = distanceMap.get(employee.id);
           const isNearby = dist != null && dist <= 15;
