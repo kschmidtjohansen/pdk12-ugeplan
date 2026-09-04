@@ -392,6 +392,44 @@ export const useDutyActions = (onSuccess?: () => void) => {
     }
   };
 
+  const declineSwapRequest = async (
+    requestId: string,
+    context?: { requesterId?: string; dutyType?: string; dutyDate?: string },
+  ): Promise<{ status: string }> => {
+    notifyOwnAction();
+    if (!user) return { status: 'unauthenticated' };
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('decline_duty_swap', {
+        _request_id: requestId,
+      });
+      if (error) throw error;
+      const status = (data as unknown as string) || 'unknown';
+      if (status === 'declined' || status === 'declined_partial') {
+        toast.success(t('duty.swapDeclinedSuccess'));
+        if (context?.requesterId && context.dutyType && context.dutyDate) {
+          await createDutySwapDeclinedNotification(
+            context.requesterId,
+            context.dutyType as any,
+            context.dutyDate,
+            user.name || user.email || 'Kollega',
+          );
+        }
+      }
+      queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
+      queryClient.invalidateQueries({ queryKey: ['duties'] });
+      onSuccess?.();
+      return { status };
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Error declining swap:', err);
+      toast.error((err as any)?.message || t('duty.swapDeclineFailed'));
+      return { status: 'error' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     assignDuty,
     updateDuty,
@@ -404,6 +442,8 @@ export const useDutyActions = (onSuccess?: () => void) => {
     createSwapRequest,
     acceptSwapRequest,
     cancelSwapRequest,
+    declineSwapRequest,
     loading
   };
 };
+
