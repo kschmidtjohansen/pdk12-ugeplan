@@ -246,6 +246,21 @@
 
   /* ----- Brand signature utilities (polygon blue) ----- */
 
+  /* Login page ambient background — soft brand-blue glow + subtle calendar grid */
+  .login-ambient-glow {
+    background: radial-gradient(closest-side, hsl(var(--primary)), transparent);
+  }
+  .login-grid-pattern {
+    opacity: 0.05;
+    background-image:
+      linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px);
+    background-size: 72px 72px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 40%, transparent 100%);
+  }
+
+
   /* Standardised dashboard card header — subtle brand gradient + thin border-b */
   .brand-card-header {
     background: linear-gradient(
