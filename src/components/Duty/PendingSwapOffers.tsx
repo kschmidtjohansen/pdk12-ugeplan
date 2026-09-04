@@ -28,8 +28,9 @@ interface Props {
 export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
-  const { acceptSwapRequest, cancelSwapRequest, loading } = useDutyActions(onChanged);
+  const { acceptSwapRequest, cancelSwapRequest, declineSwapRequest, loading } = useDutyActions(onChanged);
   const [alreadyTakenOpen, setAlreadyTakenOpen] = useState(false);
+  const [declineTarget, setDeclineTarget] = useState<DutySwapRequestWithDuty | null>(null);
 
   if (incoming.length === 0 && outgoing.length === 0) return null;
 
@@ -44,6 +45,18 @@ export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
       setAlreadyTakenOpen(true);
     }
   };
+
+  const handleDecline = async () => {
+    const req = declineTarget;
+    setDeclineTarget(null);
+    if (!req) return;
+    await declineSwapRequest(req.id, {
+      requesterId: req.requested_by,
+      dutyType: req.duty?.duty_type,
+      dutyDate: req.duty?.duty_date,
+    });
+  };
+
 
   return (
     <div className="space-y-3">
