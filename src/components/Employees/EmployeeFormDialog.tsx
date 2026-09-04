@@ -554,7 +554,15 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
               )}
               
               {(!formData.is_temporary || convertToPermanent) && <div className="flex items-center space-x-2 mt-4">
-                  <Checkbox id="onLeave" checked={formData.onLeave} onCheckedChange={checked => onCheckboxChange('onLeave', checked === true)} disabled={isSubmitting} />
+                  <Checkbox id="onLeave" checked={formData.onLeave} onCheckedChange={checked => {
+                    // Turning ON leave requires confirmation so the effect on assignments is clear.
+                    // Turning OFF applies immediately.
+                    if (checked === true && !formData.onLeave) {
+                      setShowOnLeaveConfirm(true);
+                    } else {
+                      onCheckboxChange('onLeave', checked === true);
+                    }
+                  }} disabled={isSubmitting} />
                   <Label htmlFor="onLeave">{t('employees.onLeave')}</Label>
                 </div>}
 
