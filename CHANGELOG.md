@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-04 — Login-side v2 ("Architectural Precision")
+
+- Login-siden er løftet yderligere: flydende logo-chip der overlapper login-kortet, brand-blå accentlinje øverst i kortet, to bløde blå glow-felter og fint dot-grid i baggrunden, feature-piller flyttet ind i kortet over en skillelinje.
+- `EnhancedSecureLoginForm.tsx` restylet (kun visuelt): gennemsigtigt indlejret kort, større `rounded-xl` felter med brand-blå fokus-ring, uppercase mikro-labels og login-knap med pil-ikon, hover-forskydning og blå skygge. Al auth-logik uændret.
+- `index.css`: `login-grid-pattern` erstattet af `login-dot-pattern` (token-baseret dot-grid).
+
+
 ## 2026-09-04 — Revamp af login-siden
 
 - `src/pages/LoginPage.tsx` er redesignet: ny centreret komposition med kompakt login-kort, blødt blåt brand-glow og diskret kalender-grid i baggrunden, solid Polygon-blå brandstrimmel øverst samt feature-piller (Ugeplan, Vagter & ferie, Adgang pr. afdeling) under kortet. Samme brandfarver som før; ensartet visning på mobil og desktop (det gamle 50/50-split og fuldblå mobilbanner er fjernet).

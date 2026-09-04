@@ -35,31 +35,40 @@ const LoginPage = () => {
   ];
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-background flex flex-col">
-      {/* Brand-strimmel øverst — solid Polygon-blå farveanker */}
-      <div aria-hidden className="h-1.5 w-full bg-polygon-blue shrink-0" />
-
-      {/* Baggrund: blødt blåt glow + diskret kalender-grid mønster (tokens i index.css) */}
+    <div className="relative min-h-screen w-full overflow-hidden bg-background flex items-center justify-center">
+      {/* Baggrund: bløde brand-blå glow-felter + fint dot-grid (tokens i index.css) */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="login-ambient-glow absolute -top-40 left-1/2 -translate-x-1/2 h-[480px] w-[900px] max-w-[140vw] rounded-full opacity-25 blur-3xl" />
-        <div className="login-grid-pattern absolute inset-0" />
+        <div className="login-ambient-glow absolute -top-[10%] -left-[10%] w-[45%] h-[45%] rounded-full opacity-30 blur-[120px]" />
+        <div className="login-ambient-glow absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full opacity-20 blur-[120px]" />
+        <div className="login-dot-pattern absolute inset-0" />
       </div>
 
-      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 sm:px-6 py-10 sm:py-14">
-        <div className="w-full max-w-md flex flex-col items-center">
-          {/* Logo */}
-          <div className="h-12 px-5 rounded-2xl bg-polygon-blue flex items-center justify-center shadow-lg animate-fade-in-down">
-            <img
-              src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
-              alt="Polygon"
-              className="h-6 w-auto brightness-0 invert"
-              loading="eager"
-            />
+      <main className="relative z-10 w-full max-w-[480px] px-4 sm:px-6 py-12">
+        {/* Flydende logo-chip der overlapper kortet */}
+        <div className="flex justify-center -mb-7 relative z-20 animate-fade-in-down">
+          <div className="bg-card px-6 py-3.5 rounded-2xl shadow-xl border border-border/50 flex items-center justify-center transition-transform duration-500 hover:scale-105">
+            <div className="h-9 px-4 rounded-xl bg-polygon-blue flex items-center justify-center">
+              <img
+                src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
+                alt="Polygon"
+                className="h-5 w-auto brightness-0 invert"
+                loading="eager"
+              />
+            </div>
           </div>
+        </div>
+
+        {/* Login-kort */}
+        <div
+          className="relative overflow-hidden bg-card/80 backdrop-blur-xl rounded-[2.5rem] border border-card shadow-[0_32px_64px_-16px_hsl(var(--primary)/0.15)] pt-14 pb-8 px-6 sm:px-10 animate-fade-in-up"
+          style={{ animationDelay: '80ms' }}
+        >
+          {/* Brand-blå accentlinje øverst i kortet */}
+          <div aria-hidden className="absolute top-0 left-0 right-0 h-1.5 bg-polygon-blue" />
 
           {/* Overskrift */}
-          <div className="mt-6 text-center space-y-1.5 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+          <div className="text-center mb-8 space-y-1.5">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               {t('login.welcomeMessage')}{firstName ? `, ${firstName}` : ''}
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -73,36 +82,33 @@ const LoginPage = () => {
           </div>
 
           {/* Login-formular */}
-          <div className="mt-7 w-full animate-fade-in-up" style={{ animationDelay: '160ms' }}>
-            <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
-          </div>
+          <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
 
           {/* Feature-piller */}
-          <div
-            className="mt-7 flex flex-wrap items-center justify-center gap-2 animate-fade-in-up"
-            style={{ animationDelay: '260ms' }}
-          >
-            {features.map((f) => (
-              <span
-                key={f.label}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/70 backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-muted-foreground"
-              >
-                <f.icon className="h-3.5 w-3.5 text-polygon-blue" aria-hidden />
-                {f.label}
-              </span>
-            ))}
+          <div className="mt-8 pt-6 border-t border-border/60">
+            <div className="flex flex-wrap justify-center gap-2">
+              {features.map((f) => (
+                <span
+                  key={f.label}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-muted/50 rounded-full border border-border/60 text-xs font-semibold text-muted-foreground transition-colors hover:bg-primary/5 hover:text-primary cursor-default"
+                >
+                  <f.icon className="h-3.5 w-3.5 text-polygon-blue" aria-hidden />
+                  {f.label}
+                </span>
+              ))}
+            </div>
           </div>
-
-          {/* Footer-linje */}
-          <p
-            className="mt-8 text-center text-xs text-muted-foreground/70 animate-fade-in-up"
-            style={{ animationDelay: '340ms' }}
-          >
-            © {new Date().getFullYear()} Polygon Group · {isDanish ? 'Internt system' : 'Internal system'}
-            {' · '}
-            {isDanish ? 'Kontakt jeres administrator for adgang.' : 'Contact your administrator for access.'}
-          </p>
         </div>
+
+        {/* Footer-linje */}
+        <p
+          className="mt-8 text-center text-xs text-muted-foreground/70 tracking-wide animate-fade-in-up"
+          style={{ animationDelay: '200ms' }}
+        >
+          © {new Date().getFullYear()} Polygon Group · {isDanish ? 'Internt system' : 'Internal system'}
+          {' · '}
+          {isDanish ? 'Kontakt jeres administrator for adgang.' : 'Contact your administrator for access.'}
+        </p>
       </main>
     </div>
   );

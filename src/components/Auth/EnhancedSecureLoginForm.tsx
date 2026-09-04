@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertTriangle, Eye, EyeOff, CheckCircle2, WifiOff } from 'lucide-react';
+import { AlertTriangle, Eye, EyeOff, CheckCircle2, WifiOff, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface EnhancedSecureLoginFormProps {
@@ -201,8 +201,8 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-sm border-border/70">
-      <CardContent className="space-y-4 pt-6">
+    <Card className="w-full mx-auto shadow-none border-0 bg-transparent">
+      <CardContent className="space-y-5 p-0">
         {/* Network banner */}
         {!isOnline && (
           <Alert variant="destructive" className="animate-fade-in" role="status">
@@ -232,10 +232,11 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate aria-describedby={errorKind ? 'login-error' : undefined}>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+          <div className="space-y-1.5 group">
+            <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1 transition-colors group-focus-within:text-primary">Email</Label>
             <Input
               id="email"
+              className="h-12 px-4 rounded-xl bg-muted/40 border-border transition-all duration-300 focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:border-primary"
               ref={emailRef}
               type="email"
               value={email}
@@ -253,9 +254,9 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5 group">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">{t('common.password')}</Label>
+              <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1 transition-colors group-focus-within:text-primary">{t('common.password')}</Label>
             </div>
             <div className="relative">
               <Input
@@ -269,7 +270,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
                 autoComplete="current-password"
                 aria-invalid={errorKind === 'invalid' || errorKind === 'required'}
                 aria-required="true"
-                className="pr-10"
+                className="h-12 px-4 pr-10 rounded-xl bg-muted/40 border-border transition-all duration-300 focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:border-primary"
               />
               <Button
                 type="button"
@@ -344,7 +345,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full h-12 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all duration-300 active:scale-[0.98] group"
             disabled={isLoading || isBlocked || loginTimeout || !isOnline}
             aria-busy={isLoading}
           >
@@ -354,7 +355,10 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
                 <span>{t('login.buttonLoading')}</span>
               </span>
             ) : (
-              t('login.button')
+              <span className="flex items-center justify-center gap-2">
+                {t('login.button')}
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden />
+              </span>
             )}
           </Button>
         </form>
