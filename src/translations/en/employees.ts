@@ -63,6 +63,9 @@ const employees = {
   employeeAvailable: 'Employee Available',
   employeeOnLeaveMsg: '{name} is now marked as on leave',
   employeeAvailableMsg: '{name} is now marked as available',
+  onLeaveConfirmTitle: 'Mark as absent?',
+  onLeaveConfirmDescription: 'The employee will be marked as absent and cannot be selected for new assignments or duties. Existing and future assignments are NOT removed automatically — use leave requests/absence with specific dates to free up assignments. You can undo this by turning the leave flag off again.',
+  onLeaveConfirmAction: 'Mark as absent',
   
   // Validation
   nameRequired: 'Name is required',
