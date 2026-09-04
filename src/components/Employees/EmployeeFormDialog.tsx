@@ -201,7 +201,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         return null;
     }
   };
-  return <DialogContent className="sm:max-w-[425px]">
+  return <>
+    <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
         <DialogTitle>
           {creationType === 'edit' ? t("employees.editEmployee") : 
@@ -613,6 +614,26 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           </Button>
         </DialogFooter>
       </form>
-    </DialogContent>;
+    </DialogContent>
+    <AlertDialog open={showOnLeaveConfirm} onOpenChange={setShowOnLeaveConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('employees.onLeaveConfirmTitle')}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t('employees.onLeaveConfirmDescription')}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+          <AlertDialogAction onClick={() => {
+            onCheckboxChange('onLeave', true);
+            setShowOnLeaveConfirm(false);
+          }}>
+            {t('employees.onLeaveConfirmAction')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>;
 };
 export default EmployeeFormDialog;
