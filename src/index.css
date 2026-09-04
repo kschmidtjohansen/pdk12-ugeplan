@@ -246,19 +246,16 @@
 
   /* ----- Brand signature utilities (polygon blue) ----- */
 
-  /* Login page ambient background — soft brand-blue glow + subtle calendar grid */
+  /* Login page ambient background — soft brand-blue glow + subtle dot grid */
   .login-ambient-glow {
     background: radial-gradient(closest-side, hsl(var(--primary)), transparent);
   }
-  .login-grid-pattern {
+  .login-dot-pattern {
     opacity: 0.05;
-    background-image:
-      linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px);
-    background-size: 72px 72px;
-    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 40%, transparent 100%);
-    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 40%, transparent 100%);
+    background-image: radial-gradient(hsl(var(--primary)) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
+
 
 
   /* Standardised dashboard card header — subtle brand gradient + thin border-b */
