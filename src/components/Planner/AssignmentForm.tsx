@@ -63,6 +63,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const { userSubDepartments } = useDepartment();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = React.useRef(false);
   const [zipCode, setZipCode] = useState(formData.zip_code || '');
   const [city, setCity] = useState(formData.city || '');
   const [assignmentLat, setAssignmentLat] = useState<number | undefined>(formData.lat ?? undefined);
@@ -211,6 +212,8 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   // Proceed with actual submission
   const executeSubmit = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setIsSubmitting(true);
     try {
       if (import.meta.env.DEV) console.log('[AssignmentForm] Submitting with data:', formData);
@@ -218,6 +221,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     } catch (error) {
       if (import.meta.env.DEV) console.error('[AssignmentForm] Error in form submission:', error);
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -225,6 +229,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Handle form submission with validation + conflict check
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return; // Bloker dobbeltklik/gentaget submit
     if (import.meta.env.DEV) console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
 
     // Validation
@@ -467,15 +472,18 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             .map((c) => c.employeeId)
         );
         const handleRemoveBlocked = async () => {
+          if (submittingRef.current) return;
           const current = normalizeEmployees(formData.employees);
           const remaining = current.filter((id) => !blockedEmployeeIds.has(id));
           const updated: any = { ...formData, employees: remaining, zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng };
           setFormData(updated);
           setConflictDetails([]);
+          submittingRef.current = true;
           setIsSubmitting(true);
           try {
             await onSubmit(updated);
           } finally {
+            submittingRef.current = false;
             setIsSubmitting(false);
           }
         };

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-04 — Dubleret "kommer"-sag i Hillerød
+
+- Slettet to identiske dublet-opgaver ("kommer", Tammosevej 22, 04-09-2026) uden afdelingstilknytning; den korrekte sag bevares med alle tre medarbejdere tilknyttet. Oprydningen krævede midlertidig deaktivering af `assignment_deletion_logger`-triggeren (genaktiveret efterfølgende).
+- Forebyggelse: `AssignmentForm.tsx` blokerer nu dobbelt-submit via `submittingRef` i `handleFormSubmit`, `executeSubmit` og "Fjern blokerede og fortsæt"-flowet — så dobbeltklik ikke kan oprette dubletter.
+
+
+
 ## 2026-08-28 — Sikkerhedsopdatering af afhængigheder
 
 - Opdateret `@supabase/supabase-js` (2.112.4), `react-router-dom` (7.18.2), `@testing-library/jest-dom` (7.0.1), `@testing-library/react` (16.3.3), `@types/jest`, `jsdom` (30.0.1), `rollup-plugin-visualizer` (7.1.1) og `vitest` (4.1.11) for at fjerne kendte sikkerhedssårbarheder.
