@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -28,8 +29,9 @@ interface Props {
 export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;
-  const { acceptSwapRequest, cancelSwapRequest, loading } = useDutyActions(onChanged);
+  const { acceptSwapRequest, cancelSwapRequest, declineSwapRequest, loading } = useDutyActions(onChanged);
   const [alreadyTakenOpen, setAlreadyTakenOpen] = useState(false);
+  const [declineTarget, setDeclineTarget] = useState<DutySwapRequestWithDuty | null>(null);
 
   if (incoming.length === 0 && outgoing.length === 0) return null;
 
@@ -44,6 +46,18 @@ export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
       setAlreadyTakenOpen(true);
     }
   };
+
+  const handleDecline = async () => {
+    const req = declineTarget;
+    setDeclineTarget(null);
+    if (!req) return;
+    await declineSwapRequest(req.id, {
+      requesterId: req.requested_by,
+      dutyType: req.duty?.duty_type,
+      dutyDate: req.duty?.duty_date,
+    });
+  };
+
 
   return (
     <div className="space-y-3">
@@ -84,13 +98,25 @@ export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
                       <p className="text-sm text-muted-foreground">{dateStr}</p>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAccept(req.id)}
-                    disabled={loading}
-                  >
-                    {t('duty.acceptSwap')}
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setDeclineTarget(req)}
+                      disabled={loading}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      {t('duty.declineSwap')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleAccept(req.id)}
+                      disabled={loading}
+                    >
+                      {t('duty.acceptSwap')}
+                    </Button>
+                  </div>
+
                 </div>
               );
             })}
@@ -160,6 +186,23 @@ export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AlertDialog open={!!declineTarget} onOpenChange={(o) => !o && setDeclineTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('duty.declineSwapTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('duty.declineSwapDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDecline}>
+              {t('duty.declineSwap')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+

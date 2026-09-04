@@ -111,9 +111,39 @@ export const useDutyNotifications = (
     }
   }, [addNotification, t, currentLanguage, locale]);
 
+  const createDutySwapDeclinedNotification = useCallback(async (
+    requesterId: string,
+    dutyType: DutyType,
+    dutyDate: string,
+    declinerName: string,
+  ) => {
+    try {
+      const dutyTypeLabel = dutyType === 'skadeleder_vagt'
+        ? t('duty.skadelederVagt')
+        : t('duty.kørevagt');
+      const dateFormat = currentLanguage === 'da' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
+      const formatted = format(new Date(dutyDate), dateFormat, { locale });
+      const title = currentLanguage === 'da' ? 'Byttetilbud afslået' : 'Swap offer declined';
+      const message = currentLanguage === 'da'
+        ? `${declinerName} har afslået ${dutyTypeLabel} den ${formatted}.`
+        : `${declinerName} declined ${dutyTypeLabel} on ${formatted}.`;
+      await addNotification({
+        targetUserId: requesterId,
+        type: 'duty',
+        title,
+        message,
+        link: '/duty',
+      });
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Error creating swap declined notification:', error);
+    }
+  }, [addNotification, t, currentLanguage, locale]);
+
   return {
     createDutyAssignmentNotification,
     createDutySwapOfferNotification,
     createDutySwapTakenNotification,
+    createDutySwapDeclinedNotification,
   };
 };
+

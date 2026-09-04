@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-04 — Vagtbytte: accept virker igen + afslå-mulighed
+
+- `accept_duty_swap` kørte uden `SECURITY DEFINER`, så inviterede kandidater (fx servicemedarbejdere) blev blokeret af RLS ved opdatering af `on_call_duties` og `duty_swap_requests`. Funktionen er nu `SECURITY DEFINER` med `SET search_path = ''` og uændrede kontroller.
+- Ny `decline_duty_swap(uuid)` (`SECURITY DEFINER`): fjerner kandidaten fra `candidate_ids`, eller sætter status `declined` hvis det var den sidste kandidat.
+- `PendingSwapOffers.tsx`: "Afslå"-knap med bekræftelsesdialog; `useDutyActions.declineSwapRequest` og notifikation til afsenderen via `createDutySwapDeclinedNotification`. Nye da/en-tekster.
+
+
 ## 2026-09-04 — Login-side v2 ("Architectural Precision")
 
 - Login-siden er løftet yderligere: flydende logo-chip der overlapper login-kortet, brand-blå accentlinje øverst i kortet, to bløde blå glow-felter og fint dot-grid i baggrunden, feature-piller flyttet ind i kortet over en skillelinje.
