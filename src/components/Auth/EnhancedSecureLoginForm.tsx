@@ -201,8 +201,8 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-sm border-border/70">
-      <CardContent className="space-y-4 pt-6">
+    <Card className="w-full mx-auto shadow-none border-0 bg-transparent">
+      <CardContent className="space-y-5 p-0">
         {/* Network banner */}
         {!isOnline && (
           <Alert variant="destructive" className="animate-fade-in" role="status">
@@ -232,10 +232,11 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate aria-describedby={errorKind ? 'login-error' : undefined}>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+          <div className="space-y-1.5 group">
+            <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1 transition-colors group-focus-within:text-primary">Email</Label>
             <Input
               id="email"
+              className="h-12 px-4 rounded-xl bg-muted/40 border-border transition-all duration-300 focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:border-primary"
               ref={emailRef}
               type="email"
               value={email}
