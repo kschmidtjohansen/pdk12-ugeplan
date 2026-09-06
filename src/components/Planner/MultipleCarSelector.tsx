@@ -259,12 +259,22 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
           const canSelect = isGenerallyAvailable;
 
           return (
-            <div
+            <button
               key={car.id}
-              className={`flex items-center space-x-3 p-3 rounded-md hover:bg-accent/50 cursor-pointer transition-colors border border-transparent hover:border-border ${
-                !canSelect ? 'opacity-60' : ''
+              type="button"
+              disabled={!canSelect}
+              className={`w-full text-left flex items-center space-x-3 p-3 rounded-md transition-colors border border-transparent ${
+                !canSelect ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50 hover:border-border'
               }`}
-              onClick={(e) => { e.stopPropagation(); handleCarClick(car); }}
+              onPointerUp={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleCarClick(car);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
             >
               <input
                 type="checkbox"
@@ -306,7 +316,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                   </div>
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
