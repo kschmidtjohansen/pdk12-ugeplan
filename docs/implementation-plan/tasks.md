@@ -374,3 +374,7 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Ny RPC `list_cross_subdept_busy_resources` returnerer optagne medarbejdere/biler i andre sub-department-scopes i samme hoveddepartment
 - [x] Hook `useCrossSubDeptBusy` henter ugens cross-busy sets
 - [x] `UnassignedResourcesSection` filtrerer optagne medarbejdere og biler ud af "ledige"-listerne på tværs af underafdelinger
+
+## Mobil: bilvalg i opgave-dialogen
+
+- [x] **2026-09-06:** `MultipleCarSelector` listepunkter er nu `<button type="button">` med `onPointerUp`-håndtering, så tryk registreres på mobil (tidligere slugte opgave-dialogen klikket). Flervalg, værksted-toast og konflikt-AlertDialog uændret; desktop-popover uberørt.
