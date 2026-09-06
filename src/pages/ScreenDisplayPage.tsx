@@ -8,6 +8,7 @@ import { ScreenDisplayErrorBoundary } from '@/components/ScreenDisplay/ScreenDis
 import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTables } from '@/lib/realtimeChannels';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import { useScreenDisplayAbsences } from '@/hooks/useScreenDisplayAbsences';
 
@@ -144,20 +145,22 @@ const ScreenDisplayPage: React.FC = () => {
       }, 1000);
     };
 
-    const channel = supabase
-      .channel(`screen-display-${departmentId}`)
-      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments', filter: `department_id=eq.${departmentId}` }, triggerRefetch)
-      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'assignments_employees' }, triggerRefetch)
-      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'vacations' }, triggerRefetch)
-      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'trainings' }, triggerRefetch)
-      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'cars' }, triggerRefetch)
-      .on('postgres_changes' as any, { event: '*', schema: 'public', table: 'on_call_duties' }, triggerRefetch)
-      .subscribe();
-
+    const unsubscribe = subscribeToTables(
+      `screen-display:${departmentId}`,
+      [
+        { table: 'assignments', filter: `department_id=eq.${departmentId}` },
+        { table: 'assignments_employees' },
+        { table: 'vacations' },
+        { table: 'trainings' },
+        { table: 'cars' },
+        { table: 'on_call_duties' },
+      ],
+      () => triggerRefetch()
+    );
 
     return () => {
       if (debounceTimer) clearTimeout(debounceTimer);
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [departmentId, refetch]);
 

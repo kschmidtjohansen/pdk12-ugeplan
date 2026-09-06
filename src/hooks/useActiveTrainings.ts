@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useDepartment } from '@/context/DepartmentContext';
 import { format } from 'date-fns';
+import { subscribeToTable } from '@/lib/realtimeChannels';
 
 export interface ActiveTrainingInfo {
   title: string | null;
@@ -20,6 +21,7 @@ interface TrainingsForDateResult {
 function useTrainingsForDate(dateStr: string) {
   const { selectedDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
+  const instanceId = useId();
 
   const query = useQuery<TrainingsForDateResult>({
     queryKey: ['active-trainings', selectedDepartmentId, dateStr],
@@ -45,20 +47,15 @@ function useTrainingsForDate(dateStr: string) {
 
   useEffect(() => {
     if (!selectedDepartmentId) return;
-    const channel = supabase
-      .channel(`active-trainings-${selectedDepartmentId}-${dateStr}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'trainings', filter: `department_id=eq.${selectedDepartmentId}` },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['active-trainings', selectedDepartmentId] });
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [selectedDepartmentId, dateStr, queryClient]);
+    return subscribeToTable({
+      key: `active-trainings:${instanceId}:${selectedDepartmentId}:${dateStr}`,
+      table: 'trainings',
+      filter: `department_id=eq.${selectedDepartmentId}`,
+      callback: () => {
+        queryClient.invalidateQueries({ queryKey: ['active-trainings', selectedDepartmentId] });
+      },
+    });
+  }, [selectedDepartmentId, dateStr, queryClient, instanceId]);
 
   return {
     trainingIds: query.data?.ids ?? new Set<string>(),
@@ -87,6 +84,7 @@ export function useActiveTrainingsForDate(date: Date | string) {
 export function useActiveTrainingsForRange(startStr: string, endStr: string) {
   const { selectedDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
+  const instanceId = useId();
 
   const query = useQuery<TrainingsForDateResult>({
     queryKey: ['active-trainings-range', selectedDepartmentId, startStr, endStr],
@@ -112,20 +110,15 @@ export function useActiveTrainingsForRange(startStr: string, endStr: string) {
 
   useEffect(() => {
     if (!selectedDepartmentId) return;
-    const channel = supabase
-      .channel(`active-trainings-range-${selectedDepartmentId}-${startStr}-${endStr}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'trainings', filter: `department_id=eq.${selectedDepartmentId}` },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['active-trainings-range', selectedDepartmentId] });
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [selectedDepartmentId, startStr, endStr, queryClient]);
+    return subscribeToTable({
+      key: `active-trainings-range:${instanceId}:${selectedDepartmentId}:${startStr}:${endStr}`,
+      table: 'trainings',
+      filter: `department_id=eq.${selectedDepartmentId}`,
+      callback: () => {
+        queryClient.invalidateQueries({ queryKey: ['active-trainings-range', selectedDepartmentId] });
+      },
+    });
+  }, [selectedDepartmentId, startStr, endStr, queryClient, instanceId]);
 
   return {
     trainingIds: query.data?.ids ?? new Set<string>(),

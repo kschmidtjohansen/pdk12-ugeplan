@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTable } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
@@ -338,12 +339,12 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const isDemoMode = user.email === 'test@polygongroup.com';
     const schema = isDemoMode ? 'demo' : 'public';
 
-    const channel = supabase
-      .channel('changelog-and-vacations')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema, table: 'planner_change_log' },
-        async (payload) => {
+    const unsubLog = subscribeToTable({
+      key: `changelog:planner_change_log:${schema}`,
+      schema,
+      event: 'INSERT',
+      table: 'planner_change_log',
+      callback: async (payload: any) => {
           let newLog = payload.new as ChangeLogEntry;
           if (selectedDepartmentId && !isDemoMode) {
             if (newLog.operation?.startsWith?.('EMPLOYEE_')) {
@@ -389,21 +390,23 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               };
             }
           }
-          setChangeLogs((prev) => [newLog, ...prev].slice(0, 50));
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema, table: 'vacations' },
-        () => {
-          // Simple approach: refetch to keep department filter & user names correct
-          fetchChangeLogs();
-        }
-      )
-      .subscribe();
+        setChangeLogs((prev) => [newLog, ...prev].slice(0, 50));
+      },
+    });
+
+    const unsubVacations = subscribeToTable({
+      key: `changelog:vacations:${schema}`,
+      schema,
+      table: 'vacations',
+      callback: () => {
+        // Simple approach: refetch to keep department filter & user names correct
+        fetchChangeLogs();
+      },
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubLog();
+      unsubVacations();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.id, selectedDepartmentId]);

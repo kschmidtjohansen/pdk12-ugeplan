@@ -9,6 +9,7 @@ import { UserRole, useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTable } from '@/lib/realtimeChannels';
 import { ArrowDownAZ, ArrowUpAZ, RefreshCw, AlertCircle, Wifi, WifiOff, Database, CheckCircle, Filter } from 'lucide-react';
 
 // Import refactored components
@@ -569,17 +570,14 @@ const UserManagement: React.FC = () => {
       return () => clearInterval(interval);
     } else {
       // Use realtime for production
-      const channel = supabase.channel('profiles_admin_changes').on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'profiles'
-      }, payload => {
-        if (import.meta.env.DEV) console.log('Profile change detected in admin:', payload.eventType);
-        fetchUsers();
-      }).subscribe();
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      return subscribeToTable({
+        key: 'user-management:profiles',
+        table: 'profiles',
+        callback: payload => {
+          if (import.meta.env.DEV) console.log('Profile change detected in admin:', payload.eventType);
+          fetchUsers();
+        }
+      });
     }
   }, [isDemoMode]);
 
