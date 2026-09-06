@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-06 — Fix: "Data Fetch Error" på dashboard (dublerede realtime-abonnementer)
+
+- Flere steder oprettede realtime-kanaler med et fast navn, så et gentaget `supabase.channel(<navn>).on('postgres_changes', ...)` kastede "cannot add `postgres_changes` callbacks for realtime subscriptions that are already subscribed". På dashboardet brugte 5+ komponenter samme kursus-kanalnavn samtidig.
+- `useActiveTrainings.ts` (dag + uge-range), `ChangeLogContext.tsx`, `RealtimeChangeNotifier.tsx`, `UserManagement.tsx` og `ScreenDisplayPage.tsx` bruger nu den delte, ref-tællende `subscribeToTable`/`subscribeToTables` fra `src/lib/realtimeChannels.ts` med unikke caller-keys.
+- `realtimeChannels.ts`: abonnementsopsætning er wrappet i try/catch, så en fejlet realtime-forbindelse aldrig vælter datahentning/UI (kun DEV-log).
+- Sikkerhed: `warehouse_items` SELECT-politik er nu afdelingsscopet (`get_user_department_ids()` / `is_super_admin()`) i stedet for "enhver indlogget bruger", og de ubegrænsede `realtime.messages` broadcast-politikker er fjernet (appen bruger kun `postgres_changes`).
+
+
 ## 2026-09-04 — Vagtbytte: accept virker igen + afslå-mulighed
 
 - `accept_duty_swap` kørte uden `SECURITY DEFINER`, så inviterede kandidater (fx servicemedarbejdere) blev blokeret af RLS ved opdatering af `on_call_duties` og `duty_swap_requests`. Funktionen er nu `SECURITY DEFINER` med `SET search_path = ''` og uændrede kontroller.
