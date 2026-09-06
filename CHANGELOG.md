@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-06 — Fix: Biler kan vælges på mobil
+
+- `MultipleCarSelector.tsx`: listepunkter i bilvælgeren brugte `div` med `onClick`, hvis klik blev opslugt af opgave-dialogen på mobil (samme fejl som tidligere i sagsansvarlig-/medarbejdervælgerne). Punkterne er nu rigtige `<button type="button">` med `onPointerUp`-håndtering, så tryk registreres på mobil. Flervalg, værksted-toast og konflikt-advarsel virker som før; desktop-popover er uændret.
+
+
 ## 2026-09-06 — Fix: "Data Fetch Error" på dashboard (dublerede realtime-abonnementer)
 
 - Flere steder oprettede realtime-kanaler med et fast navn, så et gentaget `supabase.channel(<navn>).on('postgres_changes', ...)` kastede "cannot add `postgres_changes` callbacks for realtime subscriptions that are already subscribed". På dashboardet brugte 5+ komponenter samme kursus-kanalnavn samtidig.
