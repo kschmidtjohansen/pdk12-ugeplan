@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { subscribeToTables } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { RefreshCw, X } from 'lucide-react';
@@ -43,14 +43,11 @@ export const RealtimeChangeNotifier: React.FC = () => {
       setHasChanges(true);
     };
 
-    const channel = supabase.channel('global-change-notifier');
-    TABLES_WITH_DEPT.forEach((t) => {
-      channel.on('postgres_changes', { event: '*', schema: 'public', table: t }, (p) => handleChange(p, true));
-    });
-    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (p) => handleChange(p, false));
-    channel.subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    return subscribeToTables(
+      'global-change-notifier',
+      [...TABLES_WITH_DEPT.map((t) => ({ table: t })), { table: 'profiles' }],
+      (table, payload) => handleChange(payload, table !== 'profiles')
+    );
   }, [isDemoMode, user?.id]);
 
   if (!hasChanges) return null;
