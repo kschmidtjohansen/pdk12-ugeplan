@@ -75,33 +75,44 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
       channelKey,
     };
 
-    channel.on(
-      'postgres_changes',
-      {
-        event,
-        schema,
-        table: opts.table,
-        ...(opts.filter ? { filter: opts.filter } : {}),
-      },
-      (payload: any) => {
-        fanOut.listeners.forEach((listener) => {
-          try {
-            listener(payload);
-          } catch (err: any) {
-            if (isDev) console.error(`[realtimeChannels] listener error on ${channelKey}:`, err?.message ?? err);
-          }
-        });
-      }
-    );
+    try {
+      channel.on(
+        'postgres_changes',
+        {
+          event,
+          schema,
+          table: opts.table,
+          ...(opts.filter ? { filter: opts.filter } : {}),
+        },
+        (payload: any) => {
+          fanOut.listeners.forEach((listener) => {
+            try {
+              listener(payload);
+            } catch (err: any) {
+              if (isDev) console.error(`[realtimeChannels] listener error on ${channelKey}:`, err?.message ?? err);
+            }
+          });
+        }
+      );
 
-    channel.subscribe((status) => {
-      if (!isDev) return;
-      if (status === 'SUBSCRIBED') {
-        console.log(`[realtimeChannels] subscribed → ${channelKey}`);
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-        console.warn(`[realtimeChannels] ${status} → ${channelKey}`);
+      channel.subscribe((status) => {
+        if (!isDev) return;
+        if (status === 'SUBSCRIBED') {
+          console.log(`[realtimeChannels] subscribed → ${channelKey}`);
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.warn(`[realtimeChannels] ${status} → ${channelKey}`);
+        }
+      });
+    } catch (err: any) {
+      // Never let a realtime subscription failure break rendering/data loading.
+      if (isDev) console.warn(`[realtimeChannels] subscribe failed → ${channelKey}: ${err?.message ?? err}`);
+      try {
+        supabase.removeChannel(channel);
+      } catch {
+        /* ignore */
       }
-    });
+      return () => {};
+    }
 
     channels.set(channelKey, fanOut);
     shared = fanOut;
