@@ -562,11 +562,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           <PopoverContent
             className="w-[760px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
             sideOffset={4}
+            collisionPadding={16}
           >
             {renderSearchField()}
             <div 
               ref={scrollRef}
-              className="h-[60vh] max-h-[70vh] overflow-y-auto"
+              className="max-h-[min(60vh,480px)] overflow-y-auto"
+
 
               onWheel={(e) => e.stopPropagation()}
             >
