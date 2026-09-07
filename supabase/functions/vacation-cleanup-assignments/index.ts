@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-type Reason = "approved_vacation" | "on_leave" | "training";
+type Reason = "approved_vacation" | "on_leave" | "training" | "sick";
 
 interface Body {
   vacationId?: string;
@@ -185,11 +185,13 @@ serve(async (req) => {
 
     // change log
     const opUnassign =
-      reason === "training" ? "auto_unassign_training"
+      reason === "sick" ? "auto_unassign_sick"
+      : reason === "training" ? "auto_unassign_training"
       : reason === "on_leave" ? "auto_unassign_on_leave"
       : "auto_unassign_vacation";
     const opClear =
-      reason === "training" ? "auto_clear_responsible_training"
+      reason === "sick" ? "auto_clear_responsible_sick"
+      : reason === "training" ? "auto_clear_responsible_training"
       : reason === "on_leave" ? "auto_clear_responsible_on_leave"
       : "auto_clear_responsible_vacation";
 
