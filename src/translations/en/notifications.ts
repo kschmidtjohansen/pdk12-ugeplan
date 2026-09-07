@@ -23,6 +23,8 @@ const notifications = {
   vacationHighCoverageTitle: 'High vacation coverage',
   vacationHighCoverage: 'Warning: Week {week} has more than 50% of service employees on vacation ({count}/{total})',
   title: 'Notifications',
+  sickDayTitle: 'Sick leave',
+  sickDayMessage: '{name} has been reported sick on {date}.',
 };
 
 export default notifications;
