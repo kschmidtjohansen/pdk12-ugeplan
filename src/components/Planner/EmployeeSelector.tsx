@@ -10,7 +10,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { Users, MapPin } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Users, MapPin, Search } from 'lucide-react';
+
 import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus } from '@/utils/employeeAvailability';
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
 import { haversineDistanceKm } from '@/utils/haversine';
@@ -49,6 +51,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
   const { trainingIds: trainingIdsForDate } = useActiveTrainingsForDate(currentDate);
 
@@ -197,10 +201,43 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     }
   }, [currentDate, selectedEmployees, assignments, user?.role, sortedEmployees.length, dateForComparison, autoRemovedEmployees]);
 
+  const visibleEmployees = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const filtered = term
+      ? sortedEmployees.filter(emp => (emp?.name || '').toLowerCase().includes(term))
+      : sortedEmployees;
+    // Keep selected employees at the top so they can be removed without scrolling.
+    const selectedSet = new Set(selectedEmployees);
+    const selected = filtered.filter(emp => selectedSet.has(emp.id));
+    const rest = filtered.filter(emp => !selectedSet.has(emp.id));
+    return [...selected, ...rest];
+  }, [sortedEmployees, searchTerm, selectedEmployees]);
+
+  const renderSearchField = () => (
+    <div className="sticky top-0 z-10 bg-popover border-b p-2">
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder={t('employees.searchPlaceholder')}
+          className="pl-8 h-9"
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </div>
+    </div>
+  );
+
   const renderEmployeeList = () => (
     <TooltipProvider delayDuration={200}>
-    <div className="py-1">
-      {sortedEmployees.map((employee, index) => {
+    <div className="py-1 grid grid-cols-1 sm:grid-cols-2 gap-x-2">
+      {visibleEmployees.length === 0 && (
+        <div className="col-span-full py-6 text-center text-sm text-muted-foreground">
+          {t('employees.noResults')}
+        </div>
+      )}
+      {visibleEmployees.map((employee, index) => {
+
         try {
           if (!employee || !employee.id || !employee.name) {
             if (import.meta.env.DEV) console.error('[EmployeeSelector] Invalid employee object:', employee);
@@ -283,7 +320,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               type="button"
               disabled={isDisabled}
               className={`w-full text-left flex items-center gap-3 py-3 px-4 transition-colors ${
-                index < sortedEmployees.length - 1 ? 'border-b border-border/40' : ''
+                index < visibleEmployees.length - 1 ? 'border-b border-border/40' : ''
               } ${
                 isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
               } ${
@@ -426,8 +463,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             <DrawerHeader>
               <DrawerTitle>{t('planner.employees')}</DrawerTitle>
             </DrawerHeader>
+            <div className="px-4">{renderSearchField()}</div>
             <div 
-              className="max-h-[60dvh] overflow-y-auto px-4 pb-4"
+              className="max-h-[80dvh] overflow-y-auto px-4 pb-4"
               style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
             >
               {renderEmployeeList()}
@@ -440,11 +478,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             {triggerButton}
           </PopoverTrigger>
           <PopoverContent
-            className="w-[480px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
+            className="w-[760px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
             sideOffset={4}
           >
+            {renderSearchField()}
             <div 
-              className="max-h-64 overflow-y-auto"
+              className="max-h-[70vh] overflow-y-auto"
               onWheel={(e) => e.stopPropagation()}
             >
               {renderEmployeeList()}
@@ -452,6 +491,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           </PopoverContent>
         </Popover>
       )}
+
     </div>
   );
 };

@@ -195,6 +195,8 @@ const employees = {
   // Skip department
   skipDepartment: 'No department (IT support)',
   skipDepartmentNote: 'User will be created without department affiliation. Select this for IT support staff and other users not belonging to an operational department.',
+  searchPlaceholder: 'Search employee...',
+  noResults: 'No employees found',
 };
 
 export default employees;

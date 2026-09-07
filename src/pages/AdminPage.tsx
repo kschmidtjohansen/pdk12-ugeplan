@@ -6,7 +6,8 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Clock } from 'lucide-react';
+import RealtimeDiagnostics from '@/components/Admin/RealtimeDiagnostics';
+import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock } from 'lucide-react';
 import UserManagement from '@/components/Admin/UserManagement';
 import DepartmentManagement from '@/components/Admin/DepartmentManagement';
 import SubDepartmentManagement from '@/components/Admin/SubDepartmentManagement';
@@ -98,6 +99,12 @@ const AdminPage: React.FC = () => {
                 {t('admin.tabs.autoPublish')}
               </TabsTrigger>
             )}
+            {(isSuperAdmin || isAdmin) && (
+              <TabsTrigger value="diagnostics" className="gap-2">
+                <Radio className="h-4 w-4" />
+                {t('admin.realtimeDiagnostics.title')}
+              </TabsTrigger>
+            )}
             {isSuperAdmin && (
               <TabsTrigger value="webVitals" className="gap-2">
                 <Activity className="h-4 w-4" />
@@ -151,6 +158,12 @@ const AdminPage: React.FC = () => {
           {(isSuperAdmin || isAdmin) && (
             <TabsContent value="autoPublish" className="animate-fade-in">
               <AutoPublishLogWidget />
+            </TabsContent>
+          )}
+
+          {(isSuperAdmin || isAdmin) && (
+            <TabsContent value="diagnostics" className="animate-fade-in">
+              <RealtimeDiagnostics />
             </TabsContent>
           )}
 

@@ -188,5 +188,11 @@ export const dashboard = {
     title: "Seneste auto-publiceringer",
     empty: "Ingen kørsler endnu",
     assignmentsUpdated: "{count} opgaver"
-  }
+  },
+  clearCache: {
+    button: "Ryd offline-cache",
+    title: "Ryd offline-cache?",
+    description: "Dette sletter appens gemte offline-data og genindlæser siden helt frisk. Du forbliver logget ind.",
+    confirm: "Ryd og genindlæs"
+  },
 };

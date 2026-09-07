@@ -188,5 +188,11 @@ export const dashboard = {
     title: "Latest auto-publish runs",
     empty: "No runs yet",
     assignmentsUpdated: "{count} assignments"
-  }
+  },
+  clearCache: {
+    button: "Clear offline cache",
+    title: "Clear offline cache?",
+    description: "This clears the app's stored offline data and fully reloads the page. You stay signed in.",
+    confirm: "Clear and reload"
+  },
 };

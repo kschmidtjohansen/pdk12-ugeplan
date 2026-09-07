@@ -28,6 +28,12 @@ interface SharedChannel {
   channel: RealtimeChannel;
   /** Composite key used as the map index in `channels`. */
   channelKey: string;
+  /** Human readable channel name registered with Supabase. */
+  channelName: string;
+  /** Latest subscription status reported by Supabase. */
+  status: string;
+  /** When the channel was created. */
+  createdAt: number;
 }
 
 const channels = new Map<string, SharedChannel>();
@@ -65,6 +71,9 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
     const fanOut: SharedChannel = {
       channel,
       channelKey,
+      channelName,
+      status: 'PENDING',
+      createdAt: Date.now(),
     };
 
     try {
@@ -82,6 +91,7 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
       );
 
       channel.subscribe((status) => {
+        fanOut.status = status;
         if (!isDev) return;
         if (status === 'SUBSCRIBED') {
           console.log(`[realtimeChannels] subscribed → ${channelKey}`);
@@ -172,6 +182,38 @@ export function subscribeToTables(
       }
     });
   };
+}
+
+export interface RealtimeChannelDiagnostic {
+  channelKey: string;
+  channelName: string;
+  schema: string;
+  table: string;
+  event: string;
+  filter: string | null;
+  status: string;
+  listeners: number;
+  createdAt: number;
+}
+
+/** Read-only snapshot of every active shared realtime channel. */
+export function getRealtimeChannelDiagnostics(): RealtimeChannelDiagnostic[] {
+  const result: RealtimeChannelDiagnostic[] = [];
+  channels.forEach((shared, channelKey) => {
+    const [schema, table, event, filter] = channelKey.split(':');
+    result.push({
+      channelKey,
+      channelName: shared.channelName,
+      schema: schema ?? '',
+      table: table ?? '',
+      event: event ?? '*',
+      filter: filter ? filter : null,
+      status: shared.status,
+      listeners: registry.listenerCount(channelKey),
+      createdAt: shared.createdAt,
+    });
+  });
+  return result.sort((a, b) => a.channelKey.localeCompare(b.channelKey));
 }
 
 /** Diagnostics — handy in DevTools / tests. */

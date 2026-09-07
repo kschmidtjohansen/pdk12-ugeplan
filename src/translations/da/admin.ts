@@ -357,5 +357,17 @@ export const admin = {
     onVacation: 'på ferie',
     week: 'Uge',
     noVacations: 'Ingen ferier'
-  }
+  },
+  realtimeDiagnostics: {
+    title: "Realtime-forbindelser",
+    description: "Viser hvilke realtime-kanaler der er aktive, og om de er tilsluttet korrekt.",
+    refresh: "Opdater",
+    activeChannels: "Aktive kanaler",
+    totalListeners: "Lyttere i alt",
+    serviceWorkers: "Registrerede offline-services",
+    noChannels: "Ingen aktive realtime-kanaler lige nu.",
+    listeners: "Lyttere",
+    filter: "Filter",
+    updatedAt: "Opdateret"
+  },
 };

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-07 — Feature: Bredere medarbejdervælger, cache-rydning og realtime-diagnostik
+
+- `EmployeeSelector.tsx`: søgefelt øverst, valgte medarbejdere sorteres først, to-kolonne-grid på desktop, bredere popover (760px) og højere lister (desktop 70vh, mobil 80dvh) — markant mindre scroll ved mange medarbejdere. Låse- og konfliktlogik er uændret.
+- Ny `Dashboard/ClearCacheButton.tsx`: knap på dashboardet der rydder browserens app-caches, afregistrerer gamle service workers og genindlæser siden. Bekræftelsesdialog inden. Auth-storage røres ikke.
+- Ny `Admin/RealtimeDiagnostics.tsx` + fane i Admin (administrator/super_admin): viser aktive realtime-kanaler (schema.tabel, event, filter), antal lyttere, forbindelsesstatus og antal registrerede service workers. Auto-opdatering hvert 5. sekund plus manuel opdatering.
+- `realtimeChannels.ts`: ny read-only `getRealtimeChannelDiagnostics()` samt status-/navnesporing pr. delt kanal.
+- Nye oversættelsesnøgler: `employees.searchPlaceholder`, `employees.noResults`, `dashboard.clearCache.*`, `admin.realtimeDiagnostics.*`.
+
 ## 2026-09-07 — Feature: Låseforklaring i medarbejdervælgeren
 
 - `EmployeeSelector.tsx`: låste medarbejdere viser nu årsagen direkte under navnet (fx "Fuldt booket (8,0 t) – kan ikke vælges til flere opgaver denne dag", "Har ferie denne dag", "På kursus denne dag") og via tooltip ved hover på desktop. Årsager i prioriteret rækkefølge: ferie, fraværende, kursus, fuldt booket, udløbet, opsagt/inaktiv.
