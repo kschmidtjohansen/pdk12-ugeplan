@@ -448,10 +448,46 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           if (import.meta.env.DEV) console.error(`[EmployeeSelector] Error rendering employee ${employee?.name || 'unknown'}:`, err);
           return null;
         }
-      })}
-    </div>
-    </TooltipProvider>
-  );
+  };
+
+  const renderEmployeeList = () => {
+    const virtualRows = rowVirtualizer.getVirtualItems();
+    return (
+      <TooltipProvider delayDuration={200}>
+        {visibleEmployees.length === 0 ? (
+          <div className="py-6 text-center text-sm text-muted-foreground">
+            {t('employees.noResults')}
+          </div>
+        ) : (
+          <div
+            className="relative w-full py-1"
+            style={{ height: rowVirtualizer.getTotalSize() }}
+          >
+            {virtualRows.map((virtualRow) => {
+              const row = employeeRows[virtualRow.index];
+              const isLastRow = virtualRow.index === employeeRows.length - 1;
+              return (
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={rowVirtualizer.measureElement}
+                  className="absolute left-0 top-0 w-full grid grid-cols-1 sm:grid-cols-2 gap-x-2"
+                  style={{ transform: `translateY(${virtualRow.start}px)` }}
+                >
+                  {row.map((employee) => (
+                    <React.Fragment key={employee.id}>
+                      {renderEmployeeButton(employee, isLastRow)}
+                    </React.Fragment>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </TooltipProvider>
+    );
+  };
+
 
   const triggerButton = (
     <Button 
