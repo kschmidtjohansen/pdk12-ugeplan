@@ -179,7 +179,6 @@ const employees = {
   vikarExpiresInfo: 'Udløber: {date}',
   extendVikarExpiry: 'Forlæng udløbsdato',
   newExpirationDate: 'Udløbsdato',
-  expirationMustBeFuture: 'Udløbsdatoen skal ligge i fremtiden',
   newExpiryPreview: 'Ny udløbsdato: {date}',
   extend1Week: '+1 uge',
   extend2Weeks: '+2 uger',

@@ -179,7 +179,6 @@ const employees = {
   vikarExpiresInfo: 'Expires: {date}',
   extendVikarExpiry: 'Extend expiration date',
   newExpirationDate: 'Expiration date',
-  expirationMustBeFuture: 'The expiration date must be in the future',
   newExpiryPreview: 'New expiration date: {date}',
   extend1Week: '+1 week',
   extend2Weeks: '+2 weeks',
