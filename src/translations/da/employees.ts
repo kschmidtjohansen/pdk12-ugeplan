@@ -177,6 +177,14 @@ const employees = {
   convertToPermanentNote: 'Dette fjerner udløbsdatoen og gør medarbejderen permanent',
   currentlyVikar: 'Denne medarbejder er registreret som vikar',
   vikarExpiresInfo: 'Udløber: {date}',
+  extendVikarExpiry: 'Forlæng udløbsdato',
+  newExpirationDate: 'Udløbsdato',
+  expirationMustBeFuture: 'Udløbsdatoen skal ligge i fremtiden',
+  newExpiryPreview: 'Ny udløbsdato: {date}',
+  extend1Week: '+1 uge',
+  extend2Weeks: '+2 uger',
+  extend1Month: '+1 måned',
+  extend3Months: '+3 måneder',
   
   // Badge status labels
   statusExpired: 'Udløbet',
