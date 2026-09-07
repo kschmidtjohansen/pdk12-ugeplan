@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 — EmployeeSelector-sortering og vikar-forlængelse
+
+- `EmployeeSelector.tsx`: afstand til sagens adresse (postnummer/GPS, ≤15 km-tærskel) er fortsat den primære sortering, men servicemedarbejdere vises nu først inden for hver afstandsgruppe (tjekker både `role` og `roles`). Uden sagsadresse sorteres alfabetisk som før.
+- `EmployeeFormDialog.tsx`: ny fremtrædende "Forlæng ansættelse"-knap (+1 måned) for vikarer. Forlængelser regnes fra den seneste af nuværende udløbsdato eller i dag, og datofeltets minimum følger samme regel.
+- Ny validering ved gem: en vikars udløbsdato kan ikke længere sættes til en dato før den nuværende udløbsdato — der vises en fejlbesked med datoen.
+- Nye oversættelser da/en: `extendEmployment`, `expiryBeforeCurrent`.
+
 ## 2026-09-07 — EmployeeSelector: stabil positionering, tom- og loading-tilstand
 
 - `EmployeeSelector.tsx`: popoveren har nu eksplicit `side="bottom"`, `align="start"` og `collisionPadding={16}`, og maks-højden er sat ned til `min(50vh,420px)`, så dropdown'en altid bliver inden for skærmen på Windows og ikke ryger ned under proceslinjen — den flipper opad, når der ikke er plads nedad.

@@ -2,6 +2,8 @@
 
 ## Løbende rettelser ✅
 
+- [x] EmployeeSelector: afstand primær, servicemedarbejdere først inden for samme afstandsgruppe (2026-09-07).
+- [x] Vikar-forlængelse: dedikeret forlæng-knap og validering mod forkortelse af udløbsdato (2026-09-07).
 - [x] EmployeeSelector: popover forbliver i viewport på Windows (side/align/collisionPadding, lavere maks-højde), loading-skelet under datahentning og tydelig tomtilstand med ryd søgning (2026-09-07).
 - [x] Vikarer kan forlænges direkte fra redigeringsformularen: datofelt + hurtigvalg (+1 uge til +3 måneder), validering af fremtidig dato og forhåndsvisning (2026-09-07).
 - [x] Medarbejdervælgeren viser igen medarbejdere på Windows/desktop (virtualisering måles efter åbning, med fallback-liste), og popoveren tilpasser højden i stedet for altid at fylde 60 % af skærmen.
