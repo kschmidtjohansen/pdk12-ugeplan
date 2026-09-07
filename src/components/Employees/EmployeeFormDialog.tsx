@@ -385,6 +385,51 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                       )}
                     </div>
                   </div>
+                  {!convertToPermanent && (
+                    <div className="pt-2 border-t border-amber-200 dark:border-amber-700 space-y-2">
+                      <Label htmlFor="edit_expires_at" className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        {t('employees.newExpirationDate')}
+                      </Label>
+                      <Input
+                        id="edit_expires_at"
+                        name="expires_at"
+                        type="date"
+                        value={formData.expires_at}
+                        onChange={handleInputChange}
+                        min={format(startOfToday(), 'yyyy-MM-dd')}
+                        disabled={isSubmitting}
+                      />
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { label: t('employees.extend1Week'), date: addWeeks(new Date(currentEmployee?.expires_at || new Date()), 1) },
+                          { label: t('employees.extend2Weeks'), date: addWeeks(new Date(currentEmployee?.expires_at || new Date()), 2) },
+                          { label: t('employees.extend1Month'), date: addMonths(new Date(currentEmployee?.expires_at || new Date()), 1) },
+                          { label: t('employees.extend3Months'), date: addMonths(new Date(currentEmployee?.expires_at || new Date()), 3) },
+                        ].map(opt => (
+                          <Button
+                            key={opt.label}
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            disabled={isSubmitting}
+                            onClick={() => handleInputChange({
+                              target: { name: 'expires_at', value: format(opt.date, 'yyyy-MM-dd') }
+                            } as any)}
+                          >
+                            {opt.label}
+                          </Button>
+                        ))}
+                      </div>
+                      {formData.expires_at && currentEmployee?.expires_at && formData.expires_at !== new Date(currentEmployee.expires_at).toISOString().split('T')[0] && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                          {t('employees.newExpiryPreview', {
+                            date: format(new Date(formData.expires_at), 'd. MMMM yyyy', { locale: da })
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center space-x-2 pt-2 border-t border-amber-200 dark:border-amber-700">
                     <Checkbox 
                       id="convertToPermanent" 
