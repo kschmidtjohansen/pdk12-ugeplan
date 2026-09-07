@@ -357,4 +357,16 @@ export const admin = {
     week: 'Week',
     noVacations: 'No vacations'
   }
+  diagnostics: {
+    title: "Realtime connections",
+    description: "Shows which realtime channels are active and whether they are properly connected.",
+    refresh: "Refresh",
+    activeChannels: "Active channels",
+    totalListeners: "Total listeners",
+    serviceWorkers: "Registered offline services",
+    noChannels: "No active realtime channels right now.",
+    listeners: "Listeners",
+    filter: "Filter",
+    updatedAt: "Updated"
+  },
 };

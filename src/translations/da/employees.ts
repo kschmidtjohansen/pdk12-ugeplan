@@ -195,6 +195,8 @@ const employees = {
   // Skip department
   skipDepartment: 'Uden afdeling (IT-support)',
   skipDepartmentNote: 'Brugeren oprettes uden afdelingstilknytning. Vælg dette for IT-supportere og andre brugere, der ikke tilhører en driftsafdeling.',
+  searchPlaceholder: 'Søg medarbejder...',
+  noResults: 'Ingen medarbejdere fundet',
 };
 
 export default employees;
