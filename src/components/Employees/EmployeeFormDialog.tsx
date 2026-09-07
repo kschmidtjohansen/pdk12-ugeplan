@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { AlertTriangle, Wifi, WifiOff, Calendar, UserCheck } from 'lucide-react';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
-import { format } from 'date-fns';
+import { format, addWeeks, addMonths, startOfToday } from 'date-fns';
 import { da } from 'date-fns/locale';
 interface EmployeeFormDialogProps {
   currentEmployee: Employee | null;
@@ -128,6 +128,16 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         setErrorMessage(t('employees.postcodeInvalid'));
         setIsSubmitting(false);
         return;
+      }
+
+      // Vikar expiry must be in the future when not converting to permanent
+      if (isEditingVikar && !convertToPermanent && formData.expires_at) {
+        const expiry = new Date(formData.expires_at);
+        if (isNaN(expiry.getTime()) || expiry < startOfToday()) {
+          setErrorMessage(t('employees.expirationMustBeFuture'));
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       // Phone validation - only required for non-temporary users
