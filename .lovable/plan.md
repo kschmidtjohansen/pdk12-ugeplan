@@ -1,21 +1,27 @@
-# EmployeeSelector: servicemedarbejdere først, derefter afstand
+# Vikar-forlængelse: dedikeret forlæng-knap + dato-validering
 
 ## Mål
-Sorter listen i medarbejdervælgeren så **servicemedarbejdere altid vises først**. Inden for hver rollegruppe sorteres stadig efter afstand til sagens adresse (postnummer/GPS via Haversine), som i dag.
+I `EmployeeFormDialog` skal det være tydeligt at forlænge en vikars udløbsdato, og det skal være umuligt at forlænge til en dato, der ligger før i dag eller før den nuværende udløbsdato.
 
-## Ny sorteringsrækkefølge
-1. Valgte medarbejdere øverst (uændret — eksisterende selected-first-logik bevares).
-2. Servicemedarbejdere før andre roller.
-3. Inden for samme rolle: medarbejdere inden for 15 km først, sorteret stigende efter afstand.
-4. Medarbejdere uden afstand/koordinater sorteres alfabetisk efter navn.
-5. Når der ikke er valgt en sagsadresse (ingen koordinater), sorteres servicemedarbejdere først, derefter alfabetisk.
+## Nuværende tilstand (bekræftet ved læsning)
+- Redigering af en vikar viser allerede et datofelt "Ny udløbsdato" med hurtigvalg (+1 uge, +2 uger, +1 måned, +3 måneder) regnet ud fra den nuværende udløbsdato.
+- Valideringen tjekker i dag kun, at datoen er i fremtiden (`expiry < startOfToday()`) — ikke at den er EFTER den nuværende udløbsdato. Man kan altså utilsigtet forkorte vikarens periode.
+
+## Ændringer
+1. **Forlæng-knap** i vikar-sektionen i `EmployeeFormDialog.tsx`:
+   - En fremtrædende knap "Forlæng ansættelse" der udfylder datofeltet med et standardinterval (f.eks. +1 måned fra nuværende udløbsdato) — hurtigvalgene bevares som alternativer.
+   - Knap og hurtigvalg regner altid ud fra det seneste af: nuværende udløbsdato eller i dag (så en udløbet vikar forlænges fra i dag).
+2. **Validering ved gem** (udbyg eksisterende blok omkring linje 134):
+   - Ny dato skal være >= i dag (bevares).
+   - Ny dato må ikke ligge FØR den nuværende udløbsdato. Hvis den gør, vises fejlbesked: "Den nye udløbsdato kan ikke ligge før den nuværende udløbsdato (d. {dato})".
+   - Datofeltets `min`-attribut sættes til det seneste af i dag / nuværende udløbsdato, så browseren også blokerer ugyldige datoer.
+3. **Forhåndsvisning**: den eksisterende "ny udløbsdato"-tekst bevares og viser tydeligt forlængelsen.
+4. Nye oversættelser da/en: `extendEmployment` ("Forlæng ansættelse"), `expiryBeforeCurrent` (fejlbesked).
 
 ## Tekniske detaljer
-- Fil: `src/components/Planner/EmployeeSelector.tsx`.
-- I `sortedEmployees` (useMemo omkring linje 76-90): tilføj en rolle-prioritet som første sorteringsnøgle — `servicemedarbejder` får prioritet 0, alle andre roller 1. Bemærk at en medarbejder kan have flere roller (`emp.roles`): medarbejderen tæller som servicemedarbejder, hvis rollen findes i enten `emp.role` eller `emp.roles`.
-- Eksisterende afstandslogik (15 km-tærskel, `haversineDistanceKm`, `top3NearbyIds`) ændres ikke — den bruges som anden sorteringsnøgle.
-- Filtrering (søgning, låste/fraværende medarbejdere), virtualisering, loading/tomtilstand og badges ændres ikke.
-- Ingen nye oversættelser, ingen databaseændringer.
+- Fil: `src/components/Employees/EmployeeFormDialog.tsx` + `src/translations/da/employees.ts` + `src/translations/en/employees.ts`.
+- Ingen ændring i `useEmployeeActions.ts` (gem-logik med slut-af-dag bevares) og ingen databaseændringer.
+- Konvertering til permanent nulstiller stadig udløbsdato som i dag.
 
 ## Verifikation
 - Typecheck (`bunx tsgo --noEmit`) uden fejl.
