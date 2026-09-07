@@ -19,7 +19,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+				sans: ['Inter', 'Inter Fallback', 'system-ui', '-apple-system', 'sans-serif'],
 				mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
 			},
 			fontSize: {

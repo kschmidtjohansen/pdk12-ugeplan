@@ -62,7 +62,30 @@ const flush = async () => {
   }
 };
 
+/**
+ * Upper bounds for plausible measurements. Backgrounded tabs can report absurd
+ * values (e.g. an INP of >1 hour) which skew every aggregate in the admin view.
+ */
+const MAX_PLAUSIBLE_VALUE: Record<string, number> = {
+  LCP: 60_000,
+  INP: 60_000,
+  FCP: 60_000,
+  TTFB: 60_000,
+  CLS: 25,
+};
+
+const isPlausible = (metric: Metric): boolean => {
+  const max = MAX_PLAUSIBLE_VALUE[metric.name];
+  return !(Number.isNaN(metric.value) || metric.value < 0 || (max !== undefined && metric.value > max));
+};
+
 const handleMetric = (metric: Metric) => {
+  if (!isPlausible(metric)) {
+    if (import.meta.env.DEV) {
+      console.warn(`[WebVitals] Dropping implausible ${metric.name}=${metric.value}`);
+    }
+    return;
+  }
   const route = window.location.pathname;
   if (import.meta.env.DEV) {
     console.log(

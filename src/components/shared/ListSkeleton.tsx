@@ -2,6 +2,8 @@ import React from 'react';
 
 interface ListSkeletonProps {
   rowCount?: number;
+  /** Fixed row height in px. Lets callers reserve the same space the real content takes. */
+  rowHeight?: number;
   className?: string;
 }
 
@@ -9,13 +11,14 @@ interface ListSkeletonProps {
  * Generic loading placeholder for list/table pages.
  * Renders `rowCount` rows with avatar square + two stacked lines + right-side short line.
  */
-const ListSkeleton: React.FC<ListSkeletonProps> = ({ rowCount = 8, className }) => {
+const ListSkeleton: React.FC<ListSkeletonProps> = ({ rowCount = 8, rowHeight, className }) => {
   return (
     <div className={`w-full p-3 sm:p-6 space-y-3 ${className ?? ''}`} aria-busy="true" aria-live="polite">
       {Array.from({ length: rowCount }).map((_, i) => (
         <div
           key={i}
           className="flex items-center gap-4 p-3 rounded-lg border border-border/50 bg-card"
+          style={rowHeight ? { height: rowHeight } : undefined}
         >
           <div className="h-10 w-10 rounded-md bg-muted animate-pulse shrink-0" />
           <div className="flex-1 space-y-2 min-w-0">

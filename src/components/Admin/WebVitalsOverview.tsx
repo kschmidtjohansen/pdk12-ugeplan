@@ -58,20 +58,36 @@ const WebVitalsOverview: React.FC = () => {
     const load = async () => {
       setLoading(true);
       const since = new Date(Date.now() - parseInt(period, 10) * 86400_000).toISOString();
-      const { data, error } = await supabase
-        .from('web_vitals_metrics')
-        .select('id, created_at, metric_name, metric_value, rating, route')
-        .gte('created_at', since)
-        .order('created_at', { ascending: false })
-        .limit(5000);
-      if (cancelled) return;
-      if (error) {
-        if (import.meta.env.DEV) console.error('[WebVitals] load failed', error.message);
-        setRows([]);
-      } else {
-        setRows((data || []) as Row[]);
+      // Page through the full period. A single limit(5000) silently truncated the
+      // 30-day view to only the most recent days, which biased every percentile.
+      const PAGE_SIZE = 1000;
+      const MAX_ROWS = 50_000;
+      const collected: Row[] = [];
+      let from = 0;
+      let failed = false;
+
+      while (from < MAX_ROWS) {
+        const { data, error } = await supabase
+          .from('web_vitals_metrics')
+          .select('id, created_at, metric_name, metric_value, rating, route')
+          .gte('created_at', since)
+          .order('created_at', { ascending: false })
+          .range(from, from + PAGE_SIZE - 1);
+        if (cancelled) return;
+        if (error) {
+          if (import.meta.env.DEV) console.error('[WebVitals] load failed', error.message);
+          failed = true;
+          break;
+        }
+        const page = (data || []) as Row[];
+        collected.push(...page);
+        if (page.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
       }
+
+      setRows(failed ? [] : collected);
       setLoading(false);
+
     };
     load();
     return () => {

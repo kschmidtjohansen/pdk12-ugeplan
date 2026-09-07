@@ -255,9 +255,19 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     }
   };
 
+  // While employees/cars are still being fetched this block renders almost empty and
+  // then grows, pushing the whole week list down (large CLS). Reserve its height until
+  // the underlying data has arrived.
+  const isResourceDataPending =
+    (!employees || employees.length === 0) && (!cars || cars.length === 0);
+
   return (
-    <div className="space-y-4">
+    <div
+      className="space-y-4"
+      style={isResourceDataPending ? { minHeight: isCollapsed ? 132 : 420 } : undefined}
+    >
       <Card className="overflow-hidden border-2 border-primary/20">
+
         <CardHeader className="py-2 px-4 bg-muted/40 border-b border-border">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
