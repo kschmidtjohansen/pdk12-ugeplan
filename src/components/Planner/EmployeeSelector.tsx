@@ -259,16 +259,49 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return [...selected, ...rest];
   }, [sortedEmployees, searchTerm, selectedEmployees]);
 
+  // Keyboard navigation: arrows move the active row (and scroll the
+  // virtualized list to it), Enter toggles the active employee.
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      e.stopPropagation();
+      const len = visibleEmployees.length;
+      if (len === 0) return;
+      setActiveIndex((prev) => {
+        const delta = e.key === 'ArrowDown' ? 1 : -1;
+        const next = (((prev ?? 0) + delta) % len + len) % len;
+        rowVirtualizer.scrollToIndex(Math.floor(next / columns), { align: 'auto' });
+        return next;
+      });
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      const emp = visibleEmployees[activeIndex];
+      if (emp && !disabledIdSet.has(emp.id)) {
+        onToggle(emp.id);
+      }
+      return;
+    }
+    if (e.key === 'Escape') {
+      // Let the Popover/Drawer handle closing.
+      return;
+    }
+    e.stopPropagation();
+  };
+
   const renderSearchField = () => (
     <div className="sticky top-0 z-10 bg-popover border-b p-2">
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
+          ref={searchInputRef}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={t('employees.searchPlaceholder')}
           className="pl-8 h-9"
-          onKeyDown={(e) => e.stopPropagation()}
+          onKeyDown={handleSearchKeyDown}
         />
       </div>
     </div>
