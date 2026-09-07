@@ -1,11 +1,11 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, vi } from 'vitest';
 import { RealtimeChannelRegistry } from './realtimeChannelRegistry';
 
 describe('RealtimeChannelRegistry', () => {
   it('keeps multiple listeners on one channel', () => {
     const registry = new RealtimeChannelRegistry<string>();
-    const first = mock(() => undefined);
-    const second = mock(() => undefined);
+    const first = vi.fn();
+    const second = vi.fn();
 
     registry.add('public:trainings:*:', 'first', first);
     registry.add('public:trainings:*:', 'second', second);

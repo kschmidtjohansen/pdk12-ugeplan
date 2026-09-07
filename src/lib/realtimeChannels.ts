@@ -54,10 +54,8 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
   const event = opts.event ?? '*';
   const channelKey = buildChannelKey(schema, opts.table, event, opts.filter);
 
-  // If this caller key already exists, replace it to avoid stale listeners.
-  if (keyIndex.has(opts.key)) {
-    unsubscribeByKey(opts.key);
-  }
+  // Replace any prior registration for this caller key to avoid stale listeners.
+  unsubscribeByKey(opts.key);
 
   let shared = channels.get(channelKey);
   if (!shared) {
