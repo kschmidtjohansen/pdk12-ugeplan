@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Users, MapPin } from 'lucide-react';
@@ -197,6 +198,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   }, [currentDate, selectedEmployees, assignments, user?.role, sortedEmployees.length, dateForComparison, autoRemovedEmployees]);
 
   const renderEmployeeList = () => (
+    <TooltipProvider delayDuration={200}>
     <div className="py-1">
       {sortedEmployees.map((employee, index) => {
         try {
@@ -244,6 +246,29 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             || employee.status === 'inactive'
           );
 
+          // Explain WHY a locked employee cannot be selected (priority order)
+          let lockReason: string | null = null;
+          if (isDisabled) {
+            if (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') {
+              lockReason = t('employees.lockedReasonVacation');
+            } else if (isManuallyOnLeave) {
+              lockReason = t('employees.lockedReasonOnLeave');
+            } else if (isOnTraining) {
+              lockReason = t('employees.lockedReasonTraining');
+            } else if (isFullyBooked) {
+              const hours = ((availabilityInfo.bookedMinutes ?? 480) / 60)
+                .toFixed(1)
+                .replace('.', currentLanguage === 'da' ? ',' : '.');
+              lockReason = t('employees.lockedReasonFullyBooked', { hours });
+            } else if (isExpired) {
+              lockReason = t('employees.lockedReasonExpired');
+            } else if (employee.status === 'terminated') {
+              lockReason = t('employees.lockedReasonTerminated');
+            } else if (employee.status === 'inactive') {
+              lockReason = t('employees.lockedReasonInactive');
+            }
+          }
+
           const dist = distanceMap.get(employee.id);
           const isNearby = dist != null && dist <= 15;
           const isTop3 = top3NearbyIds.includes(employee.id);
@@ -252,8 +277,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             : null;
           
           return (
+            <Tooltip key={employee.id}>
+              <TooltipTrigger asChild>
             <button
-              key={employee.id}
               type="button"
               disabled={isDisabled}
               className={`w-full text-left flex items-center gap-3 py-3 px-4 transition-colors ${
@@ -310,6 +336,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                         {formattedDist} km {currentLanguage === 'da' ? 'væk' : 'away'}
                       </span>
                     )}
+                    {isDisabled && lockReason && (
+                      <span className="text-xs text-muted-foreground mt-0.5">
+                        {lockReason}
+                      </span>
+                    )}
                   </div>
                   <div className="flex gap-1 ml-2 flex-shrink-0">
                     {isOnTraining && (
@@ -346,6 +377,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 </div>
               </div>
             </button>
+              </TooltipTrigger>
+              {lockReason && (
+                <TooltipContent side="top" className="max-w-xs">
+                  {lockReason}
+                </TooltipContent>
+              )}
+            </Tooltip>
 
           );
         } catch (err) {
@@ -354,6 +392,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         }
       })}
     </div>
+    </TooltipProvider>
   );
 
   const triggerButton = (

@@ -13,6 +13,7 @@ export interface EmployeeAvailabilityInfo {
   badgeColor: string;
   badgeVariant: EmployeeAvailabilityBadgeVariant;
   availableAt?: string;
+  bookedMinutes?: number;
 }
 
 export interface EmployeeVacationInfo {
@@ -227,7 +228,8 @@ export const getEmployeeAvailabilityStatus = (
       status: 'fullyBooked',
       statusText: t('employees.status.fullyBooked'),
       badgeColor: 'bg-red-100 text-red-800 border-red-200',
-      badgeVariant: 'error'
+      badgeVariant: 'error',
+      bookedMinutes: totalMinutes
     };
   }
   

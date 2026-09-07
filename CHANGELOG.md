@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-07 — Feature: Låseforklaring i medarbejdervælgeren
+
+- `EmployeeSelector.tsx`: låste medarbejdere viser nu årsagen direkte under navnet (fx "Fuldt booket (8,0 t) – kan ikke vælges til flere opgaver denne dag", "Har ferie denne dag", "På kursus denne dag") og via tooltip ved hover på desktop. Årsager i prioriteret rækkefølge: ferie, fraværende, kursus, fuldt booket, udløbet, opsagt/inaktiv.
+- `employeeAvailability.ts`: `getEmployeeAvailabilityStatus` returnerer nu `bookedMinutes` ved fuld booking, så den præcise timeantal kan vises i forklaringen.
+- Nye oversættelsesnøgler `employees.lockedReason*` på dansk og engelsk.
+
 ## 2026-09-07 — Fix: Vedvarende realtime-fejl fra gammel PWA-cache
 
 - Skærmbilledets `active-trainings-…`-kanal kom fra en ældre JavaScript-pakke, som den tidligere Workbox/PWA-worker fortsat kunne levere. `/sw.js` er nu en kontrolleret kill-switch i én release: den sletter kun appens egne tidligere caches, genindlæser åbne faner og afregistrerer sig selv. Login/session og andre browserdata bevares.

@@ -380,3 +380,7 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 ## Mobil: bilvalg i opgave-dialogen
 
 - [x] **2026-09-06:** `MultipleCarSelector` listepunkter er nu `<button type="button">` med `onPointerUp`-håndtering, så tryk registreres på mobil (tidligere slugte opgave-dialogen klikket). Flervalg, værksted-toast og konflikt-AlertDialog uændret; desktop-popover uberørt.
+
+## Planner: låseforklaring i medarbejdervælgeren
+
+- [x] **2026-09-07:** Låste medarbejdere i `EmployeeSelector` viser nu årsagen (ferie, fraværende, kursus, fuldt booket m. timer, udløbet, opsagt/inaktiv) som inline-tekst under navnet og tooltip på desktop. `getEmployeeAvailabilityStatus` eksponerer `bookedMinutes`; nye da/en-oversættelser under `employees.lockedReason*`.
