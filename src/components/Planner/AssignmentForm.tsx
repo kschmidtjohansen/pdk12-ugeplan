@@ -37,6 +37,7 @@ interface AssignmentFormProps {
   assignments: Assignment[];
   cars: Car[];
   employees: Employee[];
+  employeesLoading?: boolean;
   vacations: Vacation[];
   selectedDay: string;
   onPublishDay: (date: string) => void;
@@ -53,6 +54,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   assignments,
   cars,
   employees,
+  employeesLoading = false,
   vacations,
   selectedDay,
   onPublishDay,
