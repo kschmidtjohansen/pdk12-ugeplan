@@ -2,6 +2,7 @@
 
 ## Løbende rettelser ✅
 
+- [x] Fjernet vedvarende dashboard-fejl fra en gammel PWA-version: den tidligere Workbox-worker erstattes i én release af en afinstallerende kill-switch, installérbarhed bevares via et statisk manifest, og realtime-manageren beskytter nye abonnementer mod forsinket cleanup fra ældre React-effekter.
 - [x] Fjernet dobbelte toasts og dobbelt "Slip for at opdatere" på mobil: nestede `PullToRefresh`-wrappers fjernet fra Dashboard og Biler (MainLayout håndterer det), toast-systemet ignorerer nu identiske toasts inden for 1,5 sek, og `updateAssignment` kan ikke køre dobbelt parallelt for samme opgave.
 - [x] Kørevagter importeret uden `department_id` er backfilled til den korrekte afdeling ud fra medarbejderens hjemmeafdeling; den ene eksterne kørevagt uden medarbejder er placeret i Fredericia, så listen og kalenderen igen viser kørevagter i afdelingsscopet.
 - [x] `/changelog` viser nu godkendte/afviste fri-events igen uden at afhænge af en skrøbelig embedded reviewer-relation i Supabase-queryen. Reviewer- og medarbejdernavne hentes separat, så feriehistorikken ikke bliver tom hvis relationen mangler.

@@ -28,14 +28,20 @@ interface SharedChannel {
   /** Number of listeners on this channel. */
   refCount: number;
   /** Listeners keyed by the caller-supplied unique key. */
-  listeners: Map<string, (payload: any) => void>;
+  listeners: Map<string, ListenerRegistration>;
   /** Composite key used as the map index in `channels`. */
   channelKey: string;
 }
 
+interface ListenerRegistration {
+  id: number;
+  callback: (payload: any) => void;
+}
+
 const channels = new Map<string, SharedChannel>();
 /** Reverse index: subscriber key → channel key, so unsubscribeByKey works. */
-const keyIndex = new Map<string, string>();
+const keyIndex = new Map<string, { channelKey: string; registrationId: number }>();
+let nextRegistrationId = 1;
 
 const isDev = import.meta.env.DEV;
 
@@ -85,9 +91,9 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
           ...(opts.filter ? { filter: opts.filter } : {}),
         },
         (payload: any) => {
-          fanOut.listeners.forEach((listener) => {
+          fanOut.listeners.forEach(({ callback }) => {
             try {
-              listener(payload);
+              callback(payload);
             } catch (err: any) {
               if (isDev) console.error(`[realtimeChannels] listener error on ${channelKey}:`, err?.message ?? err);
             }
@@ -119,11 +125,12 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
     if (isDev) console.log(`[realtimeChannels] channel created → ${channelKey}`);
   }
 
-  shared.listeners.set(opts.key, opts.callback);
+  const registrationId = nextRegistrationId++;
+  shared.listeners.set(opts.key, { id: registrationId, callback: opts.callback });
   shared.refCount += 1;
-  keyIndex.set(opts.key, channelKey);
+  keyIndex.set(opts.key, { channelKey, registrationId });
 
-  return () => unsubscribeByKey(opts.key);
+  return () => unsubscribeRegistration(opts.key, registrationId);
 }
 
 /**
@@ -131,14 +138,20 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
  * underlying channel when no listeners remain.
  */
 export function unsubscribeByKey(key: string): void {
-  const channelKey = keyIndex.get(key);
-  if (!channelKey) return;
+  unsubscribeRegistration(key);
+}
 
-  const shared = channels.get(channelKey);
+function unsubscribeRegistration(key: string, expectedRegistrationId?: number): void {
+  const indexed = keyIndex.get(key);
+  if (!indexed) return;
+  if (expectedRegistrationId !== undefined && indexed.registrationId !== expectedRegistrationId) return;
+
+  const shared = channels.get(indexed.channelKey);
   keyIndex.delete(key);
   if (!shared) return;
 
-  if (shared.listeners.delete(key)) {
+  const listener = shared.listeners.get(key);
+  if (listener && listener.id === indexed.registrationId && shared.listeners.delete(key)) {
     shared.refCount = Math.max(0, shared.refCount - 1);
   }
 
@@ -148,8 +161,8 @@ export function unsubscribeByKey(key: string): void {
     } catch (err: any) {
       if (isDev) console.warn(`[realtimeChannels] removeChannel error: ${err?.message ?? err}`);
     }
-    channels.delete(channelKey);
-    if (isDev) console.log(`[realtimeChannels] channel torn down → ${channelKey}`);
+    channels.delete(indexed.channelKey);
+    if (isDev) console.log(`[realtimeChannels] channel torn down → ${indexed.channelKey}`);
   }
 }
 
