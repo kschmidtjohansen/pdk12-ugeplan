@@ -296,7 +296,7 @@ serve(async (req) => {
           roleDistribution: roleStats,
           eligibleUsers: eligibleCount,
           requestTime: new Date().toISOString(),
-          accessGrantedForRole: roleData.role
+          accessGrantedForRole: effectiveRole
         }
       }),
       { 
