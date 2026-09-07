@@ -56,6 +56,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
   const { trainingIds: trainingIdsForDate } = useActiveTrainingsForDate(currentDate);
@@ -165,6 +167,38 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       return new Date();
     }
   })();
+
+  // Central set of locked employee ids — shared by rendering and keyboard
+  // navigation so Enter-toggle respects the exact same rules as clicks.
+  const disabledIdSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const emp of employees) {
+      if (!emp?.id) continue;
+      if (selectedEmployees.includes(emp.id)) continue; // selected stays toggleable
+      try {
+        const vac = getEmployeeVacationStatus(emp.id, dateForComparison, vacations);
+        const expired = emp.is_temporary && emp.expires_at
+          ? new Date(emp.expires_at) < new Date()
+          : false;
+        const avail = getEmployeeAvailabilityStatus(emp, dateForComparison, assignments, vacations, t);
+        if (
+          (vac.isOnVacation && vac.vacationType === 'full_day')
+          || emp.onLeave
+          || expired
+          || trainingIdsForDate.has(emp.id)
+          || avail.status === 'fullyBooked'
+          || emp.status === 'terminated'
+          || emp.status === 'inactive'
+        ) {
+          set.add(emp.id);
+        }
+      } catch {
+        // treat errors as enabled
+      }
+    }
+    return set;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [employees, selectedEmployees, vacations, assignments, trainingIdsForDate, currentDate, t]);
 
   useEffect(() => {
     const employeesToRemove: string[] = [];
