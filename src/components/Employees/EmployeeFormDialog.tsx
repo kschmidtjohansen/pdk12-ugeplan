@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { AlertTriangle, Wifi, WifiOff, Calendar, UserCheck } from 'lucide-react';
+import { AlertTriangle, Wifi, WifiOff, Calendar, CalendarPlus, UserCheck } from 'lucide-react';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { format, addWeeks, addMonths, startOfToday } from 'date-fns';
 import { da } from 'date-fns/locale';

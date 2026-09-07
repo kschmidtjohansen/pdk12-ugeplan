@@ -72,29 +72,30 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return map;
   }, [employees, caseLat, caseLng]);
 
-  // Role priority: servicemedarbejdere always first
+  // Role priority: servicemedarbejdere first within the same distance group
   const rolePriority = (emp: Employee): number => {
     const isService = emp.role === 'servicemedarbejder' || emp.roles?.includes('servicemedarbejder');
     return isService ? 0 : 1;
   };
 
-  // Role-first sort, then Haversine distance within each role group
+  // Distance (postal code) is the primary factor; role only breaks ties within a distance group
   const sortedEmployees = useMemo(() => {
+    // No assignment coords → skip sort entirely, return list as-is
+    if (caseLat == null || caseLng == null) return employees;
+    if (distanceMap.size === 0) return employees;
     return [...employees].sort((a, b) => {
-      const prioA = rolePriority(a);
-      const prioB = rolePriority(b);
-      if (prioA !== prioB) return prioA - prioB;
-
       const distA = distanceMap.get(a.id);
       const distB = distanceMap.get(b.id);
       const aClose = distA != null && distA <= 15;
       const bClose = distB != null && distB <= 15;
+      if (aClose !== bClose) return aClose ? -1 : 1;
+      const prioA = rolePriority(a);
+      const prioB = rolePriority(b);
+      if (prioA !== prioB) return prioA - prioB;
       if (aClose && bClose) return distA! - distB!;
-      if (aClose) return -1;
-      if (bClose) return 1;
       return a.name.localeCompare(b.name);
     });
-  }, [employees, distanceMap]);
+  }, [employees, caseLat, caseLng, distanceMap]);
 
   const top3NearbyIds = useMemo(() => {
     return sortedEmployees
