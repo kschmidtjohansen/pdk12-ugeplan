@@ -649,13 +649,10 @@ const PlannerPage: React.FC = () => {
     return converted;
   }, [operationStates]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen w-full bg-background" aria-label={`${t('common.loading')}...`}>
-        <ListSkeleton />
-      </div>
-    );
-  }
+  // NOTE: We intentionally do NOT return a full-page skeleton while loading.
+  // Swapping the whole page caused large layout shifts (CLS ~0.7 on /planner).
+  // The header renders immediately and only the content area shows the skeleton.
+
   
   if (error) {
     return (
