@@ -343,7 +343,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               type="button"
               disabled={isDisabled}
               className={`w-full text-left flex items-center gap-3 py-3 px-4 transition-colors ${
-                index < visibleEmployees.length - 1 ? 'border-b border-border/40' : ''
+                !isLast ? 'border-b border-border/40' : ''
               } ${
                 isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
               } ${
