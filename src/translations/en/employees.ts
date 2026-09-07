@@ -177,6 +177,13 @@ const employees = {
   convertToPermanentNote: 'This will remove the expiration date and make the employee permanent',
   currentlyVikar: 'This employee is registered as a temporary worker',
   vikarExpiresInfo: 'Expires: {date}',
+  extendVikarExpiry: 'Extend expiration date',
+  newExpirationDate: 'Expiration date',
+  newExpiryPreview: 'New expiration date: {date}',
+  extend1Week: '+1 week',
+  extend2Weeks: '+2 weeks',
+  extend1Month: '+1 month',
+  extend3Months: '+3 months',
   
   // Badge status labels
   statusExpired: 'Expired',
