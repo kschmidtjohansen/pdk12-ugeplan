@@ -56,6 +56,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
   const { trainingIds: trainingIdsForDate } = useActiveTrainingsForDate(currentDate);
@@ -166,6 +168,38 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     }
   })();
 
+  // Central set of locked employee ids — shared by rendering and keyboard
+  // navigation so Enter-toggle respects the exact same rules as clicks.
+  const disabledIdSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const emp of employees) {
+      if (!emp?.id) continue;
+      if (selectedEmployees.includes(emp.id)) continue; // selected stays toggleable
+      try {
+        const vac = getEmployeeVacationStatus(emp.id, dateForComparison, vacations);
+        const expired = emp.is_temporary && emp.expires_at
+          ? new Date(emp.expires_at) < new Date()
+          : false;
+        const avail = getEmployeeAvailabilityStatus(emp, dateForComparison, assignments, vacations, t);
+        if (
+          (vac.isOnVacation && vac.vacationType === 'full_day')
+          || emp.onLeave
+          || expired
+          || trainingIdsForDate.has(emp.id)
+          || avail.status === 'fullyBooked'
+          || emp.status === 'terminated'
+          || emp.status === 'inactive'
+        ) {
+          set.add(emp.id);
+        }
+      } catch {
+        // treat errors as enabled
+      }
+    }
+    return set;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [employees, selectedEmployees, vacations, assignments, trainingIdsForDate, currentDate, t]);
+
   useEffect(() => {
     const employeesToRemove: string[] = [];
     
@@ -225,16 +259,49 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return [...selected, ...rest];
   }, [sortedEmployees, searchTerm, selectedEmployees]);
 
+  // Keyboard navigation: arrows move the active row (and scroll the
+  // virtualized list to it), Enter toggles the active employee.
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      e.stopPropagation();
+      const len = visibleEmployees.length;
+      if (len === 0) return;
+      setActiveIndex((prev) => {
+        const delta = e.key === 'ArrowDown' ? 1 : -1;
+        const next = (((prev ?? 0) + delta) % len + len) % len;
+        rowVirtualizer.scrollToIndex(Math.floor(next / columns), { align: 'auto' });
+        return next;
+      });
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      const emp = visibleEmployees[activeIndex];
+      if (emp && !disabledIdSet.has(emp.id)) {
+        onToggle(emp.id);
+      }
+      return;
+    }
+    if (e.key === 'Escape') {
+      // Let the Popover/Drawer handle closing.
+      return;
+    }
+    e.stopPropagation();
+  };
+
   const renderSearchField = () => (
     <div className="sticky top-0 z-10 bg-popover border-b p-2">
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
+          ref={searchInputRef}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={t('employees.searchPlaceholder')}
           className="pl-8 h-9"
-          onKeyDown={(e) => e.stopPropagation()}
+          onKeyDown={handleSearchKeyDown}
         />
       </div>
     </div>
@@ -264,9 +331,15 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     if (employeeRows.length > 0) {
       rowVirtualizer.scrollToIndex(0);
     }
+    setActiveIndex(0);
     // Reset scroll position whenever the filtered result changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
+
+  // Reset the keyboard highlight whenever the selector is (re)opened.
+  useEffect(() => {
+    if (open) setActiveIndex(0);
+  }, [open]);
 
   // Re-measure once the popover/drawer has mounted so the virtualizer
   // never observes a 0-height scroll element and returns zero rows.
@@ -279,7 +352,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, employeeRows.length]);
 
-  const renderEmployeeButton = (employee: Employee, isLast: boolean) => {
+  const renderEmployeeButton = (employee: Employee, isLast: boolean, flatIndex: number) => {
 
 
         try {
@@ -317,15 +390,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           // Partially booked (< 8 hours) stays selectable for additional assignments.
           const isFullyBooked = availabilityInfo.status === 'fullyBooked';
           // Already selected for THIS assignment => always toggleable (can be removed again).
-          const isDisabled = !isSelected && (
-            (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day')
-            || isManuallyOnLeave
-            || isExpired
-            || isOnTraining
-            || isFullyBooked
-            || employee.status === 'terminated'
-            || employee.status === 'inactive'
-          );
+          const isDisabled = disabledIdSet.has(employee.id);
+          const isActive = flatIndex === activeIndex;
 
           // Explain WHY a locked employee cannot be selected (priority order)
           let lockReason: string | null = null;
@@ -369,7 +435,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
               } ${
                 isSelected ? 'bg-accent/30' : ''
+              } ${
+                isActive ? 'ring-2 ring-inset ring-primary bg-accent/40' : ''
               }`}
+              onMouseEnter={() => setActiveIndex(flatIndex)}
+              onFocus={() => setActiveIndex(flatIndex)}
               onPointerUp={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -518,7 +588,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 py-1">
             {visibleEmployees.map((employee, index) => (
               <React.Fragment key={employee.id}>
-                {renderEmployeeButton(employee, index === visibleEmployees.length - 1)}
+                {renderEmployeeButton(employee, index === visibleEmployees.length - 1, index)}
               </React.Fragment>
             ))}
           </div>
@@ -538,9 +608,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                   className="absolute left-0 top-0 w-full grid grid-cols-1 sm:grid-cols-2 gap-x-2"
                   style={{ transform: `translateY(${virtualRow.start}px)` }}
                 >
-                  {row.map((employee) => (
+                  {row.map((employee, colIndex) => (
                     <React.Fragment key={employee.id}>
-                      {renderEmployeeButton(employee, isLastRow)}
+                      {renderEmployeeButton(employee, isLastRow, virtualRow.index * columns + colIndex)}
                     </React.Fragment>
                   ))}
                 </div>
@@ -580,14 +650,14 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           <DrawerTrigger asChild>
             {triggerButton}
           </DrawerTrigger>
-          <DrawerContent>
+          <DrawerContent className="max-h-[85dvh]">
             <DrawerHeader>
               <DrawerTitle>{t('planner.employees')}</DrawerTitle>
             </DrawerHeader>
             <div className="px-4">{renderSearchField()}</div>
             <div 
               ref={scrollRef}
-              className="h-[65dvh] max-h-[80dvh] overflow-y-auto px-4 pb-4"
+              className="h-[65dvh] overflow-y-auto px-4 pb-4"
               style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
             >
 
@@ -604,8 +674,14 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             className="w-[760px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
             side="bottom"
             align="start"
-            sideOffset={4}
-            collisionPadding={16}
+            avoidCollisions={true}
+            sideOffset={6}
+            collisionPadding={12}
+            onOpenAutoFocus={(e) => {
+              // Focus the search field so keyboard navigation works immediately.
+              e.preventDefault();
+              searchInputRef.current?.focus();
+            }}
           >
             {renderSearchField()}
             <div 
