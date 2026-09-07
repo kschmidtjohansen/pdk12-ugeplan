@@ -197,10 +197,43 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     }
   }, [currentDate, selectedEmployees, assignments, user?.role, sortedEmployees.length, dateForComparison, autoRemovedEmployees]);
 
+  const visibleEmployees = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const filtered = term
+      ? sortedEmployees.filter(emp => (emp?.name || '').toLowerCase().includes(term))
+      : sortedEmployees;
+    // Keep selected employees at the top so they can be removed without scrolling.
+    const selectedSet = new Set(selectedEmployees);
+    const selected = filtered.filter(emp => selectedSet.has(emp.id));
+    const rest = filtered.filter(emp => !selectedSet.has(emp.id));
+    return [...selected, ...rest];
+  }, [sortedEmployees, searchTerm, selectedEmployees]);
+
+  const renderSearchField = () => (
+    <div className="sticky top-0 z-10 bg-popover border-b p-2">
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder={t('employees.searchPlaceholder')}
+          className="pl-8 h-9"
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </div>
+    </div>
+  );
+
   const renderEmployeeList = () => (
     <TooltipProvider delayDuration={200}>
-    <div className="py-1">
-      {sortedEmployees.map((employee, index) => {
+    <div className="py-1 grid grid-cols-1 sm:grid-cols-2 gap-x-2">
+      {visibleEmployees.length === 0 && (
+        <div className="col-span-full py-6 text-center text-sm text-muted-foreground">
+          {t('employees.noResults')}
+        </div>
+      )}
+      {visibleEmployees.map((employee, index) => {
+
         try {
           if (!employee || !employee.id || !employee.name) {
             if (import.meta.env.DEV) console.error('[EmployeeSelector] Invalid employee object:', employee);
