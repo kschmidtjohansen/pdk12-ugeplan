@@ -13,6 +13,7 @@ import ServicemedarbejderDashboard from '@/components/Dashboard/Servicemedarbejd
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { useDepartment } from '@/context/DepartmentContext';
 import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
+import ClearCacheButton from '@/components/Dashboard/ClearCacheButton';
 import { useState, useEffect, useCallback } from 'react';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks } from 'date-fns';
 
@@ -74,7 +75,8 @@ const DashboardPage: React.FC = () => {
           <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 space-y-4 sm:space-y-5">
           {/* Last Refresh Indicator */}
           {!isServicemedarbejder && (
-            <div className="flex justify-end">
+            <div className="flex justify-end items-center gap-2">
+              <ClearCacheButton />
               <LastRefreshIndicator 
                 lastRefresh={lastRefresh}
                 isRefreshing={isRefreshing}
