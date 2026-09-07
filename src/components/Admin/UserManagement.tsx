@@ -955,13 +955,43 @@ const UserManagement: React.FC = () => {
                 </Button>
               </div>
             </div> : <div>
-              <div className="mb-4 flex items-center justify-between">
-                
+              <div className="mb-2 flex items-center justify-end">
                 {retryCount > 0 && <div className="text-xs text-orange-600">
                     Smart retry attempts: {retryCount}
                   </div>}
               </div>
-              <UserTable users={filteredUsers} onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} onResetPassword={handleResetPassword} onToggleUserStatus={handleToggleUserStatus} getRoleLabel={getRoleLabel} getInitials={getInitials} />
+              <UserListToolbar
+                searchTerm={searchInput}
+                onSearchChange={setSearchInput}
+                roleFilter={roleFilter}
+                onRoleFilterChange={setRoleFilter}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                availableRoles={availableRoles}
+                roleCounts={roleCounts}
+                getRoleLabel={getRoleLabel}
+                onReset={resetFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+              {searchedUsers.length === 0 ? (
+                <div className="py-10 text-center space-y-3">
+                  <p className="text-muted-foreground">{t('admin.userManagement.noResults')}</p>
+                  <Button variant="outline" onClick={resetFilters}>
+                    {t('admin.userManagement.resetFilters')}
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <UserTable users={paginatedUsers} onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} onResetPassword={handleResetPassword} onToggleUserStatus={handleToggleUserStatus} getRoleLabel={getRoleLabel} getInitials={getInitials} />
+                  <UserListPagination
+                    page={page}
+                    pageSize={pageSize}
+                    totalItems={searchedUsers.length}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
+                  />
+                </>
+              )}
             </div>}
         </CardContent>
       </Card>
