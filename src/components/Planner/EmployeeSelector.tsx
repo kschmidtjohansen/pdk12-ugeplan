@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Users, MapPin } from 'lucide-react';
@@ -243,6 +244,29 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             || employee.status === 'terminated'
             || employee.status === 'inactive'
           );
+
+          // Explain WHY a locked employee cannot be selected (priority order)
+          let lockReason: string | null = null;
+          if (isDisabled) {
+            if (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day') {
+              lockReason = t('employees.lockedReasonVacation');
+            } else if (isManuallyOnLeave) {
+              lockReason = t('employees.lockedReasonOnLeave');
+            } else if (isOnTraining) {
+              lockReason = t('employees.lockedReasonTraining');
+            } else if (isFullyBooked) {
+              const hours = ((availabilityInfo.bookedMinutes ?? 480) / 60)
+                .toFixed(1)
+                .replace('.', currentLanguage === 'da' ? ',' : '.');
+              lockReason = t('employees.lockedReasonFullyBooked', { hours });
+            } else if (isExpired) {
+              lockReason = t('employees.lockedReasonExpired');
+            } else if (employee.status === 'terminated') {
+              lockReason = t('employees.lockedReasonTerminated');
+            } else if (employee.status === 'inactive') {
+              lockReason = t('employees.lockedReasonInactive');
+            }
+          }
 
           const dist = distanceMap.get(employee.id);
           const isNearby = dist != null && dist <= 15;
