@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-07 — Sygemelding (dag-for-dag) på /employees
+
+- Ny tabel `sick_days` (bruger, afdeling, dato, unik pr. dag) med RLS: kun administratorer kan oprette/fjerne, og kun administratorer/skadeledere kan læse rækkerne — dvs. selve årsagen "syg".
+- Ny SECURITY DEFINER-funktion `list_department_absent_user_ids(department, dato)` giver øvrige roller udelukkende listen over fraværende bruger-id'er uden årsag.
+- `useSickDays.ts`: ny hook (`useSickToday`, `useSickForDateValue`) med realtime-opdatering; vælger automatisk direkte tabelopslag for privilegerede roller og RPC for alle andre.
+- `/employees`: administratorer får en sygemeldingsknap pr. medarbejder (desktop + mobil), der kun gælder i dag. Ved sygemelding fjernes medarbejderen automatisk fra dagens opgaver via `vacation-cleanup-assignments` (ny årsag `sick`).
+- Status vises som "Syg" for administratorer/skadeledere og "Fraværende" for alle andre roller. Syge medarbejdere tælles som fraværende i segmenter, er låst i `EmployeeSelector` og indgår ikke i dashboardets tilgængelige medarbejdere.
+
+
 ## 2026-09-07 — EmployeeSelector: tastaturnavigation og viewport-sikker positionering
 
 - `EmployeeSelector.tsx`: fuld tastaturbetjening i søgefeltet — pil op/ned flytter en synlig markering (ring + accent-baggrund) gennem listen, den virtualiserede liste scroller automatisk med (`scrollToIndex`), og Enter til-/fravælger den aktive medarbejder med samme låseregler som klik. Markøren følger musen, så tastatur og mus ikke kommer ud af sync, og markeringen nulstilles ved åbning og ny søgning.

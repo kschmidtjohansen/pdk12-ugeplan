@@ -21,6 +21,7 @@ import { haversineDistanceKm } from '@/utils/haversine';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getRoleBadgeClass } from '@/utils/roleColors';
 import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
+import { useSickForDateValue } from '@/hooks/useSickDays';
 
 type MultiDateAvailability = 'full' | 'partial' | 'none';
 
@@ -61,6 +62,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
   const { trainingIds: trainingIdsForDate } = useActiveTrainingsForDate(currentDate);
+  const { sickIds: sickIdsForDate } = useSickForDateValue(currentDate);
 
   // Haversine sort — deps: employee list + assignment GPS coords
   const distanceMap = useMemo(() => {
@@ -186,6 +188,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           || emp.onLeave
           || expired
           || trainingIdsForDate.has(emp.id)
+          || sickIdsForDate.has(emp.id)
           || avail.status === 'fullyBooked'
           || emp.status === 'terminated'
           || emp.status === 'inactive'
@@ -198,7 +201,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     }
     return set;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employees, selectedEmployees, vacations, assignments, trainingIdsForDate, currentDate, t]);
+  }, [employees, selectedEmployees, vacations, assignments, trainingIdsForDate, sickIdsForDate, currentDate, t]);
 
   useEffect(() => {
     const employeesToRemove: string[] = [];

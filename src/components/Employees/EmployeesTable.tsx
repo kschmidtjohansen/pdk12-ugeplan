@@ -19,6 +19,9 @@ interface EmployeesTableProps {
   employees: Employee[];
   vacations: Vacation[];
   trainingIds?: Set<string>;
+  sickIds?: Set<string>;
+  canSeeSickReason?: boolean;
+  onToggleSick?: (employee: Employee) => void;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onToggleLeave: (employee: Employee) => void;
@@ -38,6 +41,9 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   employees,
   vacations,
   trainingIds,
+  sickIds,
+  canSeeSickReason,
+  onToggleSick,
   onEdit,
   onDelete,
   onToggleLeave,
@@ -113,6 +119,9 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
             onToggleLeave={onToggleLeave}
                 onTraining={onTraining}
                 isOnTraining={trainingIds?.has(employee.id) ?? false}
+                isSick={sickIds?.has(employee.id) ?? false}
+                canSeeSickReason={canSeeSickReason}
+                onToggleSick={onToggleSick}
           />
         ))}
         <SimplePagination
@@ -179,6 +188,9 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                         onToggleLeave={onToggleLeave}
                 onTraining={onTraining}
                 isOnTraining={trainingIds?.has(employee.id) ?? false}
+                isSick={sickIds?.has(employee.id) ?? false}
+                canSeeSickReason={canSeeSickReason}
+                onToggleSick={onToggleSick}
                         
                       />
                     );
@@ -217,6 +229,9 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                   onToggleLeave={onToggleLeave}
                 onTraining={onTraining}
                 isOnTraining={trainingIds?.has(employee.id) ?? false}
+                isSick={sickIds?.has(employee.id) ?? false}
+                canSeeSickReason={canSeeSickReason}
+                onToggleSick={onToggleSick}
                 />
               ))}
             </TableBody>

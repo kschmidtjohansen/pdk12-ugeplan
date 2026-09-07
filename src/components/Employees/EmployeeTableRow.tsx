@@ -4,7 +4,7 @@ import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift, FlaskConical, GraduationCap } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift, FlaskConical, GraduationCap, Thermometer, HeartPulse } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
@@ -21,9 +21,12 @@ interface EmployeeTableRowProps {
   onToggleLeave?: (employee: Employee) => void;
   onTraining?: (employee: Employee) => void;
   isOnTraining?: boolean;
+  isSick?: boolean;
+  canSeeSickReason?: boolean;
+  onToggleSick?: (employee: Employee) => void;
 }
 
-const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isOnTraining }) => {
+const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isOnTraining, isSick, canSeeSickReason, onToggleSick }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
 
@@ -197,7 +200,11 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         </TableCell>
       )}
       <TableCell>
-        {isOnTraining ? (
+        {isSick ? (
+          <StatusBadge variant={canSeeSickReason ? 'destructive' : 'warning'}>
+            {canSeeSickReason ? 'Syg' : 'Fraværende'}
+          </StatusBadge>
+        ) : isOnTraining ? (
           <StatusBadge variant="warning">Kursus</StatusBadge>
         ) : (
           <StatusBadge variant={availabilityInfo.badgeVariant}>
@@ -243,6 +250,27 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Meld på kursus</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
+            {onToggleSick && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onToggleSick(employee)}
+                      className={`h-8 w-8 p-0 ${isSick ? 'text-green-600' : 'text-red-600'}`}
+                    >
+                      <span className="sr-only">{isSick ? 'Fjern sygemelding' : 'Meld syg i dag'}</span>
+                      {isSick ? <HeartPulse className="h-4 w-4" /> : <Thermometer className="h-4 w-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{isSick ? 'Fjern sygemelding' : 'Meld syg i dag'}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

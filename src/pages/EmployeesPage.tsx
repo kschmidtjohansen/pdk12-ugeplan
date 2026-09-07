@@ -17,6 +17,9 @@ import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useVacations } from '@/hooks/useVacations';
 import { useActiveTrainings } from '@/hooks/useActiveTrainings';
+import { useSickToday } from '@/hooks/useSickDays';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Employee } from '@/types/employee';
 import { format } from 'date-fns';
 
@@ -25,7 +28,7 @@ type EmployeeSegment = 'all' | 'active' | 'onleave' | 'vikarer';
 const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
-  const { isSubstituteEnabled } = useDepartment();
+  const { isSubstituteEnabled, selectedDepartmentId } = useDepartment();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [trainingDialogOpen, setTrainingDialogOpen] = useState(false);
@@ -58,6 +61,7 @@ const EmployeesPage: React.FC = () => {
 
   const { vacations } = useVacations();
   const { trainingIds } = useActiveTrainings();
+  const { sickIds, canSeeSickReason, invalidate: refreshSick } = useSickToday();
 
   // Compute today's vacation employee IDs for "På fridage" segment
   const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -71,8 +75,8 @@ const EmployeesPage: React.FC = () => {
 
   const filteredEmployees = useMemo(() => {
     let list: Employee[] = employees;
-    if (segment === 'active') list = regularEmployees.filter((e) => !e.onLeave && !onLeaveTodayIds.has(e.id) && !trainingIds.has(e.id));
-    else if (segment === 'onleave') list = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id));
+    if (segment === 'active') list = regularEmployees.filter((e) => !e.onLeave && !onLeaveTodayIds.has(e.id) && !trainingIds.has(e.id) && !sickIds.has(e.id));
+    else if (segment === 'onleave') list = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id) || sickIds.has(e.id));
     else if (segment === 'vikarer') list = vikarer;
 
     if (search.trim()) {
@@ -85,11 +89,11 @@ const EmployeesPage: React.FC = () => {
       );
     }
     return list;
-  }, [employees, regularEmployees, vikarer, segment, search, onLeaveTodayIds, trainingIds]);
+  }, [employees, regularEmployees, vikarer, segment, search, onLeaveTodayIds, trainingIds, sickIds]);
 
   const segments: FilterSegment[] = useMemo(() => {
-    const onLeaveCount = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id)).length;
-    const activeCount = regularEmployees.filter((e) => !e.onLeave && !onLeaveTodayIds.has(e.id) && !trainingIds.has(e.id)).length;
+    const onLeaveCount = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id) || sickIds.has(e.id)).length;
+    const activeCount = regularEmployees.filter((e) => !e.onLeave && !onLeaveTodayIds.has(e.id) && !trainingIds.has(e.id) && !sickIds.has(e.id)).length;
     const base: FilterSegment[] = [
       { key: 'all', label: t('common.all') || 'Alle', count: employees.length },
       { key: 'active', label: t('employees.activeSegment') || 'Tilgængelige', count: activeCount },
@@ -99,7 +103,7 @@ const EmployeesPage: React.FC = () => {
       base.push({ key: 'vikarer', label: 'Vikarer', count: vikarer.length });
     }
     return base;
-  }, [employees, regularEmployees, vikarer, isSubstituteEnabled, t, onLeaveTodayIds, trainingIds]);
+  }, [employees, regularEmployees, vikarer, isSubstituteEnabled, t, onLeaveTodayIds, trainingIds, sickIds]);
 
   const handleCreateNew = () => { prepareForCreate(); setFormDialogOpen(true); };
   const handleCreateVikar = () => { prepareForCreateVikar(); setFormDialogOpen(true); };
@@ -120,6 +124,45 @@ const EmployeesPage: React.FC = () => {
     if (!isAdmin) return;
     await toggleEmployeeLeave(employee, !employee.onLeave);
   };
+  const handleToggleSick = async (employee: Employee) => {
+    if (!isAdmin || !selectedDepartmentId) return;
+    const isSick = sickIds.has(employee.id);
+    try {
+      if (isSick) {
+        const { error } = await supabase
+          .from('sick_days')
+          .delete()
+          .eq('user_id', employee.id)
+          .eq('sick_date', todayStr);
+        if (error) throw error;
+        toast.success(`${employee.name} er ikke længere markeret som syg`);
+      } else {
+        const { error } = await supabase.from('sick_days').insert({
+          user_id: employee.id,
+          department_id: selectedDepartmentId,
+          sick_date: todayStr,
+        });
+        if (error) throw error;
+        toast.success(`${employee.name} er markeret som syg i dag`);
+        try {
+          await supabase.functions.invoke('vacation-cleanup-assignments', {
+            body: {
+              userId: employee.id,
+              startDate: todayStr,
+              endDate: todayStr,
+              reason: 'sick',
+            },
+          });
+        } catch (cleanupError: any) {
+          console.warn('Sygemelding: oprydning af opgaver fejlede', cleanupError?.message);
+        }
+      }
+      refreshSick();
+    } catch (err: any) {
+      toast.error(err?.message || 'Kunne ikke opdatere sygemelding');
+    }
+  };
+
   const handleTraining = (employee: Employee) => {
     if (!isAdmin) return;
     setTrainingEmployee(employee);
@@ -164,6 +207,9 @@ const EmployeesPage: React.FC = () => {
           employees={filteredEmployees}
           vacations={vacations}
           trainingIds={trainingIds}
+          sickIds={sickIds}
+          canSeeSickReason={canSeeSickReason}
+          onToggleSick={isAdmin ? handleToggleSick : undefined}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onToggleLeave={handleToggleLeave}

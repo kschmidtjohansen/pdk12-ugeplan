@@ -10,6 +10,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
 import { useActiveTrainingsForDate, useActiveTrainingsForRange } from '@/hooks/useActiveTrainings';
+import { useSickForDateValue } from '@/hooks/useSickDays';
 import { format } from 'date-fns';
 
 export const useDashboardMetrics = (
@@ -27,6 +28,7 @@ export const useDashboardMetrics = (
 
   const metricDateStr = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const { trainingIds, trainingInfo, isLoading: trainingsLoading } = useActiveTrainingsForDate(metricDateStr);
+  const { sickIds } = useSickForDateValue(metricDateStr);
 
   // Fallback to single-date range when no week range supplied (keeps behaviour for callers that don't pass a week).
   const rangeStart = weekRange?.startStr || metricDateStr;
@@ -86,6 +88,7 @@ export const useDashboardMetrics = (
       const availableEmployeesList = countableEmployees.filter(employee => {
         if (employee.status === 'inactive') return false;
         if (trainingIds.has(employee.id)) return false;
+        if (sickIds.has(employee.id)) return false;
 
         const status = getEmployeeAvailabilityStatus(employee, metricDate, safeAssignments, safeVacations, t);
         return status.status === 'available' || status.status === 'partiallyBooked';
@@ -221,7 +224,7 @@ export const useDashboardMetrics = (
       if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, trainingsLoading, weekTrainingsLoading, t, metricDateStr, selectedSubDepartmentId, effectiveRole, trainingIds, trainingInfo, weekTrainingIds, weekTrainingInfo]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, trainingsLoading, weekTrainingsLoading, t, metricDateStr, selectedSubDepartmentId, effectiveRole, trainingIds, sickIds, trainingInfo, weekTrainingIds, weekTrainingInfo]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 
