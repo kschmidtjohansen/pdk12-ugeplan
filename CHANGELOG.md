@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 — Søgning, filtre og sidevisning i adminens brugerliste
+
+- `UserManagement.tsx`: ny filterlinje med søgning på navn/email (200 ms debounce), rollefilter (multivalg med antal) og statusfilter (aktive/inaktive/alle) samt nulstil-knap.
+- Ny sidevisning under tabellen: 25 brugere pr. side som standard (valgbar 25/50/100), "Viser x-y af z" og frem/tilbage. Siden nulstilles ved filterskift og holdes inden for gyldigt interval.
+- Nye komponenter `UserListToolbar.tsx` og `UserListPagination.tsx`; nye da/en-nøgler under `admin.userManagement`.
+- Ingen ændringer i datahentning, rettigheder eller `admin-list-users`; afdelingsfilter og sortering er uændret.
+
 ## 2026-09-07 — Virtualiseret medarbejdervælger
 
 - `EmployeeSelector.tsx`: listen bruger nu `@tanstack/react-virtual` og tegner kun de rækker, der er synlige (plus buffer). Med flere hundrede medarbejdere åbner vælgeren markant hurtigere, og scroll/søgning er flydende.
