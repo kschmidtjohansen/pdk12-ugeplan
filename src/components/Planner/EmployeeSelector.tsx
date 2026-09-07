@@ -336,6 +336,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                         {formattedDist} km {currentLanguage === 'da' ? 'væk' : 'away'}
                       </span>
                     )}
+                    {isDisabled && lockReason && (
+                      <span className="text-xs text-muted-foreground mt-0.5">
+                        {lockReason}
+                      </span>
+                    )}
                   </div>
                   <div className="flex gap-1 ml-2 flex-shrink-0">
                     {isOnTraining && (
@@ -372,6 +377,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 </div>
               </div>
             </button>
+              </TooltipTrigger>
+              {lockReason && (
+                <TooltipContent side="top" className="max-w-xs">
+                  {lockReason}
+                </TooltipContent>
+              )}
+            </Tooltip>
 
           );
         } catch (err) {
@@ -380,6 +392,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         }
       })}
     </div>
+    </TooltipProvider>
   );
 
   const triggerButton = (
