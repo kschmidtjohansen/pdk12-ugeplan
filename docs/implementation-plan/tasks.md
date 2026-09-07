@@ -388,3 +388,5 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Core Web Vitals: CLS-optimering af /planner (skelet, reserveret højde, font-fallback) + retvisende måledata i Admin (2026-09-07)
 
 - [x] Virtuel scrolling i `EmployeeSelector` for hurtig visning ved mange medarbejdere (2026-09-07)
+
+- [x] Admin brugerliste: søgning (navn/email), rolle- og statusfilter samt sidevisning 25/50/100 (2026-09-07)

@@ -19,6 +19,8 @@ import UserDeleteDialog from './UserDeleteDialog';
 import PasswordChangeDialog from './PasswordChangeDialog';
 import UserStatusDialog from './UserStatusDialog';
 import { AdminUser } from './UserTableRow';
+import UserListToolbar, { UserStatusFilter } from './UserListToolbar';
+import UserListPagination from './UserListPagination';
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -27,6 +29,12 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [userAccessData, setUserAccessData] = useState<{ user_id: string; department_id: string }[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState<string>('current');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<UserRole[]>([]);
+  const [statusFilter, setStatusFilter] = useState<UserStatusFilter>('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error' | 'fallback'>('connected');
@@ -91,6 +99,60 @@ const UserManagement: React.FC = () => {
     return acc;
   }, {} as Record<UserRole, number>);
   const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
+
+  const availableRoles = useMemo(() => {
+    const roles = new Set<UserRole>(filteredUsers.map(u => u.role));
+    roleFilter.forEach(r => roles.add(r));
+    return Array.from(roles).sort();
+  }, [filteredUsers, roleFilter]);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchTerm(searchInput.trim().toLowerCase()), 200);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const isUserActive = (user: AdminUser) => !user.banned_until || new Date(user.banned_until) <= new Date();
+
+  // Apply search + role + status filters on top of the department filter
+  const searchedUsers = useMemo(() => {
+    return filteredUsers.filter(u => {
+      if (searchTerm) {
+        const haystack = `${u.name || ''} ${u.email || ''}`.toLowerCase();
+        if (!haystack.includes(searchTerm)) return false;
+      }
+      if (roleFilter.length > 0 && !roleFilter.includes(u.role)) return false;
+      if (statusFilter === 'active' && !isUserActive(u)) return false;
+      if (statusFilter === 'inactive' && isUserActive(u)) return false;
+      return true;
+    });
+  }, [filteredUsers, searchTerm, roleFilter, statusFilter]);
+
+  const paginatedUsers = useMemo(
+    () => searchedUsers.slice((page - 1) * pageSize, page * pageSize),
+    [searchedUsers, page, pageSize]
+  );
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, roleFilter, statusFilter, departmentFilter, pageSize]);
+
+  // Keep page within bounds when the result set shrinks
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(searchedUsers.length / pageSize));
+    if (page > totalPages) setPage(totalPages);
+  }, [searchedUsers.length, pageSize, page]);
+
+  const hasActiveFilters = Boolean(searchInput) || roleFilter.length > 0 || statusFilter !== 'all';
+  const resetFilters = () => {
+    setSearchInput('');
+    setSearchTerm('');
+    setRoleFilter([]);
+    setStatusFilter('all');
+  };
+
+
   
   const handleCreateVikar = () => {
     // Set form data for vikar creation
@@ -893,13 +955,43 @@ const UserManagement: React.FC = () => {
                 </Button>
               </div>
             </div> : <div>
-              <div className="mb-4 flex items-center justify-between">
-                
+              <div className="mb-2 flex items-center justify-end">
                 {retryCount > 0 && <div className="text-xs text-orange-600">
                     Smart retry attempts: {retryCount}
                   </div>}
               </div>
-              <UserTable users={filteredUsers} onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} onResetPassword={handleResetPassword} onToggleUserStatus={handleToggleUserStatus} getRoleLabel={getRoleLabel} getInitials={getInitials} />
+              <UserListToolbar
+                searchTerm={searchInput}
+                onSearchChange={setSearchInput}
+                roleFilter={roleFilter}
+                onRoleFilterChange={setRoleFilter}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                availableRoles={availableRoles}
+                roleCounts={roleCounts}
+                getRoleLabel={getRoleLabel}
+                onReset={resetFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+              {searchedUsers.length === 0 ? (
+                <div className="py-10 text-center space-y-3">
+                  <p className="text-muted-foreground">{t('admin.userManagement.noResults')}</p>
+                  <Button variant="outline" onClick={resetFilters}>
+                    {t('admin.userManagement.resetFilters')}
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <UserTable users={paginatedUsers} onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} onResetPassword={handleResetPassword} onToggleUserStatus={handleToggleUserStatus} getRoleLabel={getRoleLabel} getInitials={getInitials} />
+                  <UserListPagination
+                    page={page}
+                    pageSize={pageSize}
+                    totalItems={searchedUsers.length}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
+                  />
+                </>
+              )}
             </div>}
         </CardContent>
       </Card>

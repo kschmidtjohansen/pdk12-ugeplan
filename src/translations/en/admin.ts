@@ -245,6 +245,17 @@ export const admin = {
     info: 'Information'
   },
   userManagement: {
+    searchPlaceholder: 'Search by name or email...',
+    filterByRole: 'Filter by role',
+    filterByStatus: 'Filter by status',
+    allRoles: 'All roles',
+    allStatuses: 'All statuses',
+    statusActive: 'Active',
+    statusInactive: 'Inactive',
+    resetFilters: 'Reset',
+    noResults: 'No users match your search or filters.',
+    showingRange: 'Showing {from}-{to} of {total} users',
+    perPage: 'per page',
     title: 'User Management',
     description: 'Manage system users and their permissions',
     filterByDepartment: 'Filter by department',

@@ -245,6 +245,17 @@ export const admin = {
     info: 'Information'
   },
   userManagement: {
+    searchPlaceholder: 'Søg efter navn eller email...',
+    filterByRole: 'Filtrer efter rolle',
+    filterByStatus: 'Filtrer efter status',
+    allRoles: 'Alle roller',
+    allStatuses: 'Alle statusser',
+    statusActive: 'Aktive',
+    statusInactive: 'Inaktive',
+    resetFilters: 'Nulstil',
+    noResults: 'Ingen brugere matcher din søgning eller dine filtre.',
+    showingRange: 'Viser {from}-{to} af {total} brugere',
+    perPage: 'pr. side',
     title: 'Brugerstyring',
     description: 'Administrer systembrugere og deres tilladelser',
     filterByDepartment: 'Filtrer efter afdeling',
