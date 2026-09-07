@@ -1491,6 +1491,7 @@ export type Database = {
           message: string
         }[]
       }
+      cleanup_log_retention: { Args: never; Returns: Json }
       cleanup_old_change_logs: { Args: never; Returns: Json }
       cleanup_session_data: {
         Args: { baseline_timestamp: string }

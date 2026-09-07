@@ -3,27 +3,39 @@ import React from 'react';
 import { Badge, BadgeProps } from './badge';
 import { cn } from '@/lib/utils';
 
-export type StatusVariant = 'default' | 'success' | 'warning' | 'error' | 'info' | 'pending' | 'approved' | 'rejected' | 'destructive' | 'purple';
+export type StatusVariant =
+  | 'default'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'info'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'destructive'
+  | 'purple';
 
 interface StatusBadgeProps extends Omit<BadgeProps, 'variant'> {
   variant?: StatusVariant;
 }
 
+/** Shared sizing so every status label across the app looks identical. */
+const base =
+  'text-xs font-medium px-1.5 py-0.5 border border-transparent shadow-none';
+
 const statusStyles: Record<StatusVariant, string> = {
-  default: "bg-muted text-foreground hover:bg-muted text-xs px-1.5 py-0.5",
-  success: "bg-green-100 text-green-800 hover:bg-green-100 text-xs px-1.5 py-0.5",
-  warning: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-xs px-1.5 py-0.5",
-  error: "bg-red-100 text-red-800 hover:bg-red-100 text-xs px-1.5 py-0.5",
-  info: "bg-blue-100 text-blue-800 hover:bg-blue-100 text-xs px-1.5 py-0.5",
-  pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-xs px-1.5 py-0.5",
-  approved: "bg-green-100 text-green-800 hover:bg-green-100 text-xs px-1.5 py-0.5",
-  rejected: "bg-red-100 text-red-800 hover:bg-red-100 text-xs px-1.5 py-0.5",
-  destructive: "bg-red-100 text-red-800 hover:bg-red-100 text-xs px-1.5 py-0.5",
-  purple: "bg-purple-100 text-purple-800 hover:bg-purple-100 text-xs px-1.5 py-0.5"
+  default: 'bg-muted text-foreground hover:bg-muted',
+  success: 'bg-success-soft text-success-soft-foreground hover:bg-success-soft',
+  warning: 'bg-warning-soft text-warning-soft-foreground hover:bg-warning-soft',
+  error: 'bg-destructive-soft text-destructive-soft-foreground hover:bg-destructive-soft',
+  info: 'bg-info-soft text-info-soft-foreground hover:bg-info-soft',
+  pending: 'bg-warning-soft text-warning-soft-foreground hover:bg-warning-soft',
+  approved: 'bg-success-soft text-success-soft-foreground hover:bg-success-soft',
+  rejected: 'bg-destructive-soft text-destructive-soft-foreground hover:bg-destructive-soft',
+  destructive: 'bg-destructive-soft text-destructive-soft-foreground hover:bg-destructive-soft',
+  purple: 'bg-accent-soft text-accent-soft-foreground hover:bg-accent-soft',
 };
 
-export function StatusBadge({ variant = "default", className, ...props }: StatusBadgeProps) {
-  return (
-    <Badge className={cn(statusStyles[variant], className)} {...props} />
-  );
+export function StatusBadge({ variant = 'default', className, ...props }: StatusBadgeProps) {
+  return <Badge className={cn(base, statusStyles[variant], className)} {...props} />;
 }

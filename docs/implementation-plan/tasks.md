@@ -396,3 +396,14 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] **2026-09-07:** Tastaturnavigation i `EmployeeSelector` (pil op/ned + Enter med synlig markering og auto-scroll i den virtualiserede liste), fælles `disabledIdSet` for klik/tastatur, eksplicit `avoidCollisions` og autofokus på søgefeltet; mobil-drawer begrænset til 85dvh.
 
 - [x] Admin brugerliste: søgning (navn/email), rolle- og statusfilter samt sidevisning 25/50/100 (2026-09-07)
+
+## Optimering: database, dataopslag og visuel ensretning (2026-09-07)
+
+- [x] `cleanup_log_retention()` + natlig cron (03:30): 90 dages `logs`, 30 dages `web_vitals_metrics`, 365 dages `planner_change_log`
+- [x] Engangsoprydning: 284.469 logrækker og 24.123 hastighedsmålinger slettet
+- [x] Indeks `idx_assignments_department_date` og `idx_web_vitals_created_at`
+- [x] EXECUTE revoked for anon/authenticated på `cleanup_log_retention()`; anon revoked på `list_department_absent_user_ids()`
+- [x] `ChangeLogContext`: kolonnevalg i stedet for `select('*')`, 300-rækkers loft, opslag kun på refererede opgave-id'er
+- [x] `useVacationData`: Map-opslag og betinget medarbejderhentning
+- [x] Semantiske soft-status-tokens i `index.css`/`tailwind.config.ts`; `status-badge` og `employeeAvailability` uden hårdkodede farver
+- [x] `ListPageShell` bruger samme sidepolstring som Dashboard/Ugeplan/Vagt
