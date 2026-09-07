@@ -4,7 +4,7 @@
 
 - Skærmbilledets `active-trainings-…`-kanal kom fra en ældre JavaScript-pakke, som den tidligere Workbox/PWA-worker fortsat kunne levere. `/sw.js` er nu en kontrolleret kill-switch i én release: den sletter kun appens egne tidligere caches, genindlæser åbne faner og afregistrerer sig selv. Login/session og andre browserdata bevares.
 - Installérbarhed er bevaret med et statisk `manifest.webmanifest`, mens app-shell/offline-caching er fjernet, så fremtidige rettelser ikke fastholdes af en gammel worker.
-- `realtimeChannels.ts` bruger nu registrerings-id'er, så forsinket cleanup fra en tidligere React-effekt ikke kan afmelde et nyere abonnement med samme key. Der er tilføjet tests for kanalgenbrug og Strict Mode-lignende genmontering.
+- `realtimeChannels.ts` bruger nu et testet kanalregister med registrerings-id'er, så forsinket cleanup fra en tidligere React-effekt ikke kan afmelde et nyere abonnement med samme key. Der er tilføjet tests for kanalgenbrug og Strict Mode-lignende genmontering.
 
 ## 2026-09-07 — Fix: Valgte medarbejdere kan altid fjernes fra en opgave
 

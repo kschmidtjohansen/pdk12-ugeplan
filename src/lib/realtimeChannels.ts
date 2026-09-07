@@ -9,6 +9,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { RealtimeChannelRegistry } from '@/lib/realtimeChannelRegistry';
 
 type Event = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
@@ -25,23 +26,12 @@ export interface SubscribeOptions {
 
 interface SharedChannel {
   channel: RealtimeChannel;
-  /** Number of listeners on this channel. */
-  refCount: number;
-  /** Listeners keyed by the caller-supplied unique key. */
-  listeners: Map<string, ListenerRegistration>;
   /** Composite key used as the map index in `channels`. */
   channelKey: string;
 }
 
-interface ListenerRegistration {
-  id: number;
-  callback: (payload: any) => void;
-}
-
 const channels = new Map<string, SharedChannel>();
-/** Reverse index: subscriber key → channel key, so unsubscribeByKey works. */
-const keyIndex = new Map<string, { channelKey: string; registrationId: number }>();
-let nextRegistrationId = 1;
+const registry = new RealtimeChannelRegistry<any>();
 
 const isDev = import.meta.env.DEV;
 
@@ -76,8 +66,6 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
 
     const fanOut: SharedChannel = {
       channel,
-      refCount: 0,
-      listeners: new Map(),
       channelKey,
     };
 
@@ -91,13 +79,7 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
           ...(opts.filter ? { filter: opts.filter } : {}),
         },
         (payload: any) => {
-          fanOut.listeners.forEach(({ callback }) => {
-            try {
-              callback(payload);
-            } catch (err: any) {
-              if (isDev) console.error(`[realtimeChannels] listener error on ${channelKey}:`, err?.message ?? err);
-            }
-          });
+          registry.emit(channelKey, payload);
         }
       );
 
@@ -125,10 +107,13 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
     if (isDev) console.log(`[realtimeChannels] channel created → ${channelKey}`);
   }
 
-  const registrationId = nextRegistrationId++;
-  shared.listeners.set(opts.key, { id: registrationId, callback: opts.callback });
-  shared.refCount += 1;
-  keyIndex.set(opts.key, { channelKey, registrationId });
+  const registrationId = registry.add(channelKey, opts.key, (payload) => {
+    try {
+      opts.callback(payload);
+    } catch (err: any) {
+      if (isDev) console.error(`[realtimeChannels] listener error on ${channelKey}:`, err?.message ?? err);
+    }
+  });
 
   return () => unsubscribeRegistration(opts.key, registrationId);
 }
@@ -142,27 +127,19 @@ export function unsubscribeByKey(key: string): void {
 }
 
 function unsubscribeRegistration(key: string, expectedRegistrationId?: number): void {
-  const indexed = keyIndex.get(key);
-  if (!indexed) return;
-  if (expectedRegistrationId !== undefined && indexed.registrationId !== expectedRegistrationId) return;
-
-  const shared = channels.get(indexed.channelKey);
-  keyIndex.delete(key);
+  const removal = registry.remove(key, expectedRegistrationId);
+  if (!removal) return;
+  const shared = channels.get(removal.channelKey);
   if (!shared) return;
 
-  const listener = shared.listeners.get(key);
-  if (listener && listener.id === indexed.registrationId && shared.listeners.delete(key)) {
-    shared.refCount = Math.max(0, shared.refCount - 1);
-  }
-
-  if (shared.refCount === 0) {
+  if (removal.isEmpty) {
     try {
       supabase.removeChannel(shared.channel);
     } catch (err: any) {
       if (isDev) console.warn(`[realtimeChannels] removeChannel error: ${err?.message ?? err}`);
     }
-    channels.delete(indexed.channelKey);
-    if (isDev) console.log(`[realtimeChannels] channel torn down → ${indexed.channelKey}`);
+    channels.delete(removal.channelKey);
+    if (isDev) console.log(`[realtimeChannels] channel torn down → ${removal.channelKey}`);
   }
 }
 
@@ -202,8 +179,8 @@ export function subscribeToTables(
 /** Diagnostics — handy in DevTools / tests. */
 export function getActiveChannelStats(): { channels: number; listeners: number } {
   let listeners = 0;
-  channels.forEach((c) => {
-    listeners += c.listeners.size;
+  channels.forEach((_, channelKey) => {
+    listeners += registry.listenerCount(channelKey);
   });
   return { channels: channels.size, listeners };
 }
