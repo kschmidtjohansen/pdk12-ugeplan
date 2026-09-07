@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 — Virtualiseret medarbejdervælger
+
+- `EmployeeSelector.tsx`: listen bruger nu `@tanstack/react-virtual` og tegner kun de rækker, der er synlige (plus buffer). Med flere hundrede medarbejdere åbner vælgeren markant hurtigere, og scroll/søgning er flydende.
+- Rækkerne grupperes i 2 kolonner på desktop og 1 på mobil, så layoutet er uændret. Søgefelt, valgte medarbejdere øverst, statusprikker, badges, låseårsager og tooltips er bevaret.
+- Scroll-området har fået en fast højde (60vh desktop / 65dvh mobil), så listen ikke hopper ved søgning; scrollposition nulstilles når søgeteksten ændres.
+- Ingen ændringer i låselogik, ferie-/kursus-/fuldt-booket-regler eller valg/fravalg.
+
 ## 2026-09-07 — Performance: CLS-optimering ud fra Core Web Vitals
 
 Målinger (30 dage): LCP/FCP/INP er gode; CLS på `/planner` var 0,73 (desktop) mod grænsen 0,10. Rettet uden ændringer i funktionalitet:
