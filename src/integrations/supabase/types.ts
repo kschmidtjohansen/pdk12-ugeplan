@@ -1022,6 +1022,51 @@ export type Database = {
           },
         ]
       }
+      sick_days: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          id: string
+          sick_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          id?: string
+          sick_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          id?: string
+          sick_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sick_days_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sick_days_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sub_departments: {
         Row: {
           created_at: string
@@ -1801,6 +1846,12 @@ export type Database = {
           to_time: string
           type: string
           updated_at: string
+        }[]
+      }
+      list_department_absent_user_ids: {
+        Args: { _date?: string; _department_id: string }
+        Returns: {
+          user_id: string
         }[]
       }
       list_screen_display_absences: {
