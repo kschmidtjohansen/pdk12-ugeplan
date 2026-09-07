@@ -35,6 +35,7 @@ interface EmployeeSelectorProps {
   caseLat?: number;
   caseLng?: number;
   allSelectedDates?: Date[];
+  employeesLoading?: boolean;
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -47,7 +48,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   casePostcode,
   caseLat,
   caseLng,
-  allSelectedDates = []
+  allSelectedDates = [],
+  employeesLoading = false
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
