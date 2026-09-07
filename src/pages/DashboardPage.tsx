@@ -9,7 +9,7 @@ import DashboardCockpit from '@/components/Dashboard/DashboardCockpit';
 import SubDepartmentQuickSwitcher from '@/components/Dashboard/SubDepartmentQuickSwitcher';
 import { DemoDashboard } from '@/components/Demo/DemoDashboard';
 import ServicemedarbejderDashboard from '@/components/Dashboard/ServicemedarbejderDashboard';
-import { PullToRefresh } from '@/components/shared/PullToRefresh';
+
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { useDepartment } from '@/context/DepartmentContext';
 import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
@@ -70,7 +70,6 @@ const DashboardPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <PullToRefresh onRefresh={handleRefresh}>
         <div className="min-h-screen w-full bg-background">
           <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 space-y-4 sm:space-y-5">
           {/* Last Refresh Indicator */}
@@ -109,7 +108,6 @@ const DashboardPage: React.FC = () => {
           )}
         </div>
       </div>
-    </PullToRefresh>
     </DataFetchErrorBoundary>
   );
 };
