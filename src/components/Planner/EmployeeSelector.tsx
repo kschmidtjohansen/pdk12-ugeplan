@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Assignment } from '@/types/assignment';
