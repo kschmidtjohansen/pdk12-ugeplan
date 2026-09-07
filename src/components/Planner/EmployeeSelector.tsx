@@ -390,15 +390,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           // Partially booked (< 8 hours) stays selectable for additional assignments.
           const isFullyBooked = availabilityInfo.status === 'fullyBooked';
           // Already selected for THIS assignment => always toggleable (can be removed again).
-          const isDisabled = !isSelected && (
-            (vacationStatus.isOnVacation && vacationStatus.vacationType === 'full_day')
-            || isManuallyOnLeave
-            || isExpired
-            || isOnTraining
-            || isFullyBooked
-            || employee.status === 'terminated'
-            || employee.status === 'inactive'
-          );
+          const isDisabled = disabledIdSet.has(employee.id);
+          const isActive = flatIndex === activeIndex;
 
           // Explain WHY a locked employee cannot be selected (priority order)
           let lockReason: string | null = null;
