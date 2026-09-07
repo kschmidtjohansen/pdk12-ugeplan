@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 — EmployeeSelector: tastaturnavigation og viewport-sikker positionering
+
+- `EmployeeSelector.tsx`: fuld tastaturbetjening i søgefeltet — pil op/ned flytter en synlig markering (ring + accent-baggrund) gennem listen, den virtualiserede liste scroller automatisk med (`scrollToIndex`), og Enter til-/fravælger den aktive medarbejder med samme låseregler som klik. Markøren følger musen, så tastatur og mus ikke kommer ud af sync, og markeringen nulstilles ved åbning og ny søgning.
+- Låsereglerne er samlet i ét `disabledIdSet`, der deles mellem rendering og tastatur, så Enter aldrig kan vælge en låst medarbejder.
+- Popover: `avoidCollisions` er eksplicit slået til, `sideOffset` 6, `collisionPadding` 12, og søgefeltet autofokuseres ved åbning — menuen bliver altid inden for viewport. Drawer på mobil er begrænset til `max-h-[85dvh]`, så listen ikke løber ud af skærmen.
+
+
 ## 2026-09-07 — EmployeeSelector-sortering og vikar-forlængelse
 
 - `EmployeeSelector.tsx`: afstand til sagens adresse (postnummer/GPS, ≤15 km-tærskel) er fortsat den primære sortering, men servicemedarbejdere vises nu først inden for hver afstandsgruppe (tjekker både `role` og `roles`). Uden sagsadresse sorteres alfabetisk som før.
