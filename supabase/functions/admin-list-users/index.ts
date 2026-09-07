@@ -108,12 +108,11 @@ serve(async (req) => {
 
     console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
 
-    // FIXED: Check if user has admin OR skadeleder role with better error handling
-    const { data: roleData, error: roleError } = await supabaseAdmin
+    // Users can hold multiple roles — fetch the full list instead of expecting one row.
+    const { data: roleRows, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle(); // Use maybeSingle instead of single to avoid errors
+      .eq('user_id', user.id);
 
     if (roleError) {
       console.error(`[${requestId}] Role check error:`, roleError);
@@ -126,8 +125,9 @@ serve(async (req) => {
       );
     }
 
-    // FIXED: Better handling when no role is found
-    if (!roleData || !roleData.role) {
+    const userRolesList: string[] = (roleRows || []).map((r: { role: string }) => r.role).filter(Boolean);
+
+    if (userRolesList.length === 0) {
       console.error(`[${requestId}] No role found for user: ${user.email}`);
       return new Response(
         JSON.stringify({ 
@@ -141,13 +141,15 @@ serve(async (req) => {
       );
     }
 
-    // FIXED: Allow both administrator and skadeleder roles
-    if (!['administrator', 'skadeleder', 'super_admin'].includes(roleData.role)) {
-      console.error(`[${requestId}] User not authorized. Role: ${roleData.role}, User: ${user.email}`);
+    const allowedRoles = ['administrator', 'skadeleder', 'super_admin'];
+    const effectiveRole = userRolesList.find((r) => allowedRoles.includes(r));
+
+    if (!effectiveRole) {
+      console.error(`[${requestId}] User not authorized. Roles: ${userRolesList.join(', ')}, User: ${user.email}`);
       return new Response(
         JSON.stringify({ 
           error: 'Administrator, Skadeleder or Super Admin access required',
-          currentRole: roleData.role
+          currentRole: userRolesList.join(', ')
         }),
         { 
           status: 403, 
@@ -156,7 +158,8 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Access granted for role: ${roleData.role} (${user.email}), fetching users...`);
+
+    console.log(`[${requestId}] Access granted for role: ${effectiveRole} (${user.email}), fetching users...`);
 
     // FIXED: Get profiles and roles separately to avoid JOIN issues
     console.log(`[${requestId}] Fetching profiles...`);
@@ -293,7 +296,7 @@ serve(async (req) => {
           roleDistribution: roleStats,
           eligibleUsers: eligibleCount,
           requestTime: new Date().toISOString(),
-          accessGrantedForRole: roleData.role
+          accessGrantedForRole: effectiveRole
         }
       }),
       { 
