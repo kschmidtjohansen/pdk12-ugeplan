@@ -384,3 +384,5 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 ## Planner: låseforklaring i medarbejdervælgeren
 
 - [x] **2026-09-07:** Låste medarbejdere i `EmployeeSelector` viser nu årsagen (ferie, fraværende, kursus, fuldt booket m. timer, udløbet, opsagt/inaktiv) som inline-tekst under navnet og tooltip på desktop. `getEmployeeAvailabilityStatus` eksponerer `bookedMinutes`; nye da/en-oversættelser under `employees.lockedReason*`.
+
+- [x] Core Web Vitals: CLS-optimering af /planner (skelet, reserveret højde, font-fallback) + retvisende måledata i Admin (2026-09-07)

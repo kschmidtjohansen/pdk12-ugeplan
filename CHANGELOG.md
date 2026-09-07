@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-07 — Performance: CLS-optimering ud fra Core Web Vitals
+
+Målinger (30 dage): LCP/FCP/INP er gode; CLS på `/planner` var 0,73 (desktop) mod grænsen 0,10. Rettet uden ændringer i funktionalitet:
+
+- `PlannerPage.tsx`: fjernet fuldsides-skelettet under indlæsning. Header, ugevælger og knapper renderes med det samme, og kun indholdsområdet viser skelettet — det fjerner det store hop, når data ankommer.
+- `ListSkeleton.tsx`: ny valgfri `rowHeight`, så planner-skelettet reserverer samme højde som dagskortene (7 rækker à 72px).
+- `UnassignedResourcesSection.tsx`: reserverer minimumshøjde (132px sammenfoldet / 420px udfoldet), indtil medarbejder- og bildata er hentet, så ugelisten ikke skubbes ned.
+- `index.css` + `tailwind.config.ts`: metrik-matchet `Inter Fallback` (`size-adjust`/`ascent-override`), så tekst ikke reflower når webskrifttypen loader efter first paint.
+- `webVitals.ts`: urealistiske målinger (>60 s for LCP/INP/FCP/TTFB, CLS >25) frasorteres før indsættelse — én baggrundsfane havde rapporteret INP på over en time og forvrænget gennemsnittet.
+- `WebVitalsOverview.tsx`: henter hele den valgte periode i sider à 1000 rækker i stedet for `limit(5000)`, som i praksis afkortede 30-dages-visningen til få dage.
+
 ## 2026-09-07 — Feature: Bredere medarbejdervælger, cache-rydning og realtime-diagnostik
 
 - `EmployeeSelector.tsx`: søgefelt øverst, valgte medarbejdere sorteres først, to-kolonne-grid på desktop, bredere popover (760px) og højere lister (desktop 70vh, mobil 80dvh) — markant mindre scroll ved mange medarbejdere. Låse- og konfliktlogik er uændret.
