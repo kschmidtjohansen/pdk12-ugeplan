@@ -591,7 +591,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 py-1">
             {visibleEmployees.map((employee, index) => (
               <React.Fragment key={employee.id}>
-                {renderEmployeeButton(employee, index === visibleEmployees.length - 1)}
+                {renderEmployeeButton(employee, index === visibleEmployees.length - 1, index)}
               </React.Fragment>
             ))}
           </div>
@@ -611,9 +611,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                   className="absolute left-0 top-0 w-full grid grid-cols-1 sm:grid-cols-2 gap-x-2"
                   style={{ transform: `translateY(${virtualRow.start}px)` }}
                 >
-                  {row.map((employee) => (
+                  {row.map((employee, colIndex) => (
                     <React.Fragment key={employee.id}>
-                      {renderEmployeeButton(employee, isLastRow)}
+                      {renderEmployeeButton(employee, isLastRow, virtualRow.index * columns + colIndex)}
                     </React.Fragment>
                   ))}
                 </div>
