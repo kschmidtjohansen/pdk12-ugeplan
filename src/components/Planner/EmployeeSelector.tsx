@@ -72,12 +72,19 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     return map;
   }, [employees, caseLat, caseLng]);
 
-  // Haversine sort — deps: employee list + assignment GPS coords
+  // Role priority: servicemedarbejdere always first
+  const rolePriority = (emp: Employee): number => {
+    const isService = emp.role === 'servicemedarbejder' || emp.roles?.includes('servicemedarbejder');
+    return isService ? 0 : 1;
+  };
+
+  // Role-first sort, then Haversine distance within each role group
   const sortedEmployees = useMemo(() => {
-    // No assignment coords → skip sort entirely, return list as-is
-    if (caseLat == null || caseLng == null) return employees;
-    if (distanceMap.size === 0) return employees;
     return [...employees].sort((a, b) => {
+      const prioA = rolePriority(a);
+      const prioB = rolePriority(b);
+      if (prioA !== prioB) return prioA - prioB;
+
       const distA = distanceMap.get(a.id);
       const distB = distanceMap.get(b.id);
       const aClose = distA != null && distA <= 15;
@@ -87,7 +94,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       if (bClose) return 1;
       return a.name.localeCompare(b.name);
     });
-  }, [employees, caseLat, caseLng, distanceMap]);
+  }, [employees, distanceMap]);
 
   const top3NearbyIds = useMemo(() => {
     return sortedEmployees

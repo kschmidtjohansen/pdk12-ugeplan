@@ -130,13 +130,24 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         return;
       }
 
-      // Vikar expiry must be in the future when not converting to permanent
+      // Vikar expiry must be in the future and not before the current expiry
       if (isEditingVikar && !convertToPermanent && formData.expires_at) {
         const expiry = new Date(formData.expires_at);
         if (isNaN(expiry.getTime()) || expiry < startOfToday()) {
           setErrorMessage(t('employees.expirationMustBeFuture'));
           setIsSubmitting(false);
           return;
+        }
+        if (currentEmployee?.expires_at) {
+          const currentExpiry = new Date(currentEmployee.expires_at);
+          currentExpiry.setHours(0, 0, 0, 0);
+          if (expiry < currentExpiry) {
+            setErrorMessage(t('employees.expiryBeforeCurrent', {
+              date: format(currentExpiry, 'd. MMMM yyyy', { locale: da })
+            }));
+            setIsSubmitting(false);
+            return;
+          }
         }
       }
 
