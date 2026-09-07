@@ -29,6 +29,12 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [userAccessData, setUserAccessData] = useState<{ user_id: string; department_id: string }[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState<string>('current');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<UserRole[]>([]);
+  const [statusFilter, setStatusFilter] = useState<UserStatusFilter>('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error' | 'fallback'>('connected');
