@@ -102,7 +102,7 @@ const AdminPage: React.FC = () => {
             {(isSuperAdmin || isAdmin) && (
               <TabsTrigger value="diagnostics" className="gap-2">
                 <Radio className="h-4 w-4" />
-                {t('admin.tabs.diagnostics')}
+                {t('admin.realtimeDiagnostics.title')}
               </TabsTrigger>
             )}
             {isSuperAdmin && (

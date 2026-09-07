@@ -49,34 +49,34 @@ export const RealtimeDiagnostics: React.FC = () => {
         <div>
           <CardTitle className="flex items-center gap-2">
             <Radio className="h-5 w-5 text-primary" />
-            {t('admin.diagnostics.title')}
+            {t('admin.realtimeDiagnostics.title')}
           </CardTitle>
-          <CardDescription>{t('admin.diagnostics.description')}</CardDescription>
+          <CardDescription>{t('admin.realtimeDiagnostics.description')}</CardDescription>
         </div>
         <Button variant="outline" size="sm" onClick={refresh} className="gap-2 shrink-0">
           <RefreshCw className="h-4 w-4" />
-          {t('admin.diagnostics.refresh')}
+          {t('admin.realtimeDiagnostics.refresh')}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="rounded-xl border bg-muted/30 p-3">
-            <p className="text-xs text-muted-foreground">{t('admin.diagnostics.activeChannels')}</p>
+            <p className="text-xs text-muted-foreground">{t('admin.realtimeDiagnostics.activeChannels')}</p>
             <p className="text-2xl font-semibold">{channels.length}</p>
           </div>
           <div className="rounded-xl border bg-muted/30 p-3">
-            <p className="text-xs text-muted-foreground">{t('admin.diagnostics.totalListeners')}</p>
+            <p className="text-xs text-muted-foreground">{t('admin.realtimeDiagnostics.totalListeners')}</p>
             <p className="text-2xl font-semibold">{totalListeners}</p>
           </div>
           <div className="rounded-xl border bg-muted/30 p-3">
-            <p className="text-xs text-muted-foreground">{t('admin.diagnostics.serviceWorkers')}</p>
+            <p className="text-xs text-muted-foreground">{t('admin.realtimeDiagnostics.serviceWorkers')}</p>
             <p className="text-2xl font-semibold">{serviceWorkers ?? '—'}</p>
           </div>
         </div>
 
         {channels.length === 0 ? (
           <p className="text-sm text-muted-foreground py-6 text-center">
-            {t('admin.diagnostics.noChannels')}
+            {t('admin.realtimeDiagnostics.noChannels')}
           </p>
         ) : (
           <div className="divide-y rounded-xl border">
@@ -88,8 +88,8 @@ export const RealtimeDiagnostics: React.FC = () => {
                     <span className="ml-2 text-xs text-muted-foreground">{c.event}</span>
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {c.filter ? `${t('admin.diagnostics.filter')}: ${c.filter} · ` : ''}
-                    {t('admin.diagnostics.listeners')}: {c.listeners}
+                    {c.filter ? `${t('admin.realtimeDiagnostics.filter')}: ${c.filter} · ` : ''}
+                    {t('admin.realtimeDiagnostics.listeners')}: {c.listeners}
                   </p>
                 </div>
                 <Badge variant={statusVariant(c.status)} className="shrink-0">
@@ -101,7 +101,7 @@ export const RealtimeDiagnostics: React.FC = () => {
         )}
 
         <p className="text-xs text-muted-foreground">
-          {t('admin.diagnostics.updatedAt')}: {updatedAt.toLocaleTimeString()}
+          {t('admin.realtimeDiagnostics.updatedAt')}: {updatedAt.toLocaleTimeString()}
         </p>
       </CardContent>
     </Card>

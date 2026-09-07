@@ -357,7 +357,7 @@ export const admin = {
     week: 'Week',
     noVacations: 'No vacations'
   },
-  diagnostics: {
+  realtimeDiagnostics: {
     title: "Realtime connections",
     description: "Shows which realtime channels are active and whether they are properly connected.",
     refresh: "Refresh",
