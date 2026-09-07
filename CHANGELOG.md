@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-07 — Fix: Dobbelte toasts og dobbelt "Slip for at opdatere"
+
+- `MainLayout.tsx` pakker allerede alle sider i `PullToRefresh`, men `DashboardPage.tsx` og `CarsPage.tsx` pakkede deres indhold i endnu en `PullToRefresh` oveni — to nestede instanser gav to "Slip for at opdatere"-indikatorer på mobil. De indre wrappers er fjernet; MainLayouts refresh genindlæser stadig data.
+- `src/hooks/use-toast.ts`: dublet-beskyttelse — en toast med samme titel, beskrivelse og variant ignoreres, hvis den affyres inden for 1,5 sekund efter en identisk toast. Forhindrer dobbelte "Opgave Opdateret"-toasts (og lignende) uanset hvilken komponent der kalder toast to gange.
+- `useOptimizedAssignments.ts`: `updateAssignment` har nu et modul-niveau in-flight guard pr. opgave-id, så samme opgave ikke kan gemmes to gange parallelt (dobbelt-submit) — beskytter også mod dobbelte changelog-poster.
+
 ## 2026-09-06 — Fix: Biler kan vælges på mobil
 
 - `MultipleCarSelector.tsx`: listepunkter i bilvælgeren brugte `div` med `onClick`, hvis klik blev opslugt af opgave-dialogen på mobil (samme fejl som tidligere i sagsansvarlig-/medarbejdervælgerne). Punkterne er nu rigtige `<button type="button">` med `onPointerUp`-håndtering, så tryk registreres på mobil. Flervalg, værksted-toast og konflikt-advarsel virker som før; desktop-popover er uændret.

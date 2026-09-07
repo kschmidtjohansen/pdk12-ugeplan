@@ -15,7 +15,7 @@ import { isCarScheduledUnavailableToday, nextScheduledUnavailability } from '@/s
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PullToRefresh } from '@/components/shared/PullToRefresh';
+
 import FalckSubscriptionButton from '@/components/Cars/FalckSubscriptionButton';
 import VWAssistanceButton from '@/components/Cars/VWAssistanceButton';
 import ListPageShell from '@/components/shared/ListPageShell';
@@ -89,8 +89,7 @@ const CarsPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-      <PullToRefresh onRefresh={async () => { await fetchCars(); }}>
-        <TooltipProvider>
+      <TooltipProvider>
           <ListPageShell
             title={t('navigation.cars')}
             description={t('cars.pageDescription')}
@@ -193,8 +192,7 @@ const CarsPage: React.FC = () => {
             onSaved={fetchCars}
           />
 
-        </TooltipProvider>
-      </PullToRefresh>
+      </TooltipProvider>
     </DataFetchErrorBoundary>
   );
 };

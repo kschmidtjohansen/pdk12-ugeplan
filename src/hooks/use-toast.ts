@@ -158,7 +158,32 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">;
 
+// Dedup guard: identical toasts fired within this window are ignored, so a
+// double-invoked mutation never renders two stacked identical toasts.
+const TOAST_DEDUP_WINDOW_MS = 1500;
+const recentToastKeys = new Map<string, number>();
+
+function toastDedupKey(props: Toast): string {
+  const title = typeof props.title === "string" ? props.title : "";
+  const description =
+    typeof props.description === "string" ? props.description : "";
+  return `${props.variant ?? "default"}|${title}|${description}`;
+}
+
 function toast({ ...props }: Toast) {
+  const key = toastDedupKey(props);
+  const now = Date.now();
+  const last = recentToastKeys.get(key);
+  if (last !== undefined && now - last < TOAST_DEDUP_WINDOW_MS) {
+    // Return a no-op handle so callers can still call dismiss()/update().
+    return { id: "deduped", dismiss: () => {}, update: () => {} };
+  }
+  recentToastKeys.set(key, now);
+  // Opportunistic cleanup so the map doesn't grow unbounded.
+  for (const [k, ts] of recentToastKeys) {
+    if (now - ts > TOAST_DEDUP_WINDOW_MS) recentToastKeys.delete(k);
+  }
+
   const id = crypto.randomUUID();
 
   // DEBUG: Log what we're about to display
