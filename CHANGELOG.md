@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 — EmployeeSelector: stabil positionering, tom- og loading-tilstand
+
+- `EmployeeSelector.tsx`: popoveren har nu eksplicit `side="bottom"`, `align="start"` og `collisionPadding={16}`, og maks-højden er sat ned til `min(50vh,420px)`, så dropdown'en altid bliver inden for skærmen på Windows og ikke ryger ned under proceslinjen — den flipper opad, når der ikke er plads nedad.
+- Ny loading-tilstand: mens medarbejderdata hentes vises 6 skelet-rækker i stedet for en blank liste. `employeesLoading`-proppen føres fra `PlannerPage` (via `useEmployees`) gennem `PlannerDialogContainer`, `AssignmentForm` og `AssignmentFormFields`.
+- Ny tydelig tomtilstand med ikon: skelner mellem "ingen søgeresultater" (med ryd søgning-knap) og "ingen medarbejdere i afdelingen".
+- Nye oversættelser da/en: `noSearchResults`, `clearSearch`, `noEmployeesAvailable`.
+
 ## 2026-09-07 — Forlæng vikar-udløbsdato
 
 - `EmployeeFormDialog.tsx`: ved redigering af en vikar vises nu et datofelt for udløbsdato i det gule vikar-panel med hurtigvalg (+1 uge, +2 uger, +1 måned, +3 måneder), startværdi = nuværende udløbsdato, og forhåndsvisning af ny dato ved ændring. Feltet skjules ved "Konverter til fast medarbejder".
