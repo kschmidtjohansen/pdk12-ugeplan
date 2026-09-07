@@ -650,14 +650,14 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           <DrawerTrigger asChild>
             {triggerButton}
           </DrawerTrigger>
-          <DrawerContent>
+          <DrawerContent className="max-h-[85dvh]">
             <DrawerHeader>
               <DrawerTitle>{t('planner.employees')}</DrawerTitle>
             </DrawerHeader>
             <div className="px-4">{renderSearchField()}</div>
             <div 
               ref={scrollRef}
-              className="h-[65dvh] max-h-[80dvh] overflow-y-auto px-4 pb-4"
+              className="h-[65dvh] overflow-y-auto px-4 pb-4"
               style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
             >
 
@@ -674,8 +674,14 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             className="w-[760px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
             side="bottom"
             align="start"
-            sideOffset={4}
-            collisionPadding={16}
+            avoidCollisions={true}
+            sideOffset={6}
+            collisionPadding={12}
+            onOpenAutoFocus={(e) => {
+              // Focus the search field so keyboard navigation works immediately.
+              e.preventDefault();
+              searchInputRef.current?.focus();
+            }}
           >
             {renderSearchField()}
             <div 
