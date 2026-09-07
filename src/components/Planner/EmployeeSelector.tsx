@@ -463,8 +463,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             <DrawerHeader>
               <DrawerTitle>{t('planner.employees')}</DrawerTitle>
             </DrawerHeader>
+            <div className="px-4">{renderSearchField()}</div>
             <div 
-              className="max-h-[60dvh] overflow-y-auto px-4 pb-4"
+              className="max-h-[80dvh] overflow-y-auto px-4 pb-4"
               style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
             >
               {renderEmployeeList()}
@@ -477,11 +478,12 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             {triggerButton}
           </PopoverTrigger>
           <PopoverContent
-            className="w-[480px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
+            className="w-[760px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
             sideOffset={4}
           >
+            {renderSearchField()}
             <div 
-              className="max-h-64 overflow-y-auto"
+              className="max-h-[70vh] overflow-y-auto"
               onWheel={(e) => e.stopPropagation()}
             >
               {renderEmployeeList()}
@@ -489,6 +491,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           </PopoverContent>
         </Popover>
       )}
+
     </div>
   );
 };
