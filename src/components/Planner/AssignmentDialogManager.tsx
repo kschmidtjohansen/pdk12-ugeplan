@@ -120,7 +120,6 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
                   cars={cars}
                   employees={employees}
               employeesLoading={employeesLoading}
-                  employeesLoading={employeesLoading}
                   vacations={vacations}
                   selectedDay={selectedDay}
                   onPublishDay={onPublishDay}
