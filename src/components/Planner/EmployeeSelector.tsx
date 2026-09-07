@@ -51,6 +51,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
   const { trainingIds: trainingIdsForDate } = useActiveTrainingsForDate(currentDate);
 
