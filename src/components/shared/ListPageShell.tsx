@@ -25,7 +25,7 @@ const ListPageShell: React.FC<ListPageShellProps> = ({
 }) => {
   return (
     <div className="min-h-screen w-full bg-background">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-5">
+      <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5">
         <PageHeader title={title} description={description}>
           {actions}
         </PageHeader>

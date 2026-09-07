@@ -173,23 +173,19 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const isDemoMode = user.email === 'test@polygongroup.com';
       const client = getSchemaClient(isDemoMode);
 
-      // Fetch dept scoping sets (used to filter client-side)
-      let deptAssignmentIdSet: Set<string> | null = null;
-      if (selectedDepartmentId && !isDemoMode) {
-        const { data: deptAssignments } = await client
-          .from('assignments').select('id').eq('department_id', selectedDepartmentId);
-        deptAssignmentIdSet = new Set((deptAssignments || []).map((a: any) => a.id));
-      }
+      const scopeToDepartment = !!selectedDepartmentId && !isDemoMode;
       const deptUserIds = await getDepartmentUserIds();
       const deptUserIdSet = deptUserIds ? new Set(deptUserIds) : null;
 
       // Planner logs: fetch unfiltered, filter client-side so we don't drop
       // rows with NULL assignment_id (bulk events) or rows whose assignment
-      // has since been deleted (DELETE events).
-      const plannerQ = client.from('planner_change_log').select('*')
+      // has since been deleted (DELETE events). Only the columns we render.
+      const plannerQ = client.from('planner_change_log')
+        .select('id, assignment_id, operation, changed_by, changed_by_name, changed_by_first_name, change_details, created_at')
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString())
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(300);
 
       let vacQ = client.from('vacations')
         .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, reviewed_by, reviewed_at')
@@ -208,9 +204,10 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.warn('[ChangeLogContext] vacations fetch failed', vacResult.error);
       }
 
-      // Determine which assignment_ids referenced by logs actually exist —
-      // any missing ones represent deleted assignments and should still show.
-      let existingAssignmentIds: Set<string> = new Set();
+      // Look up only the assignments actually referenced by the fetched logs
+      // (instead of every assignment in the department). Missing ids mean the
+      // assignment was deleted and the log should still be shown.
+      const assignmentDeptMap = new Map<string, string | null>();
       const referencedIds = Array.from(new Set(
         (plannerData || [])
           .map((l: any) => l.assignment_id)
@@ -218,22 +215,22 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       ));
       if (referencedIds.length > 0) {
         const { data: existing } = await client
-          .from('assignments').select('id').in('id', referencedIds);
-        existingAssignmentIds = new Set((existing || []).map((a: any) => a.id));
+          .from('assignments').select('id, department_id').in('id', referencedIds);
+        (existing || []).forEach((a: any) => assignmentDeptMap.set(a.id, a.department_id ?? null));
       }
 
       const filteredPlanner = (plannerData || []).filter((log: any) => {
-        if (deptAssignmentIdSet === null) return true; // no dept selected — show all
+        if (!scopeToDepartment) return true; // no dept selected — show all
         if (log.operation?.startsWith?.('EMPLOYEE_')) {
           const employeeDeptId = log.change_details?.department_id;
           const employeeId = log.change_details?.employee_id;
           return employeeDeptId === selectedDepartmentId || (employeeId && deptUserIdSet?.has(employeeId));
         }
         if (!log.assignment_id) return true;           // bulk/system events
-        if (deptAssignmentIdSet.has(log.assignment_id)) return true; // this dept
-        if (!existingAssignmentIds.has(log.assignment_id)) return true; // deleted assignment
-        return false;
+        if (!assignmentDeptMap.has(log.assignment_id)) return true; // deleted assignment
+        return assignmentDeptMap.get(log.assignment_id) === selectedDepartmentId;
       });
+
 
       const loggedEmployeeCreateIds = new Set(
         filteredPlanner
@@ -306,7 +303,8 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const isDemoMode = user.email === 'test@polygongroup.com';
       const client = getSchemaClient(isDemoMode);
       const { data, error } = await client
-        .from('planner_change_log').select('*')
+        .from('planner_change_log')
+        .select('id, assignment_id, operation, changed_by, changed_by_name, changed_by_first_name, change_details, created_at')
         .contains('change_details', { case_number: caseNumber })
         .order('created_at', { ascending: false });
       if (error) throw error;

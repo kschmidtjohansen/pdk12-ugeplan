@@ -165,7 +165,7 @@ export const getEmployeeAvailabilityStatus = (
       return {
         status: 'onVacation',
         statusText: t('employees.status.onVacation'),
-        badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        badgeColor: 'bg-warning-soft text-warning-soft-foreground border-transparent',
         badgeVariant: 'warning'
       };
     } else if (vacationStatus.vacationType === 'partial_day' && vacationStatus.startTime) {
@@ -173,7 +173,7 @@ export const getEmployeeAvailabilityStatus = (
       return {
         status: 'partialVacation',
         statusText: t('vacation.offFrom', { time: formattedStartTime }),
-        badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        badgeColor: 'bg-warning-soft text-warning-soft-foreground border-transparent',
         badgeVariant: 'warning'
       };
     }
@@ -184,7 +184,7 @@ export const getEmployeeAvailabilityStatus = (
     return {
       status: 'onLeave',
       statusText: t('employees.status.onLeave'),
-      badgeColor: 'bg-red-100 text-red-800 border-red-200',
+      badgeColor: 'bg-destructive-soft text-destructive-soft-foreground border-transparent',
       badgeVariant: 'error'
     };
   }
@@ -212,7 +212,7 @@ export const getEmployeeAvailabilityStatus = (
     return {
       status: 'available',
       statusText: t('employees.status.available'),
-      badgeColor: 'bg-green-100 text-green-800 border-green-200',
+      badgeColor: 'bg-success-soft text-success-soft-foreground border-transparent',
       badgeVariant: 'success'
     };
   }
@@ -227,7 +227,7 @@ export const getEmployeeAvailabilityStatus = (
     return {
       status: 'fullyBooked',
       statusText: t('employees.status.fullyBooked'),
-      badgeColor: 'bg-red-100 text-red-800 border-red-200',
+      badgeColor: 'bg-destructive-soft text-destructive-soft-foreground border-transparent',
       badgeVariant: 'error',
       bookedMinutes: totalMinutes
     };
@@ -239,7 +239,7 @@ export const getEmployeeAvailabilityStatus = (
   return {
     status: 'partiallyBooked',
     statusText: t('employees.availableAfter', { time: formattedTime }),
-    badgeColor: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    badgeColor: 'bg-warning-soft text-warning-soft-foreground border-transparent',
     badgeVariant: 'warning',
     availableAt: latestEndTime
   };

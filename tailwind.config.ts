@@ -63,7 +63,9 @@ export default {
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
+					foreground: 'hsl(var(--destructive-foreground))',
+					soft: 'hsl(var(--destructive-soft))',
+					'soft-foreground': 'hsl(var(--destructive-soft-foreground))'
 				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
@@ -71,7 +73,9 @@ export default {
 				},
 				accent: {
 					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
+					foreground: 'hsl(var(--accent-foreground))',
+					soft: 'hsl(var(--accent-soft))',
+					'soft-foreground': 'hsl(var(--accent-soft-foreground))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -83,15 +87,21 @@ export default {
 				},
 				success: {
 					DEFAULT: 'hsl(var(--success))',
-					foreground: 'hsl(var(--success-foreground))'
+					foreground: 'hsl(var(--success-foreground))',
+					soft: 'hsl(var(--success-soft))',
+					'soft-foreground': 'hsl(var(--success-soft-foreground))'
 				},
 				warning: {
 					DEFAULT: 'hsl(var(--warning))',
-					foreground: 'hsl(var(--warning-foreground))'
+					foreground: 'hsl(var(--warning-foreground))',
+					soft: 'hsl(var(--warning-soft))',
+					'soft-foreground': 'hsl(var(--warning-soft-foreground))'
 				},
 				info: {
 					DEFAULT: 'hsl(var(--info))',
-					foreground: 'hsl(var(--info-foreground))'
+					foreground: 'hsl(var(--info-foreground))',
+					soft: 'hsl(var(--info-soft))',
+					'soft-foreground': 'hsl(var(--info-soft-foreground))'
 				},
 				gray: {
 					25: 'hsl(var(--gray-25))',

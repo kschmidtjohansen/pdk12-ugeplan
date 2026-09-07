@@ -43,18 +43,23 @@ export const useVacationData = () => {
       if (import.meta.env.DEV) console.warn('[useVacationData] Profile fetch failed, continuing with vacation data only:', profileResult.error);
     }
 
-    const employeesResult = await enhancedDataFetching.fetchEmployeesEnhanced(user?.email);
-    const employees = employeesResult.data || [];
+    const profileMap = new Map<string, any>();
+    (profileResult.data || []).forEach((p: any) => p?.id && profileMap.set(p.id, p));
+
+    // Only hit the employees endpoint when some referenced user is missing a profile.
+    const missingIds = userIds.filter(id => !profileMap.has(id));
+    if (missingIds.length > 0) {
+      const employeesResult = await enhancedDataFetching.fetchEmployeesEnhanced(user?.email);
+      (employeesResult.data || []).forEach((e: any) => {
+        if (e?.id && !profileMap.has(e.id)) {
+          profileMap.set(e.id, { id: e.id, name: e.name, email: e.email, status: e.status });
+        }
+      });
+    }
 
     const transformedVacations: Vacation[] = vacationsData.map(vacation => {
-      let userProfile = profileResult.data?.find(p => p.id === vacation.user_id);
+      const userProfile = profileMap.get(vacation.user_id);
 
-      if (!userProfile && employees.length > 0) {
-        const employee = employees.find((e: any) => e.id === vacation.user_id);
-        if (employee) {
-          userProfile = { id: employee.id, name: employee.name, email: employee.email, status: employee.status };
-        }
-      }
 
       return {
         id: vacation.id,
