@@ -331,9 +331,15 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     if (employeeRows.length > 0) {
       rowVirtualizer.scrollToIndex(0);
     }
+    setActiveIndex(0);
     // Reset scroll position whenever the filtered result changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
+
+  // Reset the keyboard highlight whenever the selector is (re)opened.
+  useEffect(() => {
+    if (open) setActiveIndex(0);
+  }, [open]);
 
   // Re-measure once the popover/drawer has mounted so the virtualizer
   // never observes a 0-height scroll element and returns zero rows.
@@ -346,7 +352,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, employeeRows.length]);
 
-  const renderEmployeeButton = (employee: Employee, isLast: boolean) => {
+  const renderEmployeeButton = (employee: Employee, isLast: boolean, flatIndex: number) => {
 
 
         try {
