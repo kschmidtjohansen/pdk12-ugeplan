@@ -184,6 +184,8 @@ const employees = {
   extend2Weeks: '+2 weeks',
   extend1Month: '+1 month',
   extend3Months: '+3 months',
+  extendEmployment: 'Extend employment (+1 month)',
+  expiryBeforeCurrent: 'The new expiry date cannot be before the current expiry date ({date})',
   noSearchResults: 'No employees match your search',
   clearSearch: 'Clear search',
   noEmployeesAvailable: 'There are no employees to select in this department',

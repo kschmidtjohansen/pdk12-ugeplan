@@ -184,6 +184,8 @@ const employees = {
   extend2Weeks: '+2 uger',
   extend1Month: '+1 måned',
   extend3Months: '+3 måneder',
+  extendEmployment: 'Forlæng ansættelse (+1 måned)',
+  expiryBeforeCurrent: 'Den nye udløbsdato kan ikke ligge før den nuværende udløbsdato (d. {date})',
   noSearchResults: 'Ingen medarbejdere matcher din søgning',
   clearSearch: 'Ryd søgning',
   noEmployeesAvailable: 'Der er ingen medarbejdere at vælge i denne afdeling',
