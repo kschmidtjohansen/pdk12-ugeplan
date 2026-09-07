@@ -407,3 +407,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] `useVacationData`: Map-opslag og betinget medarbejderhentning
 - [x] Semantiske soft-status-tokens i `index.css`/`tailwind.config.ts`; `status-badge` og `employeeAvailability` uden hårdkodede farver
 - [x] `ListPageShell` bruger samme sidepolstring som Dashboard/Ugeplan/Vagt
+
+## Notifikation ved sygemelding (2026-09-07)
+
+- [x] Trigger `trg_notify_sick_day` + funktion `notify_sick_day()` (SECURITY DEFINER, `search_path = ''`, EXECUTE revoked fra PUBLIC/anon/authenticated)
+- [x] Notifikation til administratorer, super admins og skadeledere i afdelingen; markøren selv springes over og dubletter pr. medarbejder/dato undgås
+- [x] `sick_day`-ikon i `getNotificationIcon` samt da/en-oversættelser

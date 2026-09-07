@@ -40,6 +40,8 @@ export const getNotificationIcon = (type: string): string => {
       return 'calendar';
     case 'vacation':
       return 'palm-tree';
+    case 'sick_day':
+      return 'thermometer';
     case 'system':
       return 'bell';
     case 'alert':

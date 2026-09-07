@@ -22,7 +22,9 @@ const notifications = {
   newMessage: 'Ny besked på sag',
   newMessageDescription: '{sender} skrev: "{preview}"',
   vacationHighCoverageTitle: 'Høj feriedækning',
-  vacationHighCoverage: 'Advarsel: Uge {week} har mere end 50% af servicemedarbejderne på ferie ({count}/{total})'
+  vacationHighCoverage: 'Advarsel: Uge {week} har mere end 50% af servicemedarbejderne på ferie ({count}/{total})',
+  sickDayTitle: 'Sygemelding',
+  sickDayMessage: '{name} er meldt syg den {date}.'
 };
 
 export default notifications;

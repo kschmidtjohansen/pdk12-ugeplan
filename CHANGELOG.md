@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 — Notifikation ved sygemelding
+
+- Ny trigger `trg_notify_sick_day` på `sick_days` med funktionen `notify_sick_day()` (SECURITY DEFINER, `search_path = ''`, `EXECUTE` revoked fra PUBLIC/anon/authenticated).
+- Ved markering af en medarbejder som syg oprettes en notifikation (`type = 'sick_day'`, link `/employees`) til administratorer, super admins og skadeledere med adgang til afdelingen. Den der markerer, springes over, og dubletter for samme medarbejder/dato undgås.
+- `getNotificationIcon` understøtter `sick_day`; danske og engelske tekster tilføjet.
+
+
 ## 2026-09-07 — Optimering: databaseoprydning, færre opslag og ensartede statusfarver
 
 **Database / backend**
