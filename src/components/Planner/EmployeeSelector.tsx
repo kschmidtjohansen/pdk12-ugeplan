@@ -198,6 +198,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   }, [currentDate, selectedEmployees, assignments, user?.role, sortedEmployees.length, dateForComparison, autoRemovedEmployees]);
 
   const renderEmployeeList = () => (
+    <TooltipProvider delayDuration={200}>
     <div className="py-1">
       {sortedEmployees.map((employee, index) => {
         try {
@@ -276,8 +277,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             : null;
           
           return (
+            <Tooltip key={employee.id}>
+              <TooltipTrigger asChild>
             <button
-              key={employee.id}
               type="button"
               disabled={isDisabled}
               className={`w-full text-left flex items-center gap-3 py-3 px-4 transition-colors ${
