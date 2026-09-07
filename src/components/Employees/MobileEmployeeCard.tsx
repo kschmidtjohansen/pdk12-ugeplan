@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift, FlaskConical, GraduationCap } from 'lucide-react';
+import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift, FlaskConical, GraduationCap, Thermometer, HeartPulse } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
@@ -18,9 +18,12 @@ interface MobileEmployeeCardProps {
   onToggleLeave?: (employee: Employee) => void;
   onTraining?: (employee: Employee) => void;
   isOnTraining?: boolean;
+  isSick?: boolean;
+  canSeeSickReason?: boolean;
+  onToggleSick?: (employee: Employee) => void;
 }
 
-const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isOnTraining }) => {
+const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isOnTraining, isSick, canSeeSickReason, onToggleSick }) => {
   const { isAdmin } = usePermissions();
   const { t } = useTranslation();
 
@@ -163,12 +166,27 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
           )}
 
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
-            {isOnTraining ? (
+            {isSick ? (
+              <StatusBadge variant={canSeeSickReason ? 'destructive' : 'warning'}>
+                {canSeeSickReason ? 'Syg' : 'Fraværende'}
+              </StatusBadge>
+            ) : isOnTraining ? (
               <StatusBadge variant="warning">Kursus</StatusBadge>
             ) : (
               <StatusBadge variant={availabilityInfo.badgeVariant}>
                 {availabilityInfo.statusText}
               </StatusBadge>
+            )}
+            {isAdmin && onToggleSick && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onToggleSick(employee)}
+                className={`h-8 px-2 ${isSick ? 'text-green-600' : 'text-red-600'}`}
+              >
+                {isSick ? <HeartPulse className="h-4 w-4" /> : <Thermometer className="h-4 w-4" />}
+                <span className="ml-1 text-xs">{isSick ? 'Rask' : 'Syg'}</span>
+              </Button>
             )}
           </div>
         </div>
