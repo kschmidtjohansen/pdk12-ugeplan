@@ -357,7 +357,7 @@ export const admin = {
     onVacation: 'på ferie',
     week: 'Uge',
     noVacations: 'Ingen ferier'
-  }
+  },
   diagnostics: {
     title: "Realtime-forbindelser",
     description: "Viser hvilke realtime-kanaler der er aktive, og om de er tilsluttet korrekt.",

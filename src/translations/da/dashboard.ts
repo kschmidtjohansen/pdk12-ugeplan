@@ -188,7 +188,7 @@ export const dashboard = {
     title: "Seneste auto-publiceringer",
     empty: "Ingen kørsler endnu",
     assignmentsUpdated: "{count} opgaver"
-  }
+  },
   clearCache: {
     button: "Ryd offline-cache",
     title: "Ryd offline-cache?",

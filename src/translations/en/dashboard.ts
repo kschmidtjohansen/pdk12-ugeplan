@@ -188,7 +188,7 @@ export const dashboard = {
     title: "Latest auto-publish runs",
     empty: "No runs yet",
     assignmentsUpdated: "{count} assignments"
-  }
+  },
   clearCache: {
     button: "Clear offline cache",
     title: "Clear offline cache?",
