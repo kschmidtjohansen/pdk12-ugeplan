@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-07 — Forlæng vikar-udløbsdato
+
+- `EmployeeFormDialog.tsx`: ved redigering af en vikar vises nu et datofelt for udløbsdato i det gule vikar-panel med hurtigvalg (+1 uge, +2 uger, +1 måned, +3 måneder), startværdi = nuværende udløbsdato, og forhåndsvisning af ny dato ved ændring. Feltet skjules ved "Konverter til fast medarbejder".
+- Validering: udløbsdatoen skal ligge i fremtiden, ellers kan der ikke gemmes.
+- `useEmployeeActions.ts`: `expires_at` opdateres nu på profilen ved redigering af vikar (slut-af-dag), og nulstilles stadig ved konvertering til permanent.
+- Nye oversættelser da/en: `extendVikarExpiry`, `newExpirationDate`, `newExpiryPreview`, hurtigvalgs-labels.
+
 ## 2026-09-07 — Rettet tom og for høj medarbejdervælger
 
 - `EmployeeSelector.tsx`: listen kunne vises helt tom, fordi virtualiseringen målte popoveren før den var synlig. Der måles nu igen når vælgeren åbnes, og hvis målingen endnu ikke er klar, vises medarbejderne som almindelig liste, så feltet aldrig er blankt.
