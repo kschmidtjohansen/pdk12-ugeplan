@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Assignment } from '@/types/assignment';
@@ -228,15 +230,36 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     </div>
   );
 
-  const renderEmployeeList = () => (
-    <TooltipProvider delayDuration={200}>
-    <div className="py-1 grid grid-cols-1 sm:grid-cols-2 gap-x-2">
-      {visibleEmployees.length === 0 && (
-        <div className="col-span-full py-6 text-center text-sm text-muted-foreground">
-          {t('employees.noResults')}
-        </div>
-      )}
-      {visibleEmployees.map((employee, index) => {
+  // Virtualization: only visible rows are rendered so the selector stays fast
+  // even with several hundred employees in a department.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const columns = isMobile ? 1 : 2;
+
+  const employeeRows = useMemo(() => {
+    const rows: Employee[][] = [];
+    for (let i = 0; i < visibleEmployees.length; i += columns) {
+      rows.push(visibleEmployees.slice(i, i + columns));
+    }
+    return rows;
+  }, [visibleEmployees, columns]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: employeeRows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 60,
+    overscan: 8,
+  });
+
+  useEffect(() => {
+    if (employeeRows.length > 0) {
+      rowVirtualizer.scrollToIndex(0);
+    }
+    // Reset scroll position whenever the filtered result changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+  const renderEmployeeButton = (employee: Employee, isLast: boolean) => {
+
 
         try {
           if (!employee || !employee.id || !employee.name) {
@@ -320,7 +343,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               type="button"
               disabled={isDisabled}
               className={`w-full text-left flex items-center gap-3 py-3 px-4 transition-colors ${
-                index < visibleEmployees.length - 1 ? 'border-b border-border/40' : ''
+                !isLast ? 'border-b border-border/40' : ''
               } ${
                 isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
               } ${
@@ -427,10 +450,46 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           if (import.meta.env.DEV) console.error(`[EmployeeSelector] Error rendering employee ${employee?.name || 'unknown'}:`, err);
           return null;
         }
-      })}
-    </div>
-    </TooltipProvider>
-  );
+  };
+
+  const renderEmployeeList = () => {
+    const virtualRows = rowVirtualizer.getVirtualItems();
+    return (
+      <TooltipProvider delayDuration={200}>
+        {visibleEmployees.length === 0 ? (
+          <div className="py-6 text-center text-sm text-muted-foreground">
+            {t('employees.noResults')}
+          </div>
+        ) : (
+          <div
+            className="relative w-full py-1"
+            style={{ height: rowVirtualizer.getTotalSize() }}
+          >
+            {virtualRows.map((virtualRow) => {
+              const row = employeeRows[virtualRow.index];
+              const isLastRow = virtualRow.index === employeeRows.length - 1;
+              return (
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={rowVirtualizer.measureElement}
+                  className="absolute left-0 top-0 w-full grid grid-cols-1 sm:grid-cols-2 gap-x-2"
+                  style={{ transform: `translateY(${virtualRow.start}px)` }}
+                >
+                  {row.map((employee) => (
+                    <React.Fragment key={employee.id}>
+                      {renderEmployeeButton(employee, isLastRow)}
+                    </React.Fragment>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </TooltipProvider>
+    );
+  };
+
 
   const triggerButton = (
     <Button 
@@ -465,9 +524,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             </DrawerHeader>
             <div className="px-4">{renderSearchField()}</div>
             <div 
-              className="max-h-[80dvh] overflow-y-auto px-4 pb-4"
+              ref={scrollRef}
+              className="h-[65dvh] max-h-[80dvh] overflow-y-auto px-4 pb-4"
               style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
             >
+
               {renderEmployeeList()}
             </div>
           </DrawerContent>
@@ -483,7 +544,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           >
             {renderSearchField()}
             <div 
-              className="max-h-[70vh] overflow-y-auto"
+              ref={scrollRef}
+              className="h-[60vh] max-h-[70vh] overflow-y-auto"
+
               onWheel={(e) => e.stopPropagation()}
             >
               {renderEmployeeList()}
