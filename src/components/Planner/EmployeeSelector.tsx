@@ -228,15 +228,36 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     </div>
   );
 
-  const renderEmployeeList = () => (
-    <TooltipProvider delayDuration={200}>
-    <div className="py-1 grid grid-cols-1 sm:grid-cols-2 gap-x-2">
-      {visibleEmployees.length === 0 && (
-        <div className="col-span-full py-6 text-center text-sm text-muted-foreground">
-          {t('employees.noResults')}
-        </div>
-      )}
-      {visibleEmployees.map((employee, index) => {
+  // Virtualization: only visible rows are rendered so the selector stays fast
+  // even with several hundred employees in a department.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const columns = isMobile ? 1 : 2;
+
+  const employeeRows = useMemo(() => {
+    const rows: Employee[][] = [];
+    for (let i = 0; i < visibleEmployees.length; i += columns) {
+      rows.push(visibleEmployees.slice(i, i + columns));
+    }
+    return rows;
+  }, [visibleEmployees, columns]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: employeeRows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 60,
+    overscan: 8,
+  });
+
+  useEffect(() => {
+    if (employeeRows.length > 0) {
+      rowVirtualizer.scrollToIndex(0);
+    }
+    // Reset scroll position whenever the filtered result changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+  const renderEmployeeButton = (employee: Employee, isLast: boolean) => {
+
 
         try {
           if (!employee || !employee.id || !employee.name) {
