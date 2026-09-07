@@ -130,13 +130,24 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         return;
       }
 
-      // Vikar expiry must be in the future when not converting to permanent
+      // Vikar expiry must be in the future and not before the current expiry
       if (isEditingVikar && !convertToPermanent && formData.expires_at) {
         const expiry = new Date(formData.expires_at);
         if (isNaN(expiry.getTime()) || expiry < startOfToday()) {
           setErrorMessage(t('employees.expirationMustBeFuture'));
           setIsSubmitting(false);
           return;
+        }
+        if (currentEmployee?.expires_at) {
+          const currentExpiry = new Date(currentEmployee.expires_at);
+          currentExpiry.setHours(0, 0, 0, 0);
+          if (expiry < currentExpiry) {
+            setErrorMessage(t('employees.expiryBeforeCurrent', {
+              date: format(currentExpiry, 'd. MMMM yyyy', { locale: da })
+            }));
+            setIsSubmitting(false);
+            return;
+          }
         }
       }
 
@@ -385,26 +396,45 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                       )}
                     </div>
                   </div>
-                  {!convertToPermanent && (
+                  {!convertToPermanent && (() => {
+                    // Extension always counts from the latest of: current expiry or today
+                    const currentExpiryDate = currentEmployee?.expires_at ? new Date(currentEmployee.expires_at) : null;
+                    const today = startOfToday();
+                    const baseDate = currentExpiryDate && currentExpiryDate > today ? currentExpiryDate : today;
+                    const minDate = format(baseDate, 'yyyy-MM-dd');
+                    return (
                     <div className="pt-2 border-t border-amber-200 dark:border-amber-700 space-y-2">
                       <Label htmlFor="edit_expires_at" className="text-sm font-medium text-amber-800 dark:text-amber-200">
                         {t('employees.newExpirationDate')}
                       </Label>
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        className="w-full h-8 text-sm"
+                        disabled={isSubmitting}
+                        onClick={() => handleInputChange({
+                          target: { name: 'expires_at', value: format(addMonths(baseDate, 1), 'yyyy-MM-dd') }
+                        } as any)}
+                      >
+                        <CalendarPlus className="h-4 w-4 mr-1.5" />
+                        {t('employees.extendEmployment')}
+                      </Button>
                       <Input
                         id="edit_expires_at"
                         name="expires_at"
                         type="date"
                         value={formData.expires_at}
                         onChange={handleInputChange}
-                        min={format(startOfToday(), 'yyyy-MM-dd')}
+                        min={minDate}
                         disabled={isSubmitting}
                       />
                       <div className="flex flex-wrap gap-1.5">
                         {[
-                          { label: t('employees.extend1Week'), date: addWeeks(new Date(currentEmployee?.expires_at || new Date()), 1) },
-                          { label: t('employees.extend2Weeks'), date: addWeeks(new Date(currentEmployee?.expires_at || new Date()), 2) },
-                          { label: t('employees.extend1Month'), date: addMonths(new Date(currentEmployee?.expires_at || new Date()), 1) },
-                          { label: t('employees.extend3Months'), date: addMonths(new Date(currentEmployee?.expires_at || new Date()), 3) },
+                          { label: t('employees.extend1Week'), date: addWeeks(baseDate, 1) },
+                          { label: t('employees.extend2Weeks'), date: addWeeks(baseDate, 2) },
+                          { label: t('employees.extend1Month'), date: addMonths(baseDate, 1) },
+                          { label: t('employees.extend3Months'), date: addMonths(baseDate, 3) },
                         ].map(opt => (
                           <Button
                             key={opt.label}
@@ -429,7 +459,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                         </p>
                       )}
                     </div>
-                  )}
+                    );
+                  })()}
                   <div className="flex items-center space-x-2 pt-2 border-t border-amber-200 dark:border-amber-700">
                     <Checkbox 
                       id="convertToPermanent" 

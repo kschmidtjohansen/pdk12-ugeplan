@@ -26,6 +26,7 @@ interface AssignmentDialogManagerProps {
   assignments: Assignment[];
   cars: Car[];
   employees: Employee[];
+  employeesLoading?: boolean;
   vacations: Vacation[];
   selectedDay: string;
   onPublishDay: (date: string) => void;
@@ -47,6 +48,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   assignments,
   cars,
   employees,
+  employeesLoading,
   vacations,
   selectedDay,
   onPublishDay,
@@ -117,6 +119,8 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
                   assignments={assignments}
                   cars={cars}
                   employees={employees}
+              employeesLoading={employeesLoading}
+                  employeesLoading={employeesLoading}
                   vacations={vacations}
                   selectedDay={selectedDay}
                   onPublishDay={onPublishDay}
