@@ -183,6 +183,15 @@ const employees = {
   statusTerminated: 'Terminated',
   statusInactive: 'Inactive',
 
+  // Lock reasons in employee selector
+  lockedReasonVacation: 'On vacation this day',
+  lockedReasonOnLeave: 'Marked as absent',
+  lockedReasonTraining: 'On training this day',
+  lockedReasonFullyBooked: 'Fully booked ({hours} h) – cannot be selected for more assignments this day',
+  lockedReasonExpired: 'Temporary access has expired',
+  lockedReasonTerminated: 'Employee is terminated',
+  lockedReasonInactive: 'Employee is inactive',
+
   // Skip department
   skipDepartment: 'No department (IT support)',
   skipDepartmentNote: 'User will be created without department affiliation. Select this for IT support staff and other users not belonging to an operational department.',

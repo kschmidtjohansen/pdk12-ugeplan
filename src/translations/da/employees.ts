@@ -183,6 +183,15 @@ const employees = {
   statusTerminated: 'Opsagt',
   statusInactive: 'Inaktiv',
 
+  // Lock reasons in employee selector
+  lockedReasonVacation: 'Har ferie denne dag',
+  lockedReasonOnLeave: 'Markeret som fraværende',
+  lockedReasonTraining: 'På kursus denne dag',
+  lockedReasonFullyBooked: 'Fuldt booket ({hours} t) – kan ikke vælges til flere opgaver denne dag',
+  lockedReasonExpired: 'Midlertidig adgang er udløbet',
+  lockedReasonTerminated: 'Medarbejderen er opsagt',
+  lockedReasonInactive: 'Medarbejderen er inaktiv',
+
   // Skip department
   skipDepartment: 'Uden afdeling (IT-support)',
   skipDepartmentNote: 'Brugeren oprettes uden afdelingstilknytning. Vælg dette for IT-supportere og andre brugere, der ikke tilhører en driftsafdeling.',
