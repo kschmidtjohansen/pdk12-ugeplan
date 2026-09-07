@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-07 — Rettet tom og for høj medarbejdervælger
+
+- `EmployeeSelector.tsx`: listen kunne vises helt tom, fordi virtualiseringen målte popoveren før den var synlig. Der måles nu igen når vælgeren åbnes, og hvis målingen endnu ikke er klar, vises medarbejderne som almindelig liste, så feltet aldrig er blankt.
+- Desktop-popoveren har ikke længere fast højde (`h-[60vh]`), men `max-h-[min(60vh,480px)]` og `collisionPadding`, så boksen kun fylder det nødvendige og ikke går ud over skærmkanten/proceslinjen.
+- Søgning, valgte-øverst, to-kolonne-visning, statusprikker og låselogik er uændret.
+
 ## 2026-09-07 — Søgning, filtre og sidevisning i adminens brugerliste
 
 - `UserManagement.tsx`: ny filterlinje med søgning på navn/email (200 ms debounce), rollefilter (multivalg med antal) og statusfilter (aktive/inaktive/alle) samt nulstil-knap.
