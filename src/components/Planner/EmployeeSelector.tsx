@@ -544,7 +544,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           >
             {renderSearchField()}
             <div 
-              className="max-h-[70vh] overflow-y-auto"
+              ref={scrollRef}
+              className="h-[60vh] max-h-[70vh] overflow-y-auto"
+
               onWheel={(e) => e.stopPropagation()}
             >
               {renderEmployeeList()}
