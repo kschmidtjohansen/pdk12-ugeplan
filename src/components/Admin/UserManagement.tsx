@@ -99,6 +99,60 @@ const UserManagement: React.FC = () => {
     return acc;
   }, {} as Record<UserRole, number>);
   const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
+
+  const availableRoles = useMemo(() => {
+    const roles = new Set<UserRole>(filteredUsers.map(u => u.role));
+    roleFilter.forEach(r => roles.add(r));
+    return Array.from(roles).sort();
+  }, [filteredUsers, roleFilter]);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchTerm(searchInput.trim().toLowerCase()), 200);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const isUserActive = (user: AdminUser) => !user.banned_until || new Date(user.banned_until) <= new Date();
+
+  // Apply search + role + status filters on top of the department filter
+  const searchedUsers = useMemo(() => {
+    return filteredUsers.filter(u => {
+      if (searchTerm) {
+        const haystack = `${u.name || ''} ${u.email || ''}`.toLowerCase();
+        if (!haystack.includes(searchTerm)) return false;
+      }
+      if (roleFilter.length > 0 && !roleFilter.includes(u.role)) return false;
+      if (statusFilter === 'active' && !isUserActive(u)) return false;
+      if (statusFilter === 'inactive' && isUserActive(u)) return false;
+      return true;
+    });
+  }, [filteredUsers, searchTerm, roleFilter, statusFilter]);
+
+  const paginatedUsers = useMemo(
+    () => searchedUsers.slice((page - 1) * pageSize, page * pageSize),
+    [searchedUsers, page, pageSize]
+  );
+
+  // Reset to first page whenever filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, roleFilter, statusFilter, departmentFilter, pageSize]);
+
+  // Keep page within bounds when the result set shrinks
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(searchedUsers.length / pageSize));
+    if (page > totalPages) setPage(totalPages);
+  }, [searchedUsers.length, pageSize, page]);
+
+  const hasActiveFilters = Boolean(searchInput) || roleFilter.length > 0 || statusFilter !== 'all';
+  const resetFilters = () => {
+    setSearchInput('');
+    setSearchTerm('');
+    setRoleFilter([]);
+    setStatusFilter('all');
+  };
+
+
   
   const handleCreateVikar = () => {
     // Set form data for vikar creation
