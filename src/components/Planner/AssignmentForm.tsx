@@ -442,6 +442,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           onEmployeeToggle={onEmployeeToggle}
           cars={cars}
           employees={employees}
+          employeesLoading={employeesLoading}
           vacations={vacations}
           assignmentId={currentAssignment?.id}
           assignments={assignments}
