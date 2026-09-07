@@ -51,7 +51,8 @@ const PlannerPage: React.FC = () => {
     user
   } = useAuth();
   const {
-    employees
+    employees,
+    loading: employeesLoading
   } = useEmployees();
   const {
     cars
@@ -783,7 +784,8 @@ const PlannerPage: React.FC = () => {
               selectedDay={selectedDay} 
               formData={formData} 
               setFormData={setFormData} 
-              employees={employees} 
+              employees={employees}
+              employeesLoading={employeesLoading}
               cars={cars} 
               vacations={vacations} 
               assignments={assignments} 

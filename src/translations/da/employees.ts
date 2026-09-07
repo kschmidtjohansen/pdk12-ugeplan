@@ -184,6 +184,9 @@ const employees = {
   extend2Weeks: '+2 uger',
   extend1Month: '+1 måned',
   extend3Months: '+3 måneder',
+  noSearchResults: 'Ingen medarbejdere matcher din søgning',
+  clearSearch: 'Ryd søgning',
+  noEmployeesAvailable: 'Der er ingen medarbejdere at vælge i denne afdeling',
   
   // Badge status labels
   statusExpired: 'Udløbet',

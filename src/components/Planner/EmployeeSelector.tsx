@@ -35,6 +35,7 @@ interface EmployeeSelectorProps {
   caseLat?: number;
   caseLng?: number;
   allSelectedDates?: Date[];
+  employeesLoading?: boolean;
 }
 
 export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
@@ -47,7 +48,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   casePostcode,
   caseLat,
   caseLng,
-  allSelectedDates = []
+  allSelectedDates = [],
+  employeesLoading = false
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { user } = useAuth();
@@ -467,9 +469,40 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     const virtualRows = rowVirtualizer.getVirtualItems();
     return (
       <TooltipProvider delayDuration={200}>
-        {visibleEmployees.length === 0 ? (
-          <div className="py-6 text-center text-sm text-muted-foreground">
-            {t('employees.noResults')}
+        {employeesLoading ? (
+          <div className="space-y-2 py-2" aria-label={`${t('common.loading')}...`}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-x-2">
+                <div className="flex items-center gap-3 px-2 py-2.5">
+                  <div className="h-4 w-4 rounded bg-muted animate-pulse" />
+                  <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3.5 w-2/3 rounded bg-muted animate-pulse" />
+                    <div className="h-3 w-1/3 rounded bg-muted animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : visibleEmployees.length === 0 ? (
+          <div className="py-8 px-4 flex flex-col items-center text-center gap-2">
+            <Users className="h-8 w-8 text-muted-foreground/50" />
+            {searchTerm.trim() ? (
+              <>
+                <p className="text-sm font-medium">{t('employees.noSearchResults')}</p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setSearchTerm('')}
+                >
+                  {t('employees.clearSearch')}
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t('employees.noEmployeesAvailable')}</p>
+            )}
           </div>
         ) : virtualRows.length === 0 ? (
           // Fallback: virtualizer has not measured yet (e.g. popover just
@@ -561,13 +594,15 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           </PopoverTrigger>
           <PopoverContent
             className="w-[760px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
+            side="bottom"
+            align="start"
             sideOffset={4}
             collisionPadding={16}
           >
             {renderSearchField()}
             <div 
               ref={scrollRef}
-              className="max-h-[min(60vh,480px)] overflow-y-auto"
+              className="max-h-[min(50vh,420px)] overflow-y-auto"
 
 
               onWheel={(e) => e.stopPropagation()}

@@ -41,6 +41,7 @@ interface AssignmentFormFieldsProps {
   onEmployeeToggle: (employeeId: string) => void;
   cars: Car[];
   employees: Employee[];
+  employeesLoading?: boolean;
   vacations: Vacation[];
   assignmentId?: string;
   assignments?: Assignment[];
@@ -75,6 +76,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   onEmployeeToggle,
   cars,
   employees,
+  employeesLoading = false,
   vacations,
   assignmentId,
   assignments = [],
@@ -352,6 +354,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
 
         <EmployeeSelector
           employees={employees}
+          employeesLoading={employeesLoading}
           selectedEmployees={selectedEmployees}
           onToggle={onEmployeeToggle}
           vacations={vacations}
