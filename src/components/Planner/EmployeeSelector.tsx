@@ -435,7 +435,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-accent/50'
               } ${
                 isSelected ? 'bg-accent/30' : ''
+              } ${
+                isActive ? 'ring-2 ring-inset ring-primary bg-accent/40' : ''
               }`}
+              onMouseEnter={() => setActiveIndex(flatIndex)}
+              onFocus={() => setActiveIndex(flatIndex)}
               onPointerUp={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
