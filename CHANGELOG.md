@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-07 — Fix: Valgte medarbejdere kan altid fjernes fra en opgave
+
+- `EmployeeSelector.tsx`: medarbejdere der allerede er valgt til den aktuelle opgave er ikke længere låst — de kan altid klikkes fra og på igen. Låsningen (fuldt booket, ferie, fravær, kursus, udløbet/inaktiv) gælder nu kun medarbejdere, der ikke er valgt til opgaven. Etiketter og advarsler er uændrede.
+
+
+
 ## 2026-09-07 — Fix: Dobbelte toasts og dobbelt "Slip for at opdatere"
 
 - `MainLayout.tsx` pakker allerede alle sider i `PullToRefresh`, men `DashboardPage.tsx` og `CarsPage.tsx` pakkede deres indhold i endnu en `PullToRefresh` oveni — to nestede instanser gav to "Slip for at opdatere"-indikatorer på mobil. De indre wrappers er fjernet; MainLayouts refresh genindlæser stadig data.
