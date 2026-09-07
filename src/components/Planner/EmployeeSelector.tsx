@@ -258,6 +258,17 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
+  // Re-measure once the popover/drawer has mounted so the virtualizer
+  // never observes a 0-height scroll element and returns zero rows.
+  useEffect(() => {
+    if (open) {
+      // Wait for the portal/animation frame before measuring.
+      const raf = requestAnimationFrame(() => rowVirtualizer.measure());
+      return () => cancelAnimationFrame(raf);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, employeeRows.length]);
+
   const renderEmployeeButton = (employee: Employee, isLast: boolean) => {
 
 
