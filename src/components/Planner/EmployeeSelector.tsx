@@ -471,6 +471,16 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           <div className="py-6 text-center text-sm text-muted-foreground">
             {t('employees.noResults')}
           </div>
+        ) : virtualRows.length === 0 ? (
+          // Fallback: virtualizer has not measured yet (e.g. popover just
+          // opened). Render rows plainly so the list is never blank.
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 py-1">
+            {visibleEmployees.map((employee, index) => (
+              <React.Fragment key={employee.id}>
+                {renderEmployeeButton(employee, index === visibleEmployees.length - 1)}
+              </React.Fragment>
+            ))}
+          </div>
         ) : (
           <div
             className="relative w-full py-1"
