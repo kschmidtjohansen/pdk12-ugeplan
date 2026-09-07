@@ -21,9 +21,12 @@ interface EmployeeTableRowProps {
   onToggleLeave?: (employee: Employee) => void;
   onTraining?: (employee: Employee) => void;
   isOnTraining?: boolean;
+  isSick?: boolean;
+  canSeeSickReason?: boolean;
+  onToggleSick?: (employee: Employee) => void;
 }
 
-const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isOnTraining }) => {
+const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isSick, canSeeSickReason, onToggleSick }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
   const { t } = useTranslation();
 
