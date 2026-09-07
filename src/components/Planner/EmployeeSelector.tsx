@@ -258,6 +258,17 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
+  // Re-measure once the popover/drawer has mounted so the virtualizer
+  // never observes a 0-height scroll element and returns zero rows.
+  useEffect(() => {
+    if (open) {
+      // Wait for the portal/animation frame before measuring.
+      const raf = requestAnimationFrame(() => rowVirtualizer.measure());
+      return () => cancelAnimationFrame(raf);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, employeeRows.length]);
+
   const renderEmployeeButton = (employee: Employee, isLast: boolean) => {
 
 
@@ -460,6 +471,16 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           <div className="py-6 text-center text-sm text-muted-foreground">
             {t('employees.noResults')}
           </div>
+        ) : virtualRows.length === 0 ? (
+          // Fallback: virtualizer has not measured yet (e.g. popover just
+          // opened). Render rows plainly so the list is never blank.
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 py-1">
+            {visibleEmployees.map((employee, index) => (
+              <React.Fragment key={employee.id}>
+                {renderEmployeeButton(employee, index === visibleEmployees.length - 1)}
+              </React.Fragment>
+            ))}
+          </div>
         ) : (
           <div
             className="relative w-full py-1"
@@ -541,11 +562,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
           <PopoverContent
             className="w-[760px] max-w-[calc(100vw-2rem)] p-0 z-[60] bg-popover border shadow-lg"
             sideOffset={4}
+            collisionPadding={16}
           >
             {renderSearchField()}
             <div 
               ref={scrollRef}
-              className="h-[60vh] max-h-[70vh] overflow-y-auto"
+              className="max-h-[min(60vh,480px)] overflow-y-auto"
+
 
               onWheel={(e) => e.stopPropagation()}
             >
