@@ -159,7 +159,7 @@ serve(async (req) => {
     }
 
 
-    console.log(`[${requestId}] Access granted for role: ${roleData.role} (${user.email}), fetching users...`);
+    console.log(`[${requestId}] Access granted for role: ${effectiveRole} (${user.email}), fetching users...`);
 
     // FIXED: Get profiles and roles separately to avoid JOIN issues
     console.log(`[${requestId}] Fetching profiles...`);
