@@ -524,9 +524,11 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             </DrawerHeader>
             <div className="px-4">{renderSearchField()}</div>
             <div 
-              className="max-h-[80dvh] overflow-y-auto px-4 pb-4"
+              ref={scrollRef}
+              className="h-[65dvh] max-h-[80dvh] overflow-y-auto px-4 pb-4"
               style={{ touchAction: 'pan-y', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
             >
+
               {renderEmployeeList()}
             </div>
           </DrawerContent>
