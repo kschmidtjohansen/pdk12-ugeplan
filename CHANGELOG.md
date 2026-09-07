@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-07 — Optimering: databaseoprydning, færre opslag og ensartede statusfarver
+
+**Database / backend**
+- Ny funktion `cleanup_log_retention()` (SECURITY DEFINER, `search_path = ''`, kun `service_role`) med natlig cron kl. 03:30: `logs` beholdes i 90 dage, `web_vitals_metrics` i 30 dage, `planner_change_log` i 365 dage. Sletning sker i batches af 20.000 rækker.
+- Engangsoprydning kørt: 284.469 rækker slettet fra `logs`, 24.123 fra `web_vitals_metrics`.
+- Nye indeks: `idx_assignments_department_date` på `assignments(department_id, assignment_date)` og `idx_web_vitals_created_at`.
+- Sikkerhed: `EXECUTE` revoked for `anon`/`authenticated` på `cleanup_log_retention()` og for `anon` på `list_department_absent_user_ids()` (linter: 99 → 98 advarsler, resten er eksisterende).
+
+**Frontend-ydelse**
+- `ChangeLogContext.tsx`: `select('*')` erstattet af eksplicit kolonneliste begge steder, planner-logs begrænset til 300 rækker pr. hentning, og opslaget "alle opgaver i afdelingen" (8.145 kald/periode) erstattet af et enkelt opslag på de faktisk refererede opgave-id'er inkl. `department_id`.
+- `useVacationData.ts`: profiler slås op via `Map` i stedet for `find` pr. række, og det ekstra medarbejderopslag udføres kun, hvis en ferie mangler profil.
+
+**Visuelt**
+- Nye semantiske tokens `--success-soft`, `--warning-soft`, `--destructive-soft`, `--info-soft`, `--accent-soft` (+ foreground) i `index.css` for både lyst og mørkt tema, eksponeret i `tailwind.config.ts`.
+- `status-badge.tsx` og `employeeAvailability.ts` bruger nu disse tokens i stedet for hårdkodede `bg-green-100`-lignende klasser; alle statusmærker har samme størrelse og typografi.
+- `ListPageShell` bruger samme sidepolstring (`px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5`) som Dashboard, Ugeplan og Vagt.
+
+**Verificeret uændret**
+- Alle ruter er allerede lazy-loadede med retry, og produktionsbuildet fjerner konsolbeskeder (`terser drop_console`).
+
 ## 2026-09-07 — Sygemelding (dag-for-dag) på /employees
 
 - Ny tabel `sick_days` (bruger, afdeling, dato, unik pr. dag) med RLS: kun administratorer kan oprette/fjerne, og kun administratorer/skadeledere kan læse rækkerne — dvs. selve årsagen "syg".
