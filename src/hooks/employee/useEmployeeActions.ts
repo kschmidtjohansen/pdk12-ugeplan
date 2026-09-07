@@ -119,11 +119,18 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         }
       }
 
-      // Handle vikar to permanent conversion
+      // Handle vikar expiry update / conversion to permanent
       if ('is_temporary' in formData) {
         updatePayload.is_temporary = formData.is_temporary;
         if (formData.is_temporary === false) {
           updatePayload.expires_at = null;
+        } else if (formData.is_temporary === true && formData.expires_at) {
+          // Extend/change expiry — store as end of day (23:59:59 local)
+          const expiry = new Date(formData.expires_at);
+          if (!isNaN(expiry.getTime())) {
+            expiry.setHours(23, 59, 59, 999);
+            updatePayload.expires_at = expiry.toISOString();
+          }
         }
       }
 
