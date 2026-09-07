@@ -738,29 +738,36 @@ const PlannerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content */}
-        <PlannerContent 
-          weekAssignments={sortedWeekAssignments} 
-          operationStates={convertedOperationStates}
-          expandedDays={expandedDays}
-          onToggleExpansion={handleToggleExpansion}
-          onEditAssignment={handleOpenEditDialog} 
-          onDeleteAssignment={handleDeleteAssignment} 
-          onPublishAssignment={handlePublishAssignment} 
-          onPublishDay={handlePublishDay} 
-          onCreateAssignment={handleOpenCreateDialog} 
-          onCopyAssignment={handleCopyAssignment} 
-          onCopyDayFromYesterday={handleCopyDayFromYesterday}
-          selectedWeek={selectedWeek} 
-          selectedYear={selectedYear} 
-          weekDates={weekDates}
-          viewMode={viewMode}
-          selectedIds={selectedIds}
-          selectionActive={selectedIds.size > 0}
-          onToggleSelect={handleToggleSelect}
-          allExpanded={allExpanded}
-          onToggleAllExpanded={handleToggleAllExpanded}
-        />
+        {/* Main Content — skeleton reserves the same vertical space as the week list */}
+        {loading ? (
+          <div aria-label={`${t('common.loading')}...`}>
+            <ListSkeleton rowCount={7} rowHeight={72} className="p-0 sm:p-0" />
+          </div>
+        ) : (
+          <PlannerContent 
+            weekAssignments={sortedWeekAssignments} 
+            operationStates={convertedOperationStates}
+            expandedDays={expandedDays}
+            onToggleExpansion={handleToggleExpansion}
+            onEditAssignment={handleOpenEditDialog} 
+            onDeleteAssignment={handleDeleteAssignment} 
+            onPublishAssignment={handlePublishAssignment} 
+            onPublishDay={handlePublishDay} 
+            onCreateAssignment={handleOpenCreateDialog} 
+            onCopyAssignment={handleCopyAssignment} 
+            onCopyDayFromYesterday={handleCopyDayFromYesterday}
+            selectedWeek={selectedWeek} 
+            selectedYear={selectedYear} 
+            weekDates={weekDates}
+            viewMode={viewMode}
+            selectedIds={selectedIds}
+            selectionActive={selectedIds.size > 0}
+            onToggleSelect={handleToggleSelect}
+            allExpanded={allExpanded}
+            onToggleAllExpanded={handleToggleAllExpanded}
+          />
+        )}
+
 
         {/* Assignment Dialog */}
         {isDialogOpen && (
