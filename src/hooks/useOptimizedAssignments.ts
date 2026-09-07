@@ -21,6 +21,11 @@ import { useEffect, useRef } from 'react';
 export type FilterType = 'all' | 'published' | 'unpublished' | 'user';
 export type AssignmentFilter = FilterType; // Export for compatibility
 
+// Module-level guard: prevents the same assignment from being saved twice in
+// parallel (e.g. double-invoked submit), which would otherwise fire duplicate
+// toasts and duplicate change-log entries. Shared across hook instances.
+const inFlightUpdates = new Set<string>();
+
 interface UseOptimizedAssignmentsResult {
   assignments: Assignment[];
   loading: boolean;
@@ -413,6 +418,11 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [toast, t, setAssignments, setOperationStates, allEmployees, refetch, user, selectedDepartmentId, selectedSubDepartmentId]);
 
   const updateAssignment = useCallback(async (id: string, data: Partial<Assignment>) => {
+    if (inFlightUpdates.has(id)) {
+      if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Ignoring duplicate in-flight update for', id);
+      return;
+    }
+    inFlightUpdates.add(id);
     notifyOwnAction();
     setOperationState(id, 'loading');
     try {
