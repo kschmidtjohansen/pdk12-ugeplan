@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Plane, Clock, AlertCircle } from 'lucide-react';
+import { Plane, Clock } from 'lucide-react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useSickForDateValue } from '@/hooks/useSickDays';

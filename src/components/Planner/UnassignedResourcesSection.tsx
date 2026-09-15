@@ -87,7 +87,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   const { trainingIds, trainingInfo } = useActiveTrainingsForDate(targetDate);
   // Sick employees for the selected date. Non-privileged roles only get the
   // ids (no reason), so the badge falls back to a neutral "Fraværende".
-  const { sickIds, canSeeSickReason } = useSickForDateValue(targetDate);
+  const { sickIds } = useSickForDateValue(targetDate);
 
   // Employees on training for the selected date (yellow "Kursus" label)
   const employeesOnTraining = useMemo(() => {

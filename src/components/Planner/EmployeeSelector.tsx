@@ -62,7 +62,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
   const { trainingIds: trainingIdsForDate } = useActiveTrainingsForDate(currentDate);
-  const { sickIds: sickIdsForDate, canSeeSickReason } = useSickForDateValue(currentDate);
+  const { sickIds: sickIdsForDate } = useSickForDateValue(currentDate);
 
   // Haversine sort — deps: employee list + assignment GPS coords
   const distanceMap = useMemo(() => {

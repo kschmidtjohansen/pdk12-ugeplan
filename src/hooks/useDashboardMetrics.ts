@@ -171,8 +171,7 @@ export const useDashboardMetrics = (
           onTraining: isOnTraining,
           training: isOnTraining ? weekTrainingInfo.get(employee.id) : undefined,
           isSick,
-          /** Årsagen vises kun for admin/skadeleder; øvrige ser blot "Fraværende". */
-          canSeeSickReason: isSick ? canSeeSickReason : false,
+
         };
       });
 
