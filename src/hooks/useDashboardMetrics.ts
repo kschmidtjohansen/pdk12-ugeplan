@@ -28,7 +28,7 @@ export const useDashboardMetrics = (
 
   const metricDateStr = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const { trainingIds, trainingInfo, isLoading: trainingsLoading } = useActiveTrainingsForDate(metricDateStr);
-  const { sickIds } = useSickForDateValue(metricDateStr);
+  const { sickIds, canSeeSickReason } = useSickForDateValue(metricDateStr);
 
   // Fallback to single-date range when no week range supplied (keeps behaviour for callers that don't pass a week).
   const rangeStart = weekRange?.startStr || metricDateStr;
@@ -144,6 +144,9 @@ export const useDashboardMetrics = (
           return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
         }),
         ...safeEmployees.filter(employee => weekTrainingIds.has(employee.id)),
+        // Sygemeldte for netop denne dag tæller som fraværende.
+        // Årsagen (sygdom) afsløres kun for roller der må se den — se AbsentEmployeesModal.
+        ...countableEmployees.filter(employee => sickIds.has(employee.id)),
       ].filter(emp => {
         if (absentSeen.has(emp.id)) return false;
         absentSeen.add(emp.id);
@@ -159,13 +162,17 @@ export const useDashboardMetrics = (
           new Date(v.end_date) >= metricDate
         );
         const isOnTraining = weekTrainingIds.has(employee.id);
+        const isSick = sickIds.has(employee.id);
 
         return {
           ...employee,
           availabilityStatus: status,
           vacation: vacation,
           onTraining: isOnTraining,
-          training: isOnTraining ? weekTrainingInfo.get(employee.id) : undefined
+          training: isOnTraining ? weekTrainingInfo.get(employee.id) : undefined,
+          isSick,
+          /** Årsagen vises kun for admin/skadeleder; øvrige ser blot "Fraværende". */
+          canSeeSickReason: isSick ? canSeeSickReason : false,
         };
       });
 
@@ -224,7 +231,7 @@ export const useDashboardMetrics = (
       if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, trainingsLoading, weekTrainingsLoading, t, metricDateStr, selectedSubDepartmentId, effectiveRole, trainingIds, sickIds, trainingInfo, weekTrainingIds, weekTrainingInfo]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, trainingsLoading, weekTrainingsLoading, t, metricDateStr, selectedSubDepartmentId, effectiveRole, trainingIds, sickIds, trainingInfo, weekTrainingIds, weekTrainingInfo, canSeeSickReason]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 
