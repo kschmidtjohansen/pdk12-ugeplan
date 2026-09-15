@@ -162,13 +162,17 @@ export const useDashboardMetrics = (
           new Date(v.end_date) >= metricDate
         );
         const isOnTraining = weekTrainingIds.has(employee.id);
+        const isSick = sickIds.has(employee.id);
 
         return {
           ...employee,
           availabilityStatus: status,
           vacation: vacation,
           onTraining: isOnTraining,
-          training: isOnTraining ? weekTrainingInfo.get(employee.id) : undefined
+          training: isOnTraining ? weekTrainingInfo.get(employee.id) : undefined,
+          isSick,
+          /** Årsagen vises kun for admin/skadeleder; øvrige ser blot "Fraværende". */
+          canSeeSickReason: isSick ? canSeeSickReason : false,
         };
       });
 
