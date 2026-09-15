@@ -15,6 +15,10 @@ interface AbsentEmployee extends Employee {
   vacation?: Vacation;
   onTraining?: boolean;
   training?: ActiveTrainingInfo;
+  /** Sygemeldt på den valgte dag */
+  isSick?: boolean;
+  /** true kun for roller der må se, at fraværet skyldes sygdom */
+  canSeeSickReason?: boolean;
 }
 
 interface AbsentEmployeesModalProps {
@@ -82,7 +86,13 @@ const AbsentEmployeesModal: React.FC<AbsentEmployeesModalProps> = ({
                 </div>
                 
                 <div className="flex flex-col items-end gap-1">
-                  {employee.onTraining ? (
+                  {employee.isSick ? (
+                    <StatusBadge variant={employee.canSeeSickReason ? 'error' : 'warning'}>
+                      {employee.canSeeSickReason
+                        ? t('dashboard.metrics.sickStatus')
+                        : t('dashboard.metrics.absentStatus')}
+                    </StatusBadge>
+                  ) : employee.onTraining ? (
                     <StatusBadge variant="warning">
                       Kursus
                     </StatusBadge>
