@@ -11,6 +11,7 @@ import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
+import { useSickForDateValue } from '@/hooks/useSickDays';
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -84,12 +85,21 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   const targetDate = selectedDate;
   const targetDateObj = parseISO(targetDate);
   const { trainingIds, trainingInfo } = useActiveTrainingsForDate(targetDate);
+  // Sick employees for the selected date. Non-privileged roles only get the
+  // ids (no reason), so the badge falls back to a neutral "Fraværende".
+  const { sickIds, canSeeSickReason } = useSickForDateValue(targetDate);
 
   // Employees on training for the selected date (yellow "Kursus" label)
   const employeesOnTraining = useMemo(() => {
     if (!employees || !Array.isArray(employees)) return [];
-    return employees.filter(emp => trainingIds.has(emp.id));
-  }, [employees, trainingIds]);
+    return employees.filter(emp => trainingIds.has(emp.id) && !sickIds.has(emp.id));
+  }, [employees, trainingIds, sickIds]);
+
+  // Employees marked sick for the selected date
+  const employeesSick = useMemo(() => {
+    if (!employees || !Array.isArray(employees)) return [];
+    return employees.filter(emp => sickIds.has(emp.id));
+  }, [employees, sickIds]);
 
   // Get assigned car IDs for the target date
   const assignedCarIds = useMemo(() => {
@@ -174,7 +184,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const allAvailable = [
       ...employeeAvailabilityData.available,
       ...employeeAvailabilityData.partiallyBooked,
-    ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id));
+    ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id) && !sickIds.has(emp.id));
     const rolesOf = (emp: any): string[] => {
       const r = (emp.roles && emp.roles.length ? emp.roles : [emp.role]) as string[];
       return r || [];
@@ -191,7 +201,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     });
 
     return { skadeledere, fugtteknikere, servicemedarbejdere };
-  }, [employeeAvailabilityData, crossBusyEmployeeIds, trainingIds]);
+  }, [employeeAvailabilityData, crossBusyEmployeeIds, trainingIds, sickIds]);
 
   // Calculate available cars (also excludes cars booked in other sub-departments)
   const availableCars = useMemo(() => {
@@ -208,19 +218,21 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   // Summary statistics
   const stats = useMemo(() => {
-    const totalAvailable = employeeAvailabilityData.available.length + employeeAvailabilityData.partiallyBooked.length;
+    const notSick = (list: Array<{ id: string }>) => list.filter(e => !sickIds.has(e.id));
+    const availableCount = notSick(employeeAvailabilityData.available).length;
+    const partialCount = notSick(employeeAvailabilityData.partiallyBooked).length;
     return {
-      availableEmployees: employeeAvailabilityData.available.length,
-      partiallyBookedEmployees: employeeAvailabilityData.partiallyBooked.length,
-      totalAvailableEmployees: totalAvailable,
-      fullyBookedEmployees: employeeAvailabilityData.fullyBooked.length,
+      availableEmployees: availableCount,
+      partiallyBookedEmployees: partialCount,
+      totalAvailableEmployees: availableCount + partialCount,
+      fullyBookedEmployees: notSick(employeeAvailabilityData.fullyBooked).length,
       onLeaveEmployees: employeeAvailabilityData.onLeave.length,
       onVacationEmployees: employeeAvailabilityData.onVacation.length,
       availableCars: availableCars.length,
       totalCars: cars.length,
       assignedCars: assignedCarIds.size
     };
-  }, [employeeAvailabilityData, availableCars.length, cars.length, assignedCarIds.size]);
+  }, [employeeAvailabilityData, availableCars.length, cars.length, assignedCarIds.size, sickIds]);
 
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
@@ -526,6 +538,45 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                             {employee.availabilityInfo?.text && (
                               <p className="text-xs text-muted-foreground">{employee.availabilityInfo.text}</p>
                             )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sick / absent employees for the selected date.
+                  Only privileged roles are told the reason is sickness. */}
+              {employeesSick.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-destructive mb-2 flex items-center gap-1.5">
+                    <AlertCircle className="h-4 w-4" />
+                    {canSeeSickReason ? t('planner.sickEmployees') : t('planner.absentEmployees')} ({employeesSick.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {employeesSick.map(employee => (
+                      <TooltipProvider key={employee.id} delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant="outline"
+                              className={
+                                canSeeSickReason
+                                  ? 'text-xs bg-destructive-soft text-destructive-soft-foreground border-transparent cursor-default'
+                                  : 'text-xs bg-warning-soft text-warning-soft-foreground border-transparent cursor-default'
+                              }
+                            >
+                              {displayFirstName(employee.name)}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-medium">{employee.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {canSeeSickReason
+                                ? t('employees.lockedReasonSick')
+                                : t('employees.lockedReasonAbsent')}
+                            </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

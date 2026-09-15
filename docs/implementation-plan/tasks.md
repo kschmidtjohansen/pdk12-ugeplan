@@ -2,6 +2,9 @@
 
 ## Løbende rettelser ✅
 
+- [x] Syge medarbejdere vises som fraværende i "Ikke tildelte ressourcer" og kan ikke vælges i medarbejdervælgeren; låsetekst og badge afslører kun sygdom for administratorer og skadeledere (2026-09-15).
+
+
 - [x] EmployeeSelector: afstand primær, servicemedarbejdere først inden for samme afstandsgruppe (2026-09-07).
 - [x] Vikar-forlængelse: dedikeret forlæng-knap og validering mod forkortelse af udløbsdato (2026-09-07).
 - [x] EmployeeSelector: popover forbliver i viewport på Windows (side/align/collisionPadding, lavere maks-højde), loading-skelet under datahentning og tydelig tomtilstand med ryd søgning (2026-09-07).

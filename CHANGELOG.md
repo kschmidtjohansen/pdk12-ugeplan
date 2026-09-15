@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-15 — Syge medarbejdere vises som fraværende i ugeplanen
+
+- `UnassignedResourcesSection`: syge for den valgte dag fjernes fra ledige skadeledere/fugtteknikere/servicemedarbejdere og fra tællerne, og vises i en egen fraværsgruppe. Overskrift og badge er "Syge medarbejdere" for administratorer/skadeledere og "Fraværende medarbejdere" for øvrige roller (tokenbaserede farver).
+- `EmployeeSelector`: syge var allerede låst, men uden forklaring — der vises nu låseteksten "Syg denne dag" / "Fraværende denne dag" afhængigt af rolle.
+- Nye oversættelser: `employees.lockedReasonSick`, `employees.lockedReasonAbsent`, `planner.sickEmployees`, `planner.absentEmployees` (da/en).
+- Ingen databaseændringer: sygemelding gemmes pr. dato, så raskmelding sker automatisk ved dagsskifte.
+
 ## 2026-09-07 — Notifikation ved sygemelding
 
 - Ny trigger `trg_notify_sick_day` på `sick_days` med funktionen `notify_sick_day()` (SECURITY DEFINER, `search_path = ''`, `EXECUTE` revoked fra PUBLIC/anon/authenticated).
