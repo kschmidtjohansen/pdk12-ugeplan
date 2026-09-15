@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
-import { Plane, Clock } from 'lucide-react';
+import { Plane, Clock, AlertCircle } from 'lucide-react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useSickForDateValue } from '@/hooks/useSickDays';
+import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DayAbsenceRowProps {
@@ -14,12 +16,15 @@ interface DayAbsenceRowProps {
  * Shows approved vacations / absences for a given day inside DaySection,
  * so planners immediately see who is unavailable when assigning tasks.
  *
- * Frontend-only: uses existing `useVacations` data and respects current
- * department isolation through the underlying hook.
+ * Sick employees for that exact day are included as well. Only administrators
+ * and skadeledere see that the reason is sickness — all other roles simply see
+ * the person listed as absent.
  */
 const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
   const { vacations } = useVacations();
   const { employees } = useEmployees();
+  const { t } = useTranslation();
+  const { sickIds, canSeeSickReason } = useSickForDateValue(dateKey);
 
   const dayVacations = useMemo(() => {
     if (!Array.isArray(vacations)) return [];
@@ -30,12 +35,22 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
     });
   }, [vacations, dateKey]);
 
-  if (dayVacations.length === 0) return null;
+  const sickEmployees = useMemo(() => {
+    if (!sickIds.size || !Array.isArray(employees)) return [];
+    const onVacation = new Set(dayVacations.map((v) => v.user_id));
+    return employees.filter((e) => sickIds.has(e.id) && !onVacation.has(e.id));
+  }, [employees, sickIds, dayVacations]);
+
+  if (dayVacations.length === 0 && sickEmployees.length === 0) return null;
 
   const resolveName = (userId: string, fallbackName?: string) => {
     if (fallbackName) return fallbackName;
     return employees.find((e) => e.id === userId)?.name || 'Ukendt';
   };
+
+  const sickLabel = canSeeSickReason
+    ? t('planner.sickEmployees')
+    : t('planner.absentEmployees');
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -76,6 +91,27 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
             </Tooltip>
           );
         })}
+        {sickEmployees.map((employee) => (
+          <Tooltip key={`sick-${employee.id}`}>
+            <TooltipTrigger asChild>
+              <span
+                role="listitem"
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                  canSeeSickReason
+                    ? 'border-destructive/30 bg-destructive-soft text-destructive-soft-foreground'
+                    : 'border-warning/30 bg-warning-soft text-warning-soft-foreground'
+                }`}
+              >
+                <AlertCircle className="h-2.5 w-2.5" />
+                {employee.name}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              <div className="font-medium">{employee.name}</div>
+              <div className="text-muted-foreground">{sickLabel}</div>
+            </TooltipContent>
+          </Tooltip>
+        ))}
       </div>
     </TooltipProvider>
   );
