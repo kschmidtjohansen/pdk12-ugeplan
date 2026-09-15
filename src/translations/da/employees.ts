@@ -199,6 +199,8 @@ const employees = {
   lockedReasonVacation: 'Har ferie denne dag',
   lockedReasonOnLeave: 'Markeret som fraværende',
   lockedReasonTraining: 'På kursus denne dag',
+  lockedReasonSick: 'Syg denne dag',
+  lockedReasonAbsent: 'Fraværende denne dag',
   lockedReasonFullyBooked: 'Fuldt booket ({hours} t) – kan ikke vælges til flere opgaver denne dag',
   lockedReasonExpired: 'Midlertidig adgang er udløbet',
   lockedReasonTerminated: 'Medarbejderen er opsagt',

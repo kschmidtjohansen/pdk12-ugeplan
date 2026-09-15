@@ -62,7 +62,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
   const [autoRemovedEmployees, setAutoRemovedEmployees] = useState<string[]>([]);
   const { trainingIds: trainingIdsForDate } = useActiveTrainingsForDate(currentDate);
-  const { sickIds: sickIdsForDate } = useSickForDateValue(currentDate);
+  const { sickIds: sickIdsForDate, canSeeSickReason } = useSickForDateValue(currentDate);
 
   // Haversine sort — deps: employee list + assignment GPS coords
   const distanceMap = useMemo(() => {
@@ -403,6 +403,10 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
               lockReason = t('employees.lockedReasonVacation');
             } else if (isManuallyOnLeave) {
               lockReason = t('employees.lockedReasonOnLeave');
+            } else if (sickIdsForDate.has(employee.id)) {
+              lockReason = canSeeSickReason
+                ? t('employees.lockedReasonSick')
+                : t('employees.lockedReasonAbsent');
             } else if (isOnTraining) {
               lockReason = t('employees.lockedReasonTraining');
             } else if (isFullyBooked) {
