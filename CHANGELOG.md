@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-15 — Sygemeldte tælles som fraværende på dashboard og i ugeplanens dagsrække
+
+- `useDashboardMetrics`: sygemeldte for den valgte dag tilføjes til `absentEmployees` (tæller + liste) med `isSick` og rollestyret `canSeeSickReason`; de er fortsat udeladt af ledige medarbejdere.
+- `AbsentEmployeesModal`: viser "Syg" (destructive-soft) for administratorer/skadeledere og "Fraværende" (warning-soft) for øvrige roller.
+- `DayAbsenceRow`: dagens fraværsrække i ugeplanen inkluderer nu sygemeldte som chips med rollestyret tooltip; dubletter mod ferie undgås.
+- Nye oversættelser: `dashboard.metrics.sickStatus` / `dashboard.metrics.absentStatus` (da/en).
+- Migration: `cleanup_log_retention()` sletter nu også `sick_days` ældre end 365 dage (batch på 20.000); funktionen forbliver SECURITY DEFINER med `search_path = ''` og EXECUTE kun til service_role.
+
+
 ## 2026-09-15 — Syge medarbejdere vises som fraværende i ugeplanen
 
 - `UnassignedResourcesSection`: syge for den valgte dag fjernes fra ledige skadeledere/fugtteknikere/servicemedarbejdere og fra tællerne, og vises i en egen fraværsgruppe. Overskrift og badge er "Syge medarbejdere" for administratorer/skadeledere og "Fraværende medarbejdere" for øvrige roller (tokenbaserede farver).

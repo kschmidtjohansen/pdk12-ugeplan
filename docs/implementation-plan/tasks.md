@@ -2,6 +2,9 @@
 
 ## Løbende rettelser ✅
 
+- [x] Sygemeldte tælles som fraværende på dashboardet og vises i ugeplanens dagsrække; årsagen vises kun for administratorer/skadeledere. Gamle sygedage ryddes nu af det natlige oprydningsjob (2026-09-15).
+
+
 - [x] Syge medarbejdere vises som fraværende i "Ikke tildelte ressourcer" og kan ikke vælges i medarbejdervælgeren; låsetekst og badge afslører kun sygdom for administratorer og skadeledere (2026-09-15).
 
 
