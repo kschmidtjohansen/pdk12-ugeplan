@@ -238,7 +238,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const onVacation = employeeAvailabilityData.onVacation;
     if (!employees || !Array.isArray(employees)) return onVacation;
     const onVacationIds = new Set(onVacation.map(e => e.id));
-    const sickOnly = employees.filter(emp => sickIds.has(emp.id) && !onVacationIds.has(emp.id));
+    const sickOnly = employees
+      .filter(emp => sickIds.has(emp.id) && !onVacationIds.has(emp.id))
+      .map(emp => ({ ...emp, availabilityInfo: undefined as any }));
     return [...onVacation, ...sickOnly];
   }, [employeeAvailabilityData.onVacation, employees, sickIds]);
 
