@@ -221,7 +221,6 @@ const planner = {
   partiallyAvailableEmployees: 'Delvist Tilgængelige Medarbejdere',
   onVacationEmployees: 'Medarbejdere fraværende',
   onTrainingEmployees: 'Medarbejdere på Kursus',
-  sickEmployees: 'Syge medarbejdere',
   absentEmployees: 'Fraværende medarbejdere',
   availableCount: 'Tilgængelige',
   onVacationCount: 'På Ferie',

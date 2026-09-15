@@ -28,7 +28,7 @@ export const useDashboardMetrics = (
 
   const metricDateStr = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const { trainingIds, trainingInfo, isLoading: trainingsLoading } = useActiveTrainingsForDate(metricDateStr);
-  const { sickIds, canSeeSickReason } = useSickForDateValue(metricDateStr);
+  const { sickIds } = useSickForDateValue(metricDateStr);
 
   // Fallback to single-date range when no week range supplied (keeps behaviour for callers that don't pass a week).
   const rangeStart = weekRange?.startStr || metricDateStr;
@@ -171,8 +171,7 @@ export const useDashboardMetrics = (
           onTraining: isOnTraining,
           training: isOnTraining ? weekTrainingInfo.get(employee.id) : undefined,
           isSick,
-          /** Årsagen vises kun for admin/skadeleder; øvrige ser blot "Fraværende". */
-          canSeeSickReason: isSick ? canSeeSickReason : false,
+
         };
       });
 
@@ -231,7 +230,7 @@ export const useDashboardMetrics = (
       if (import.meta.env.DEV) console.error('[useDashboardMetrics] Error computing metrics:', err);
       return defaultMetrics;
     }
-  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, trainingsLoading, weekTrainingsLoading, t, metricDateStr, selectedSubDepartmentId, effectiveRole, trainingIds, sickIds, trainingInfo, weekTrainingIds, weekTrainingInfo, canSeeSickReason]);
+  }, [employees, assignments, cars, vacations, warehouseItems, employeesLoading, carsLoading, assignmentsLoading, vacationsLoading, warehouseLoading, trainingsLoading, weekTrainingsLoading, t, metricDateStr, selectedSubDepartmentId, effectiveRole, trainingIds, sickIds, trainingInfo, weekTrainingIds, weekTrainingInfo]);
 
   // Only show error if we have NO data at all (fatal error)
   const hasAnyData = (employees && employees.length > 0) || 

@@ -87,7 +87,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   const { trainingIds, trainingInfo } = useActiveTrainingsForDate(targetDate);
   // Sick employees for the selected date. Non-privileged roles only get the
   // ids (no reason), so the badge falls back to a neutral "Fraværende".
-  const { sickIds, canSeeSickReason } = useSickForDateValue(targetDate);
+  const { sickIds } = useSickForDateValue(targetDate);
 
   // Employees on training for the selected date (yellow "Kursus" label)
   const employeesOnTraining = useMemo(() => {
@@ -546,13 +546,13 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 </div>
               )}
 
-              {/* Sick / absent employees for the selected date.
-                  Only privileged roles are told the reason is sickness. */}
+              {/* Sick employees are always presented as plain "absent" —
+                  the reason is only visible on the employees page. */}
               {employeesSick.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-destructive mb-2 flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-warning mb-2 flex items-center gap-1.5">
                     <AlertCircle className="h-4 w-4" />
-                    {canSeeSickReason ? t('planner.sickEmployees') : t('planner.absentEmployees')} ({employeesSick.length})
+                    {t('planner.absentEmployees')} ({employeesSick.length})
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {employeesSick.map(employee => (
@@ -561,11 +561,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                           <TooltipTrigger asChild>
                             <Badge
                               variant="outline"
-                              className={
-                                canSeeSickReason
-                                  ? 'text-xs bg-destructive-soft text-destructive-soft-foreground border-transparent cursor-default'
-                                  : 'text-xs bg-warning-soft text-warning-soft-foreground border-transparent cursor-default'
-                              }
+                              className="text-xs bg-warning-soft text-warning-soft-foreground border-transparent cursor-default"
                             >
                               {displayFirstName(employee.name)}
                             </Badge>
@@ -573,9 +569,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                           <TooltipContent>
                             <p className="font-medium">{employee.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              {canSeeSickReason
-                                ? t('employees.lockedReasonSick')
-                                : t('employees.lockedReasonAbsent')}
+                              {t('employees.lockedReasonAbsent')}
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -584,6 +578,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   </div>
                 </div>
               )}
+
 
               {/* Employees on Training - yellow */}
               {employeesOnTraining.length > 0 && (

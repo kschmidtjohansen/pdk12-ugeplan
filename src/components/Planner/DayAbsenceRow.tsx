@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Plane, Clock, AlertCircle } from 'lucide-react';
+import { Plane, Clock } from 'lucide-react';
 import { useVacations } from '@/hooks/useVacations';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useSickForDateValue } from '@/hooks/useSickDays';
@@ -16,15 +16,15 @@ interface DayAbsenceRowProps {
  * Shows approved vacations / absences for a given day inside DaySection,
  * so planners immediately see who is unavailable when assigning tasks.
  *
- * Sick employees for that exact day are included as well. Only administrators
- * and skadeledere see that the reason is sickness — all other roles simply see
- * the person listed as absent.
+ * Sick employees for that exact day are included as well, but always presented
+ * as plain "absent" — the reason is never exposed here, for any role.
  */
 const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
   const { vacations } = useVacations();
   const { employees } = useEmployees();
   const { t } = useTranslation();
-  const { sickIds, canSeeSickReason } = useSickForDateValue(dateKey);
+  const { sickIds } = useSickForDateValue(dateKey);
+
 
   const dayVacations = useMemo(() => {
     if (!Array.isArray(vacations)) return [];
@@ -48,9 +48,8 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
     return employees.find((e) => e.id === userId)?.name || 'Ukendt';
   };
 
-  const sickLabel = canSeeSickReason
-    ? t('planner.sickEmployees')
-    : t('planner.absentEmployees');
+  const absentLabel = t('planner.absentEmployees');
+
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -96,22 +95,18 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
             <TooltipTrigger asChild>
               <span
                 role="listitem"
-                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
-                  canSeeSickReason
-                    ? 'border-destructive/30 bg-destructive-soft text-destructive-soft-foreground'
-                    : 'border-warning/30 bg-warning-soft text-warning-soft-foreground'
-                }`}
+                className="inline-flex items-center gap-1 rounded-full border border-amber-300/70 bg-white/70 px-2 py-0.5 text-[11px] font-medium text-amber-900 dark:border-amber-800/60 dark:bg-amber-900/30 dark:text-amber-100"
               >
-                <AlertCircle className="h-2.5 w-2.5" />
                 {employee.name}
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
               <div className="font-medium">{employee.name}</div>
-              <div className="text-muted-foreground">{sickLabel}</div>
+              <div className="text-muted-foreground">{absentLabel}</div>
             </TooltipContent>
           </Tooltip>
         ))}
+
       </div>
     </TooltipProvider>
   );

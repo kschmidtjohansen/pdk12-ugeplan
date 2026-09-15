@@ -102,7 +102,6 @@ export const dashboard = {
     partiallyAvailable: "Partially available",
     fullyAvailable: "Fully available",
     totalCount: "{count} total",
-    sickStatus: "Sick",
     absentStatus: "Absent",
     
     // Detail modal titles

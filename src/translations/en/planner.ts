@@ -404,7 +404,6 @@ const planner = {
   partiallyAvailableEmployees: 'Partially Available Employees',
   onVacationEmployees: 'Absent Employees',
   onTrainingEmployees: 'Employees on Training',
-  sickEmployees: 'Sick employees',
   absentEmployees: 'Absent employees',
   availableCount: 'Available',
   onVacationCount: 'On Vacation',
