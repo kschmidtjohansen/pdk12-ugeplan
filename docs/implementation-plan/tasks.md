@@ -2,6 +2,8 @@
 
 ## Løbende rettelser ✅
 
+- [x] Syge medarbejdere er slået sammen med ferie/orlov i én samlet "Medarbejdere fraværende"-liste i "Ikke tildelte ressourcer" — ingen separat fraværsgruppe, og årsagen fremgår ikke (2026-09-15).
+
 - [x] Sygdom fremstår som "Fraværende" alle steder uden for /employees (ugeplan, dagsrække, medarbejdervælger, dashboard) — ingen rød "Syg"-label kan ses af servicemedarbejdere (2026-09-15).
 
 - [x] Sygemeldte tælles som fraværende på dashboardet og vises i ugeplanens dagsrække; årsagen vises kun for administratorer/skadeledere. Gamle sygedage ryddes nu af det natlige oprydningsjob (2026-09-15).
