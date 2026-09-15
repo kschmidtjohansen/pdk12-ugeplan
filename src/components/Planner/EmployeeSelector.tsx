@@ -404,9 +404,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             } else if (isManuallyOnLeave) {
               lockReason = t('employees.lockedReasonOnLeave');
             } else if (sickIdsForDate.has(employee.id)) {
-              lockReason = canSeeSickReason
-                ? t('employees.lockedReasonSick')
-                : t('employees.lockedReasonAbsent');
+              lockReason = t('employees.lockedReasonAbsent');
+
             } else if (isOnTraining) {
               lockReason = t('employees.lockedReasonTraining');
             } else if (isFullyBooked) {
