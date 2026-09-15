@@ -231,6 +231,17 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     };
   }, [employeeAvailabilityData, availableCars.length, cars.length, assignedCarIds.size, sickIds]);
 
+  // Combined absence list: vacation/leave + sick employees for the selected
+  // date (deduplicated). Sick employees are presented as plain "absent" —
+  // the reason is only visible on the employees page for privileged roles.
+  const absentEmployees = useMemo(() => {
+    const onVacation = employeeAvailabilityData.onVacation;
+    if (!employees || !Array.isArray(employees)) return onVacation;
+    const onVacationIds = new Set(onVacation.map(e => e.id));
+    const sickOnly = employees.filter(emp => sickIds.has(emp.id) && !onVacationIds.has(emp.id));
+    return [...onVacation, ...sickOnly];
+  }, [employeeAvailabilityData.onVacation, employees, sickIds]);
+
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
     const locale = currentLanguage === 'da' ? da : undefined;
