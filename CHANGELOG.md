@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-15 — Fravær samlet i én liste i "Ikke tildelte ressourcer"
+
+- `UnassignedResourcesSection`: syge medarbejdere vises ikke længere i et separat felt, men smeltes ind i "Medarbejdere fraværende" sammen med ferie/orlov — én overskrift, ét samlet antal og ens neutrale badges.
+- Ny `absentEmployees`-memo samler ferie/orlov + syge for den valgte dag uden dubletter; den separate `employeesSick`-sektion er fjernet.
+- Tooltip for syge viser fortsat kun den neutrale tekst "Fraværende denne dag" — årsagen fremgår aldrig i ugeplanen.
+- Ingen databaseændringer; `sick_days`, RLS og notifikationstrigger er uændrede.
+
 ## 2026-09-15 — Sygdom vises som "Fraværende" overalt uden for medarbejdersiden
 
 - `UnassignedResourcesSection`, `DayAbsenceRow`, `EmployeeSelector` og `AbsentEmployeesModal` viser nu altid "Fraværende" (warning-soft/neutral fraværsfarve) for sygemeldte — uanset rolle. Rød "Syg"-markering og rollestyret etiket er fjernet disse steder.
