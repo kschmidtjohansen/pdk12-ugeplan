@@ -2,7 +2,10 @@
 
 ## Løbende rettelser ✅
 
+- [x] Sygdom fremstår som "Fraværende" alle steder uden for /employees (ugeplan, dagsrække, medarbejdervælger, dashboard) — ingen rød "Syg"-label kan ses af servicemedarbejdere (2026-09-15).
+
 - [x] Sygemeldte tælles som fraværende på dashboardet og vises i ugeplanens dagsrække; årsagen vises kun for administratorer/skadeledere. Gamle sygedage ryddes nu af det natlige oprydningsjob (2026-09-15).
+
 
 
 - [x] Syge medarbejdere vises som fraværende i "Ikke tildelte ressourcer" og kan ikke vælges i medarbejdervælgeren; låsetekst og badge afslører kun sygdom for administratorer og skadeledere (2026-09-15).

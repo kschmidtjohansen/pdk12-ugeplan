@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-15 — Sygdom vises som "Fraværende" overalt uden for medarbejdersiden
+
+- `UnassignedResourcesSection`, `DayAbsenceRow`, `EmployeeSelector` og `AbsentEmployeesModal` viser nu altid "Fraværende" (warning-soft/neutral fraværsfarve) for sygemeldte — uanset rolle. Rød "Syg"-markering og rollestyret etiket er fjernet disse steder.
+- `useDashboardMetrics`: `canSeeSickReason` sættes ikke længere på listeposter; kun `isSick` bevares internt.
+- Kun `/employees` viser fortsat "Syg", så administratorer og skadeledere kan markere og fjerne sygemelding.
+- Fjernet ubrugte oversættelser: `planner.sickEmployees`, `employees.lockedReasonSick`, `dashboard.metrics.sickStatus` (da/en).
+- Ingen databaseændringer; RLS, RPC og notifikationstrigger er uændrede.
+
+
+
 ## 2026-09-15 — Sygemeldte tælles som fraværende på dashboard og i ugeplanens dagsrække
 
 - `useDashboardMetrics`: sygemeldte for den valgte dag tilføjes til `absentEmployees` (tæller + liste) med `isSick` og rollestyret `canSeeSickReason`; de er fortsat udeladt af ledige medarbejdere.
