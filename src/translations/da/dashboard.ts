@@ -102,6 +102,8 @@ export const dashboard = {
     partiallyAvailable: "Delvis ledig",
     fullyAvailable: "Fuldt ledig",
     totalCount: "{count} i alt",
+    sickStatus: "Syg",
+    absentStatus: "Fraværende",
     
     // Detail modal titles
     availableEmployeesDetails: "Ledige medarbejdere detaljer",
