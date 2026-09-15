@@ -95,11 +95,8 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return employees.filter(emp => trainingIds.has(emp.id) && !sickIds.has(emp.id));
   }, [employees, trainingIds, sickIds]);
 
-  // Employees marked sick for the selected date
-  const employeesSick = useMemo(() => {
-    if (!employees || !Array.isArray(employees)) return [];
-    return employees.filter(emp => sickIds.has(emp.id));
-  }, [employees, sickIds]);
+  // Employees marked sick for the selected date are merged into the shared
+  // absence list below (see absentEmployees) — never shown as a separate group.
 
   // Get assigned car IDs for the target date
   const assignedCarIds = useMemo(() => {
