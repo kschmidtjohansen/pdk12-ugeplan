@@ -28,7 +28,7 @@ export const useDashboardMetrics = (
 
   const metricDateStr = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const { trainingIds, trainingInfo, isLoading: trainingsLoading } = useActiveTrainingsForDate(metricDateStr);
-  const { sickIds } = useSickForDateValue(metricDateStr);
+  const { sickIds, canSeeSickReason } = useSickForDateValue(metricDateStr);
 
   // Fallback to single-date range when no week range supplied (keeps behaviour for callers that don't pass a week).
   const rangeStart = weekRange?.startStr || metricDateStr;
@@ -144,6 +144,9 @@ export const useDashboardMetrics = (
           return status.status === 'onVacation' || status.status === 'onLeave' || status.status === 'partialVacation';
         }),
         ...safeEmployees.filter(employee => weekTrainingIds.has(employee.id)),
+        // Sygemeldte for netop denne dag tæller som fraværende.
+        // Årsagen (sygdom) afsløres kun for roller der må se den — se AbsentEmployeesModal.
+        ...countableEmployees.filter(employee => sickIds.has(employee.id)),
       ].filter(emp => {
         if (absentSeen.has(emp.id)) return false;
         absentSeen.add(emp.id);
