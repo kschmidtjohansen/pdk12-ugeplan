@@ -546,6 +546,45 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 </div>
               )}
 
+              {/* Sick / absent employees for the selected date.
+                  Only privileged roles are told the reason is sickness. */}
+              {employeesSick.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-destructive mb-2 flex items-center gap-1.5">
+                    <AlertCircle className="h-4 w-4" />
+                    {canSeeSickReason ? t('planner.sickEmployees') : t('planner.absentEmployees')} ({employeesSick.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {employeesSick.map(employee => (
+                      <TooltipProvider key={employee.id} delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant="outline"
+                              className={
+                                canSeeSickReason
+                                  ? 'text-xs bg-destructive-soft text-destructive-soft-foreground border-transparent cursor-default'
+                                  : 'text-xs bg-warning-soft text-warning-soft-foreground border-transparent cursor-default'
+                              }
+                            >
+                              {displayFirstName(employee.name)}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-medium">{employee.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {canSeeSickReason
+                                ? t('employees.lockedReasonSick')
+                                : t('employees.lockedReasonAbsent')}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Employees on Training - yellow */}
               {employeesOnTraining.length > 0 && (
                 <div>
