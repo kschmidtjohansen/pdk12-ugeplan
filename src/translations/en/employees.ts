@@ -199,7 +199,6 @@ const employees = {
   lockedReasonVacation: 'On vacation this day',
   lockedReasonOnLeave: 'Marked as absent',
   lockedReasonTraining: 'On training this day',
-  lockedReasonSick: 'Sick this day',
   lockedReasonAbsent: 'Absent this day',
   lockedReasonFullyBooked: 'Fully booked ({hours} h) – cannot be selected for more assignments this day',
   lockedReasonExpired: 'Temporary access has expired',

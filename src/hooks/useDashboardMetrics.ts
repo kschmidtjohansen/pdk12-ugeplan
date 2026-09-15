@@ -28,7 +28,7 @@ export const useDashboardMetrics = (
 
   const metricDateStr = selectedDate || format(new Date(), 'yyyy-MM-dd');
   const { trainingIds, trainingInfo, isLoading: trainingsLoading } = useActiveTrainingsForDate(metricDateStr);
-  const { sickIds, canSeeSickReason } = useSickForDateValue(metricDateStr);
+  const { sickIds } = useSickForDateValue(metricDateStr);
 
   // Fallback to single-date range when no week range supplied (keeps behaviour for callers that don't pass a week).
   const rangeStart = weekRange?.startStr || metricDateStr;
