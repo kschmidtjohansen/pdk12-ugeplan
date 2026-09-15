@@ -85,12 +85,21 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   const targetDate = selectedDate;
   const targetDateObj = parseISO(targetDate);
   const { trainingIds, trainingInfo } = useActiveTrainingsForDate(targetDate);
+  // Sick employees for the selected date. Non-privileged roles only get the
+  // ids (no reason), so the badge falls back to a neutral "Fraværende".
+  const { sickIds, canSeeSickReason } = useSickForDateValue(targetDate);
 
   // Employees on training for the selected date (yellow "Kursus" label)
   const employeesOnTraining = useMemo(() => {
     if (!employees || !Array.isArray(employees)) return [];
-    return employees.filter(emp => trainingIds.has(emp.id));
-  }, [employees, trainingIds]);
+    return employees.filter(emp => trainingIds.has(emp.id) && !sickIds.has(emp.id));
+  }, [employees, trainingIds, sickIds]);
+
+  // Employees marked sick for the selected date
+  const employeesSick = useMemo(() => {
+    if (!employees || !Array.isArray(employees)) return [];
+    return employees.filter(emp => sickIds.has(emp.id));
+  }, [employees, sickIds]);
 
   // Get assigned car IDs for the target date
   const assignedCarIds = useMemo(() => {
