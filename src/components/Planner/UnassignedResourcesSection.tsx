@@ -11,6 +11,7 @@ import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
+import { useSickForDateValue } from '@/hooks/useSickDays';
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
