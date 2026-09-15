@@ -218,19 +218,21 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   // Summary statistics
   const stats = useMemo(() => {
-    const totalAvailable = employeeAvailabilityData.available.length + employeeAvailabilityData.partiallyBooked.length;
+    const notSick = (list: Array<{ id: string }>) => list.filter(e => !sickIds.has(e.id));
+    const availableCount = notSick(employeeAvailabilityData.available).length;
+    const partialCount = notSick(employeeAvailabilityData.partiallyBooked).length;
     return {
-      availableEmployees: employeeAvailabilityData.available.length,
-      partiallyBookedEmployees: employeeAvailabilityData.partiallyBooked.length,
-      totalAvailableEmployees: totalAvailable,
-      fullyBookedEmployees: employeeAvailabilityData.fullyBooked.length,
+      availableEmployees: availableCount,
+      partiallyBookedEmployees: partialCount,
+      totalAvailableEmployees: availableCount + partialCount,
+      fullyBookedEmployees: notSick(employeeAvailabilityData.fullyBooked).length,
       onLeaveEmployees: employeeAvailabilityData.onLeave.length,
       onVacationEmployees: employeeAvailabilityData.onVacation.length,
       availableCars: availableCars.length,
       totalCars: cars.length,
       assignedCars: assignedCarIds.size
     };
-  }, [employeeAvailabilityData, availableCars.length, cars.length, assignedCarIds.size]);
+  }, [employeeAvailabilityData, availableCars.length, cars.length, assignedCarIds.size, sickIds]);
 
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
