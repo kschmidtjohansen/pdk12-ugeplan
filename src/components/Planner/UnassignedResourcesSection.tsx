@@ -522,15 +522,17 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 </div>
               )}
 
-              {/* Employees on Vacation - Compact */}
-              {employeeAvailabilityData.onVacation.length > 0 && (
+              {/* Absent employees (vacation/leave + sick) — one shared list.
+                  Sick employees are always presented as plain "absent";
+                  the reason is only visible on the employees page. */}
+              {absentEmployees.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold text-orange-700 mb-2 flex items-center gap-1.5">
                     <AlertCircle className="h-4 w-4" />
-                    {t('planner.onVacationEmployees')} ({employeeAvailabilityData.onVacation.length})
+                    {t('planner.onVacationEmployees')} ({absentEmployees.length})
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
-                    {employeeAvailabilityData.onVacation.map(employee => (
+                    {absentEmployees.map(employee => (
                       <TooltipProvider key={employee.id} delayDuration={200}>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -543,41 +545,8 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="font-medium">{employee.name}</p>
-                            {employee.availabilityInfo?.text && (
-                              <p className="text-xs text-muted-foreground">{employee.availabilityInfo.text}</p>
-                            )}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Sick employees are always presented as plain "absent" —
-                  the reason is only visible on the employees page. */}
-              {employeesSick.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold text-warning mb-2 flex items-center gap-1.5">
-                    <AlertCircle className="h-4 w-4" />
-                    {t('planner.absentEmployees')} ({employeesSick.length})
-                  </h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {employeesSick.map(employee => (
-                      <TooltipProvider key={employee.id} delayDuration={200}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-warning-soft text-warning-soft-foreground border-transparent cursor-default"
-                            >
-                              {displayFirstName(employee.name)}
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="font-medium">{employee.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              {t('employees.lockedReasonAbsent')}
+                              {employee.availabilityInfo?.text || t('employees.lockedReasonAbsent')}
                             </p>
                           </TooltipContent>
                         </Tooltip>
