@@ -184,7 +184,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const allAvailable = [
       ...employeeAvailabilityData.available,
       ...employeeAvailabilityData.partiallyBooked,
-    ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id));
+    ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id) && !sickIds.has(emp.id));
     const rolesOf = (emp: any): string[] => {
       const r = (emp.roles && emp.roles.length ? emp.roles : [emp.role]) as string[];
       return r || [];
@@ -201,7 +201,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     });
 
     return { skadeledere, fugtteknikere, servicemedarbejdere };
-  }, [employeeAvailabilityData, crossBusyEmployeeIds, trainingIds]);
+  }, [employeeAvailabilityData, crossBusyEmployeeIds, trainingIds, sickIds]);
 
   // Calculate available cars (also excludes cars booked in other sub-departments)
   const availableCars = useMemo(() => {
