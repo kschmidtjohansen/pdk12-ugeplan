@@ -157,14 +157,13 @@ Deno.serve(async (req) => {
     if (duty1.duty_type === 'skadeleder_vagt') {
       // For transfers, only validate the requesting user
       if (isTransfer) {
-        const { data: userRoleData } = await supabase
+        const { data: userRoleRows } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', requestedBy)
-          .single();
-        
-        const reqUserRole = userRoleData?.role || 'servicemedarbejder';
-        const isValidRole = reqUserRole === 'administrator' || reqUserRole === 'skadeleder' || reqUserRole === 'super_admin' || reqUserRole === 'fugttekniker';
+          .eq('user_id', requestedBy);
+
+        const SKADELEDER_VAGT_ROLES = ['administrator', 'skadeleder', 'super_admin', 'fugttekniker'];
+        const isValidRole = (userRoleRows || []).some((r: { role: string }) => SKADELEDER_VAGT_ROLES.includes(r.role));
         
         if (!isValidRole) {
           throw new Error('Only administrators, super admins, skadeledere and fugtteknikere can take skadeleder vagt duties');
