@@ -130,8 +130,14 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
         return;
       }
 
-      // Vikar expiry must be in the future and not before the current expiry
-      if (isEditingVikar && !convertToPermanent && formData.expires_at) {
+      // Vikar expiry must be in the future and not before the current expiry.
+      // Only validated when the date is actually changed, so an already expired
+      // vikar can still be edited (phone, address, ...) without extending.
+      const storedExpiry = currentEmployee?.expires_at
+        ? new Date(currentEmployee.expires_at).toISOString().split('T')[0]
+        : '';
+      const expiryChanged = formData.expires_at !== storedExpiry;
+      if (isEditingVikar && !convertToPermanent && formData.expires_at && expiryChanged) {
         const expiry = new Date(formData.expires_at);
         if (isNaN(expiry.getTime()) || expiry < startOfToday()) {
           setErrorMessage(t('employees.expirationMustBeFuture'));
