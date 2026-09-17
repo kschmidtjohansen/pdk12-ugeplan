@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-17 — Rettelser fra projektovervågning
+
+- `ChangeLogContext.fetchChangeLogsByDateRange`: den faste `.limit(300)` ramte alle afdelinger før afdelingsfiltreringen, så travle organisationer kunne miste poster. Nu hentes loggen sidevis (500 ad gangen, maks. 8 sider) og filtreres pr. side, indtil der er 300 poster for den valgte afdeling.
+- `EmployeeFormDialog`: udløbsvalidering for vikarer køres kun, når udløbsdatoen faktisk ændres. En allerede udløbet vikar kan dermed redigeres (telefon, adresse m.m.) uden tvungen forlængelse.
+
+
 ## 2026-09-17 — Fugtteknikere kan tildeles skadeledervagt
 
 - Rollefilteret for skadeledervagt er udvidet med `fugttekniker` i alle fire vælgere: `DutyEmployeeSelector`, `DutyAssignmentDialog`, `DutyEditDialog` og `DutySwapDialog`.
