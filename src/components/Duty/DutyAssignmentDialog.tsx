@@ -67,7 +67,7 @@ export const DutyAssignmentDialog = ({
 
   const filteredEmployees = useMemo(() => {
     return formData.duty_type === 'skadeleder_vagt'
-      ? employees.filter(e => e.role === 'super_admin' || e.role === 'administrator' || e.role === 'skadeleder')
+      ? employees.filter(e => e.role === 'super_admin' || e.role === 'administrator' || e.role === 'skadeleder' || e.role === 'fugttekniker')
       : employees;
   }, [employees, formData.duty_type]);
 

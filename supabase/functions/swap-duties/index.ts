@@ -164,10 +164,10 @@ Deno.serve(async (req) => {
           .single();
         
         const reqUserRole = userRoleData?.role || 'servicemedarbejder';
-        const isValidRole = reqUserRole === 'administrator' || reqUserRole === 'skadeleder';
+        const isValidRole = reqUserRole === 'administrator' || reqUserRole === 'skadeleder' || reqUserRole === 'super_admin' || reqUserRole === 'fugttekniker';
         
         if (!isValidRole) {
-          throw new Error('Only administrators and skadeledere can take skadeleder vagt duties');
+          throw new Error('Only administrators, super admins, skadeledere and fugtteknikere can take skadeleder vagt duties');
         }
       } else {
         // For swaps, check both employees have appropriate roles
@@ -186,11 +186,11 @@ Deno.serve(async (req) => {
         const role1 = emp1Role?.role || 'servicemedarbejder';
         const role2 = emp2Role?.role || 'servicemedarbejder';
 
-        const isValidRole1 = role1 === 'administrator' || role1 === 'skadeleder';
-        const isValidRole2 = role2 === 'administrator' || role2 === 'skadeleder';
+        const isValidRole1 = role1 === 'administrator' || role1 === 'skadeleder' || role1 === 'super_admin' || role1 === 'fugttekniker';
+        const isValidRole2 = role2 === 'administrator' || role2 === 'skadeleder' || role2 === 'super_admin' || role2 === 'fugttekniker';
 
         if (!isValidRole1 || !isValidRole2) {
-          throw new Error('Only administrators and skadeledere can be assigned to skadeleder vagt');
+          throw new Error('Only administrators, super admins, skadeledere and fugtteknikere can be assigned to skadeleder vagt');
         }
       }
     }
