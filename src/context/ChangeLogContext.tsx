@@ -177,16 +177,6 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const deptUserIds = await getDepartmentUserIds();
       const deptUserIdSet = deptUserIds ? new Set(deptUserIds) : null;
 
-      // Planner logs: fetch unfiltered, filter client-side so we don't drop
-      // rows with NULL assignment_id (bulk events) or rows whose assignment
-      // has since been deleted (DELETE events). Only the columns we render.
-      const plannerQ = client.from('planner_change_log')
-        .select('id, assignment_id, operation, changed_by, changed_by_name, changed_by_first_name, change_details, created_at')
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(300);
-
       let vacQ = client.from('vacations')
         .select('id, user_id, start_date, end_date, request_type, status, reason, notes, created_at, updated_at, reviewed_by, reviewed_at')
         .order('updated_at', { ascending: false });
@@ -197,39 +187,64 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           vacQ = vacQ.in('user_id', deptUserIds);
         }
       }
+      const vacPromise = vacQ;
 
-      const [{ data: plannerData, error: pErr }, vacResult] = await Promise.all([plannerQ, vacQ]);
-      if (pErr) throw pErr;
+      // Planner logs: RLS returns rows across all departments, so we page
+      // through the range and filter each page client-side until we have
+      // enough rows for the selected department (a plain LIMIT would drop
+      // a busy org's other departments before filtering).
+      const PAGE_SIZE = 500;
+      const MAX_PAGES = 8;
+      const TARGET_ROWS = 300;
+      const filteredPlanner: any[] = [];
+
+      for (let page = 0; page < MAX_PAGES; page++) {
+        const { data: pageData, error: pErr } = await client.from('planner_change_log')
+          .select('id, assignment_id, operation, changed_by, changed_by_name, changed_by_first_name, change_details, created_at')
+          .gte('created_at', startDate.toISOString())
+          .lte('created_at', endDate.toISOString())
+          .order('created_at', { ascending: false })
+          .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+        if (pErr) throw pErr;
+        const rows = pageData || [];
+        if (rows.length === 0) break;
+
+        // Look up only the assignments actually referenced by this page.
+        // Missing ids mean the assignment was deleted and the log should still show.
+        const assignmentDeptMap = new Map<string, string | null>();
+        const referencedIds = Array.from(new Set(
+          rows
+            .map((l: any) => l.assignment_id)
+            .filter((id: any): id is string => !!id)
+        ));
+        if (scopeToDepartment && referencedIds.length > 0) {
+          const { data: existing } = await client
+            .from('assignments').select('id, department_id').in('id', referencedIds);
+          (existing || []).forEach((a: any) => assignmentDeptMap.set(a.id, a.department_id ?? null));
+        }
+
+        rows.forEach((log: any) => {
+          if (!scopeToDepartment) { filteredPlanner.push(log); return; } // no dept selected — show all
+          if (log.operation?.startsWith?.('EMPLOYEE_')) {
+            const employeeDeptId = log.change_details?.department_id;
+            const employeeId = log.change_details?.employee_id;
+            if (employeeDeptId === selectedDepartmentId || (employeeId && deptUserIdSet?.has(employeeId))) {
+              filteredPlanner.push(log);
+            }
+            return;
+          }
+          if (!log.assignment_id) { filteredPlanner.push(log); return; }           // bulk/system events
+          if (!assignmentDeptMap.has(log.assignment_id)) { filteredPlanner.push(log); return; } // deleted assignment
+          if (assignmentDeptMap.get(log.assignment_id) === selectedDepartmentId) filteredPlanner.push(log);
+        });
+
+        if (rows.length < PAGE_SIZE || filteredPlanner.length >= TARGET_ROWS) break;
+      }
+
+      const vacResult = await vacPromise;
       if (vacResult.error && import.meta.env.DEV) {
         console.warn('[ChangeLogContext] vacations fetch failed', vacResult.error);
       }
-
-      // Look up only the assignments actually referenced by the fetched logs
-      // (instead of every assignment in the department). Missing ids mean the
-      // assignment was deleted and the log should still be shown.
-      const assignmentDeptMap = new Map<string, string | null>();
-      const referencedIds = Array.from(new Set(
-        (plannerData || [])
-          .map((l: any) => l.assignment_id)
-          .filter((id: any): id is string => !!id)
-      ));
-      if (referencedIds.length > 0) {
-        const { data: existing } = await client
-          .from('assignments').select('id, department_id').in('id', referencedIds);
-        (existing || []).forEach((a: any) => assignmentDeptMap.set(a.id, a.department_id ?? null));
-      }
-
-      const filteredPlanner = (plannerData || []).filter((log: any) => {
-        if (!scopeToDepartment) return true; // no dept selected — show all
-        if (log.operation?.startsWith?.('EMPLOYEE_')) {
-          const employeeDeptId = log.change_details?.department_id;
-          const employeeId = log.change_details?.employee_id;
-          return employeeDeptId === selectedDepartmentId || (employeeId && deptUserIdSet?.has(employeeId));
-        }
-        if (!log.assignment_id) return true;           // bulk/system events
-        if (!assignmentDeptMap.has(log.assignment_id)) return true; // deleted assignment
-        return assignmentDeptMap.get(log.assignment_id) === selectedDepartmentId;
-      });
 
 
       const loggedEmployeeCreateIds = new Set(
