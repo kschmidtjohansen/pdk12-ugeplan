@@ -170,23 +170,20 @@ Deno.serve(async (req) => {
         }
       } else {
         // For swaps, check both employees have appropriate roles
-        const { data: emp1Role } = await supabase
+        const SKADELEDER_VAGT_ROLES = ['administrator', 'skadeleder', 'super_admin', 'fugttekniker'];
+
+        const { data: emp1RoleRows } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', duty1.employee_id!)
-          .single();
-        
-        const { data: emp2Role } = await supabase
+          .eq('user_id', duty1.employee_id!);
+
+        const { data: emp2RoleRows } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', duty2.employee_id!)
-          .single();
+          .eq('user_id', duty2.employee_id!);
 
-        const role1 = emp1Role?.role || 'servicemedarbejder';
-        const role2 = emp2Role?.role || 'servicemedarbejder';
-
-        const isValidRole1 = role1 === 'administrator' || role1 === 'skadeleder' || role1 === 'super_admin' || role1 === 'fugttekniker';
-        const isValidRole2 = role2 === 'administrator' || role2 === 'skadeleder' || role2 === 'super_admin' || role2 === 'fugttekniker';
+        const isValidRole1 = (emp1RoleRows || []).some((r: { role: string }) => SKADELEDER_VAGT_ROLES.includes(r.role));
+        const isValidRole2 = (emp2RoleRows || []).some((r: { role: string }) => SKADELEDER_VAGT_ROLES.includes(r.role));
 
         if (!isValidRole1 || !isValidRole2) {
           throw new Error('Only administrators, super admins, skadeledere and fugtteknikere can be assigned to skadeleder vagt');
