@@ -39,7 +39,7 @@ export function DutySwapDialog({ duty, employees, open, onOpenChange, onSuccess 
         return false;
       }
       if (duty.duty_type === 'skadeleder_vagt') {
-        return emp.role === 'administrator' || emp.role === 'skadeleder' || emp.role === 'super_admin';
+        return emp.role === 'administrator' || emp.role === 'skadeleder' || emp.role === 'super_admin' || emp.role === 'fugttekniker';
       }
       return true;
     });

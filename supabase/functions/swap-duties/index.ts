@@ -157,40 +157,36 @@ Deno.serve(async (req) => {
     if (duty1.duty_type === 'skadeleder_vagt') {
       // For transfers, only validate the requesting user
       if (isTransfer) {
-        const { data: userRoleData } = await supabase
+        const { data: userRoleRows } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', requestedBy)
-          .single();
-        
-        const reqUserRole = userRoleData?.role || 'servicemedarbejder';
-        const isValidRole = reqUserRole === 'administrator' || reqUserRole === 'skadeleder';
+          .eq('user_id', requestedBy);
+
+        const SKADELEDER_VAGT_ROLES = ['administrator', 'skadeleder', 'super_admin', 'fugttekniker'];
+        const isValidRole = (userRoleRows || []).some((r: { role: string }) => SKADELEDER_VAGT_ROLES.includes(r.role));
         
         if (!isValidRole) {
-          throw new Error('Only administrators and skadeledere can take skadeleder vagt duties');
+          throw new Error('Only administrators, super admins, skadeledere and fugtteknikere can take skadeleder vagt duties');
         }
       } else {
         // For swaps, check both employees have appropriate roles
-        const { data: emp1Role } = await supabase
+        const SKADELEDER_VAGT_ROLES = ['administrator', 'skadeleder', 'super_admin', 'fugttekniker'];
+
+        const { data: emp1RoleRows } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', duty1.employee_id!)
-          .single();
-        
-        const { data: emp2Role } = await supabase
+          .eq('user_id', duty1.employee_id!);
+
+        const { data: emp2RoleRows } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', duty2.employee_id!)
-          .single();
+          .eq('user_id', duty2.employee_id!);
 
-        const role1 = emp1Role?.role || 'servicemedarbejder';
-        const role2 = emp2Role?.role || 'servicemedarbejder';
-
-        const isValidRole1 = role1 === 'administrator' || role1 === 'skadeleder';
-        const isValidRole2 = role2 === 'administrator' || role2 === 'skadeleder';
+        const isValidRole1 = (emp1RoleRows || []).some((r: { role: string }) => SKADELEDER_VAGT_ROLES.includes(r.role));
+        const isValidRole2 = (emp2RoleRows || []).some((r: { role: string }) => SKADELEDER_VAGT_ROLES.includes(r.role));
 
         if (!isValidRole1 || !isValidRole2) {
-          throw new Error('Only administrators and skadeledere can be assigned to skadeleder vagt');
+          throw new Error('Only administrators, super admins, skadeledere and fugtteknikere can be assigned to skadeleder vagt');
         }
       }
     }

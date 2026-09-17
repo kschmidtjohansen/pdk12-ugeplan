@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-17 — Fugtteknikere kan tildeles skadeledervagt
+
+- Rollefilteret for skadeledervagt er udvidet med `fugttekniker` i alle fire vælgere: `DutyEmployeeSelector`, `DutyAssignmentDialog`, `DutyEditDialog` og `DutySwapDialog`.
+- Database: `validate_duty_assignment()`-triggeren accepterer nu fugtteknikere og følger sikkerhedsstandarden (`SET search_path = ''`, EXECUTE revoket fra PUBLIC/anon/authenticated).
+- Vagtbytte (`swap-duties` edge function): rollevalidering udvidet med `fugttekniker` (og `super_admin` ved overtagelse, som tidligere utilsigtet blev afvist). Rolleopslag henter nu alle brugerens roller i stedet for `.single()`, så medarbejdere med flere roller valideres korrekt.
+- Fejltekster opdateret (da/en): `duty.invalidRoleForSkadeleder` nævner nu fugtteknikere.
+
+
 ## 2026-09-15 — Fravær samlet i én liste i "Ikke tildelte ressourcer"
 
 - `UnassignedResourcesSection`: syge medarbejdere vises ikke længere i et separat felt, men smeltes ind i "Medarbejdere fraværende" sammen med ferie/orlov — én overskrift, ét samlet antal og ens neutrale badges.
