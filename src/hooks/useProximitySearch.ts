@@ -10,7 +10,7 @@ import { getAllWeekDays } from '@/utils/dates';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { estimateTravelMinutes } from '@/utils/travelTime';
-import { selectProximityRankingDay } from '@/utils/proximityRanking';
+import { selectLastAssignment, selectProximityRankingDay } from '@/utils/proximityRanking';
 
 
 export interface ProximityDayInfo {
@@ -252,10 +252,8 @@ export const useProximitySearch = ({
       const trainingRanges = trainingRangesByUser.get(emp.id) || [];
 
       const days: ProximityDayInfo[] = weekDays.map((date) => {
-        const dayAssignments = [...(dayMap.get(date) || [])].sort((a, b) =>
-          (a.toTime || '').localeCompare(b.toTime || '')
-        );
-        const last = dayAssignments[dayAssignments.length - 1];
+        const dayAssignments = dayMap.get(date) || [];
+        const last = selectLastAssignment(dayAssignments);
 
         // A booked day must use the day's last assignment. Home is only a
         // valid origin when the employee has no assignment that day.

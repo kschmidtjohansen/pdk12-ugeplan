@@ -7,6 +7,18 @@ export interface ProximityRankingDay {
   origin: 'assignment' | 'home' | null;
 }
 
+export interface TimedAssignment {
+  id: string;
+  toTime?: string | null;
+}
+
+/** Selects the last-ending assignment consistently when a day has several. */
+export const selectLastAssignment = <T extends TimedAssignment>(assignments: T[]): T | undefined =>
+  [...assignments].sort((a, b) => {
+    const byEndTime = (a.toTime ?? '').localeCompare(b.toTime ?? '');
+    return byEndTime !== 0 ? byEndTime : a.id.localeCompare(b.id);
+  }).at(-1);
+
 const byDistanceThenDate = <T extends ProximityRankingDay>(a: T, b: T) => {
   const distanceA = a.originDistanceKm ?? Number.POSITIVE_INFINITY;
   const distanceB = b.originDistanceKm ?? Number.POSITIVE_INFINITY;

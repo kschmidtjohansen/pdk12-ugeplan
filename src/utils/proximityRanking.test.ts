@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { selectProximityRankingDay, ProximityRankingDay } from './proximityRanking';
+import {
+  selectLastAssignment,
+  selectProximityRankingDay,
+  ProximityRankingDay,
+} from './proximityRanking';
 
 const day = (overrides: Partial<ProximityRankingDay>): ProximityRankingDay => ({
   date: '2026-09-18',
@@ -12,6 +16,16 @@ const day = (overrides: Partial<ProximityRankingDay>): ProximityRankingDay => ({
 });
 
 describe('selectProximityRankingDay', () => {
+  it('selects the latest-ending assignment when a day has several', () => {
+    const result = selectLastAssignment([
+      { id: 'early', toTime: '09:30' },
+      { id: 'late', toTime: '13:00' },
+      { id: 'middle', toTime: '11:00' },
+    ]);
+
+    expect(result?.id).toBe('late');
+  });
+
   it('uses today’s assignment instead of another weekday’s home address', () => {
     const result = selectProximityRankingDay([
       day({ date: '2026-09-17', origin: 'home', originDistanceKm: 2 }),
