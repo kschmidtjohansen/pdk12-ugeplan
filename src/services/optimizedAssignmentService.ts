@@ -444,11 +444,22 @@ export class OptimizedAssignmentService {
       }
 
       const isAdmin = role === 'administrator' || role === 'skadeleder' || role === 'super_admin';
+
+      // Begræns til et relevant tidsvindue, så reserveløsningen ikke henter
+      // tusindvis af historiske opgaver.
+      const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - 90);
+      const toDate = new Date();
+      toDate.setDate(toDate.getDate() + 180);
+
       const query = supabase
         .from('assignments')
         .select(`id, title, description, assignment_date, from_time, to_time, location, type, published, responsible_user_id, created_at, updated_at, car_id, car_ids, group_id, case_number, sub_department_id, lat, lng`)
         .eq('is_demo', false)
         .eq('department_id', departmentId)
+        .gte('assignment_date', toIsoDate(fromDate))
+        .lte('assignment_date', toIsoDate(toDate))
         .order('assignment_date', { ascending: false })
         .order('from_time', { ascending: false });
 
