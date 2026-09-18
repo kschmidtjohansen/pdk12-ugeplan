@@ -5,6 +5,7 @@ import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { reconcileAssignmentEmployeeNames } from '@/utils/people';
 
 interface UseEnhancedUnifiedDataResult {
@@ -25,6 +26,7 @@ interface UseEnhancedUnifiedDataResult {
 
 export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
   const { user, userDataLoaded } = useAuth();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [cars, setCars] = useState<Car[]>([]);
