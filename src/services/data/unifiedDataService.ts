@@ -140,7 +140,7 @@ class UnifiedDataService {
         .select(`
           id, title, description, assignment_date, from_time, to_time,
           location, car_id, car_ids, published, responsible_user_id,
-          created_at, updated_at, department_id, sub_department_id
+          created_at, updated_at, department_id, sub_department_id, lat, lng
         `)
         .eq('is_demo', false)
         .order('assignment_date', { ascending: true });
@@ -211,6 +211,8 @@ class UnifiedDataService {
           cars: assignment.car_ids || [],
           createdAt: assignment.created_at,
           updatedAt: assignment.updated_at,
+          lat: assignment.lat ?? undefined,
+          lng: assignment.lng ?? undefined,
           responsibleUser: null
         };
       });

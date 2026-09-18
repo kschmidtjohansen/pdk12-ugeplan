@@ -86,7 +86,9 @@ export const useAssignmentDataOptimized = () => {
           responsibleUser: responsibleUser,
           responsibleUserId: assignment.responsible_user_id,
           type: assignment.type || 'other',
-          case_number: assignment.case_number
+          case_number: assignment.case_number,
+          lat: assignment.lat ?? undefined,
+          lng: assignment.lng ?? undefined
         };
       });
 

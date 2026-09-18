@@ -118,7 +118,9 @@ class EnhancedUnifiedDataService {
           responsibleUserId: assignment.responsible_user_id,
           type: assignment.type || 'other',
           createdAt: assignment.created_at,
-          updatedAt: assignment.updated_at
+          updatedAt: assignment.updated_at,
+          lat: assignment.lat ?? undefined,
+          lng: assignment.lng ?? undefined
         };
       });
 

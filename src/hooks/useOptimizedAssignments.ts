@@ -319,6 +319,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           employees: data.employees || [],
           department_id: selectedDepartmentId || null,
           sub_department_id: data.subDepartmentId !== undefined ? data.subDepartmentId : (selectedSubDepartmentId || null),
+          lat: data.lat ?? null,
+          lng: data.lng ?? null,
         };
         
         for (const date of dates) {
@@ -367,6 +369,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         employees: data.employees || [],
         department_id: selectedDepartmentId || null,
         sub_department_id: data.subDepartmentId !== undefined ? data.subDepartmentId : (selectedSubDepartmentId || null),
+        lat: data.lat ?? null,
+        lng: data.lng ?? null,
       };
 
       // Optimistic assignment
@@ -384,6 +388,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         employees: serviceData.employees,
         car: serviceData.car_id,
         cars: serviceData.car_ids,
+        lat: serviceData.lat ?? undefined,
+        lng: serviceData.lng ?? undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -451,6 +457,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
           car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
           employees: data.employees || [],
+          lat: data.lat ?? null,
+          lng: data.lng ?? null,
           ...(data.subDepartmentId !== undefined ? { sub_department_id: data.subDepartmentId } : {})
         };
         
@@ -523,6 +531,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
         car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
         employees: data.employees || [],
+        lat: data.lat ?? null,
+        lng: data.lng ?? null,
         ...(data.subDepartmentId !== undefined ? { sub_department_id: data.subDepartmentId } : {})
       };
       
