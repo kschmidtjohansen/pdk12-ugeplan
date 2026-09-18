@@ -2,6 +2,9 @@
 
 ## Løbende rettelser ✅
 
+- [x] Afdelingslækage i ugeplan/dashboard rettet: RPC tilbage til SECURITY DEFINER, reserveløsning og "enhanced"-hentning filtrerer nu på afdeling/underafdeling, ingen hentning før afdelingen er kendt, og cachen ryddes ved afdelingsskift (2026-09-18).
+
+
 - [x] Fugtteknikere kan tildeles og bytte skadeledervagt — rollefilter udvidet i alle vælgere, databasetrigger og vagtbytte-validering (2026-09-17).
 
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-18 — Afdelingsisolation genoprettet i opgavehentningen
+
+- `list_accessible_assignments_with_team` kører igen som `SECURITY DEFINER` med `SET search_path TO ''` (koordinater, underafdeling og team bevaret). Dermed virker opslag af ansvarlig medarbejder og afdelingsfiltreringen som før.
+- `optimizedAssignmentService.fetchAssignmentsFallback` filtrerer nu på `department_id`, `sub_department_id` og `is_demo` og returnerer tom liste uden afdeling — tidligere hentede reserveløsningen alle afdelinger.
+- `enhancedDataFetching.fetchAssignmentsEnhanced` modtager og sender afdeling/underafdeling til RPC'en og indregner dem i cache-nøglen; `enhancedUnifiedDataService`, `useEnhancedUnifiedData` og `useAssignmentDataOptimized` videregiver `selectedDepartmentId`/`selectedSubDepartmentId` og henter ikke før afdelingen er kendt.
+- `DepartmentContext` rydder også `enhancedDataFetching`-cachen ved skift af afdeling/underafdeling.
+- DEV-guard i `fetchAssignmentsForQuery`: ingen hentning uden valgt afdeling, og afdeling/underafdeling logges.
+
+
 ## 2026-09-18 — Datopræcist kursusfravær i nærhedsvisningen
 
 - Nærhedsvisningen bruger nu kursets start- og slutdato pr. medarbejder i stedet for ét samlet ugeflag.

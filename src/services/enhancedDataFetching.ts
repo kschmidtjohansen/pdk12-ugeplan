@@ -375,9 +375,13 @@ export class EnhancedDataFetching {
     return status;
   }
 
-  async fetchAssignmentsEnhanced(currentUserEmail?: string) {
+  async fetchAssignmentsEnhanced(
+    currentUserEmail?: string,
+    departmentId?: string | null,
+    subDepartmentId?: string | null
+  ) {
     const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);
-    const cacheKey = this.getCacheKey('assignments', 'enhanced', { currentUserEmail, isDemoMode });
+    const cacheKey = this.getCacheKey('assignments', 'enhanced', { currentUserEmail, isDemoMode, departmentId, subDepartmentId });
     const cached = this.getCache(cacheKey);
     
     if (cached) {
@@ -429,7 +433,10 @@ export class EnhancedDataFetching {
       
       // Production: use RPC
       const { data, error } = await supabase
-        .rpc('list_accessible_assignments_with_team', { p_department_id: null, p_sub_department_id: null });
+        .rpc('list_accessible_assignments_with_team', {
+          p_department_id: departmentId || null,
+          p_sub_department_id: subDepartmentId || null
+        });
       
       if (error) {
         if (import.meta.env.DEV) console.error('[Enhanced Data Fetching] Assignments fetch error:', error);

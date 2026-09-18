@@ -8,6 +8,7 @@ import { subscribeToTables } from '@/lib/realtimeChannels';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { resolveEmployeeDisplayName, filterDisplayNames } from '@/utils/people';
 import { format } from 'date-fns';
 
@@ -15,18 +16,31 @@ export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isDemoMode } = useAuth();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAssignments = useCallback(async () => {
     try {
+      // Never fetch before the department is known — an empty department would
+      // return assignments from every department (cross-department leak).
+      if (!selectedDepartmentId && !isDemoMode) {
+        setAssignments([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       
       if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] ENHANCED - Starting enhanced fetch...');
       
-      const assignmentResult = await enhancedDataFetching.fetchAssignmentsEnhanced(user?.email);
+      const assignmentResult = await enhancedDataFetching.fetchAssignmentsEnhanced(
+        user?.email,
+        selectedDepartmentId,
+        selectedSubDepartmentId
+      );
       
       if (assignmentResult.error || !assignmentResult.data) {
         throw assignmentResult.error || new Error('No assignment data received');
@@ -129,7 +143,7 @@ export const useAssignmentDataOptimized = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, t, user?.email]);
+  }, [toast, t, user?.email, isDemoMode, selectedDepartmentId, selectedSubDepartmentId]);
 
   useEffect(() => {
     fetchAssignments();

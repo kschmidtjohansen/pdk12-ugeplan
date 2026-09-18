@@ -406,7 +406,7 @@ export class OptimizedAssignmentService {
         return convertedData;
       } catch (rpcError) {
         if (import.meta.env.DEV) console.warn('[OptimizedAssignmentService] RPC failed, falling back to direct query:', rpcError);
-        return this.fetchAssignmentsFallback(role);
+        return this.fetchAssignmentsFallback(role, departmentId, subDepartmentId);
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error fetching all assignments:', error);
@@ -414,20 +414,40 @@ export class OptimizedAssignmentService {
     }
   }
 
-  private static async fetchAssignmentsFallback(role: string): Promise<OptimizedAssignmentData[]> {
+  private static async fetchAssignmentsFallback(
+    role: string,
+    departmentId?: string | null,
+    subDepartmentId?: string | null
+  ): Promise<OptimizedAssignmentData[]> {
     try {
       if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Using fallback assignment fetch');
-      
+
+      // Multi-tenant safety: without a department we must return nothing rather
+      // than every department's assignments.
+      if (!departmentId) {
+        if (import.meta.env.DEV) console.warn('[OptimizedAssignmentService] Fallback without department — returning empty');
+        return [];
+      }
+
       const isAdmin = role === 'administrator' || role === 'skadeleder' || role === 'super_admin';
       const query = supabase
         .from('assignments')
-        .select(`id, title, description, assignment_date, from_time, to_time, location, type, published, responsible_user_id, created_at, updated_at, car_id, car_ids, group_id, case_number, lat, lng`)
+        .select(`id, title, description, assignment_date, from_time, to_time, location, type, published, responsible_user_id, created_at, updated_at, car_id, car_ids, group_id, case_number, sub_department_id, lat, lng`)
+        .eq('is_demo', false)
+        .eq('department_id', departmentId)
         .order('assignment_date', { ascending: false })
         .order('from_time', { ascending: false });
+
+      if (subDepartmentId) {
+        query.eq('sub_department_id', subDepartmentId);
+      } else {
+        query.is('sub_department_id', null);
+      }
 
       if (!isAdmin) {
         query.eq('published', true);
       }
+
 
       const { data: assignments, error } = await query;
 
