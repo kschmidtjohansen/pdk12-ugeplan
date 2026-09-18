@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-18 — Underafdelingsskift og filtre i Ugeplanen
+
+- `SubDepartmentQuickSwitcher` flyttet til `src/components/shared/` og vises nu også øverst i /planner, så underafdeling kan skiftes uden at gå via Dashboard (`DashboardPage`-import opdateret).
+- Ny `PlannerFilterBar`: sammenklappelig filterlinje med chips for aktive filtre og "Ryd alle". Medarbejderfilter (flere navne ad gangen) filtrerer ugens opgaver via `sortedWeekAssignments` i alle visninger (standard, kompakt, gitter).
+- Ny `ProximityPanel` + `useProximitySearch`: postnummer slås op via DAWA-proxy (`fetchPostnrCoords`), og medarbejdere rangeres efter korteste afstand (hjemadresse eller ugens opgaver, `haversineDistanceKm`). Pr. dag vises ledighed (fri hele dagen / fri fra sluttidspunkt) og fravær (ferie, kursus, sygdom) uden årsag. Kun et opslagsværktøj — intet skrives tilbage. Vises kun for brugere med opret-/udgiv-rettigheder.
+- Nye tekstnøgler under `planner.filters.*` (da/en). Ingen database- eller edge function-ændringer.
+
+
 ## 2026-09-18 — Korrekt fejlbesked ved oprettelse af medarbejder
 
 - `admin-create-user`: dublet-detektionen brugte HTTP 422 som kriterium, så afvisninger af svage/lækkede adgangskoder fejlagtigt blev vist som "en bruger med denne email findes allerede". Nu markeres kun reelle e-mail-dubletter (`email_exists` eller beskedmatch) som dublet.

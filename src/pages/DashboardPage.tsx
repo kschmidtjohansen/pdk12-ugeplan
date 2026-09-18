@@ -6,7 +6,7 @@ import { useTranslation } from '../context/TranslationContext';
 import { getDailyQuote } from '@/utils/dailyQuotes';
 import WelcomeHeader from '@/components/Dashboard/WelcomeHeader';
 import DashboardCockpit from '@/components/Dashboard/DashboardCockpit';
-import SubDepartmentQuickSwitcher from '@/components/Dashboard/SubDepartmentQuickSwitcher';
+import SubDepartmentQuickSwitcher from '@/components/shared/SubDepartmentQuickSwitcher';
 import { DemoDashboard } from '@/components/Demo/DemoDashboard';
 import ServicemedarbejderDashboard from '@/components/Dashboard/ServicemedarbejderDashboard';
 

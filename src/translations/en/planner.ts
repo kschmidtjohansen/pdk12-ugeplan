@@ -426,6 +426,31 @@ const planner = {
     cancel: 'Cancel',
     invalidTime: 'Invalid time range',
   },
+
+  filters: {
+    title: 'Filters',
+    show: 'Show filters',
+    hide: 'Hide filters',
+    clearAll: 'Clear all',
+    employees: 'Employees',
+    employeesPlaceholder: 'Search employee…',
+    employeesSelected: '{count} selected',
+    noEmployees: 'No employees found',
+    proximity: 'Closest employees',
+    postcode: 'Postcode',
+    postcodePlaceholder: 'e.g. 3400',
+    postcodeInvalid: 'Enter a 4-digit postcode',
+    postcodeNotFound: 'Postcode not found',
+    searching: 'Searching…',
+    distanceHome: 'Home',
+    distanceAssignment: 'Task',
+    noCoordinates: 'Address missing',
+    freeFrom: 'Free from {time}',
+    freeAllDay: 'Free all day',
+    absentDay: 'Absent',
+    noResults: 'No employees to show',
+    proximityHint: 'Shows who is closest to the postcode and when they are free during the displayed week.',
+  },
 };
 
 export default planner;

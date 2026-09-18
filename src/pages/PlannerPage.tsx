@@ -21,6 +21,8 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 import { getISOWeek, getISOWeekYear, addWeeks, format } from 'date-fns';
 import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import SubDepartmentQuickSwitcher from '@/components/shared/SubDepartmentQuickSwitcher';
+import PlannerFilterBar from '@/components/Planner/PlannerFilterBar';
 
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
@@ -63,6 +65,11 @@ const PlannerPage: React.FC = () => {
   const { employees: allEmployees } = useEmployeeData();
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
+
+  // Planner filters: employee multi-select + postcode proximity lookup
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+  const [filterPostcode, setFilterPostcode] = useState('');
+  
   
   // Use optimized assignments hook for unified data management
   const {
@@ -443,13 +450,17 @@ const PlannerPage: React.FC = () => {
 
   const sortedWeekAssignments = useMemo(() => {
     if (!weekAssignments) return [];
-    return [...weekAssignments].sort((a, b) => {
+    // Employee filter: only keep assignments where at least one selected employee is assigned
+    const base = selectedEmployeeIds.length > 0
+      ? weekAssignments.filter(a => (a.employees || []).some(id => selectedEmployeeIds.includes(id)))
+      : weekAssignments;
+    return [...base].sort((a, b) => {
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
       return a.fromTime.localeCompare(b.fromTime);
     });
-  }, [weekAssignments]);
+  }, [weekAssignments, selectedEmployeeIds]);
 
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
@@ -738,6 +749,21 @@ const PlannerPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Quick sub-department switch, so users don't have to go via the dashboard */}
+        <SubDepartmentQuickSwitcher />
+
+        {/* Filters: employee multi-select + postcode proximity lookup */}
+        <PlannerFilterBar
+          employees={employees}
+          selectedEmployeeIds={selectedEmployeeIds}
+          onSelectedEmployeeIdsChange={setSelectedEmployeeIds}
+          postcode={filterPostcode}
+          onPostcodeChange={setFilterPostcode}
+          weekAssignments={weekAssignments}
+          weekDates={weekDates}
+          showProximity={canCreate || canPublishTasks}
+        />
 
         {/* Main Content — skeleton reserves the same vertical space as the week list */}
         {loading ? (

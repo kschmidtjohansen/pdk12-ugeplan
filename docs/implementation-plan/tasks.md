@@ -433,3 +433,10 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] `admin-create-user`: HTTP 422 udløser ikke længere "email findes allerede"; kun `email_exists`/beskedmatch tæller som dublet
 - [x] Præcise danske svar for svag/lækket adgangskode, for kort adgangskode og ugyldig e-mail
 - [x] `useEmployeeCreation` viser `employees.weakPassword` og overskriver ikke serverens danske beskeder
+
+## Underafdelingsskift og filtre i Ugeplanen (2026-09-18)
+
+- [x] `SubDepartmentQuickSwitcher` flyttet til `src/components/shared/` og vist øverst i /planner
+- [x] `PlannerFilterBar` med medarbejderfilter (flere navne) og aktive chips; filtrering i alle visninger
+- [x] `ProximityPanel` + `useProximitySearch`: postnummeropslag via DAWA, afstand fra hjem og ugens opgaver, ledighed og fravær pr. dag
+- [x] Nye tekstnøgler `planner.filters.*` (da/en)
