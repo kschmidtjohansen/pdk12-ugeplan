@@ -78,9 +78,12 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
       </div>
       <ul className="divide-y divide-border max-h-[420px] overflow-y-auto">
         {results.slice(0, 25).map((r) => {
-          const assignmentDistances = r.days
-            .map((d) => d.assignmentDistanceKm)
-            .filter((d): d is number => d !== null);
+          const sourceLabel = (origin: 'assignment' | 'home' | null) =>
+            origin === 'assignment'
+              ? t('planner.filters.fromLastAssignment')
+              : origin === 'home'
+                ? t('planner.filters.fromHome')
+                : '';
           return (
             <li
               key={r.employee.id}
@@ -102,16 +105,19 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
                     )}
                   </div>
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <Home className="h-3 w-3" />
-                      {r.homeDistanceKm !== null
-                        ? `${t('planner.filters.distanceHome')} ${kmWithTravel(r.homeDistanceKm)}`
-                        : t('planner.filters.noCoordinates')}
-                    </span>
-                    {assignmentDistances.length > 0 && (
+                    {r.bestDistanceKm !== null ? (
                       <span className="inline-flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {t('planner.filters.distanceAssignment')} {kmWithTravel(Math.min(...assignmentDistances))}
+                        {r.bestSource === 'assignment' ? (
+                          <MapPin className="h-3 w-3" />
+                        ) : (
+                          <Home className="h-3 w-3" />
+                        )}
+                        {sourceLabel(r.bestSource)} · {kmWithTravel(r.bestDistanceKm)}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1">
+                        <Home className="h-3 w-3" />
+                        {t('planner.filters.noCoordinates')}
                       </span>
                     )}
                   </div>
@@ -131,17 +137,24 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
               <div className="mt-2 flex flex-wrap gap-1">
                 {r.days.map((d) => {
                   const label = format(parseISO(d.date), 'EEEEEE', { locale });
-                  const state = d.absent
+                  const time = d.absent
                     ? t('planner.filters.absentDay')
                     : d.assignmentCount === 0
                       ? t('planner.filters.freeAllDay', { duration: formatMinutes(d.freeMinutes) })
                       : d.hasEnoughFree
                         ? `${t('planner.filters.freeFrom', { time: d.freeFrom ?? d.dayEnd })} · ${formatMinutes(d.freeMinutes)}`
                         : t('planner.filters.busyDay');
+                  const distance =
+                    !d.absent && d.originDistanceKm !== null
+                      ? ` · ${kmWithTravel(d.originDistanceKm)}`
+                      : '';
+                  const state = `${time}${distance}`;
                   return (
                     <span
                       key={d.date}
-                      title={`${format(parseISO(d.date), 'PPP', { locale })} — ${state}`}
+                      title={`${format(parseISO(d.date), 'PPP', { locale })} — ${state}${
+                        !d.absent && d.origin ? ` (${sourceLabel(d.origin)})` : ''
+                      }`}
                       className={cn(
                         'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px]',
                         d.absent || !d.hasEnoughFree
@@ -158,9 +171,14 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
                   );
                 })}
               </div>
+
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                {t('planner.filters.travelEstimateNote')}
+              </p>
             </li>
           );
         })}
+
       </ul>
     </div>
   );
