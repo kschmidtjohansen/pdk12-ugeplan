@@ -53,10 +53,11 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
     setInputValue(fullAddress);
     onChange(fullAddress);
 
-    // Extract coords directly from DAWA response (format: [lng, lat])
+    // DAWA autocomplete currently exposes longitude/latitude as x/y. Retain
+    // support for the older nested coordinate shape as a defensive fallback.
     const coords = addr.adgangspunkt?.koordinater;
-    const lat = coords ? coords[1] : undefined;
-    const lng = coords ? coords[0] : undefined;
+    const lat = typeof addr.y === 'number' ? addr.y : coords?.[1];
+    const lng = typeof addr.x === 'number' ? addr.x : coords?.[0];
 
     onAddressSelect({
       address: fullAddress,

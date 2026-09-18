@@ -10,7 +10,51 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
 
-  // Route 1: Postcode lookup (?postnr=7120)
+  // Route 1: Full address lookup for assignments created before coordinates
+  // were persisted (?adresse=Uglevej 12, 2970 Hørsholm).
+  const address = url.searchParams.get('adresse');
+  if (address) {
+    const trimmed = address.trim();
+    if (trimmed.length < 3 || trimmed.length > 300) {
+      return new Response(JSON.stringify({ error: 'Invalid address' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    try {
+      const dawaUrl = `https://api.dataforsyningen.dk/adresser/autocomplete?q=${encodeURIComponent(trimmed)}&per_side=1`;
+      const res = await fetch(dawaUrl, { headers: { 'Accept-Encoding': 'identity' } });
+      if (!res.ok) {
+        return new Response(JSON.stringify({ error: 'Address not found' }), {
+          status: res.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const suggestions = await res.json();
+      const matchedAddress = suggestions?.[0]?.adresse;
+      const lng = matchedAddress?.x;
+      const lat = matchedAddress?.y;
+      if (typeof lat !== 'number' || typeof lng !== 'number') {
+        return new Response(JSON.stringify({ error: 'Address has no coordinates' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ lng, lat }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch {
+      return new Response(JSON.stringify({ error: 'Address lookup failed' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  // Route 2: Postcode lookup (?postnr=7120)
   const postnr = url.searchParams.get('postnr');
   if (postnr) {
     const trimmed = postnr.trim();
@@ -45,7 +89,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Route 2: Address autocomplete (?q=...)
+  // Route 3: Address autocomplete (?q=...)
   const q = url.searchParams.get('q');
 
   if (!q || q.trim().length < 2) {

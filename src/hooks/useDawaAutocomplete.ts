@@ -7,6 +7,8 @@ export interface DawaSuggestion {
     husnr: string;
     postnr: string;
     postnrnavn: string;
+    x?: number;
+    y?: number;
     adgangspunkt?: {
       koordinater: [number, number]; // [lng, lat]
     };

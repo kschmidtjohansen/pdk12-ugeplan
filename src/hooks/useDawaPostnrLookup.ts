@@ -41,3 +41,38 @@ export const fetchPostnrCoords = async (
     return null;
   }
 };
+
+/**
+ * Resolve a full Danish street address to its address-point coordinates.
+ * Used for older assignments created before lat/lng were stored.
+ */
+export const fetchAddressCoords = async (
+  address: string
+): Promise<{ lat: number; lng: number } | null> => {
+  const trimmed = address.trim();
+  if (trimmed.length < 3) return null;
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+    const res = await fetch(
+      `${supabaseUrl}/functions/v1/dawa-proxy?adresse=${encodeURIComponent(trimmed)}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token || anonKey}`,
+          'apikey': anonKey,
+        },
+      }
+    );
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    return typeof data?.lat === 'number' && typeof data?.lng === 'number'
+      ? { lat: data.lat, lng: data.lng }
+      : null;
+  } catch {
+    return null;
+  }
+};
