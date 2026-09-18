@@ -452,3 +452,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Estimeret rejsetid vist sammen med afstand (vejfaktor 1,3 ved 60 km/t, "ca."-tal)
 - [x] Løbende adgangskodekrav inkl. kontrol mod kendte datalæk (HIBP k-anonymitet) i `PasswordInput`
 - [x] Ny edge function `check-user-email` + statusvisning ved blur i `EmployeeFormDialog` (ledig/aktiv/inaktiv/kun login)
+
+## Nærhed måles fra dagens sidste opgave (2026-09-18)
+
+- [x] Afstand pr. dag måles fra dagens sidste opgave, med hjemadresse som fallback når medarbejderen ikke er booket
+- [x] Rangering bruger bedste dag (først dage med mindst 1 time fri)
+- [x] Afstand og estimeret køretid vist pr. dagsbrik samt kilde på hovedlinjen
