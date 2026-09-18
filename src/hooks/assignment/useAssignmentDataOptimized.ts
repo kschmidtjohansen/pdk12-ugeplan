@@ -8,6 +8,7 @@ import { subscribeToTables } from '@/lib/realtimeChannels';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import { enhancedErrorHandler } from '@/services/enhancedErrorHandler';
 import { useAuth } from '@/context/AuthContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { resolveEmployeeDisplayName, filterDisplayNames } from '@/utils/people';
 import { format } from 'date-fns';
 
@@ -15,6 +16,7 @@ export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isDemoMode } = useAuth();
+  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
