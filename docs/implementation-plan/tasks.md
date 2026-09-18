@@ -464,3 +464,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Opgavekoordinater returneres af ugeplanens sikre datafunktion og føres gennem frontendens opgavemodel
 - [x] Nærmeste sidste opgave prioriteres; hjemadresse bruges kun uden en brugbar opgaveposition
 - [x] Kilometer og køretid vises kun i den blå markering, ikke i dagsmærkerne eller kildelinjen
+
+## Datopræcist kursusfravær i nærhedsvisningen (2026-09-18)
+
+- [x] Kursusperioder bevares pr. medarbejder i ugeopslaget
+- [x] En fugttekniker markeres kun fraværende på de konkrete kursusdage
+- [x] Ledighed og rangering for ugens øvrige dage påvirkes ikke af en enkelt kursusdag
