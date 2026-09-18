@@ -70,9 +70,13 @@ class EnhancedUnifiedDataService {
     }
   }
 
-  async fetchAssignments(currentUserEmail?: string): Promise<DataFetchResult<Assignment>> {
+  async fetchAssignments(
+    currentUserEmail?: string,
+    departmentId?: string | null,
+    subDepartmentId?: string | null
+  ): Promise<DataFetchResult<Assignment>> {
     try {
-      const result = await enhancedDataFetching.fetchAssignmentsEnhanced(currentUserEmail);
+      const result = await enhancedDataFetching.fetchAssignmentsEnhanced(currentUserEmail, departmentId, subDepartmentId);
       
       if (result.error) throw result.error;
 
