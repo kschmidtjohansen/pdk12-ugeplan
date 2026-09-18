@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-18 — Nærhed bruger eksisterende opgaveadresser
+
+- Bekræftet at alle 218 bookede opgaver i den kontrollerede uge havde adresse, men manglede gemte koordinater; derfor kunne nærhedsvisningen ikke måle fra opgaven.
+- DAWA-proxyen kan nu positionsbestemme en fuld opgaveadresse. Nærhedsvisningen slår kun den seneste opgave pr. medarbejder og dag op og cacher identiske adresser.
+- En booket dag bruger altid den seneste opgave som kilde. Hjemadressen bruges kun på dage helt uden opgaver; kan opgaveadressen ikke findes, vises ingen afstand frem for en forkert hjemmeafstand.
+
 ## 2026-09-18 — Hold vises igen på opgaverne (typefejl i opgavefunktionen)
 
 - `list_accessible_assignments_with_team` erklærede `lat`/`lng` som `numeric`, mens kolonnerne er `double precision`. `RETURN QUERY` fejlede derfor med 42804, og hele hovedvejen faldt tilbage til reserveløsningen.

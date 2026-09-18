@@ -2,6 +2,8 @@
 
 ## Løbende rettelser ✅
 
+- [x] Nærhedsvisningen positionsbestemmer eksisterende opgaveadresser uden `lat`/`lng`, bruger dagens seneste opgave som udgangspunkt og bruger kun hjemadressen på helt ubekræftede dage (2026-09-18).
+
 - [x] Manglende hold på opgaverne rettet: `lat`/`lng` i `list_accessible_assignments_with_team` ændret fra `numeric` til `double precision` (42804-fejl), medarbejderhentning i portioner à 150 id'er og datovindue på reserveløsningen (2026-09-18).
 
 - [x] Afdelingslækage i ugeplan/dashboard rettet: RPC tilbage til SECURITY DEFINER, reserveløsning og "enhanced"-hentning filtrerer nu på afdeling/underafdeling, ingen hentning før afdelingen er kendt, og cachen ryddes ved afdelingsskift (2026-09-18).

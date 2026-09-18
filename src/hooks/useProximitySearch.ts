@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useDepartment } from '@/context/DepartmentContext';
-import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
+import { fetchAddressCoords, fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
 import { haversineDistanceKm } from '@/utils/haversine';
 import { useVacations } from '@/hooks/useVacations';
 import { useActiveTrainingsForRange } from '@/hooks/useActiveTrainings';
@@ -76,6 +76,8 @@ const WORKDAY_MINUTES = 8 * 60;
 const MIN_FREE_MINUTES = 60;
 const DEFAULT_DAY_START = 7 * 60;
 
+const addressKey = (address: string) => address.trim().toLocaleLowerCase('da-DK');
+
 const toMinutes = (time?: string | null): number | null => {
   if (!time) return null;
   const [h, m] = time.split(':');
@@ -114,6 +116,56 @@ export const useProximitySearch = ({
     queryKey: ['postnr-coords', postcode.trim()],
     enabled: active,
     queryFn: () => fetchPostnrCoords(postcode.trim()),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+
+  // Resolve only the last assignment per employee/day. Older assignments often
+  // have an address but no persisted lat/lng, so those addresses are geocoded
+  // once and cached rather than incorrectly falling back to the employee's home.
+  const missingLastAssignmentAddresses = useMemo(() => {
+    const relevantEmployeeIds = new Set(
+      (onlyFugtteknikere
+        ? employees.filter(
+            (emp) => emp.role === 'fugttekniker' || (emp.roles || []).includes('fugttekniker')
+          )
+        : employees
+      ).map((emp) => emp.id)
+    );
+    const latestByEmployeeDate = new Map<string, Assignment>();
+
+    weekAssignments.forEach((assignment) => {
+      (assignment.employees || []).forEach((employeeId) => {
+        if (!relevantEmployeeIds.has(employeeId)) return;
+        const key = `${employeeId}:${assignment.date}`;
+        const current = latestByEmployeeDate.get(key);
+        if (!current || (assignment.toTime || '').localeCompare(current.toTime || '') > 0) {
+          latestByEmployeeDate.set(key, assignment);
+        }
+      });
+    });
+
+    return Array.from(new Set(
+      Array.from(latestByEmployeeDate.values())
+        .filter((assignment) =>
+          !(typeof assignment.lat === 'number' && typeof assignment.lng === 'number') &&
+          !!assignment.location?.trim()
+        )
+        .map((assignment) => assignment.location.trim())
+    )).sort((a, b) => a.localeCompare(b, 'da'));
+  }, [employees, onlyFugtteknikere, weekAssignments]);
+
+  const assignmentAddressQuery = useQuery({
+    queryKey: ['assignment-address-coords', missingLastAssignmentAddresses],
+    enabled: active && missingLastAssignmentAddresses.length > 0,
+    queryFn: async () => {
+      const entries = await Promise.all(
+        missingLastAssignmentAddresses.map(async (address) => [
+          addressKey(address),
+          await fetchAddressCoords(address),
+        ] as const)
+      );
+      return new Map(entries);
+    },
     staleTime: 24 * 60 * 60 * 1000,
   });
 
@@ -199,17 +251,23 @@ export const useProximitySearch = ({
 
         // A booked day must use the day's last assignment. Home is only a
         // valid origin when the employee has no assignment that day.
-        const lastHasCoords =
-          !!last && typeof last.lat === 'number' && typeof last.lng === 'number';
+        const storedLastCoords =
+          !!last && typeof last.lat === 'number' && typeof last.lng === 'number'
+            ? { lat: last.lat, lng: last.lng }
+            : null;
+        const resolvedLastCoords = last?.location
+          ? assignmentAddressQuery.data?.get(addressKey(last.location)) ?? null
+          : null;
+        const lastCoords = storedLastCoords ?? resolvedLastCoords;
         const origin: 'assignment' | 'home' | null = last
-          ? lastHasCoords
+          ? lastCoords
             ? 'assignment'
             : null
           : homeDistanceKm !== null
             ? 'home'
             : null;
-        const originDistanceKm = lastHasCoords
-          ? haversineDistanceKm(target.lat, target.lng, last.lat as number, last.lng as number)
+        const originDistanceKm = lastCoords
+          ? haversineDistanceKm(target.lat, target.lng, lastCoords.lat, lastCoords.lng)
           : last
             ? null
             : homeDistanceKm;
@@ -291,11 +349,11 @@ export const useProximitySearch = ({
       if (b.bestDistanceKm === null) return -1;
       return a.bestDistanceKm - b.bestDistanceKm;
     });
-  }, [active, onlyFugtteknikere, coordsQuery.data, employees, weekAssignments, weekDates, vacations, trainingRangesByUser, sickQuery.data]);
+  }, [active, onlyFugtteknikere, coordsQuery.data, assignmentAddressQuery.data, employees, weekAssignments, weekDates, vacations, trainingRangesByUser, sickQuery.data]);
 
   return {
     results,
-    isLoading: active && (coordsQuery.isLoading || sickQuery.isLoading),
+    isLoading: active && (coordsQuery.isLoading || sickQuery.isLoading || assignmentAddressQuery.isLoading),
     notFound: active && !coordsQuery.isLoading && !coordsQuery.data,
     isValidPostcode: isValidPostcode(postcode),
   };
