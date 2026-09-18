@@ -426,6 +426,31 @@ const planner = {
     cancel: 'Annullér',
     invalidTime: 'Ugyldigt tidsinterval',
   },
+
+  filters: {
+    title: 'Filtre',
+    show: 'Vis filtre',
+    hide: 'Skjul filtre',
+    clearAll: 'Ryd alle',
+    employees: 'Medarbejdere',
+    employeesPlaceholder: 'Søg medarbejder…',
+    employeesSelected: '{count} valgt',
+    noEmployees: 'Ingen medarbejdere fundet',
+    proximity: 'Nærmeste medarbejdere',
+    postcode: 'Postnummer',
+    postcodePlaceholder: 'fx 3400',
+    postcodeInvalid: 'Indtast et 4-cifret postnummer',
+    postcodeNotFound: 'Postnummeret blev ikke fundet',
+    searching: 'Søger…',
+    distanceHome: 'Hjem',
+    distanceAssignment: 'Opgave',
+    noCoordinates: 'Adresse mangler',
+    freeFrom: 'Fri fra {time}',
+    freeAllDay: 'Fri hele dagen',
+    absentDay: 'Fraværende',
+    noResults: 'Ingen medarbejdere at vise',
+    proximityHint: 'Viser hvem der er tættest på postnummeret, og hvornår de er fri i den viste uge.',
+  },
 };
 
 export default planner;
