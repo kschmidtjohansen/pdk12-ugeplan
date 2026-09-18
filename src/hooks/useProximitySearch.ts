@@ -10,6 +10,7 @@ import { getAllWeekDays } from '@/utils/dates';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { estimateTravelMinutes } from '@/utils/travelTime';
+import { selectProximityRankingDay } from '@/utils/proximityRanking';
 
 
 export interface ProximityDayInfo {
@@ -75,6 +76,13 @@ const isValidPostcode = (p: string) => /^\d{4}$/.test((p || '').trim());
 const WORKDAY_MINUTES = 8 * 60;
 const MIN_FREE_MINUTES = 60;
 const DEFAULT_DAY_START = 7 * 60;
+
+const toLocalIsoDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const addressKey = (address: string) => address.trim().toLocaleLowerCase('da-DK');
 
@@ -306,22 +314,10 @@ export const useProximitySearch = ({
         };
       });
 
-      // Prefer distances from real assignments. Home is used for ranking only
-      // when the employee has no usable assignment origin in the shown week.
-      const pickBest = (list: ProximityDayInfo[]) =>
-        list
-          .filter((d) => d.originDistanceKm !== null)
-          .sort((a, b) => (a.originDistanceKm as number) - (b.originDistanceKm as number))[0] ?? null;
-
-      const assignmentDays = days.filter((d) => d.origin === 'assignment');
-      const homeDays = days.filter((d) => d.origin === 'home');
-      const bestDay = assignmentDays.length > 0
-        ? pickBest(assignmentDays.filter((d) => d.hasEnoughFree)) ??
-          pickBest(assignmentDays.filter((d) => !d.absent)) ??
-          pickBest(assignmentDays)
-        : pickBest(homeDays.filter((d) => d.hasEnoughFree)) ??
-          pickBest(homeDays.filter((d) => !d.absent)) ??
-          pickBest(homeDays);
+      // The headline and ranking use today's position whenever today belongs to
+      // the displayed week. This prevents a free day elsewhere in the week from
+      // replacing today's real assignment position with the employee's home.
+      const bestDay = selectProximityRankingDay(days, toLocalIsoDate(new Date()));
 
       const bestDistanceKm = bestDay?.originDistanceKm ?? null;
       const bestSource = bestDay?.origin ?? null;
@@ -339,15 +335,15 @@ export const useProximitySearch = ({
         hasEnoughFreeDay: days.some((d) => d.hasEnoughFree),
       };
     }).sort((a, b) => {
-      // Enough free time first, then available, then shortest distance
-      if (a.hasEnoughFreeDay !== b.hasEnoughFreeDay) return a.hasEnoughFreeDay ? -1 : 1;
-
-      // Available first, then shortest distance, employees without coordinates last
-      if (a.hasAvailableDay !== b.hasAvailableDay) return a.hasAvailableDay ? -1 : 1;
+      // The nearest position is authoritative. Availability remains visible and
+      // only resolves ties; it must not make a farther home address "nearest".
       if (a.bestDistanceKm === null && b.bestDistanceKm === null) return a.employee.name.localeCompare(b.employee.name);
       if (a.bestDistanceKm === null) return 1;
       if (b.bestDistanceKm === null) return -1;
-      return a.bestDistanceKm - b.bestDistanceKm;
+      if (a.bestDistanceKm !== b.bestDistanceKm) return a.bestDistanceKm - b.bestDistanceKm;
+      if (a.hasEnoughFreeDay !== b.hasEnoughFreeDay) return a.hasEnoughFreeDay ? -1 : 1;
+      if (a.hasAvailableDay !== b.hasAvailableDay) return a.hasAvailableDay ? -1 : 1;
+      return a.employee.name.localeCompare(b.employee.name);
     });
   }, [active, onlyFugtteknikere, coordsQuery.data, assignmentAddressQuery.data, employees, weekAssignments, weekDates, vacations, trainingRangesByUser, sickQuery.data]);
 
