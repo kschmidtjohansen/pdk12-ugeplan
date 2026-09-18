@@ -65,6 +65,11 @@ const PlannerPage: React.FC = () => {
   const { employees: allEmployees } = useEmployeeData();
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
+
+  // Planner filters: employee multi-select + postcode proximity lookup
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+  const [filterPostcode, setFilterPostcode] = useState('');
+  
   
   // Use optimized assignments hook for unified data management
   const {
