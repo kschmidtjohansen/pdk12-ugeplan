@@ -13,6 +13,8 @@ interface ProximityPanelProps {
   employees: Employee[];
   weekAssignments: Assignment[];
   weekDates: { start: Date; end: Date; startStr: string; endStr: string };
+  /** When true (Fugt sub-department), only fugttekniker employees are shown */
+  onlyFugtteknikere?: boolean;
 }
 
 const formatKm = (km: number) => (km < 10 ? km.toFixed(1) : Math.round(km).toString());
@@ -26,6 +28,7 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
   employees,
   weekAssignments,
   weekDates,
+  onlyFugtteknikere = false,
 }) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? daLocale : enGB;
@@ -35,6 +38,7 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
     employees,
     weekAssignments,
     weekDates,
+    onlyFugtteknikere,
   });
 
   if (!postcode.trim()) return null;
