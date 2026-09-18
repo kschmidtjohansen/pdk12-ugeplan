@@ -190,22 +190,25 @@ export const useProximitySearch = ({
       const dayMap = byEmployeeDay.get(emp.id) || new Map<string, Assignment[]>();
       const vacationRanges = vacationByEmployee.get(emp.id) || [];
 
-      let bestAssignmentDistance: number | null = null;
-
       const days: ProximityDayInfo[] = weekDays.map((date) => {
         const dayAssignments = [...(dayMap.get(date) || [])].sort((a, b) =>
           (a.toTime || '').localeCompare(b.toTime || '')
         );
         const last = dayAssignments[dayAssignments.length - 1];
 
-        let assignmentDistanceKm: number | null = null;
-        dayAssignments.forEach((a) => {
-          if (typeof a.lat === 'number' && typeof a.lng === 'number') {
-            const d = haversineDistanceKm(target.lat, target.lng, a.lat, a.lng);
-            if (assignmentDistanceKm === null || d < assignmentDistanceKm) assignmentDistanceKm = d;
-            if (bestAssignmentDistance === null || d < bestAssignmentDistance) bestAssignmentDistance = d;
-          }
-        });
+        // Measure from where the employee ends the day: the latest assignment
+        // with coordinates, otherwise the home address.
+        const lastWithCoords = [...dayAssignments]
+          .reverse()
+          .find((a) => typeof a.lat === 'number' && typeof a.lng === 'number');
+        const origin: 'assignment' | 'home' | null = lastWithCoords
+          ? 'assignment'
+          : homeDistanceKm !== null
+            ? 'home'
+            : null;
+        const originDistanceKm = lastWithCoords
+          ? haversineDistanceKm(target.lat, target.lng, lastWithCoords.lat as number, lastWithCoords.lng as number)
+          : homeDistanceKm;
 
         const onVacation = vacationRanges.some((r) => date >= r.start && date <= r.end);
         const isSick = sickByDate.get(date)?.has(emp.id) ?? false;
@@ -233,20 +236,27 @@ export const useProximitySearch = ({
           dayEnd: toHHMM(dayEndMin),
           freeMinutes,
           hasEnoughFree: !absent && freeMinutes >= MIN_FREE_MINUTES,
-          assignmentDistanceKm,
+          originDistanceKm,
+          originTravelMin: originDistanceKm !== null ? estimateTravelMinutes(originDistanceKm) : null,
+          origin,
         };
       });
 
-      let bestDistanceKm: number | null = null;
-      let bestSource: 'home' | 'assignment' | null = null;
-      if (homeDistanceKm !== null) {
-        bestDistanceKm = homeDistanceKm;
-        bestSource = 'home';
-      }
-      if (bestAssignmentDistance !== null && (bestDistanceKm === null || bestAssignmentDistance < bestDistanceKm)) {
-        bestDistanceKm = bestAssignmentDistance;
-        bestSource = 'assignment';
-      }
+      // Ranking uses the best day: first among days with enough free time,
+      // then any day the employee is present, otherwise the whole week.
+      const pickBest = (list: ProximityDayInfo[]) =>
+        list
+          .filter((d) => d.originDistanceKm !== null)
+          .sort((a, b) => (a.originDistanceKm as number) - (b.originDistanceKm as number))[0] ?? null;
+
+      const bestDay =
+        pickBest(days.filter((d) => d.hasEnoughFree)) ??
+        pickBest(days.filter((d) => !d.absent)) ??
+        pickBest(days);
+
+      const bestDistanceKm = bestDay?.originDistanceKm ?? null;
+      const bestSource = bestDay?.origin ?? null;
+
 
       return {
         employee: emp,
