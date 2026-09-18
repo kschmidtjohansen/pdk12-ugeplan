@@ -444,6 +444,10 @@ const planner = {
     searching: 'Søger…',
     distanceHome: 'Hjem',
     distanceAssignment: 'Opgave',
+    fromLastAssignment: 'Fra sidste opgave',
+    fromHome: 'Fra hjemadresse',
+    travelEstimateNote: 'Køretid er et skøn ud fra afstanden.',
+
     noCoordinates: 'Adresse mangler',
     freeFrom: 'Fri fra {time}',
     freeAllDay: 'Fri hele dagen ({duration})',

@@ -444,6 +444,10 @@ const planner = {
     searching: 'Searching…',
     distanceHome: 'Home',
     distanceAssignment: 'Task',
+    fromLastAssignment: 'From last task',
+    fromHome: 'From home address',
+    travelEstimateNote: 'Drive time is estimated from the distance.',
+
     noCoordinates: 'Address missing',
     freeFrom: 'Free from {time}',
     freeAllDay: 'Free all day ({duration})',
