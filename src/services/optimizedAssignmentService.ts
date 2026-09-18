@@ -139,19 +139,30 @@ export class OptimizedAssignmentService {
     if (assignmentIds.length === 0) return [];
     
     try {
-      const { data: assignmentEmployeeData, error: employeeError } = await supabase
-        .from('assignments_employees')
-        .select('assignment_id, user_id')
-        .in('assignment_id', assignmentIds);
+      // Hent i portioner: en enkelt .in() med mange hundrede id'er giver en for lang
+      // URL, og hele holdet ville forsvinde lydløst.
+      const CHUNK_SIZE = 150;
+      const assignmentEmployeeData: { assignment_id: string; user_id: string }[] = [];
 
-      if (employeeError) {
-        if (import.meta.env.DEV) console.warn('[OptimizedAssignmentService] Assignment employees fetch error:', employeeError);
+      for (let i = 0; i < assignmentIds.length; i += CHUNK_SIZE) {
+        const chunk = assignmentIds.slice(i, i + CHUNK_SIZE);
+        const { data, error: employeeError } = await supabase
+          .from('assignments_employees')
+          .select('assignment_id, user_id')
+          .in('assignment_id', chunk);
+
+        if (employeeError) {
+          console.warn('[OptimizedAssignmentService] Assignment employees fetch error (chunk):', employeeError);
+          continue;
+        }
+
+        if (data) assignmentEmployeeData.push(...data);
+      }
+
+      if (assignmentEmployeeData.length === 0) {
         return [];
       }
 
-      if (!assignmentEmployeeData || assignmentEmployeeData.length === 0) {
-        return [];
-      }
 
       const userIds = [...new Set(assignmentEmployeeData.map(emp => emp.user_id))];
       
