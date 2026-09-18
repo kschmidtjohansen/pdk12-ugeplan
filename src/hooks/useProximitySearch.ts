@@ -42,6 +42,8 @@ interface Params {
   weekAssignments: Assignment[];
   weekDates: { start: Date; end: Date; startStr: string; endStr: string };
   enabled?: boolean;
+  /** When true (Fugt sub-department), only fugttekniker employees are ranked */
+  onlyFugtteknikere?: boolean;
 }
 
 const isValidPostcode = (p: string) => /^\d{4}$/.test((p || '').trim());
