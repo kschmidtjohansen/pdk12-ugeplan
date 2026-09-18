@@ -22,6 +22,8 @@ export interface OptimizedAssignmentData {
   case_number: string | null;
   group_id: string | null;
   sub_department_id?: string | null;
+  lat: number | null;
+  lng: number | null;
   responsible_user: {
     id: string;
     name: string;
@@ -90,6 +92,8 @@ export class OptimizedAssignmentService {
       car_ids: assignment.car_ids || [],
       case_number: assignment.case_number || null,
       group_id: assignment.group_id || null,
+      lat: assignment.lat ?? null,
+      lng: assignment.lng ?? null,
       responsible_user: assignment.responsible_user ? {
         id: assignment.responsible_user.id,
         name: assignment.responsible_user.name
@@ -120,6 +124,8 @@ export class OptimizedAssignmentService {
       car_ids: demo.car_ids || [],
       case_number: demo.case_number || null,
       group_id: demo.group_id || null,
+      lat: demo.lat ?? null,
+      lng: demo.lng ?? null,
       responsible_user: demo.responsible_user || null,
       assignment_employees: Array.isArray(demo.employees) ? demo.employees.map((empId: string) => ({
         user_id: empId,
@@ -277,6 +283,8 @@ export class OptimizedAssignmentService {
         car_ids: assignment.car_ids,
         case_number: assignment.case_number || null,
         group_id: assignment.group_id || null,
+        lat: assignment.lat ?? null,
+        lng: assignment.lng ?? null,
         responsible_user: null,
         assignment_employees: assignmentEmployees,
         assignment_cars: assignmentCars
@@ -354,6 +362,8 @@ export class OptimizedAssignmentService {
               case_number: assignment.case_number || null,
               group_id: (assignment as any).group_id || null,
               sub_department_id: (assignment as any).sub_department_id ?? null,
+              lat: assignment.lat ?? null,
+              lng: assignment.lng ?? null,
               responsible_user: assignment.responsible_user ? {
                 id: (assignment.responsible_user as any).id || '',
                 name: (assignment.responsible_user as any).name || '',
@@ -384,6 +394,8 @@ export class OptimizedAssignmentService {
               case_number: assignment.case_number || null,
               group_id: (assignment as any).group_id || null,
               sub_department_id: (assignment as any).sub_department_id ?? null,
+              lat: assignment.lat ?? null,
+              lng: assignment.lng ?? null,
               responsible_user: null,
               assignment_employees: [],
               assignment_cars: []
@@ -409,7 +421,7 @@ export class OptimizedAssignmentService {
       const isAdmin = role === 'administrator' || role === 'skadeleder' || role === 'super_admin';
       const query = supabase
         .from('assignments')
-        .select(`id, title, description, assignment_date, from_time, to_time, location, type, published, responsible_user_id, created_at, updated_at, car_id, car_ids, group_id, case_number`)
+        .select(`id, title, description, assignment_date, from_time, to_time, location, type, published, responsible_user_id, created_at, updated_at, car_id, car_ids, group_id, case_number, lat, lng`)
         .order('assignment_date', { ascending: false })
         .order('from_time', { ascending: false });
 
@@ -496,6 +508,9 @@ export class OptimizedAssignmentService {
         car_ids: assignment.car_ids,
         case_number: assignment.case_number || null,
         group_id: (assignment as any).group_id || null,
+        sub_department_id: assignment.sub_department_id ?? null,
+        lat: assignment.lat ?? null,
+        lng: assignment.lng ?? null,
         responsible_user: assignment.responsible_user ? {
           id: (assignment.responsible_user as any).id || '',
           name: (assignment.responsible_user as any).name || '',

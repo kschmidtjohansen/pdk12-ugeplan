@@ -458,3 +458,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Afstand pr. dag måles fra dagens sidste opgave, med hjemadresse som fallback når medarbejderen ikke er booket
 - [x] Rangering bruger bedste dag (først dage med mindst 1 time fri)
 - [x] Afstand og estimeret køretid vist pr. dagsbrik samt kilde på hovedlinjen
+
+## Korrekt opgaveafstand og enklere nærhedsvisning (2026-09-18)
+
+- [x] Opgavekoordinater returneres af ugeplanens sikre datafunktion og føres gennem frontendens opgavemodel
+- [x] Nærmeste sidste opgave prioriteres; hjemadresse bruges kun uden en brugbar opgaveposition
+- [x] Kilometer og køretid vises kun i den blå markering, ikke i dagsmærkerne eller kildelinjen

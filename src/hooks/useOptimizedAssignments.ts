@@ -101,7 +101,9 @@ const convertToAssignment = (data: OptimizedAssignmentData, allEmployees: Employ
     responsibleUser: data.responsible_user,
     case_number: data.case_number,
     groupId: data.group_id || undefined,
-    subDepartmentId: (data as any).sub_department_id ?? null
+    subDepartmentId: data.sub_department_id ?? null,
+    lat: data.lat ?? undefined,
+    lng: data.lng ?? undefined
   };
 };
 
