@@ -445,3 +445,10 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 
 - [x] Nærhedslisten tæller kun mandag–fredag — lørdag/søndag fjernet fra brikker, afstand og ledighed
 - [x] I underafdelingen Fugt rangerer postnummer-søgningen kun fugtteknikere
+
+## Ledig tid, rejsetid og bedre kontrol ved oprettelse (2026-09-18)
+
+- [x] Ledig tid pr. dag ud fra 8-timers arbejdsdag; kandidater med mindst 1 time fremhæves og sorteres først
+- [x] Estimeret rejsetid vist sammen med afstand (vejfaktor 1,3 ved 60 km/t, "ca."-tal)
+- [x] Løbende adgangskodekrav inkl. kontrol mod kendte datalæk (HIBP k-anonymitet) i `PasswordInput`
+- [x] Ny edge function `check-user-email` + statusvisning ved blur i `EmployeeFormDialog` (ledig/aktiv/inaktiv/kun login)
