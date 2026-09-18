@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-18 — Nærhed måles fra dagens sidste opgave
+
+- `useProximitySearch`: afstanden pr. dag beregnes nu fra dagens **sidste opgave** (seneste opgave med koordinater, sorteret på `toTime`) og falder tilbage til hjemadressen, når medarbejderen ikke er booket. Nye felter `originDistanceKm`, `originTravelMin` og `origin` pr. dag; `assignmentDistanceKm` er fjernet.
+- Rangering bygger nu på den bedste dag: først blandt dage med mindst 1 time fri, ellers blandt dage uden fravær, ellers hele ugen. Sorteringsrækkefølgen (nok fri tid → til stede → korteste afstand) er uændret.
+- `ProximityPanel`: hver dagsbrik viser afstand og estimeret køretid, hovedlinjen viser den bedste dags afstand, køretid og kilde ("Fra sidste opgave" / "Fra hjemadresse"), og der står en note om at køretiden er et skøn.
+- Nye tekstnøgler `planner.filters.fromLastAssignment`, `fromHome`, `travelEstimateNote` (da/en); `proximityHint` opdateret. Ingen database- eller edge function-ændringer.
+
+
+
 ## 2026-09-18 — Ledig tid, rejsetid og bedre kontrol ved oprettelse
 
 - `useProximitySearch`: hver dag beregnes nu ud fra en 8-timers arbejdsdag (start = første opgaves starttid, ellers 07:00). Nye felter `freeMinutes`, `dayEnd`, `hasEnoughFree` (>= 60 min) pr. dag samt `hasEnoughFreeDay`, `homeTravelMin`, `bestTravelMin`. Sortering: nok ledig tid → til stede → korteste afstand.
