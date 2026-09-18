@@ -128,21 +128,35 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-72 p-0" align="start">
-                <Command>
-                  <CommandInput placeholder={t('planner.filters.employeesPlaceholder')} />
-                  <CommandList>
-                    <CommandEmpty>{t('planner.filters.noEmployees')}</CommandEmpty>
-                    <CommandGroup>
-                      {sortedEmployees.map((emp) => (
-                        <CommandItem key={emp.id} value={emp.name} onSelect={() => toggleEmployee(emp.id)}>
-                          <Checkbox checked={selectedSet.has(emp.id)} className="mr-2" />
-                          <span className="truncate">{emp.name}</span>
-                          {selectedSet.has(emp.id) && <Check className="ml-auto h-3.5 w-3.5 text-primary" />}
-                        </CommandItem>
+                <div className="p-2 border-b border-border">
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={t('planner.filters.employeesPlaceholder')}
+                    className="h-8"
+                  />
+                </div>
+                <ScrollArea className="max-h-64 overflow-y-auto">
+                  {filteredEmployees.length === 0 ? (
+                    <p className="p-3 text-xs text-muted-foreground">{t('planner.filters.noEmployees')}</p>
+                  ) : (
+                    <ul className="p-1">
+                      {filteredEmployees.map((emp) => (
+                        <li key={emp.id}>
+                          <button
+                            type="button"
+                            onClick={() => toggleEmployee(emp.id)}
+                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left"
+                          >
+                            <Checkbox checked={selectedSet.has(emp.id)} className="pointer-events-none" />
+                            <span className="truncate">{emp.name}</span>
+                            {selectedSet.has(emp.id) && <Check className="ml-auto h-3.5 w-3.5 text-primary" />}
+                          </button>
+                        </li>
                       ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
+                    </ul>
+                  )}
+                </ScrollArea>
               </PopoverContent>
             </Popover>
 
