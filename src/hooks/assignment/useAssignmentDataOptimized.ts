@@ -23,12 +23,24 @@ export const useAssignmentDataOptimized = () => {
 
   const fetchAssignments = useCallback(async () => {
     try {
+      // Never fetch before the department is known — an empty department would
+      // return assignments from every department (cross-department leak).
+      if (!selectedDepartmentId && !isDemoMode) {
+        setAssignments([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       
       if (import.meta.env.DEV) console.log('[useAssignmentDataOptimized] ENHANCED - Starting enhanced fetch...');
       
-      const assignmentResult = await enhancedDataFetching.fetchAssignmentsEnhanced(user?.email);
+      const assignmentResult = await enhancedDataFetching.fetchAssignmentsEnhanced(
+        user?.email,
+        selectedDepartmentId,
+        selectedSubDepartmentId
+      );
       
       if (assignmentResult.error || !assignmentResult.data) {
         throw assignmentResult.error || new Error('No assignment data received');
