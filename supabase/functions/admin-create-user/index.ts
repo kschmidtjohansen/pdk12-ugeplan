@@ -171,12 +171,14 @@ serve(async (req) => {
     if (createError) {
       console.error(`[${requestId}] User creation error:`, createError);
 
-      const msg = createError.message || '';
+      const msg = (createError.message || '').toLowerCase();
+      const code = (createError as any)?.code;
+
+      // Kun reelle e-mail-dubletter må meldes som dublet
       const isEmailExists =
-        (createError as any)?.code === 'email_exists' ||
-        (createError as any)?.status === 422 ||
-        msg.toLowerCase().includes('already been registered') ||
-        msg.toLowerCase().includes('user already registered');
+        code === 'email_exists' ||
+        msg.includes('already been registered') ||
+        msg.includes('user already registered');
 
       if (isEmailExists) {
         return new Response(
@@ -188,8 +190,41 @@ serve(async (req) => {
         );
       }
 
+      // Svag eller lækket adgangskode
+      if (code === 'weak_password' || msg.includes('weak') || msg.includes('pwned')) {
+        return new Response(
+          JSON.stringify({
+            error: 'Adgangskoden er for usikker eller kendt fra datalæk — vælg en anden adgangskode.',
+            code: 'weak_password',
+          }),
+          { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Adgangskode for kort
+      if (msg.includes('password should be at least') || msg.includes('password is too short')) {
+        return new Response(
+          JSON.stringify({
+            error: 'Adgangskoden er for kort — vælg en længere adgangskode.',
+            code: 'password_too_short',
+          }),
+          { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Ugyldig e-mail
+      if (code === 'email_address_invalid' || msg.includes('invalid email') || msg.includes('unable to validate email')) {
+        return new Response(
+          JSON.stringify({
+            error: 'E-mailadressen er ugyldig — kontrollér stavningen.',
+            code: 'email_invalid',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ error: `User creation failed: ${createError.message}` }),
+        JSON.stringify({ error: `Oprettelse mislykkedes: ${createError.message}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

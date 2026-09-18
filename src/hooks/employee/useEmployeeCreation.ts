@@ -336,11 +336,14 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
       if (err instanceof Error) {
         errorMessage = err.message;
         
-        if (errorMessage.includes('User already registered') || errorMessage.includes('email_address_already_registered')) {
+        const lower = errorMessage.toLowerCase();
+        if (lower.includes('weak') || lower.includes('pwned') || lower.includes('usikker')) {
+          errorMessage = t('employees.weakPassword');
+        } else if (errorMessage.includes('User already registered') || errorMessage.includes('email_address_already_registered')) {
           errorMessage = t('employees.userAlreadyExists');
         } else if (errorMessage.includes('Invalid email')) {
           errorMessage = t('employees.invalidEmail');
-        } else if (errorMessage.includes('Password')) {
+        } else if (errorMessage.includes('Password') && !lower.includes('adgangskode')) {
           errorMessage = t('employees.passwordRequirements');
         } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('Failed to send a request')) {
           errorMessage = t('employees.networkError');

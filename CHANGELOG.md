@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-18 — Korrekt fejlbesked ved oprettelse af medarbejder
+
+- `admin-create-user`: dublet-detektionen brugte HTTP 422 som kriterium, så afvisninger af svage/lækkede adgangskoder fejlagtigt blev vist som "en bruger med denne email findes allerede". Nu markeres kun reelle e-mail-dubletter (`email_exists` eller beskedmatch) som dublet.
+- Nye, præcise danske svar for svag/lækket adgangskode (422), for kort adgangskode (422) og ugyldig e-mail (400).
+- `useEmployeeCreation`: fejlkortlægning genkender svag adgangskode og viser `employees.weakPassword`; serverens danske beskeder overskrives ikke længere af den generiske adgangskodetekst.
+- Nye tekstnøgler `employees.weakPassword` (da/en).
+
+
 ## 2026-09-17 — Rettelser fra projektovervågning
 
 - `ChangeLogContext.fetchChangeLogsByDateRange`: den faste `.limit(300)` ramte alle afdelinger før afdelingsfiltreringen, så travle organisationer kunne miste poster. Nu hentes loggen sidevis (500 ad gangen, maks. 8 sider) og filtreres pr. side, indtil der er 300 poster for den valgte afdeling.
