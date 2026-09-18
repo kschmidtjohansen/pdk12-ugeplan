@@ -162,9 +162,44 @@ export const fetchAssignmentsForQuery = async ({
       result = [];
   }
 
+  // Sikkerhedsnet: hvis en opgave har medarbejder-id'er uden navn, slås navnene op samlet.
+  const missingNameIds = new Set<string>();
+  result.forEach(data => {
+    data.assignment_employees?.forEach((emp: any) => {
+      const name = emp?.profiles?.name;
+      if (emp?.user_id && (!name || !String(name).trim())) missingNameIds.add(emp.user_id);
+    });
+  });
+
+  let profileFallback: Map<string, { name: string; email: string }> | undefined;
+  if (missingNameIds.size > 0) {
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name, email')
+      .in('id', Array.from(missingNameIds));
+
+    if (profilesError) {
+      if (import.meta.env.DEV) console.warn('[useOptimizedAssignments] Kunne ikke hente manglende profilnavne:', profilesError);
+    } else if (profiles) {
+      profileFallback = new Map(
+        profiles.map(p => [p.id, { name: p.name || '', email: p.email || '' }])
+      );
+    }
+  }
+
+  if (import.meta.env.DEV) {
+    const withTeam = result.filter(a => (a.assignment_employees?.length || 0) > 0).length;
+    console.log('[useOptimizedAssignments] Diagnose:', {
+      assignments: result.length,
+      medOpgaveHold: withTeam,
+      manglendeNavne: missingNameIds.size,
+      medarbejderlisteStr: allEmployees.length,
+    });
+  }
+
   return result.map(data => {
     try {
-      return convertToAssignment(data, allEmployees);
+      return convertToAssignment(data, allEmployees, profileFallback);
     } catch (conversionError) {
       if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Error converting assignment:', conversionError);
       return {
