@@ -750,6 +750,21 @@ const PlannerPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Quick sub-department switch, so users don't have to go via the dashboard */}
+        <SubDepartmentQuickSwitcher />
+
+        {/* Filters: employee multi-select + postcode proximity lookup */}
+        <PlannerFilterBar
+          employees={employees}
+          selectedEmployeeIds={selectedEmployeeIds}
+          onSelectedEmployeeIdsChange={setSelectedEmployeeIds}
+          postcode={filterPostcode}
+          onPostcodeChange={setFilterPostcode}
+          weekAssignments={weekAssignments}
+          weekDates={weekDates}
+          showProximity={canCreate || canPublishTasks}
+        />
+
         {/* Main Content — skeleton reserves the same vertical space as the week list */}
         {loading ? (
           <div aria-label={`${t('common.loading')}...`}>
