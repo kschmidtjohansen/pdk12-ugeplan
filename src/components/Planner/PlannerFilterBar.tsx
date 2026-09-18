@@ -40,6 +40,7 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [search, setSearch] = useState('');
 
   const sortedEmployees = useMemo(
     () => [...employees].sort((a, b) => a.name.localeCompare(b.name)),
