@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-18 — Justeringer af postnummer-søgningen i Ugeplanen
+
+- `useProximitySearch`: nærhedslisten tæller nu kun mandag–fredag. Lørdag og søndag er fjernet fra dagsbrikkerne, og weekendopgaver indgår ikke længere i afstandsmåling eller ledighed.
+- Underafdelingen **Fugt**: postnummer-søgningen rangerer nu kun medarbejdere med rollen `fugttekniker` (tjekkes via både `roles`-listen og det primære `role`-felt). Underafdelingen genkendes case-insensitivt på navnet via `useDepartment()`; alle andre underafdelinger og "Alle" er uændrede.
+- Ændringerne er rent præsentationsmæssige i `PlannerFilterBar`/`ProximityPanel` — ingen database- eller edge function-ændringer, og navnefilteret er uberørt.
+
+
 ## 2026-09-18 — Underafdelingsskift og filtre i Ugeplanen
 
 - `SubDepartmentQuickSwitcher` flyttet til `src/components/shared/` og vises nu også øverst i /planner, så underafdeling kan skiftes uden at gå via Dashboard (`DashboardPage`-import opdateret).
