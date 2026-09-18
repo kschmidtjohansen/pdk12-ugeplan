@@ -440,3 +440,8 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] `PlannerFilterBar` med medarbejderfilter (flere navne) og aktive chips; filtrering i alle visninger
 - [x] `ProximityPanel` + `useProximitySearch`: postnummeropslag via DAWA, afstand fra hjem og ugens opgaver, ledighed og fravær pr. dag
 - [x] Nye tekstnøgler `planner.filters.*` (da/en)
+
+## Justeringer af postnummer-søgningen (2026-09-18)
+
+- [x] Nærhedslisten tæller kun mandag–fredag — lørdag/søndag fjernet fra brikker, afstand og ledighed
+- [x] I underafdelingen Fugt rangerer postnummer-søgningen kun fugtteknikere
