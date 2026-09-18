@@ -2,6 +2,7 @@
 
 ## Løbende rettelser ✅
 
+- [x] Nærhedsvisningen positionsbestemmer alle dagens opgaveadresser og falder tilbage til den foregående opgave samme dag, så medarbejdere med flere opgaver med samme sluttid ikke vises uden adresse (2026-09-18).
 - [x] Nærhedsvisningen positionsbestemmer eksisterende opgaveadresser uden `lat`/`lng`, bruger dagens seneste opgave som udgangspunkt og bruger kun hjemadressen på helt ubekræftede dage (2026-09-18).
 - [x] Nærhedsrangeringen bruger dagens opgaveposition som autoritativ kilde, så en hjemadresse fra en anden ugedag ikke kan overhale en medarbejder på opgave i det søgte postnummer (2026-09-18).
 
