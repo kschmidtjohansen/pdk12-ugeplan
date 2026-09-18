@@ -19,6 +19,12 @@ export interface ProximityDayInfo {
   assignmentCount: number;
   /** end time of the last assignment that day (HH:MM), null when free all day */
   freeFrom: string | null;
+  /** end of the 8-hour working day (HH:MM) */
+  dayEnd: string;
+  /** free minutes left after the last assignment (0 when absent) */
+  freeMinutes: number;
+  /** true when at least 60 free minutes are left and the employee is present */
+  hasEnoughFree: boolean;
   /** distance in km from the searched postcode to that day's last assignment */
   assignmentDistanceKm: number | null;
 }
@@ -27,14 +33,21 @@ export interface ProximityResult {
   employee: Employee;
   /** distance from the employee's home address */
   homeDistanceKm: number | null;
+  /** estimated travel time in minutes from the employee's home address */
+  homeTravelMin: number | null;
   /** shortest distance across home + the week's assignments */
   bestDistanceKm: number | null;
+  /** estimated travel time in minutes for the shortest distance */
+  bestTravelMin: number | null;
   /** 'home' | 'assignment' | null — which distance the ranking is based on */
   bestSource: 'home' | 'assignment' | null;
   days: ProximityDayInfo[];
   /** true when the employee is available (not absent) at least one day this week */
   hasAvailableDay: boolean;
+  /** true when at least one day has 1 hour or more free */
+  hasEnoughFreeDay: boolean;
 }
+
 
 interface Params {
   postcode: string;
