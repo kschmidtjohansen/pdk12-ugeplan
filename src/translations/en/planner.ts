@@ -456,7 +456,7 @@ const planner = {
     travelApprox: 'approx. {time}',
     enoughTime: 'Enough time',
     noResults: 'No employees to show',
-    proximityHint: 'Shows who is closest to the postcode, the approximate drive time, and how much free time they have during the displayed week (8-hour working day, at least 1 hour is highlighted).',
+    proximityHint: 'Distance is measured from the last task of the day — or from the home address when the employee is not booked. Also shows free time during the displayed week (8-hour working day, at least 1 hour is highlighted).',
 
   },
 };

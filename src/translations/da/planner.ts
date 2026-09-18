@@ -456,7 +456,7 @@ const planner = {
     travelApprox: 'ca. {time}',
     enoughTime: 'Tid nok',
     noResults: 'Ingen medarbejdere at vise',
-    proximityHint: 'Viser hvem der er tættest på postnummeret, hvor lang tid turen ca. tager, og hvor meget ledig tid de har i den viste uge (8-timers arbejdsdag, mindst 1 time fremhæves).',
+    proximityHint: 'Afstand måles fra dagens sidste opgave — eller fra hjemadressen, når medarbejderen ikke er booket. Viser også ledig tid i den viste uge (8-timers arbejdsdag, mindst 1 time fremhæves).',
 
   },
 };
