@@ -180,12 +180,29 @@ export const useProximitySearch = ({
         const onVacation = vacationRanges.some((r) => date >= r.start && date <= r.end);
         const isSick = sickByDate.get(date)?.has(emp.id) ?? false;
         const inTraining = trainingIds.has(emp.id);
+        const absent = onVacation || isSick || inTraining || !!emp.onLeave;
+
+        // 8-hour working day starting at the first assignment (default 07:00)
+        const firstStart = dayAssignments.length > 0
+          ? [...dayAssignments].sort((a, b) => (a.fromTime || '').localeCompare(b.fromTime || ''))[0]?.fromTime
+          : null;
+        const dayStartMin = toMinutes(firstStart) ?? DEFAULT_DAY_START;
+        const dayEndMin = dayStartMin + WORKDAY_MINUTES;
+        const lastEndMin = toMinutes(last?.toTime);
+        const freeMinutes = absent
+          ? 0
+          : lastEndMin === null
+            ? WORKDAY_MINUTES
+            : Math.max(0, dayEndMin - lastEndMin);
 
         return {
           date,
-          absent: onVacation || isSick || inTraining || !!emp.onLeave,
+          absent,
           assignmentCount: dayAssignments.length,
           freeFrom: last?.toTime ? last.toTime.slice(0, 5) : null,
+          dayEnd: toHHMM(dayEndMin),
+          freeMinutes,
+          hasEnoughFree: !absent && freeMinutes >= MIN_FREE_MINUTES,
           assignmentDistanceKm,
         };
       });
@@ -204,12 +221,18 @@ export const useProximitySearch = ({
       return {
         employee: emp,
         homeDistanceKm,
+        homeTravelMin: homeDistanceKm !== null ? estimateTravelMinutes(homeDistanceKm) : null,
         bestDistanceKm,
+        bestTravelMin: bestDistanceKm !== null ? estimateTravelMinutes(bestDistanceKm) : null,
         bestSource,
         days,
         hasAvailableDay: days.some((d) => !d.absent),
+        hasEnoughFreeDay: days.some((d) => d.hasEnoughFree),
       };
     }).sort((a, b) => {
+      // Enough free time first, then available, then shortest distance
+      if (a.hasEnoughFreeDay !== b.hasEnoughFreeDay) return a.hasEnoughFreeDay ? -1 : 1;
+
       // Available first, then shortest distance, employees without coordinates last
       if (a.hasAvailableDay !== b.hasAvailableDay) return a.hasAvailableDay ? -1 : 1;
       if (a.bestDistanceKm === null && b.bestDistanceKm === null) return a.employee.name.localeCompare(b.employee.name);
