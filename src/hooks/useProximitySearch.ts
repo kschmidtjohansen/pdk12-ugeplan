@@ -127,9 +127,9 @@ export const useProximitySearch = ({
     staleTime: 24 * 60 * 60 * 1000,
   });
 
-  // Resolve only the last assignment per employee/day. Older assignments often
-  // have an address but no persisted lat/lng, so those addresses are geocoded
-  // once and cached rather than incorrectly falling back to the employee's home.
+  // Geocode every assignment address for the ranked employees that has no
+  // persisted lat/lng. Resolving only one assignment per day is fragile when two
+  // assignments end at the same time, so the whole day's set is resolved.
   const missingLastAssignmentAddresses = useMemo(() => {
     const relevantEmployeeIds = new Set(
       (onlyFugtteknikere
@@ -139,28 +139,23 @@ export const useProximitySearch = ({
         : employees
       ).map((emp) => emp.id)
     );
-    const latestByEmployeeDate = new Map<string, Assignment>();
 
+    const addresses = new Set<string>();
     weekAssignments.forEach((assignment) => {
-      (assignment.employees || []).forEach((employeeId) => {
-        if (!relevantEmployeeIds.has(employeeId)) return;
-        const key = `${employeeId}:${assignment.date}`;
-        const current = latestByEmployeeDate.get(key);
-        if (!current || (assignment.toTime || '').localeCompare(current.toTime || '') > 0) {
-          latestByEmployeeDate.set(key, assignment);
-        }
-      });
+      const isRelevant = (assignment.employees || []).some((employeeId) =>
+        relevantEmployeeIds.has(employeeId)
+      );
+      if (!isRelevant) return;
+      const hasCoords =
+        typeof assignment.lat === 'number' && typeof assignment.lng === 'number';
+      if (hasCoords) return;
+      const location = assignment.location?.trim();
+      if (location) addresses.add(location);
     });
 
-    return Array.from(new Set(
-      Array.from(latestByEmployeeDate.values())
-        .filter((assignment) =>
-          !(typeof assignment.lat === 'number' && typeof assignment.lng === 'number') &&
-          !!assignment.location?.trim()
-        )
-        .map((assignment) => assignment.location.trim())
-    )).sort((a, b) => a.localeCompare(b, 'da'));
+    return Array.from(addresses).sort((a, b) => a.localeCompare(b, 'da'));
   }, [employees, onlyFugtteknikere, weekAssignments]);
+
 
   const assignmentAddressQuery = useQuery({
     queryKey: ['assignment-address-coords', missingLastAssignmentAddresses],
@@ -255,16 +250,32 @@ export const useProximitySearch = ({
         const dayAssignments = dayMap.get(date) || [];
         const last = selectLastAssignment(dayAssignments);
 
-        // A booked day must use the day's last assignment. Home is only a
-        // valid origin when the employee has no assignment that day.
-        const storedLastCoords =
-          !!last && typeof last.lat === 'number' && typeof last.lng === 'number'
-            ? { lat: last.lat, lng: last.lng }
+        // A booked day must use the day's assignments. The latest-ending one
+        // wins; earlier ones are only used when its position cannot be found.
+        // Home is only a valid origin when there is no assignment that day.
+        const coordsFor = (assignment: Assignment) => {
+          if (typeof assignment.lat === 'number' && typeof assignment.lng === 'number') {
+            return { lat: assignment.lat, lng: assignment.lng };
+          }
+          return assignment.location
+            ? assignmentAddressQuery.data?.get(addressKey(assignment.location)) ?? null
             : null;
-        const resolvedLastCoords = last?.location
-          ? assignmentAddressQuery.data?.get(addressKey(last.location)) ?? null
-          : null;
-        const lastCoords = storedLastCoords ?? resolvedLastCoords;
+        };
+
+        const byLatestFirst = [...dayAssignments].sort((a, b) => {
+          const byEndTime = (b.toTime ?? '').localeCompare(a.toTime ?? '');
+          return byEndTime !== 0 ? byEndTime : b.id.localeCompare(a.id);
+        });
+
+        let lastCoords: { lat: number; lng: number } | null = null;
+        for (const assignment of byLatestFirst) {
+          const coords = coordsFor(assignment);
+          if (coords) {
+            lastCoords = coords;
+            break;
+          }
+        }
+
         const origin: 'assignment' | 'home' | null = last
           ? lastCoords
             ? 'assignment'
@@ -277,6 +288,7 @@ export const useProximitySearch = ({
           : last
             ? null
             : homeDistanceKm;
+
 
         const onVacation = vacationRanges.some((r) => date >= r.start && date <= r.end);
         const isSick = sickByDate.get(date)?.has(emp.id) ?? false;

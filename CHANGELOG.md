@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-18 — Nærhed finder adressen på dagens sidste opgave
+
+- To opgaver med samme sluttid kunne få adresseopslaget og afstandsberegningen til at pege på hver sin opgave, så medarbejderen endte nederst uden afstand (fx Mark Frisbæk på Æblevangen 126, 2765 Smørum).
+- Alle dagens opgaveadresser uden gemte koordinater positionsbestemmes nu, ikke kun én pr. dag.
+- Kan den senest afsluttende opgaves adresse undtagelsesvis ikke findes, bruges den nærmest foregående opgave samme dag; hjemadressen bruges fortsat kun på dage helt uden opgaver.
+
+
+
 ## 2026-09-18 — Dagens opgave styrer nærhedsrangeringen
 
 - Når den viste uge indeholder dags dato, bruger nærhedslisten nu udelukkende dagens seneste opgave som medarbejderens position; kun medarbejdere uden opgaver i dag bruger hjemadressen.
