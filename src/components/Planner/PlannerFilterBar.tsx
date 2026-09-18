@@ -47,6 +47,13 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
     [employees]
   );
 
+  const filteredEmployees = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return sortedEmployees;
+    return sortedEmployees.filter((e) => e.name.toLowerCase().includes(q));
+  }, [sortedEmployees, search]);
+
+
   const selectedSet = useMemo(() => new Set(selectedEmployeeIds), [selectedEmployeeIds]);
   const hasFilters = selectedEmployeeIds.length > 0 || !!postcode.trim();
 
