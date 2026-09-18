@@ -128,7 +128,14 @@ export const fetchAssignmentsForQuery = async ({
 }: FetchAssignmentsForQueryArgs): Promise<Assignment[]> => {
   if (!userId || !userRole) return [];
 
-  if (import.meta.env.DEV) console.log(`[useOptimizedAssignments] Fetching assignments with filter: ${filter}`);
+  // Multi-tenant guard: never fetch without a resolved department (demo user excepted),
+  // otherwise assignments from every department would be merged together.
+  if (!selectedDepartmentId && userEmail !== 'test@polygongroup.com') {
+    if (import.meta.env.DEV) console.warn('[useOptimizedAssignments] No department selected — skipping fetch');
+    return [];
+  }
+
+  if (import.meta.env.DEV) console.log(`[useOptimizedAssignments] Fetching assignments with filter: ${filter}, department: ${selectedDepartmentId}, subDepartment: ${selectedSubDepartmentId ?? 'none'}`);
 
   let result: OptimizedAssignmentData[];
 
