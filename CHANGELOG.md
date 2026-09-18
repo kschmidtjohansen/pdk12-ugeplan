@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-18 — Datopræcist kursusfravær i nærhedsvisningen
+
+- Nærhedsvisningen bruger nu kursets start- og slutdato pr. medarbejder i stedet for ét samlet ugeflag.
+- En enkelt kursusdag markerer derfor kun teknikeren fraværende den pågældende dag; ledighed og rangering på ugens øvrige hverdage bevares.
+
 ## 2026-09-18 — Korrekt opgaveafstand og enklere nærhedsvisning
 
 - Ugeplanens sikre opgavefunktion returnerer nu `lat`/`lng`, og koordinaterne føres gennem opgaveservicen til nærhedssøgningen.

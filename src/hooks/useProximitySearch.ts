@@ -106,7 +106,7 @@ export const useProximitySearch = ({
 }: Params) => {
   const { selectedDepartmentId } = useDepartment();
   const { vacations } = useVacations();
-  const { trainingIds } = useActiveTrainingsForRange(weekDates.startStr, weekDates.endStr);
+  const { trainingRangesByUser } = useActiveTrainingsForRange(weekDates.startStr, weekDates.endStr);
 
   const active = enabled && isValidPostcode(postcode);
 
@@ -189,6 +189,7 @@ export const useProximitySearch = ({
 
       const dayMap = byEmployeeDay.get(emp.id) || new Map<string, Assignment[]>();
       const vacationRanges = vacationByEmployee.get(emp.id) || [];
+      const trainingRanges = trainingRangesByUser.get(emp.id) || [];
 
       const days: ProximityDayInfo[] = weekDays.map((date) => {
         const dayAssignments = [...(dayMap.get(date) || [])].sort((a, b) =>
@@ -215,7 +216,9 @@ export const useProximitySearch = ({
 
         const onVacation = vacationRanges.some((r) => date >= r.start && date <= r.end);
         const isSick = sickByDate.get(date)?.has(emp.id) ?? false;
-        const inTraining = trainingIds.has(emp.id);
+        const inTraining = trainingRanges.some(
+          (range) => date >= range.start_date && date <= range.end_date
+        );
         const absent = onVacation || isSick || inTraining || !!emp.onLeave;
 
         // 8-hour working day starting at the first assignment (default 07:00)
@@ -288,7 +291,7 @@ export const useProximitySearch = ({
       if (b.bestDistanceKm === null) return -1;
       return a.bestDistanceKm - b.bestDistanceKm;
     });
-  }, [active, onlyFugtteknikere, coordsQuery.data, employees, weekAssignments, weekDates, vacations, trainingIds, sickQuery.data]);
+  }, [active, onlyFugtteknikere, coordsQuery.data, employees, weekAssignments, weekDates, vacations, trainingRangesByUser, sickQuery.data]);
 
   return {
     results,

@@ -10,9 +10,15 @@ export interface ActiveTrainingInfo {
   end_date: string;
 }
 
+export interface ActiveTrainingRange {
+  start_date: string;
+  end_date: string;
+}
+
 interface TrainingsForDateResult {
   ids: Set<string>;
   info: Map<string, ActiveTrainingInfo>;
+  rangesByUser: Map<string, ActiveTrainingRange[]>;
 }
 
 /**
@@ -36,11 +42,16 @@ function useTrainingsForDate(dateStr: string) {
       if (error) throw error;
       const ids = new Set<string>();
       const info = new Map<string, ActiveTrainingInfo>();
+      const rangesByUser = new Map<string, ActiveTrainingRange[]>();
       (data || []).forEach((t: any) => {
         ids.add(t.user_id);
         info.set(t.user_id, { title: t.title, end_date: t.end_date });
+        rangesByUser.set(t.user_id, [
+          ...(rangesByUser.get(t.user_id) || []),
+          { start_date: t.start_date, end_date: t.end_date },
+        ]);
       });
-      return { ids, info };
+      return { ids, info, rangesByUser };
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -60,6 +71,7 @@ function useTrainingsForDate(dateStr: string) {
   return {
     trainingIds: query.data?.ids ?? new Set<string>(),
     trainingInfo: query.data?.info ?? new Map<string, ActiveTrainingInfo>(),
+    trainingRangesByUser: query.data?.rangesByUser ?? new Map<string, ActiveTrainingRange[]>(),
     isLoading: query.isLoading,
   };
 }
@@ -99,11 +111,16 @@ export function useActiveTrainingsForRange(startStr: string, endStr: string) {
       if (error) throw error;
       const ids = new Set<string>();
       const info = new Map<string, ActiveTrainingInfo>();
+      const rangesByUser = new Map<string, ActiveTrainingRange[]>();
       (data || []).forEach((t: any) => {
         ids.add(t.user_id);
         info.set(t.user_id, { title: t.title, end_date: t.end_date });
+        rangesByUser.set(t.user_id, [
+          ...(rangesByUser.get(t.user_id) || []),
+          { start_date: t.start_date, end_date: t.end_date },
+        ]);
       });
-      return { ids, info };
+      return { ids, info, rangesByUser };
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -123,6 +140,7 @@ export function useActiveTrainingsForRange(startStr: string, endStr: string) {
   return {
     trainingIds: query.data?.ids ?? new Set<string>(),
     trainingInfo: query.data?.info ?? new Map<string, ActiveTrainingInfo>(),
+    trainingRangesByUser: query.data?.rangesByUser ?? new Map<string, ActiveTrainingRange[]>(),
     isLoading: query.isLoading,
   };
 }
