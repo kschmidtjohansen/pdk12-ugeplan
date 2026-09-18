@@ -250,16 +250,32 @@ export const useProximitySearch = ({
         const dayAssignments = dayMap.get(date) || [];
         const last = selectLastAssignment(dayAssignments);
 
-        // A booked day must use the day's last assignment. Home is only a
-        // valid origin when the employee has no assignment that day.
-        const storedLastCoords =
-          !!last && typeof last.lat === 'number' && typeof last.lng === 'number'
-            ? { lat: last.lat, lng: last.lng }
+        // A booked day must use the day's assignments. The latest-ending one
+        // wins; earlier ones are only used when its position cannot be found.
+        // Home is only a valid origin when there is no assignment that day.
+        const coordsFor = (assignment: Assignment) => {
+          if (typeof assignment.lat === 'number' && typeof assignment.lng === 'number') {
+            return { lat: assignment.lat, lng: assignment.lng };
+          }
+          return assignment.location
+            ? assignmentAddressQuery.data?.get(addressKey(assignment.location)) ?? null
             : null;
-        const resolvedLastCoords = last?.location
-          ? assignmentAddressQuery.data?.get(addressKey(last.location)) ?? null
-          : null;
-        const lastCoords = storedLastCoords ?? resolvedLastCoords;
+        };
+
+        const byLatestFirst = [...dayAssignments].sort((a, b) => {
+          const byEndTime = (b.toTime ?? '').localeCompare(a.toTime ?? '');
+          return byEndTime !== 0 ? byEndTime : b.id.localeCompare(a.id);
+        });
+
+        let lastCoords: { lat: number; lng: number } | null = null;
+        for (const assignment of byLatestFirst) {
+          const coords = coordsFor(assignment);
+          if (coords) {
+            lastCoords = coords;
+            break;
+          }
+        }
+
         const origin: 'assignment' | 'home' | null = last
           ? lastCoords
             ? 'assignment'
@@ -272,6 +288,7 @@ export const useProximitySearch = ({
           : last
             ? null
             : homeDistanceKm;
+
 
         const onVacation = vacationRanges.some((r) => date >= r.start && date <= r.end);
         const isSick = sickByDate.get(date)?.has(emp.id) ?? false;
