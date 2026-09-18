@@ -9,6 +9,8 @@ import { useActiveTrainingsForRange } from '@/hooks/useActiveTrainings';
 import { getAllWeekDays } from '@/utils/dates';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
+import { estimateTravelMinutes } from '@/utils/travelTime';
+
 
 export interface ProximityDayInfo {
   /** yyyy-MM-dd */
@@ -19,6 +21,12 @@ export interface ProximityDayInfo {
   assignmentCount: number;
   /** end time of the last assignment that day (HH:MM), null when free all day */
   freeFrom: string | null;
+  /** end of the 8-hour working day (HH:MM) */
+  dayEnd: string;
+  /** free minutes left after the last assignment (0 when absent) */
+  freeMinutes: number;
+  /** true when at least 60 free minutes are left and the employee is present */
+  hasEnoughFree: boolean;
   /** distance in km from the searched postcode to that day's last assignment */
   assignmentDistanceKm: number | null;
 }
@@ -27,14 +35,21 @@ export interface ProximityResult {
   employee: Employee;
   /** distance from the employee's home address */
   homeDistanceKm: number | null;
+  /** estimated travel time in minutes from the employee's home address */
+  homeTravelMin: number | null;
   /** shortest distance across home + the week's assignments */
   bestDistanceKm: number | null;
+  /** estimated travel time in minutes for the shortest distance */
+  bestTravelMin: number | null;
   /** 'home' | 'assignment' | null — which distance the ranking is based on */
   bestSource: 'home' | 'assignment' | null;
   days: ProximityDayInfo[];
   /** true when the employee is available (not absent) at least one day this week */
   hasAvailableDay: boolean;
+  /** true when at least one day has 1 hour or more free */
+  hasEnoughFreeDay: boolean;
 }
+
 
 interface Params {
   postcode: string;
@@ -47,6 +62,26 @@ interface Params {
 }
 
 const isValidPostcode = (p: string) => /^\d{4}$/.test((p || '').trim());
+
+/** 8-hour working day; a day with less than 1 hour left counts as busy */
+const WORKDAY_MINUTES = 8 * 60;
+const MIN_FREE_MINUTES = 60;
+const DEFAULT_DAY_START = 7 * 60;
+
+const toMinutes = (time?: string | null): number | null => {
+  if (!time) return null;
+  const [h, m] = time.split(':');
+  const hh = Number(h);
+  const mm = Number(m);
+  if (!isFinite(hh) || !isFinite(mm)) return null;
+  return hh * 60 + mm;
+};
+
+const toHHMM = (minutes: number): string => {
+  const total = Math.max(0, Math.min(24 * 60 - 1, Math.round(minutes)));
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+};
+
 
 /**
  * Looks up the centre of a Danish postcode and ranks employees by how close they
@@ -167,12 +202,29 @@ export const useProximitySearch = ({
         const onVacation = vacationRanges.some((r) => date >= r.start && date <= r.end);
         const isSick = sickByDate.get(date)?.has(emp.id) ?? false;
         const inTraining = trainingIds.has(emp.id);
+        const absent = onVacation || isSick || inTraining || !!emp.onLeave;
+
+        // 8-hour working day starting at the first assignment (default 07:00)
+        const firstStart = dayAssignments.length > 0
+          ? [...dayAssignments].sort((a, b) => (a.fromTime || '').localeCompare(b.fromTime || ''))[0]?.fromTime
+          : null;
+        const dayStartMin = toMinutes(firstStart) ?? DEFAULT_DAY_START;
+        const dayEndMin = dayStartMin + WORKDAY_MINUTES;
+        const lastEndMin = toMinutes(last?.toTime);
+        const freeMinutes = absent
+          ? 0
+          : lastEndMin === null
+            ? WORKDAY_MINUTES
+            : Math.max(0, dayEndMin - lastEndMin);
 
         return {
           date,
-          absent: onVacation || isSick || inTraining || !!emp.onLeave,
+          absent,
           assignmentCount: dayAssignments.length,
           freeFrom: last?.toTime ? last.toTime.slice(0, 5) : null,
+          dayEnd: toHHMM(dayEndMin),
+          freeMinutes,
+          hasEnoughFree: !absent && freeMinutes >= MIN_FREE_MINUTES,
           assignmentDistanceKm,
         };
       });
@@ -191,12 +243,18 @@ export const useProximitySearch = ({
       return {
         employee: emp,
         homeDistanceKm,
+        homeTravelMin: homeDistanceKm !== null ? estimateTravelMinutes(homeDistanceKm) : null,
         bestDistanceKm,
+        bestTravelMin: bestDistanceKm !== null ? estimateTravelMinutes(bestDistanceKm) : null,
         bestSource,
         days,
         hasAvailableDay: days.some((d) => !d.absent),
+        hasEnoughFreeDay: days.some((d) => d.hasEnoughFree),
       };
     }).sort((a, b) => {
+      // Enough free time first, then available, then shortest distance
+      if (a.hasEnoughFreeDay !== b.hasEnoughFreeDay) return a.hasEnoughFreeDay ? -1 : 1;
+
       // Available first, then shortest distance, employees without coordinates last
       if (a.hasAvailableDay !== b.hasAvailableDay) return a.hasAvailableDay ? -1 : 1;
       if (a.bestDistanceKm === null && b.bestDistanceKm === null) return a.employee.name.localeCompare(b.employee.name);

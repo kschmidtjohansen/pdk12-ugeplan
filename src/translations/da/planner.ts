@@ -446,10 +446,14 @@ const planner = {
     distanceAssignment: 'Opgave',
     noCoordinates: 'Adresse mangler',
     freeFrom: 'Fri fra {time}',
-    freeAllDay: 'Fri hele dagen',
+    freeAllDay: 'Fri hele dagen ({duration})',
+    busyDay: 'Optaget',
     absentDay: 'Fraværende',
+    travelApprox: 'ca. {time}',
+    enoughTime: 'Tid nok',
     noResults: 'Ingen medarbejdere at vise',
-    proximityHint: 'Viser hvem der er tættest på postnummeret, og hvornår de er fri i den viste uge.',
+    proximityHint: 'Viser hvem der er tættest på postnummeret, hvor lang tid turen ca. tager, og hvor meget ledig tid de har i den viste uge (8-timers arbejdsdag, mindst 1 time fremhæves).',
+
   },
 };
 

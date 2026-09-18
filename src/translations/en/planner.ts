@@ -446,10 +446,14 @@ const planner = {
     distanceAssignment: 'Task',
     noCoordinates: 'Address missing',
     freeFrom: 'Free from {time}',
-    freeAllDay: 'Free all day',
+    freeAllDay: 'Free all day ({duration})',
+    busyDay: 'Busy',
     absentDay: 'Absent',
+    travelApprox: 'approx. {time}',
+    enoughTime: 'Enough time',
     noResults: 'No employees to show',
-    proximityHint: 'Shows who is closest to the postcode and when they are free during the displayed week.',
+    proximityHint: 'Shows who is closest to the postcode, the approximate drive time, and how much free time they have during the displayed week (8-hour working day, at least 1 hour is highlighted).',
+
   },
 };
 
