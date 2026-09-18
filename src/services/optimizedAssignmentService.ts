@@ -139,19 +139,30 @@ export class OptimizedAssignmentService {
     if (assignmentIds.length === 0) return [];
     
     try {
-      const { data: assignmentEmployeeData, error: employeeError } = await supabase
-        .from('assignments_employees')
-        .select('assignment_id, user_id')
-        .in('assignment_id', assignmentIds);
+      // Hent i portioner: en enkelt .in() med mange hundrede id'er giver en for lang
+      // URL, og hele holdet ville forsvinde lydløst.
+      const CHUNK_SIZE = 150;
+      const assignmentEmployeeData: { assignment_id: string; user_id: string }[] = [];
 
-      if (employeeError) {
-        if (import.meta.env.DEV) console.warn('[OptimizedAssignmentService] Assignment employees fetch error:', employeeError);
+      for (let i = 0; i < assignmentIds.length; i += CHUNK_SIZE) {
+        const chunk = assignmentIds.slice(i, i + CHUNK_SIZE);
+        const { data, error: employeeError } = await supabase
+          .from('assignments_employees')
+          .select('assignment_id, user_id')
+          .in('assignment_id', chunk);
+
+        if (employeeError) {
+          console.warn('[OptimizedAssignmentService] Assignment employees fetch error (chunk):', employeeError);
+          continue;
+        }
+
+        if (data) assignmentEmployeeData.push(...data);
+      }
+
+      if (assignmentEmployeeData.length === 0) {
         return [];
       }
 
-      if (!assignmentEmployeeData || assignmentEmployeeData.length === 0) {
-        return [];
-      }
 
       const userIds = [...new Set(assignmentEmployeeData.map(emp => emp.user_id))];
       
@@ -433,11 +444,22 @@ export class OptimizedAssignmentService {
       }
 
       const isAdmin = role === 'administrator' || role === 'skadeleder' || role === 'super_admin';
+
+      // Begræns til et relevant tidsvindue, så reserveløsningen ikke henter
+      // tusindvis af historiske opgaver.
+      const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - 90);
+      const toDate = new Date();
+      toDate.setDate(toDate.getDate() + 180);
+
       const query = supabase
         .from('assignments')
         .select(`id, title, description, assignment_date, from_time, to_time, location, type, published, responsible_user_id, created_at, updated_at, car_id, car_ids, group_id, case_number, sub_department_id, lat, lng`)
         .eq('is_demo', false)
         .eq('department_id', departmentId)
+        .gte('assignment_date', toIsoDate(fromDate))
+        .lte('assignment_date', toIsoDate(toDate))
         .order('assignment_date', { ascending: false })
         .order('from_time', { ascending: false });
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-18 — Hold vises igen på opgaverne (typefejl i opgavefunktionen)
+
+- `list_accessible_assignments_with_team` erklærede `lat`/`lng` som `numeric`, mens kolonnerne er `double precision`. `RETURN QUERY` fejlede derfor med 42804, og hele hovedvejen faldt tilbage til reserveløsningen.
+- Funktionen er genskabt med `lat`/`lng` som `double precision` (uændret `SECURITY DEFINER`, `search_path TO ''`, signatur, filtrering og grants).
+- `fetchAssignmentEmployees` henter nu i portioner à 150 opgave-id'er; tidligere blev alle id'er sendt i én `.in()`, hvilket gav en for lang URL og tomme hold. Fejl pr. portion logges i stedet for at tømme hele listen.
+- `fetchAssignmentsFallback` begrænses til 90 dage tilbage og 180 dage frem, så reserveløsningen ikke henter tusindvis af historiske opgaver.
+
+
 ## 2026-09-18 — Medarbejdernavne vises igen på opgaver
 
 - `resolveEmployeeDisplayName` prioriterer nu navnet fra datakilden over opslag i medarbejderlisten, så en tom eller afdelingsfiltreret liste ikke længere kan reducere et kendt navn til "Unknown User" (og dermed bortfiltrere det).
