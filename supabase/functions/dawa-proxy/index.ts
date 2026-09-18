@@ -33,15 +33,17 @@ Deno.serve(async (req) => {
       }
 
       const suggestions = await res.json();
-      const coordinates = suggestions?.[0]?.adresse?.adgangspunkt?.koordinater;
-      if (!Array.isArray(coordinates) || coordinates.length !== 2) {
+      const matchedAddress = suggestions?.[0]?.adresse;
+      const lng = matchedAddress?.x;
+      const lat = matchedAddress?.y;
+      if (typeof lat !== 'number' || typeof lng !== 'number') {
         return new Response(JSON.stringify({ error: 'Address has no coordinates' }), {
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      return new Response(JSON.stringify({ lng: coordinates[0], lat: coordinates[1] }), {
+      return new Response(JSON.stringify({ lng, lat }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch {

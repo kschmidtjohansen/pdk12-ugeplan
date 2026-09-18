@@ -4,6 +4,7 @@
 
 - Bekræftet at alle 218 bookede opgaver i den kontrollerede uge havde adresse, men manglede gemte koordinater; derfor kunne nærhedsvisningen ikke måle fra opgaven.
 - DAWA-proxyen kan nu positionsbestemme en fuld opgaveadresse. Nærhedsvisningen slår kun den seneste opgave pr. medarbejder og dag op og cacher identiske adresser.
+- Nye opgaver gemmer igen den præcise adresseposition fra DAWA's aktuelle `x`/`y`-felter; den tidligere læsning forventede et ældre koordinatformat.
 - En booket dag bruger altid den seneste opgave som kilde. Hjemadressen bruges kun på dage helt uden opgaver; kan opgaveadressen ikke findes, vises ingen afstand frem for en forkert hjemmeafstand.
 
 ## 2026-09-18 — Hold vises igen på opgaverne (typefejl i opgavefunktionen)
