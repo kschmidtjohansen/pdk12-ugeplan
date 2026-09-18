@@ -63,6 +63,26 @@ interface Params {
 
 const isValidPostcode = (p: string) => /^\d{4}$/.test((p || '').trim());
 
+/** 8-hour working day; a day with less than 1 hour left counts as busy */
+const WORKDAY_MINUTES = 8 * 60;
+const MIN_FREE_MINUTES = 60;
+const DEFAULT_DAY_START = 7 * 60;
+
+const toMinutes = (time?: string | null): number | null => {
+  if (!time) return null;
+  const [h, m] = time.split(':');
+  const hh = Number(h);
+  const mm = Number(m);
+  if (!isFinite(hh) || !isFinite(mm)) return null;
+  return hh * 60 + mm;
+};
+
+const toHHMM = (minutes: number): string => {
+  const total = Math.max(0, Math.min(24 * 60 - 1, Math.round(minutes)));
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+};
+
+
 /**
  * Looks up the centre of a Danish postcode and ranks employees by how close they
  * are — measured both from their home address and from the assignments they are
