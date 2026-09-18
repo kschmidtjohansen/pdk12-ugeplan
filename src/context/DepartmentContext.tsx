@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { unifiedDataService } from '@/services/data/unifiedDataService';
+import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 
 interface Department {
   id: string;
@@ -326,6 +327,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     }
     // Clear cache and force data refresh when sub-department changes
     unifiedDataService.clearCache();
+    enhancedDataFetching.clearCache();
     if (import.meta.env.DEV) console.log('[DepartmentContext] Sub-department switched to:', id, '- cache cleared');
   }, []);
 
@@ -337,6 +339,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
       localStorage.setItem('selected_department_name', dept.name);
     }
     unifiedDataService.clearCache();
+    enhancedDataFetching.clearCache();
     if (import.meta.env.DEV) console.log('[DepartmentContext] Switched department to:', id);
   }, [userDepartments, departments]);
 
