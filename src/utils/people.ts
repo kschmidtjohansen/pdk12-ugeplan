@@ -23,15 +23,17 @@ export const resolveEmployeeDisplayName = (
     return 'Unknown User';
   }
 
-  // If we received an object, prioritize: employee list match -> name -> email prefix
+  // If we received an object, prioritize: eget navn -> employee list match -> email prefix.
+  // Navnet fra datakilden har forrang, så en tom eller afdelingsfiltreret
+  // medarbejderliste aldrig kan reducere et kendt navn til "Unknown User".
   const { id, name, email } = emp;
+
+  if (name && name.trim() && !isValidUUID(name)) return name.trim();
 
   if (employees && id) {
     const found = employees.find(e => e.id === id);
     if (found?.name && !isValidUUID(found.name)) return found.name;
   }
-
-  if (name && name.trim() && !isValidUUID(name)) return name.trim();
 
   if (email && email.includes('@')) return email.split('@')[0];
 
