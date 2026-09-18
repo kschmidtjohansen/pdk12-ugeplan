@@ -43,7 +43,7 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
 
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
         enhancedUnifiedDataService.fetchEmployees(user?.email),
-        enhancedUnifiedDataService.fetchAssignments(user?.email),
+        enhancedUnifiedDataService.fetchAssignments(user?.email, selectedDepartmentId, selectedSubDepartmentId),
         enhancedUnifiedDataService.fetchCars(user?.email)
       ]);
 
@@ -82,13 +82,20 @@ export const useEnhancedUnifiedData = (): UseEnhancedUnifiedDataResult => {
   useEffect(() => {
     // Wait for both user ID and userDataLoaded to ensure demo mode is properly set
     if (user?.id && userDataLoaded) {
+      // Department must be resolved before fetching — otherwise the RPC would
+      // return assignments across ALL departments (cross-department leak).
+      if (!selectedDepartmentId && user?.email !== 'test@polygongroup.com') {
+        return;
+      }
+      // Clear cached data so a department switch never reuses previous results
+      enhancedUnifiedDataService.clearCache();
       // Add small delay to ensure all auth state is stable
       const timer = setTimeout(() => {
         fetchAllData();
       }, 50);
       return () => clearTimeout(timer);
     }
-  }, [user?.id, userDataLoaded]);
+  }, [user?.id, userDataLoaded, selectedDepartmentId, selectedSubDepartmentId]);
 
   return {
     employees,
