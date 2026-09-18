@@ -473,3 +473,10 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Kursusperioder bevares pr. medarbejder i ugeopslaget
 - [x] En fugttekniker markeres kun fraværende på de konkrete kursusdage
 - [x] Ledighed og rangering for ugens øvrige dage påvirkes ikke af en enkelt kursusdag
+
+## Medarbejdernavne manglede på opgaver (2026-09-18)
+
+- [x] Navn fra datakilden prioriteres over medarbejderliste-opslag i `resolveEmployeeDisplayName`
+- [x] Sikkerhedsnet: manglende profilnavne hentes samlet i `fetchAssignmentsForQuery`
+- [x] DEV-diagnostik for hentevej, antal opgaver med hold og manglende navne
+- [x] Typetjek kørt rent; afdelingsisolationen uændret

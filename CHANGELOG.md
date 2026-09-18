@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-18 — Medarbejdernavne vises igen på opgaver
+
+- `resolveEmployeeDisplayName` prioriterer nu navnet fra datakilden over opslag i medarbejderlisten, så en tom eller afdelingsfiltreret liste ikke længere kan reducere et kendt navn til "Unknown User" (og dermed bortfiltrere det).
+- `fetchAssignmentsForQuery` har fået et sikkerhedsnet: mangler navne på tildelte medarbejdere, hentes de manglende profiler i én samlet forespørgsel og bruges som fallback i `convertToAssignment`.
+- DEV-diagnostik: antal opgaver, opgaver med hold, manglende navne og medarbejderlistens størrelse logges, og RPC-hovedvejen logger hvor mange opgaver der kom hjem med hold.
+- Afdelingsfiltreringen er uændret — opgaver vises fortsat kun for den valgte afdeling og underafdeling.
+
+
 ## 2026-09-18 — Afdelingsisolation genoprettet i opgavehentningen
 
 - `list_accessible_assignments_with_team` kører igen som `SECURITY DEFINER` med `SET search_path TO ''` (koordinater, underafdeling og team bevaret). Dermed virker opslag af ansvarlig medarbejder og afdelingsfiltreringen som før.
