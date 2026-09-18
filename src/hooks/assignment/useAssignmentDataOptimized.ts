@@ -143,7 +143,7 @@ export const useAssignmentDataOptimized = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, t, user?.email]);
+  }, [toast, t, user?.email, isDemoMode, selectedDepartmentId, selectedSubDepartmentId]);
 
   useEffect(() => {
     fetchAssignments();
