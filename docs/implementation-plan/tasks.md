@@ -3,6 +3,7 @@
 ## Løbende rettelser ✅
 
 - [x] Nærhedsvisningen positionsbestemmer eksisterende opgaveadresser uden `lat`/`lng`, bruger dagens seneste opgave som udgangspunkt og bruger kun hjemadressen på helt ubekræftede dage (2026-09-18).
+- [x] Nærhedsrangeringen bruger dagens opgaveposition som autoritativ kilde, så en hjemadresse fra en anden ugedag ikke kan overhale en medarbejder på opgave i det søgte postnummer (2026-09-18).
 
 - [x] Manglende hold på opgaverne rettet: `lat`/`lng` i `list_accessible_assignments_with_team` ændret fra `numeric` til `double precision` (42804-fejl), medarbejderhentning i portioner à 150 id'er og datovindue på reserveløsningen (2026-09-18).
 

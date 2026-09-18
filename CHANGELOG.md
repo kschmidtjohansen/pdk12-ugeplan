@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-18 — Dagens opgave styrer nærhedsrangeringen
+
+- Når den viste uge indeholder dags dato, bruger nærhedslisten nu udelukkende dagens seneste opgave som medarbejderens position; kun medarbejdere uden opgaver i dag bruger hjemadressen.
+- Afstand sorteres før ledighed, så en fjernere hjemadresse ikke længere kan blive vist som “nærmest” foran en medarbejder, der allerede er på opgave i det søgte postnummer.
+- For andre uger prioriteres en virkelig opgaveposition altid over hjemadressen. En booket opgave uden brugbare koordinater erstattes ikke af en forkert hjemmeafstand.
+- Regressionstest dækker dagens opgave mod en anden medarbejders hjemadresse, hjemadresse-fallback, manglende koordinater og flere opgavedage.
+
 ## 2026-09-18 — Nærhed bruger eksisterende opgaveadresser
 
 - Bekræftet at alle 218 bookede opgaver i den kontrollerede uge havde adresse, men manglede gemte koordinater; derfor kunne nærhedsvisningen ikke måle fra opgaven.
