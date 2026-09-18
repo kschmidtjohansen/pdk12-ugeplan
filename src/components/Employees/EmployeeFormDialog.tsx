@@ -58,6 +58,53 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   const [convertToPermanent, setConvertToPermanent] = useState(false);
   const [subDepartments, setSubDepartments] = useState<{ id: string; name: string }[]>([]);
   const [showOnLeaveConfirm, setShowOnLeaveConfirm] = useState(false);
+  const [emailCheck, setEmailCheck] = useState<{
+    state: 'idle' | 'checking' | 'done' | 'error';
+    status?: 'available' | 'active' | 'inactive' | 'auth_only';
+    name?: string;
+    profileStatus?: string;
+  }>({ state: 'idle' });
+  const emailCacheRef = React.useRef<Map<string, any>>(new Map());
+
+  const emailStatusLabel = (profileStatus?: string) => {
+    switch (profileStatus) {
+      case 'on_leave': return t('employees.emailStatusOnLeave');
+      case 'terminated': return t('employees.emailStatusTerminated');
+      case 'inactive': return t('employees.emailStatusInactive');
+      default: return t('employees.emailStatusActive');
+    }
+  };
+
+  // Check the email address when the field is left (new employees only)
+  const runEmailCheck = async () => {
+    if (currentEmployee) return;
+    const email = (formData.email || '').trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      setEmailCheck({ state: 'idle' });
+      return;
+    }
+    const cached = emailCacheRef.current.get(email);
+    if (cached) {
+      setEmailCheck({ state: 'done', ...cached });
+      return;
+    }
+    setEmailCheck({ state: 'checking' });
+    try {
+      const { data, error } = await supabase.functions.invoke('check-user-email', {
+        body: { email },
+      });
+      if (error || !data?.status) {
+        setEmailCheck({ state: 'error' });
+        return;
+      }
+      const result = { status: data.status, name: data.name, profileStatus: data.profileStatus };
+      emailCacheRef.current.set(email, result);
+      setEmailCheck({ state: 'done', ...result });
+    } catch {
+      setEmailCheck({ state: 'error' });
+    }
+  };
+
 
   // Check if we're editing a temporary employee
   const isEditingVikar = creationType === 'edit' && currentEmployee?.is_temporary === true;
