@@ -42,6 +42,8 @@ interface Params {
   weekAssignments: Assignment[];
   weekDates: { start: Date; end: Date; startStr: string; endStr: string };
   enabled?: boolean;
+  /** When true (Fugt sub-department), only fugttekniker employees are ranked */
+  onlyFugtteknikere?: boolean;
 }
 
 const isValidPostcode = (p: string) => /^\d{4}$/.test((p || '').trim());
@@ -57,6 +59,7 @@ export const useProximitySearch = ({
   weekAssignments,
   weekDates,
   enabled = true,
+  onlyFugtteknikere = false,
 }: Params) => {
   const { selectedDepartmentId } = useDepartment();
   const { vacations } = useVacations();
@@ -98,7 +101,13 @@ export const useProximitySearch = ({
     const target = coordsQuery.data;
     if (!active || !target) return [];
 
-    const weekDays = getAllWeekDays({ start: weekDates.start, end: weekDates.end });
+    // Weekdays only — Saturday and Sunday are irrelevant for the lookup
+    const weekDays = getAllWeekDays({ start: weekDates.start, end: weekDates.end }).filter(
+      (date) => {
+        const dow = new Date(`${date}T00:00:00`).getDay();
+        return dow >= 1 && dow <= 5;
+      }
+    );
     const sickByDate = sickQuery.data ?? new Map<string, Set<string>>();
 
     // Approved vacation dates per employee
@@ -122,7 +131,14 @@ export const useProximitySearch = ({
       });
     });
 
-    return employees.map((emp) => {
+    // In the Fugt sub-department the lookup only ranks fugtteknikere
+    const rankedEmployees = onlyFugtteknikere
+      ? employees.filter(
+          (emp) => emp.role === 'fugttekniker' || (emp.roles || []).includes('fugttekniker')
+        )
+      : employees;
+
+    return rankedEmployees.map((emp) => {
       const homeDistanceKm =
         typeof emp.lat === 'number' && typeof emp.lng === 'number'
           ? haversineDistanceKm(target.lat, target.lng, emp.lat, emp.lng)
@@ -188,7 +204,7 @@ export const useProximitySearch = ({
       if (b.bestDistanceKm === null) return -1;
       return a.bestDistanceKm - b.bestDistanceKm;
     });
-  }, [active, coordsQuery.data, employees, weekAssignments, weekDates, vacations, trainingIds, sickQuery.data]);
+  }, [active, onlyFugtteknikere, coordsQuery.data, employees, weekAssignments, weekDates, vacations, trainingIds, sickQuery.data]);
 
   return {
     results,

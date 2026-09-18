@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Users, MapPin, X, Check, SlidersHorizontal } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
+import { useDepartment } from '@/context/DepartmentContext';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import ProximityPanel from './ProximityPanel';
@@ -38,6 +39,15 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   showProximity = true,
 }) => {
   const { t } = useTranslation();
+  const { userSubDepartments, selectedSubDepartmentId } = useDepartment();
+
+  // In the Fugt sub-department the postcode lookup only ranks fugtteknikere
+  const onlyFugtteknikere = useMemo(() => {
+    if (!selectedSubDepartmentId) return false;
+    const sub = (userSubDepartments || []).find((s) => s.id === selectedSubDepartmentId);
+    return !!sub?.name && sub.name.toLowerCase().includes('fugt');
+  }, [userSubDepartments, selectedSubDepartmentId]);
+
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
@@ -190,6 +200,7 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
               employees={employees}
               weekAssignments={weekAssignments}
               weekDates={weekDates}
+              onlyFugtteknikere={onlyFugtteknikere}
             />
           )}
         </div>
