@@ -93,6 +93,7 @@ const employees = {
   createAccount: 'Create Account',
   fullName: 'Full Name',
   passwordRequirements: 'Password must be at least 6 characters',
+  weakPassword: 'The password is too weak or known from data breaches — choose another password',
   unexpectedError: 'An unexpected error occurred',
   creatingUserDescription: 'Creating user account...',
   userCreatedSuccessfully: 'User created successfully',

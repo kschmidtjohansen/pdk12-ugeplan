@@ -93,6 +93,7 @@ const employees = {
   createAccount: 'Opret Konto',
   fullName: 'Fulde Navn',
   passwordRequirements: 'Adgangskode skal være mindst 6 tegn',
+  weakPassword: 'Adgangskoden er for usikker eller kendt fra datalæk — vælg en anden adgangskode',
   unexpectedError: 'Uventet fejl opstod',
   creatingUserDescription: 'Opretter brugerkonto...',
   userCreatedSuccessfully: 'Bruger oprettet med succes',
