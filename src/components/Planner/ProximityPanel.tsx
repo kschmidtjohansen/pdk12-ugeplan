@@ -3,9 +3,10 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { useProximitySearch } from '@/hooks/useProximitySearch';
-import { Home, MapPin, Loader2 } from 'lucide-react';
+import { Home, MapPin, Loader2, Clock } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { da as daLocale, enGB } from 'date-fns/locale';
+import { estimateTravelMinutes, formatKm, formatMinutes } from '@/utils/travelTime';
 import { cn } from '@/lib/utils';
 
 interface ProximityPanelProps {
@@ -17,11 +18,10 @@ interface ProximityPanelProps {
   onlyFugtteknikere?: boolean;
 }
 
-const formatKm = (km: number) => (km < 10 ? km.toFixed(1) : Math.round(km).toString());
-
 /**
- * Lookup list showing which employees are closest to a searched postcode and
- * when they are free during the displayed week. Read-only.
+ * Lookup list showing which employees are closest to a searched postcode, how
+ * long the drive is estimated to take, and how much free time they have left
+ * each day of the displayed week. Read-only.
  */
 const ProximityPanel: React.FC<ProximityPanelProps> = ({
   postcode,
@@ -68,78 +68,99 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
     return <p className="text-xs text-muted-foreground px-1">{t('planner.filters.noResults')}</p>;
   }
 
+  const kmWithTravel = (km: number) =>
+    `${formatKm(km)} km · ${t('planner.filters.travelApprox', { time: formatMinutes(estimateTravelMinutes(km)) })}`;
+
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="px-3 py-2 border-b border-border">
         <p className="text-xs text-muted-foreground">{t('planner.filters.proximityHint')}</p>
       </div>
       <ul className="divide-y divide-border max-h-[420px] overflow-y-auto">
-        {results.slice(0, 25).map((r) => (
-          <li key={r.employee.id} className={cn('px-3 py-2.5', !r.hasAvailableDay && 'opacity-60')}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{r.employee.name}</p>
-                <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    <Home className="h-3 w-3" />
-                    {r.homeDistanceKm !== null
-                      ? `${t('planner.filters.distanceHome')} ${formatKm(r.homeDistanceKm)} km`
-                      : t('planner.filters.noCoordinates')}
-                  </span>
-                  {r.days.some((d) => d.assignmentDistanceKm !== null) && (
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {t('planner.filters.distanceAssignment')}{' '}
-                      {formatKm(
-                        Math.min(
-                          ...r.days
-                            .map((d) => d.assignmentDistanceKm)
-                            .filter((d): d is number => d !== null)
-                        )
-                      )}{' '}
-                      km
-                    </span>
-                  )}
-                </div>
-              </div>
-              {r.bestDistanceKm !== null && (
-                <span className="shrink-0 rounded-md bg-primary/10 text-primary px-2 py-0.5 text-xs font-semibold">
-                  {formatKm(r.bestDistanceKm)} km
-                </span>
+        {results.slice(0, 25).map((r) => {
+          const assignmentDistances = r.days
+            .map((d) => d.assignmentDistanceKm)
+            .filter((d): d is number => d !== null);
+          return (
+            <li
+              key={r.employee.id}
+              className={cn(
+                'px-3 py-2.5',
+                r.hasEnoughFreeDay
+                  ? 'border-l-2 border-l-success-soft-foreground bg-success-soft/25'
+                  : 'opacity-60'
               )}
-            </div>
-
-            <div className="mt-2 flex flex-wrap gap-1">
-              {r.days.map((d) => {
-                const label = format(parseISO(d.date), 'EEEEEE', { locale });
-                const state = d.absent
-                  ? t('planner.filters.absentDay')
-                  : d.assignmentCount === 0
-                    ? t('planner.filters.freeAllDay')
-                    : d.freeFrom
-                      ? t('planner.filters.freeFrom', { time: d.freeFrom })
-                      : '';
-                return (
-                  <span
-                    key={d.date}
-                    title={`${format(parseISO(d.date), 'PPP', { locale })} — ${state}`}
-                    className={cn(
-                      'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px]',
-                      d.absent
-                        ? 'border-border bg-muted text-muted-foreground'
-                        : d.assignmentCount === 0
-                          ? 'border-success-soft bg-success-soft text-success-soft-foreground'
-                          : 'border-warning-soft bg-warning-soft text-warning-soft-foreground'
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{r.employee.name}</p>
+                    {r.hasEnoughFreeDay && (
+                      <span className="shrink-0 rounded-md bg-success-soft text-success-soft-foreground px-1.5 py-0.5 text-[11px] font-medium">
+                        {t('planner.filters.enoughTime')}
+                      </span>
                     )}
-                  >
-                    <span className="font-medium capitalize">{label}</span>
-                    <span>{state}</span>
+                  </div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Home className="h-3 w-3" />
+                      {r.homeDistanceKm !== null
+                        ? `${t('planner.filters.distanceHome')} ${kmWithTravel(r.homeDistanceKm)}`
+                        : t('planner.filters.noCoordinates')}
+                    </span>
+                    {assignmentDistances.length > 0 && (
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {t('planner.filters.distanceAssignment')} {kmWithTravel(Math.min(...assignmentDistances))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {r.bestDistanceKm !== null && (
+                  <span className="shrink-0 rounded-md bg-primary/10 text-primary px-2 py-0.5 text-xs font-semibold text-right">
+                    {formatKm(r.bestDistanceKm)} km
+                    {r.bestTravelMin !== null && (
+                      <span className="block font-normal text-[11px]">
+                        {t('planner.filters.travelApprox', { time: formatMinutes(r.bestTravelMin) })}
+                      </span>
+                    )}
                   </span>
-                );
-              })}
-            </div>
-          </li>
-        ))}
+                )}
+              </div>
+
+              <div className="mt-2 flex flex-wrap gap-1">
+                {r.days.map((d) => {
+                  const label = format(parseISO(d.date), 'EEEEEE', { locale });
+                  const state = d.absent
+                    ? t('planner.filters.absentDay')
+                    : d.assignmentCount === 0
+                      ? t('planner.filters.freeAllDay', { duration: formatMinutes(d.freeMinutes) })
+                      : d.hasEnoughFree
+                        ? `${t('planner.filters.freeFrom', { time: d.freeFrom ?? d.dayEnd })} · ${formatMinutes(d.freeMinutes)}`
+                        : t('planner.filters.busyDay');
+                  return (
+                    <span
+                      key={d.date}
+                      title={`${format(parseISO(d.date), 'PPP', { locale })} — ${state}`}
+                      className={cn(
+                        'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px]',
+                        d.absent || !d.hasEnoughFree
+                          ? 'border-border bg-muted text-muted-foreground'
+                          : d.assignmentCount === 0
+                            ? 'border-success-soft bg-success-soft text-success-soft-foreground'
+                            : 'border-warning-soft bg-warning-soft text-warning-soft-foreground'
+                      )}
+                    >
+                      <span className="font-medium capitalize">{label}</span>
+                      {!d.absent && d.hasEnoughFree && <Clock className="h-3 w-3" />}
+                      <span>{state}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
