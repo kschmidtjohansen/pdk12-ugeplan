@@ -427,3 +427,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Trigger `trg_notify_sick_day` + funktion `notify_sick_day()` (SECURITY DEFINER, `search_path = ''`, EXECUTE revoked fra PUBLIC/anon/authenticated)
 - [x] Notifikation til administratorer, super admins og skadeledere i afdelingen; markøren selv springes over og dubletter pr. medarbejder/dato undgås
 - [x] `sick_day`-ikon i `getNotificationIcon` samt da/en-oversættelser
+
+## Fejlbesked ved oprettelse af medarbejder (2026-09-18)
+
+- [x] `admin-create-user`: HTTP 422 udløser ikke længere "email findes allerede"; kun `email_exists`/beskedmatch tæller som dublet
+- [x] Præcise danske svar for svag/lækket adgangskode, for kort adgangskode og ugyldig e-mail
+- [x] `useEmployeeCreation` viser `employees.weakPassword` og overskriver ikke serverens danske beskeder
