@@ -450,13 +450,17 @@ const PlannerPage: React.FC = () => {
 
   const sortedWeekAssignments = useMemo(() => {
     if (!weekAssignments) return [];
-    return [...weekAssignments].sort((a, b) => {
+    // Employee filter: only keep assignments where at least one selected employee is assigned
+    const base = selectedEmployeeIds.length > 0
+      ? weekAssignments.filter(a => (a.employees || []).some(id => selectedEmployeeIds.includes(id)))
+      : weekAssignments;
+    return [...base].sort((a, b) => {
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
       return a.fromTime.localeCompare(b.fromTime);
     });
-  }, [weekAssignments]);
+  }, [weekAssignments, selectedEmployeeIds]);
 
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
