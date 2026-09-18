@@ -1799,6 +1799,8 @@ export type Database = {
           description: string
           from_time: string
           id: string
+          lat: number
+          lng: number
           location: string
           published: boolean
           responsible_user: Json

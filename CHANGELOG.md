@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-18 — Korrekt opgaveafstand og enklere nærhedsvisning
+
+- Ugeplanens sikre opgavefunktion returnerer nu `lat`/`lng`, og koordinaterne føres gennem opgaveservicen til nærhedssøgningen.
+- Nærhedslisten prioriterer den nærmeste relevante sidste opgave i ugen. Hjemadressen bruges kun, når medarbejderen ikke har en opgave med en brugbar position; en booket opgave uden koordinater erstattes ikke fejlagtigt af hjemadressen.
+- Kilometer og estimeret køretid vises nu kun i den blå markering til højre. Dagsmærkerne viser kun ledighed/fravær, og kildelinjen viser kun “Fra sidste opgave” eller “Fra hjemadresse”.
+- Databasefunktionen bruger `SET search_path = ''`, er begrænset til `authenticated`/`service_role` og kører med den indloggede brugers eksisterende RLS-rettigheder.
+
+
 ## 2026-09-18 — Nærhed måles fra dagens sidste opgave
 
 - `useProximitySearch`: afstanden pr. dag beregnes nu fra dagens **sidste opgave** (seneste opgave med koordinater, sorteret på `toTime`) og falder tilbage til hjemadressen, når medarbejderen ikke er booket. Nye felter `originDistanceKm`, `originTravelMin` og `origin` pr. dag; `assignmentDistanceKm` er fjernet.

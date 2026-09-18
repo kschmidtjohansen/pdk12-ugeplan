@@ -196,19 +196,22 @@ export const useProximitySearch = ({
         );
         const last = dayAssignments[dayAssignments.length - 1];
 
-        // Measure from where the employee ends the day: the latest assignment
-        // with coordinates, otherwise the home address.
-        const lastWithCoords = [...dayAssignments]
-          .reverse()
-          .find((a) => typeof a.lat === 'number' && typeof a.lng === 'number');
-        const origin: 'assignment' | 'home' | null = lastWithCoords
-          ? 'assignment'
+        // A booked day must use the day's last assignment. Home is only a
+        // valid origin when the employee has no assignment that day.
+        const lastHasCoords =
+          !!last && typeof last.lat === 'number' && typeof last.lng === 'number';
+        const origin: 'assignment' | 'home' | null = last
+          ? lastHasCoords
+            ? 'assignment'
+            : null
           : homeDistanceKm !== null
             ? 'home'
             : null;
-        const originDistanceKm = lastWithCoords
-          ? haversineDistanceKm(target.lat, target.lng, lastWithCoords.lat as number, lastWithCoords.lng as number)
-          : homeDistanceKm;
+        const originDistanceKm = lastHasCoords
+          ? haversineDistanceKm(target.lat, target.lng, last.lat as number, last.lng as number)
+          : last
+            ? null
+            : homeDistanceKm;
 
         const onVacation = vacationRanges.some((r) => date >= r.start && date <= r.end);
         const isSick = sickByDate.get(date)?.has(emp.id) ?? false;
@@ -242,17 +245,22 @@ export const useProximitySearch = ({
         };
       });
 
-      // Ranking uses the best day: first among days with enough free time,
-      // then any day the employee is present, otherwise the whole week.
+      // Prefer distances from real assignments. Home is used for ranking only
+      // when the employee has no usable assignment origin in the shown week.
       const pickBest = (list: ProximityDayInfo[]) =>
         list
           .filter((d) => d.originDistanceKm !== null)
           .sort((a, b) => (a.originDistanceKm as number) - (b.originDistanceKm as number))[0] ?? null;
 
-      const bestDay =
-        pickBest(days.filter((d) => d.hasEnoughFree)) ??
-        pickBest(days.filter((d) => !d.absent)) ??
-        pickBest(days);
+      const assignmentDays = days.filter((d) => d.origin === 'assignment');
+      const homeDays = days.filter((d) => d.origin === 'home');
+      const bestDay = assignmentDays.length > 0
+        ? pickBest(assignmentDays.filter((d) => d.hasEnoughFree)) ??
+          pickBest(assignmentDays.filter((d) => !d.absent)) ??
+          pickBest(assignmentDays)
+        : pickBest(homeDays.filter((d) => d.hasEnoughFree)) ??
+          pickBest(homeDays.filter((d) => !d.absent)) ??
+          pickBest(homeDays);
 
       const bestDistanceKm = bestDay?.originDistanceKm ?? null;
       const bestSource = bestDay?.origin ?? null;

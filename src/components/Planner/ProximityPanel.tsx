@@ -6,7 +6,7 @@ import { useProximitySearch } from '@/hooks/useProximitySearch';
 import { Home, MapPin, Loader2, Clock } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { da as daLocale, enGB } from 'date-fns/locale';
-import { estimateTravelMinutes, formatKm, formatMinutes } from '@/utils/travelTime';
+import { formatKm, formatMinutes } from '@/utils/travelTime';
 import { cn } from '@/lib/utils';
 
 interface ProximityPanelProps {
@@ -68,9 +68,6 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
     return <p className="text-xs text-muted-foreground px-1">{t('planner.filters.noResults')}</p>;
   }
 
-  const kmWithTravel = (km: number) =>
-    `${formatKm(km)} km · ${t('planner.filters.travelApprox', { time: formatMinutes(estimateTravelMinutes(km)) })}`;
-
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="px-3 py-2 border-b border-border">
@@ -112,7 +109,7 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
                         ) : (
                           <Home className="h-3 w-3" />
                         )}
-                        {sourceLabel(r.bestSource)} · {kmWithTravel(r.bestDistanceKm)}
+                        {sourceLabel(r.bestSource)}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1">
@@ -144,17 +141,10 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
                       : d.hasEnoughFree
                         ? `${t('planner.filters.freeFrom', { time: d.freeFrom ?? d.dayEnd })} · ${formatMinutes(d.freeMinutes)}`
                         : t('planner.filters.busyDay');
-                  const distance =
-                    !d.absent && d.originDistanceKm !== null
-                      ? ` · ${kmWithTravel(d.originDistanceKm)}`
-                      : '';
-                  const state = `${time}${distance}`;
                   return (
                     <span
                       key={d.date}
-                      title={`${format(parseISO(d.date), 'PPP', { locale })} — ${state}${
-                        !d.absent && d.origin ? ` (${sourceLabel(d.origin)})` : ''
-                      }`}
+                      title={`${format(parseISO(d.date), 'PPP', { locale })} — ${time}`}
                       className={cn(
                         'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px]',
                         d.absent || !d.hasEnoughFree
@@ -166,15 +156,11 @@ const ProximityPanel: React.FC<ProximityPanelProps> = ({
                     >
                       <span className="font-medium capitalize">{label}</span>
                       {!d.absent && d.hasEnoughFree && <Clock className="h-3 w-3" />}
-                      <span>{state}</span>
+                      <span>{time}</span>
                     </span>
                   );
                 })}
               </div>
-
-              <p className="mt-1.5 text-[11px] text-muted-foreground">
-                {t('planner.filters.travelEstimateNote')}
-              </p>
             </li>
           );
         })}
