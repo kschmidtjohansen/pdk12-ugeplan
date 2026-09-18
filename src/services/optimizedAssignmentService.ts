@@ -333,7 +333,10 @@ export class OptimizedAssignmentService {
 
         if (!data) return [];
 
-        if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] RPC returned ${data.length} assignments`);
+        if (import.meta.env.DEV) {
+          const withTeam = data.filter((a: any) => Array.isArray(a.team) && a.team.length > 0).length;
+          console.log(`[OptimizedAssignmentService] Hovedvej (RPC): ${data.length} opgaver, ${withTeam} med hold`);
+        }
         
         const convertedData = data.map(assignment => {
           try {
