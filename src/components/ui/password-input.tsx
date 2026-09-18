@@ -1,10 +1,12 @@
 
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Check, X } from 'lucide-react';
+import { Eye, EyeOff, Check, X, Loader2, ShieldAlert, ShieldCheck, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/context/TranslationContext';
+import { usePwnedPasswordCheck } from '@/hooks/usePwnedPasswordCheck';
 
 interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -22,49 +24,53 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     onChange,
     ...props 
   }, ref) => {
+    const { t } = useTranslation();
     const [showPassword, setShowPassword] = useState(false);
-    const [validation, setValidation] = useState({
-      length: false,
-      uppercase: false,
-      lowercase: false,
-      number: false
-    });
+    const password = typeof value === 'string' ? value : '';
 
-    const validatePassword = (password: string) => {
-      const newValidation = {
-        length: password.length >= 8,
-        uppercase: /[A-Z]/.test(password),
-        lowercase: /[a-z]/.test(password),
-        number: /[0-9]/.test(password)
-      };
-      
-      setValidation(newValidation);
-      
-      const isValid = Object.values(newValidation).every(Boolean);
+    const validation = {
+      length: password.length >= 8,
+      recommendedLength: password.length >= 12,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[^A-Za-z0-9]/.test(password),
+    };
+
+    const pwnedStatus = usePwnedPasswordCheck(password, showStrengthIndicator);
+    const requiredMet =
+      validation.length && validation.uppercase && validation.lowercase && validation.number;
+    const isValid = requiredMet && pwnedStatus !== 'pwned' && pwnedStatus !== 'checking';
+
+    useEffect(() => {
+      if (!showStrengthIndicator) return;
       onValidationChange?.(isValid);
-      
-      return newValidation;
-    };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isValid, showStrengthIndicator]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const password = e.target.value;
-      if (showStrengthIndicator) {
-        validatePassword(password);
-      }
-      onChange?.(e);
-    };
-
-    const ValidationItem = ({ isValid, text }: { isValid: boolean; text: string }) => (
-      <div className="flex items-center gap-2 text-sm">
-        {isValid ? (
-          <Check className="h-3 w-3 text-green-600" />
+    const ValidationItem = ({
+      state,
+      text,
+      optional = false,
+    }: { state: boolean; text: string; optional?: boolean }) => (
+      <div className="flex items-center gap-2">
+        {state ? (
+          <Check className="h-3 w-3 text-success-soft-foreground" />
+        ) : optional ? (
+          <Info className="h-3 w-3 text-muted-foreground" />
         ) : (
-          <X className="h-3 w-3 text-red-600" />
+          <X className="h-3 w-3 text-destructive" />
         )}
-        <span className={cn(
-          "text-xs",
-          isValid ? "text-green-600" : "text-red-600"
-        )}>
+        <span
+          className={cn(
+            'text-xs',
+            state
+              ? 'text-success-soft-foreground'
+              : optional
+                ? 'text-muted-foreground'
+                : 'text-destructive'
+          )}
+        >
           {text}
         </span>
       </div>
@@ -82,7 +88,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             ref={ref}
             type={showPassword ? 'text' : 'password'}
             value={value}
-            onChange={handleChange}
+            onChange={onChange}
             className={className}
           />
           
@@ -103,13 +109,52 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           </Button>
         </div>
 
-        {showStrengthIndicator && value && (
+        {showStrengthIndicator && (
           <div className="space-y-1 p-3 bg-muted/50 rounded-md">
-            <p className="text-xs font-medium text-foreground mb-2">Password must contain:</p>
-            <ValidationItem isValid={validation.length} text="At least 8 characters" />
-            <ValidationItem isValid={validation.uppercase} text="One uppercase letter" />
-            <ValidationItem isValid={validation.lowercase} text="One lowercase letter" />
-            <ValidationItem isValid={validation.number} text="One number" />
+            <p className="text-xs font-medium text-foreground mb-2">{t('employees.pwTitle')}</p>
+            <ValidationItem state={validation.length} text={t('employees.pwLength')} />
+            <ValidationItem state={validation.uppercase} text={t('employees.pwUppercase')} />
+            <ValidationItem state={validation.lowercase} text={t('employees.pwLowercase')} />
+            <ValidationItem state={validation.number} text={t('employees.pwNumber')} />
+            <ValidationItem state={validation.special} text={t('employees.pwSpecial')} optional />
+            <ValidationItem
+              state={validation.recommendedLength}
+              text={t('employees.pwRecommendedLength')}
+              optional
+            />
+
+            <div className="pt-1 mt-1 border-t border-border">
+              {pwnedStatus === 'checking' && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  {t('employees.pwBreachChecking')}
+                </div>
+              )}
+              {pwnedStatus === 'safe' && (
+                <div className="flex items-center gap-2 text-xs text-success-soft-foreground">
+                  <ShieldCheck className="h-3 w-3" />
+                  {t('employees.pwBreachSafe')}
+                </div>
+              )}
+              {pwnedStatus === 'pwned' && (
+                <div className="flex items-center gap-2 text-xs text-destructive font-medium">
+                  <ShieldAlert className="h-3 w-3" />
+                  {t('employees.pwBreachFound')}
+                </div>
+              )}
+              {pwnedStatus === 'unknown' && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Info className="h-3 w-3" />
+                  {t('employees.pwBreachUnavailable')}
+                </div>
+              )}
+              {pwnedStatus === 'idle' && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Info className="h-3 w-3" />
+                  {t('employees.pwBreachHint')}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
