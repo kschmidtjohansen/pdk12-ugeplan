@@ -21,6 +21,8 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 import { getISOWeek, getISOWeekYear, addWeeks, format } from 'date-fns';
 import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import SubDepartmentQuickSwitcher from '@/components/shared/SubDepartmentQuickSwitcher';
+import PlannerFilterBar from '@/components/Planner/PlannerFilterBar';
 
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
