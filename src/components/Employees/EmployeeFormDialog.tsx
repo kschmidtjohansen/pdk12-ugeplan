@@ -216,11 +216,26 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
 
       // For new employees, validate password (skip for temporary users)
       if (!currentEmployee && !formData.is_temporary) {
+        if (emailCheck.state === 'done' && emailCheck.status && emailCheck.status !== 'available') {
+          setErrorMessage(
+            emailCheck.status === 'auth_only'
+              ? t('employees.emailAuthOnly')
+              : emailCheck.status === 'active'
+                ? t('employees.emailTakenActive', { name: emailCheck.name || formData.email })
+                : t('employees.emailTakenInactive', {
+                    name: emailCheck.name || formData.email,
+                    status: emailStatusLabel(emailCheck.profileStatus),
+                  })
+          );
+          setIsSubmitting(false);
+          return;
+        }
         if (!isPasswordValid) {
           setErrorMessage(t('employees.passwordRequirements'));
           setIsSubmitting(false);
           return;
         }
+
         if (import.meta.env.DEV) console.log('[EmployeeFormDialog] Creating employee');
         // The actual creation will be handled by the parent component using formData (including password)
         await handleSubmit(e);
@@ -320,12 +335,39 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
               name="email" 
               type="email" 
               value={formData.email} 
-              onChange={handleInputChange} 
+              onChange={(e) => { handleInputChange(e); setEmailCheck({ state: 'idle' }); }} 
+              onBlur={runEmailCheck}
               required={!formData.is_temporary || convertToPermanent} 
               disabled={isSubmitting || (!!currentEmployee && !isEditingVikar)} 
               placeholder={formData.is_temporary && !convertToPermanent ? "vikar@firma.dk (valgfri)" : "medarbejder@firma.dk"} 
             />
+            {!currentEmployee && emailCheck.state === 'checking' && (
+              <p className="text-xs text-muted-foreground">{t('employees.emailChecking')}</p>
+            )}
+            {!currentEmployee && emailCheck.state === 'error' && (
+              <p className="text-xs text-muted-foreground">{t('employees.emailCheckFailed')}</p>
+            )}
+            {!currentEmployee && emailCheck.state === 'done' && emailCheck.status === 'available' && (
+              <p className="text-xs text-success-soft-foreground">{t('employees.emailAvailable')}</p>
+            )}
+            {!currentEmployee && emailCheck.state === 'done' && emailCheck.status === 'active' && (
+              <p className="text-xs text-destructive">
+                {t('employees.emailTakenActive', { name: emailCheck.name || formData.email })}
+              </p>
+            )}
+            {!currentEmployee && emailCheck.state === 'done' && emailCheck.status === 'inactive' && (
+              <p className="text-xs text-destructive">
+                {t('employees.emailTakenInactive', {
+                  name: emailCheck.name || formData.email,
+                  status: emailStatusLabel(emailCheck.profileStatus),
+                })}
+              </p>
+            )}
+            {!currentEmployee && emailCheck.state === 'done' && emailCheck.status === 'auth_only' && (
+              <p className="text-xs text-destructive">{t('employees.emailAuthOnly')}</p>
+            )}
           </div>
+
           
           {!currentEmployee && !formData.is_temporary && <div className="grid gap-2">
               <Label htmlFor="password">{t("common.password")}</Label>
