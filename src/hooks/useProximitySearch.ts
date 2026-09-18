@@ -9,6 +9,8 @@ import { useActiveTrainingsForRange } from '@/hooks/useActiveTrainings';
 import { getAllWeekDays } from '@/utils/dates';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
+import { estimateTravelMinutes } from '@/utils/travelTime';
+
 
 export interface ProximityDayInfo {
   /** yyyy-MM-dd */
