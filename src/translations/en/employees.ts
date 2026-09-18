@@ -112,10 +112,11 @@ const employees = {
   emailTakenInactive: '{name} already exists with this email (status: {status}). Reactivate the user under Users instead of creating a new one.',
   emailAuthOnly: 'The email belongs to a login without an employee profile (left over from a deletion). Clean up the account under Users before reusing the address.',
   emailCheckFailed: 'Could not check the email address right now',
-  statusActive: 'active',
-  statusInactive: 'inactive',
-  statusOnLeave: 'on leave',
-  statusTerminated: 'terminated',
+  emailStatusActive: 'active',
+  emailStatusInactive: 'inactive',
+  emailStatusOnLeave: 'on leave',
+  emailStatusTerminated: 'terminated',
+
 
   unexpectedError: 'An unexpected error occurred',
   creatingUserDescription: 'Creating user account...',

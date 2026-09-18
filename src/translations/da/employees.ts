@@ -112,10 +112,11 @@ const employees = {
   emailTakenInactive: '{name} findes allerede med denne e-mail (status: {status}). Genaktivér brugeren under Brugere i stedet for at oprette en ny.',
   emailAuthOnly: 'E-mailen hører til et login uden medarbejderprofil (rest efter en sletning). Ryd kontoen op under Brugere, før adressen bruges igen.',
   emailCheckFailed: 'Kunne ikke kontrollere e-mailadressen lige nu',
-  statusActive: 'aktiv',
-  statusInactive: 'inaktiv',
-  statusOnLeave: 'på orlov',
-  statusTerminated: 'fratrådt',
+  emailStatusActive: 'aktiv',
+  emailStatusInactive: 'inaktiv',
+  emailStatusOnLeave: 'på orlov',
+  emailStatusTerminated: 'fratrådt',
+
 
   unexpectedError: 'Uventet fejl opstod',
   creatingUserDescription: 'Opretter brugerkonto...',
