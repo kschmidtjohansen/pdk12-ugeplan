@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-18 — Ledig tid, rejsetid og bedre kontrol ved oprettelse
+
+- `useProximitySearch`: hver dag beregnes nu ud fra en 8-timers arbejdsdag (start = første opgaves starttid, ellers 07:00). Nye felter `freeMinutes`, `dayEnd`, `hasEnoughFree` (>= 60 min) pr. dag samt `hasEnoughFreeDay`, `homeTravelMin`, `bestTravelMin`. Sortering: nok ledig tid → til stede → korteste afstand.
+- Ny `src/utils/travelTime.ts`: `estimateTravelMinutes` (vejfaktor 1,3 ved 60 km/t, afrundet til 5 min, min. 5 min) samt `formatKm`/`formatMinutes`.
+- `ProximityPanel`: dagsbrikker viser ledig tid ("Fri fra 13:30 · 1 t 30 m", "Fri hele dagen (8 t)", "Optaget"), kandidater med mindst 1 time fremhæves med ramme og badge, og afstande vises nu med estimeret rejsetid ("18 km · ca. 25 min").
+- `PasswordInput`: kravlisten vises altid, udvidet med specialtegn og 12-tegns anbefaling, hardkodede farver erstattet af semantiske tokens. Ny `usePwnedPasswordCheck` tjekker løbende mod Have I Been Pwned via k-anonymitet (kun 5 hash-tegn sendes, aldrig adgangskoden); kompromitteret adgangskode blokerer oprettelsen, netværksfejl gør ikke.
+- Ny edge function `check-user-email` (`verify_jwt = true`, kun administrator/super_admin): returnerer `available`, `active`, `inactive` eller `auth_only` for en e-mailadresse. `EmployeeFormDialog` kalder den ved blur på e-mailfeltet, cacher pr. adresse, viser forklarende status og blokerer oprettelse, når adressen ikke er ledig.
+- Nye tekstnøgler i `employees` (adgangskodekrav, e-mailstatus) og `planner.filters` (`busyDay`, `travelApprox`, `enoughTime`, `freeAllDay` med varighed). Ingen databaseændringer.
+
+
+
 ## 2026-09-18 — Justeringer af postnummer-søgningen i Ugeplanen
 
 - `useProximitySearch`: nærhedslisten tæller nu kun mandag–fredag. Lørdag og søndag er fjernet fra dagsbrikkerne, og weekendopgaver indgår ikke længere i afstandsmåling eller ledighed.
