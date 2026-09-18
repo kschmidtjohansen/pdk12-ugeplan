@@ -45,14 +45,20 @@ interface UseOptimizedAssignmentsResult {
 }
 
 // Helper function to convert OptimizedAssignmentData to Assignment
-const convertToAssignment = (data: OptimizedAssignmentData, allEmployees: Employee[] = []): Assignment => {
+const convertToAssignment = (
+  data: OptimizedAssignmentData,
+  allEmployees: Employee[] = [],
+  profileFallback?: Map<string, { name: string; email: string }>
+): Assignment => {
   const employees = data.assignment_employees?.map(emp => emp.user_id).filter(Boolean) || [];
   
   const assignedEmployees = data.assignment_employees?.map(emp => {
     const userId = emp.user_id;
     const profile = emp.profiles as any;
-    const profileName = profile?.name || '';
-    const profileEmail = profile?.email || '';
+    const fallback = userId ? profileFallback?.get(userId) : undefined;
+    const profileName = profile?.name || fallback?.name || '';
+    const profileEmail = profile?.email || fallback?.email || '';
+    
     
     const displayName = resolveEmployeeDisplayName({
       id: userId,
