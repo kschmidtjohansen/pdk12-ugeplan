@@ -262,7 +262,7 @@ const PlannerPage: React.FC = () => {
     };
   }, []);
 
-  const handleOpenCreateDialog = (date: string) => {
+  const handleOpenCreateDialog = useCallback((date: string) => {
     setCurrentAssignment(null);
     setSelectedDay(date);
     setFormData({
@@ -278,9 +278,9 @@ const PlannerPage: React.FC = () => {
       subDepartmentId: selectedSubDepartmentId || null
     });
     setIsDialogOpen(true);
-  };
+  }, [selectedSubDepartmentId]);
 
-  const openEditDialogDirect = (assignment: Assignment) => {
+  const openEditDialogDirect = useCallback((assignment: Assignment) => {
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);
     setFormData({
@@ -290,7 +290,7 @@ const PlannerPage: React.FC = () => {
       published: assignment.published
     });
     setIsDialogOpen(true);
-  };
+  }, []);
 
   // Detect if assignment is part of a series — either via groupId, or via legacy fallback
   // (same case_number/title + same department + multiple dates)
@@ -307,7 +307,7 @@ const PlannerPage: React.FC = () => {
     });
   }, [assignments]);
 
-  const handleOpenEditDialog = (assignment: Assignment) => {
+  const handleOpenEditDialog = useCallback((assignment: Assignment) => {
     const siblings = findSeriesSiblings(assignment);
     // INTENTIONAL: only prompt SeriesActionDialog when siblings.length > 1.
     // A lone assignment (incl. orphaned groupId after sibling deletion) edits directly.
@@ -316,7 +316,7 @@ const PlannerPage: React.FC = () => {
     } else {
       openEditDialogDirect(assignment);
     }
-  };
+  }, [findSeriesSiblings, openEditDialogDirect]);
 
   const handleSubmit = async (data: Partial<Assignment>) => {
     if (import.meta.env.DEV) console.log('[PlannerPage] Form submission started with data:', data);
@@ -360,7 +360,7 @@ const PlannerPage: React.FC = () => {
     }
   };
 
-  const handleCopyAssignment = (assignment: Assignment) => {
+  const handleCopyAssignment = useCallback((assignment: Assignment) => {
     setCurrentAssignment(null);
     const today = new Date().toISOString().split('T')[0];
     setSelectedDay(today);
@@ -374,7 +374,7 @@ const PlannerPage: React.FC = () => {
       car: assignment.car ? (typeof assignment.car === 'string' ? assignment.car : assignment.car.id) : ''
     });
     setIsDialogOpen(true);
-  };
+  }, []);
 
   const { toast } = useToast();
 
