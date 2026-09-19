@@ -14,9 +14,17 @@ class UnifiedDataService {
   private cache = new Map<string, { data: any[]; timestamp: number; ttl: number }>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  private getCacheKey(operation: string, departmentId?: string, subDepartmentId?: string | null): string {
+  private getCacheKey(
+    operation: string,
+    departmentId?: string,
+    subDepartmentId?: string | null,
+    suffix?: string
+  ): string {
     const sub = subDepartmentId ? `_sub_${subDepartmentId}` : '';
-    return departmentId ? `unified_${operation}_${departmentId}${sub}` : `unified_${operation}${sub}`;
+    const extra = suffix ? `_${suffix}` : '';
+    return departmentId
+      ? `unified_${operation}_${departmentId}${sub}${extra}`
+      : `unified_${operation}${sub}${extra}`;
   }
 
   private getFromCache<T>(key: string): T[] | null {
