@@ -267,4 +267,14 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   );
 };
 
-export default CompactAssignmentRow;
+/**
+ * Row-level memoization. Parent sections create fresh inline callbacks on every
+ * render, so we compare the data props only — the callbacks always close over
+ * the same assignment id.
+ */
+export default React.memo(CompactAssignmentRow, (prev, next) => (
+  prev.assignment === next.assignment &&
+  prev.cars === next.cars &&
+  prev.canEdit === next.canEdit &&
+  prev.operationState === next.operationState
+));

@@ -313,4 +313,4 @@ const VirtualizedAssignmentCards: React.FC<VirtualizedAssignmentCardsProps> = ({
   );
 };
 
-export default DaySection;
+export default React.memo(DaySection);
