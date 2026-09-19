@@ -213,23 +213,23 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {canEdit && (
-            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="h-7 w-7 p-0" disabled={isLoading}>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="h-7 w-7 p-0 touch-target" disabled={isLoading} title={t('planner.editAssignment')} aria-label={t('planner.editAssignment')}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           )}
           {onCopy && (
-            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onCopy(); }} className="h-7 w-7 p-0" disabled={isLoading}>
-              <Copy className="h-3.5 w-3.5 text-blue-600" />
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onCopy(); }} className="h-7 w-7 p-0 touch-target" disabled={isLoading} title={t('planner.copyAssignment')} aria-label={t('planner.copyAssignment')}>
+              <Copy className="h-3.5 w-3.5 text-primary" />
             </Button>
           )}
           {!assignment.published && onPublish && (
-            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onPublish(); }} className="h-7 w-7 p-0" disabled={isLoading}>
-              <Send className="h-3.5 w-3.5 text-green-600" />
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onPublish(); }} className="h-7 w-7 p-0 touch-target" disabled={isLoading} title={t('planner.publish')} aria-label={t('planner.publish')}>
+              <Send className="h-3.5 w-3.5 text-success" />
             </Button>
           )}
           {canEdit && (
-            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(); }} className="h-7 w-7 p-0" disabled={isLoading}>
-              <Trash2 className="h-3.5 w-3.5 text-red-500" />
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(); }} className="h-7 w-7 p-0 touch-target" disabled={isLoading} title={t('planner.deleteAssignment')} aria-label={t('planner.deleteAssignment')}>
+              <Trash2 className="h-3.5 w-3.5 text-destructive" />
             </Button>
           )}
         </div>
