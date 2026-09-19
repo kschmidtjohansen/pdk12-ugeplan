@@ -282,6 +282,7 @@ export const useAssignmentFiles = (
     toast.info('Forbereder download...');
 
     try {
+      const JSZip = await loadJSZip();
       const zip = new JSZip();
       
       for (const file of folderFiles) {
