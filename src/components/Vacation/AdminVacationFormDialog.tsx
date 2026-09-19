@@ -257,9 +257,9 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
             <Button 
               type="submit" 
               className="bg-polygon-purple hover:bg-polygon-darkpurple"
-              disabled={requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime)}
+              disabled={isSubmitting || (requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime))}
             >
-              {t("vacation.submitRequest")}
+              {isSubmitting ? t("common.saving") : t("vacation.submitRequest")}
             </Button>
           </DialogFooter>
         </form>

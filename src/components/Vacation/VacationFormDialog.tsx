@@ -256,11 +256,13 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
               <Button 
                 type="submit" 
                 className="bg-polygon-purple hover:bg-polygon-darkpurple w-full sm:w-auto"
-                disabled={requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime)}
+                disabled={isSubmitting || (requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime))}
               >
-                {isEditing 
-                  ? t("common.save") 
-                  : t("vacation.submitRequest")}
+                {isSubmitting
+                  ? t("common.saving")
+                  : isEditing
+                    ? t("common.save")
+                    : t("vacation.submitRequest")}
               </Button>
             </div>
           </DialogFooter>
