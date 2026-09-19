@@ -228,10 +228,11 @@ const DaySection: React.FC<DaySectionProps> = ({
               onCopyFromYesterday={onCopyDayFromYesterday}
             />
           ) : (
-            <div className="py-4 px-4 rounded-lg text-center text-muted-foreground bg-slate-50 dark:bg-slate-800/50">
+            <div className="col-span-full py-6 px-4 rounded-lg text-center text-sm text-muted-foreground bg-muted/50 border border-dashed border-border">
               <CalendarX2 className="h-6 w-6 text-muted-foreground/50 mx-auto mb-1" />
               <p>{t("planner.nothingPlannedToday")}</p>
             </div>
+
           )}
         </div>
       )}
