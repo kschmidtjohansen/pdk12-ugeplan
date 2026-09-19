@@ -494,3 +494,12 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Rute-baseret cache-invalidering i `MainLayout` med `refetchType: 'active'`
 - [x] Ubeskyttet produktionslogning fjernet
 - [x] Typetjek kørt rent
+
+## Fase 2: Hurtige gevinster (2026-09-19)
+
+- [x] 44 × 44 px trykflade på berøringsskærme via `.touch-target` (uændret visuel størrelse)
+- [x] `aria-label` på ikon-kun-knapper i ugeplanen
+- [x] Semantiske farvetokens på udgiv/slet/kopiér i stedet for faste farveklasser
+- [x] `jszip` indlæses on demand
+- [x] Testværktøjer flyttet til `devDependencies`
+- [x] Typetjek og kodetjek kørt uden fejl
