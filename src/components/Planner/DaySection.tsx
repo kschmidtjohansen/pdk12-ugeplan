@@ -148,8 +148,12 @@ const DaySection: React.FC<DaySectionProps> = ({
           </span>
         </div>
 
-        
+        <div className="flex items-center gap-2">
+        {canPublishTasks && (
+          <PrintDayReportButton dateKey={dateKey} assignments={dayAssignments} cars={cars} />
+        )}
         {canPublishTasks && hasUnpublishedAssignments && (
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="brand" size="sm">
