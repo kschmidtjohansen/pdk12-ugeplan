@@ -10,6 +10,7 @@ import { Send, ChevronDown, ChevronRight, CalendarX2 } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
 import DayAbsenceRow from './DayAbsenceRow';
 import EmptyDayCTA from './EmptyDayCTA';
+import PrintDayReportButton from './PrintDayReportButton';
 import {
   AlertDialog,
   AlertDialogAction,
