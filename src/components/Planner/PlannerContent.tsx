@@ -21,6 +21,8 @@ import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
+  /** All assignments already loaded by PlannerPage — used for case series lookups. */
+  allAssignments?: Assignment[];
   operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
