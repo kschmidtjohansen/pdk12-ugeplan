@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Send, ChevronDown, ChevronRight } from 'lucide-react';
 import CompactAssignmentRow from './CompactAssignmentRow';
+import PrintDayReportButton from './PrintDayReportButton';
 
 interface CompactDaySectionProps {
   dateKey: string;
