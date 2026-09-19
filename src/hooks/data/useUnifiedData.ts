@@ -64,9 +64,12 @@ export const useUnifiedData = (options?: UseUnifiedDataOptions): UseUnifiedDataR
         return;
       }
 
+      const emptyAssignments = { data: [] as Assignment[], error: null as string | null, fromCache: false };
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
         unifiedDataService.fetchEmployees(deptId, subDepartmentId),
-        unifiedDataService.fetchAssignments(deptId, subDepartmentId),
+        includeAssignments
+          ? unifiedDataService.fetchAssignments(deptId, subDepartmentId, { fromDate, toDate })
+          : Promise.resolve(emptyAssignments),
         unifiedDataService.fetchCars(deptId, subDepartmentId)
       ]);
 
