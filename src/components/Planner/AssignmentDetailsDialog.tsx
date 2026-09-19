@@ -96,7 +96,7 @@ const AssignmentDetailsDialog: React.FC = () => {
 
   return (
     <Dialog open={!!id} onOpenChange={(o) => { if (!o) closeAssignmentDetails(); }}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-sm:left-0 max-sm:top-auto max-sm:bottom-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:max-w-full max-sm:rounded-t-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             {row?.title || (isDa ? 'Opgave' : 'Assignment')}

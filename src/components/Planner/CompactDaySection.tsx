@@ -53,13 +53,18 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
     }
   };
 
+  const dayOfWeek = new Date(`${dateKey}T00:00:00`).getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  const isToday = new Date(`${dateKey}T00:00:00`).toDateString() === new Date().toDateString();
+
   return (
-    <div className={`bg-card rounded-xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden ${
-      new Date(dateKey).toDateString() === new Date().toDateString() ? 'border-t-2 border-t-primary' : ''
-    }`}>
+    <div className={`bg-card rounded-xl border border-border/60 overflow-hidden ${
+      isToday ? 'border-primary/40 ring-1 ring-primary/20' : ''
+    } ${isWeekend ? 'bg-muted/40' : ''}`}>
       {/* Day Header - Compact */}
       <div 
-        className="flex items-center justify-between px-4 py-2.5 bg-primary/5 border-b cursor-pointer hover:bg-primary/10 transition-colors"
+        className={`flex items-center justify-between gap-2 px-4 py-2.5 border-b border-border/60 cursor-pointer transition-colors ${isWeekend ? 'bg-muted/60 hover:bg-muted' : 'bg-muted/40 hover:bg-muted/70'}`}
+
         onClick={() => onToggleExpansion(dateKey)}
         role="button"
         tabIndex={0}
@@ -70,17 +75,23 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
           }
         }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 min-w-0">
           {isExpanded ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
           ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
           )}
-          <h3 className="font-semibold text-sm">{formattedDate}</h3>
-          <Badge variant="secondary" className="text-xs">
+          <h3 className={`font-semibold text-sm truncate ${isWeekend ? 'text-muted-foreground' : ''}`}>{formattedDate}</h3>
+          {isToday && (
+            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+              {currentLanguage === 'da' ? 'I dag' : 'Today'}
+            </span>
+          )}
+          <Badge variant="secondary" className="text-xs tabular-nums shrink-0">
             {assignmentsCount} {currentLanguage === 'da' ? (assignmentsCount === 1 ? 'opgave' : 'opgaver') : (assignmentsCount === 1 ? 'task' : 'tasks')}
           </Badge>
         </div>
+
         
         {canPublishTasks && hasUnpublishedAssignments && (
           <Button

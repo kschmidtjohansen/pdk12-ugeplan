@@ -515,3 +515,18 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Målrettet invalidering (`refetchType: 'active'`) på opgavedata fra ferie-, kursus- og bilhandlinger
 - [x] Virtualisering gennemgået: allerede aktiv i dag-lister, medarbejdervælger og medarbejdertabel; øvrige lister er for korte til at have gavn
 - [x] Typetjek og kodetjek kørt uden nye fejl
+
+## Del 1: Visuel oprydning af ugeplanen (2026-09-19)
+
+- [x] Opgavekort: sagsnummer/titel som primær linje, adresse sekundær, ansvarlig som diskret navnelinje uden ikonboble
+- [x] Én statusmarkør (kladde/publiceret) i stedet for både prik og badge; badge bruger `success-soft`/`warning-soft`
+- [x] Lagerbadge flyttet fra svævende hjørne til kortets bundlinje sammen med tid, bil og hold
+- [x] Ensartet korthøjde (`h-full` + `mt-auto`) så gittervisningen står i lige rækker
+- [x] Dagsoverskrift med fast struktur, "I dag"-markering og tabulær opgavetæller i Standard og Kompakt
+- [x] Weekenddage dæmpes i Standard og Kompakt
+- [x] Ensartet tom-tilstand med semantiske tokens i alle visninger
+- [x] Handlingsknapper altid synlige på berøringsskærme (kort og kompakt række)
+- [x] Opret/redigér-dialog og opgavedetaljer vises som bund-sheet på mobil
+- [x] DEV-konsollogning fjernet i `AssignmentCard` og `DaySection`
+- [x] Typetjek og kodetjek kørt uden nye fejl
+

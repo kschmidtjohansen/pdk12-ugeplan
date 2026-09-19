@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-19 — Del 1: Visuel oprydning af ugeplanen
+
+- Opgavekortene er strammet op: titel/sagsnummer står øverst, adressen lige under, og ansvarlig vises som en diskret navnelinje uden ikonboble.
+- Kladde/publiceret vises nu kun ét sted (ét roligt badge i designsystemets farver) i stedet for både en farveprik og et badge.
+- Lagerbadget er flyttet fra det svævende hjørne ned i kortets bundlinje sammen med tid, bil og hold.
+- Alle kort i gittervisningen har samme højde, så rækkerne står lige.
+- Dagsoverskrifterne har fået fast struktur med "I dag"-markering og en diskret opgavetæller; weekenddage er dæmpet i både Standard og Kompakt.
+- Tomme dage ser ens ud i alle tre visninger og bruger temaets farver.
+- Handlingsknapperne på kort og i kompakte rækker er altid synlige på berøringsskærme.
+- Opret/redigér-opgave og opgavedetaljer åbner som bund-panel på mobil i stedet for en midterstillet dialog.
+- Fjernet udviklerlogning i opgavekort og dagsvisning.
+
+
+
 ## 2026-09-19 — Fase 2: Hurtige gevinster
 
 - Handlingsknapperne i ugeplanen (rediger, kopiér, udgiv, vis på skærm, slet, dagsnavigation og ryd-søgning) har nu en trykflade på 44 × 44 px på berøringsskærme. Udseendet er uændret — også på desktop, hvor den kompakte størrelse bevares.
