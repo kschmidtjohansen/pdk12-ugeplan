@@ -149,7 +149,7 @@ export const useUnifiedData = (options?: UseUnifiedDataOptions): UseUnifiedDataR
       if (debounceTimer) clearTimeout(debounceTimer);
       unsubscribe();
     };
-  }, [isDemoMode, selectedDepartmentId, selectedSubDepartmentId]);
+  }, [isDemoMode, selectedDepartmentId, selectedSubDepartmentId, includeAssignments, fromDate, toDate]);
 
 
   return {
