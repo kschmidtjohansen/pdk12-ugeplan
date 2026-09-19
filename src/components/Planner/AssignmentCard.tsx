@@ -223,7 +223,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <p className="text-muted-foreground mt-2 text-xs line-clamp-2">{assignment.description}</p>
       )}
 
-      <div className="mt-2 flex items-end justify-between gap-2">
+      <div className="mt-auto pt-2 flex items-end justify-between gap-2">
         <div className="min-w-0 flex-1">
           <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
         </div>
