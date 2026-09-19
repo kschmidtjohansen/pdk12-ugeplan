@@ -460,6 +460,26 @@
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }
+
+  /* Touch target: keeps the compact 28px visual size while exposing a
+     44x44 tap area on touch devices (WCAG 2.5.8). Desktop is unchanged. */
+  .touch-target {
+    position: relative;
+  }
+  .touch-target::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .touch-target::before {
+      display: none;
+    }
+  }
 }
 
 /* High-contrast tweak */
