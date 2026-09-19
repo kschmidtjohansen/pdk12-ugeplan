@@ -180,7 +180,9 @@ const DaySection: React.FC<DaySectionProps> = ({
             </AlertDialogContent>
           </AlertDialog>
         )}
+        </div>
       </div>
+
 
       {isExpanded && <DayAbsenceRow dateKey={dateKey} />}
 
