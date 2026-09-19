@@ -305,6 +305,8 @@ const MinDag: React.FC = () => {
         <Suspense fallback={null}>
           <AssignmentDetailsDialog
             assignment={selectedAssignment}
+            cars={cars}
+
             isOpen={isDialogOpen}
             onClose={() => {
               setIsDialogOpen(false);
