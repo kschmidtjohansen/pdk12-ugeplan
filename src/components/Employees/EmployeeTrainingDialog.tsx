@@ -139,8 +139,8 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
               title: 'Opgaver opdateret',
               description: `${employee.name} er fjernet fra ${removed + cleared} opgave(r) i kursusperioden.`,
             });
-            qc.invalidateQueries({ queryKey: ['assignments'] });
-            qc.invalidateQueries({ queryKey: ['optimizedAssignments'] });
+            qc.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
+            qc.invalidateQueries({ queryKey: ['optimizedAssignments'], refetchType: 'active' });
           }
         } catch (cleanupErr: any) {
           toast({

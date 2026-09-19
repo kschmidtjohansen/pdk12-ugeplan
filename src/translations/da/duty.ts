@@ -27,6 +27,8 @@ export const duty = {
   reassignFailed: "Kunne ikke tildele vagt",
   assignFailedGeneric: "Kunne ikke tildele vagt",
   removeSuccess: "Vagt fjernet",
+  removeFailed: "Kunne ikke fjerne vagt",
+  removeMultipleFailed: "Kunne ikke fjerne vagterne",
   updateSuccess: "Vagt opdateret",
   updateFailed: "Kunne ikke opdatere vagt",
   notes: "Noter",

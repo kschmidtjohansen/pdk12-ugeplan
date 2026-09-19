@@ -21,6 +21,7 @@ import { Plus, RefreshCw, Shield } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import type { Duty } from '@/types/duty';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import ErrorState from '@/components/shared/ErrorState';
 
 export default function DutyPage() {
   const { t } = useTranslation();
@@ -161,11 +162,7 @@ export default function DutyPage() {
         </div>
 
       {error && (
-        <Card className="border border-destructive/30 bg-destructive/5">
-          <CardContent className="py-3 text-sm text-destructive">
-            {t('common.errorLoadingData') ?? 'Der opstod en fejl ved indlæsning af vagter.'}
-          </CardContent>
-        </Card>
+        <ErrorState onRetry={refetch} />
       )}
 
       <PendingSwapOffers

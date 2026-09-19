@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,16 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const { userSubDepartments } = useDepartment();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSubmit(e));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -57,7 +67,7 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">{t('cars.vehicleName')}</Label>
             <Input
@@ -225,8 +235,9 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             <Button 
               type="submit"
               className="bg-polygon-blue hover:bg-polygon-darkblue"
+              disabled={isSubmitting}
             >
-              {isEditing ? t('common.save') : t('common.add')}
+              {isSubmitting ? t('common.saving') : isEditing ? t('common.save') : t('common.add')}
             </Button>
           </DialogFooter>
         </form>

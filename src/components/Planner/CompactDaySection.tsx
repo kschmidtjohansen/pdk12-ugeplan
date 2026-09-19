@@ -142,4 +142,4 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
   );
 };
 
-export default CompactDaySection;
+export default React.memo(CompactDaySection);

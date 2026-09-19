@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Dialog,
   DialogContent,
@@ -87,7 +87,9 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
     }
   }, [open, isEditing, date, startDate, endDate, reason, requestType, startTime, endTime]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate partial day times
@@ -128,7 +130,12 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
       endTime
     });
     
-    onSubmit(e);
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSubmit(e));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -249,11 +256,13 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
               <Button 
                 type="submit" 
                 className="bg-polygon-purple hover:bg-polygon-darkpurple w-full sm:w-auto"
-                disabled={requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime)}
+                disabled={isSubmitting || (requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime))}
               >
-                {isEditing 
-                  ? t("common.save") 
-                  : t("vacation.submitRequest")}
+                {isSubmitting
+                  ? t("common.saving")
+                  : isEditing
+                    ? t("common.save")
+                    : t("vacation.submitRequest")}
               </Button>
             </div>
           </DialogFooter>

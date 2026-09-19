@@ -20,6 +20,7 @@ import FalckSubscriptionButton from '@/components/Cars/FalckSubscriptionButton';
 import VWAssistanceButton from '@/components/Cars/VWAssistanceButton';
 import ListPageShell from '@/components/shared/ListPageShell';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import ErrorState from '@/components/shared/ErrorState';
 import SegmentedFilterBar, { FilterSegment } from '@/components/shared/SegmentedFilterBar';
 
 type CarSegment = 'all' | 'available' | 'unavailable' | 'scheduled';
@@ -119,10 +120,8 @@ const CarsPage: React.FC = () => {
             {loading ? (
               <ListSkeleton />
             ) : error ? (
-              <div className="p-6">
-                <div className="bg-destructive/10 border border-destructive/30 text-destructive p-4 rounded-lg text-sm">
-                  {error}
-                </div>
+              <div className="p-3 sm:p-6">
+                <ErrorState description={error} onRetry={fetchCars} />
               </div>
             ) : (
               <div className="p-3 sm:p-6">

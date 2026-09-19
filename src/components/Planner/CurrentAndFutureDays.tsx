@@ -101,4 +101,4 @@ const CurrentAndFutureDays: React.FC<CurrentAndFutureDaysProps> = ({
   );
 };
 
-export default CurrentAndFutureDays;
+export default React.memo(CurrentAndFutureDays);

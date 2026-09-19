@@ -503,3 +503,15 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] `jszip` indlæses on demand
 - [x] Testværktøjer flyttet til `devDependencies`
 - [x] Typetjek og kodetjek kørt uden fejl
+
+## Fase 3: Ensartede tilstande + performance i ugeplanen (2026-09-19)
+
+- [x] Ny fælles `ErrorState` med genforsøg brugt på Biler, Lager og Vagtplan
+- [x] `ListSkeleton` udvidet med kort-variant; dashboardets ugeoversigt viser skeleton under indlæsning
+- [x] Hårdkodede engelske fejlbeskeder ved fjernelse af vagter oversat (DA/EN)
+- [x] Gem-knapper i bil- og ferieformularer deaktiveres og viser "Gemmer" under handlingen
+- [x] `React.memo` på `DaySection`, `CompactDaySection`, `CompactAssignmentRow` (data-sammenligning) og `CurrentAndFutureDays`
+- [x] Stabiliserede handlere i `PlannerPage` (`useCallback`) så memoiseringen virker
+- [x] Målrettet invalidering (`refetchType: 'active'`) på opgavedata fra ferie-, kursus- og bilhandlinger
+- [x] Virtualisering gennemgået: allerede aktiv i dag-lister, medarbejdervælger og medarbejdertabel; øvrige lister er for korte til at have gavn
+- [x] Typetjek og kodetjek kørt uden nye fejl

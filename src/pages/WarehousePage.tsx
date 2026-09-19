@@ -14,6 +14,7 @@ import WarehouseDeleteDialog from '@/components/Warehouse/WarehouseDeleteDialog'
 
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
+import ErrorState from '@/components/shared/ErrorState';
 import ListPageShell from '@/components/shared/ListPageShell';
 import SegmentedFilterBar from '@/components/shared/SegmentedFilterBar';
 
@@ -114,9 +115,8 @@ const WarehousePage = () => {
         {loading ? (
           <ListSkeleton />
         ) : error ? (
-          <div className="p-6">
-            <p className="text-destructive">{t('warehouse.messages.loadError')}</p>
-            <p className="text-sm text-muted-foreground">{error}</p>
+          <div className="p-3 sm:p-6">
+            <ErrorState title={t('warehouse.messages.loadError')} description={error} />
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="p-6">

@@ -115,7 +115,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
 
       queryClient.invalidateQueries({ queryKey: ['cars'] });
       queryClient.invalidateQueries({ queryKey: ['car-unavailability'] });
-      queryClient.invalidateQueries({ queryKey: ['assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
 
       toast({
         title: 'Værkstedsbesøg registreret',

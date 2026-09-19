@@ -154,7 +154,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error removing duty:', err);
-      toast.error((err as any)?.message || 'Failed to remove duty');
+      toast.error((err as { message?: string })?.message || t('duty.removeFailed'));
       return false;
     } finally {
       setLoading(false);
@@ -188,7 +188,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error removing duties:', err);
-      toast.error((err as any)?.message || 'Failed to remove duties');
+      toast.error((err as { message?: string })?.message || t('duty.removeMultipleFailed'));
       return false;
     } finally {
       setLoading(false);

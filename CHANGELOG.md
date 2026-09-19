@@ -1547,3 +1547,11 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Ferieoversigt (grid): Filter-knapper tilføjet under tabellen, så ferie, kursus, fravær, skadeledervagt og kørevagt kan slås til/fra individuelt.
 
 - Vagtplan: mulighed for at slette enkelte vagter direkte i kalendervisningen (hover-ikon/mobil-popover), massesletning via "Vælg flere", samt sletteknap i redigeringsdialogen.
+
+## 2026-09-19 - Fase 3: Ensartede tilstande og hurtigere ugeplan
+- Ny fælles fejlvisning (`ErrorState`) med "Prøv igen" på Biler, Lager og Vagtplan; tydelig forskel på "ingen data" og "kunne ikke indlæse".
+- `ListSkeleton` fik kort-variant; dashboardets ugeoversigt viser nu skeleton i stedet for tomt område under indlæsning.
+- Fejlbeskeder ved fjernelse af vagter er oversat (DA/EN) i stedet for hårdkodet engelsk.
+- Gem-knapper i bil-, ferie- og admin-ferieformular deaktiveres og viser "Gemmer" mens handlingen kører (ingen dobbeltklik).
+- Ugeplan: `React.memo` på dag- og rækkekomponenter samt stabiliserede handlere i `PlannerPage`, så uændrede dage ikke gentegnes.
+- Opgavedata invalideres nu målrettet (`refetchType: 'active'`) fra ferie-, kursus- og bilhandlinger, så kun aktive visninger genindlæses.

@@ -85,6 +85,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
   const { user, isDemoMode } = useAuth();
   const { selectedSubDepartmentId, selectedDepartmentId } = useDepartment();
   const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Filter employees by sub-department when applicable
   useEffect(() => {
@@ -116,7 +117,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
     }
   }, [employees, user?.id, selectedSubDepartmentId, selectedDepartmentId, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate partial day times
@@ -128,7 +129,12 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
       return;
     }
     
-    onSubmit(e);
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSubmit(e));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -251,9 +257,9 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
             <Button 
               type="submit" 
               className="bg-polygon-purple hover:bg-polygon-darkpurple"
-              disabled={requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime)}
+              disabled={isSubmitting || (requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime))}
             >
-              {t("vacation.submitRequest")}
+              {isSubmitting ? t("common.saving") : t("vacation.submitRequest")}
             </Button>
           </DialogFooter>
         </form>
