@@ -407,8 +407,8 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
             const removed = (cleanup as any).removedFromCount || 0;
             const cleared = (cleanup as any).clearedResponsibleCount || 0;
             if (removed > 0 || cleared > 0) {
-              queryClient.invalidateQueries({ queryKey: ['assignments'] });
-              queryClient.invalidateQueries({ queryKey: ['optimizedAssignments'] });
+              queryClient.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
+              queryClient.invalidateQueries({ queryKey: ['optimizedAssignments'], refetchType: 'active' });
             }
           }
         } catch (cleanupErr) {

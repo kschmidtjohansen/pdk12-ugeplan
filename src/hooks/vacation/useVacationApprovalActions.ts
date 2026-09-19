@@ -56,8 +56,8 @@ export const useVacationApprovalActions = (
             if (cleared > 0) parts.push(t('vacation.autoUnassignResponsibleCleared', { count: String(cleared) }));
             cleanupSummary = ' ' + parts.join(' ');
             // Refresh assignments so UI updates immediately
-            queryClient.invalidateQueries({ queryKey: ['assignments'] });
-            queryClient.invalidateQueries({ queryKey: ['optimizedAssignments'] });
+            queryClient.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
+            queryClient.invalidateQueries({ queryKey: ['optimizedAssignments'], refetchType: 'active' });
           }
         }
       } catch (cleanupErr) {

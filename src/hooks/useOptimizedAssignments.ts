@@ -303,7 +303,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         if (isMounted) {
           if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Realtime change detected, invalidating...');
           OptimizedAssignmentService.clearCache();
-          queryClient.invalidateQueries({ queryKey: ['assignments'] });
+          queryClient.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
         }
       }, 500);
     };
