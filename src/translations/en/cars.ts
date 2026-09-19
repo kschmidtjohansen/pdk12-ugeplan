@@ -80,6 +80,8 @@ const cars = {
   // Error messages for fetching
   fetchError: 'Failed to fetch vehicles. Please try again.',
   noCarsInSubDepartment: 'No cars assigned to this sub-department',
+  todayDriver: 'Today',
+  notBookedToday: 'Not booked today',
   selectAtLeastOneSubDepartment: 'Select at least one sub-department',
   subDepartmentOptionalHint: 'If none are selected, the vehicle is only visible when no sub-department filter is applied.',
   
