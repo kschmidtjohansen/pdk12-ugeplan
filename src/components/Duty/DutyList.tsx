@@ -77,7 +77,7 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
   return (
     <div className="space-y-3">
       {duties.map(duty => (
-        <Card key={duty.id} className="p-4">
+        <Card key={duty.id} className="p-4 rounded-xl border-border/60 shadow-none hover:bg-muted/30 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
               <Avatar>
@@ -104,13 +104,13 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
                     <Badge variant="outline" className="text-xs">Ekstern</Badge>
                   )}
                   {(duty as any).sharedDepartmentName && (
-                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
+                    <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                       {(duty as any).sharedDepartmentName}
                     </Badge>
                   )}
-                  <Badge 
-                    variant={duty.duty_type === 'skadeleder_vagt' ? 'default' : 'secondary'}
-                    className={duty.duty_type === 'kørevagt' ? 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' : ''}
+                  <Badge
+                    variant="secondary"
+                    className="text-xs font-normal bg-muted text-muted-foreground border-border"
                   >
                     <span className="flex items-center gap-1">
                       {duty.duty_type === 'skadeleder_vagt' ? (
@@ -124,6 +124,21 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
                       }
                     </span>
                   </Badge>
+                  {(() => {
+                    const covered = !!duty.employee_id || !!duty.notes?.startsWith('EKSTERN:');
+                    return (
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                          covered
+                            ? 'bg-success-soft text-success-soft-foreground'
+                            : 'bg-warning-soft text-warning-soft-foreground'
+                        }`}
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${covered ? 'bg-success' : 'bg-warning'}`} />
+                        {covered ? t('duty.covered') : t('duty.notCovered')}
+                      </span>
+                    );
+                  })()}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {format(new Date(duty.duty_date), 'EEEE, dd MMMM yyyy', { locale })}

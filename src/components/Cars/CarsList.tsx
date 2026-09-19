@@ -7,6 +7,7 @@ import CarsTable from './CarsTable';
 import { Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import SimplePagination from '@/components/shared/SimplePagination';
+import { useCarDailyDrivers } from '@/hooks/car/useCarDailyDrivers';
 
 interface CarsListProps {
   cars: CarData[];
@@ -35,6 +36,7 @@ const CarsList: React.FC<CarsListProps> = ({
 }) => {
 
   const { t } = useTranslation();
+  const todayDrivers = useCarDailyDrivers();
   const sortedCars = useMemo(
     () => [...cars].sort((a, b) => a.car_number.localeCompare(b.car_number)),
     [cars]
@@ -70,6 +72,7 @@ const CarsList: React.FC<CarsListProps> = ({
             <MobileCarCard 
               key={car.id}
               car={car}
+              todayDrivers={todayDrivers.get(car.id)}
               canViewFuelCardCode={canViewFuelCardCode}
               isAdmin={isAdmin}
               onEdit={onEdit}
@@ -86,6 +89,7 @@ const CarsList: React.FC<CarsListProps> = ({
         <div className="hidden md:block">
           <CarsTable
             cars={pagedCars}
+            todayDrivers={todayDrivers}
             canViewFuelCardCode={canViewFuelCardCode}
             isAdmin={isAdmin}
             onEdit={onEdit}

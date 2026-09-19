@@ -20,6 +20,7 @@ import {
 
 interface CarsTableProps {
   cars: CarData[];
+  todayDrivers?: Map<string, string[]>;
   canViewFuelCardCode: boolean;
   isAdmin: boolean;
   onEdit: (car: CarData) => void;
@@ -32,6 +33,7 @@ interface CarsTableProps {
 
 const CarsTable: React.FC<CarsTableProps> = ({
   cars,
+  todayDrivers,
   canViewFuelCardCode,
   isAdmin,
   onEdit,
@@ -68,14 +70,21 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   <span className="font-medium text-foreground">{car.car_number}</span>
                 </div>
               </TableCell>
-              <TableCell className="text-foreground">{car.name}</TableCell>
+              <TableCell>
+                <div className="text-foreground">{car.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {todayDrivers?.get(car.id)?.length
+                    ? `${t('cars.todayDriver')}: ${todayDrivers.get(car.id)!.join(', ')}`
+                    : t('cars.notBookedToday')}
+                </div>
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <span className="text-foreground">{car.number_plate}</span>
                   {car.number_plate.toLowerCase().includes('trailer') && (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Truck className="h-4 w-4 text-orange-500" />
+                        <Truck className="h-4 w-4 text-warning" />
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>Trailer</p>
@@ -85,7 +94,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   {car.number_plate.toLowerCase().includes('miljø') && (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Recycle className="h-4 w-4 text-green-600" />
+                        <Recycle className="h-4 w-4 text-success" />
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>Miljøvogn</p>
@@ -102,12 +111,12 @@ const CarsTable: React.FC<CarsTableProps> = ({
               <TableCell>
                 {car.has_trailer_hitch ? (
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-success" />
                     <span className="text-foreground">{t('common.yes')}</span>
                     {(car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Info className="h-4 w-4 text-blue-500 cursor-help" />
+                          <Info className="h-4 w-4 text-primary cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <div className="text-xs space-y-1">
@@ -136,23 +145,23 @@ const CarsTable: React.FC<CarsTableProps> = ({
                 <div className="flex items-center gap-2">
                   {car.is_available ? (
                     <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      <div className="w-2 h-2 bg-success rounded-full mr-2"></div>
                       <span className="text-foreground">{t('common.available')}</span>
                     </div>
                   ) : (
                     <div className="flex items-center">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                      <div className="w-2 h-2 bg-destructive rounded-full mr-2"></div>
                       <span className="text-foreground">{t('common.unavailable')}</span>
                     </div>
                   )}
                   {(car as any)._scheduledActive && (
-                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-warning-soft text-warning-soft-foreground">
                       <Wrench className="h-3 w-3" />
                       Værksted til {(car as any)._scheduledActive.end_date}
                     </span>
                   )}
                   {!(car as any)._scheduledActive && (car as any)._scheduledUpcoming && (
-                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200">
+                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
                       <CalendarClock className="h-3 w-3" />
                       Planlagt {(car as any)._scheduledUpcoming.start_date}
                     </span>
@@ -160,7 +169,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   {car.notes && car.notes.trim() !== '' && (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-blue-500 cursor-help" />
+                        <Info className="h-4 w-4 text-primary cursor-help" />
                       </TooltipTrigger>
                       <TooltipContent>
                         <p className="max-w-xs whitespace-pre-wrap">{car.notes}</p>
@@ -181,7 +190,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           className="h-8 w-8 p-0"
                         >
                           <span className="sr-only">Note</span>
-                          <StickyNote className="h-4 w-4 text-blue-500" />
+                          <StickyNote className="h-4 w-4 text-primary" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent><p>Tilføj/ret note</p></TooltipContent>
@@ -202,7 +211,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                             {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
                           </span>
                           {car.is_available ? (
-                            <ToggleRight className="h-4 w-4 text-green-500" />
+                            <ToggleRight className="h-4 w-4 text-success" />
                           ) : (
                             <ToggleLeft className="h-4 w-4 text-muted-foreground" />
                           )}
@@ -225,7 +234,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                             className="h-8 w-8 p-0"
                           >
                             <span className="sr-only">Planlæg værkstedsbesøg</span>
-                            <Wrench className="h-4 w-4 text-amber-600" />
+                            <Wrench className="h-4 w-4 text-warning" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -258,7 +267,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onDelete(car)}
-                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive-soft"
                         >
                           <span className="sr-only">{t('common.delete')}</span>
                           <Trash2 className="h-4 w-4" />

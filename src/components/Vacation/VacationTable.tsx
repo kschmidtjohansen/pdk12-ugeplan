@@ -82,11 +82,11 @@ const VacationTable: React.FC<VacationTableProps> = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">{t("vacation.status.approved")}</Badge>;
+        return <Badge className="bg-success-soft text-success-soft-foreground hover:bg-success-soft">{t("vacation.status.approved")}</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{t("vacation.status.rejected")}</Badge>;
+        return <Badge className="bg-destructive-soft text-destructive-soft-foreground hover:bg-destructive-soft">{t("vacation.status.rejected")}</Badge>;
       default:
-        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{t("vacation.status.pending")}</Badge>;
+        return <Badge className="bg-warning-soft text-warning-soft-foreground hover:bg-warning-soft">{t("vacation.status.pending")}</Badge>;
     }
   };
   
@@ -171,7 +171,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                           size="sm"
                           variant="outline"
                           onClick={() => onApprove(vacation)}
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          className="text-success hover:text-success hover:bg-success-soft"
                         >
                           <Check className="h-4 w-4" />
                         </Button>
@@ -179,7 +179,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                           size="sm"
                           variant="outline"
                           onClick={() => onReject(vacation)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="text-destructive hover:text-destructive hover:bg-destructive-soft"
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -190,7 +190,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                         size="sm"
                         variant="outline"
                         onClick={() => onEdit(vacation)}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        className="text-primary hover:text-primary hover:bg-primary/10"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>

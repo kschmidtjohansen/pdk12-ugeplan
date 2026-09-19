@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Send, ChevronDown, ChevronRight } from 'lucide-react';
 import CompactAssignmentRow from './CompactAssignmentRow';
-import PrintDayReportButton from './PrintDayReportButton';
 
 interface CompactDaySectionProps {
   dateKey: string;
@@ -94,14 +93,6 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {canPublishTasks && (
-            <PrintDayReportButton
-              dateKey={dateKey}
-              assignments={dayAssignments}
-              cars={cars}
-              className="h-7 text-xs"
-            />
-          )}
           {canPublishTasks && hasUnpublishedAssignments && (
             <Button
               size="sm"

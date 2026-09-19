@@ -537,8 +537,17 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] "I gang nu"-markering samt tom-tilstand med førstkommende opgave i ugen
 - [x] `MinDag` integreret øverst i `ServicemedarbejderDashboard.tsx`
 - [x] Statistikkortene bruger semantiske tokens i stedet for faste blå/grønne farver
-- [x] `src/utils/dayReportPdf.ts` med dynamisk `import('pdf-lib')`: A4, gruppering pr. bil/hold + "Uden bil", sidehoved/-fod, sidetal, kladde-markering, `dagsseddel-YYYY-MM-DD.pdf`
-- [x] `PrintDayReportButton` tilføjet i dagsoverskriften i Standard og Kompakt (kun skadeleder/admin)
+- [x] ~~PDF-dagsseddel~~ — fjernet igen 2026-09-19 efter ønske fra brugeren
 - [x] Typetjek kørt uden fejl
+
+## Del 1: Roligere og venligere brugerflade (2026-09-19)
+
+- [x] Dagssedlen fjernet: `dayReportPdf.ts` og `PrintDayReportButton.tsx` slettet, knapper fjernet i `DaySection` og `CompactDaySection`
+- [x] Vagtlisten: afrundede, roligere kort og dækningsindikator ("Dækket"/"Mangler vagt") med semantiske tokens
+- [x] Feriekort og ferietabel bruger semantiske tokens i stedet for faste grøn/rød/gul-klasser
+- [x] Biloversigt: ny linje "I dag: <navn>" / "Ikke booket i dag" via `useCarDailyDrivers` (ingen ekstra datakald)
+- [x] Faste farveklasser på bilkort og biltabel erstattet af semantiske tokens
+- [x] Mobil bundmenu: Min Dag, Ugeplan, Vagter, Mere — tydeligere aktiv fane og 44 px trykflade
+- [x] Typetjek og kodetjek kørt
 
 

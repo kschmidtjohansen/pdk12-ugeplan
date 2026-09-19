@@ -80,6 +80,8 @@ const cars = {
   // Error messages for fetching
   fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.',
   noCarsInSubDepartment: 'Der er ingen biler tilknyttet denne underafdeling',
+  todayDriver: 'I dag',
+  notBookedToday: 'Ikke booket i dag',
   selectAtLeastOneSubDepartment: 'Vælg mindst én underafdeling',
   subDepartmentOptionalHint: 'Hvis ingen vælges, vises bilen kun, når der ikke er filtreret på en underafdeling.',
   

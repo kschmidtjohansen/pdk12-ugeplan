@@ -87,6 +87,8 @@ export const duty = {
   confirmReassignment: "Confirm assignment",
   noEligibleEmployees: "There are no other employees with the appropriate role for this duty",
   unassignedSlot: "Unassigned duty",
+  covered: "Covered",
+  notCovered: "Not covered",
   sendSwapOffer: "Send swap offer",
   swapRequestSent: "Swap offer sent",
   swapRequestFailed: "Could not send swap offer",

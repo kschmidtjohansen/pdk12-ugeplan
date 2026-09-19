@@ -10,7 +10,6 @@ import { Send, ChevronDown, ChevronRight, CalendarX2 } from 'lucide-react';
 import AssignmentCard from './AssignmentCard';
 import DayAbsenceRow from './DayAbsenceRow';
 import EmptyDayCTA from './EmptyDayCTA';
-import PrintDayReportButton from './PrintDayReportButton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -150,9 +149,6 @@ const DaySection: React.FC<DaySectionProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-        {canPublishTasks && (
-          <PrintDayReportButton dateKey={dateKey} assignments={dayAssignments} cars={cars} />
-        )}
         {canPublishTasks && hasUnpublishedAssignments && (
 
           <AlertDialog>
