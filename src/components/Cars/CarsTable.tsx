@@ -70,7 +70,14 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   <span className="font-medium text-foreground">{car.car_number}</span>
                 </div>
               </TableCell>
-              <TableCell className="text-foreground">{car.name}</TableCell>
+              <TableCell>
+                <div className="text-foreground">{car.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {todayDrivers?.get(car.id)?.length
+                    ? `${t('cars.todayDriver')}: ${todayDrivers.get(car.id)!.join(', ')}`
+                    : t('cars.notBookedToday')}
+                </div>
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <span className="text-foreground">{car.number_plate}</span>

@@ -62,6 +62,11 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 )}
               </div>
               <p className="text-sm text-muted-foreground">{car.name}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {todayDrivers && todayDrivers.length > 0
+                  ? `${t('cars.todayDriver')}: ${todayDrivers.join(', ')}`
+                  : t('cars.notBookedToday')}
+              </p>
               <div className="flex flex-wrap gap-1 mt-1">
                 {(car as any).is_auxiliary && (
                   <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
