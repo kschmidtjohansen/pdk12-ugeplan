@@ -235,8 +235,9 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             <Button 
               type="submit"
               className="bg-polygon-blue hover:bg-polygon-darkblue"
+              disabled={isSubmitting}
             >
-              {isEditing ? t('common.save') : t('common.add')}
+              {isSubmitting ? t('common.saving') : isEditing ? t('common.save') : t('common.add')}
             </Button>
           </DialogFooter>
         </form>
