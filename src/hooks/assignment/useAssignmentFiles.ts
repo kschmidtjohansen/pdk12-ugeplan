@@ -320,6 +320,7 @@ export const useAssignmentFiles = (
     toast.info('Forbereder download af alle filer...');
 
     try {
+      const JSZip = await loadJSZip();
       const zip = new JSZip();
       
       for (const file of files) {
