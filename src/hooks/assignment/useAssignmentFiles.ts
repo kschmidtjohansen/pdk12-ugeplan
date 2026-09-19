@@ -4,9 +4,9 @@ import { subscribeToTable } from '@/lib/realtimeChannels';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import JSZip from 'jszip';
-// Note: pdf-lib (~600 kB) is dynamically imported inside generatePdf()
-// to keep it out of the initial bundle.
+// Note: pdf-lib (~600 kB) and jszip (~100 kB) are dynamically imported where
+// they are used, to keep them out of the initial bundle.
+const loadJSZip = async () => (await import('jszip')).default;
 
 export interface AssignmentFile {
   id: string;
