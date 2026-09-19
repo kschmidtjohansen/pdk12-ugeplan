@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-19 — "Mine Statistikker" fjernet fra servicemedarbejder-forsiden
+
+- Statistikboksen "Mine Statistikker" ("I dag" / "Denne uge") er fjernet fra forsiden. Siden åbner nu direkte med "Min Dag", derefter vagtoversigt og "Mine Opgaver".
+- Oprydning: tælleberegninger, opdater-knap og ubrugte imports, der kun bruges af statistikken, er fjernet fra `ServicemedarbejderDashboard.tsx`.
+
+
 ## 2026-09-19 — Del 1: Roligere og venligere brugerflade
 
 - Dagssedlen (PDF) er fjernet helt igen: knappen er væk fra ugeplanens dagsoverskrift i både Standard og Kompakt, og koden er slettet.
