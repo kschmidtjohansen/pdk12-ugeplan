@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-19 — Fase 1: Kritiske performanceforbedringer
+
+- Ugeplanen hentede afdelingens komplette opgavehistorik en ekstra gang ved hver indlæsning (ca. 1.900 opgaver i afd. 12 plus tilknyttede hold og profiler). `PlannerContent` genbruger nu de opgaver, `PlannerPage` allerede har hentet, og henter kun medarbejdere og biler.
+- `unifiedDataService.fetchAssignments` understøtter nu et datovindue, der indgår i cache-nøglen, så fremtidige kald aldrig kan hente hele historikken utilsigtet.
+- `useUnifiedData` tager nu `{ includeAssignments, fromDate, toDate }`, så kaldere kan fravælge opgavehentningen.
+- Sideskift invaliderede fem datasæt ubetinget. Nu opdateres kun de datasæt, den nye rute faktisk viser, og kun de aktive forespørgsler (`refetchType: 'active'`).
+- Fjernet to ubeskyttede konsol-logninger i produktion (`optimizedAssignmentService`, `EmployeesPage`).
+
 ## 2026-09-18 — Nærhed finder adressen på dagens sidste opgave
 
 - To opgaver med samme sluttid kunne få adresseopslaget og afstandsberegningen til at pege på hver sin opgave, så medarbejderen endte nederst uden afstand (fx Mark Frisbæk på Æblevangen 126, 2765 Smørum).
