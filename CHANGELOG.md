@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-19 — Del 2: "Min Dag" og PDF-dagsseddel
+
+- Servicemedarbejdere mødes nu af "Min Dag" øverst på forsiden: dagens opgaver i kronologisk rækkefølge med tidsrum, adresse, kollegaer, ansvarlig, bil og lagerinfo.
+- Hvert dagskort har "Kør dertil" (åbner ruten i Google Maps) og "Ring" (direkte opkald til ansvarlig, skjules hvis der ikke er et telefonnummer).
+- Igangværende opgaver markeres med "I gang nu"; er der ingen opgaver i dag, vises førstkommende opgave i ugen.
+- Statistikkortene på servicemedarbejderforsiden bruger nu temaets farver i stedet for faste blå/grønne toner.
+- Ny knap "Dagsseddel" i ugeplanens dagsoverskrift (Standard og Kompakt) for skadeledere og administratorer: henter en A4-PDF med dagens opgaver grupperet pr. bil/hold ("Uden bil" til sidst), med sidehoved, sidefod, sidetal og tydelig kladde-markering. Filnavn: `dagsseddel-ÅÅÅÅ-MM-DD.pdf`.
+
+
+
 ## 2026-09-19 — Del 1: Visuel oprydning af ugeplanen
 
 - Opgavekortene er strammet op: titel/sagsnummer står øverst, adressen lige under, og ansvarlig vises som en diskret navnelinje uden ikonboble.
