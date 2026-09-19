@@ -53,11 +53,11 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-success-soft text-success-soft-foreground border-success/20';
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-destructive-soft text-destructive border-destructive/20';
       default:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-warning-soft text-warning-soft-foreground border-warning/20';
     }
   };
 
@@ -65,7 +65,7 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
   const isSameDay = vacation.start_date === vacation.end_date;
 
   return (
-    <Card className="w-full">
+    <Card className="w-full rounded-xl border-border/60 shadow-none">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
