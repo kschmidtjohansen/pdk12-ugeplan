@@ -105,8 +105,11 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   }, [weekDates]);
 
   // Determine current date to split past and current/future days
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
   // Split dates into past and current/future
   const { pastDates, currentAndFutureDates } = useMemo(() => {
