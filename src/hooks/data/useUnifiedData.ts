@@ -23,7 +23,18 @@ interface UseUnifiedDataResult {
   refetch: () => Promise<void>;
 }
 
-export const useUnifiedData = (): UseUnifiedDataResult => {
+export interface UseUnifiedDataOptions {
+  /** Skip the assignments query entirely when the caller already has them. */
+  includeAssignments?: boolean;
+  /** Inclusive date window (yyyy-MM-dd) for the assignments query. */
+  fromDate?: string;
+  toDate?: string;
+}
+
+export const useUnifiedData = (options?: UseUnifiedDataOptions): UseUnifiedDataResult => {
+  const includeAssignments = options?.includeAssignments !== false;
+  const fromDate = options?.fromDate;
+  const toDate = options?.toDate;
   const { isDemoMode } = useAuth();
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const [employees, setEmployees] = useState<Employee[]>([]);
