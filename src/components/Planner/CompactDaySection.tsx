@@ -75,17 +75,23 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
           }
         }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 min-w-0">
           {isExpanded ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
           ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
           )}
-          <h3 className="font-semibold text-sm">{formattedDate}</h3>
-          <Badge variant="secondary" className="text-xs">
+          <h3 className={`font-semibold text-sm truncate ${isWeekend ? 'text-muted-foreground' : ''}`}>{formattedDate}</h3>
+          {isToday && (
+            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+              {currentLanguage === 'da' ? 'I dag' : 'Today'}
+            </span>
+          )}
+          <Badge variant="secondary" className="text-xs tabular-nums shrink-0">
             {assignmentsCount} {currentLanguage === 'da' ? (assignmentsCount === 1 ? 'opgave' : 'opgaver') : (assignmentsCount === 1 ? 'task' : 'tasks')}
           </Badge>
         </div>
+
         
         {canPublishTasks && hasUnpublishedAssignments && (
           <Button
