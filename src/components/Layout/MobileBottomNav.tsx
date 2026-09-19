@@ -38,21 +38,27 @@ const MobileBottomNav: React.FC = () => {
       style={{ borderTopWidth: '0.5px' }}
       aria-label="Mobil navigation"
     >
-      <ul className="flex items-stretch justify-around h-[56px]">
+      <ul className="flex items-stretch justify-around min-h-[56px]">
         {TABS.map(({ to, label, icon: Icon }) => (
           <li key={to} className="flex-1">
             <NavLink
-              to={to!}
+              to={to}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center justify-center gap-0.5 h-full w-full text-[10px] font-medium',
+                  'relative flex flex-col items-center justify-center gap-0.5 h-full w-full min-h-[44px] text-[10px] font-medium',
                   'transition-colors active:opacity-80',
-                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  isActive
+                    ? 'text-primary after:absolute after:top-0 after:h-0.5 after:w-8 after:rounded-full after:bg-primary'
+                    : 'text-muted-foreground hover:text-foreground'
                 )
               }
             >
-              <Icon className="h-5 w-5" />
-              <span className="leading-none">{label}</span>
+              {({ isActive }) => (
+                <>
+                  <Icon className={cn('h-5 w-5', isActive && 'stroke-[2.25]')} />
+                  <span className="leading-none">{label}</span>
+                </>
+              )}
             </NavLink>
           </li>
         ))}
@@ -61,14 +67,16 @@ const MobileBottomNav: React.FC = () => {
             type="button"
             onClick={() => setOpenMobile(true)}
             className={cn(
-              'flex flex-col items-center justify-center gap-0.5 h-full w-full text-[10px] font-medium',
+              'relative flex flex-col items-center justify-center gap-0.5 h-full w-full min-h-[44px] text-[10px] font-medium',
               'transition-colors active:opacity-80',
-              moreActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              moreActive
+                ? 'text-primary after:absolute after:top-0 after:h-0.5 after:w-8 after:rounded-full after:bg-primary'
+                : 'text-muted-foreground hover:text-foreground'
             )}
-            aria-label="Mere"
+            aria-label={isDa ? 'Mere' : 'More'}
           >
             <MoreHorizontal className="h-5 w-5" />
-            <span className="leading-none">Mere</span>
+            <span className="leading-none">{isDa ? 'Mere' : 'More'}</span>
           </button>
         </li>
       </ul>
