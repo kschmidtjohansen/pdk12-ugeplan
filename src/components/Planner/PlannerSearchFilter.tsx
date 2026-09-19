@@ -34,7 +34,9 @@ const PlannerSearchFilter: React.FC<PlannerSearchFilterProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => onSearchChange('')}
-          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 touch-target"
+          title={t('common.clear')}
+          aria-label={t('common.clear')}
         >
           <X className="h-3.5 w-3.5" />
         </Button>

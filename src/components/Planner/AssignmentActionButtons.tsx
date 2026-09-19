@@ -96,6 +96,10 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
     onCopy(assignment);
   };
 
+  const editLabel = isUpdating ? t('planner.operations.updating') : t('planner.editAssignment');
+  const publishLabel = isPublishing ? t('planner.operations.publishing') : t('planner.publish');
+  const deleteLabel = isDeleting ? t('planner.operations.deleting') : t('planner.deleteAssignment');
+
   return (
     <div className="flex gap-1">
       <Button 
@@ -103,8 +107,9 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         size="sm" 
         onClick={handleEditClick}
         disabled={isLoading}
-        className="h-7 w-7 p-0" 
-        title={isUpdating ? t('planner.operations.updating') : t('planner.editAssignment')}
+        className="h-7 w-7 p-0 touch-target" 
+        title={editLabel}
+        aria-label={editLabel}
       >
         {isUpdating ? (
           <Loader2 className="h-3 w-3 animate-spin" />
@@ -118,8 +123,9 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         size="sm" 
         onClick={handleCopyClick}
         disabled={isLoading}
-        className="h-7 w-7 p-0" 
+        className="h-7 w-7 p-0 touch-target" 
         title={t('planner.copyAssignment')}
+        aria-label={t('planner.copyAssignment')}
       >
         <Copy className="h-3 w-3" />
       </Button>
@@ -130,8 +136,9 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
           size="sm" 
           onClick={handlePublishClick}
           disabled={isLoading}
-          className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 disabled:opacity-50" 
-          title={isPublishing ? t('planner.operations.publishing') : t('planner.publish')}
+          className="h-7 w-7 p-0 touch-target text-success hover:text-success hover:bg-success-soft disabled:opacity-50" 
+          title={publishLabel}
+          aria-label={publishLabel}
         >
           {isPublishing ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -147,8 +154,9 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
           size="sm" 
           onClick={handleShowOnScreen}
           disabled={isLoading}
-          className="h-7 w-7 p-0" 
+          className="h-7 w-7 p-0 touch-target" 
           title={t('common.showOnScreen')}
+          aria-label={t('common.showOnScreen')}
         >
           <Monitor className="h-3 w-3" />
         </Button>
@@ -159,8 +167,9 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         size="sm" 
         onClick={handleDeleteClick}
         disabled={isLoading}
-        className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50" 
-        title={isDeleting ? t('planner.operations.deleting') : t('planner.deleteAssignment')}
+        className="h-7 w-7 p-0 touch-target text-destructive hover:text-destructive hover:bg-destructive-soft disabled:opacity-50" 
+        title={deleteLabel}
+        aria-label={deleteLabel}
       >
         {isDeleting ? (
           <Loader2 className="h-3 w-3 animate-spin" />

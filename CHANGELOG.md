@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-19 — Fase 2: Hurtige gevinster
+
+- Handlingsknapperne i ugeplanen (rediger, kopiér, udgiv, vis på skærm, slet, dagsnavigation og ryd-søgning) har nu en trykflade på 44 × 44 px på berøringsskærme. Udseendet er uændret — også på desktop, hvor den kompakte størrelse bevares.
+- Alle ikon-kun-knapper i ugeplanen har fået en oplæselig beskrivelse (`aria-label`) på både dansk og engelsk.
+- Udgiv-, slet- og kopiér-knapperne bruger nu designsystemets farver (`success`, `destructive`, `primary`) i stedet for faste farveklasser, så de følger temaet.
+- ZIP-værktøjet hentes først, når man downloader en mappe eller alle filer på en opgave — det lå tidligere i den indledende indlæsning.
+- Testværktøjer (vitest, jsdom, testing-library, jest-typer, bundle-visualizer) flyttet fra drifts- til udviklingsafhængigheder.
+
 ## 2026-09-19 — Fase 1: Kritiske performanceforbedringer
 
 - Ugeplanen hentede afdelingens komplette opgavehistorik en ekstra gang ved hver indlæsning (ca. 1.900 opgaver i afd. 12 plus tilknyttede hold og profiler). `PlannerContent` genbruger nu de opgaver, `PlannerPage` allerede har hentet, og henter kun medarbejdere og biler.
