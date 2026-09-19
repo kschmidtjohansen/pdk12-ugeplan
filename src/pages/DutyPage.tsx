@@ -161,11 +161,7 @@ export default function DutyPage() {
         </div>
 
       {error && (
-        <Card className="border border-destructive/30 bg-destructive/5">
-          <CardContent className="py-3 text-sm text-destructive">
-            {t('common.errorLoadingData') ?? 'Der opstod en fejl ved indlæsning af vagter.'}
-          </CardContent>
-        </Card>
+        <ErrorState onRetry={refetch} />
       )}
 
       <PendingSwapOffers

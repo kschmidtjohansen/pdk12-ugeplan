@@ -83,13 +83,17 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {/* LEFT — main work surface (2/3) */}
       <div className="lg:col-span-2 space-y-4 min-w-0">
         <QuickAccessGrid userRole={userRole} />
-        <WeeklyAssignments
-          assignments={personalWeekAssignments}
-          selectedWeek={selectedWeek}
-          selectedYear={selectedYear}
-          onPreviousWeek={onPreviousWeek}
-          onNextWeek={onNextWeek}
-        />
+        {assignmentsLoading && personalWeekAssignments.length === 0 ? (
+          <ListSkeleton variant="card" rowCount={3} />
+        ) : (
+          <WeeklyAssignments
+            assignments={personalWeekAssignments}
+            selectedWeek={selectedWeek}
+            selectedYear={selectedYear}
+            onPreviousWeek={onPreviousWeek}
+            onNextWeek={onNextWeek}
+          />
+        )}
       </div>
 
       {/* RIGHT — sticky cockpit panel (1/3) */}

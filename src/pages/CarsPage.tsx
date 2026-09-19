@@ -119,10 +119,8 @@ const CarsPage: React.FC = () => {
             {loading ? (
               <ListSkeleton />
             ) : error ? (
-              <div className="p-6">
-                <div className="bg-destructive/10 border border-destructive/30 text-destructive p-4 rounded-lg text-sm">
-                  {error}
-                </div>
+              <div className="p-3 sm:p-6">
+                <ErrorState description={error} onRetry={refetch} />
               </div>
             ) : (
               <div className="p-3 sm:p-6">
