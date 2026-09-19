@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-19 — Del 1: Roligere og venligere brugerflade
+
+- Dagssedlen (PDF) er fjernet helt igen: knappen er væk fra ugeplanens dagsoverskrift i både Standard og Kompakt, og koden er slettet.
+- Vagtlisten har fået roligere, afrundede kort og en tydelig dækningsindikator: grøn "Dækket" eller gul "Mangler vagt".
+- Ferieoverblikket bruger nu de samme bløde farver og afrundinger som resten af systemet.
+- Biloversigten viser på hver bil, hvem der kører den i dag ("I dag: …") eller "Ikke booket i dag".
+- Faste farver på bil-, vagt- og feriesiderne er erstattet af temaets farver, så farve kun bruges til reelle advarsler.
+- Mobilmenuen i bunden er tilpasset hverdagen: Min Dag, Ugeplan, Vagter og Mere, med tydeligere markering af den aktive fane og større trykflader.
+
+
 ## 2026-09-19 — Del 2: "Min Dag" og PDF-dagsseddel
 
 - Servicemedarbejdere mødes nu af "Min Dag" øverst på forsiden: dagens opgaver i kronologisk rækkefølge med tidsrum, adresse, kollegaer, ansvarlig, bil og lagerinfo.
