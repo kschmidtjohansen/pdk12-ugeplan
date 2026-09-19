@@ -530,3 +530,15 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] DEV-konsollogning fjernet i `AssignmentCard` og `DaySection`
 - [x] Typetjek og kodetjek kørt uden nye fejl
 
+## Del 2: "Min Dag" og PDF-dagsseddel (2026-09-19)
+
+- [x] `MinDag.tsx` oprettet: dagens opgaver kronologisk med tidsrum, adresse, kollegaer, ansvarlig, bil og lagerinfo
+- [x] "Kør dertil" (Google Maps) og "Ring" (tel-link, skjules uden telefonnummer) på hvert kort
+- [x] "I gang nu"-markering samt tom-tilstand med førstkommende opgave i ugen
+- [x] `MinDag` integreret øverst i `ServicemedarbejderDashboard.tsx`
+- [x] Statistikkortene bruger semantiske tokens i stedet for faste blå/grønne farver
+- [x] `src/utils/dayReportPdf.ts` med dynamisk `import('pdf-lib')`: A4, gruppering pr. bil/hold + "Uden bil", sidehoved/-fod, sidetal, kladde-markering, `dagsseddel-YYYY-MM-DD.pdf`
+- [x] `PrintDayReportButton` tilføjet i dagsoverskriften i Standard og Kompakt (kun skadeleder/admin)
+- [x] Typetjek kørt uden fejl
+
+
