@@ -53,13 +53,18 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
     }
   };
 
+  const dayOfWeek = new Date(`${dateKey}T00:00:00`).getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  const isToday = new Date(`${dateKey}T00:00:00`).toDateString() === new Date().toDateString();
+
   return (
-    <div className={`bg-card rounded-xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden ${
-      new Date(dateKey).toDateString() === new Date().toDateString() ? 'border-t-2 border-t-primary' : ''
-    }`}>
+    <div className={`bg-card rounded-xl border border-border/60 overflow-hidden ${
+      isToday ? 'border-primary/40 ring-1 ring-primary/20' : ''
+    } ${isWeekend ? 'bg-muted/40' : ''}`}>
       {/* Day Header - Compact */}
       <div 
-        className="flex items-center justify-between px-4 py-2.5 bg-primary/5 border-b cursor-pointer hover:bg-primary/10 transition-colors"
+        className={`flex items-center justify-between gap-2 px-4 py-2.5 border-b border-border/60 cursor-pointer transition-colors ${isWeekend ? 'bg-muted/60 hover:bg-muted' : 'bg-muted/40 hover:bg-muted/70'}`}
+
         onClick={() => onToggleExpansion(dateKey)}
         role="button"
         tabIndex={0}
