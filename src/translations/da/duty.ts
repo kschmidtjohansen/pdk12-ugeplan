@@ -87,6 +87,8 @@ export const duty = {
   confirmReassignment: "Bekræft tildeling",
   noEligibleEmployees: "Der er ingen andre medarbejdere med den rette rolle til denne vagt",
   unassignedSlot: "Ledig vagt",
+  covered: "Dækket",
+  notCovered: "Mangler vagt",
   sendSwapOffer: "Send byttetilbud",
   swapRequestSent: "Byttetilbud sendt",
   swapRequestFailed: "Kunne ikke sende byttetilbud",

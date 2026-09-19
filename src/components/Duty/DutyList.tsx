@@ -124,6 +124,21 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
                       }
                     </span>
                   </Badge>
+                  {(() => {
+                    const covered = !!duty.employee_id || !!duty.notes?.startsWith('EKSTERN:');
+                    return (
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                          covered
+                            ? 'bg-success-soft text-success-soft-foreground'
+                            : 'bg-warning-soft text-warning-soft-foreground'
+                        }`}
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${covered ? 'bg-success' : 'bg-warning'}`} />
+                        {covered ? t('duty.covered') : t('duty.notCovered')}
+                      </span>
+                    );
+                  })()}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {format(new Date(duty.duty_date), 'EEEE, dd MMMM yyyy', { locale })}
