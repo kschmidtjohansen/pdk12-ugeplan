@@ -13,6 +13,7 @@ import {
 
 interface MobileCarCardProps {
   car: CarData;
+  todayDrivers?: string[];
   canViewFuelCardCode: boolean;
   isAdmin: boolean;
   onEdit: (car: CarData) => void;
@@ -24,6 +25,7 @@ interface MobileCarCardProps {
 
 const MobileCarCard: React.FC<MobileCarCardProps> = ({
   car,
+  todayDrivers,
   canViewFuelCardCode,
   isAdmin,
   onEdit,

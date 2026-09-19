@@ -20,6 +20,7 @@ import {
 
 interface CarsTableProps {
   cars: CarData[];
+  todayDrivers?: Map<string, string[]>;
   canViewFuelCardCode: boolean;
   isAdmin: boolean;
   onEdit: (car: CarData) => void;
@@ -32,6 +33,7 @@ interface CarsTableProps {
 
 const CarsTable: React.FC<CarsTableProps> = ({
   cars,
+  todayDrivers,
   canViewFuelCardCode,
   isAdmin,
   onEdit,
