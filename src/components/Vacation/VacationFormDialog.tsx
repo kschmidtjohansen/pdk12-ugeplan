@@ -128,7 +128,12 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
       endTime
     });
     
-    onSubmit(e);
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSubmit(e));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

@@ -116,7 +116,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
     }
   }, [employees, user?.id, selectedSubDepartmentId, selectedDepartmentId, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate partial day times
@@ -128,7 +128,12 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
       return;
     }
     
-    onSubmit(e);
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSubmit(e));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
