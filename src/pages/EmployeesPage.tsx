@@ -154,7 +154,7 @@ const EmployeesPage: React.FC = () => {
             },
           });
         } catch (cleanupError: any) {
-          console.warn('Sygemelding: oprydning af opgaver fejlede', cleanupError?.message);
+          if (import.meta.env.DEV) console.warn('Sygemelding: oprydning af opgaver fejlede', cleanupError?.message);
         }
       }
       refreshSick();

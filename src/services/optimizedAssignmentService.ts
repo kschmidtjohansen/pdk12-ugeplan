@@ -152,7 +152,7 @@ export class OptimizedAssignmentService {
           .in('assignment_id', chunk);
 
         if (employeeError) {
-          console.warn('[OptimizedAssignmentService] Assignment employees fetch error (chunk):', employeeError);
+          if (import.meta.env.DEV) console.warn('[OptimizedAssignmentService] Assignment employees fetch error (chunk):', employeeError);
           continue;
         }
 

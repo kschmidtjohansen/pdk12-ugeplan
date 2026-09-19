@@ -27,16 +27,30 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }, []);
 
   // Auto-refresh data on route changes so users always see fresh data without
-  // needing to dismiss the realtime "Opdater"-banner. We also dispatch an own-
-  // action event so the banner stays hidden during the silent refresh.
+  // needing to dismiss the realtime "Opdater"-banner. Only the datasets the new
+  // route actually renders are refreshed, and only the queries currently mounted
+  // (refetchType: 'active') — refetching everything on every navigation made
+  // switching between dashboard and planner unnecessarily slow.
   useEffect(() => {
     if (!isAuthenticated) return;
+
+    const path = location.pathname;
+    const keysByRoute: { match: (p: string) => boolean; keys: string[] }[] = [
+      { match: (p) => p.startsWith('/dashboard'), keys: ['assignments', 'employees', 'cars', 'vacations', 'duties'] },
+      { match: (p) => p.startsWith('/planner'), keys: ['assignments', 'employees', 'cars', 'vacations'] },
+      { match: (p) => p.startsWith('/employees'), keys: ['employees', 'vacations'] },
+      { match: (p) => p.startsWith('/cars'), keys: ['cars'] },
+      { match: (p) => p.startsWith('/vacation'), keys: ['vacations', 'employees'] },
+      { match: (p) => p.startsWith('/duty'), keys: ['duties', 'employees'] },
+    ];
+
+    const keys = keysByRoute.find((entry) => entry.match(path))?.keys;
+    if (!keys?.length) return;
+
     notifyOwnAction();
-    queryClient.invalidateQueries({ queryKey: ['assignments'] });
-    queryClient.invalidateQueries({ queryKey: ['employees'] });
-    queryClient.invalidateQueries({ queryKey: ['cars'] });
-    queryClient.invalidateQueries({ queryKey: ['vacations'] });
-    queryClient.invalidateQueries({ queryKey: ['duties'] });
+    keys.forEach((key) => {
+      queryClient.invalidateQueries({ queryKey: [key], refetchType: 'active' });
+    });
   }, [location.pathname, isAuthenticated, queryClient]);
 
   if (import.meta.env.DEV) console.log('[MainLayout] SESSION EXPIRATION FIX - Render state:', {

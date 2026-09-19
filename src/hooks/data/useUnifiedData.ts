@@ -4,7 +4,6 @@ import { unifiedDataService } from '@/services/data/unifiedDataService';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
-import { supabase } from '@/integrations/supabase/client';
 import { subscribeToTables } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -23,7 +22,18 @@ interface UseUnifiedDataResult {
   refetch: () => Promise<void>;
 }
 
-export const useUnifiedData = (): UseUnifiedDataResult => {
+export interface UseUnifiedDataOptions {
+  /** Skip the assignments query entirely when the caller already has them. */
+  includeAssignments?: boolean;
+  /** Inclusive date window (yyyy-MM-dd) for the assignments query. */
+  fromDate?: string;
+  toDate?: string;
+}
+
+export const useUnifiedData = (options?: UseUnifiedDataOptions): UseUnifiedDataResult => {
+  const includeAssignments = options?.includeAssignments !== false;
+  const fromDate = options?.fromDate;
+  const toDate = options?.toDate;
   const { isDemoMode } = useAuth();
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -53,9 +63,12 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
         return;
       }
 
+      const emptyAssignments = { data: [] as Assignment[], error: null as string | null, fromCache: false };
       const [employeesResult, assignmentsResult, carsResult] = await Promise.all([
         unifiedDataService.fetchEmployees(deptId, subDepartmentId),
-        unifiedDataService.fetchAssignments(deptId, subDepartmentId),
+        includeAssignments
+          ? unifiedDataService.fetchAssignments(deptId, subDepartmentId, { fromDate, toDate })
+          : Promise.resolve(emptyAssignments),
         unifiedDataService.fetchCars(deptId, subDepartmentId)
       ]);
 
@@ -135,7 +148,7 @@ export const useUnifiedData = (): UseUnifiedDataResult => {
       if (debounceTimer) clearTimeout(debounceTimer);
       unsubscribe();
     };
-  }, [isDemoMode, selectedDepartmentId, selectedSubDepartmentId]);
+  }, [isDemoMode, selectedDepartmentId, selectedSubDepartmentId, includeAssignments, fromDate, toDate]);
 
 
   return {

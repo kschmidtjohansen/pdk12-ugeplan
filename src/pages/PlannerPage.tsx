@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import PlannerContent from '../components/Planner/PlannerContent';
 const PlannerDialogContainer = lazy(() => import('../components/Planner/PlannerDialogContainer'));
 const SeriesActionDialog = lazy(() => import('../components/Planner/SeriesActionDialog'));
-import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, ChevronsUpDown } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import ListSkeleton from '@/components/shared/ListSkeleton';
@@ -773,6 +773,7 @@ const PlannerPage: React.FC = () => {
         ) : (
           <PlannerContent 
             weekAssignments={sortedWeekAssignments} 
+            allAssignments={assignments}
             operationStates={convertedOperationStates}
             expandedDays={expandedDays}
             onToggleExpansion={handleToggleExpansion}

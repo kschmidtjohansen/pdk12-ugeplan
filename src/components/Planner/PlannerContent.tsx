@@ -21,6 +21,8 @@ import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
+  /** All assignments already loaded by PlannerPage — used for case series lookups. */
+  allAssignments?: Assignment[];
   operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
@@ -44,6 +46,7 @@ interface PlannerContentProps {
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
+  allAssignments = [],
   operationStates = {},
   expandedDays,
   onToggleExpansion,
@@ -67,7 +70,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const { t, currentLanguage } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   
-  const { employees, cars, assignments: allAssignments } = useUnifiedData();
+  // Assignments come from PlannerPage — fetching them again here would pull the
+  // department's full history on every page load.
+  const { employees, cars } = useUnifiedData({ includeAssignments: false });
   const { vacations } = useVacations();
   const { crossBusyByDate } = useCrossSubDeptBusy({ weekDates });
   
@@ -100,8 +105,11 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   }, [weekDates]);
 
   // Determine current date to split past and current/future days
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
   // Split dates into past and current/future
   const { pastDates, currentAndFutureDates } = useMemo(() => {

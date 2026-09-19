@@ -486,3 +486,11 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Sikkerhedsnet: manglende profilnavne hentes samlet i `fetchAssignmentsForQuery`
 - [x] DEV-diagnostik for hentevej, antal opgaver med hold og manglende navne
 - [x] Typetjek kørt rent; afdelingsisolationen uændret
+
+## Fase 1: Kritiske forbedringer (2026-09-19)
+
+- [x] Fjernet dobbelt opgavehentning i ugeplanen; `PlannerContent` modtager opgaver som prop
+- [x] Datovindue og cache-nøgle for `unifiedDataService.fetchAssignments`
+- [x] Rute-baseret cache-invalidering i `MainLayout` med `refetchType: 'active'`
+- [x] Ubeskyttet produktionslogning fjernet
+- [x] Typetjek kørt rent
