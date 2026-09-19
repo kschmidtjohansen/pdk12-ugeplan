@@ -72,6 +72,7 @@ const CarsList: React.FC<CarsListProps> = ({
             <MobileCarCard 
               key={car.id}
               car={car}
+              todayDrivers={todayDrivers.get(car.id)}
               canViewFuelCardCode={canViewFuelCardCode}
               isAdmin={isAdmin}
               onEdit={onEdit}
@@ -88,6 +89,7 @@ const CarsList: React.FC<CarsListProps> = ({
         <div className="hidden md:block">
           <CarsTable
             cars={pagedCars}
+            todayDrivers={todayDrivers}
             canViewFuelCardCode={canViewFuelCardCode}
             isAdmin={isAdmin}
             onEdit={onEdit}
