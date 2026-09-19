@@ -328,7 +328,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   size="sm" 
                   onClick={handleNextDate} 
                   disabled={availableDates.indexOf(selectedDate) === availableDates.length - 1}
-                  className="h-7 w-7 p-0"
+                  className="h-7 w-7 p-0 touch-target"
+                  title={t('common.next')}
+                  aria-label={t('common.next')}
                 >
                   <ChevronRight className="h-3 w-3" />
                 </Button>
