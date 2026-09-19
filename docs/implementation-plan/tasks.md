@@ -551,3 +551,10 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Typetjek og kodetjek kørt
 
 
+
+## "Mine Statistikker" fjernet fra servicemedarbejder-forsiden (2026-09-19)
+
+- [x] Statistik-kortet ("I dag" / "Denne uge") fjernet fra `ServicemedarbejderDashboard.tsx`
+- [x] Ubrugt kode fjernet: tælle-beregninger, `LastRefreshIndicator`/opdater-knap og tilhørende imports
+- [x] Forsiden starter nu med "Min Dag", derefter vagtoversigt og "Mine Opgaver"
+- [x] Typetjek og kodetjek kørt uden fejl
