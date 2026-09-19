@@ -8,7 +8,7 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
 import { useTranslation } from '@/context/TranslationContext';
-import { UserCheck, Package, Pencil, Copy, Trash2, Send } from 'lucide-react';
+import { Package, Pencil, Copy, Trash2, Send } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -145,7 +145,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       <ContextMenuTrigger asChild>
         <Card
           className={cn(
-            'group relative w-full p-3 brand-card-hover bg-card border-border/60 shadow-xs',
+            'group relative flex h-full w-full flex-col p-3 brand-card-hover bg-card border-border/60 shadow-xs',
+            hasConflict && 'border-destructive/40',
+
             isLoading && 'opacity-75',
             (onViewDetails || selectionActive) && 'cursor-pointer',
             selected && 'ring-2 ring-primary'
