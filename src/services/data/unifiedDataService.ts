@@ -134,8 +134,15 @@ class UnifiedDataService {
     }
   }
 
-  async fetchAssignments(departmentId?: string, subDepartmentId?: string | null): Promise<DataFetchResult<Assignment>> {
-    const cacheKey = this.getCacheKey('assignments', departmentId, subDepartmentId);
+  async fetchAssignments(
+    departmentId?: string,
+    subDepartmentId?: string | null,
+    dateRange?: { fromDate?: string; toDate?: string }
+  ): Promise<DataFetchResult<Assignment>> {
+    const rangeKey = dateRange?.fromDate || dateRange?.toDate
+      ? `range_${dateRange?.fromDate ?? 'any'}_${dateRange?.toDate ?? 'any'}`
+      : undefined;
+    const cacheKey = this.getCacheKey('assignments', departmentId, subDepartmentId, rangeKey);
     
     const cachedData = this.getFromCache<Assignment>(cacheKey);
     if (cachedData) {
@@ -159,6 +166,16 @@ class UnifiedDataService {
 
       if (subDepartmentId) {
         query = query.eq('sub_department_id', subDepartmentId);
+      }
+
+      // Date window keeps the payload small — without it we would load the
+      // department's entire assignment history on every page load.
+      if (dateRange?.fromDate) {
+        query = query.gte('assignment_date', dateRange.fromDate);
+      }
+
+      if (dateRange?.toDate) {
+        query = query.lte('assignment_date', dateRange.toDate);
       }
 
       const { data: assignmentsData, error: assignmentsError } = await query;
