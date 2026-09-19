@@ -773,6 +773,7 @@ const PlannerPage: React.FC = () => {
         ) : (
           <PlannerContent 
             weekAssignments={sortedWeekAssignments} 
+            allAssignments={assignments}
             operationStates={convertedOperationStates}
             expandedDays={expandedDays}
             onToggleExpansion={handleToggleExpansion}

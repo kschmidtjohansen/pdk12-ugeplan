@@ -46,6 +46,7 @@ interface PlannerContentProps {
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
+  allAssignments = [],
   operationStates = {},
   expandedDays,
   onToggleExpansion,
@@ -69,7 +70,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const { t, currentLanguage } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   
-  const { employees, cars, assignments: allAssignments } = useUnifiedData();
+  // Assignments come from PlannerPage — fetching them again here would pull the
+  // department's full history on every page load.
+  const { employees, cars } = useUnifiedData({ includeAssignments: false });
   const { vacations } = useVacations();
   const { crossBusyByDate } = useCrossSubDeptBusy({ weekDates });
   
