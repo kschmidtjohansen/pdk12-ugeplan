@@ -128,7 +128,7 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
 
         {/* Status-specific information */}
         {vacation.status === 'approved' && isPartialDay && vacation.start_time && vacation.end_time && (
-          <div className="p-2 bg-green-50 rounded-md text-sm text-green-800">
+          <div className="p-2 bg-success-soft rounded-md text-sm text-success-soft-foreground">
             {t('vacation.availableHours', { 
               startTime: formatTime(vacation.start_time), 
               endTime: formatTime(vacation.end_time) 
@@ -144,7 +144,7 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
                 {onApprove && (
                   <button
                     onClick={() => onApprove(vacation)}
-                    className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                    className="px-3 py-1 text-xs bg-success text-success-foreground rounded hover:bg-success/90"
                   >
                     {t('vacation.approve')}
                   </button>
@@ -152,7 +152,7 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
                 {onReject && (
                   <button
                     onClick={() => onReject(vacation)}
-                    className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                    className="px-3 py-1 text-xs bg-destructive text-destructive-foreground rounded hover:bg-destructive/90"
                   >
                     {t('vacation.reject')}
                   </button>
@@ -163,7 +163,7 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
             {onEdit && vacation.status === 'pending' && (
               <button
                 onClick={() => onEdit(vacation)}
-                className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90"
               >
                 {t('common.edit')}
               </button>
