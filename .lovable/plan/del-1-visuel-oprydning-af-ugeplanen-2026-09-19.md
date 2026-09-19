@@ -6,7 +6,6 @@ Målet er en roligere og mere læsbar ugeplan: tydeligere hierarki på opgavekor
 
 - Klarere hierarki: sagsnummer/titel som primær linje, adresse som sekundær, tid og team som en samlet bundlinje. I dag konkurrerer titel, ansvarlig, tid, team og biler om opmærksomheden.
 - Ansvarlig vises som lille navnelinje uden ikonboble, så kortet får færre farvede elementer.
-- Teamet vises med kortere navnechips i én linje; resten foldes til "+N" med navne ved hover.
 - Lagerbadge flyttes fra svævende hjørne til bundlinjen sammen med bil og tid, så kortet ikke får indhold liggende oven på tekst.
 - Ensartet kanthøjde og afstand: samme indre afstand og samme mindstehøjde på alle kort, så rækkerne flugter.
 - Kladde/publiceret markeres med én markør (statusprik + tekstbadge slås sammen til ét diskret badge).
