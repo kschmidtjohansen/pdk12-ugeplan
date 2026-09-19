@@ -85,6 +85,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
   const { user, isDemoMode } = useAuth();
   const { selectedSubDepartmentId, selectedDepartmentId } = useDepartment();
   const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Filter employees by sub-department when applicable
   useEffect(() => {

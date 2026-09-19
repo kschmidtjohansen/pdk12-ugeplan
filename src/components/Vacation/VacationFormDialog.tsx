@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Dialog,
   DialogContent,
@@ -87,7 +87,9 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
     }
   }, [open, isEditing, date, startDate, endDate, reason, requestType, startTime, endTime]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate partial day times
