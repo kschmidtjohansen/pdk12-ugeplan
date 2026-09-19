@@ -69,17 +69,17 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
               </p>
               <div className="flex flex-wrap gap-1 mt-1">
                 {(car as any).is_auxiliary && (
-                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-warning-soft text-warning-soft-foreground">
                     {t('cars.auxiliaryBadge')}
                   </span>
                 )}
                 {scheduledActive && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-warning-soft text-warning-soft-foreground">
                     <Wrench className="h-3 w-3" />Værksted til {scheduledActive.end_date}
                   </span>
                 )}
                 {!scheduledActive && scheduledUpcoming && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground">
                     <CalendarClock className="h-3 w-3" />Planlagt {scheduledUpcoming.start_date}
                   </span>
                 )}
@@ -95,7 +95,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 className="h-8 w-8 p-0"
               >
                 <span className="sr-only">Note</span>
-                <StickyNote className="h-4 w-4 text-blue-500" />
+                <StickyNote className="h-4 w-4 text-primary" />
               </Button>
             )}
             {isAdmin && (
@@ -113,7 +113,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                       {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
                     </span>
                     {car.is_available ? (
-                      <ToggleRight className="h-4 w-4 text-green-500" />
+                      <ToggleRight className="h-4 w-4 text-success" />
                     ) : (
                       <ToggleLeft className="h-4 w-4 text-muted-foreground" />
                     )}
@@ -131,7 +131,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="sm" onClick={() => onSchedule(car)} className="h-8 w-8 p-0">
                       <span className="sr-only">Planlæg værkstedsbesøg</span>
-                      <Wrench className="h-4 w-4 text-amber-600" />
+                      <Wrench className="h-4 w-4 text-warning" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent><p>Planlæg værkstedsbesøg</p></TooltipContent>
@@ -162,7 +162,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(car)}
-                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive-soft"
                   >
                     <span className="sr-only">{t('common.delete')}</span>
                     <Trash2 className="h-4 w-4" />
@@ -185,10 +185,10 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
               <div className="flex items-center gap-2">
                 <p className="text-foreground font-medium">{car.number_plate}</p>
                 {car.number_plate.toLowerCase().includes('trailer') && (
-                  <Truck className="h-4 w-4 text-orange-500" />
+                  <Truck className="h-4 w-4 text-warning" />
                 )}
                 {car.number_plate.toLowerCase().includes('miljø') && (
-                  <Recycle className="h-4 w-4 text-green-600" />
+                  <Recycle className="h-4 w-4 text-success" />
                 )}
               </div>
             </div>
@@ -197,7 +197,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
               <div className="flex items-center gap-2">
                 {car.has_trailer_hitch ? (
                   <>
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-success" />
                     <span className="text-foreground">{t('common.yes')}</span>
                   </>
                 ) : (
@@ -221,16 +221,16 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
           {expanded && hasDetails && (
             <div className="border-t border-border pt-3 space-y-2 animate-fade-in">
               {car.has_trailer_hitch && (car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) && (
-                <div className="bg-blue-50 rounded-lg p-3 space-y-1 text-sm">
-                  <p className="font-medium text-blue-900">{t('cars.hasTrailerHitch')}</p>
+                <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                  <p className="font-medium text-foreground">{t('cars.hasTrailerHitch')}</p>
                   {car.towing_capacity_with_brakes && (
-                    <p className="text-blue-800">{t('cars.towingCapacityWithBrakes')}: {car.towing_capacity_with_brakes} kg</p>
+                    <p className="text-muted-foreground">{t('cars.towingCapacityWithBrakes')}: {car.towing_capacity_with_brakes} kg</p>
                   )}
                   {car.towing_capacity_without_brakes && (
-                    <p className="text-blue-800">{t('cars.towingCapacityWithoutBrakes')}: {car.towing_capacity_without_brakes} kg</p>
+                    <p className="text-muted-foreground">{t('cars.towingCapacityWithoutBrakes')}: {car.towing_capacity_without_brakes} kg</p>
                   )}
                   {car.total_weight && (
-                    <p className="text-blue-800">{t('cars.totalWeight')}: {car.total_weight} kg</p>
+                    <p className="text-muted-foreground">{t('cars.totalWeight')}: {car.total_weight} kg</p>
                   )}
                 </div>
               )}
@@ -247,12 +247,12 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
             <div className="flex items-center gap-2">
               {car.is_available ? (
                 <>
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-success rounded-full"></div>
                   <span className="text-sm text-foreground">{t('common.available')}</span>
                 </>
               ) : (
                 <>
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
                   <span className="text-sm text-foreground">{t('common.unavailable')}</span>
                 </>
               )}
@@ -260,7 +260,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
             {hasDetails && !expanded && (
               <button 
                 onClick={() => setExpanded(true)}
-                className="text-xs text-blue-600 hover:text-blue-800"
+                className="text-xs text-primary hover:text-primary/80"
               >
                 {t('common.showMore') || 'Vis detaljer'}
               </button>
