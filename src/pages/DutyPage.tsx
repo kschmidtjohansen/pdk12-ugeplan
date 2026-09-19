@@ -21,6 +21,7 @@ import { Plus, RefreshCw, Shield } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import type { Duty } from '@/types/duty';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import ErrorState from '@/components/shared/ErrorState';
 
 export default function DutyPage() {
   const { t } = useTranslation();

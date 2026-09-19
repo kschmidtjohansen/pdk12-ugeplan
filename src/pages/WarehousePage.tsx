@@ -14,6 +14,7 @@ import WarehouseDeleteDialog from '@/components/Warehouse/WarehouseDeleteDialog'
 
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
+import ErrorState from '@/components/shared/ErrorState';
 import ListPageShell from '@/components/shared/ListPageShell';
 import SegmentedFilterBar from '@/components/shared/SegmentedFilterBar';
 
