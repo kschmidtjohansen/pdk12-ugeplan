@@ -7,6 +7,7 @@ import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 
 
 import WeeklyAssignments from './WeeklyAssignments';
+import ListSkeleton from '@/components/shared/ListSkeleton';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
 import { useVacations } from '@/hooks/useVacations';
@@ -34,7 +35,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   const { isDutyEnabled } = useDepartment();
   const { isEffectiveAdmin, user } = useAuth();
   const { vacations } = useVacations();
-  const { assignments } = useAssignments();
+  const { assignments, loading: assignmentsLoading } = useAssignments();
 
   // Filter assignments for the selected ISO week
   const weekAssignments = useMemo(() => {
