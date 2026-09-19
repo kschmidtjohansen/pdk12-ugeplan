@@ -27,6 +27,8 @@ export const duty = {
   reassignFailed: "Failed to assign duty",
   assignFailedGeneric: "Failed to assign duty",
   removeSuccess: "Duty removed",
+  removeFailed: "Could not remove duty",
+  removeMultipleFailed: "Could not remove duties",
   updateSuccess: "Duty updated",
   updateFailed: "Failed to update duty",
   notes: "Notes",
