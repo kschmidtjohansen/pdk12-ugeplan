@@ -1,28 +1,30 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, Car, Users, MoreHorizontal } from 'lucide-react';
+import { Home, CalendarDays, Phone, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface TabItem {
-  to?: string;
+  to: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const TABS: TabItem[] = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/planner', label: 'Planner', icon: CalendarDays },
-  { to: '/cars', label: 'Biler', icon: Car },
-  { to: '/employees', label: 'Medarbejdere', icon: Users },
-];
-
 const MobileBottomNav: React.FC = () => {
   const { setOpenMobile } = useSidebar();
   const location = useLocation();
+  const { currentLanguage } = useTranslation();
+  const isDa = currentLanguage === 'da';
+
+  const TABS: TabItem[] = [
+    { to: '/dashboard', label: isDa ? 'Min Dag' : 'My Day', icon: Home },
+    { to: '/planner', label: isDa ? 'Ugeplan' : 'Planner', icon: CalendarDays },
+    { to: '/duty', label: isDa ? 'Vagter' : 'Duties', icon: Phone },
+  ];
 
   // Routes that "Mere" surfaces in the drawer
-  const moreRoutes = ['/warehouse', '/duty', '/vacation', '/admin'];
+  const moreRoutes = ['/warehouse', '/cars', '/employees', '/vacation', '/admin'];
   const moreActive = moreRoutes.some((r) => location.pathname.startsWith(r));
 
   return (
