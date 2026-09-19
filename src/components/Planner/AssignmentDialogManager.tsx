@@ -101,7 +101,7 @@ const AssignmentDialogManager: React.FC<AssignmentDialogManagerProps> = ({
   return (
     <>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-sm:left-0 max-sm:top-auto max-sm:bottom-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:max-w-full max-sm:rounded-t-2xl">
           {isEditing ? (
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="mb-4">
