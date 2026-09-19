@@ -42,6 +42,16 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const { userSubDepartments } = useDepartment();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSubmit(e));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
