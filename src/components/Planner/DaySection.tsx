@@ -76,9 +76,10 @@ const DaySection: React.FC<DaySectionProps> = ({
   
   const formattedDate = formatDateWithCapital(dateKey, currentLanguage);
   
-  if (import.meta.env.DEV) {
-    console.log(`Formatted date for ${dateKey}: ${formattedDate} (${currentLanguage})`);
-  }
+  const dayOfWeek = new Date(`${dateKey}T00:00:00`).getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  const isToday = getDateStatus(dateKey) === 'today';
+
   
   const draftAssignments = Array.isArray(dayAssignments) ? dayAssignments.filter(a => !a.published) : [];
   const hasUnpublishedAssignments = draftAssignments.length > 0;
@@ -106,12 +107,13 @@ const DaySection: React.FC<DaySectionProps> = ({
 
   return (
     <div className={cn(
-      "w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-700/60 p-4 space-y-3",
-      getDateStatus(dateKey) === 'today' && 'border-t-2 border-t-primary'
+      "w-full bg-card rounded-xl border border-border/60 p-4 space-y-3",
+      isWeekend && "bg-muted/40",
+      isToday && "border-primary/40 ring-1 ring-primary/20"
     )}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div 
-          className="flex items-center cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors duration-200" 
+          className="flex items-center min-w-0 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors duration-200" 
           onClick={() => onToggleExpansion(dateKey)}
           role="button"
           tabIndex={0}
@@ -125,18 +127,27 @@ const DaySection: React.FC<DaySectionProps> = ({
           aria-label={`${isExpanded ? 'Collapse' : 'Expand'} assignments for ${formattedDate}`}
         >
           {isExpanded ? (
-            <ChevronDown className="h-5 w-5 text-muted-foreground mr-2 transition-transform duration-200" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground mr-2 shrink-0 transition-transform duration-200" />
           ) : (
-            <ChevronRight className="h-5 w-5 text-muted-foreground mr-2 transition-transform duration-200" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground mr-2 shrink-0 transition-transform duration-200" />
           )}
           
-          <h3 className="text-sm font-semibold tracking-tight select-none">
+          <h3 className={cn(
+            "text-sm font-semibold tracking-tight select-none truncate",
+            isWeekend && "text-muted-foreground"
+          )}>
             {formattedDate}
           </h3>
-          <div className="ml-2 text-sm text-muted-foreground select-none">
-            ({assignmentsCount} {taskText})
-          </div>
+          {isToday && (
+            <span className="ml-2 shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+              {currentLanguage === 'da' ? 'I dag' : 'Today'}
+            </span>
+          )}
+          <span className="ml-2 shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground tabular-nums select-none">
+            {assignmentsCount} {taskText}
+          </span>
         </div>
+
         
         {canPublishTasks && hasUnpublishedAssignments && (
           <AlertDialog>
@@ -170,7 +181,7 @@ const DaySection: React.FC<DaySectionProps> = ({
       {isExpanded && <DayAbsenceRow dateKey={dateKey} />}
 
       {isExpanded && (
-        <div className={`w-full grid gap-3 animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
+        <div className={`w-full grid gap-3 items-stretch animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
           {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
             !gridLayout && dayAssignments.length > 12 ? (
               <VirtualizedAssignmentCards
