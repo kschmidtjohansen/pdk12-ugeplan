@@ -61,16 +61,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     : { count: 0, totalQuantity: 0 };
   const warehouseItemCount = warehouseData.totalQuantity;
 
-  if (import.meta.env.DEV) {
-    console.log(`[AssignmentCard] Assignment: ${assignment.title || assignment.location}`);
-    if (import.meta.env.DEV) console.log(`[AssignmentCard] Employee data:`, {
-      hasAssignedEmployees: !!assignment.assignedEmployees?.length,
-      assignedEmployees: assignment.assignedEmployees?.map(e => e.name),
-      hasLegacyEmployees: !!assignment.employees?.length,
-      legacyEmployees: assignment.employees,
-      responsibleUserId: assignment.responsibleUserId || assignment.responsibleUser?.id
-    });
-  }
   
   const getResponsibleUserInfo = () => {
     const responsibleId = assignment.responsibleUserId || assignment.responsibleUser?.id;
@@ -178,103 +168,80 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               />
             </div>
           )}
-      {warehouseItemCount > 0 && (
-        <TooltipProvider delayDuration={100}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 px-2 py-0.5 bg-amber-500 text-white rounded-full shadow-xs cursor-help">
-                <Package className="h-3.5 w-3.5" />
-                <span className="text-xs font-semibold tabular-nums">{warehouseItemCount}</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent 
-              side="left" 
-              align="end"
-              sideOffset={8}
-              className="max-w-xs z-[100]"
-            >
-              <p className="font-medium whitespace-normal">Der er {warehouseData.totalQuantity} møbelkasser/paller på lager</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-      
-      <div className="flex justify-between items-start gap-2 mb-2">
-        <div className="flex items-start gap-2 flex-1 min-w-0">
-          {/* Status dot */}
-          <span
-            aria-hidden
-            className={cn(
-              'status-dot mt-1.5',
-              hasConflict ? 'status-dot-conflict' : (isPublished ? 'status-dot-published' : 'status-dot-draft')
+      <div className="flex justify-between items-start gap-2">
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h3 className="font-semibold text-sm text-foreground tracking-tight truncate">
+              {assignment.title || t('planner.titleLabel')}
+            </h3>
+            {hasConflict && (
+              <ConflictBadge
+                conflicts={conflicts}
+                size="sm"
+                assignment={assignment}
+                allAssignments={assignments}
+                employees={employees}
+                cars={cars}
+              />
             )}
-          />
-          <div className="flex flex-col flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <h3 className="font-semibold text-sm text-foreground tracking-tight truncate">
-                {assignment.title || t('planner.titleLabel')}
-              </h3>
-              {hasConflict && (
-                <ConflictBadge
-                  conflicts={conflicts}
-                  size="sm"
-                  assignment={assignment}
-                  allAssignments={assignments}
-                  employees={employees}
-                  cars={cars}
-                />
-              )}
-              {operationState && (
-                <span className="text-xs text-primary font-medium animate-pulse">
-                  {getOperationText(operationState)}
-                </span>
-              )}
-            </div>
-            {assignment.location && (
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">{assignment.location}</p>
-            )}
-            {responsibleUserInfo?.name && (
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <span className="icon-bubble icon-bubble-sm icon-bubble-resp" aria-hidden>
-                  <UserCheck className="h-3 w-3" />
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {t('planner.responsibleUser')}:
-                </span>
-                <span className="text-xs font-medium text-foreground">{responsibleUserInfo.name}</span>
-              </div>
-            )}
-            {import.meta.env.DEV && assignment.responsibleUserId && !responsibleUserInfo && (
-              <div className="flex items-center gap-1 mt-1">
-                <UserCheck className="h-3 w-3 text-amber-600" />
-                <span className="text-xs text-amber-600" title="Debug: Responsible user ID found but user data missing">
-                  Missing User Data (Check Roles)
-                </span>
-              </div>
+            {operationState && (
+              <span className="text-xs text-primary font-medium animate-pulse">
+                {getOperationText(operationState)}
+              </span>
             )}
           </div>
+          {assignment.location && (
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">{assignment.location}</p>
+          )}
+          {responsibleUserInfo?.name && (
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {t('planner.responsibleUser')}: <span className="font-medium text-foreground">{responsibleUserInfo.name}</span>
+            </p>
+          )}
         </div>
-        
+
         <div className="flex items-center gap-2 flex-shrink-0">
           <AssignmentStatusBadge isPublished={isPublished} />
-          <AssignmentActionButtons
-          assignment={assignment}
-          onEdit={handleEditClick}
-          onDelete={onDelete}
-          onPublish={async (assignmentId: string) => {
-            await handlePublishClick(assignmentId);
-          }}
-          onCopy={handleCopyClick}
-            operationState={operationState}
-          />
+          <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(pointer:coarse)]:opacity-100 transition-opacity">
+            <AssignmentActionButtons
+              assignment={assignment}
+              onEdit={handleEditClick}
+              onDelete={onDelete}
+              onPublish={async (assignmentId: string) => {
+                await handlePublishClick(assignmentId);
+              }}
+              onCopy={handleCopyClick}
+              operationState={operationState}
+            />
+          </div>
         </div>
       </div>
-      
+
       {assignment.description && (
-        <p className="text-muted-foreground mb-2 text-xs line-clamp-2">{assignment.description}</p>
+        <p className="text-muted-foreground mt-2 text-xs line-clamp-2">{assignment.description}</p>
       )}
-      
-      <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
+
+      <div className="mt-2 flex items-end justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
+        </div>
+        {warehouseItemCount > 0 && (
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-warning-soft text-warning-soft-foreground text-xs font-semibold shrink-0 cursor-help">
+                  <Package className="h-3.5 w-3.5" />
+                  <span className="tabular-nums">{warehouseItemCount}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="left" align="end" sideOffset={8} className="max-w-xs z-[100]">
+                <p className="font-medium whitespace-normal">Der er {warehouseData.totalQuantity} møbelkasser/paller på lager</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+
         </Card>
       </ContextMenuTrigger>
       <ContextMenuContent>
