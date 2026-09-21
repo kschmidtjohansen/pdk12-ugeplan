@@ -218,8 +218,18 @@ serve(async (req) => {
         );
       }
 
-      // Svag eller lækket adgangskode
+      // Svag eller lækket adgangskode — kun relevant når en kode er indtastet manuelt
       if (code === 'weak_password' || msg.includes('weak') || msg.includes('pwned')) {
+        if (isTemporary) {
+          console.error(`[${requestId}] Auto-genereret kode afvist af auth:`, createError.message);
+          return new Response(
+            JSON.stringify({
+              error: 'Vikaren kunne ikke oprettes på grund af en systemfejl. Prøv igen.',
+              code: 'internal_password_error',
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         return new Response(
           JSON.stringify({
             error: 'Adgangskoden er for usikker eller kendt fra datalæk — vælg en anden adgangskode.',
