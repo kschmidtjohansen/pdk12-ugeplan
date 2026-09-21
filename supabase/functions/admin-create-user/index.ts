@@ -186,7 +186,7 @@ serve(async (req) => {
     // Create the user in auth for both regular and temporary users
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: finalEmail,
-      password: isTemporary ? crypto.randomUUID() : password, // Random password for temporary users
+      password: isTemporary ? generateStrongPassword() : password, // Stærk auto-genereret kode til vikarer
       email_confirm: true,
       user_metadata: { 
         name,
