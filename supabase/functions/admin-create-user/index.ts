@@ -9,6 +9,34 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 }
 
+// Genererer en stærk tilfældig adgangskode til midlertidige brugere (vikarer),
+// som aldrig indtaster en kode selv. Sikrer mindst ét tegn fra hver gruppe.
+function generateStrongPassword(length = 24): string {
+  const groups = [
+    'ABCDEFGHJKLMNPQRSTUVWXYZ',
+    'abcdefghijkmnopqrstuvwxyz',
+    '23456789',
+    '!@#$%^&*()-_=+',
+  ];
+  const all = groups.join('');
+  const bytes = new Uint32Array(length);
+  crypto.getRandomValues(bytes);
+
+  const chars: string[] = groups.map((g, i) => g[bytes[i] % g.length]);
+  for (let i = groups.length; i < length; i++) {
+    chars.push(all[bytes[i] % all.length]);
+  }
+
+  // Fisher-Yates shuffle med kryptografisk tilfældighed
+  const shuffle = new Uint32Array(chars.length);
+  crypto.getRandomValues(shuffle);
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = shuffle[i] % (i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join('');
+}
+
 serve(async (req) => {
   const requestId = crypto.randomUUID().substring(0, 8);
   
@@ -158,7 +186,7 @@ serve(async (req) => {
     // Create the user in auth for both regular and temporary users
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: finalEmail,
-      password: isTemporary ? crypto.randomUUID() : password, // Random password for temporary users
+      password: isTemporary ? generateStrongPassword() : password, // Stærk auto-genereret kode til vikarer
       email_confirm: true,
       user_metadata: { 
         name,
@@ -190,8 +218,18 @@ serve(async (req) => {
         );
       }
 
-      // Svag eller lækket adgangskode
+      // Svag eller lækket adgangskode — kun relevant når en kode er indtastet manuelt
       if (code === 'weak_password' || msg.includes('weak') || msg.includes('pwned')) {
+        if (isTemporary) {
+          console.error(`[${requestId}] Auto-genereret kode afvist af auth:`, createError.message);
+          return new Response(
+            JSON.stringify({
+              error: 'Vikaren kunne ikke oprettes på grund af en systemfejl. Prøv igen.',
+              code: 'internal_password_error',
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         return new Response(
           JSON.stringify({
             error: 'Adgangskoden er for usikker eller kendt fra datalæk — vælg en anden adgangskode.',

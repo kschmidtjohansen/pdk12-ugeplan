@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-21 — Vikarer kan oprettes uden adgangskode igen
+
+- Rettet fejlen "Adgangskoden er for usikker eller kendt fra datalæk" ved oprettelse af vikarer: den automatisk genererede loginkode indeholdt kun små bogstaver og cifre og blev afvist af adgangskodekravene. Koden genereres nu med store bogstaver, små bogstaver, cifre og specialtegn.
+- Beskeden om svag adgangskode vises kun, når en adgangskode rent faktisk er indtastet manuelt; ved vikarer vises en neutral systemfejl i stedet.
+
+
 ## 2026-09-19 — "Mine Statistikker" fjernet fra servicemedarbejder-forsiden
 
 - Statistikboksen "Mine Statistikker" ("I dag" / "Denne uge") er fjernet fra forsiden. Siden åbner nu direkte med "Min Dag", derefter vagtoversigt og "Mine Opgaver".

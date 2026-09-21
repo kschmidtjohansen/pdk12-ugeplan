@@ -2,6 +2,9 @@
 
 ## Løbende rettelser ✅
 
+- [x] Vikaroprettelse fejlede med "Adgangskoden er for usikker": auto-genereret kode opfyldte ikke tegnkravene — erstattet med `generateStrongPassword()` i `admin-create-user`, og svag-kode-beskeden vises kun ved manuelt indtastet kode (2026-09-21).
+
+
 - [x] Nærhedsvisningen positionsbestemmer alle dagens opgaveadresser og falder tilbage til den foregående opgave samme dag, så medarbejdere med flere opgaver med samme sluttid ikke vises uden adresse (2026-09-18).
 - [x] Nærhedsvisningen positionsbestemmer eksisterende opgaveadresser uden `lat`/`lng`, bruger dagens seneste opgave som udgangspunkt og bruger kun hjemadressen på helt ubekræftede dage (2026-09-18).
 - [x] Nærhedsrangeringen bruger dagens opgaveposition som autoritativ kilde, så en hjemadresse fra en anden ugedag ikke kan overhale en medarbejder på opgave i det søgte postnummer (2026-09-18).
