@@ -9,6 +9,34 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 }
 
+// Genererer en stærk tilfældig adgangskode til midlertidige brugere (vikarer),
+// som aldrig indtaster en kode selv. Sikrer mindst ét tegn fra hver gruppe.
+function generateStrongPassword(length = 24): string {
+  const groups = [
+    'ABCDEFGHJKLMNPQRSTUVWXYZ',
+    'abcdefghijkmnopqrstuvwxyz',
+    '23456789',
+    '!@#$%^&*()-_=+',
+  ];
+  const all = groups.join('');
+  const bytes = new Uint32Array(length);
+  crypto.getRandomValues(bytes);
+
+  const chars: string[] = groups.map((g, i) => g[bytes[i] % g.length]);
+  for (let i = groups.length; i < length; i++) {
+    chars.push(all[bytes[i] % all.length]);
+  }
+
+  // Fisher-Yates shuffle med kryptografisk tilfældighed
+  const shuffle = new Uint32Array(chars.length);
+  crypto.getRandomValues(shuffle);
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = shuffle[i] % (i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join('');
+}
+
 serve(async (req) => {
   const requestId = crypto.randomUUID().substring(0, 8);
   
