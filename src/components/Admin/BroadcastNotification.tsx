@@ -62,6 +62,9 @@ const BroadcastNotification: React.FC = () => {
   const [message, setMessage] = useState('');
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
+  const [generatedTitle, setGeneratedTitle] = useState('');
+  const [generatedMessage, setGeneratedMessage] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const departmentName = useMemo(
     () => userDepartments.find((d) => d.id === departmentId)?.name ?? '',
@@ -72,6 +75,33 @@ const BroadcastNotification: React.FC = () => {
     const rolePart = roles.length > 0 ? roles.join(', ') : t('admin.broadcast.allEmployees');
     return departmentName ? `${rolePart} i ${departmentName}` : rolePart;
   }, [roles, departmentName, t]);
+
+  // Debounce role toggles so rapid clicking does not spam the edge function.
+  const rolesKey = roles.slice().sort().join(',');
+  const [debouncedRolesKey, setDebouncedRolesKey] = useState(rolesKey);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedRolesKey(rolesKey), 400);
+    return () => clearTimeout(id);
+  }, [rolesKey]);
+
+  const { data: recipientCount, isFetching: countLoading } = useQuery({
+    queryKey: ['broadcast_recipient_count', departmentId, debouncedRolesKey],
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('broadcast-notification', {
+        body: {
+          mode: 'preview_recipients',
+          departmentId: departmentId || null,
+          roles: debouncedRolesKey ? debouncedRolesKey.split(',') : [],
+        },
+      });
+      if (error) throw error;
+      return Number(data?.count ?? 0);
+    },
+  });
+
+  const hasEdits =
+    !!generatedTitle && (title !== generatedTitle || message !== generatedMessage);
 
   const toggleRole = (role: string) => {
     setRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
