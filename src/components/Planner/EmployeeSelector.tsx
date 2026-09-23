@@ -25,6 +25,20 @@ import { useSickForDateValue } from '@/hooks/useSickDays';
 
 type MultiDateAvailability = 'full' | 'partial' | 'none';
 
+/**
+ * A temporary employee (vikar) is expired RELATIVE TO THE ASSIGNMENT DATE —
+ * not relative to "now". Booking a vikar on a date after his expiry must be
+ * blocked, even if the expiry has not passed yet today.
+ * The expiry day itself still counts as a valid working day.
+ */
+const isExpiredOn = (employee: Employee, date: Date): boolean => {
+  if (!employee?.is_temporary || !employee.expires_at) return false;
+  const expiry = new Date(employee.expires_at);
+  if (isNaN(expiry.getTime())) return false;
+  expiry.setHours(23, 59, 59, 999);
+  return date.getTime() > expiry.getTime();
+};
+
 interface EmployeeSelectorProps {
   employees: Employee[];
   selectedEmployees: string[];
@@ -128,7 +142,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
             unavailableCount++;
             continue;
           }
-          if (emp.is_temporary && emp.expires_at && new Date(emp.expires_at) < new Date()) {
+          if (isExpiredOn(emp, date)) {
             unavailableCount++;
             continue;
           }
@@ -179,9 +193,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       if (selectedEmployees.includes(emp.id)) continue; // selected stays toggleable
       try {
         const vac = getEmployeeVacationStatus(emp.id, dateForComparison, vacations);
-        const expired = emp.is_temporary && emp.expires_at
-          ? new Date(emp.expires_at) < new Date()
-          : false;
+        const expired = isExpiredOn(emp, dateForComparison);
         const avail = getEmployeeAvailabilityStatus(emp, dateForComparison, assignments, vacations, t);
         if (
           (vac.isOnVacation && vac.vacationType === 'full_day')
@@ -366,9 +378,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
 
           const isSelected = selectedEmployees.includes(employee.id);
           
-          const isExpired = employee.is_temporary && employee.expires_at 
-            ? new Date(employee.expires_at) < new Date() 
-            : false;
+          const isExpired = isExpiredOn(employee, dateForComparison);
           
           let vacationStatus;
           try {
