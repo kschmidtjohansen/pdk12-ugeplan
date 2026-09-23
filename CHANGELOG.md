@@ -1,3 +1,11 @@
+## 2026-09-23 — Installations-trin fjernet fra notifikationskortet
+
+- `src/components/Pwa/PushNotificationCard.tsx`: den nummererede trinliste ("Åbn menuen (⋯)…", "Vælg 'Installer app'…", "Åbn appen fra startskærmen…") er fjernet for alle platforme.
+- Kortet viser nu kun den korte forklaring ("Appen skal først ligge på hjemmeskærmen…") plus "Installer app nu"-knappen, når browseren tilbyder direkte installation (Edge/Chrome).
+- Ubetydelig oprydning: `installSteps`-listen og de dertil hørende ikoner (`Share`, `Plus`, `MoreVertical`) samt `isIos`/`browser`/`iosWrongBrowser` er fjernet, da de ikke længere bruges.
+- Vejledning for iPhone brugere findes stadig i "Installer som app"-knappen på login-siden og i bunden af dashboardet.
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Notifikationer virker nu på Android og iPhone (Edge, Chrome, Safari)
 
 - Rigtige app-ikoner: `public/icon-192.png`, `public/icon-512.png` og `public/apple-touch-icon.png` (180×180). Tidligere pegede alt på ét 177×172-ikon, hvilket gjorde installationen ustabil i Chrome/Edge.
