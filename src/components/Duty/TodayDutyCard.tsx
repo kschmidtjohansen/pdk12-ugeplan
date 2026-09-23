@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/context/TranslationContext';
-import { Phone, CalendarClock } from 'lucide-react';
+import { Phone, CalendarClock, ChevronDown } from 'lucide-react';
 import type { Duty } from '@/types/duty';
 import type { Employee } from '@/types/employee';
 
