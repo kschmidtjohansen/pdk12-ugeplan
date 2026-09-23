@@ -4,6 +4,7 @@
 
 - Medarbejdervælgeren i ugeplanen vurderer nu vikarens udløbsdato i forhold til opgavens dato i stedet for dagens dato. En vikar, der udløber i denne uge, kan derfor ikke længere vælges til opgaver i næste uge.
 - Udløbsdagen selv tæller fortsat som en gyldig arbejdsdag, og ved flerdages-opgaver markeres vikaren korrekt som delvist eller helt utilgængelig.
+- Sikkerhed: adgangen til biler, bil-underafdelinger og brugerroller er begrænset til egne afdelinger (administratorer og IT-support ser fortsat alt).
 
 
 ## 2026-09-21 — Vikarer kan oprettes uden adgangskode igen
