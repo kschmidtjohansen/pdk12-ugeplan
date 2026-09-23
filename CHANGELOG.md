@@ -1,3 +1,12 @@
+## 2026-09-23 — Minimerbare kort på vagtplanen
+
+- "Vagter i dag" og "Find nærmeste vagtperson" på `/duty` kan nu foldes sammen til én kompakt linje via en klikbar overskrift med chevron.
+- Lukket "Vagter i dag" viser stadig nøgleinfo som dæmpet tekst ("N på vagt" eller "Ingen vagter i dag"), så intet forsvinder af syne.
+- Valget gemmes i `localStorage` (`duty.todayCard.open`, `duty.proximity.open`), så kortene åbner i samme tilstand næste gang. Standard: åben.
+- Rolig højde/gennemsigtigheds-animation (grid-rows 0fr/1fr), `aria-expanded`, 44×44 px trykflade og tastaturadgang.
+- Nye DA/EN-tekster: `duty.expand`, `duty.collapse`, `duty.onDutyCount`.
+- Verificeret: typecheck uden fejl. Browser-test kræver login i preview'en (ekstern database — kan ikke emuleres i sandboxen).
+
 ## 2026-09-23 — Fejl ved "Lav notifikation" rettet
 
 - Tekstgenereringen i "Udsend besked" ramte et nedbrud i selve tjenesten, så browseren blot fik "Failed to send a request to the Edge Function" uden forklaring.

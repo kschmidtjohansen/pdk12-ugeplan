@@ -132,6 +132,9 @@ export const duty = {
   noCoordinates: "Ingen hjemmeadresse registreret",
   onDutyToday: "På vagt i dag",
   approx: "ca.",
+  expand: "Udvid",
+  collapse: "Minimer",
+  onDutyCount: "{{count}} på vagt",
 };
 
 

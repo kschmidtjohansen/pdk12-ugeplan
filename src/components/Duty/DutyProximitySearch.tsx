@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDutyProximitySearch } from '@/hooks/duty/useDutyProximitySearch';
 import { formatKm, formatMinutes } from '@/utils/travelTime';
-import { Phone, Home, Loader2, MapPin, X } from 'lucide-react';
+import { Phone, Home, Loader2, MapPin, X, ChevronDown } from 'lucide-react';
 import type { Duty } from '@/types/duty';
 import type { Employee } from '@/types/employee';
 
@@ -17,6 +17,8 @@ interface DutyProximitySearchProps {
   duties: Duty[];
   todayStr: string;
 }
+
+const STORAGE_KEY = 'duty.proximity.open';
 
 /**
  * Search a damage postcode and see which duty personnel live closest to it.
@@ -29,6 +31,16 @@ const DutyProximitySearch: React.FC<DutyProximitySearchProps> = ({
 }) => {
   const { t } = useTranslation();
   const [postcode, setPostcode] = useState('');
+  const [open, setOpen] = useState<boolean>(() => {
+    try { return localStorage.getItem(STORAGE_KEY) !== '0'; } catch { return true; }
+  });
+
+  const toggleOpen = () => {
+    setOpen((prev) => {
+      try { localStorage.setItem(STORAGE_KEY, prev ? '0' : '1'); } catch { /* ignore */ }
+      return !prev;
+    });
+  };
 
   const { results, isLoading, notFound, isValidPostcode } = useDutyProximitySearch({
     postcode,
@@ -46,11 +58,26 @@ const DutyProximitySearch: React.FC<DutyProximitySearchProps> = ({
   const trimmed = postcode.trim();
 
   return (
-    <Card className="rounded-xl border-border/60 shadow-none p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-muted-foreground" />
+    <Card className="rounded-xl border-border/60 shadow-none p-4">
+      <button
+        type="button"
+        onClick={toggleOpen}
+        aria-expanded={open}
+        aria-label={open ? t('duty.collapse') : t('duty.expand')}
+        className="touch-target flex w-full items-center gap-2 text-left"
+      >
+        <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
         <h2 className="text-sm font-semibold text-foreground">{t('duty.proximityTitle')}</h2>
-      </div>
+        <ChevronDown
+          className={`ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? '' : '-rotate-90'}`}
+        />
+      </button>
+
+      <div
+        className={`grid transition-all duration-200 ease-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      >
+        <div className="overflow-hidden">
+          <div className="pt-3 space-y-3">
       <p className="text-xs text-muted-foreground">{t('duty.proximityHint')}</p>
 
       <div className="flex items-center gap-2">
@@ -138,6 +165,9 @@ const DutyProximitySearch: React.FC<DutyProximitySearchProps> = ({
           })}
         </ul>
       )}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 };

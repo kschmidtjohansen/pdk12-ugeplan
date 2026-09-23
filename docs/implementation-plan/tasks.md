@@ -667,3 +667,12 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Logning af start, fejl og succes i tjenesten
 - [x] Forståelige fejlbeskeder i skærmbilledet (DA/EN)
 - [x] Verificeret mod sprogmodellen og udrullet
+
+## Minimerbare kort på vagtplanen (2026-09-23)
+
+- [x] Klikbar overskrift med chevron på "Vagter i dag" og "Find nærmeste vagtperson"
+- [x] Lukket tilstand viser kun én kompakt linje; "Vagter i dag" viser antal vagthavende
+- [x] Valg gemmes i `localStorage` pr. kort og overlever genindlæsning
+- [x] Rolig animation, `aria-expanded` og 44×44 px trykflade
+- [x] DA/EN-oversættelser (`expand`, `collapse`, `onDutyCount`)
+- [x] Typecheck uden fejl
