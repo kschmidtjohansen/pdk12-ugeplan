@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users, Check, ChevronDown } from 'lucide-react';
+import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users, Check, ChevronDown, X } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -132,6 +132,14 @@ const BroadcastNotification: React.FC = () => {
       .filter(Boolean);
     return names.length > 0 ? names.join(', ') : audience;
   }, [selectedUserIds, people, audience]);
+
+  const selectedPeopleSummary = useMemo(() => {
+    if (selectedUserIds.length === 0) return '';
+    const names = selectedUserIds
+      .map((id) => people.find((person) => person.id === id)?.name || people.find((person) => person.id === id)?.email || '')
+      .filter(Boolean);
+    return names.join(', ');
+  }, [selectedUserIds, people]);
 
   const filteredPeople = useMemo(() => {
     const q = peopleSearch.trim().toLowerCase();
@@ -399,43 +407,55 @@ const BroadcastNotification: React.FC = () => {
         </div>
 
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <button
+          <div className="flex min-w-0 items-center rounded-lg border border-border/60 bg-muted/20 p-0.5">
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => setPeopleCollapsed((prev) => !prev)}
               aria-expanded={!peopleCollapsed}
-              className="flex touch-target items-center gap-2 text-sm font-medium leading-none"
+              aria-controls="broadcast-people-list"
+              className="h-11 min-w-0 flex-1 justify-start gap-2 px-2.5 text-sm"
             >
               <ChevronDown
-                className={`h-4 w-4 text-muted-foreground transition-transform ${peopleCollapsed ? '-rotate-90' : ''}`}
+                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${peopleCollapsed ? '-rotate-90' : ''}`}
                 aria-hidden
               />
-              {t('admin.broadcast.people')}
+              <span className="shrink-0 font-medium">{t('admin.broadcast.people')}</span>
               {selectedUserIds.length > 0 && (
-                <Badge variant="secondary">{selectedUserIds.length}</Badge>
+                <Badge variant="secondary" className="h-5 shrink-0 px-1.5 tabular-nums">
+                  {selectedUserIds.length}
+                </Badge>
               )}
-            </button>
+              {peopleCollapsed && selectedPeopleSummary && (
+                <span className="min-w-0 truncate text-xs font-normal text-muted-foreground">
+                  {selectedPeopleSummary}
+                </span>
+              )}
+            </Button>
             {selectedUserIds.length > 0 && (
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
-                className="touch-target"
+                size="icon-sm"
+                className="h-11 w-11 shrink-0"
                 onClick={() => setSelectedUserIds([])}
+                aria-label={t('admin.broadcast.peopleClear')}
+                title={t('admin.broadcast.peopleClear')}
               >
-                {t('admin.broadcast.peopleClear')}
+                <X className="h-4 w-4" aria-hidden />
               </Button>
             )}
           </div>
           {!peopleCollapsed && (
-            <>
+            <div id="broadcast-people-list" className="space-y-2">
               <Input
                 value={peopleSearch}
                 onChange={(e) => setPeopleSearch(e.target.value)}
                 placeholder={t('admin.broadcast.peopleSearch')}
                 aria-label={t('admin.broadcast.peopleSearch')}
+                className="h-11 md:h-9"
               />
-              <div className="max-h-56 overflow-y-auto overscroll-contain rounded-xl border border-border/60">
+              <div className="max-h-[min(42vh,18rem)] touch-pan-y overflow-y-auto overscroll-contain rounded-lg border border-border/60 bg-card md:max-h-64">
             {peopleLoading && people.length === 0 && (
               <p className="px-3 py-4 text-sm text-muted-foreground">
                 {t('admin.broadcast.recipientCountLoading')}
@@ -449,12 +469,13 @@ const BroadcastNotification: React.FC = () => {
             {filteredPeople.map((person) => {
               const checked = selectedUserIds.includes(person.id);
               return (
-                <button
+                <Button
                   key={person.id}
                   type="button"
+                  variant="ghost"
                   onClick={() => toggleUser(person.id)}
                   aria-pressed={checked}
-                  className={`flex w-full touch-target items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-muted/50 ${
+                  className={`min-h-11 h-auto w-full justify-start rounded-none px-3 py-2 text-left whitespace-normal hover:bg-muted/50 ${
                     checked ? 'bg-primary/5' : ''
                   }`}
                 >
@@ -466,7 +487,7 @@ const BroadcastNotification: React.FC = () => {
                   >
                     {checked && <Check className="h-3 w-3" />}
                   </span>
-                  <span className="min-w-0">
+                  <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">
                       {person.name || person.email}
                     </span>
@@ -476,11 +497,11 @@ const BroadcastNotification: React.FC = () => {
                       </span>
                     )}
                   </span>
-                </button>
+                </Button>
               );
             })}
               </div>
-            </>
+            </div>
           )}
         </div>
 
