@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users, Check } from 'lucide-react';
 
@@ -90,7 +90,17 @@ const BroadcastNotification: React.FC = () => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [peopleSearch, setPeopleSearch] = useState('');
 
+  // Only clear the picked people when the audience really changes (not on the
+  // first render or when the department id is filled in asynchronously).
+  const audienceKeyRef = useRef<string | null>(null);
   useEffect(() => {
+    const key = `${departmentId ?? ''}|${debouncedRolesKey}`;
+    if (audienceKeyRef.current === null) {
+      audienceKeyRef.current = key;
+      return;
+    }
+    if (audienceKeyRef.current === key) return;
+    audienceKeyRef.current = key;
     setSelectedUserIds([]);
     setPeopleSearch('');
   }, [departmentId, debouncedRolesKey]);
@@ -112,6 +122,15 @@ const BroadcastNotification: React.FC = () => {
   });
 
   const selectedKey = selectedUserIds.slice().sort().join(',');
+
+  // Audience shown in the confirmation dialog: named people take precedence.
+  const confirmAudience = useMemo(() => {
+    if (selectedUserIds.length === 0) return audience;
+    const names = selectedUserIds
+      .map((id) => people.find((p) => p.id === id)?.name || people.find((p) => p.id === id)?.email || '')
+      .filter(Boolean);
+    return names.length > 0 ? names.join(', ') : audience;
+  }, [selectedUserIds, people, audience]);
 
   const filteredPeople = useMemo(() => {
     const q = peopleSearch.trim().toLowerCase();
@@ -568,7 +587,7 @@ const BroadcastNotification: React.FC = () => {
             {notificationPreview}
             <div className="rounded-lg border border-border/60 p-3 text-sm">
               <p className="text-muted-foreground">{t('admin.broadcast.audienceLabel')}</p>
-              <p className="font-medium">{audience}</p>
+              <p className="font-medium">{confirmAudience}</p>
               <p className="mt-1 inline-flex items-center gap-1.5 text-muted-foreground">
                 <Users className="h-4 w-4" />
                 {countLoading
