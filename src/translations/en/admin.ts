@@ -16,7 +16,8 @@ export const admin = {
     features: 'Features',
     locations: 'Locations',
     vacationCalendar: 'Overview',
-    autoPublish: 'Auto-publishing'
+    autoPublish: 'Auto-publishing',
+    broadcast: 'Send message'
   },
   dashboard: {
     title: 'Admin Dashboard',
@@ -390,5 +391,26 @@ export const admin = {
     listeners: "Listeners",
     filter: "Filter",
     updatedAt: "Updated"
+  },
+  broadcast: {
+    title: 'Send important message',
+    description: 'Write free text, turn it into a short notification and send it out.',
+    rawLabel: 'Your text',
+    rawPlaceholder: 'Write what employees need to know...',
+    department: 'Department',
+    allDepartments: 'All departments',
+    allEmployees: 'all employees',
+    roles: 'Recipients (roles)',
+    rolesHint: 'Select no roles to send to everyone in the department.',
+    link: 'Link in the notification',
+    noLink: 'No link',
+    generate: 'Create notification',
+    generateFailed: 'Could not create the notification',
+    titleField: 'Headline',
+    messageField: 'Message',
+    send: 'Send notification',
+    sent: 'Notification sent',
+    sentCount: 'Sent to {count} employees.',
+    sendFailed: 'Could not send the notification'
   },
 };
