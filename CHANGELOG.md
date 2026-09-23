@@ -1,3 +1,13 @@
+## 2026-09-23 — AI-genereret fællesbesked og personlige notifikationsvalg
+
+- Ny fane "Udsend besked" under Administration (`src/components/Admin/BroadcastNotification.tsx`, `src/pages/AdminPage.tsx`): administrator/super admin skriver fri tekst, vælger afdeling, roller og evt. link, og får via Lovable AI Gateway (`openai/gpt-6-astra`, Responses API, streaming) omskrevet teksten til en kort titel (maks. 45 tegn) og besked (maks. 130 tegn).
+- Forhåndsvisning som mobil-notifikation; både titel og tekst kan rettes manuelt inden udsendelse. Ved afsendelse oprettes `notifications`-rækker med `type = 'broadcast'`, som den eksisterende push-trigger leverer til telefonerne.
+- Ny edge function `supabase/functions/broadcast-notification/index.ts` (modes `generate` og `send`): validerer JWT, kræver administrator/super_admin, og ikke-super-admins kan kun sende til afdelinger de har adgang til. Afsenderen får ikke selv notifikationen.
+- Ny tabel `notification_preferences` (pr. bruger: vigtige beskeder, opgaver, vagter, ferie, sygemeldinger — alle slået til som standard) med RLS, så brugeren kun kan se/ændre egne valg.
+- Ny knap "Notifikationer" i profilmenuen (`UserMenu.tsx`) åbner `src/components/Profile/NotificationPreferencesDialog.tsx` med til/fra-kontakter pr. kategori; sygemeldinger vises kun for skadeleder/admin. Data håndteres af `src/hooks/useNotificationPreferences.ts`.
+- `supabase/functions/send-push/index.ts` slår modtagerens valg op inden afsendelse og springer push over, hvis kategorien er slået fra (manglende række = alt slået til).
+- DA/EN-tekster tilføjet i `translations/*/admin.ts` og `translations/*/profile.ts`. Verificeret: typecheck uden fejl; AI-generering testet direkte mod gateway med korrekt titel/besked-format.
+
 ## 2026-09-23 — Notifikationskortet er nu én kompakt linje
 
 - `src/components/Pwa/PushNotificationCard.tsx`: kortet er ændret fra en høj blok (ikon, overskrift, lang forklaring, knaprække og diagnoselinje under hinanden) til én række: ikon til venstre, titel + kort tekst i midten, knapper til højre. Det fylder nu mindre end "Kommende fridage"-boksen på forsiden.

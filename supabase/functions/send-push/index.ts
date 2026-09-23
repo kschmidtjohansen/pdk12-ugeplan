@@ -22,6 +22,29 @@ interface PushPayload {
   tag?: string;
 }
 
+type PrefColumn = 'broadcast' | 'assignment' | 'duty' | 'vacation' | 'sick_day';
+
+function categoryForType(type: string): PrefColumn {
+  if (type === 'broadcast') return 'broadcast';
+  if (type === 'duty') return 'duty';
+  if (type === 'vacation') return 'vacation';
+  if (type === 'sick_day') return 'sick_day';
+  return 'assignment';
+}
+
+// Preferences default to enabled: a missing row means the user wants everything.
+async function userAllowsCategory(userId: string, category: PrefColumn) {
+  const { data, error } = await admin
+    .from('notification_preferences')
+    .select(category)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error || !data) return true;
+  const value = (data as Record<string, unknown>)[category];
+  return value !== false;
+}
+
 async function sendToUser(userId: string, payload: PushPayload) {
   const { data: subs, error } = await admin
     .from('push_subscriptions')
@@ -98,6 +121,16 @@ Deno.serve(async (req) => {
       if (error) throw error;
       if (!notification || notification.is_demo) {
         return new Response(JSON.stringify({ skipped: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const allowed = await userAllowsCategory(
+        notification.user_id,
+        categoryForType(notification.type),
+      );
+      if (!allowed) {
+        return new Response(JSON.stringify({ skipped: true, reason: 'preference-off' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

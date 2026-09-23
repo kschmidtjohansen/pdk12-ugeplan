@@ -40,5 +40,21 @@ export const profile = {
   changeProfilePictureDescription: 'Change your profile picture.',
   selectNewPicture: 'Select an image.',
   uploadPicture: 'Upload',
-  removePicture: 'Remove'
+  removePicture: 'Remove',
+  notificationSettings: 'Notifications',
+  notifications: {
+    title: 'Notifications on your phone',
+    description: 'Choose which alerts you want sent to your phone.',
+    broadcast: 'Important messages',
+    broadcastHint: 'Company-wide and urgent messages from management.',
+    assignment: 'Assignments',
+    assignmentHint: 'New assignments and changed times or addresses.',
+    duty: 'Duties',
+    dutyHint: 'Duty reminders and swap requests.',
+    vacation: 'Vacation and time off',
+    vacationHint: 'Status on vacation requests and days off.',
+    sickDay: 'Sick leave',
+    sickDayHint: 'Alert when an employee is reported sick.',
+    footnote: 'You always get messages inside the app — these choices only affect phone notifications.'
+  }
 };

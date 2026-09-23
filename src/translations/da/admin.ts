@@ -16,7 +16,8 @@ export const admin = {
     features: 'Funktioner',
     locations: 'Lokationer',
     vacationCalendar: 'Oversigt',
-    autoPublish: 'Auto-publicering'
+    autoPublish: 'Auto-publicering',
+    broadcast: 'Udsend besked'
   },
   dashboard: {
     title: 'Administrationspanel',
@@ -391,5 +392,26 @@ export const admin = {
     listeners: "Lyttere",
     filter: "Filter",
     updatedAt: "Opdateret"
+  },
+  broadcast: {
+    title: 'Udsend vigtig besked',
+    description: 'Skriv en fri tekst, få den omskrevet til en kort notifikation og send den ud.',
+    rawLabel: 'Din tekst',
+    rawPlaceholder: 'Skriv hvad medarbejderne skal vide...',
+    department: 'Afdeling',
+    allDepartments: 'Alle afdelinger',
+    allEmployees: 'alle medarbejdere',
+    roles: 'Modtagere (roller)',
+    rolesHint: 'Vælg ingen roller for at sende til alle i afdelingen.',
+    link: 'Link i notifikationen',
+    noLink: 'Intet link',
+    generate: 'Lav notifikation',
+    generateFailed: 'Kunne ikke lave notifikationen',
+    titleField: 'Overskrift',
+    messageField: 'Besked',
+    send: 'Udsend notifikation',
+    sent: 'Notifikationen er sendt',
+    sentCount: 'Sendt til {count} medarbejdere.',
+    sendFailed: 'Kunne ikke sende notifikationen'
   },
 };

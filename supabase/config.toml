@@ -70,3 +70,7 @@ verify_jwt = false
 
 [functions.push-resubscribe]
 verify_jwt = false
+
+# Authentication and admin-role checks happen inside the function.
+[functions.broadcast-notification]
+verify_jwt = false

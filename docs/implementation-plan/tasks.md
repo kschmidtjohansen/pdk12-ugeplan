@@ -1,3 +1,14 @@
+## AI-besked til medarbejdere og personlige notifikationsvalg (2026-09-23)
+
+- [x] Ny fane "Udsend besked" under Administration med fri tekst, afdeling, roller og link
+- [x] AI-omskrivning via Lovable AI Gateway (`openai/gpt-6-astra`) til kort titel og besked
+- [x] Redigerbar forhåndsvisning før udsendelse og bekræftelse med antal modtagere
+- [x] Edge function med rolle- og afdelingskontrol (`broadcast-notification`)
+- [x] Tabel `notification_preferences` med RLS og standard "alt slået til"
+- [x] Knap "Notifikationer" under profilbilledet med til/fra pr. beskedtype
+- [x] `send-push` respekterer brugerens valg
+- [ ] Bekræft på fysisk telefon efter udgivelse: send en testbesked og tjek at frameldte kategorier ikke kommer igennem
+
 ## Notifikationskort som én kompakt linje (2026-09-23)
 
 - [x] Kortet er nu én række: ikon, titel + kort tekst, knapper til højre

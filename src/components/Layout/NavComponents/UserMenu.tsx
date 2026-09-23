@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor, Bell } from 'lucide-react';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem,
 import { languageNames } from '../../../translations';
 import PasswordChangeDialog from '../../Profile/PasswordChangeDialog';
 import ProfilePictureDialog from '../../Profile/ProfilePictureDialog';
+import NotificationPreferencesDialog from '../../Profile/NotificationPreferencesDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth, UserRole } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -31,6 +32,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const { userDepartments, selectedDepartmentId, switchDepartment, userSubDepartments, selectedSubDepartmentId, setSelectedSubDepartmentId } = useDepartment();
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string | null>(null);
   const { scheme, setScheme } = useColorScheme();
@@ -165,6 +167,10 @@ const UserMenu: React.FC<UserMenuProps> = ({
             <Lock className="mr-2 h-4 w-4" />
             <span>{t('profile.changePassword')}</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setNotificationDialogOpen(true)} className="cursor-pointer">
+            <Bell className="mr-2 h-4 w-4" />
+            <span>{t('profile.notificationSettings')}</span>
+          </DropdownMenuItem>
           
           <DropdownMenuSeparator />
 
@@ -202,6 +208,11 @@ const UserMenu: React.FC<UserMenuProps> = ({
 
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <NotificationPreferencesDialog
+        open={notificationDialogOpen}
+        onOpenChange={setNotificationDialogOpen}
+      />
 
       <PasswordChangeDialog 
         isOpen={passwordDialogOpen} 
