@@ -1,3 +1,12 @@
+## 2026-09-23 — Notifikationskortet er nu én kompakt linje
+
+- `src/components/Pwa/PushNotificationCard.tsx`: kortet er ændret fra en høj blok (ikon, overskrift, lang forklaring, knaprække og diagnoselinje under hinanden) til én række: ikon til venstre, titel + kort tekst i midten, knapper til højre. Det fylder nu mindre end "Kommende fridage"-boksen på forsiden.
+- Teksten er forkortet til én linje pr. situation ("Aktiv på denne enhed", "Appen skal ligge på hjemmeskærmen først", "Blokeret i telefonens indstillinger", "Få besked, også når appen er lukket"); den lange forklaring vises som hover/tryk-tekst.
+- Diagnoselinjen ("Installeret · Tilladelse · Tilmeldt") er ikke længere en synlig linje — den ligger som hover-tekst på kortet, så fejl stadig kan aflæses uden at kortet vokser.
+- Knapperne er små (`size="sm"`, 32 px) og viser kun ikon på telefonen med tekst på større skærme; `touch-target`-klassen giver stadig mindst 44×44 px trykflade på rørskærme, og alle knapper har `aria-label`.
+- `mt-4` er fjernet, så afstanden mellem kortene styres af sidens egne mellemrum.
+- Verificeret: typecheck og lint uden fejl.
+
 ## 2026-09-23 — Installations-trin fjernet fra notifikationskortet
 
 - `src/components/Pwa/PushNotificationCard.tsx`: den nummererede trinliste ("Åbn menuen (⋯)…", "Vælg 'Installer app'…", "Åbn appen fra startskærmen…") er fjernet for alle platforme.
