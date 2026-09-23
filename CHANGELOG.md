@@ -1,3 +1,14 @@
+## 2026-09-23 — Notifikationer virker nu på Android og iPhone (Edge, Chrome, Safari)
+
+- Rigtige app-ikoner: `public/icon-192.png`, `public/icon-512.png` og `public/apple-touch-icon.png` (180×180). Tidligere pegede alt på ét 177×172-ikon, hvilket gjorde installationen ustabil i Chrome/Edge.
+- `public/manifest.webmanifest`: `id`, `display_override`, `orientation` og separate `any`-/`maskable`-ikonposter i 192 og 512. `index.html` peger nu på det korrekte `apple-touch-icon` i 180×180.
+- Installation er nu en forudsætning på ALLE platforme: ny status `needs-install` i `usePushNotifications` (standalone-tjek via `display-mode: standalone`/`minimal-ui` + `navigator.standalone`), ikke kun på iOS.
+- `PushNotificationCard.tsx` viser browserspecifik installationsvejledning (Edge Android, Chrome Android, Safari iPhone, samt besked om at iPhone kræver Safari) og genbruger ét-kliks-installation via `beforeinstallprompt`, når browseren tilbyder den.
+- Tilmeldingen holder sig selv i live: `ensureSubscription()` kører ved app-start i installeret tilstand og gentilmelder, hvis subscriptionen er faldet af. `public/push-sw.js` håndterer nu `pushsubscriptionchange` og gentilmelder automatisk.
+- Ny edge function `supabase/functions/push-resubscribe` (verify_jwt = false): flytter en EKSISTERENDE tilmelding til dens nye endpoint ud fra det gamle endpoint. Den kan aldrig oprette en ny tilmelding; ukendt endpoint er en no-op. Ingen RLS-ændringer.
+- Ny diagnoselinje i notifikationskortet: installeret / tilladelse / tilmeldt, så fejl kan afklares på to sekunder.
+- Verificeret: `push-resubscribe` svarer `{"updated":false}` på ukendt endpoint og `invalid payload` på tom krop; manifest, ikoner og service worker serveres korrekt.
+
 ## 2026-09-23 — Push-notifikationer på telefonen (PWA)
 
 - Ny tabel `push_subscriptions` (endpoint unik, nøgler, user agent, sidst set, sidste fejl) med GRANTs og RLS: brugeren kan kun se/redigere egne enheder; service_role har fuld adgang.

@@ -1,3 +1,14 @@
+## Notifikationer på Android og iPhone uanset browser (2026-09-23)
+
+- [x] Rigtige app-ikoner i 192, 512 og 180 (apple-touch-icon)
+- [x] Manifest udvidet med `id`, `display_override` og separate any/maskable-ikoner
+- [x] Installation som forudsætning for notifikationer på alle platforme
+- [x] Browserspecifik installationsvejledning (Edge, Chrome, Safari) i notifikationskortet
+- [x] Automatisk gentilmelding ved app-start og ved `pushsubscriptionchange`
+- [x] Edge function `push-resubscribe` til rotation af push-endpoint
+- [x] Diagnoselinje: installeret / tilladelse / tilmeldt
+- [ ] Endelig bekræftelse på fysisk Android- og iPhone-enhed efter udgivelse ("Send test")
+
 ## Push-notifikationer på telefonen (2026-09-23)
 
 - [x] Tabel `push_subscriptions` med GRANTs og RLS (kun egne enheder)
