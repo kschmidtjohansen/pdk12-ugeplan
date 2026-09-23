@@ -101,6 +101,9 @@ const LoginPage = () => {
           </div>
         </div>
 
+        {/* Installer som app */}
+        <PwaInstallButton />
+
         {/* Footer-linje */}
         <p
           className="mt-8 text-center text-xs text-muted-foreground/70 tracking-wide animate-fade-in-up"
