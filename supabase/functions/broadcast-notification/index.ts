@@ -61,7 +61,8 @@ async function getAccessibleDepartments(userId: string) {
 async function resolveRecipients(
   departmentId: string | null,
   targetRoles: string[],
-  actorId: string,
+  _actorId: string,
+  userIds: string[] = [],
 ) {
   const recipients = new Set<string>();
 
@@ -86,7 +87,15 @@ async function resolveRecipients(
     for (const id of [...recipients]) if (!allowed.has(id)) recipients.delete(id);
   }
 
-  recipients.delete(actorId);
+  // Named individuals: only people already inside the resolved audience may be
+  // picked, so department and role access rules still apply.
+  if (userIds.length > 0) {
+    const picked = new Set(userIds);
+    for (const id of [...recipients]) if (!picked.has(id)) recipients.delete(id);
+  }
+
+  // The sender stays in the list when they belong to the audience, so admins
+  // receive their own department messages like everyone else.
   return recipients;
 }
 
@@ -95,6 +104,15 @@ function parseTargetRoles(value: unknown): string[] {
     ? value.filter((r: unknown) => typeof r === 'string' && ALLOWED_ROLES.includes(r))
     : [];
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function parseUserIds(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((v: unknown) => typeof v === 'string' && UUID_RE.test(v)).slice(0, 500)
+    : [];
+}
+
 
 
 
