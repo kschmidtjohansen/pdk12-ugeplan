@@ -57,6 +57,11 @@ async function getAccessibleDepartments(userId: string) {
   return ids;
 }
 
+/** Demo login accounts are never real employees and must never be notified. */
+const DEMO_EMAILS = new Set(['test@polygongroup.com']);
+
+
+
 /** Shared recipient resolution so preview and send can never drift apart. */
 async function resolveRecipients(
   departmentId: string | null,
@@ -91,12 +96,15 @@ async function resolveRecipients(
   if (recipients.size > 0) {
     const ids = [...recipients];
     const [{ data: profileRows }, { data: tempRoleRows }] = await Promise.all([
-      admin.from('profiles').select('id, is_demo, is_temporary').in('id', ids),
+      admin.from('profiles').select('id, email, is_demo, is_temporary').in('id', ids),
       admin.from('user_roles').select('user_id').eq('role', 'vikar').in('user_id', ids),
     ]);
     const keep = new Set(
-      (profileRows ?? []).filter((p) => !p.is_demo && !p.is_temporary).map((p) => p.id),
+      (profileRows ?? [])
+        .filter((p) => !p.is_demo && !p.is_temporary && !DEMO_EMAILS.has((p.email ?? '').toLowerCase()))
+        .map((p) => p.id),
     );
+
     for (const row of tempRoleRows ?? []) keep.delete(row.user_id);
     for (const id of ids) if (!keep.has(id)) recipients.delete(id);
   }
