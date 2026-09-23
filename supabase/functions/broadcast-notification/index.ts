@@ -57,6 +57,11 @@ async function getAccessibleDepartments(userId: string) {
   return ids;
 }
 
+/** Demo login accounts are never real employees and must never be notified. */
+const DEMO_EMAILS = new Set(['test@polygongroup.com']);
+
+
+
 /** Shared recipient resolution so preview and send can never drift apart. */
 async function resolveRecipients(
   departmentId: string | null,
