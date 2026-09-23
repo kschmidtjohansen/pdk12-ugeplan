@@ -76,6 +76,7 @@ async function sendToUser(userId: string, payload: PushPayload) {
       const statusCode = (err as { statusCode?: number })?.statusCode;
       const message = (err as { message?: string })?.message ?? 'unknown error';
       failed++;
+      lastError = `${statusCode ?? ''} ${message}`.trim().slice(0, 500);
       if (statusCode === 404 || statusCode === 410) {
         await admin.from('push_subscriptions').delete().eq('id', sub.id);
         removed++;
