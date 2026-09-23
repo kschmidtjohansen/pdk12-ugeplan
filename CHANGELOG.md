@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-23 — Sletning af underafdeling viser nu et overblik i stedet for en fejl
+
+- Den blokerende fejlbesked "Kan ikke slettes – har tilknyttede brugere eller data" er fjernet.
+- Ved sletning åbner en bekræftelsesdialog, der viser antal opgaver, brugere, biler, vagter, ferie/fravær, kurser og lagerposter i underafdelingen.
+- Ved bekræftelse løsnes disse poster (`sub_department_id = null`), bil-tilknytninger fjernes, og underafdelingen slettes. Intet indhold slettes — det ligger derefter under hovedafdelingen.
+
+---
+
 ## 2026-09-23 — Vikarer kan ikke længere bookes efter deres udløbsdato
 
 - Medarbejdervælgeren i ugeplanen vurderer nu vikarens udløbsdato i forhold til opgavens dato i stedet for dagens dato. En vikar, der udløber i denne uge, kan derfor ikke længere vælges til opgaver i næste uge.
