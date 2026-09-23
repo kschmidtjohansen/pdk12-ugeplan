@@ -1,3 +1,8 @@
+## 2026-09-23 — Link-valg fjernet fra "Udsend besked"
+
+- `Admin/BroadcastNotification.tsx`: feltet "Link i notifikationen" er fjernet fra udsendelsesdialogen inkl. tilhørende state, `LINK_OPTIONS` og link-linjen i mobil-previewet; beskeder sendes nu altid uden link (`link: null` i payloaden).
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Demo-brugere og vikarer udelukkes fra notifikationer
 
 - `broadcast-notification/index.ts`: modtagerlisten frasorterer nu altid demo-profiler (`is_demo`) og vikarer (`profiles.is_temporary` eller rollen `vikar`) — gælder både personlisten, modtagerantallet og selve udsendelsen.
