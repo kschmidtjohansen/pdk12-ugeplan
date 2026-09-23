@@ -3,6 +3,7 @@
 ## Løbende rettelser ✅
 
 - [x] Vikarers udløbsdato vurderes nu mod opgavens dato i `EmployeeSelector` (`isExpiredOn`), så udløbne vikarer ikke kan bookes til fremtidige dage (2026-09-23).
+- [x] RLS strammet: `cars`, `car_sub_departments` og `user_roles` havde `USING (true)` SELECT-politikker — nu afdelingsbegrænset via `get_user_department_ids()` med undtagelse for admin/super_admin (2026-09-23).
 
 - [x] Vikaroprettelse fejlede med "Adgangskoden er for usikker": auto-genereret kode opfyldte ikke tegnkravene — erstattet med `generateStrongPassword()` i `admin-create-user`, og svag-kode-beskeden vises kun ved manuelt indtastet kode (2026-09-21).
 
