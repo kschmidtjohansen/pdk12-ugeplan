@@ -90,7 +90,17 @@ const BroadcastNotification: React.FC = () => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [peopleSearch, setPeopleSearch] = useState('');
 
+  // Only clear the picked people when the audience really changes (not on the
+  // first render or when the department id is filled in asynchronously).
+  const audienceKeyRef = useRef<string | null>(null);
   useEffect(() => {
+    const key = `${departmentId ?? ''}|${debouncedRolesKey}`;
+    if (audienceKeyRef.current === null) {
+      audienceKeyRef.current = key;
+      return;
+    }
+    if (audienceKeyRef.current === key) return;
+    audienceKeyRef.current = key;
     setSelectedUserIds([]);
     setPeopleSearch('');
   }, [departmentId, debouncedRolesKey]);
