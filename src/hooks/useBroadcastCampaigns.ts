@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface BroadcastCampaign {
@@ -17,12 +17,26 @@ export interface BroadcastCampaign {
   push_no_subscription: number;
 }
 
+export type PushDeliveryStatus =
+  | 'pending'
+  | 'sent'
+  | 'failed'
+  | 'no_subscription'
+  | 'skipped';
+
 export interface BroadcastRecipient {
   user_id: string;
   name: string | null;
   email: string | null;
   read: boolean;
   created_at: string;
+  push_status: PushDeliveryStatus;
+}
+
+export interface ResendResult {
+  retried: number;
+  sent: number;
+  stillFailed: number;
 }
 
 /** History of broadcast messages with their delivery counters. */
