@@ -144,6 +144,33 @@ const BroadcastDeliveryStatus: React.FC = () => {
   const { userDepartments } = useDepartment();
   const { data: campaigns, isLoading, error, refetch, isFetching } = useBroadcastCampaigns();
   const [selected, setSelected] = useState<BroadcastCampaign | null>(null);
+  const [resendTarget, setResendTarget] = useState<BroadcastCampaign | null>(null);
+  const resend = useResendFailed();
+
+  const handleResend = async () => {
+    if (!resendTarget) return;
+    const campaign = resendTarget;
+    try {
+      const result = await resend.mutateAsync(campaign.id);
+      setResendTarget(null);
+      toast({
+        title: t('admin.broadcast.delivery.resendDone'),
+        description: t('admin.broadcast.delivery.resendResult')
+          .replace('{sent}', String(result.sent))
+          .replace('{count}', String(result.retried)),
+      });
+    } catch (err) {
+      setResendTarget(null);
+      const code = (err as { message?: string })?.message ?? '';
+      toast({
+        title: t('admin.broadcast.delivery.resendFailed'),
+        description: code.includes('nothing_to_resend')
+          ? t('admin.broadcast.delivery.resendNothing')
+          : undefined,
+        variant: 'destructive',
+      });
+    }
+  };
 
   const departmentName = (id: string | null) =>
     id
