@@ -161,12 +161,23 @@ const BroadcastDeliveryStatus: React.FC = () => {
       });
     } catch (err) {
       setResendTarget(null);
-      const code = (err as { message?: string })?.message ?? '';
+      let code = (err as { message?: string })?.message ?? '';
+      const context = (err as { context?: Response })?.context;
+      if (context && typeof context.json === 'function') {
+        try {
+          const payload = await context.json();
+          code = String(payload?.error ?? code);
+        } catch {
+          /* keep the original message */
+        }
+      }
       toast({
         title: t('admin.broadcast.delivery.resendFailed'),
         description: code.includes('nothing_to_resend')
           ? t('admin.broadcast.delivery.resendNothing')
-          : undefined,
+          : code.includes('forbidden')
+            ? t('admin.broadcast.errorForbidden')
+            : undefined,
         variant: 'destructive',
       });
     }
