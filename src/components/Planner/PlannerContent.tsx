@@ -144,16 +144,20 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     <div className="space-y-4 pb-4">
       {/* Unassigned Resources */}
       {(canEdit || canPublishTasks) && (
-        <PlannerWidgetErrorBoundary label="Unassigned Resources">
-          <UnassignedResourcesSection
-            assignments={weekAssignments}
-            employees={employees}
-            cars={cars}
-            vacations={vacations}
-            weekDates={weekDates}
-            crossBusyByDate={crossBusyByDate}
-          />
-        </PlannerWidgetErrorBoundary>
+        /* min-height reserves the collapsed card's space so the week list below
+           doesn't jump when employees/vacations/cross-busy data arrives. */
+        <div className="min-h-[72px]">
+          <PlannerWidgetErrorBoundary label="Unassigned Resources">
+            <UnassignedResourcesSection
+              assignments={weekAssignments}
+              employees={employees}
+              cars={cars}
+              vacations={vacations}
+              weekDates={weekDates}
+              crossBusyByDate={crossBusyByDate}
+            />
+          </PlannerWidgetErrorBoundary>
+        </div>
       )}
 
       {/* Expand/Collapse all — sits with the day list */}
