@@ -1,3 +1,8 @@
+## 2026-09-23 — Afdelingsvælger flyttet op ved overskriften i "Udsend besked"
+
+- `Admin/BroadcastNotification.tsx`: afdelingsvælgeren er fjernet fra selve formularen og ligger nu kompakt (h-8, w-40) i korthovedet på linje med titlen, ved siden af "Send test til min telefon".
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Personlisten i "Udsend besked" kan minimeres
 
 - `Admin/BroadcastNotification.tsx`: "Enkelte personer" er nu foldet sammen som standard og kan foldes ud via overskriften; antal valgte personer vises som badge på overskriften, og "Ryd valg" er tilgængelig også når listen er lukket.
