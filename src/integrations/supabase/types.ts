@@ -866,6 +866,10 @@ export type Database = {
           is_demo: boolean
           link: string | null
           message: string
+          push_attempts: number
+          push_last_error: string | null
+          push_status: string
+          push_updated_at: string | null
           read: boolean
           title: string
           type: string
@@ -879,6 +883,10 @@ export type Database = {
           is_demo?: boolean
           link?: string | null
           message: string
+          push_attempts?: number
+          push_last_error?: string | null
+          push_status?: string
+          push_updated_at?: string | null
           read?: boolean
           title: string
           type: string
@@ -892,6 +900,10 @@ export type Database = {
           is_demo?: boolean
           link?: string | null
           message?: string
+          push_attempts?: number
+          push_last_error?: string | null
+          push_status?: string
+          push_updated_at?: string | null
           read?: boolean
           title?: string
           type?: string
@@ -1710,6 +1722,7 @@ export type Database = {
           created_at: string
           email: string
           name: string
+          push_status: string
           read: boolean
           user_id: string
         }[]
@@ -2153,6 +2166,10 @@ export type Database = {
         Returns: undefined
       }
       perform_database_maintenance: { Args: never; Returns: Json }
+      recalc_broadcast_stats: {
+        Args: { p_campaign_id: string }
+        Returns: undefined
+      }
       refresh_materialized_views: { Args: never; Returns: undefined }
       reset_demo_data: { Args: never; Returns: Json }
       run_automated_maintenance: { Args: never; Returns: Json }

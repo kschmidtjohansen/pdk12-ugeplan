@@ -439,7 +439,21 @@ export const admin = {
       statusRead: 'Læst i appen',
       statusUnread: 'Ikke læst endnu',
       refresh: 'Opdater',
-      noRecipients: 'Ingen modtagere fundet.'
+      noRecipients: 'Ingen modtagere fundet.',
+      resend: 'Send igen til fejlede',
+      resendTitle: 'Send beskeden igen?',
+      resendBody: 'Beskeden sendes igen til {count} modtagere, hvor leveringen fejlede. Ingen andre får den.',
+      resendConfirm: 'Send igen',
+      resendCancel: 'Fortryd',
+      resendDone: 'Beskeden er sendt igen',
+      resendResult: '{sent} af {count} fik beskeden denne gang.',
+      resendFailed: 'Kunne ikke sende beskeden igen',
+      resendNothing: 'Der er ingen fejlede modtagere lige nu.',
+      statusSent: 'Leveret',
+      statusFailedPush: 'Fejlet',
+      statusNoPush: 'Mangler app',
+      statusSkipped: 'Fravalgt',
+      statusPending: 'Afventer'
     }
   },
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, CheckCircle2, XCircle, Clock, BellOff, Smartphone, Eye, RefreshCw, Loader2 } from 'lucide-react';
+import { BarChart3, CheckCircle2, XCircle, Clock, BellOff, Smartphone, Eye, RefreshCw, Loader2, Send } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ErrorState from '@/components/shared/ErrorState';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import { toast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import {
   useBroadcastCampaigns,
   useBroadcastRecipients,
+  useResendFailed,
   type BroadcastCampaign,
+  type PushDeliveryStatus,
 } from '@/hooks/useBroadcastCampaigns';
 
 const formatDateTime = (iso: string) =>
@@ -46,6 +59,15 @@ const Stat: React.FC<StatProps> = ({ icon, label, value, className }) => (
     <span className="hidden sm:inline font-normal">{label}</span>
   </span>
 );
+
+const pushStatusStyles: Record<PushDeliveryStatus, { key: string; className: string }> = {
+  sent: { key: 'statusSent', className: 'bg-success-soft text-success-soft-foreground' },
+  failed: { key: 'statusFailedPush', className: 'bg-destructive-soft text-destructive' },
+  no_subscription: { key: 'statusNoPush', className: 'bg-warning-soft text-warning-soft-foreground' },
+  skipped: { key: 'statusSkipped', className: 'bg-warning-soft text-warning-soft-foreground' },
+  pending: { key: 'statusPending', className: 'bg-muted text-muted-foreground' },
+};
+
 
 const RecipientsDialog: React.FC<{
   campaign: BroadcastCampaign | null;
@@ -81,18 +103,33 @@ const RecipientsDialog: React.FC<{
                     <p className="truncate text-xs text-muted-foreground">{r.email}</p>
                   )}
                 </div>
-                <Badge
-                  variant="secondary"
-                  className={
-                    r.read
-                      ? 'bg-success-soft text-success-soft-foreground shrink-0'
-                      : 'shrink-0 text-muted-foreground'
-                  }
-                >
-                  {r.read
-                    ? t('admin.broadcast.delivery.statusRead')
-                    : t('admin.broadcast.delivery.statusUnread')}
-                </Badge>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <Badge
+                    variant="secondary"
+                    className={
+                      pushStatusStyles[r.push_status ?? 'pending']?.className ??
+                      'bg-muted text-muted-foreground'
+                    }
+                  >
+                    {t(
+                      `admin.broadcast.delivery.${
+                        pushStatusStyles[r.push_status ?? 'pending']?.key ?? 'statusPending'
+                      }`
+                    )}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className={
+                      r.read
+                        ? 'bg-success-soft text-success-soft-foreground'
+                        : 'text-muted-foreground'
+                    }
+                  >
+                    {r.read
+                      ? t('admin.broadcast.delivery.statusRead')
+                      : t('admin.broadcast.delivery.statusUnread')}
+                  </Badge>
+                </div>
               </li>
             ))}
           </ul>
@@ -107,6 +144,44 @@ const BroadcastDeliveryStatus: React.FC = () => {
   const { userDepartments } = useDepartment();
   const { data: campaigns, isLoading, error, refetch, isFetching } = useBroadcastCampaigns();
   const [selected, setSelected] = useState<BroadcastCampaign | null>(null);
+  const [resendTarget, setResendTarget] = useState<BroadcastCampaign | null>(null);
+  const resend = useResendFailed();
+
+  const handleResend = async () => {
+    if (!resendTarget) return;
+    const campaign = resendTarget;
+    try {
+      const result = await resend.mutateAsync(campaign.id);
+      setResendTarget(null);
+      toast({
+        title: t('admin.broadcast.delivery.resendDone'),
+        description: t('admin.broadcast.delivery.resendResult')
+          .replace('{sent}', String(result.sent))
+          .replace('{count}', String(result.retried)),
+      });
+    } catch (err) {
+      setResendTarget(null);
+      let code = (err as { message?: string })?.message ?? '';
+      const context = (err as { context?: Response })?.context;
+      if (context && typeof context.json === 'function') {
+        try {
+          const payload = await context.json();
+          code = String(payload?.error ?? code);
+        } catch {
+          /* keep the original message */
+        }
+      }
+      toast({
+        title: t('admin.broadcast.delivery.resendFailed'),
+        description: code.includes('nothing_to_resend')
+          ? t('admin.broadcast.delivery.resendNothing')
+          : code.includes('forbidden')
+            ? t('admin.broadcast.errorForbidden')
+            : undefined,
+        variant: 'destructive',
+      });
+    }
+  };
 
   const departmentName = (id: string | null) =>
     id
@@ -161,15 +236,33 @@ const BroadcastDeliveryStatus: React.FC = () => {
                   <p className="truncate text-sm font-semibold">{c.title}</p>
                   <p className="line-clamp-2 text-sm text-muted-foreground">{c.message}</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="touch-target shrink-0"
-                  onClick={() => setSelected(c)}
-                >
-                  <Eye className="mr-1.5 h-3.5 w-3.5" />
-                  {t('admin.broadcast.delivery.details')}
-                </Button>
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  {c.push_failed > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="touch-target"
+                      onClick={() => setResendTarget(c)}
+                      disabled={resend.isPending}
+                    >
+                      {resend.isPending && resendTarget?.id === c.id ? (
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Send className="mr-1.5 h-3.5 w-3.5" />
+                      )}
+                      {t('admin.broadcast.delivery.resend')}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="touch-target"
+                    onClick={() => setSelected(c)}
+                  >
+                    <Eye className="mr-1.5 h-3.5 w-3.5" />
+                    {t('admin.broadcast.delivery.details')}
+                  </Button>
+                </div>
               </div>
 
               <p className="mt-2 text-xs text-muted-foreground">
@@ -231,6 +324,39 @@ const BroadcastDeliveryStatus: React.FC = () => {
       </CardContent>
 
       <RecipientsDialog campaign={selected} onClose={() => setSelected(null)} />
+
+      <AlertDialog
+        open={!!resendTarget}
+        onOpenChange={(open) => !open && !resend.isPending && setResendTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('admin.broadcast.delivery.resendTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('admin.broadcast.delivery.resendBody').replace(
+                '{count}',
+                String(resendTarget?.push_failed ?? 0)
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="touch-target" disabled={resend.isPending}>
+              {t('admin.broadcast.delivery.resendCancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="touch-target"
+              disabled={resend.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleResend();
+              }}
+            >
+              {resend.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+              {t('admin.broadcast.delivery.resendConfirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

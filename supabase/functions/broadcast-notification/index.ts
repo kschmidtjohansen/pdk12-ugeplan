@@ -29,6 +29,23 @@ async function getRoles(userId: string) {
   return (data ?? []).map((r) => r.role as string);
 }
 
+/** Internal URL + shared secret used to invoke the push service directly. */
+async function getPushConfig() {
+  const { data } = await admin
+    .from('app_internal_config')
+    .select('key, value')
+    .in('key', ['push_trigger_secret', 'push_function_url']);
+
+  const map = new Map((data ?? []).map((r) => [r.key as string, r.value as string]));
+  const url = map.get('push_function_url');
+  const secret = map.get('push_trigger_secret');
+  if (!url || !secret) {
+    console.error('resend: push configuration missing');
+    return null;
+  }
+  return { url, secret };
+}
+
 async function getAccessibleDepartments(userId: string) {
   const [{ data: profile }, { data: access }] = await Promise.all([
     admin.from('profiles').select('home_department_id').eq('id', userId).maybeSingle(),
@@ -232,6 +249,74 @@ Deno.serve(async (req) => {
 
       return json({ ok: true, recipients: rows.length, campaignId: campaign.id });
 
+    }
+
+    if (mode === 'resend_failed') {
+      const campaignId = String(body?.campaignId ?? '');
+      if (!campaignId) return json({ error: 'invalid_content' }, 400);
+
+      const { data: campaign } = await admin
+        .from('broadcast_campaigns')
+        .select('id, department_id')
+        .eq('id', campaignId)
+        .maybeSingle();
+
+      if (!campaign) return json({ error: 'not_found' }, 404);
+
+      if (!isSuperAdmin) {
+        const accessible = await getAccessibleDepartments(actor.id);
+        if (!campaign.department_id || !accessible.has(campaign.department_id)) {
+          return json({ error: 'forbidden_department' }, 403);
+        }
+      }
+
+      const { data: failedRows, error: failedError } = await admin
+        .from('notifications')
+        .select('id')
+        .eq('broadcast_id', campaignId)
+        .eq('push_status', 'failed');
+
+      if (failedError) throw failedError;
+      if (!failedRows || failedRows.length === 0) {
+        return json({ error: 'nothing_to_resend' }, 400);
+      }
+
+      const pushConfig = await getPushConfig();
+      if (!pushConfig) return json({ error: 'push_not_configured' }, 500);
+
+      let sent = 0;
+      for (let i = 0; i < failedRows.length; i += 10) {
+        const chunk = failedRows.slice(i, i + 10);
+        const results = await Promise.all(
+          chunk.map(async (row) => {
+            try {
+              const res = await fetch(pushConfig.url, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-push-trigger-secret': pushConfig.secret,
+                },
+                body: JSON.stringify({ notification_id: row.id }),
+              });
+              const payload = await res.json().catch(() => ({}));
+              return res.ok && (payload?.sent ?? 0) > 0;
+            } catch (err) {
+              console.error('resend: push call failed', (err as Error)?.message);
+              return false;
+            }
+          }),
+        );
+        sent += results.filter(Boolean).length;
+      }
+
+      await admin.rpc('recalc_broadcast_stats', { p_campaign_id: campaignId });
+
+      return json({
+        ok: true,
+        retried: failedRows.length,
+        sent,
+        stillFailed: failedRows.length - sent,
+      });
     }
 
     return json({ error: 'invalid_mode' }, 400);

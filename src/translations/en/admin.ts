@@ -438,7 +438,21 @@ export const admin = {
       statusRead: 'Read in app',
       statusUnread: 'Not read yet',
       refresh: 'Refresh',
-      noRecipients: 'No recipients found.'
+      noRecipients: 'No recipients found.',
+      resend: 'Resend to failed',
+      resendTitle: 'Resend the message?',
+      resendBody: 'The message is sent again to {count} recipients whose delivery failed. Nobody else receives it.',
+      resendConfirm: 'Resend',
+      resendCancel: 'Cancel',
+      resendDone: 'The message was resent',
+      resendResult: '{sent} of {count} received it this time.',
+      resendFailed: 'Could not resend the message',
+      resendNothing: 'There are no failed recipients right now.',
+      statusSent: 'Delivered',
+      statusFailedPush: 'Failed',
+      statusNoPush: 'No app',
+      statusSkipped: 'Opted out',
+      statusPending: 'Pending'
     }
   },
 };

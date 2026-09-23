@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface BroadcastCampaign {
@@ -17,12 +17,26 @@ export interface BroadcastCampaign {
   push_no_subscription: number;
 }
 
+export type PushDeliveryStatus =
+  | 'pending'
+  | 'sent'
+  | 'failed'
+  | 'no_subscription'
+  | 'skipped';
+
 export interface BroadcastRecipient {
   user_id: string;
   name: string | null;
   email: string | null;
   read: boolean;
   created_at: string;
+  push_status: PushDeliveryStatus;
+}
+
+export interface ResendResult {
+  retried: number;
+  sent: number;
+  stillFailed: number;
 }
 
 /** History of broadcast messages with their delivery counters. */
@@ -58,3 +72,31 @@ export const useBroadcastRecipients = (campaignId: string | null) =>
     enabled: !!campaignId,
     staleTime: 30 * 1000,
   });
+
+/** Resends a broadcast to the recipients whose push delivery failed. */
+export const useResendFailed = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (campaignId: string): Promise<ResendResult> => {
+      const { data, error } = await supabase.functions.invoke('broadcast-notification', {
+        body: { mode: 'resend_failed', campaignId },
+      });
+      if (error) throw error;
+      return {
+        retried: data?.retried ?? 0,
+        sent: data?.sent ?? 0,
+        stillFailed: data?.stillFailed ?? 0,
+      };
+    },
+    onSuccess: (_result, campaignId) => {
+      queryClient.invalidateQueries({ queryKey: ['broadcast_campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['broadcast_recipients', campaignId] });
+      // Counters are written asynchronously by the push service.
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['broadcast_campaigns'] });
+        queryClient.invalidateQueries({ queryKey: ['broadcast_recipients', campaignId] });
+      }, 4000);
+    },
+  });
+};

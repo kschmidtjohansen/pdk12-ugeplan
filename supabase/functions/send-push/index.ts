@@ -52,11 +52,14 @@ async function sendToUser(userId: string, payload: PushPayload) {
     .eq('user_id', userId);
 
   if (error) throw error;
-  if (!subs || subs.length === 0) return { sent: 0, removed: 0, failed: 0, hadSubscription: false };
+  if (!subs || subs.length === 0) {
+    return { sent: 0, removed: 0, failed: 0, hadSubscription: false, lastError: null as string | null };
+  }
 
   let sent = 0;
   let removed = 0;
   let failed = 0;
+  let lastError: string | null = null;
 
   for (const sub of subs) {
     try {
@@ -73,6 +76,7 @@ async function sendToUser(userId: string, payload: PushPayload) {
       const statusCode = (err as { statusCode?: number })?.statusCode;
       const message = (err as { message?: string })?.message ?? 'unknown error';
       failed++;
+      lastError = `${statusCode ?? ''} ${message}`.trim().slice(0, 500);
       if (statusCode === 404 || statusCode === 410) {
         await admin.from('push_subscriptions').delete().eq('id', sub.id);
         removed++;
@@ -85,21 +89,35 @@ async function sendToUser(userId: string, payload: PushPayload) {
     }
   }
 
-  return { sent, removed, failed, hadSubscription: true };
+  return { sent, removed, failed, hadSubscription: true, lastError };
 }
 
-/** Records the outcome of one broadcast recipient on its campaign. */
-async function recordBroadcastOutcome(
-  campaignId: string,
-  outcome: { sent?: number; failed?: number; skipped?: number; noSub?: number },
+type DeliveryStatus = 'sent' | 'failed' | 'skipped' | 'no_subscription';
+
+/**
+ * Stores the delivery outcome on the notification row and recomputes the
+ * campaign counters, so retries never double-count a recipient.
+ */
+async function recordDelivery(
+  notificationId: string,
+  campaignId: string | null,
+  status: DeliveryStatus,
+  attempts: number,
+  lastError: string | null,
 ) {
-  await admin.rpc('increment_broadcast_stats', {
-    p_campaign_id: campaignId,
-    p_sent: outcome.sent ?? 0,
-    p_failed: outcome.failed ?? 0,
-    p_skipped: outcome.skipped ?? 0,
-    p_no_sub: outcome.noSub ?? 0,
-  });
+  await admin
+    .from('notifications')
+    .update({
+      push_status: status,
+      push_attempts: attempts + 1,
+      push_last_error: lastError,
+      push_updated_at: new Date().toISOString(),
+    })
+    .eq('id', notificationId);
+
+  if (campaignId) {
+    await admin.rpc('recalc_broadcast_stats', { p_campaign_id: campaignId });
+  }
 }
 
 
@@ -131,7 +149,7 @@ Deno.serve(async (req) => {
 
       const { data: notification, error } = await admin
         .from('notifications')
-        .select('id, user_id, title, message, link, type, is_demo, broadcast_id')
+        .select('id, user_id, title, message, link, type, is_demo, broadcast_id, push_attempts')
         .eq('id', notificationId)
         .maybeSingle();
 
@@ -143,13 +161,14 @@ Deno.serve(async (req) => {
       }
 
       const campaignId: string | null = notification.broadcast_id ?? null;
+      const attempts: number = notification.push_attempts ?? 0;
 
       const allowed = await userAllowsCategory(
         notification.user_id,
         categoryForType(notification.type),
       );
       if (!allowed) {
-        if (campaignId) await recordBroadcastOutcome(campaignId, { skipped: 1 });
+        await recordDelivery(notification.id, campaignId, 'skipped', attempts, null);
         return new Response(JSON.stringify({ skipped: true, reason: 'preference-off' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -162,14 +181,15 @@ Deno.serve(async (req) => {
         tag: `${notification.type}-${notification.id}`,
       });
 
-      if (campaignId) {
-        await recordBroadcastOutcome(campaignId, {
-          // One recipient counts as reached when at least one device accepted it.
-          sent: result.sent > 0 ? 1 : 0,
-          failed: result.sent === 0 && result.failed > 0 ? 1 : 0,
-          noSub: result.hadSubscription ? 0 : 1,
-        });
-      }
+      // One recipient counts as reached when at least one device accepted it.
+      const status: DeliveryStatus = result.sent > 0
+        ? 'sent'
+        : !result.hadSubscription
+          ? 'no_subscription'
+          : 'failed';
+
+      await recordDelivery(notification.id, campaignId, status, attempts, result.lastError ?? null);
+
 
       return new Response(JSON.stringify({ ok: true, ...result }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

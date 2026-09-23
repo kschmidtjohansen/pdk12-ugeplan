@@ -1,3 +1,15 @@
+## 2026-09-23 — Genudsend besked til modtagere hvor leveringen fejlede
+
+- Migration: `notifications` har nu `push_status` (`pending|sent|failed|no_subscription|skipped`), `push_attempts`, `push_last_error`, `push_updated_at` samt et delvist indeks på `(broadcast_id, push_status)`.
+- Ny `public.recalc_broadcast_stats(uuid)` (SECURITY DEFINER, `search_path = ''`, EXECUTE kun til `service_role`) genberegner kampagnens tællere ud fra rrækkernes status, så genforsøg aldrig dobbelttæller.
+- `get_broadcast_recipients` returnerer nu også `push_status`.
+- `send-push`: skriver resultatet per modtager på notifikationsrækken (inkl. seneste fejltekst) og kalder `recalc_broadcast_stats` i stedet for `increment_broadcast_stats`.
+- `broadcast-notification`: ny `mode: 'resend_failed'` med rolle- og afdelingskontrol, som kun gensender til notifikationer med `push_status = 'failed'` og returnerer `{retried, sent, stillFailed}`.
+- UI: knap "Send igen til fejlede" på hver besked i Leveringsstatus (kun når der er fejlede), bekræftelsesdialog med antal, spinner og resultat-toast; modtagerlisten viser leveringsstatus per person.
+- Nye DA/EN-tekster under `admin.broadcast.delivery` (`resend*`, `status*`).
+- Bemærk: beskeder udsendt før denne ændring har ingen status per modtager og kan derfor ikke genudsendes målrettet.
+- Verificeret: typecheck og lint uden fejl; begge edge functions udrullet.
+
 ## 2026-09-23 — Minimerbare kort på vagtplanen
 
 - "Vagter i dag" og "Find nærmeste vagtperson" på `/duty` kan nu foldes sammen til én kompakt linje via en klikbar overskrift med chevron.
