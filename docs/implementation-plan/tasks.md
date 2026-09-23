@@ -2,6 +2,8 @@
 
 ## Løbende rettelser ✅
 
+- [x] CLS-optimering af `/planner`: reserveret plads til ressourcesektion og fraværsrække, korrekt skeleton-højde, filterpanel som overlay, samt CLS-attribution i web vitals-målingen og admin-visningen (2026-09-23).
+
 - [x] Sletning af underafdeling: bekræftelsesdialog med optælling af opgaver/brugere/biler m.m., referencer løsnes i stedet for at blokere (2026-09-23).
 
 - [x] Vikarers udløbsdato vurderes nu mod opgavens dato i `EmployeeSelector` (`isExpiredOn`), så udløbne vikarer ikke kan bookes til fremtidige dage (2026-09-23).
