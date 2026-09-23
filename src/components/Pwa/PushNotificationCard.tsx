@@ -1,16 +1,22 @@
-import { Bell, BellOff, BellRing, Send } from 'lucide-react';
+import { Bell, BellOff, BellRing, Send, Share, Plus, MoreVertical, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { usePwaInstall } from '@/hooks/usePwaInstall';
 import { useTranslation } from '@/context/TranslationContext';
 
 export const PushNotificationCard = () => {
-  const { status, busy, enable, disable, sendTest } = usePushNotifications();
+  const { status, busy, isIos, browser, installed, permission, enable, disable, sendTest } =
+    usePushNotifications();
+  const { canPrompt, promptInstall } = usePwaInstall();
   const { currentLanguage } = useTranslation();
   const { toast } = useToast();
   const isDa = currentLanguage === 'da';
 
   if (status === 'unsupported') return null;
+
+  const needsInstall = status === 'needs-install';
+  const iosWrongBrowser = isIos && browser !== 'safari';
 
   const handleEnable = async () => {
     const result = await enable();
@@ -56,6 +62,81 @@ export const PushNotificationCard = () => {
     }
   };
 
+  const installSteps = isIos
+    ? iosWrongBrowser
+      ? [
+          {
+            icon: Share,
+            text: isDa
+              ? 'Åbn pdk12.dk i Safari — installation virker kun fra Safari på iPhone.'
+              : 'Open pdk12.dk in Safari — installing only works from Safari on iPhone.',
+          },
+          {
+            icon: Plus,
+            text: isDa
+              ? 'Tryk på Del-ikonet og vælg "Føj til hjemmeskærm".'
+              : 'Tap the Share icon and choose "Add to Home Screen".',
+          },
+        ]
+      : [
+          {
+            icon: Share,
+            text: isDa
+              ? 'Tryk på Del-ikonet nederst i Safari.'
+              : 'Tap the Share icon at the bottom of Safari.',
+          },
+          {
+            icon: Plus,
+            text: isDa ? 'Vælg "Føj til hjemmeskærm" → "Tilføj".' : 'Choose "Add to Home Screen" → "Add".',
+          },
+          {
+            icon: Bell,
+            text: isDa
+              ? 'Åbn appen fra hjemmeskærmen og slå notifikationer til her.'
+              : 'Open the app from your home screen and turn on notifications here.',
+          },
+        ]
+    : [
+        {
+          icon: MoreVertical,
+          text:
+            browser === 'edge'
+              ? isDa
+                ? 'Åbn menuen (⋯) nederst i Edge.'
+                : 'Open the (⋯) menu at the bottom of Edge.'
+              : isDa
+                ? 'Åbn menuen (⋮) øverst i Chrome.'
+                : 'Open the (⋮) menu at the top of Chrome.',
+        },
+        {
+          icon: Download,
+          text: isDa
+            ? 'Vælg "Installer app" eller "Føj til telefon".'
+            : 'Choose "Install app" or "Add to phone".',
+        },
+        {
+          icon: Bell,
+          text: isDa
+            ? 'Åbn appen fra startskærmen og slå notifikationer til her.'
+            : 'Open the app from your home screen and turn on notifications here.',
+        },
+      ];
+
+  const yes = isDa ? 'Ja' : 'Yes';
+  const no = isDa ? 'Nej' : 'No';
+  const permissionLabel =
+    permission === 'granted'
+      ? isDa
+        ? 'Givet'
+        : 'Granted'
+      : permission === 'denied'
+        ? isDa
+          ? 'Afvist'
+          : 'Denied'
+        : isDa
+          ? 'Ikke spurgt'
+          : 'Not asked';
+
   return (
     <div className="mt-4 rounded-xl border border-border/60 bg-card p-4">
       <div className="flex items-start gap-3">
@@ -77,18 +158,46 @@ export const PushNotificationCard = () => {
                 : 'You get alerts for leave requests, duty swaps, sick days and case messages.'
               : status === 'blocked'
                 ? isDa
-                  ? 'Notifikationer er blokeret for dette websted. Tillad dem i browserens indstillinger og prøv igen.'
-                  : 'Notifications are blocked for this site. Allow them in your browser settings and try again.'
-                : status === 'ios-needs-install'
+                  ? 'Notifikationer er blokeret for dette websted. Tillad dem i telefonens indstillinger for appen og prøv igen.'
+                  : 'Notifications are blocked. Allow them in your phone settings for this app and try again.'
+                : needsInstall
                   ? isDa
-                    ? 'På iPhone skal appen først lægges på hjemmeskærmen via Safari → Del → "Føj til hjemmeskærm". Derefter kan notifikationer slås til.'
-                    : 'On iPhone you must first add the app to your home screen via Safari → Share → "Add to Home Screen".'
+                    ? 'Appen skal først ligge på hjemmeskærmen, før telefonen kan sende dig beskeder.'
+                    : 'The app must be on your home screen before your phone can send you alerts.'
                   : isDa
                     ? 'Slå til, så får du besked, også når appen er lukket.'
                     : 'Turn on to get alerts even when the app is closed.'}
           </p>
 
-          {status !== 'ios-needs-install' && (
+          {needsInstall && (
+            <>
+              <ol className="mt-3 space-y-2">
+                {installSteps.map((step, index) => (
+                  <li key={index} className="flex items-start gap-2 text-xs text-foreground">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
+                      <step.icon className="h-3.5 w-3.5 text-primary" aria-hidden />
+                    </span>
+                    <span className="pt-0.5">{step.text}</span>
+                  </li>
+                ))}
+              </ol>
+              {canPrompt && (
+                <div className="mt-3">
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="min-h-[44px] gap-2"
+                    onClick={() => void promptInstall()}
+                  >
+                    <Download className="h-4 w-4" aria-hidden />
+                    {isDa ? 'Installer app nu' : 'Install app now'}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+
+          {!needsInstall && (
             <div className="mt-3 flex flex-wrap gap-2">
               {status === 'on' ? (
                 <>
@@ -128,6 +237,12 @@ export const PushNotificationCard = () => {
               )}
             </div>
           )}
+
+          <p className="mt-3 border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
+            {isDa ? 'Installeret' : 'Installed'}: {installed ? yes : no} ·{' '}
+            {isDa ? 'Tilladelse' : 'Permission'}: {permissionLabel} ·{' '}
+            {isDa ? 'Tilmeldt' : 'Subscribed'}: {status === 'on' ? yes : no}
+          </p>
         </div>
       </div>
     </div>
