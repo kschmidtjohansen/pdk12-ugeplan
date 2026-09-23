@@ -412,6 +412,13 @@ export const admin = {
     sent: 'Notification sent',
     sentCount: 'Sent to {count} employees.',
     sendFailed: 'Could not send the notification',
+    errorRateLimited: 'Too many requests right now. Try again shortly.',
+    errorPaymentRequired: 'No AI credits left. Top up under Settings.',
+    errorMissingKey: 'The AI service is not configured. Contact IT support.',
+    errorGateway: 'The AI service did not respond. Try again shortly.',
+    errorEmpty: 'No text was returned. Try writing a bit more.',
+    errorForbidden: 'You do not have access to send to this department.',
+
     delivery: {
       title: 'Delivery status',
       description: 'See how previous messages reached the employees.',
