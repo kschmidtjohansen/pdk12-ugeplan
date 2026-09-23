@@ -57,7 +57,8 @@ export const useDutyEmployees = () => {
         .select(`
           id, name, email, phone, job_title, on_leave, status, notes, avatar_url,
           has_asbestos_certificate, has_pcb_certificate, has_trailer_license,
-          has_drivers_license, has_forklift_license, home_department_id
+          has_drivers_license, has_forklift_license, home_department_id,
+          home_postcode, home_address, lat, lng
         `)
         .eq('is_demo', false)
         .order('name', { ascending: true });
