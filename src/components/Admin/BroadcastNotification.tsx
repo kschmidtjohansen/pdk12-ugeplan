@@ -149,7 +149,7 @@ const BroadcastNotification: React.FC = () => {
     } catch (err) {
       toast({
         title: t('admin.broadcast.sendFailed'),
-        description: (err as { message?: string })?.message,
+        description: await describeError(err),
         variant: 'destructive',
       });
     } finally {
