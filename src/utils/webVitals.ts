@@ -5,7 +5,19 @@
  *
  * Initialised once from `src/App.tsx`.
  */
-import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from 'web-vitals';
+import {
+  onCLS,
+  onFCP,
+  onINP,
+  onLCP,
+  onTTFB,
+  type CLSMetricWithAttribution,
+  type INPMetricWithAttribution,
+  type LCPMetricWithAttribution,
+  type MetricWithAttribution,
+} from 'web-vitals/attribution';
+
+type Metric = MetricWithAttribution;
 import { supabase } from '@/integrations/supabase/client';
 
 type QueuedMetric = {
@@ -19,6 +31,8 @@ type QueuedMetric = {
   connection_type: string | null;
   user_agent: string;
   session_id: string;
+  attribution_target: string | null;
+  attribution_detail: string | null;
 };
 
 const SESSION_KEY = 'wv_session_id';
@@ -79,6 +93,33 @@ const isPlausible = (metric: Metric): boolean => {
   return !(Number.isNaN(metric.value) || metric.value < 0 || (max !== undefined && metric.value > max));
 };
 
+/**
+ * Which element caused the metric. For CLS this is the element that moved the
+ * most — that is what we need in order to hunt down layout shifts.
+ */
+const getAttribution = (metric: Metric): { target: string | null; detail: string | null } => {
+  try {
+    if (metric.name === 'CLS') {
+      const a = (metric as CLSMetricWithAttribution).attribution;
+      return {
+        target: a?.largestShiftTarget?.slice(0, 300) ?? null,
+        detail: a?.largestShiftValue != null ? `value=${a.largestShiftValue.toFixed(4)}` : null,
+      };
+    }
+    if (metric.name === 'LCP') {
+      const a = (metric as LCPMetricWithAttribution).attribution;
+      return { target: a?.target?.slice(0, 300) ?? null, detail: a?.url?.slice(0, 300) ?? null };
+    }
+    if (metric.name === 'INP') {
+      const a = (metric as INPMetricWithAttribution).attribution;
+      return { target: a?.interactionTarget?.slice(0, 300) ?? null, detail: a?.interactionType ?? null };
+    }
+  } catch {
+    /* attribution is best-effort telemetry */
+  }
+  return { target: null, detail: null };
+};
+
 const handleMetric = (metric: Metric) => {
   if (!isPlausible(metric)) {
     if (import.meta.env.DEV) {
@@ -87,6 +128,7 @@ const handleMetric = (metric: Metric) => {
     return;
   }
   const route = window.location.pathname;
+  const { target, detail } = getAttribution(metric);
   if (import.meta.env.DEV) {
     console.log(
       `[WebVitals] ${metric.name}=${metric.value.toFixed(2)} (${metric.rating}) on ${route}`
@@ -110,6 +152,8 @@ const handleMetric = (metric: Metric) => {
       connection_type: getConnectionType(),
       user_agent: navigator.userAgent.slice(0, 500),
       session_id: getSessionId(),
+      attribution_target: target,
+      attribution_detail: detail,
     });
   });
 };

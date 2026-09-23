@@ -81,7 +81,7 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   const isOpen = expanded || hasFilters;
 
   return (
-    <div className="space-y-2">
+    <div className="relative space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="outline"
@@ -134,7 +134,9 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
       </div>
 
       {isOpen && (
-        <div className="rounded-xl border border-border bg-card p-3 space-y-3">
+        /* Overlay instead of inline expansion — keeps the week list from being
+           pushed down (layout shift) when the filter panel opens. */
+        <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-card p-3 space-y-3 shadow-lg">
           <div className="flex flex-col sm:flex-row gap-2">
             <Popover open={open} onOpenChange={setOpen} modal>
               <PopoverTrigger asChild>

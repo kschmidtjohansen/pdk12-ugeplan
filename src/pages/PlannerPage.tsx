@@ -768,7 +768,7 @@ const PlannerPage: React.FC = () => {
         {/* Main Content — skeleton reserves the same vertical space as the week list */}
         {loading ? (
           <div aria-label={`${t('common.loading')}...`}>
-            <ListSkeleton rowCount={7} rowHeight={72} className="p-0 sm:p-0" />
+            <ListSkeleton rowCount={5} rowHeight={168} variant="card" className="p-0 sm:p-0" />
           </div>
         ) : (
           <PlannerContent 

@@ -12,6 +12,7 @@ type Row = {
   metric_value: number;
   rating: 'good' | 'needs-improvement' | 'poor' | null;
   route: string;
+  attribution_target: string | null;
 };
 
 const METRICS = ['LCP', 'INP', 'CLS', 'FCP', 'TTFB'] as const;
@@ -69,7 +70,7 @@ const WebVitalsOverview: React.FC = () => {
       while (from < MAX_ROWS) {
         const { data, error } = await supabase
           .from('web_vitals_metrics')
-          .select('id, created_at, metric_name, metric_value, rating, route')
+          .select('id, created_at, metric_name, metric_value, rating, route, attribution_target')
           .gte('created_at', since)
           .order('created_at', { ascending: false })
           .range(from, from + PAGE_SIZE - 1);
@@ -139,6 +140,31 @@ const WebVitalsOverview: React.FC = () => {
       }))
       .filter((b) => b.metric !== 'CLS') // CLS is unitless and ranks differently
       .sort((a, b) => b.p75 - a.p75)
+      .slice(0, 10);
+  }, [filtered]);
+
+  // Which elements move the most (CLS attribution) — points straight at the
+  // component responsible for a layout shift.
+  const topShiftTargets = useMemo(() => {
+    const byKey = new Map<string, { route: string; target: string; values: number[] }>();
+    for (const r of filtered) {
+      if (r.metric_name !== 'CLS' || !r.attribution_target) continue;
+      const k = `${r.route}|${r.attribution_target}`;
+      let bucket = byKey.get(k);
+      if (!bucket) {
+        bucket = { route: r.route, target: r.attribution_target, values: [] };
+        byKey.set(k, bucket);
+      }
+      bucket.values.push(r.metric_value);
+    }
+    return Array.from(byKey.values())
+      .map((b) => ({
+        route: b.route,
+        target: b.target,
+        p75: percentile(b.values.sort((a, b) => a - b), 75),
+        samples: b.values.length,
+      }))
+      .sort((a, b) => b.samples - a.samples)
       .slice(0, 10);
   }, [filtered]);
 
@@ -235,6 +261,42 @@ const WebVitalsOverview: React.FC = () => {
                     <TableCell className={`text-right ${ratingColor(null)}`}>
                       {formatValue(r.metric, r.p75)}
                     </TableCell>
+                    <TableCell className="text-right">{r.samples}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-xl">
+        <CardHeader>
+          <CardTitle className="text-base">Største layout-skift (CLS pr. element)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <p className="text-sm text-muted-foreground">Indlæser…</p>
+          ) : topShiftTargets.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Ingen data endnu — opsamles fra næste besøg.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Side</TableHead>
+                  <TableHead>Element</TableHead>
+                  <TableHead className="text-right">CLS p75</TableHead>
+                  <TableHead className="text-right">Prøver</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {topShiftTargets.map((r, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-mono text-xs">{r.route}</TableCell>
+                    <TableCell className="font-mono text-xs break-all max-w-[420px]">{r.target}</TableCell>
+                    <TableCell className="text-right">{formatValue('CLS', r.p75)}</TableCell>
                     <TableCell className="text-right">{r.samples}</TableCell>
                   </TableRow>
                 ))}

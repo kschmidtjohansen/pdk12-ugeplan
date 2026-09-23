@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-23 — Layout-stabilitet (CLS) i ugeplanen
+
+- Målingerne gemmer nu også hvilket element der flyttede sig mest (`attribution_target`/`attribution_detail` via `web-vitals/attribution`), og admin-visningen har en ny tabel "Største layout-skift (CLS pr. element)".
+- "Ledige medarbejdere og biler" får reserveret plads (`min-h`), så ugelisten ikke skubbes ned når medarbejder-, ferie- og travlhedsdata ankommer.
+- `DayAbsenceRow` reserverer rækkehøjden under indlæsning i stedet for at dukke op bagefter.
+- Ugeplanens indlæsnings-pladsholder matcher nu højden på rigtige dagskort (kort-variant, 5 × 168 px).
+- Filterbjælkens panel åbner som overlay i stedet for at ekspandere inline og skubbe ugelisten ned.
+
+---
+
 ## 2026-09-23 — Sletning af underafdeling viser nu et overblik i stedet for en fejl
 
 - Den blokerende fejlbesked "Kan ikke slettes – har tilknyttede brugere eller data" er fjernet.

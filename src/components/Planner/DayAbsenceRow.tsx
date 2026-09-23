@@ -20,10 +20,10 @@ interface DayAbsenceRowProps {
  * as plain "absent" — the reason is never exposed here, for any role.
  */
 const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
-  const { vacations } = useVacations();
+  const { vacations, loading: vacationsLoading } = useVacations();
   const { employees } = useEmployees();
   const { t } = useTranslation();
-  const { sickIds } = useSickForDateValue(dateKey);
+  const { sickIds, isLoading: sickLoading } = useSickForDateValue(dateKey);
 
 
   const dayVacations = useMemo(() => {
@@ -40,6 +40,12 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
     const onVacation = new Set(dayVacations.map((v) => v.user_id));
     return employees.filter((e) => sickIds.has(e.id) && !onVacation.has(e.id));
   }, [employees, sickIds, dayVacations]);
+
+  // Reserve the row height while absence data is still loading, so the day's
+  // assignments below don't shift down when it arrives (CLS).
+  if (vacationsLoading || sickLoading) {
+    return <div className="h-8" aria-hidden="true" />;
+  }
 
   if (dayVacations.length === 0 && sickEmployees.length === 0) return null;
 
