@@ -235,6 +235,8 @@ const BroadcastNotification: React.FC = () => {
       setMessage('');
       setGeneratedTitle('');
       setGeneratedMessage('');
+      setSelectedUserIds([]);
+      setPeopleSearch('');
       setConfirmOpen(false);
       // Delivery counters arrive asynchronously from the push trigger.
       queryClient.invalidateQueries({ queryKey: ['broadcast_campaigns'] });
