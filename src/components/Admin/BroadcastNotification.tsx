@@ -398,6 +398,76 @@ const BroadcastNotification: React.FC = () => {
           <p className="text-xs text-muted-foreground">{t('admin.broadcast.rolesHint')}</p>
         </div>
 
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Label>{t('admin.broadcast.people')}</Label>
+            {selectedUserIds.length > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="touch-target"
+                onClick={() => setSelectedUserIds([])}
+              >
+                {t('admin.broadcast.peopleClear')}
+              </Button>
+            )}
+          </div>
+          <Input
+            value={peopleSearch}
+            onChange={(e) => setPeopleSearch(e.target.value)}
+            placeholder={t('admin.broadcast.peopleSearch')}
+            aria-label={t('admin.broadcast.peopleSearch')}
+          />
+          <div className="max-h-56 overflow-y-auto overscroll-contain rounded-xl border border-border/60">
+            {peopleLoading && people.length === 0 && (
+              <p className="px-3 py-4 text-sm text-muted-foreground">
+                {t('admin.broadcast.recipientCountLoading')}
+              </p>
+            )}
+            {!peopleLoading && filteredPeople.length === 0 && (
+              <p className="px-3 py-4 text-sm text-muted-foreground">
+                {t('admin.broadcast.peopleEmpty')}
+              </p>
+            )}
+            {filteredPeople.map((person) => {
+              const checked = selectedUserIds.includes(person.id);
+              return (
+                <button
+                  key={person.id}
+                  type="button"
+                  onClick={() => toggleUser(person.id)}
+                  aria-pressed={checked}
+                  className={`flex w-full touch-target items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-muted/50 ${
+                    checked ? 'bg-primary/5' : ''
+                  }`}
+                >
+                  <span
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                      checked ? 'border-primary bg-primary text-primary-foreground' : 'border-border'
+                    }`}
+                    aria-hidden
+                  >
+                    {checked && <Check className="h-3 w-3" />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">
+                      {person.name || person.email}
+                    </span>
+                    {person.name && person.email && (
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {person.email}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">{t('admin.broadcast.peopleHint')}</p>
+        </div>
+
+
         <div className="flex flex-wrap items-center gap-3">
           <Button
             onClick={handleGenerate}
