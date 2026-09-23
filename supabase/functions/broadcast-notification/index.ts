@@ -29,6 +29,23 @@ async function getRoles(userId: string) {
   return (data ?? []).map((r) => r.role as string);
 }
 
+/** Internal URL + shared secret used to invoke the push service directly. */
+async function getPushConfig() {
+  const { data } = await admin
+    .from('app_internal_config')
+    .select('key, value')
+    .in('key', ['push_trigger_secret', 'push_function_url']);
+
+  const map = new Map((data ?? []).map((r) => [r.key as string, r.value as string]));
+  const url = map.get('push_function_url');
+  const secret = map.get('push_trigger_secret');
+  if (!url || !secret) {
+    console.error('resend: push configuration missing');
+    return null;
+  }
+  return { url, secret };
+}
+
 async function getAccessibleDepartments(userId: string) {
   const [{ data: profile }, { data: access }] = await Promise.all([
     admin.from('profiles').select('home_department_id').eq('id', userId).maybeSingle(),
