@@ -1,4 +1,4 @@
-import { Bell, BellOff, BellRing, Send, Download } from 'lucide-react';
+import { Bell, BellOff, BellRing, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -6,8 +6,7 @@ import { usePwaInstall } from '@/hooks/usePwaInstall';
 import { useTranslation } from '@/context/TranslationContext';
 
 export const PushNotificationCard = () => {
-  const { status, busy, installed, permission, enable, disable, sendTest } =
-    usePushNotifications();
+  const { status, busy, installed, permission, enable, disable } = usePushNotifications();
   const { canPrompt, promptInstall } = usePwaInstall();
   const { currentLanguage } = useTranslation();
   const { toast } = useToast();
@@ -43,23 +42,6 @@ export const PushNotificationCard = () => {
     }
   };
 
-  const handleTest = async () => {
-    try {
-      const result = await sendTest();
-      toast({
-        title: isDa ? 'Test sendt' : 'Test sent',
-        description: isDa
-          ? `Sendt til ${result?.sent ?? 0} enhed(er).`
-          : `Sent to ${result?.sent ?? 0} device(s).`,
-      });
-    } catch {
-      toast({
-        variant: 'destructive',
-        title: isDa ? 'Test mislykkedes' : 'Test failed',
-        description: isDa ? 'Prøv igen om et øjeblik.' : 'Please try again in a moment.',
-      });
-    }
-  };
 
   const yes = isDa ? 'Ja' : 'Yes';
   const no = isDa ? 'Nej' : 'No';
@@ -137,31 +119,18 @@ export const PushNotificationCard = () => {
         )}
 
         {!needsInstall && status === 'on' && (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="touch-target gap-1.5 px-2 sm:px-3"
-              onClick={handleTest}
-              aria-label={isDa ? 'Send test' : 'Send test'}
-            >
-              <Send className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">{isDa ? 'Send test' : 'Send test'}</span>
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="touch-target gap-1.5 px-2 text-muted-foreground sm:px-3"
-              onClick={disable}
-              disabled={busy}
-              aria-label={isDa ? 'Slå notifikationer fra' : 'Turn notifications off'}
-            >
-              <BellOff className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">{isDa ? 'Slå fra' : 'Turn off'}</span>
-            </Button>
-          </>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="touch-target gap-1.5 px-2 text-muted-foreground sm:px-3"
+            onClick={disable}
+            disabled={busy}
+            aria-label={isDa ? 'Slå notifikationer fra' : 'Turn notifications off'}
+          >
+            <BellOff className="h-4 w-4" aria-hidden />
+            <span className="hidden sm:inline">{isDa ? 'Slå fra' : 'Turn off'}</span>
+          </Button>
         )}
 
         {!needsInstall && status !== 'on' && (

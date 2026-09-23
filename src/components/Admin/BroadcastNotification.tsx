@@ -30,6 +30,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 const TITLE_LIMIT = 45;
 const MESSAGE_LIMIT = 130;
@@ -65,6 +66,9 @@ const BroadcastNotification: React.FC = () => {
   const [generatedTitle, setGeneratedTitle] = useState('');
   const [generatedMessage, setGeneratedMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  const { status: pushStatus, sendTest } = usePushNotifications();
 
   const departmentName = useMemo(
     () => userDepartments.find((d) => d.id === departmentId)?.name ?? '',
@@ -205,6 +209,28 @@ const BroadcastNotification: React.FC = () => {
     }
   };
 
+  // Test-notifikation til administratorens egen telefon (kun admins ser knappen).
+  const handleTestPush = async () => {
+    setTesting(true);
+    try {
+      const result = await sendTest();
+      toast({
+        title: t('admin.broadcast.testSent'),
+        description: t('admin.broadcast.testSentCount').replace(
+          '{count}',
+          String(result?.sent ?? 0),
+        ),
+      });
+    } catch {
+      toast({
+        title: t('admin.broadcast.testFailed'),
+        variant: 'destructive',
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
   const notificationPreview = (
     <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-3">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -226,11 +252,32 @@ const BroadcastNotification: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Megaphone className="h-5 w-5 text-primary" />
-          {t('admin.broadcast.title')}
-        </CardTitle>
-        <CardDescription>{t('admin.broadcast.description')}</CardDescription>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <CardTitle className="flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-primary" />
+              {t('admin.broadcast.title')}
+            </CardTitle>
+            <CardDescription>{t('admin.broadcast.description')}</CardDescription>
+          </div>
+          {pushStatus === 'on' && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="touch-target shrink-0"
+              disabled={testing}
+              onClick={() => void handleTestPush()}
+            >
+              {testing ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="mr-1.5 h-4 w-4" />
+              )}
+              {t('admin.broadcast.testPush')}
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
