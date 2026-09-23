@@ -10,7 +10,7 @@
 - Ny komponent `src/components/Pwa/PushNotificationCard.tsx` i bunden af dashboardet: slå til/fra, send test, iOS-vejledning ved manglende installation. DA/EN, semantiske tokens, 44 px trykflader.
 - Verificeret end-to-end: ny notifikation i databasen udløser kald til `send-push` (svar `{"ok":true}`).
 
-
+## 2026-09-23 — "Installer som app"-knap på login-siden (PWA)
 
 - Ny hook `src/hooks/usePwaInstall.ts`: fanger `beforeinstallprompt` (Edge/Chrome), registrerer `appinstalled` og genkender iOS samt standalone-tilstand.
 - Ny komponent `src/components/Pwa/PwaInstallButton.tsx` nederst på login-siden: ét-kliks installation i Edge/Chrome, ellers hjælpedialog med tre trin (iOS: Del → Føj til hjemmeskærm).
