@@ -61,7 +61,8 @@ async function getAccessibleDepartments(userId: string) {
 async function resolveRecipients(
   departmentId: string | null,
   targetRoles: string[],
-  actorId: string,
+  _actorId: string,
+  userIds: string[] = [],
 ) {
   const recipients = new Set<string>();
 
@@ -86,7 +87,15 @@ async function resolveRecipients(
     for (const id of [...recipients]) if (!allowed.has(id)) recipients.delete(id);
   }
 
-  recipients.delete(actorId);
+  // Named individuals: only people already inside the resolved audience may be
+  // picked, so department and role access rules still apply.
+  if (userIds.length > 0) {
+    const picked = new Set(userIds);
+    for (const id of [...recipients]) if (!picked.has(id)) recipients.delete(id);
+  }
+
+  // The sender stays in the list when they belong to the audience, so admins
+  // receive their own department messages like everyone else.
   return recipients;
 }
 
@@ -95,6 +104,15 @@ function parseTargetRoles(value: unknown): string[] {
     ? value.filter((r: unknown) => typeof r === 'string' && ALLOWED_ROLES.includes(r))
     : [];
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function parseUserIds(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((v: unknown) => typeof v === 'string' && UUID_RE.test(v)).slice(0, 500)
+    : [];
+}
+
 
 
 
@@ -205,9 +223,10 @@ Deno.serve(async (req) => {
       return json(generated);
     }
 
-    if (mode === 'preview_recipients') {
+    if (mode === 'preview_recipients' || mode === 'list_recipients') {
       const departmentId = body?.departmentId ? String(body.departmentId) : null;
       const targetRoles = parseTargetRoles(body?.roles);
+      const userIds = mode === 'preview_recipients' ? parseUserIds(body?.userIds) : [];
 
       if (!isSuperAdmin) {
         const accessible = await getAccessibleDepartments(actor.id);
@@ -216,7 +235,19 @@ Deno.serve(async (req) => {
         }
       }
 
-      const recipients = await resolveRecipients(departmentId, targetRoles, actor.id);
+      const recipients = await resolveRecipients(departmentId, targetRoles, actor.id, userIds);
+
+      if (mode === 'list_recipients') {
+        const ids = [...recipients];
+        if (ids.length === 0) return json({ ok: true, people: [] });
+        const { data: people } = await admin
+          .from('profiles')
+          .select('id, name, email')
+          .in('id', ids)
+          .order('name');
+        return json({ ok: true, people: people ?? [] });
+      }
+
       return json({ ok: true, count: recipients.size });
     }
 
@@ -226,6 +257,7 @@ Deno.serve(async (req) => {
       const link = body?.link ? String(body.link).slice(0, 200) : null;
       const departmentId = body?.departmentId ? String(body.departmentId) : null;
       const targetRoles = parseTargetRoles(body?.roles);
+      const userIds = parseUserIds(body?.userIds);
 
       if (!title || !message) return json({ error: 'invalid_content' }, 400);
 
@@ -236,7 +268,8 @@ Deno.serve(async (req) => {
         }
       }
 
-      const recipients = await resolveRecipients(departmentId, targetRoles, actor.id);
+      const recipients = await resolveRecipients(departmentId, targetRoles, actor.id, userIds);
+
 
       if (recipients.size === 0) return json({ ok: true, recipients: 0 });
 

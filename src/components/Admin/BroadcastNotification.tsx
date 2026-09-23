@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users } from 'lucide-react';
+import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users, Check } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -88,8 +88,50 @@ const BroadcastNotification: React.FC = () => {
     return () => clearTimeout(id);
   }, [rolesKey]);
 
+  // Individual recipients inside the selected audience (empty = everyone).
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [peopleSearch, setPeopleSearch] = useState('');
+
+  useEffect(() => {
+    setSelectedUserIds([]);
+    setPeopleSearch('');
+  }, [departmentId, debouncedRolesKey]);
+
+  const { data: people = [], isFetching: peopleLoading } = useQuery({
+    queryKey: ['broadcast_people', departmentId, debouncedRolesKey],
+    staleTime: 60_000,
+    queryFn: async (): Promise<{ id: string; name: string | null; email: string | null }[]> => {
+      const { data, error } = await supabase.functions.invoke('broadcast-notification', {
+        body: {
+          mode: 'list_recipients',
+          departmentId: departmentId || null,
+          roles: debouncedRolesKey ? debouncedRolesKey.split(',') : [],
+        },
+      });
+      if (error) throw error;
+      return data?.people ?? [];
+    },
+  });
+
+  const selectedKey = selectedUserIds.slice().sort().join(',');
+
+  const filteredPeople = useMemo(() => {
+    const q = peopleSearch.trim().toLowerCase();
+    if (!q) return people;
+    return people.filter(
+      (p) =>
+        (p.name ?? '').toLowerCase().includes(q) || (p.email ?? '').toLowerCase().includes(q),
+    );
+  }, [people, peopleSearch]);
+
+  const toggleUser = (id: string) => {
+    setSelectedUserIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
   const { data: recipientCount, isFetching: countLoading } = useQuery({
-    queryKey: ['broadcast_recipient_count', departmentId, debouncedRolesKey],
+    queryKey: ['broadcast_recipient_count', departmentId, debouncedRolesKey, selectedKey],
     staleTime: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('broadcast-notification', {
@@ -97,12 +139,14 @@ const BroadcastNotification: React.FC = () => {
           mode: 'preview_recipients',
           departmentId: departmentId || null,
           roles: debouncedRolesKey ? debouncedRolesKey.split(',') : [],
+          userIds: selectedUserIds,
         },
       });
       if (error) throw error;
       return Number(data?.count ?? 0);
     },
   });
+
 
   const hasEdits =
     !!generatedTitle && (title !== generatedTitle || message !== generatedMessage);
@@ -174,6 +218,7 @@ const BroadcastNotification: React.FC = () => {
           link: link || null,
           departmentId: departmentId || null,
           roles,
+          userIds: selectedUserIds,
         },
       });
       if (error) throw error;
@@ -190,6 +235,8 @@ const BroadcastNotification: React.FC = () => {
       setMessage('');
       setGeneratedTitle('');
       setGeneratedMessage('');
+      setSelectedUserIds([]);
+      setPeopleSearch('');
       setConfirmOpen(false);
       // Delivery counters arrive asynchronously from the push trigger.
       queryClient.invalidateQueries({ queryKey: ['broadcast_campaigns'] });
@@ -352,6 +399,76 @@ const BroadcastNotification: React.FC = () => {
           </div>
           <p className="text-xs text-muted-foreground">{t('admin.broadcast.rolesHint')}</p>
         </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Label>{t('admin.broadcast.people')}</Label>
+            {selectedUserIds.length > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="touch-target"
+                onClick={() => setSelectedUserIds([])}
+              >
+                {t('admin.broadcast.peopleClear')}
+              </Button>
+            )}
+          </div>
+          <Input
+            value={peopleSearch}
+            onChange={(e) => setPeopleSearch(e.target.value)}
+            placeholder={t('admin.broadcast.peopleSearch')}
+            aria-label={t('admin.broadcast.peopleSearch')}
+          />
+          <div className="max-h-56 overflow-y-auto overscroll-contain rounded-xl border border-border/60">
+            {peopleLoading && people.length === 0 && (
+              <p className="px-3 py-4 text-sm text-muted-foreground">
+                {t('admin.broadcast.recipientCountLoading')}
+              </p>
+            )}
+            {!peopleLoading && filteredPeople.length === 0 && (
+              <p className="px-3 py-4 text-sm text-muted-foreground">
+                {t('admin.broadcast.peopleEmpty')}
+              </p>
+            )}
+            {filteredPeople.map((person) => {
+              const checked = selectedUserIds.includes(person.id);
+              return (
+                <button
+                  key={person.id}
+                  type="button"
+                  onClick={() => toggleUser(person.id)}
+                  aria-pressed={checked}
+                  className={`flex w-full touch-target items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-muted/50 ${
+                    checked ? 'bg-primary/5' : ''
+                  }`}
+                >
+                  <span
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                      checked ? 'border-primary bg-primary text-primary-foreground' : 'border-border'
+                    }`}
+                    aria-hidden
+                  >
+                    {checked && <Check className="h-3 w-3" />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">
+                      {person.name || person.email}
+                    </span>
+                    {person.name && person.email && (
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {person.email}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">{t('admin.broadcast.peopleHint')}</p>
+        </div>
+
 
         <div className="flex flex-wrap items-center gap-3">
           <Button
