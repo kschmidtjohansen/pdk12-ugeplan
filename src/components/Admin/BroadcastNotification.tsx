@@ -441,7 +441,6 @@ const BroadcastNotification: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      </CardContent>
     </Card>
   );
 };
