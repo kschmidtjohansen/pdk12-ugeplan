@@ -1,4 +1,15 @@
+## Push-notifikationer på telefonen (2026-09-23)
+
+- [x] Tabel `push_subscriptions` med GRANTs og RLS (kun egne enheder)
+- [x] Intern konfigurationstabel med nøgle og URL til push-tjenesten
+- [x] Trigger på `notifications` der sender push automatisk (demo springes over)
+- [x] Edge function `send-push` med VAPID, oprydning af døde enheder og selvtest
+- [x] Dedikeret service worker `public/push-sw.js` (push + klik åbner rigtig side)
+- [x] Hook og kort på dashboardet: slå til/fra, send test, iOS-vejledning
+- [x] End-to-end verificeret: notifikation i databasen → kald til push-tjenesten
+
 ## "Installer som app"-knap på login-siden (2026-09-23)
+
 
 - [x] Hook der fanger browserens installationstilbud (Edge/Chrome) og genkender iOS/standalone
 - [x] Knap nederst på login-siden med ét-kliks installation
