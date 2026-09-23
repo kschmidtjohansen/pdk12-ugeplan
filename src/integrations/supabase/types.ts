@@ -314,6 +314,68 @@ export type Database = {
         }
         Relationships: []
       }
+      broadcast_campaigns: {
+        Row: {
+          created_at: string
+          created_by: string
+          created_by_name: string
+          department_id: string | null
+          id: string
+          link: string | null
+          message: string
+          push_failed: number
+          push_no_subscription: number
+          push_sent: number
+          push_skipped_preference: number
+          roles: string[]
+          title: string
+          total_recipients: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          created_by_name?: string
+          department_id?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          push_failed?: number
+          push_no_subscription?: number
+          push_sent?: number
+          push_skipped_preference?: number
+          roles?: string[]
+          title: string
+          total_recipients?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          created_by_name?: string
+          department_id?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          push_failed?: number
+          push_no_subscription?: number
+          push_sent?: number
+          push_skipped_preference?: number
+          roles?: string[]
+          title?: string
+          total_recipients?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcast_campaigns_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       car_sub_departments: {
         Row: {
           car_id: string
@@ -798,6 +860,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          broadcast_id: string | null
           created_at: string
           id: string
           is_demo: boolean
@@ -810,6 +873,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          broadcast_id?: string | null
           created_at?: string
           id?: string
           is_demo?: boolean
@@ -822,6 +886,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          broadcast_id?: string | null
           created_at?: string
           id?: string
           is_demo?: boolean
@@ -833,7 +898,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "broadcast_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       on_call_duties: {
         Row: {
@@ -1871,6 +1944,16 @@ export type Database = {
         Returns: string[]
       }
       hmac_sha256: { Args: { data: string; key: string }; Returns: string }
+      increment_broadcast_stats: {
+        Args: {
+          p_campaign_id: string
+          p_failed?: number
+          p_no_sub?: number
+          p_sent?: number
+          p_skipped?: number
+        }
+        Returns: undefined
+      }
       is_admin_from_jwt: { Args: never; Returns: boolean }
       is_admin_or_skadeleder: { Args: never; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }
