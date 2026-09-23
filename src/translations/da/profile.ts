@@ -40,5 +40,21 @@ export const profile = {
   newPasswordRequired: "Ny adgangskode er påkrævet",
   confirmPasswordRequired: "Bekræft adgangskode er påkrævet",
   incorrectCurrentPassword: "Nuværende adgangskode er forkert",
-  unexpectedError: "Der opstod en uventet fejl"
+  unexpectedError: "Der opstod en uventet fejl",
+  notificationSettings: "Notifikationer",
+  notifications: {
+    title: "Notifikationer på telefonen",
+    description: "Vælg hvilke beskeder du vil have sendt til din telefon.",
+    broadcast: "Vigtige beskeder",
+    broadcastHint: "Fællesbeskeder og hasteinformationer fra ledelsen.",
+    assignment: "Opgaver",
+    assignmentHint: "Nye opgaver samt ændrede tider eller adresser.",
+    duty: "Vagter",
+    dutyHint: "Vagtpåmindelser og anmodninger om vagtbytte.",
+    vacation: "Ferie og fri",
+    vacationHint: "Status på ferieansøgninger og fridage.",
+    sickDay: "Sygemeldinger",
+    sickDayHint: "Besked når en medarbejder meldes syg.",
+    footnote: "Du får altid beskederne inde i appen — valgene her gælder kun telefonens notifikationer."
+  }
 };
