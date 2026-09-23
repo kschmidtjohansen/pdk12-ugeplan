@@ -103,18 +103,33 @@ const RecipientsDialog: React.FC<{
                     <p className="truncate text-xs text-muted-foreground">{r.email}</p>
                   )}
                 </div>
-                <Badge
-                  variant="secondary"
-                  className={
-                    r.read
-                      ? 'bg-success-soft text-success-soft-foreground shrink-0'
-                      : 'shrink-0 text-muted-foreground'
-                  }
-                >
-                  {r.read
-                    ? t('admin.broadcast.delivery.statusRead')
-                    : t('admin.broadcast.delivery.statusUnread')}
-                </Badge>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <Badge
+                    variant="secondary"
+                    className={
+                      pushStatusStyles[r.push_status ?? 'pending']?.className ??
+                      'bg-muted text-muted-foreground'
+                    }
+                  >
+                    {t(
+                      `admin.broadcast.delivery.${
+                        pushStatusStyles[r.push_status ?? 'pending']?.key ?? 'statusPending'
+                      }`
+                    )}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className={
+                      r.read
+                        ? 'bg-success-soft text-success-soft-foreground'
+                        : 'text-muted-foreground'
+                    }
+                  >
+                    {r.read
+                      ? t('admin.broadcast.delivery.statusRead')
+                      : t('admin.broadcast.delivery.statusUnread')}
+                  </Badge>
+                </div>
               </li>
             ))}
           </ul>
