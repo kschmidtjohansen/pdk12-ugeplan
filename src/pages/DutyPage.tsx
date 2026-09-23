@@ -56,8 +56,24 @@ export default function DutyPage() {
   const { employees, loading: employeesLoading } = useDutyEmployees();
   const { sharedDepartmentIds } = useSharedDutyDepartments();
   const { incoming, outgoing, refetch: refetchSwap } = useDutySwapRequests();
+  const { rosterIds } = useDutyRosterMembers();
 
   const loading = dutiesLoading || employeesLoading;
+
+  const todayStr = useMemo(() => {
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [today.toDateString()]);
+
+  // Only employees who are (or have been) on the duty plan
+  const rosterEmployees = useMemo(() => {
+    const idSet = new Set(rosterIds);
+    return employees.filter((e) => idSet.has(e.id));
+  }, [employees, rosterIds]);
+
 
   // Build a department name map for shared-dept badge labels
   const departmentNameMap = useMemo(() => {
