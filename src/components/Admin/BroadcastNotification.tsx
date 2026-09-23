@@ -320,7 +320,24 @@ const BroadcastNotification: React.FC = () => {
             </CardTitle>
             <CardDescription>{t('admin.broadcast.description')}</CardDescription>
           </div>
-          {pushStatus === 'on' && (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <Select value={departmentId || 'all'} onValueChange={(v) => setDepartmentId(v === 'all' ? '' : v)}>
+              <SelectTrigger
+                className="h-8 w-40 text-xs"
+                aria-label={t('admin.broadcast.department')}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {isSuperAdmin && <SelectItem value="all">{t('admin.broadcast.allDepartments')}</SelectItem>}
+                {userDepartments.map((dept) => (
+                  <SelectItem key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {pushStatus === 'on' && (
             <Button
               type="button"
               variant="outline"
