@@ -1377,6 +1377,8 @@ export type Database = {
       }
       web_vitals_metrics: {
         Row: {
+          attribution_detail: string | null
+          attribution_target: string | null
           connection_type: string | null
           created_at: string
           department_id: string | null
@@ -1391,6 +1393,8 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          attribution_detail?: string | null
+          attribution_target?: string | null
           connection_type?: string | null
           created_at?: string
           department_id?: string | null
@@ -1405,6 +1409,8 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          attribution_detail?: string | null
+          attribution_target?: string | null
           connection_type?: string | null
           created_at?: string
           department_id?: string | null
