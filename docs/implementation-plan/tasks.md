@@ -2,6 +2,8 @@
 
 ## Løbende rettelser ✅
 
+- [x] Sletning af underafdeling: bekræftelsesdialog med optælling af opgaver/brugere/biler m.m., referencer løsnes i stedet for at blokere (2026-09-23).
+
 - [x] Vikarers udløbsdato vurderes nu mod opgavens dato i `EmployeeSelector` (`isExpiredOn`), så udløbne vikarer ikke kan bookes til fremtidige dage (2026-09-23).
 - [x] RLS strammet: `cars`, `car_sub_departments` og `user_roles` havde `USING (true)` SELECT-politikker — nu afdelingsbegrænset via `get_user_department_ids()` med undtagelse for admin/super_admin (2026-09-23).
 

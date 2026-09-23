@@ -35,6 +35,23 @@ interface SubDepartment {
   department_id: string;
   visible_roles: VisibleRole[];
 }
+const DETACH_TABLES = [
+  'assignments', 'user_access', 'cars', 'on_call_duties',
+  'vacations', 'trainings', 'warehouse_items',
+] as const;
+type DetachTable = typeof DETACH_TABLES[number] | 'car_sub_departments';
+
+interface DeleteCounts {
+  assignments: number;
+  users: number;
+  cars: number;
+  duties: number;
+  vacations: number;
+  trainings: number;
+  warehouse: number;
+  carLinks: number;
+}
+
 interface CarOption {
   id: string;
   name: string;
@@ -51,6 +68,8 @@ const SubDepartmentManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<SubDepartment | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteCounts, setDeleteCounts] = useState<DeleteCounts | null>(null);
+  const [countsLoading, setCountsLoading] = useState(false);
 
   // Dialog state for create / edit
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -221,37 +240,65 @@ const SubDepartmentManagement: React.FC = () => {
   };
 
   const handleDeleteAttempt = async (sub: SubDepartment) => {
-    const { count: accessCount } = await supabase
-      .from('user_access').select('*', { count: 'exact', head: true })
-      .eq('sub_department_id', sub.id);
-    const { count: assignmentCount } = await supabase
-      .from('assignments').select('*', { count: 'exact', head: true })
-      .eq('sub_department_id', sub.id);
-    const totalRefs = (accessCount || 0) + (assignmentCount || 0);
-    if (totalRefs > 0) {
-      toast({
-        title: t('common.error'),
-        description: t('admin.subDepartments.hasData'),
-        variant: 'destructive',
-      });
-      return;
-    }
     setDeleteTarget(sub);
+    setDeleteCounts(null);
+    setCountsLoading(true);
+    const countFor = async (table: DetachTable) => {
+      const { count } = await supabase
+        .from(table).select('*', { count: 'exact', head: true })
+        .eq('sub_department_id', sub.id);
+      return count || 0;
+    };
+    const [assignments, users, cars_, duties, vacations, trainings, warehouse, carLinks] =
+      await Promise.all([
+        countFor('assignments'),
+        countFor('user_access'),
+        countFor('cars'),
+        countFor('on_call_duties'),
+        countFor('vacations'),
+        countFor('trainings'),
+        countFor('warehouse_items'),
+        countFor('car_sub_departments'),
+      ]);
+    setDeleteCounts({ assignments, users, cars: cars_, duties, vacations, trainings, warehouse, carLinks });
+    setCountsLoading(false);
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
-    await supabase.from('user_access').delete().eq('sub_department_id', deleteTarget.id);
+    const subId = deleteTarget.id;
+
+    for (const table of DETACH_TABLES) {
+      const { error } = await supabase
+        .from(table)
+        .update({ sub_department_id: null })
+        .eq('sub_department_id', subId);
+      if (error) {
+        toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+        setDeleting(false);
+        return;
+      }
+    }
+
+    const { error: linkError } = await supabase
+      .from('car_sub_departments').delete().eq('sub_department_id', subId);
+    if (linkError) {
+      toast({ title: t('common.error'), description: linkError.message, variant: 'destructive' });
+      setDeleting(false);
+      return;
+    }
+
     const { error } = await supabase
-      .from('sub_departments').delete().eq('id', deleteTarget.id);
+      .from('sub_departments').delete().eq('id', subId);
     if (error) {
       toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
     } else {
       toast({ title: t('common.success'), description: t('admin.subDepartments.deleted') });
-      setSubDepartments(prev => prev.filter(s => s.id !== deleteTarget.id));
+      setSubDepartments(prev => prev.filter(s => s.id !== subId));
     }
     setDeleteTarget(null);
+    setDeleteCounts(null);
     setDeleting(false);
   };
 
@@ -259,6 +306,19 @@ const SubDepartmentManagement: React.FC = () => {
 
   const roleLabel = (role: VisibleRole) =>
     t(`employees.${role}`) || role;
+
+  const impactItems = deleteCounts
+    ? ([
+        { key: 'assignments', count: deleteCounts.assignments, label: t('admin.subDepartments.deleteImpactAssignments') },
+        { key: 'users', count: deleteCounts.users, label: t('admin.subDepartments.deleteImpactUsers') },
+        { key: 'cars', count: deleteCounts.cars, label: t('admin.subDepartments.deleteImpactCars') },
+        { key: 'carLinks', count: deleteCounts.carLinks, label: t('admin.subDepartments.deleteImpactCarLinks') },
+        { key: 'duties', count: deleteCounts.duties, label: t('admin.subDepartments.deleteImpactDuties') },
+        { key: 'vacations', count: deleteCounts.vacations, label: t('admin.subDepartments.deleteImpactVacations') },
+        { key: 'trainings', count: deleteCounts.trainings, label: t('admin.subDepartments.deleteImpactTrainings') },
+        { key: 'warehouse', count: deleteCounts.warehouse, label: t('admin.subDepartments.deleteImpactWarehouse') },
+      ].filter(i => i.count > 0))
+    : [];
 
   return (
     <>
@@ -435,16 +495,42 @@ const SubDepartmentManagement: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteCounts(null); } }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('admin.subDepartments.deleteConfirm')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('admin.subDepartments.deleteWarning')}</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t('admin.subDepartments.deleteConfirm')}
+              {deleteTarget ? ` (${deleteTarget.name})` : ''}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {countsLoading
+                ? t('admin.subDepartments.deleteImpactLoading')
+                : impactItems.length === 0
+                  ? t('admin.subDepartments.deleteImpactNone')
+                  : t('admin.subDepartments.deleteImpactIntro')}
+            </AlertDialogDescription>
           </AlertDialogHeader>
+          {!countsLoading && impactItems.length > 0 && (
+            <ul className="space-y-1 text-sm">
+              {impactItems.map(item => (
+                <li key={item.key} className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-1.5">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="font-medium tabular-nums">{item.count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {t('admin.subDepartments.delete')}
+            <AlertDialogCancel disabled={deleting}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDelete(); }}
+              disabled={deleting || countsLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? t('admin.subDepartments.deleting') : t('admin.subDepartments.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
