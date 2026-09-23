@@ -31,6 +31,8 @@ type QueuedMetric = {
   connection_type: string | null;
   user_agent: string;
   session_id: string;
+  attribution_target: string | null;
+  attribution_detail: string | null;
 };
 
 const SESSION_KEY = 'wv_session_id';
