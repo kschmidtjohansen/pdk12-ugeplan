@@ -53,11 +53,32 @@ const TodayDutyCard: React.FC<TodayDutyCardProps> = ({ duties, employees, todayS
 
   return (
     <Card className="rounded-xl border-border/60 shadow-none p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <CalendarClock className="h-4 w-4 text-muted-foreground" />
+      <button
+        type="button"
+        onClick={toggleOpen}
+        aria-expanded={open}
+        aria-label={open ? t('duty.collapse') : t('duty.expand')}
+        className="touch-target flex w-full items-center gap-2 text-left"
+      >
+        <CalendarClock className="h-4 w-4 text-muted-foreground shrink-0" />
         <h2 className="text-sm font-semibold text-foreground">{t('duty.todayDuties')}</h2>
-      </div>
+        {!open && (
+          <span className="text-xs text-muted-foreground">
+            {todayDuties.length > 0
+              ? t('duty.onDutyCount').replace('{{count}}', String(todayDuties.length))
+              : t('duty.noDutyToday')}
+          </span>
+        )}
+        <ChevronDown
+          className={`ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? '' : '-rotate-90'}`}
+        />
+      </button>
 
+      <div
+        className={`grid transition-all duration-200 ease-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      >
+        <div className="overflow-hidden">
+          <div className="pt-3">
       {todayDuties.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('duty.noDutyToday')}</p>
       ) : (
