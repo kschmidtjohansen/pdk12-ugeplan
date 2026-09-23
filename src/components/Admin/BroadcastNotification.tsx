@@ -88,8 +88,50 @@ const BroadcastNotification: React.FC = () => {
     return () => clearTimeout(id);
   }, [rolesKey]);
 
+  // Individual recipients inside the selected audience (empty = everyone).
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [peopleSearch, setPeopleSearch] = useState('');
+
+  useEffect(() => {
+    setSelectedUserIds([]);
+    setPeopleSearch('');
+  }, [departmentId, debouncedRolesKey]);
+
+  const { data: people = [], isFetching: peopleLoading } = useQuery({
+    queryKey: ['broadcast_people', departmentId, debouncedRolesKey],
+    staleTime: 60_000,
+    queryFn: async (): Promise<{ id: string; name: string | null; email: string | null }[]> => {
+      const { data, error } = await supabase.functions.invoke('broadcast-notification', {
+        body: {
+          mode: 'list_recipients',
+          departmentId: departmentId || null,
+          roles: debouncedRolesKey ? debouncedRolesKey.split(',') : [],
+        },
+      });
+      if (error) throw error;
+      return data?.people ?? [];
+    },
+  });
+
+  const selectedKey = selectedUserIds.slice().sort().join(',');
+
+  const filteredPeople = useMemo(() => {
+    const q = peopleSearch.trim().toLowerCase();
+    if (!q) return people;
+    return people.filter(
+      (p) =>
+        (p.name ?? '').toLowerCase().includes(q) || (p.email ?? '').toLowerCase().includes(q),
+    );
+  }, [people, peopleSearch]);
+
+  const toggleUser = (id: string) => {
+    setSelectedUserIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
   const { data: recipientCount, isFetching: countLoading } = useQuery({
-    queryKey: ['broadcast_recipient_count', departmentId, debouncedRolesKey],
+    queryKey: ['broadcast_recipient_count', departmentId, debouncedRolesKey, selectedKey],
     staleTime: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('broadcast-notification', {
@@ -97,12 +139,14 @@ const BroadcastNotification: React.FC = () => {
           mode: 'preview_recipients',
           departmentId: departmentId || null,
           roles: debouncedRolesKey ? debouncedRolesKey.split(',') : [],
+          userIds: selectedUserIds,
         },
       });
       if (error) throw error;
       return Number(data?.count ?? 0);
     },
   });
+
 
   const hasEdits =
     !!generatedTitle && (title !== generatedTitle || message !== generatedMessage);
