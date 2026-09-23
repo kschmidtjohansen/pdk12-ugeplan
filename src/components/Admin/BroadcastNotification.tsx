@@ -353,27 +353,11 @@ const BroadcastNotification: React.FC = () => {
               )}
               {t('admin.broadcast.testPush')}
             </Button>
-          )}
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-            <Label>{t('admin.broadcast.department')}</Label>
-            <Select value={departmentId || 'all'} onValueChange={(v) => setDepartmentId(v === 'all' ? '' : v)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {isSuperAdmin && <SelectItem value="all">{t('admin.broadcast.allDepartments')}</SelectItem>}
-                {userDepartments.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-        </div>
-
         <div className="space-y-2">
           <Label htmlFor="broadcast-text">{t('admin.broadcast.rawLabel')}</Label>
           <Textarea
