@@ -9,7 +9,7 @@ import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
-import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
+import { getEmployeeAvailabilityStatus, isTemporaryExpiredOn } from '@/utils/employeeAvailability';
 import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
 import { useSickForDateValue } from '@/hooks/useSickDays';
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
@@ -88,6 +88,17 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   // Sick employees for the selected date. Non-privileged roles only get the
   // ids (no reason), so the badge falls back to a neutral "Fraværende".
   const { sickIds } = useSickForDateValue(targetDate);
+
+  // Vikarer whose temporary access has expired ON the selected date — they
+  // must never appear as bookable resources for that day.
+  const expiredIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!employees || !Array.isArray(employees)) return set;
+    employees.forEach(emp => {
+      if (isTemporaryExpiredOn(emp, targetDate)) set.add(emp.id);
+    });
+    return set;
+  }, [employees, targetDate]);
 
   // Employees on training for the selected date (yellow "Kursus" label)
   const employeesOnTraining = useMemo(() => {
