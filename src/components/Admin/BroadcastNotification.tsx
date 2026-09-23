@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Megaphone, Sparkles, Send, Loader2, Bell } from 'lucide-react';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,6 +33,8 @@ const LINK_OPTIONS = ['', '/planner', '/duty', '/vacation', '/dashboard'] as con
 
 const BroadcastNotification: React.FC = () => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
   const { userDepartments, selectedDepartmentId } = useDepartment();
   const { user, isDemoMode, demoRole } = useAuth();
 
