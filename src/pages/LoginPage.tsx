@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginForm';
 import { useTranslation } from '@/context/TranslationContext';
 import { CalendarDays, Shield, Users } from 'lucide-react';
+import { PwaInstallButton } from '@/components/Pwa/PwaInstallButton';
 
 const LoginPage = () => {
   const { isAuthenticated, authReady, session, userDataLoaded } = useAuth();
