@@ -14,6 +14,7 @@ import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { useDepartment } from '@/context/DepartmentContext';
 import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
 import ClearCacheButton from '@/components/Dashboard/ClearCacheButton';
+import PwaInstallButton from '@/components/Pwa/PwaInstallButton';
 import { useState, useEffect, useCallback } from 'react';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks } from 'date-fns';
 
@@ -108,6 +109,9 @@ const DashboardPage: React.FC = () => {
               onNextWeek={handleNextWeek}
             />
           )}
+
+          {/* Installér som app (skjules når appen allerede er installeret) */}
+          <PwaInstallButton />
         </div>
       </div>
     </DataFetchErrorBoundary>
