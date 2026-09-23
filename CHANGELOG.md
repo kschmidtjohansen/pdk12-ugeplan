@@ -1,3 +1,10 @@
+## 2026-09-23 — Rolle vises i nærhedssøgningen på vagtplanen
+
+- `DutyProximitySearch.tsx`: hvert søgeresultat viser nu et rolle-badge (Skadeleder, Fugttekniker, Servicemedarbejder, Administrator/IT Support) ved siden af navnet, så det er tydeligt hvilken funktion den nærmeste kollega har.
+- Farverne følger de centrale rollefarver (`getRoleBadgeClass`) og teksterne kommer fra `employees.<rolle>` (da/en).
+- "På vagt i dag"-badget vises fortsat ved siden af rollen; rækken ombryder pænt på mobil.
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Gennemgå beskeden før den sendes
 
 - "Udsend notifikation" sender ikke længere med det samme: der kommer nu et bekræftelsesvindue med beskeden som den ser ud på telefonen, målgruppen og antal modtagere. Først "Send nu" sender.
