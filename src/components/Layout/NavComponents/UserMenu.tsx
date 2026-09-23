@@ -209,6 +209,11 @@ const UserMenu: React.FC<UserMenuProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      <NotificationPreferencesDialog
+        open={notificationDialogOpen}
+        onOpenChange={setNotificationDialogOpen}
+      />
+
       <PasswordChangeDialog 
         isOpen={passwordDialogOpen} 
         onClose={() => setPasswordDialogOpen(false)} 
