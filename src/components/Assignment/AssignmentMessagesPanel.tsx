@@ -157,8 +157,17 @@ const AssignmentMessagesPanel: React.FC<AssignmentMessagesPanelProps> = ({
            </div>
          ) : (
           <div className="space-y-5">
-             {messages.map((msg) => (
+              {messages.map((msg, index) => (
                 <div key={msg.id} className="group">
+                  {index === firstUnreadIndex && (
+                    <div className="flex items-center gap-2 pb-3" aria-label={currentLanguage === 'da' ? 'Nye beskeder' : 'New messages'}>
+                      <span className="h-px flex-1 bg-destructive/40" />
+                      <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+                        {currentLanguage === 'da' ? 'Nye beskeder' : 'New messages'}
+                      </span>
+                      <span className="h-px flex-1 bg-destructive/40" />
+                    </div>
+                  )}
                   {/* Reply reference */}
                   {msg.reply_to && (
                    <div className="flex items-center gap-2 ml-11 mb-1.5 text-xs text-muted-foreground">
