@@ -1,3 +1,11 @@
+## 2026-09-23 — Test-notifikation flyttet til Administration
+
+- `PushNotificationCard.tsx`: "Send test"-knappen er fjernet fra dashboardet. Almindelige medarbejdere kan fortsat kun slå notifikationer til/fra og installere appen.
+- `BroadcastNotification.tsx`: ny knap "Send test til min telefon" i overskriften på "Udsend besked" (vises kun når administratorens egen enhed er tilmeldt), med toast der viser antal enheder.
+- `send-push`: det autentificerede selvtest-kald kræver nu rollen `administrator` eller `super_admin`; øvrige brugere får 403.
+- Nye DA/EN-tekster: `admin.broadcast.testPush`, `testSent`, `testSentCount`, `testFailed`.
+- Verificeret: typecheck og lint uden fejl.
+
 ## 2026-09-23 — Rolle vises i nærhedssøgningen på vagtplanen
 
 - `DutyProximitySearch.tsx`: hvert søgeresultat viser nu et rolle-badge (Skadeleder, Fugttekniker, Servicemedarbejder, Administrator/IT Support) ved siden af navnet, så det er tydeligt hvilken funktion den nærmeste kollega har.
