@@ -57,6 +57,47 @@ async function getAccessibleDepartments(userId: string) {
   return ids;
 }
 
+/** Shared recipient resolution so preview and send can never drift apart. */
+async function resolveRecipients(
+  departmentId: string | null,
+  targetRoles: string[],
+  actorId: string,
+) {
+  const recipients = new Set<string>();
+
+  if (departmentId) {
+    const [{ data: byHome }, { data: byAccess }] = await Promise.all([
+      admin.from('profiles').select('id').eq('home_department_id', departmentId).eq('is_demo', false),
+      admin.from('user_access').select('user_id').eq('department_id', departmentId),
+    ]);
+    for (const row of byHome ?? []) recipients.add(row.id);
+    for (const row of byAccess ?? []) recipients.add(row.user_id);
+  } else {
+    const { data: all } = await admin.from('profiles').select('id').eq('is_demo', false);
+    for (const row of all ?? []) recipients.add(row.id);
+  }
+
+  if (targetRoles.length > 0) {
+    const { data: roleRows } = await admin
+      .from('user_roles')
+      .select('user_id')
+      .in('role', targetRoles);
+    const allowed = new Set((roleRows ?? []).map((r) => r.user_id));
+    for (const id of [...recipients]) if (!allowed.has(id)) recipients.delete(id);
+  }
+
+  recipients.delete(actorId);
+  return recipients;
+}
+
+function parseTargetRoles(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((r: unknown) => typeof r === 'string' && ALLOWED_ROLES.includes(r))
+    : [];
+}
+
+
+
 async function generateNotification(rawText: string, audience: string) {
   const key = Deno.env.get('LOVABLE_API_KEY');
   if (!key) {
