@@ -29,6 +29,16 @@ const DutyProximitySearch: React.FC<DutyProximitySearchProps> = ({
 }) => {
   const { t } = useTranslation();
   const [postcode, setPostcode] = useState('');
+  const [open, setOpen] = useState<boolean>(() => {
+    try { return localStorage.getItem(STORAGE_KEY) !== '0'; } catch { return true; }
+  });
+
+  const toggleOpen = () => {
+    setOpen((prev) => {
+      try { localStorage.setItem(STORAGE_KEY, prev ? '0' : '1'); } catch { /* ignore */ }
+      return !prev;
+    });
+  };
 
   const { results, isLoading, notFound, isValidPostcode } = useDutyProximitySearch({
     postcode,
@@ -153,6 +163,9 @@ const DutyProximitySearch: React.FC<DutyProximitySearchProps> = ({
           })}
         </ul>
       )}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 };
