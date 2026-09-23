@@ -27,6 +27,7 @@ const isStandalone = () => {
   if (typeof window === 'undefined') return false;
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
     (window.navigator as unknown as { standalone?: boolean }).standalone === true
   );
 };
@@ -35,6 +36,18 @@ const detectIos = () => {
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent || '';
   return /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document);
+};
+
+export type PushBrowser = 'edge' | 'chrome' | 'safari' | 'firefox' | 'other';
+
+const detectBrowser = (): PushBrowser => {
+  if (typeof navigator === 'undefined') return 'other';
+  const ua = navigator.userAgent || '';
+  if (/Edg(A|iOS|)\//i.test(ua)) return 'edge';
+  if (/CriOS|Chrome\//i.test(ua)) return 'chrome';
+  if (/FxiOS|Firefox\//i.test(ua)) return 'firefox';
+  if (/Safari\//i.test(ua)) return 'safari';
+  return 'other';
 };
 
 const urlBase64ToUint8Array = (base64String: string) => {
@@ -56,27 +69,74 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer | null) => {
   return btoa(binary);
 };
 
-export type PushStatus = 'unsupported' | 'blocked' | 'ios-needs-install' | 'off' | 'on';
+export type PushStatus = 'unsupported' | 'needs-install' | 'blocked' | 'off' | 'on';
+
+const saveSubscription = async (subscription: PushSubscription) => {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData?.user?.id;
+  if (!userId) return false;
+
+  const json = subscription.toJSON() as { keys?: { p256dh?: string; auth?: string } };
+  const p256dh = json.keys?.p256dh ?? arrayBufferToBase64(subscription.getKey('p256dh'));
+  const auth = json.keys?.auth ?? arrayBufferToBase64(subscription.getKey('auth'));
+
+  const { error } = await supabase.from('push_subscriptions').upsert(
+    {
+      user_id: userId,
+      endpoint: subscription.endpoint,
+      p256dh,
+      auth,
+      user_agent: navigator.userAgent.slice(0, 300),
+      last_seen_at: new Date().toISOString(),
+      last_error: null,
+    },
+    { onConflict: 'endpoint' },
+  );
+
+  if (error) {
+    if (import.meta.env.DEV) console.error('Push subscription save failed', error);
+    return false;
+  }
+  return true;
+};
 
 export const usePushNotifications = () => {
   const [status, setStatus] = useState<PushStatus>('unsupported');
   const [busy, setBusy] = useState(false);
   const isIos = detectIos();
+  const browser = detectBrowser();
+  const [installed, setInstalled] = useState(isStandalone);
 
-  const supported =
+  const hasPushApis =
     typeof window !== 'undefined' &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&
     'Notification' in window &&
     !isPreviewContext();
 
+  // Installation is a hard requirement on every platform: notifications must
+  // belong to the installed app, not to a browser tab.
+  const supported = hasPushApis && installed;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(display-mode: standalone)');
+    const onChange = () => setInstalled(isStandalone());
+    media.addEventListener?.('change', onChange);
+    window.addEventListener('appinstalled', onChange);
+    return () => {
+      media.removeEventListener?.('change', onChange);
+      window.removeEventListener('appinstalled', onChange);
+    };
+  }, []);
+
   const refresh = useCallback(async () => {
-    if (!supported) {
-      setStatus(isIos && !isStandalone() ? 'ios-needs-install' : 'unsupported');
+    if (!hasPushApis) {
+      setStatus(!installed ? 'needs-install' : 'unsupported');
       return;
     }
-    if (isIos && !isStandalone()) {
-      setStatus('ios-needs-install');
+    if (!installed) {
+      setStatus('needs-install');
       return;
     }
     if (Notification.permission === 'denied') {
@@ -90,15 +150,48 @@ export const usePushNotifications = () => {
     } catch {
       setStatus('off');
     }
-  }, [supported, isIos]);
+  }, [hasPushApis, installed]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
+  /**
+   * Silently keeps the device subscribed: when the installed app starts and the
+   * user has already granted permission, re-register and re-subscribe if the
+   * browser dropped the subscription. The user only approves once per device.
+   */
+  const ensureSubscription = useCallback(async () => {
+    if (!supported) return;
+    if (Notification.permission !== 'granted') return;
+    try {
+      const registration =
+        (await navigator.serviceWorker.getRegistration(PUSH_SW_URL)) ??
+        (await navigator.serviceWorker.register(PUSH_SW_URL, { scope: '/' }));
+      await navigator.serviceWorker.ready;
+
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+      }
+      await saveSubscription(subscription);
+      setStatus('on');
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Push ensureSubscription failed', err);
+    }
+  }, [supported]);
+
+  useEffect(() => {
+    void ensureSubscription();
+  }, [ensureSubscription]);
+
   const enable = useCallback(async (): Promise<
-    'enabled' | 'denied' | 'unsupported' | 'error'
+    'enabled' | 'denied' | 'needs-install' | 'unsupported' | 'error'
   > => {
+    if (!installed) return 'needs-install';
     if (!supported) return 'unsupported';
     setBusy(true);
     try {
@@ -119,31 +212,8 @@ export const usePushNotifications = () => {
         });
       }
 
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id;
-      if (!userId) return 'error';
-
-      const json = subscription.toJSON() as { keys?: { p256dh?: string; auth?: string } };
-      const p256dh = json.keys?.p256dh ?? arrayBufferToBase64(subscription.getKey('p256dh'));
-      const auth = json.keys?.auth ?? arrayBufferToBase64(subscription.getKey('auth'));
-
-      const { error } = await supabase.from('push_subscriptions').upsert(
-        {
-          user_id: userId,
-          endpoint: subscription.endpoint,
-          p256dh,
-          auth,
-          user_agent: navigator.userAgent.slice(0, 300),
-          last_seen_at: new Date().toISOString(),
-          last_error: null,
-        },
-        { onConflict: 'endpoint' },
-      );
-
-      if (error) {
-        if (import.meta.env.DEV) console.error('Push subscription save failed', error);
-        return 'error';
-      }
+      const saved = await saveSubscription(subscription);
+      if (!saved) return 'error';
 
       setStatus('on');
       return 'enabled';
@@ -153,7 +223,7 @@ export const usePushNotifications = () => {
     } finally {
       setBusy(false);
     }
-  }, [supported]);
+  }, [installed, supported]);
 
   const disable = useCallback(async () => {
     setBusy(true);
@@ -180,5 +250,20 @@ export const usePushNotifications = () => {
     return data as { sent?: number; removed?: number };
   }, []);
 
-  return { status, busy, isIos, supported, enable, disable, sendTest, refresh };
+  return {
+    status,
+    busy,
+    isIos,
+    browser,
+    installed,
+    hasPushApis,
+    supported,
+    permission:
+      typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default',
+    enable,
+    disable,
+    sendTest,
+    refresh,
+    ensureSubscription,
+  };
 };

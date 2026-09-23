@@ -67,3 +67,6 @@ verify_jwt = true
 
 [functions.dawa-proxy]
 verify_jwt = false
+
+[functions.push-resubscribe]
+verify_jwt = false
