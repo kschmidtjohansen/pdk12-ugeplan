@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RealtimeDiagnostics from '@/components/Admin/RealtimeDiagnostics';
-import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock } from 'lucide-react';
+import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock, Megaphone } from 'lucide-react';
+import BroadcastNotification from '@/components/Admin/BroadcastNotification';
 import UserManagement from '@/components/Admin/UserManagement';
 import DepartmentManagement from '@/components/Admin/DepartmentManagement';
 import SubDepartmentManagement from '@/components/Admin/SubDepartmentManagement';
@@ -93,6 +94,12 @@ const AdminPage: React.FC = () => {
               </TabsTrigger>
             )}
 
+            {(isSuperAdmin || isAdmin) && (
+              <TabsTrigger value="broadcast" className="gap-2">
+                <Megaphone className="h-4 w-4" />
+                {t('admin.tabs.broadcast')}
+              </TabsTrigger>
+            )}
             {(isSuperAdmin || isAdmin) && (
               <TabsTrigger value="autoPublish" className="gap-2">
                 <Clock className="h-4 w-4" />
