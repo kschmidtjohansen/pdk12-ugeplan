@@ -87,6 +87,20 @@ async function resolveRecipients(
     for (const id of [...recipients]) if (!allowed.has(id)) recipients.delete(id);
   }
 
+  // Demo accounts and temporary staff (vikarer) must never receive notifications.
+  if (recipients.size > 0) {
+    const ids = [...recipients];
+    const [{ data: profileRows }, { data: tempRoleRows }] = await Promise.all([
+      admin.from('profiles').select('id, is_demo, is_temporary').in('id', ids),
+      admin.from('user_roles').select('user_id').eq('role', 'vikar').in('user_id', ids),
+    ]);
+    const keep = new Set(
+      (profileRows ?? []).filter((p) => !p.is_demo && !p.is_temporary).map((p) => p.id),
+    );
+    for (const row of tempRoleRows ?? []) keep.delete(row.user_id);
+    for (const id of ids) if (!keep.has(id)) recipients.delete(id);
+  }
+
   // Named individuals: only people already inside the resolved audience may be
   // picked, so department and role access rules still apply.
   if (userIds.length > 0) {
