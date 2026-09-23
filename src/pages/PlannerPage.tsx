@@ -849,6 +849,10 @@ const PlannerPage: React.FC = () => {
             <BulkAssignEmployeeDialog
               open={bulkAssignOpen}
               count={selectedIds.size}
+              dates={weekAssignments
+                .filter(a => selectedIds.has(a.id))
+                .map(a => (a.date?.includes('T') ? a.date.split('T')[0] : a.date))
+                .filter(Boolean) as string[]}
               onClose={() => setBulkAssignOpen(false)}
               onConfirm={handleBulkAssignEmployee}
             />
