@@ -15,6 +15,8 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
 import ClearCacheButton from '@/components/Dashboard/ClearCacheButton';
 import PwaInstallButton from '@/components/Pwa/PwaInstallButton';
+import PushNotificationCard from '@/components/Pwa/PushNotificationCard';
+
 import { useState, useEffect, useCallback } from 'react';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks } from 'date-fns';
 
