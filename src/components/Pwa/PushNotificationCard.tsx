@@ -76,99 +76,109 @@ export const PushNotificationCard = () => {
           ? 'Ikke spurgt'
           : 'Not asked';
 
+  // Kort, eenliniers tekst. Den lange forklaring og status ses ved hover/tryk.
+  const hint =
+    status === 'on'
+      ? isDa
+        ? 'Aktiv på denne enhed'
+        : 'Active on this device'
+      : status === 'blocked'
+        ? isDa
+          ? 'Blokeret i telefonens indstillinger'
+          : 'Blocked in your phone settings'
+        : needsInstall
+          ? isDa
+            ? 'Appen skal ligge på hjemmeskærmen først'
+            : 'Add the app to your home screen first'
+          : isDa
+            ? 'Få besked, også når appen er lukket'
+            : 'Get alerts even when the app is closed';
+
+  const diagnostics = `${isDa ? 'Installeret' : 'Installed'}: ${installed ? yes : no} · ${
+    isDa ? 'Tilladelse' : 'Permission'
+  }: ${permissionLabel} · ${isDa ? 'Tilmeldt' : 'Subscribed'}: ${status === 'on' ? yes : no}`;
+
   return (
-    <div className="mt-4 rounded-xl border border-border/60 bg-card p-4">
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
-          {status === 'on' ? (
-            <BellRing className="h-4 w-4 text-primary" aria-hidden />
-          ) : (
-            <Bell className="h-4 w-4 text-muted-foreground" aria-hidden />
-          )}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground">
-            {isDa ? 'Beskeder på telefonen' : 'Alerts on your phone'}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {status === 'on'
-              ? isDa
-                ? 'Du får besked om ferieansøgninger, vagtbytte, sygemelding og beskeder på sager.'
-                : 'You get alerts for leave requests, duty swaps, sick days and case messages.'
-              : status === 'blocked'
-                ? isDa
-                  ? 'Notifikationer er blokeret for dette websted. Tillad dem i telefonens indstillinger for appen og prøv igen.'
-                  : 'Notifications are blocked. Allow them in your phone settings for this app and try again.'
-                : needsInstall
-                  ? isDa
-                    ? 'Appen skal først ligge på hjemmeskærmen, før telefonen kan sende dig beskeder.'
-                    : 'The app must be on your home screen before your phone can send you alerts.'
-                  : isDa
-                    ? 'Slå til, så får du besked, også når appen er lukket.'
-                    : 'Turn on to get alerts even when the app is closed.'}
-          </p>
+    <div
+      title={diagnostics}
+      className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-2.5"
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+        {status === 'on' ? (
+          <BellRing className="h-4 w-4 text-primary" aria-hidden />
+        ) : (
+          <Bell className="h-4 w-4 text-muted-foreground" aria-hidden />
+        )}
+      </span>
 
-          {needsInstall && canPrompt && (
-            <div className="mt-3">
-              <Button
-                type="button"
-                size="sm"
-                className="min-h-[44px] gap-2"
-                onClick={() => void promptInstall()}
-              >
-                <Download className="h-4 w-4" aria-hidden />
-                {isDa ? 'Installer app nu' : 'Install app now'}
-              </Button>
-            </div>
-          )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-foreground">
+          {isDa ? 'Beskeder på telefonen' : 'Alerts on your phone'}
+        </p>
+        <p className="truncate text-xs text-muted-foreground" title={hint}>
+          {hint}
+        </p>
+      </div>
 
-          {!needsInstall && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {status === 'on' ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="min-h-[44px] gap-2"
-                    onClick={handleTest}
-                  >
-                    <Send className="h-4 w-4" aria-hidden />
-                    {isDa ? 'Send test' : 'Send test'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="min-h-[44px] gap-2 text-muted-foreground"
-                    onClick={disable}
-                    disabled={busy}
-                  >
-                    <BellOff className="h-4 w-4" aria-hidden />
-                    {isDa ? 'Slå fra' : 'Turn off'}
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  type="button"
-                  size="sm"
-                  className="min-h-[44px] gap-2"
-                  onClick={handleEnable}
-                  disabled={busy || status === 'blocked'}
-                >
-                  <Bell className="h-4 w-4" aria-hidden />
-                  {isDa ? 'Slå notifikationer til' : 'Turn on notifications'}
-                </Button>
-              )}
-            </div>
-          )}
+      <div className="flex shrink-0 items-center gap-1.5">
+        {needsInstall && canPrompt && (
+          <Button
+            type="button"
+            size="sm"
+            className="touch-target gap-1.5 px-2 sm:px-3"
+            onClick={() => void promptInstall()}
+            aria-label={isDa ? 'Installer app nu' : 'Install app now'}
+          >
+            <Download className="h-4 w-4" aria-hidden />
+            <span className="hidden sm:inline">
+              {isDa ? 'Installer app nu' : 'Install app now'}
+            </span>
+          </Button>
+        )}
 
-          <p className="mt-3 border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
-            {isDa ? 'Installeret' : 'Installed'}: {installed ? yes : no} ·{' '}
-            {isDa ? 'Tilladelse' : 'Permission'}: {permissionLabel} ·{' '}
-            {isDa ? 'Tilmeldt' : 'Subscribed'}: {status === 'on' ? yes : no}
-          </p>
-        </div>
+        {!needsInstall && status === 'on' && (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="touch-target gap-1.5 px-2 sm:px-3"
+              onClick={handleTest}
+              aria-label={isDa ? 'Send test' : 'Send test'}
+            >
+              <Send className="h-4 w-4" aria-hidden />
+              <span className="hidden sm:inline">{isDa ? 'Send test' : 'Send test'}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="touch-target gap-1.5 px-2 text-muted-foreground sm:px-3"
+              onClick={disable}
+              disabled={busy}
+              aria-label={isDa ? 'Slå notifikationer fra' : 'Turn notifications off'}
+            >
+              <BellOff className="h-4 w-4" aria-hidden />
+              <span className="hidden sm:inline">{isDa ? 'Slå fra' : 'Turn off'}</span>
+            </Button>
+          </>
+        )}
+
+        {!needsInstall && status !== 'on' && (
+          <Button
+            type="button"
+            size="sm"
+            className="touch-target gap-1.5 px-2 sm:px-3"
+            onClick={handleEnable}
+            disabled={busy || status === 'blocked'}
+            aria-label={isDa ? 'Slå notifikationer til' : 'Turn on notifications'}
+          >
+            <Bell className="h-4 w-4" aria-hidden />
+            <span className="hidden sm:inline">
+              {isDa ? 'Slå til' : 'Turn on'}
+            </span>
+          </Button>
+        )}
       </div>
     </div>
   );

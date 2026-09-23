@@ -1,3 +1,10 @@
+## Notifikationskort som én kompakt linje (2026-09-23)
+
+- [x] Kortet er nu én række: ikon, titel + kort tekst, knapper til højre
+- [x] Lang forklaring og diagnoselinje er fjernet som synlig tekst (ligger på hover)
+- [x] Små knapper med ikon på telefon, tekst på større skærme, 44 px trykflade og `aria-label`
+- [x] Typecheck og lint bekræftet uden fejl
+
 ## Installations-trin fjernet fra notifikationskortet (2026-09-23)
 
 - [x] Nummereret trinliste fjernet fra `PushNotificationCard`
