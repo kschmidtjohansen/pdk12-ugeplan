@@ -1,3 +1,8 @@
+## 2026-09-23 — Afdelingsvælger flyttet øverst i "Udsend besked"
+
+- `Admin/BroadcastNotification.tsx`: afdelingsvælgeren står nu øverst i dialogen lige under titlen, før beskedteksten, så målgruppen vælges først.
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Link-valg fjernet fra "Udsend besked"
 
 - `Admin/BroadcastNotification.tsx`: feltet "Link i notifikationen" er fjernet fra udsendelsesdialogen inkl. tilhørende state, `LINK_OPTIONS` og link-linjen i mobil-previewet; beskeder sendes nu altid uden link (`link: null` i payloaden).
