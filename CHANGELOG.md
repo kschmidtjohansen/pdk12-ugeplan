@@ -1,3 +1,9 @@
+## 2026-09-23 — Valgte personer bevares og vises i bekræftelsen
+
+- `Admin/BroadcastNotification.tsx`: valget af enkeltpersoner nulstilles ikke længere ved første render eller når afdelings-id'et udfyldes asynkront — kun når afdeling/roller faktisk ændres.
+- Bekræftelsesdialogen viser nu navnene på de valgte personer i stedet for "alle medarbejdere", når enkeltpersoner er valgt.
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Ulæst-markering og tæller for nye opgavebeskeder
 
 - Ny `hooks/useUnreadMessages.ts` + `context/UnreadMessagesContext.tsx`: tæller ulæste chatbeskeder (seneste 45 dage) på de opgaver, brugeren er tildelt eller ansvarlig for; egne beskeder tælles ikke med. Læst-tidspunkt pr. opgave gemmes lokalt, og realtime-abonnement opdaterer tælleren løbende.
