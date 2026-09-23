@@ -594,3 +594,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Ubrugt kode fjernet: tælle-beregninger, `LastRefreshIndicator`/opdater-knap og tilhørende imports
 - [x] Forsiden starter nu med "Min Dag", derefter vagtoversigt og "Mine Opgaver"
 - [x] Typetjek og kodetjek kørt uden fejl
+
+## Filterpanel dækkede planelisten (2026-09-23)
+
+- [x] Filterpanelet kan altid lukkes med "Skjul", også mens filtre er aktive (`PlannerFilterBar.tsx`)
+- [x] Panelet foldes automatisk ud én gang, når et filter aktiveres — aktive filtre vises som chips i bjælken
+- [x] Overlay-placering bevaret (ingen layout-skift); typecheck ren; CHANGELOG opdateret

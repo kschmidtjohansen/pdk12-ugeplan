@@ -1656,3 +1656,9 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Gem-knapper i bil-, ferie- og admin-ferieformular deaktiveres og viser "Gemmer" mens handlingen kører (ingen dobbeltklik).
 - Ugeplan: `React.memo` på dag- og rækkekomponenter samt stabiliserede handlere i `PlannerPage`, så uændrede dage ikke gentegnes.
 - Opgavedata invalideres nu målrettet (`refetchType: 'active'`) fra ferie-, kursus- og bilhandlinger, så kun aktive visninger genindlæses.
+
+## 2026-09-23 — Filterpanelet i ugeplanen kan altid lukkes
+
+- **Fejl:** Når et filter (medarbejder eller postnummer) var aktivt, svævede filterpanelet oven på "Ikke-tildelte ressourcer" og toppen af opgavelisten, og "Skjul"-knappen kunne ikke lukke det, fordi panelets synlighed var tvunget åben (`isOpen = expanded || hasFilters`).
+- **Rettelse i `src/components/Planner/PlannerFilterBar.tsx`:** Panelets synlighed styres nu udelukkende af `expanded`. Når et filter aktiveres første gang, foldes panelet automatisk ud én gang (via ref + useEffect på `hasFilters`), men brugeren kan altid lukke det igen med "Skjul" — aktive filtre vises fortsat som chips i bjælken. Overlay-placeringen bevares, så listen stadig ikke skubbes ned (ingen CLS-regression).
+- Verificeret med typecheck (ren).
