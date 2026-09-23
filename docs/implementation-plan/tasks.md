@@ -1,3 +1,13 @@
+## Genudsendelse til fejlede modtagere (2026-09-23)
+
+- [x] Leveringsstatus per modtager på `notifications`
+- [x] `recalc_broadcast_stats` og opdateret `get_broadcast_recipients`
+- [x] `send-push` gemmer status og genberegner kampagnetal
+- [x] `resend_failed`-tilstand i `broadcast-notification` med adgangskontrol
+- [x] Knap, bekræftelsesdialog og statusmærker i Leveringsstatus
+- [x] DA/EN-tekster, typecheck og lint
+- [ ] Bekræft efter udgivelse: send en besked, fremprovokér en fejlet levering og tryk "Send igen til fejlede"
+
 ## AI-besked til medarbejdere og personlige notifikationsvalg (2026-09-23)
 
 - [x] Ny fane "Udsend besked" under Administration med fri tekst, afdeling, roller og link
