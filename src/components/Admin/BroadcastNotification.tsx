@@ -399,7 +399,21 @@ const BroadcastNotification: React.FC = () => {
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Label>{t('admin.broadcast.people')}</Label>
+            <button
+              type="button"
+              onClick={() => setPeopleCollapsed((prev) => !prev)}
+              aria-expanded={!peopleCollapsed}
+              className="flex touch-target items-center gap-2 text-sm font-medium leading-none"
+            >
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground transition-transform ${peopleCollapsed ? '-rotate-90' : ''}`}
+                aria-hidden
+              />
+              {t('admin.broadcast.people')}
+              {selectedUserIds.length > 0 && (
+                <Badge variant="secondary">{selectedUserIds.length}</Badge>
+              )}
+            </button>
             {selectedUserIds.length > 0 && (
               <Button
                 type="button"
@@ -412,13 +426,15 @@ const BroadcastNotification: React.FC = () => {
               </Button>
             )}
           </div>
-          <Input
-            value={peopleSearch}
-            onChange={(e) => setPeopleSearch(e.target.value)}
-            placeholder={t('admin.broadcast.peopleSearch')}
-            aria-label={t('admin.broadcast.peopleSearch')}
-          />
-          <div className="max-h-56 overflow-y-auto overscroll-contain rounded-xl border border-border/60">
+          {!peopleCollapsed && (
+            <>
+              <Input
+                value={peopleSearch}
+                onChange={(e) => setPeopleSearch(e.target.value)}
+                placeholder={t('admin.broadcast.peopleSearch')}
+                aria-label={t('admin.broadcast.peopleSearch')}
+              />
+              <div className="max-h-56 overflow-y-auto overscroll-contain rounded-xl border border-border/60">
             {peopleLoading && people.length === 0 && (
               <p className="px-3 py-4 text-sm text-muted-foreground">
                 {t('admin.broadcast.recipientCountLoading')}
