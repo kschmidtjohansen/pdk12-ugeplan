@@ -60,6 +60,15 @@ const Stat: React.FC<StatProps> = ({ icon, label, value, className }) => (
   </span>
 );
 
+const pushStatusStyles: Record<PushDeliveryStatus, { key: string; className: string }> = {
+  sent: { key: 'statusSent', className: 'bg-success-soft text-success-soft-foreground' },
+  failed: { key: 'statusFailedPush', className: 'bg-destructive-soft text-destructive' },
+  no_subscription: { key: 'statusNoPush', className: 'bg-warning-soft text-warning-soft-foreground' },
+  skipped: { key: 'statusSkipped', className: 'bg-warning-soft text-warning-soft-foreground' },
+  pending: { key: 'statusPending', className: 'bg-muted text-muted-foreground' },
+};
+
+
 const RecipientsDialog: React.FC<{
   campaign: BroadcastCampaign | null;
   onClose: () => void;
