@@ -226,11 +226,32 @@ const BroadcastNotification: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Megaphone className="h-5 w-5 text-primary" />
-          {t('admin.broadcast.title')}
-        </CardTitle>
-        <CardDescription>{t('admin.broadcast.description')}</CardDescription>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <CardTitle className="flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-primary" />
+              {t('admin.broadcast.title')}
+            </CardTitle>
+            <CardDescription>{t('admin.broadcast.description')}</CardDescription>
+          </div>
+          {pushStatus === 'on' && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="touch-target shrink-0"
+              disabled={testing}
+              onClick={() => void handleTestPush()}
+            >
+              {testing ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="mr-1.5 h-4 w-4" />
+              )}
+              {t('admin.broadcast.testPush')}
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
