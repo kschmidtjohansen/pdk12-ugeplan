@@ -125,6 +125,16 @@ Deno.serve(async (req) => {
         });
       }
 
+      const allowed = await userAllowsCategory(
+        notification.user_id,
+        categoryForType(notification.type),
+      );
+      if (!allowed) {
+        return new Response(JSON.stringify({ skipped: true, reason: 'preference-off' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const result = await sendToUser(notification.user_id, {
         title: notification.title,
         body: notification.message,
