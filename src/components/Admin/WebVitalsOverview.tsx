@@ -269,6 +269,42 @@ const WebVitalsOverview: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <Card className="rounded-xl">
+        <CardHeader>
+          <CardTitle className="text-base">Største layout-skift (CLS pr. element)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <p className="text-sm text-muted-foreground">Indlæser…</p>
+          ) : topShiftTargets.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Ingen data endnu — opsamles fra næste besøg.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Side</TableHead>
+                  <TableHead>Element</TableHead>
+                  <TableHead className="text-right">CLS p75</TableHead>
+                  <TableHead className="text-right">Prøver</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {topShiftTargets.map((r, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-mono text-xs">{r.route}</TableCell>
+                    <TableCell className="font-mono text-xs break-all max-w-[420px]">{r.target}</TableCell>
+                    <TableCell className="text-right">{formatValue('CLS', r.p75)}</TableCell>
+                    <TableCell className="text-right">{r.samples}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
