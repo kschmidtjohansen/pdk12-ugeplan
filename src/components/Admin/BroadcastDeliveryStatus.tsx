@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, CheckCircle2, XCircle, Clock, BellOff, Smartphone, Eye, RefreshCw, Loader2 } from 'lucide-react';
+import { BarChart3, CheckCircle2, XCircle, Clock, BellOff, Smartphone, Eye, RefreshCw, Loader2, Send } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ErrorState from '@/components/shared/ErrorState';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import { toast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import {
   useBroadcastCampaigns,
   useBroadcastRecipients,
+  useResendFailed,
   type BroadcastCampaign,
+  type PushDeliveryStatus,
 } from '@/hooks/useBroadcastCampaigns';
 
 const formatDateTime = (iso: string) =>
