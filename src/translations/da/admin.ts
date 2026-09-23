@@ -413,6 +413,13 @@ export const admin = {
     sent: 'Notifikationen er sendt',
     sentCount: 'Sendt til {count} medarbejdere.',
     sendFailed: 'Kunne ikke sende notifikationen',
+    errorRateLimited: 'For mange forespørgsler lige nu. Prøv igen om lidt.',
+    errorPaymentRequired: 'Der er ikke flere AI-kreditter. Fyld op under Indstillinger.',
+    errorMissingKey: 'AI-tjenesten er ikke sat op. Kontakt IT-support.',
+    errorGateway: 'AI-tjenesten svarede ikke. Prøv igen om lidt.',
+    errorEmpty: 'Der kom ingen tekst retur. Prøv at skrive lidt mere.',
+    errorForbidden: 'Du har ikke adgang til at sende til denne afdeling.',
+
     delivery: {
       title: 'Leveringsstatus',
       description: 'Se hvordan tidligere beskeder er nået frem til medarbejderne.',
