@@ -124,6 +124,9 @@ const TodayDutyCard: React.FC<TodayDutyCardProps> = ({ duties, employees, todayS
           })}
         </ul>
       )}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 };

@@ -46,11 +46,26 @@ const DutyProximitySearch: React.FC<DutyProximitySearchProps> = ({
   const trimmed = postcode.trim();
 
   return (
-    <Card className="rounded-xl border-border/60 shadow-none p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-muted-foreground" />
+    <Card className="rounded-xl border-border/60 shadow-none p-4">
+      <button
+        type="button"
+        onClick={toggleOpen}
+        aria-expanded={open}
+        aria-label={open ? t('duty.collapse') : t('duty.expand')}
+        className="touch-target flex w-full items-center gap-2 text-left"
+      >
+        <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
         <h2 className="text-sm font-semibold text-foreground">{t('duty.proximityTitle')}</h2>
-      </div>
+        <ChevronDown
+          className={`ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? '' : '-rotate-90'}`}
+        />
+      </button>
+
+      <div
+        className={`grid transition-all duration-200 ease-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      >
+        <div className="overflow-hidden">
+          <div className="pt-3 space-y-3">
       <p className="text-xs text-muted-foreground">{t('duty.proximityHint')}</p>
 
       <div className="flex items-center gap-2">
