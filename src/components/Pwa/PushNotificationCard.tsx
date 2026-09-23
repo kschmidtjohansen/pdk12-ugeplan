@@ -43,23 +43,6 @@ export const PushNotificationCard = () => {
     }
   };
 
-  const handleTest = async () => {
-    try {
-      const result = await sendTest();
-      toast({
-        title: isDa ? 'Test sendt' : 'Test sent',
-        description: isDa
-          ? `Sendt til ${result?.sent ?? 0} enhed(er).`
-          : `Sent to ${result?.sent ?? 0} device(s).`,
-      });
-    } catch {
-      toast({
-        variant: 'destructive',
-        title: isDa ? 'Test mislykkedes' : 'Test failed',
-        description: isDa ? 'Prøv igen om et øjeblik.' : 'Please try again in a moment.',
-      });
-    }
-  };
 
   const yes = isDa ? 'Ja' : 'Yes';
   const no = isDa ? 'Nej' : 'No';
