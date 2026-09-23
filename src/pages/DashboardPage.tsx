@@ -110,8 +110,12 @@ const DashboardPage: React.FC = () => {
             />
           )}
 
+          {/* Notifikationer på telefonen */}
+          <PushNotificationCard />
+
           {/* Installér som app (skjules når appen allerede er installeret) */}
           <PwaInstallButton />
+
         </div>
       </div>
     </DataFetchErrorBoundary>
