@@ -192,7 +192,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const allAvailable = [
       ...employeeAvailabilityData.available,
       ...employeeAvailabilityData.partiallyBooked,
-    ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id) && !sickIds.has(emp.id));
+    ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id) && !sickIds.has(emp.id) && !expiredIds.has(emp.id));
     const rolesOf = (emp: any): string[] => {
       const r = (emp.roles && emp.roles.length ? emp.roles : [emp.role]) as string[];
       return r || [];
@@ -226,7 +226,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   // Summary statistics
   const stats = useMemo(() => {
-    const notSick = (list: Array<{ id: string }>) => list.filter(e => !sickIds.has(e.id));
+    const notSick = (list: Array<{ id: string }>) => list.filter(e => !sickIds.has(e.id) && !expiredIds.has(e.id));
     const availableCount = notSick(employeeAvailabilityData.available).length;
     const partialCount = notSick(employeeAvailabilityData.partiallyBooked).length;
     return {
@@ -249,8 +249,15 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const onVacation = employeeAvailabilityData.onVacation;
     if (!employees || !Array.isArray(employees)) return onVacation;
     const onVacationIds = new Set(onVacation.map(e => e.id));
+    const expiredOnly = employees
+      .filter(emp => expiredIds.has(emp.id) && !onVacationIds.has(emp.id))
+      .map(emp => ({
+        ...emp,
+        availabilityInfo: { text: t('employees.lockedReasonExpired') } as any,
+      }));
+    const expiredOnlyIds = new Set(expiredOnly.map(e => e.id));
     const sickOnly = employees
-      .filter(emp => sickIds.has(emp.id) && !onVacationIds.has(emp.id))
+      .filter(emp => sickIds.has(emp.id) && !onVacationIds.has(emp.id) && !expiredOnlyIds.has(emp.id))
       .map(emp => ({ ...emp, availabilityInfo: undefined as any }));
     return [...onVacation, ...sickOnly];
   }, [employeeAvailabilityData.onVacation, employees, sickIds]);
