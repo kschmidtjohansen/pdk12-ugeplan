@@ -402,7 +402,7 @@ export const admin = {
     allDepartments: 'Alle afdelinger',
     allEmployees: 'alle medarbejdere',
     roles: 'Modtagere (roller)',
-    rolesHint: 'Vælg ingen roller for at sende til alle i afdelingen.',
+    rolesHint: 'Vælg ingen roller eller enkelt personer for at sende til alle i afdelingen.',
     people: 'Enkelte personer',
     peopleSearch: 'Søg efter navn eller e-mail',
     peopleHint: 'Vælg ingen personer for at sende til hele gruppen ovenfor.',
