@@ -321,18 +321,6 @@ const BroadcastNotification: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="broadcast-text">{t('admin.broadcast.rawLabel')}</Label>
-          <Textarea
-            id="broadcast-text"
-            value={rawText}
-            onChange={(e) => setRawText(e.target.value)}
-            rows={5}
-            maxLength={4000}
-            placeholder={t('admin.broadcast.rawPlaceholder')}
-          />
-        </div>
-
-        <div className="space-y-2">
             <Label>{t('admin.broadcast.department')}</Label>
             <Select value={departmentId || 'all'} onValueChange={(v) => setDepartmentId(v === 'all' ? '' : v)}>
               <SelectTrigger>
@@ -348,6 +336,20 @@ const BroadcastNotification: React.FC = () => {
               </SelectContent>
             </Select>
         </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="broadcast-text">{t('admin.broadcast.rawLabel')}</Label>
+          <Textarea
+            id="broadcast-text"
+            value={rawText}
+            onChange={(e) => setRawText(e.target.value)}
+            rows={5}
+            maxLength={4000}
+            placeholder={t('admin.broadcast.rawPlaceholder')}
+          />
+        </div>
+
+
 
 
         <div className="space-y-2">
