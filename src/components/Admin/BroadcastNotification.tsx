@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users, Check } from 'lucide-react';
+import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users, Check, ChevronDown } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -89,6 +89,7 @@ const BroadcastNotification: React.FC = () => {
   // Individual recipients inside the selected audience (empty = everyone).
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [peopleSearch, setPeopleSearch] = useState('');
+  const [peopleCollapsed, setPeopleCollapsed] = useState(true);
 
   // Only clear the picked people when the audience really changes (not on the
   // first render or when the department id is filled in asynchronously).
