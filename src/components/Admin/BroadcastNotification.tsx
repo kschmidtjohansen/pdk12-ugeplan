@@ -123,6 +123,15 @@ const BroadcastNotification: React.FC = () => {
 
   const selectedKey = selectedUserIds.slice().sort().join(',');
 
+  // Audience shown in the confirmation dialog: named people take precedence.
+  const confirmAudience = useMemo(() => {
+    if (selectedUserIds.length === 0) return audience;
+    const names = selectedUserIds
+      .map((id) => people.find((p) => p.id === id)?.name || people.find((p) => p.id === id)?.email || '')
+      .filter(Boolean);
+    return names.length > 0 ? names.join(', ') : audience;
+  }, [selectedUserIds, people, audience]);
+
   const filteredPeople = useMemo(() => {
     const q = peopleSearch.trim().toLowerCase();
     if (!q) return people;
