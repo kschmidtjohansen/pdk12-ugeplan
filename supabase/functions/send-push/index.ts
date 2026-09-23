@@ -89,21 +89,35 @@ async function sendToUser(userId: string, payload: PushPayload) {
     }
   }
 
-  return { sent, removed, failed, hadSubscription: true };
+  return { sent, removed, failed, hadSubscription: true, lastError };
 }
 
-/** Records the outcome of one broadcast recipient on its campaign. */
-async function recordBroadcastOutcome(
-  campaignId: string,
-  outcome: { sent?: number; failed?: number; skipped?: number; noSub?: number },
+type DeliveryStatus = 'sent' | 'failed' | 'skipped' | 'no_subscription';
+
+/**
+ * Stores the delivery outcome on the notification row and recomputes the
+ * campaign counters, so retries never double-count a recipient.
+ */
+async function recordDelivery(
+  notificationId: string,
+  campaignId: string | null,
+  status: DeliveryStatus,
+  attempts: number,
+  lastError: string | null,
 ) {
-  await admin.rpc('increment_broadcast_stats', {
-    p_campaign_id: campaignId,
-    p_sent: outcome.sent ?? 0,
-    p_failed: outcome.failed ?? 0,
-    p_skipped: outcome.skipped ?? 0,
-    p_no_sub: outcome.noSub ?? 0,
-  });
+  await admin
+    .from('notifications')
+    .update({
+      push_status: status,
+      push_attempts: attempts + 1,
+      push_last_error: lastError,
+      push_updated_at: new Date().toISOString(),
+    })
+    .eq('id', notificationId);
+
+  if (campaignId) {
+    await admin.rpc('recalc_broadcast_stats', { p_campaign_id: campaignId });
+  }
 }
 
 
