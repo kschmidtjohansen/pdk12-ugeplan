@@ -108,6 +108,13 @@ const BroadcastNotification: React.FC = () => {
       setRawText('');
       setTitle('');
       setMessage('');
+      // Delivery counters arrive asynchronously from the push trigger.
+      queryClient.invalidateQueries({ queryKey: ['broadcast_campaigns'] });
+      setTimeout(
+        () => queryClient.invalidateQueries({ queryKey: ['broadcast_campaigns'] }),
+        4000,
+      );
+
     } catch (err) {
       toast({
         title: t('admin.broadcast.sendFailed'),
