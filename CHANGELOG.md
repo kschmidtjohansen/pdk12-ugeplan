@@ -1803,3 +1803,4 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - **Fejl:** Når et filter (medarbejder eller postnummer) var aktivt, svævede filterpanelet oven på "Ikke-tildelte ressourcer" og toppen af opgavelisten, og "Skjul"-knappen kunne ikke lukke det, fordi panelets synlighed var tvunget åben (`isOpen = expanded || hasFilters`).
 - **Rettelse i `src/components/Planner/PlannerFilterBar.tsx`:** Panelets synlighed styres nu udelukkende af `expanded`. Når et filter aktiveres første gang, foldes panelet automatisk ud én gang (via ref + useEffect på `hasFilters`), men brugeren kan altid lukke det igen med "Skjul" — aktive filtre vises fortsat som chips i bjælken. Overlay-placeringen bevares, så listen stadig ikke skubbes ned (ingen CLS-regression).
 - Verificeret med typecheck (ren).
+- 2026-09-23: Fjernet hjlpeteksten "Vlg ingen personer..." under personlisten i Udsend besked (BroadcastNotification.tsx).

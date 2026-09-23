@@ -466,7 +466,6 @@ const BroadcastNotification: React.FC = () => {
               );
             })}
           </div>
-          <p className="text-xs text-muted-foreground">{t('admin.broadcast.peopleHint')}</p>
         </div>
 
 
