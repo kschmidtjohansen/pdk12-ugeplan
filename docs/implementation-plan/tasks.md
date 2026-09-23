@@ -658,3 +658,12 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Detaljedialog med modtagerliste og læst-status via sikker SECURITY DEFINER-funktion
 - [x] DA/EN-oversættelser, semantiske tokens og 44×44 px trykflader
 - [x] Typecheck, lint og deploy af edge functions uden fejl
+
+## Fejl ved "Lav notifikation" (2026-09-23)
+
+- [x] Årsag fundet: tungt streaming-bibliotek fik tjenesten til at lukke uden svar
+- [x] Kald til sprogmodellen forenklet til ét direkte, ikke-streamende kald
+- [x] Alle fejl returneres som JSON med CORS-headere i stedet for tabt forbindelse
+- [x] Logning af start, fejl og succes i tjenesten
+- [x] Forståelige fejlbeskeder i skærmbilledet (DA/EN)
+- [x] Verificeret mod sprogmodellen og udrullet

@@ -1,3 +1,12 @@
+## 2026-09-23 — Fejl ved "Lav notifikation" rettet
+
+- Tekstgenereringen i "Udsend besked" ramte et nedbrud i selve tjenesten, så browseren blot fik "Failed to send a request to the Edge Function" uden forklaring.
+- `supabase/functions/broadcast-notification/index.ts`: det tunge streaming-bibliotek (`npm:@ai-sdk/openai` + `npm:ai`) er fjernet. Kaldet til sprogmodellen er nu et enkelt, ikke-streamende kald til `https://ai.gateway.lovable.dev/v1/chat/completions` med model `openai/gpt-6-astra` (`reasoning_effort: low`, `max_completion_tokens: 2000`). Parsningen af `TITEL:` / `BESKED:` er uændret.
+- Netværksfejl, 429 (for mange forespørgsler), 402 (ingen AI-kreditter), manglende nøgle og tomt svar returneres nu som tydelige fejlkoder med CORS-headere i stedet for at lukke forbindelsen. Undervejs logges start, fejl og succes.
+- `src/components/Admin/BroadcastNotification.tsx`: ny `describeError()` læser fejlkoden fra svaret (også når kaldet fejler med en HTTP-status) og viser en forståelig tekst i stedet for den tekniske sætning.
+- Nye tekster i `translations/da/admin.ts` og `translations/en/admin.ts`: `errorRateLimited`, `errorPaymentRequired`, `errorMissingKey`, `errorGateway`, `errorEmpty`, `errorForbidden`.
+- Verificeret: direkte kald til sprogmodellen returnerer korrekt "TITEL:/BESKED:"-svar; funktionen er udrullet og typecheck er uden fejl.
+
 ## 2026-09-23 — Leveringsstatus for udsendte beskeder
 
 - Ny sektion "Leveringsstatus" under Administration → "Udsend besked" (`src/components/Admin/BroadcastDeliveryStatus.tsx`): kronologisk liste over de seneste 50 udsendte beskeder med dato, afsender, afdeling og målgruppe.
