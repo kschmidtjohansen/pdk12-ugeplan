@@ -163,6 +163,12 @@ const AdminPage: React.FC = () => {
 
 
           {(isSuperAdmin || isAdmin) && (
+            <TabsContent value="broadcast" className="animate-fade-in">
+              <BroadcastNotification />
+            </TabsContent>
+          )}
+
+          {(isSuperAdmin || isAdmin) && (
             <TabsContent value="autoPublish" className="animate-fade-in">
               <AutoPublishLogWidget />
             </TabsContent>
