@@ -587,7 +587,7 @@ const BroadcastNotification: React.FC = () => {
             {notificationPreview}
             <div className="rounded-lg border border-border/60 p-3 text-sm">
               <p className="text-muted-foreground">{t('admin.broadcast.audienceLabel')}</p>
-              <p className="font-medium">{audience}</p>
+              <p className="font-medium">{confirmAudience}</p>
               <p className="mt-1 inline-flex items-center gap-1.5 text-muted-foreground">
                 <Users className="h-4 w-4" />
                 {countLoading
