@@ -52,11 +52,14 @@ async function sendToUser(userId: string, payload: PushPayload) {
     .eq('user_id', userId);
 
   if (error) throw error;
-  if (!subs || subs.length === 0) return { sent: 0, removed: 0, failed: 0, hadSubscription: false };
+  if (!subs || subs.length === 0) {
+    return { sent: 0, removed: 0, failed: 0, hadSubscription: false, lastError: null as string | null };
+  }
 
   let sent = 0;
   let removed = 0;
   let failed = 0;
+  let lastError: string | null = null;
 
   for (const sub of subs) {
     try {
