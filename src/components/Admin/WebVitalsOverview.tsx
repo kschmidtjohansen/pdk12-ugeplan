@@ -12,6 +12,7 @@ type Row = {
   metric_value: number;
   rating: 'good' | 'needs-improvement' | 'poor' | null;
   route: string;
+  attribution_target: string | null;
 };
 
 const METRICS = ['LCP', 'INP', 'CLS', 'FCP', 'TTFB'] as const;
@@ -69,7 +70,7 @@ const WebVitalsOverview: React.FC = () => {
       while (from < MAX_ROWS) {
         const { data, error } = await supabase
           .from('web_vitals_metrics')
-          .select('id, created_at, metric_name, metric_value, rating, route')
+          .select('id, created_at, metric_name, metric_value, rating, route, attribution_target')
           .gte('created_at', since)
           .order('created_at', { ascending: false })
           .range(from, from + PAGE_SIZE - 1);
