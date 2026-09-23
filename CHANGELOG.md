@@ -1,3 +1,11 @@
+## 2026-09-23 — Ulæst-markering og tæller for nye opgavebeskeder
+
+- Ny `hooks/useUnreadMessages.ts` + `context/UnreadMessagesContext.tsx`: tæller ulæste chatbeskeder (seneste 45 dage) på de opgaver, brugeren er tildelt eller ansvarlig for; egne beskeder tælles ikke med. Læst-tidspunkt pr. opgave gemmes lokalt, og realtime-abonnement opdaterer tælleren løbende.
+- `Layout/AppShell.tsx`: `UnreadMessagesProvider` wrapper hele app-skallen.
+- `Layout/AppSidebar.tsx` og `Layout/MobileBottomNav.tsx`: badge med antal nye beskeder på "Ugeplan" (9+ ved flere end 9, med aria-label).
+- `Assignment/AssignmentMessagesPanel.tsx`: "Nye beskeder"-markering før første ulæste besked; chatten markeres som læst, når den åbnes.
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Afdelingsvælger flyttet øverst i "Udsend besked"
 
 - `Admin/BroadcastNotification.tsx`: afdelingsvælgeren står nu øverst i dialogen lige under titlen, før beskedteksten, så målgruppen vælges først.

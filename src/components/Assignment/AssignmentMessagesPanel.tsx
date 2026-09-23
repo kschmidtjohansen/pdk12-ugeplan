@@ -8,7 +8,8 @@
 import { Send, Reply, X, CornerDownRight, Trash2, MessageSquare } from 'lucide-react';
  import { format } from 'date-fns';
  import { da, enGB } from 'date-fns/locale';
- import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { useUnreadMessagesContext } from '@/context/UnreadMessagesContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,7 +65,25 @@ const AssignmentMessagesPanel: React.FC<AssignmentMessagesPanelProps> = ({
      siblingAssignmentIds
    );
  
-  const { user } = useAuth();
+   const { user } = useAuth();
+  const { unreadFor, markRead } = useUnreadMessagesContext();
+
+  const chatIds = React.useMemo(
+    () => (siblingAssignmentIds && siblingAssignmentIds.length > 0 ? siblingAssignmentIds : [assignmentId]),
+    [siblingAssignmentIds, assignmentId]
+  );
+
+  // Snapshot the unread count when the chat is opened, so we can show a marker
+  // before the first message the user has not seen yet.
+  const [unreadOnOpen] = useState(() => unreadFor(chatIds));
+
+  // Opening the chat marks the conversation as read
+  useEffect(() => {
+    markRead(chatIds);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatIds.join(',')]);
+
+  const firstUnreadIndex = unreadOnOpen > 0 ? Math.max(messages.length - unreadOnOpen, 0) : -1;
 
   // Permission check: owner can delete own messages, admin/skadeleder can delete all
   const canDeleteMessage = (message: AssignmentMessage): boolean => {
@@ -138,8 +157,17 @@ const AssignmentMessagesPanel: React.FC<AssignmentMessagesPanelProps> = ({
            </div>
          ) : (
           <div className="space-y-5">
-             {messages.map((msg) => (
+              {messages.map((msg, index) => (
                 <div key={msg.id} className="group">
+                  {index === firstUnreadIndex && (
+                    <div className="flex items-center gap-2 pb-3" aria-label={currentLanguage === 'da' ? 'Nye beskeder' : 'New messages'}>
+                      <span className="h-px flex-1 bg-destructive/40" />
+                      <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+                        {currentLanguage === 'da' ? 'Nye beskeder' : 'New messages'}
+                      </span>
+                      <span className="h-px flex-1 bg-destructive/40" />
+                    </div>
+                  )}
                   {/* Reply reference */}
                   {msg.reply_to && (
                    <div className="flex items-center gap-2 ml-11 mb-1.5 text-xs text-muted-foreground">

@@ -5,6 +5,7 @@ import AppTopBar from './AppTopBar';
 import MobileBottomNav from './MobileBottomNav';
 import { applyColorScheme, getStoredColorScheme } from '@/hooks/useColorScheme';
 import AssignmentDetailsDialog from '@/components/Planner/AssignmentDetailsDialog';
+import { UnreadMessagesProvider } from '@/context/UnreadMessagesContext';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -23,24 +24,26 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       >
         Gå til indhold
       </a>
-      <SidebarProvider defaultOpen={false}>
-        <div className="flex min-h-screen w-full bg-background">
-          <AppSidebar />
-          <div className="flex-1 flex flex-col min-w-0">
-            <AppTopBar />
-            <main
-              id="main-content"
-              role="main"
-              tabIndex={-1}
-              className="flex-1 w-full pt-2 md:pt-4 pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0"
-            >
-              {children}
-            </main>
+      <UnreadMessagesProvider>
+        <SidebarProvider defaultOpen={false}>
+          <div className="flex min-h-screen w-full bg-background">
+            <AppSidebar />
+            <div className="flex-1 flex flex-col min-w-0">
+              <AppTopBar />
+              <main
+                id="main-content"
+                role="main"
+                tabIndex={-1}
+                className="flex-1 w-full pt-2 md:pt-4 pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0"
+              >
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
-        <MobileBottomNav />
-        <AssignmentDetailsDialog />
-      </SidebarProvider>
+          <MobileBottomNav />
+          <AssignmentDetailsDialog />
+        </SidebarProvider>
+      </UnreadMessagesProvider>
     </>
   );
 };
