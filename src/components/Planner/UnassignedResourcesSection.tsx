@@ -259,8 +259,9 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const sickOnly = employees
       .filter(emp => sickIds.has(emp.id) && !onVacationIds.has(emp.id) && !expiredOnlyIds.has(emp.id))
       .map(emp => ({ ...emp, availabilityInfo: undefined as any }));
-    return [...onVacation, ...sickOnly];
-  }, [employeeAvailabilityData.onVacation, employees, sickIds]);
+    return [...onVacation, ...expiredOnly, ...sickOnly];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [employeeAvailabilityData.onVacation, employees, sickIds, expiredIds, t]);
 
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
