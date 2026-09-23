@@ -205,6 +205,24 @@ const BroadcastNotification: React.FC = () => {
     }
   };
 
+  const notificationPreview = (
+    <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-3">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+        <Bell className="h-4 w-4 text-primary" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold">{title}</p>
+        <p className="text-sm text-muted-foreground">{message}</p>
+        {link && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t('admin.broadcast.previewLink').replace('{link}', link)}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
+
   return (
     <Card>
       <CardHeader>
