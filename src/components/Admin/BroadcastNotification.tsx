@@ -64,6 +64,32 @@ const BroadcastNotification: React.FC = () => {
     setRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]));
   };
 
+  const describeError = async (err: unknown): Promise<string> => {
+    let code = '';
+    const context = (err as { context?: Response })?.context;
+    if (context && typeof context.json === 'function') {
+      try {
+        const payload = await context.clone().json();
+        code = String(payload?.error ?? '');
+      } catch {
+        code = '';
+      }
+    }
+    if (!code) code = String((err as { message?: string })?.message ?? '');
+
+    const known: Record<string, string> = {
+      rate_limited: t('admin.broadcast.errorRateLimited'),
+      payment_required: t('admin.broadcast.errorPaymentRequired'),
+      missing_api_key: t('admin.broadcast.errorMissingKey'),
+      gateway_unreachable: t('admin.broadcast.errorGateway'),
+      gateway_error: t('admin.broadcast.errorGateway'),
+      empty_result: t('admin.broadcast.errorEmpty'),
+      forbidden: t('admin.broadcast.errorForbidden'),
+      forbidden_department: t('admin.broadcast.errorForbidden'),
+    };
+    return known[code] ?? code;
+  };
+
   const handleGenerate = async () => {
     if (rawText.trim().length < 3) return;
     setGenerating(true);
@@ -78,13 +104,14 @@ const BroadcastNotification: React.FC = () => {
     } catch (err) {
       toast({
         title: t('admin.broadcast.generateFailed'),
-        description: (err as { message?: string })?.message,
+        description: await describeError(err),
         variant: 'destructive',
       });
     } finally {
       setGenerating(false);
     }
   };
+
 
   const handleSend = async () => {
     if (!title.trim() || !message.trim()) return;
@@ -122,7 +149,7 @@ const BroadcastNotification: React.FC = () => {
     } catch (err) {
       toast({
         title: t('admin.broadcast.sendFailed'),
-        description: (err as { message?: string })?.message,
+        description: await describeError(err),
         variant: 'destructive',
       });
     } finally {
