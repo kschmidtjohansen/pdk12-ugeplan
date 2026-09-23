@@ -1,3 +1,9 @@
+## 2026-09-23 — Telefonbeskeder skjult på PC og scroll rettet i modtagerlisten
+
+- `DashboardPage.tsx`: kortet "Beskeder på telefonen" vises nu kun på mobil (`md:hidden`), da push kun er relevant på telefonen.
+- `BroadcastDeliveryStatus.tsx`: dialogen "Modtagere af beskeden" bruger nu en almindelig `overflow-y-auto`-container i stedet for `ScrollArea`, så hele modtagerlisten kan scrolles på både PC og mobil. Ubrugt `ScrollArea`-import fjernet.
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Dashboard gennemgået for rester af test-notifikationer
 
 - Gennemgang bekræftede at dashboardet er rent: `PushNotificationCard.tsx` viser kun "Slå til", "Slå fra" og "Installer app nu" — ingen test-knap eller diagnosetekster synlige for medarbejdere (diagnosen ligger kun som hover-titel).
