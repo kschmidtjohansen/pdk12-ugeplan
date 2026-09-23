@@ -144,7 +144,8 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
 
       {isOpen && (
         /* Overlay instead of inline expansion — keeps the week list from being
-           pushed down (layout shift) when the filter panel opens. */
+           pushed down (layout shift) when the filter panel opens. The panel can
+           always be closed with "Skjul", even while filters are active. */
         <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-card p-3 space-y-3 shadow-lg">
           <div className="flex flex-col sm:flex-row gap-2">
             <Popover open={open} onOpenChange={setOpen} modal>
