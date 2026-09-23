@@ -163,9 +163,11 @@ const AdminPage: React.FC = () => {
 
 
           {(isSuperAdmin || isAdmin) && (
-            <TabsContent value="broadcast" className="animate-fade-in">
+            <TabsContent value="broadcast" className="animate-fade-in space-y-4">
               <BroadcastNotification />
+              <BroadcastDeliveryStatus />
             </TabsContent>
+
           )}
 
           {(isSuperAdmin || isAdmin) && (
