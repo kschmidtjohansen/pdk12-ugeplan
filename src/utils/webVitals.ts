@@ -93,6 +93,33 @@ const isPlausible = (metric: Metric): boolean => {
   return !(Number.isNaN(metric.value) || metric.value < 0 || (max !== undefined && metric.value > max));
 };
 
+/**
+ * Which element caused the metric. For CLS this is the element that moved the
+ * most — that is what we need in order to hunt down layout shifts.
+ */
+const getAttribution = (metric: Metric): { target: string | null; detail: string | null } => {
+  try {
+    if (metric.name === 'CLS') {
+      const a = (metric as CLSMetricWithAttribution).attribution;
+      return {
+        target: a?.largestShiftTarget?.slice(0, 300) ?? null,
+        detail: a?.largestShiftValue != null ? `value=${a.largestShiftValue.toFixed(4)}` : null,
+      };
+    }
+    if (metric.name === 'LCP') {
+      const a = (metric as LCPMetricWithAttribution).attribution;
+      return { target: a?.target?.slice(0, 300) ?? null, detail: a?.url?.slice(0, 300) ?? null };
+    }
+    if (metric.name === 'INP') {
+      const a = (metric as INPMetricWithAttribution).attribution;
+      return { target: a?.interactionTarget?.slice(0, 300) ?? null, detail: a?.interactionType ?? null };
+    }
+  } catch {
+    /* attribution is best-effort telemetry */
+  }
+  return { target: null, detail: null };
+};
+
 const handleMetric = (metric: Metric) => {
   if (!isPlausible(metric)) {
     if (import.meta.env.DEV) {
