@@ -1,3 +1,8 @@
+## 2026-09-23 — Personlisten i "Udsend besked" kan minimeres
+
+- `Admin/BroadcastNotification.tsx`: "Enkelte personer" er nu foldet sammen som standard og kan foldes ud via overskriften; antal valgte personer vises som badge på overskriften, og "Ryd valg" er tilgængelig også når listen er lukket.
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Valgte personer bevares og vises i bekræftelsen
 
 - `Admin/BroadcastNotification.tsx`: valget af enkeltpersoner nulstilles ikke længere ved første render eller når afdelings-id'et udfyldes asynkront — kun når afdeling/roller faktisk ændres.
