@@ -30,6 +30,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 const TITLE_LIMIT = 45;
 const MESSAGE_LIMIT = 130;
@@ -65,6 +66,9 @@ const BroadcastNotification: React.FC = () => {
   const [generatedTitle, setGeneratedTitle] = useState('');
   const [generatedMessage, setGeneratedMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  const { status: pushStatus, sendTest } = usePushNotifications();
 
   const departmentName = useMemo(
     () => userDepartments.find((d) => d.id === departmentId)?.name ?? '',
@@ -202,6 +206,28 @@ const BroadcastNotification: React.FC = () => {
       });
     } finally {
       setSending(false);
+    }
+  };
+
+  // Test-notifikation til administratorens egen telefon (kun admins ser knappen).
+  const handleTestPush = async () => {
+    setTesting(true);
+    try {
+      const result = await sendTest();
+      toast({
+        title: t('admin.broadcast.testSent'),
+        description: t('admin.broadcast.testSentCount').replace(
+          '{count}',
+          String(result?.sent ?? 0),
+        ),
+      });
+    } catch {
+      toast({
+        title: t('admin.broadcast.testFailed'),
+        variant: 'destructive',
+      });
+    } finally {
+      setTesting(false);
     }
   };
 
