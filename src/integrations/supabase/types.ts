@@ -1704,6 +1704,16 @@ export type Database = {
       get_auth_jwt: { Args: never; Returns: Json }
       get_auth_role: { Args: never; Returns: string }
       get_auth_uid: { Args: never; Returns: string }
+      get_broadcast_recipients: {
+        Args: { p_campaign_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          name: string
+          read: boolean
+          user_id: string
+        }[]
+      }
       get_car_with_conditional_access: {
         Args: { car_row: Database["public"]["Tables"]["cars"]["Row"] }
         Returns: {
