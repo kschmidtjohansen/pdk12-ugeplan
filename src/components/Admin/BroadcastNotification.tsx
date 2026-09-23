@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users } from 'lucide-react';
+import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users, Check } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
