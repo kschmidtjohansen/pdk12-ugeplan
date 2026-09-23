@@ -1,3 +1,11 @@
+## 2026-09-23 — Afsender modtager egne fællesbeskeder + push til enkelte personer
+
+- `broadcast-notification/index.ts`: afsenderen fjernes ikke længere fra modtagerlisten (`recipients.delete(actorId)` udgået), så administratoren selv får beskeden, hvis vedkommende hører til målgruppen.
+- Ny `list_recipients`-tilstand returnerer navn/e-mail for den valgte afdeling+rollegruppe; `send` og `preview_recipients` accepterer nu `userIds` (UUID-valideret, maks. 500), som kun kan indsnævre — aldrig udvide — den adgangskontrollerede målgruppe.
+- `Admin/BroadcastNotification.tsx`: ny sektion "Enkelte personer" med søgning og afkrydsning, ryd-knap, live modtagerantal og nulstilling ved skift af afdeling/roller samt efter afsendelse.
+- DA/EN-tekster tilføjet (`people`, `peopleSearch`, `peopleHint`, `peopleEmpty`, `peopleClear`).
+- Verificeret: typecheck uden fejl, edge function deployet.
+
 ## 2026-09-23 — Telefonbeskeder skjult på PC og scroll rettet i modtagerlisten
 
 - `DashboardPage.tsx`: kortet "Beskeder på telefonen" vises nu kun på mobil (`md:hidden`), da push kun er relevant på telefonen.
