@@ -20,7 +20,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import ErrorState from '@/components/shared/ErrorState';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import { toast } from '@/hooks/use-toast';
@@ -83,7 +82,7 @@ const RecipientsDialog: React.FC<{
           <DialogTitle>{t('admin.broadcast.delivery.detailsTitle')}</DialogTitle>
           <DialogDescription className="truncate">{campaign?.title}</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[55vh] pr-3">
+        <div className="max-h-[55vh] overflow-y-auto overscroll-contain pr-2">
           {isLoading && <ListSkeleton rowCount={5} />}
           {!isLoading && error && <ErrorState />}
           {!isLoading && !error && (recipients?.length ?? 0) === 0 && (
@@ -133,7 +132,7 @@ const RecipientsDialog: React.FC<{
               </li>
             ))}
           </ul>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
