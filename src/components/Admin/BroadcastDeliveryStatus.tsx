@@ -313,6 +313,39 @@ const BroadcastDeliveryStatus: React.FC = () => {
       </CardContent>
 
       <RecipientsDialog campaign={selected} onClose={() => setSelected(null)} />
+
+      <AlertDialog
+        open={!!resendTarget}
+        onOpenChange={(open) => !open && !resend.isPending && setResendTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('admin.broadcast.delivery.resendTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('admin.broadcast.delivery.resendBody').replace(
+                '{count}',
+                String(resendTarget?.push_failed ?? 0)
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="touch-target" disabled={resend.isPending}>
+              {t('admin.broadcast.delivery.resendCancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="touch-target"
+              disabled={resend.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleResend();
+              }}
+            >
+              {resend.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+              {t('admin.broadcast.delivery.resendConfirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
