@@ -1,4 +1,10 @@
+## 2026-09-23 — Demo-kontoen udelukkes fra notifikationsmodtagere
+
+- `supabase/functions/broadcast-notification/index.ts`: demo-loginkontoen (`test@polygongroup.com`) filtreres nu fra på e-mail, fordi profilen ikke har `is_demo = true`. Gælder personlisten, modtagerantallet og selve udsendelsen.
+- Verificeret: edge function deployet.
+
 ## 2026-09-23 — Responsiv og kompakt modtagerliste i "Udsend besked"
+
 
 - `Admin/BroadcastNotification.tsx`: den foldbare overskrift samler nu ikon, antal valgte og et afkortet resumé af navnene på én kompakt række; "Ryd valg" er en touch-venlig ikonknap.
 - Den åbne personliste har mobiltilpasset højde og sikker touch-scroll. Søgefelt og personrækker har mindst 44 px trykflade, mens navn og e-mail afkortes stabilt på små skærme.
