@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users, Check } from 'lucide-react';
+import { Megaphone, Sparkles, Send, Loader2, Bell, RotateCcw, Undo2, Users, Check, ChevronDown } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -89,6 +89,7 @@ const BroadcastNotification: React.FC = () => {
   // Individual recipients inside the selected audience (empty = everyone).
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [peopleSearch, setPeopleSearch] = useState('');
+  const [peopleCollapsed, setPeopleCollapsed] = useState(true);
 
   // Only clear the picked people when the audience really changes (not on the
   // first render or when the department id is filled in asynchronously).
@@ -398,7 +399,21 @@ const BroadcastNotification: React.FC = () => {
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Label>{t('admin.broadcast.people')}</Label>
+            <button
+              type="button"
+              onClick={() => setPeopleCollapsed((prev) => !prev)}
+              aria-expanded={!peopleCollapsed}
+              className="flex touch-target items-center gap-2 text-sm font-medium leading-none"
+            >
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground transition-transform ${peopleCollapsed ? '-rotate-90' : ''}`}
+                aria-hidden
+              />
+              {t('admin.broadcast.people')}
+              {selectedUserIds.length > 0 && (
+                <Badge variant="secondary">{selectedUserIds.length}</Badge>
+              )}
+            </button>
             {selectedUserIds.length > 0 && (
               <Button
                 type="button"
@@ -411,13 +426,15 @@ const BroadcastNotification: React.FC = () => {
               </Button>
             )}
           </div>
-          <Input
-            value={peopleSearch}
-            onChange={(e) => setPeopleSearch(e.target.value)}
-            placeholder={t('admin.broadcast.peopleSearch')}
-            aria-label={t('admin.broadcast.peopleSearch')}
-          />
-          <div className="max-h-56 overflow-y-auto overscroll-contain rounded-xl border border-border/60">
+          {!peopleCollapsed && (
+            <>
+              <Input
+                value={peopleSearch}
+                onChange={(e) => setPeopleSearch(e.target.value)}
+                placeholder={t('admin.broadcast.peopleSearch')}
+                aria-label={t('admin.broadcast.peopleSearch')}
+              />
+              <div className="max-h-56 overflow-y-auto overscroll-contain rounded-xl border border-border/60">
             {peopleLoading && people.length === 0 && (
               <p className="px-3 py-4 text-sm text-muted-foreground">
                 {t('admin.broadcast.recipientCountLoading')}
@@ -461,7 +478,9 @@ const BroadcastNotification: React.FC = () => {
                 </button>
               );
             })}
-          </div>
+              </div>
+            </>
+          )}
         </div>
 
 
