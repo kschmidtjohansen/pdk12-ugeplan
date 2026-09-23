@@ -1,3 +1,9 @@
+## 2026-09-23 — Demo-brugere og vikarer udelukkes fra notifikationer
+
+- `broadcast-notification/index.ts`: modtagerlisten frasorterer nu altid demo-profiler (`is_demo`) og vikarer (`profiles.is_temporary` eller rollen `vikar`) — gælder både personlisten, modtagerantallet og selve udsendelsen.
+- `Admin/BroadcastNotification.tsx`: rollen "vikar" er fjernet som valgbar målgruppe.
+- Verificeret: typecheck uden fejl, edge function deployet.
+
 ## 2026-09-23 — Afsender modtager egne fællesbeskeder + push til enkelte personer
 
 - `broadcast-notification/index.ts`: afsenderen fjernes ikke længere fra modtagerlisten (`recipients.delete(actorId)` udgået), så administratoren selv får beskeden, hvis vedkommende hører til målgruppen.
