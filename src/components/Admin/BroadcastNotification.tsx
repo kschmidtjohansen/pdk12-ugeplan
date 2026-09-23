@@ -144,6 +144,8 @@ const BroadcastNotification: React.FC = () => {
       if (data?.error) throw new Error(data.error);
       setTitle(data.title ?? '');
       setMessage(data.message ?? '');
+      setGeneratedTitle(data.title ?? '');
+      setGeneratedMessage(data.message ?? '');
     } catch (err) {
       toast({
         title: t('admin.broadcast.generateFailed'),
