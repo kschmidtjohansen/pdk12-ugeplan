@@ -35,11 +35,11 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 const TITLE_LIMIT = 45;
 const MESSAGE_LIMIT = 130;
 
+// Vikarer får aldrig notifikationer og kan derfor ikke vælges som målgruppe.
 const ROLE_OPTIONS = [
   'servicemedarbejder',
   'fugttekniker',
   'skadeleder',
-  'vikar',
   'administrator',
 ] as const;
 
