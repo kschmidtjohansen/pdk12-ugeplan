@@ -35,6 +35,23 @@ interface SubDepartment {
   department_id: string;
   visible_roles: VisibleRole[];
 }
+const DETACH_TABLES = [
+  'assignments', 'user_access', 'cars', 'on_call_duties',
+  'vacations', 'trainings', 'warehouse_items',
+] as const;
+type DetachTable = typeof DETACH_TABLES[number] | 'car_sub_departments';
+
+interface DeleteCounts {
+  assignments: number;
+  users: number;
+  cars: number;
+  duties: number;
+  vacations: number;
+  trainings: number;
+  warehouse: number;
+  carLinks: number;
+}
+
 interface CarOption {
   id: string;
   name: string;
@@ -51,6 +68,8 @@ const SubDepartmentManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<SubDepartment | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteCounts, setDeleteCounts] = useState<DeleteCounts | null>(null);
+  const [countsLoading, setCountsLoading] = useState(false);
 
   // Dialog state for create / edit
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -221,37 +240,65 @@ const SubDepartmentManagement: React.FC = () => {
   };
 
   const handleDeleteAttempt = async (sub: SubDepartment) => {
-    const { count: accessCount } = await supabase
-      .from('user_access').select('*', { count: 'exact', head: true })
-      .eq('sub_department_id', sub.id);
-    const { count: assignmentCount } = await supabase
-      .from('assignments').select('*', { count: 'exact', head: true })
-      .eq('sub_department_id', sub.id);
-    const totalRefs = (accessCount || 0) + (assignmentCount || 0);
-    if (totalRefs > 0) {
-      toast({
-        title: t('common.error'),
-        description: t('admin.subDepartments.hasData'),
-        variant: 'destructive',
-      });
-      return;
-    }
     setDeleteTarget(sub);
+    setDeleteCounts(null);
+    setCountsLoading(true);
+    const countFor = async (table: DetachTable) => {
+      const { count } = await supabase
+        .from(table).select('*', { count: 'exact', head: true })
+        .eq('sub_department_id', sub.id);
+      return count || 0;
+    };
+    const [assignments, users, cars_, duties, vacations, trainings, warehouse, carLinks] =
+      await Promise.all([
+        countFor('assignments'),
+        countFor('user_access'),
+        countFor('cars'),
+        countFor('on_call_duties'),
+        countFor('vacations'),
+        countFor('trainings'),
+        countFor('warehouse_items'),
+        countFor('car_sub_departments'),
+      ]);
+    setDeleteCounts({ assignments, users, cars: cars_, duties, vacations, trainings, warehouse, carLinks });
+    setCountsLoading(false);
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
-    await supabase.from('user_access').delete().eq('sub_department_id', deleteTarget.id);
+    const subId = deleteTarget.id;
+
+    for (const table of DETACH_TABLES) {
+      const { error } = await supabase
+        .from(table)
+        .update({ sub_department_id: null })
+        .eq('sub_department_id', subId);
+      if (error) {
+        toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+        setDeleting(false);
+        return;
+      }
+    }
+
+    const { error: linkError } = await supabase
+      .from('car_sub_departments').delete().eq('sub_department_id', subId);
+    if (linkError) {
+      toast({ title: t('common.error'), description: linkError.message, variant: 'destructive' });
+      setDeleting(false);
+      return;
+    }
+
     const { error } = await supabase
-      .from('sub_departments').delete().eq('id', deleteTarget.id);
+      .from('sub_departments').delete().eq('id', subId);
     if (error) {
       toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
     } else {
       toast({ title: t('common.success'), description: t('admin.subDepartments.deleted') });
-      setSubDepartments(prev => prev.filter(s => s.id !== deleteTarget.id));
+      setSubDepartments(prev => prev.filter(s => s.id !== subId));
     }
     setDeleteTarget(null);
+    setDeleteCounts(null);
     setDeleting(false);
   };
 
