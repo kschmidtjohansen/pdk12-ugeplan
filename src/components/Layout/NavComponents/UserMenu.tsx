@@ -32,6 +32,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const { userDepartments, selectedDepartmentId, switchDepartment, userSubDepartments, selectedSubDepartmentId, setSelectedSubDepartmentId } = useDepartment();
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string | null>(null);
   const { scheme, setScheme } = useColorScheme();
@@ -165,6 +166,10 @@ const UserMenu: React.FC<UserMenuProps> = ({
           <DropdownMenuItem onClick={() => setPasswordDialogOpen(true)} className="cursor-pointer">
             <Lock className="mr-2 h-4 w-4" />
             <span>{t('profile.changePassword')}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setNotificationDialogOpen(true)} className="cursor-pointer">
+            <Bell className="mr-2 h-4 w-4" />
+            <span>{t('profile.notificationSettings')}</span>
           </DropdownMenuItem>
           
           <DropdownMenuSeparator />
