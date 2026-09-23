@@ -4,6 +4,7 @@
 - Ny komponent `src/components/Pwa/PwaInstallButton.tsx` nederst på login-siden: ét-kliks installation i Edge/Chrome, ellers hjælpedialog med tre trin (iOS: Del → Føj til hjemmeskærm).
 - Knappen skjules automatisk, når appen allerede kører som installeret app. 44 px trykflade, semantiske tokens, DA/EN-tekster.
 - `LoginPage.tsx` viser knappen under login-kortet.
+- `DashboardPage.tsx` viser samme knap i bunden af dashboardet (både servicemedarbejder- og standardvisning), så brugerne kan installere appen efter login.
 
 ## 2026-09-23 — Udløbne vikarer blokeres efter udløbsdato
 
