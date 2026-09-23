@@ -20,7 +20,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import ErrorState from '@/components/shared/ErrorState';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import { toast } from '@/hooks/use-toast';
