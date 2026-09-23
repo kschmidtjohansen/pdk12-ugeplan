@@ -5,7 +5,19 @@
  *
  * Initialised once from `src/App.tsx`.
  */
-import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from 'web-vitals';
+import {
+  onCLS,
+  onFCP,
+  onINP,
+  onLCP,
+  onTTFB,
+  type CLSMetricWithAttribution,
+  type INPMetricWithAttribution,
+  type LCPMetricWithAttribution,
+  type MetricWithAttribution,
+} from 'web-vitals/attribution';
+
+type Metric = MetricWithAttribution;
 import { supabase } from '@/integrations/supabase/client';
 
 type QueuedMetric = {
