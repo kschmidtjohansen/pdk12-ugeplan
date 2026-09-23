@@ -43,7 +43,6 @@ const ROLE_OPTIONS = [
   'administrator',
 ] as const;
 
-const LINK_OPTIONS = ['', '/planner', '/duty', '/vacation', '/dashboard'] as const;
 
 const BroadcastNotification: React.FC = () => {
   const { t } = useTranslation();
@@ -58,7 +57,6 @@ const BroadcastNotification: React.FC = () => {
   const [rawText, setRawText] = useState('');
   const [departmentId, setDepartmentId] = useState<string>(selectedDepartmentId ?? '');
   const [roles, setRoles] = useState<string[]>([]);
-  const [link, setLink] = useState<string>('');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -215,7 +213,7 @@ const BroadcastNotification: React.FC = () => {
           mode: 'send',
           title: title.trim(),
           message: message.trim(),
-          link: link || null,
+          link: null,
           departmentId: departmentId || null,
           roles,
           userIds: selectedUserIds,
@@ -286,11 +284,6 @@ const BroadcastNotification: React.FC = () => {
       <div className="min-w-0">
         <p className="text-sm font-semibold">{title}</p>
         <p className="text-sm text-muted-foreground">{message}</p>
-        {link && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t('admin.broadcast.previewLink').replace('{link}', link)}
-          </p>
-        )}
       </div>
     </div>
   );
