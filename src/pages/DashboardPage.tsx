@@ -112,8 +112,10 @@ const DashboardPage: React.FC = () => {
             />
           )}
 
-          {/* Notifikationer på telefonen */}
-          <PushNotificationCard />
+          {/* Notifikationer på telefonen - kun relevant på mobil */}
+          <div className="md:hidden">
+            <PushNotificationCard />
+          </div>
 
           {/* Installér som app (skjules når appen allerede er installeret) */}
           <PwaInstallButton />
