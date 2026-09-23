@@ -79,7 +79,7 @@ class UnifiedDataService {
 
       let query = supabase
         .from('profiles')
-        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status, home_department_id')
+        .select('id, name, email, phone, job_title, on_leave, notes, avatar_url, status, home_department_id, is_temporary, expires_at')
         .eq('is_demo', false)
         .order('name', { ascending: true });
 
@@ -121,7 +121,9 @@ class UnifiedDataService {
           onLeave: profile.on_leave || false,
           status: profile.status || 'active',
           notes: profile.notes || '',
-          avatar_url: profile.avatar_url
+          avatar_url: profile.avatar_url,
+          is_temporary: (profile as any).is_temporary || false,
+          expires_at: (profile as any).expires_at || undefined
         } as Employee;
       });
 

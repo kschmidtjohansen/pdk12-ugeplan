@@ -5,6 +5,27 @@ import { format } from 'date-fns';
 
 export type EmployeeAvailabilityStatus = 'available' | 'partiallyBooked' | 'fullyBooked' | 'onLeave' | 'onVacation' | 'partialVacation';
 
+/**
+ * A temporary employee (vikar) is expired RELATIVE TO THE ASSIGNMENT DATE —
+ * not relative to "now". Booking a vikar on a date after his expiry must be
+ * blocked, even if the expiry has not passed yet today.
+ * The expiry day itself still counts as a valid working day.
+ */
+export const isTemporaryExpiredOn = (
+  employee: Pick<Employee, 'is_temporary' | 'expires_at'> | null | undefined,
+  date: Date | string
+): boolean => {
+  if (!employee?.is_temporary || !employee.expires_at) return false;
+  const expiry = new Date(employee.expires_at);
+  if (isNaN(expiry.getTime())) return false;
+  expiry.setHours(23, 59, 59, 999);
+  const target = typeof date === 'string'
+    ? new Date(`${date.includes('T') ? date.split('T')[0] : date}T12:00:00`)
+    : date;
+  if (!target || isNaN(target.getTime())) return false;
+  return target.getTime() > expiry.getTime();
+};
+
 export type EmployeeAvailabilityBadgeVariant = 'success' | 'warning' | 'error' | 'default';
 
 export interface EmployeeAvailabilityInfo {
