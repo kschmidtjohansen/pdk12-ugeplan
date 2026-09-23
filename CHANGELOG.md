@@ -1,3 +1,13 @@
+## 2026-09-23 — Udløbne vikarer blokeres efter udløbsdato
+
+- Fælles regel `isTemporaryExpiredOn(employee, date)` i `src/utils/employeeAvailability.ts`: udløb vurderes mod opgavens dato, udløbsdagen tæller som gyldig arbejdsdag.
+- `unifiedDataService.ts` henter nu `is_temporary` og `expires_at` med på profiler, så ugeplanens datalag kender vikarstatus.
+- `UnassignedResourcesSection.tsx`: udløbne vikarer fjernes fra ledige grupper og tællinger og vises i fraværslisten med "Midlertidig adgang er udløbet".
+- `BulkAssignEmployeeDialog.tsx`: udløbne vikarer kan ikke vælges til masse-tildeling.
+- `useProximitySearch.ts`: udløbne vikarer markeres som fraværende pr. dag.
+- `EmployeeSelector.tsx` bruger den fælles hjælper.
+- Database: trigger `validate_temporary_employee_assignment_trg` på `assignments_employees` afviser tildelinger efter udløbsdatoen (SECURITY DEFINER, `search_path = ''`, EXECUTE revokeret).
+
 # Changelog
 
 ## 2026-09-23 — Layout-stabilitet (CLS) i ugeplanen

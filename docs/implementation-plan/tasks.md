@@ -1,3 +1,11 @@
+## Udløbne vikarer blokeres efter udløbsdato (2026-09-23)
+
+- [x] Fælles udløbsregel mod opgavens dato
+- [x] Vikarfelter med i ugeplanens datalag
+- [x] Ikke-tildelte ressourcer viser udløbne vikarer som fraværende
+- [x] Masse-tildeling og nærhedssøgning respekterer udløb
+- [x] Databasetrigger som sikkerhedsnet
+
 # Implementeringsfaser
 
 ## Løbende rettelser ✅
