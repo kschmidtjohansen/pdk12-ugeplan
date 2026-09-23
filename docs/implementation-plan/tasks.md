@@ -1,3 +1,10 @@
+## "Installer som app"-knap på login-siden (2026-09-23)
+
+- [x] Hook der fanger browserens installationstilbud (Edge/Chrome) og genkender iOS/standalone
+- [x] Knap nederst på login-siden med ét-kliks installation
+- [x] Hjælpedialog med tre trin for iOS og browsere uden installationstilbud
+- [x] Knappen skjules, når appen allerede er installeret
+
 ## Udløbne vikarer blokeres efter udløbsdato (2026-09-23)
 
 - [x] Fælles udløbsregel mod opgavens dato
