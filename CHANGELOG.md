@@ -1,3 +1,10 @@
+## 2026-09-23 — Dashboard gennemgået for rester af test-notifikationer
+
+- Gennemgang bekræftede at dashboardet er rent: `PushNotificationCard.tsx` viser kun "Slå til", "Slå fra" og "Installer app nu" — ingen test-knap eller diagnosetekster synlige for medarbejdere (diagnosen ligger kun som hover-titel).
+- `sendTest` bruges nu udelukkende i `Admin/BroadcastNotification.tsx` ("Udsend besked"); ingen andre komponenter eller sider refererer det.
+- `DashboardPage.tsx` indeholder kun `PushNotificationCard` — ingen andre notifikationskomponenter.
+- Verificeret: typecheck uden fejl.
+
 ## 2026-09-23 — Test-notifikation flyttet til Administration
 
 - `PushNotificationCard.tsx`: "Send test"-knappen er fjernet fra dashboardet. Almindelige medarbejdere kan fortsat kun slå notifikationer til/fra og installere appen.

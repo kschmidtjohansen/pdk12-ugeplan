@@ -696,3 +696,8 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Rolig animation, `aria-expanded` og 44×44 px trykflade
 - [x] DA/EN-oversættelser (`expand`, `collapse`, `onDutyCount`)
 - [x] Typecheck uden fejl
+
+## Dashboard uden test-notifikationer (2026-09-23)
+- [x] Verificeret at "Send test" kun findes i Administration → "Udsend besked"
+- [x] Verificeret at dashboardets beskedkort kun viser Slå til / Slå fra / Installer app
+- [x] Ingen test-rester på dashboardet — dokumenteret i CHANGELOG.md
