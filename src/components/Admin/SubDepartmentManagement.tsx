@@ -307,6 +307,19 @@ const SubDepartmentManagement: React.FC = () => {
   const roleLabel = (role: VisibleRole) =>
     t(`employees.${role}`) || role;
 
+  const impactItems = deleteCounts
+    ? ([
+        { key: 'assignments', count: deleteCounts.assignments, label: t('admin.subDepartments.deleteImpactAssignments') },
+        { key: 'users', count: deleteCounts.users, label: t('admin.subDepartments.deleteImpactUsers') },
+        { key: 'cars', count: deleteCounts.cars, label: t('admin.subDepartments.deleteImpactCars') },
+        { key: 'carLinks', count: deleteCounts.carLinks, label: t('admin.subDepartments.deleteImpactCarLinks') },
+        { key: 'duties', count: deleteCounts.duties, label: t('admin.subDepartments.deleteImpactDuties') },
+        { key: 'vacations', count: deleteCounts.vacations, label: t('admin.subDepartments.deleteImpactVacations') },
+        { key: 'trainings', count: deleteCounts.trainings, label: t('admin.subDepartments.deleteImpactTrainings') },
+        { key: 'warehouse', count: deleteCounts.warehouse, label: t('admin.subDepartments.deleteImpactWarehouse') },
+      ].filter(i => i.count > 0))
+    : [];
+
   return (
     <>
       <Card>
@@ -482,16 +495,42 @@ const SubDepartmentManagement: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteCounts(null); } }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('admin.subDepartments.deleteConfirm')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('admin.subDepartments.deleteWarning')}</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t('admin.subDepartments.deleteConfirm')}
+              {deleteTarget ? ` (${deleteTarget.name})` : ''}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {countsLoading
+                ? t('admin.subDepartments.deleteImpactLoading')
+                : impactItems.length === 0
+                  ? t('admin.subDepartments.deleteImpactNone')
+                  : t('admin.subDepartments.deleteImpactIntro')}
+            </AlertDialogDescription>
           </AlertDialogHeader>
+          {!countsLoading && impactItems.length > 0 && (
+            <ul className="space-y-1 text-sm">
+              {impactItems.map(item => (
+                <li key={item.key} className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-1.5">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="font-medium tabular-nums">{item.count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {t('admin.subDepartments.delete')}
+            <AlertDialogCancel disabled={deleting}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDelete(); }}
+              disabled={deleting || countsLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? t('admin.subDepartments.deleting') : t('admin.subDepartments.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
