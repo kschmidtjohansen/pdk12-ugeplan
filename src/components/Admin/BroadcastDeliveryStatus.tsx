@@ -198,15 +198,33 @@ const BroadcastDeliveryStatus: React.FC = () => {
                   <p className="truncate text-sm font-semibold">{c.title}</p>
                   <p className="line-clamp-2 text-sm text-muted-foreground">{c.message}</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="touch-target shrink-0"
-                  onClick={() => setSelected(c)}
-                >
-                  <Eye className="mr-1.5 h-3.5 w-3.5" />
-                  {t('admin.broadcast.delivery.details')}
-                </Button>
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  {c.push_failed > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="touch-target"
+                      onClick={() => setResendTarget(c)}
+                      disabled={resend.isPending}
+                    >
+                      {resend.isPending && resendTarget?.id === c.id ? (
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Send className="mr-1.5 h-3.5 w-3.5" />
+                      )}
+                      {t('admin.broadcast.delivery.resend')}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="touch-target"
+                    onClick={() => setSelected(c)}
+                  >
+                    <Eye className="mr-1.5 h-3.5 w-3.5" />
+                    {t('admin.broadcast.delivery.details')}
+                  </Button>
+                </div>
               </div>
 
               <p className="mt-2 text-xs text-muted-foreground">
