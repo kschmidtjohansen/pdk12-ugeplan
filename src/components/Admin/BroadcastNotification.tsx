@@ -478,7 +478,9 @@ const BroadcastNotification: React.FC = () => {
                 </button>
               );
             })}
-          </div>
+              </div>
+            </>
+          )}
         </div>
 
 
