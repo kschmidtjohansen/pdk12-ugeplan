@@ -190,6 +190,21 @@ export default function DutyPage() {
         onChanged={() => { refetchSwap(); refetch(); }}
       />
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 items-start">
+        {loading ? (
+          <ListSkeleton rowCount={2} />
+        ) : (
+          <TodayDutyCard duties={dutiesWithRoles} employees={employees} todayStr={todayStr} />
+        )}
+        <DutyProximitySearch
+          rosterEmployees={rosterEmployees}
+          duties={dutiesWithRoles}
+          todayStr={todayStr}
+        />
+      </div>
+
+
+
       <Tabs defaultValue="calendar" className="space-y-4">
         <TabsList>
           <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
