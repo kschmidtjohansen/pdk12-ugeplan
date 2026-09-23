@@ -143,6 +143,31 @@ const WebVitalsOverview: React.FC = () => {
       .slice(0, 10);
   }, [filtered]);
 
+  // Which elements move the most (CLS attribution) — points straight at the
+  // component responsible for a layout shift.
+  const topShiftTargets = useMemo(() => {
+    const byKey = new Map<string, { route: string; target: string; values: number[] }>();
+    for (const r of filtered) {
+      if (r.metric_name !== 'CLS' || !r.attribution_target) continue;
+      const k = `${r.route}|${r.attribution_target}`;
+      let bucket = byKey.get(k);
+      if (!bucket) {
+        bucket = { route: r.route, target: r.attribution_target, values: [] };
+        byKey.set(k, bucket);
+      }
+      bucket.values.push(r.metric_value);
+    }
+    return Array.from(byKey.values())
+      .map((b) => ({
+        route: b.route,
+        target: b.target,
+        p75: percentile(b.values.sort((a, b) => a - b), 75),
+        samples: b.values.length,
+      }))
+      .sort((a, b) => b.samples - a.samples)
+      .slice(0, 10);
+  }, [filtered]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
