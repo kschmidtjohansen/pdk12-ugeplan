@@ -1,4 +1,16 @@
-## 2026-09-23 — "Installer som app"-knap på login-siden (PWA)
+## 2026-09-23 — Push-notifikationer på telefonen (PWA)
+
+- Ny tabel `push_subscriptions` (endpoint unik, nøgler, user agent, sidst set, sidste fejl) med GRANTs og RLS: brugeren kan kun se/redigere egne enheder; service_role har fuld adgang.
+- Ny intern tabel `app_internal_config` (RLS uden politikker: kun service_role/SECURITY DEFINER) med intern nøgle og URL til push-tjenesten.
+- Trigger `notify_push_on_notification_trg` (AFTER INSERT på `notifications`, SECURITY DEFINER, `search_path = ''`, EXECUTE revokeret) kalder edge function `send-push` via `net.http_post`; demo-notifikationer springes over.
+- Ny edge function `supabase/functions/send-push`: VAPID-web-push, henter brugerens enheder, sletter endpoints med 404/410 og gemmer øvrige fejl; understøtter både internt trigger-kald og autentificeret selvtest.
+- Hemmeligheder: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `PUSH_TRIGGER_SECRET`.
+- Ny service worker `public/push-sw.js` (kun `push` + `notificationclick`, ingen caching). Oprydnings-workeren `public/sw.js` er urørt.
+- Ny hook `src/hooks/usePushNotifications.ts`: tilladelsesstatus, tilmeld/afmeld, gemmer subscription, iOS-/preview-guards.
+- Ny komponent `src/components/Pwa/PushNotificationCard.tsx` i bunden af dashboardet: slå til/fra, send test, iOS-vejledning ved manglende installation. DA/EN, semantiske tokens, 44 px trykflader.
+- Verificeret end-to-end: ny notifikation i databasen udløser kald til `send-push` (svar `{"ok":true}`).
+
+
 
 - Ny hook `src/hooks/usePwaInstall.ts`: fanger `beforeinstallprompt` (Edge/Chrome), registrerer `appinstalled` og genkender iOS samt standalone-tilstand.
 - Ny komponent `src/components/Pwa/PwaInstallButton.tsx` nederst på login-siden: ét-kliks installation i Edge/Chrome, ellers hjælpedialog med tre trin (iOS: Del → Føj til hjemmeskærm).
