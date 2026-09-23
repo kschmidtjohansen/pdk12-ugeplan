@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor, Bell } from 'lucide-react';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem,
 import { languageNames } from '../../../translations';
 import PasswordChangeDialog from '../../Profile/PasswordChangeDialog';
 import ProfilePictureDialog from '../../Profile/ProfilePictureDialog';
+import NotificationPreferencesDialog from '../../Profile/NotificationPreferencesDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth, UserRole } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
