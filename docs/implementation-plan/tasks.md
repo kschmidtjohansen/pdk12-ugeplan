@@ -1,3 +1,13 @@
+## Gennemgang af beskeden før udsendelse (2026-09-23)
+
+- [x] Bekræftelsesvindue med forhåndsvisning, målgruppe og antal modtagere
+- [x] Antal modtagere vises live i formularen (`preview_recipients`)
+- [x] "Lav om" og "Fortryd mine rettelser"
+- [x] Tegntællere for overskrift og besked
+- [x] Delt modtagerudvælgelse i edge function, så preview og send følges ad
+- [x] DA/EN-tekster, typecheck og lint
+- [ ] Bekræft efter udgivelse: tjek at antallet passer for en afdeling og at bekræftelsen sender korrekt
+
 ## Genudsendelse til fejlede modtagere (2026-09-23)
 
 - [x] Leveringsstatus per modtager på `notifications`
