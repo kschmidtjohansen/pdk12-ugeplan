@@ -101,6 +101,7 @@ const handleMetric = (metric: Metric) => {
     return;
   }
   const route = window.location.pathname;
+  const { target, detail } = getAttribution(metric);
   if (import.meta.env.DEV) {
     console.log(
       `[WebVitals] ${metric.name}=${metric.value.toFixed(2)} (${metric.rating}) on ${route}`
@@ -124,6 +125,8 @@ const handleMetric = (metric: Metric) => {
       connection_type: getConnectionType(),
       user_agent: navigator.userAgent.slice(0, 500),
       session_id: getSessionId(),
+      attribution_target: target,
+      attribution_detail: detail,
     });
   });
 };
