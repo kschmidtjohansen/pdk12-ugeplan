@@ -132,6 +132,9 @@ export const duty = {
   noCoordinates: "No home address on file",
   onDutyToday: "On duty today",
   approx: "approx.",
+  expand: "Expand",
+  collapse: "Collapse",
+  onDutyCount: "{{count}} on duty",
 };
 
 
