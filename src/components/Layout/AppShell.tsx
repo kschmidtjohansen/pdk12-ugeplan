@@ -5,6 +5,7 @@ import AppTopBar from './AppTopBar';
 import MobileBottomNav from './MobileBottomNav';
 import { applyColorScheme, getStoredColorScheme } from '@/hooks/useColorScheme';
 import AssignmentDetailsDialog from '@/components/Planner/AssignmentDetailsDialog';
+import { UnreadMessagesProvider } from '@/context/UnreadMessagesContext';
 
 interface AppShellProps {
   children: React.ReactNode;

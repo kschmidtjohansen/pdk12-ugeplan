@@ -18,6 +18,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useVacationRequestsStatus } from '@/hooks/vacation/useVacationRequestsStatus';
+import { useUnreadMessagesContext } from '@/context/UnreadMessagesContext';
 import { cn } from '@/lib/utils';
 import DepartmentSwitcherPill from './NavComponents/DepartmentSwitcherPill';
 
@@ -36,6 +37,7 @@ const AppSidebar: React.FC = () => {
   const { isEffectiveAdmin } = useAuth();
   const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
+  const { totalUnread } = useUnreadMessagesContext();
   const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const collapsed = state === 'collapsed';
@@ -44,7 +46,13 @@ const AppSidebar: React.FC = () => {
 
   const allItems: NavItem[] = [
     { path: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
-    { path: '/planner', label: t('navigation.planner'), icon: Clock },
+    {
+      path: '/planner',
+      label: t('navigation.planner'),
+      icon: Clock,
+      hasNotification: totalUnread > 0,
+      notificationCount: totalUnread,
+    },
     { path: '/employees', label: t('navigation.employees'), icon: Users },
     { path: '/cars', label: t('navigation.cars'), icon: Car },
     {
