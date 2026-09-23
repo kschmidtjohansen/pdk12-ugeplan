@@ -288,29 +288,45 @@ const BroadcastNotification: React.FC = () => {
           <p className="text-xs text-muted-foreground">{t('admin.broadcast.rolesHint')}</p>
         </div>
 
-        <Button onClick={handleGenerate} disabled={generating || rawText.trim().length < 3}>
-          {generating ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="mr-2 h-4 w-4" />
-          )}
-          {t('admin.broadcast.generate')}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            onClick={handleGenerate}
+            disabled={generating || rawText.trim().length < 3}
+            className="touch-target"
+          >
+            {generating ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="mr-2 h-4 w-4" />
+            )}
+            {t('admin.broadcast.generate')}
+          </Button>
+          <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            {countLoading
+              ? t('admin.broadcast.recipientCountLoading')
+              : t('admin.broadcast.recipientCount').replace(
+                  '{count}',
+                  recipientCount === undefined ? '—' : String(recipientCount),
+                )}
+          </span>
+        </div>
 
         {(title || message) && (
           <div className="space-y-4 rounded-xl border border-border/60 p-4">
-            <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <Bell className="h-4 w-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold">{title}</p>
-                <p className="text-sm text-muted-foreground">{message}</p>
-              </div>
-            </div>
+            {notificationPreview}
 
             <div className="space-y-2">
-              <Label htmlFor="broadcast-title">{t('admin.broadcast.titleField')}</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="broadcast-title">{t('admin.broadcast.titleField')}</Label>
+                <span
+                  className={`text-xs ${title.length > TITLE_LIMIT ? 'text-warning' : 'text-muted-foreground'}`}
+                >
+                  {t('admin.broadcast.charsLeft')
+                    .replace('{count}', String(title.length))
+                    .replace('{max}', String(TITLE_LIMIT))}
+                </span>
+              </div>
               <Input
                 id="broadcast-title"
                 value={title}
@@ -319,7 +335,16 @@ const BroadcastNotification: React.FC = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="broadcast-message">{t('admin.broadcast.messageField')}</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="broadcast-message">{t('admin.broadcast.messageField')}</Label>
+                <span
+                  className={`text-xs ${message.length > MESSAGE_LIMIT ? 'text-warning' : 'text-muted-foreground'}`}
+                >
+                  {t('admin.broadcast.charsLeft')
+                    .replace('{count}', String(message.length))
+                    .replace('{max}', String(MESSAGE_LIMIT))}
+                </span>
+              </div>
               <Textarea
                 id="broadcast-message"
                 value={message}
@@ -329,16 +354,93 @@ const BroadcastNotification: React.FC = () => {
               />
             </div>
 
-            <Button onClick={handleSend} disabled={sending || !title.trim() || !message.trim()}>
-              {sending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="mr-2 h-4 w-4" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                onClick={() => setConfirmOpen(true)}
+                disabled={sending || !title.trim() || !message.trim()}
+                className="touch-target"
+              >
+                {sending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="mr-2 h-4 w-4" />
+                )}
+                {t('admin.broadcast.send')}
+              </Button>
+
+              <Button
+                variant="outline"
+                className="touch-target"
+                onClick={handleGenerate}
+                disabled={generating || rawText.trim().length < 3}
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                {t('admin.broadcast.regenerate')}
+              </Button>
+
+              {hasEdits && (
+                <Button
+                  variant="ghost"
+                  className="touch-target"
+                  onClick={() => {
+                    setTitle(generatedTitle);
+                    setMessage(generatedMessage);
+                  }}
+                >
+                  <Undo2 className="mr-2 h-4 w-4" />
+                  {t('admin.broadcast.resetEdits')}
+                </Button>
               )}
-              {t('admin.broadcast.send')}
-            </Button>
+            </div>
           </div>
         )}
+      </CardContent>
+
+      <AlertDialog
+        open={confirmOpen}
+        onOpenChange={(open) => !open && !sending && setConfirmOpen(false)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('admin.broadcast.confirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('admin.broadcast.confirmBody')}</AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-3">
+            {notificationPreview}
+            <div className="rounded-lg border border-border/60 p-3 text-sm">
+              <p className="text-muted-foreground">{t('admin.broadcast.audienceLabel')}</p>
+              <p className="font-medium">{audience}</p>
+              <p className="mt-1 inline-flex items-center gap-1.5 text-muted-foreground">
+                <Users className="h-4 w-4" />
+                {countLoading
+                  ? t('admin.broadcast.recipientCountLoading')
+                  : t('admin.broadcast.recipientCount').replace(
+                      '{count}',
+                      recipientCount === undefined ? '—' : String(recipientCount),
+                    )}
+              </p>
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel className="touch-target" disabled={sending}>
+              {t('admin.broadcast.confirmCancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="touch-target"
+              disabled={sending}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleSend();
+              }}
+            >
+              {sending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('admin.broadcast.confirmSend')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       </CardContent>
     </Card>
   );
