@@ -205,14 +205,27 @@ Deno.serve(async (req) => {
       return json(generated);
     }
 
+    if (mode === 'preview_recipients') {
+      const departmentId = body?.departmentId ? String(body.departmentId) : null;
+      const targetRoles = parseTargetRoles(body?.roles);
+
+      if (!isSuperAdmin) {
+        const accessible = await getAccessibleDepartments(actor.id);
+        if (!departmentId || !accessible.has(departmentId)) {
+          return json({ error: 'forbidden_department' }, 403);
+        }
+      }
+
+      const recipients = await resolveRecipients(departmentId, targetRoles, actor.id);
+      return json({ ok: true, count: recipients.size });
+    }
+
     if (mode === 'send') {
       const title = String(body?.title ?? '').trim().slice(0, 120);
       const message = String(body?.message ?? '').trim().slice(0, 500);
       const link = body?.link ? String(body.link).slice(0, 200) : null;
       const departmentId = body?.departmentId ? String(body.departmentId) : null;
-      const targetRoles: string[] = Array.isArray(body?.roles)
-        ? body.roles.filter((r: unknown) => typeof r === 'string' && ALLOWED_ROLES.includes(r))
-        : [];
+      const targetRoles = parseTargetRoles(body?.roles);
 
       if (!title || !message) return json({ error: 'invalid_content' }, 400);
 
@@ -223,31 +236,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Resolve recipients
-      const recipients = new Set<string>();
-
-      if (departmentId) {
-        const [{ data: byHome }, { data: byAccess }] = await Promise.all([
-          admin.from('profiles').select('id').eq('home_department_id', departmentId).eq('is_demo', false),
-          admin.from('user_access').select('user_id').eq('department_id', departmentId),
-        ]);
-        for (const row of byHome ?? []) recipients.add(row.id);
-        for (const row of byAccess ?? []) recipients.add(row.user_id);
-      } else {
-        const { data: all } = await admin.from('profiles').select('id').eq('is_demo', false);
-        for (const row of all ?? []) recipients.add(row.id);
-      }
-
-      if (targetRoles.length > 0) {
-        const { data: roleRows } = await admin
-          .from('user_roles')
-          .select('user_id')
-          .in('role', targetRoles);
-        const allowed = new Set((roleRows ?? []).map((r) => r.user_id));
-        for (const id of [...recipients]) if (!allowed.has(id)) recipients.delete(id);
-      }
-
-      recipients.delete(actor.id);
+      const recipients = await resolveRecipients(departmentId, targetRoles, actor.id);
 
       if (recipients.size === 0) return json({ ok: true, recipients: 0 });
 
