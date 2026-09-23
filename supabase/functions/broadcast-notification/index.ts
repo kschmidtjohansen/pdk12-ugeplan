@@ -42,45 +42,80 @@ async function getAccessibleDepartments(userId: string) {
 
 async function generateNotification(rawText: string, audience: string) {
   const key = Deno.env.get('LOVABLE_API_KEY');
-  if (!key) return { error: 'missing_api_key', status: 500 as const };
+  if (!key) {
+    console.error('generate: LOVABLE_API_KEY is not configured');
+    return { error: 'missing_api_key', status: 500 as const };
+  }
 
-  const lovable = createOpenAI({
-    baseURL: 'https://ai.gateway.lovable.dev/v1',
-    apiKey: key,
-    headers: { 'Lovable-API-Key': key, 'X-Lovable-AIG-SDK': 'vercel-ai-sdk' },
-  });
+  const systemPrompt = [
+    'Du skriver korte push-notifikationer på professionelt dansk til medarbejdere i en skadeservicevirksomhed.',
+    'Svar ALTID præcist i dette format og intet andet:',
+    'TITEL: <maks 45 tegn>',
+    'BESKED: <maks 130 tegn>',
+    'Vær konkret, venlig og handlingsorienteret. Ingen emojis. Ingen indledning eller forklaring.',
+  ].join('\n');
 
-  const result = streamText({
-    model: lovable.responses('openai/gpt-6-astra'),
-    system: [
-      'Du skriver korte push-notifikationer på professionelt dansk til medarbejdere i en skadeservicevirksomhed.',
-      'Svar ALTID præcist i dette format og intet andet:',
-      'TITEL: <maks 45 tegn>',
-      'BESKED: <maks 130 tegn>',
-      'Vær konkret, venlig og handlingsorienteret. Ingen emojis. Ingen indledning eller forklaring.',
-    ].join('\n'),
-    prompt: `Modtagere: ${audience}\n\nRåtekst fra administrator:\n${rawText}`,
-    providerOptions: {
-      openai: {
-        forceReasoning: true,
-        reasoningEffort: 'low',
-        reasoningSummary: 'auto',
-        store: false,
-        include: ['reasoning.encrypted_content'],
+  console.log('generate: calling AI gateway');
+
+  let res: Response;
+  try {
+    res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Lovable-API-Key': key,
+        'X-Lovable-AIG-SDK': 'fetch',
       },
-    },
-  });
+      body: JSON.stringify({
+        model: 'openai/gpt-6-astra',
+        reasoning_effort: 'low',
+        max_completion_tokens: 2000,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          {
+            role: 'user',
+            content: `Modtagere: ${audience}\n\nRåtekst fra administrator:\n${rawText}`,
+          },
+        ],
+      }),
+    });
+  } catch (err) {
+    console.error('generate: network error calling AI gateway', (err as Error)?.message);
+    return { error: 'gateway_unreachable', status: 502 as const };
+  }
 
-  const text = (await result.text) ?? '';
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    console.error('generate: AI gateway returned', res.status, detail.slice(0, 500));
+    if (res.status === 429) return { error: 'rate_limited', status: 429 as const };
+    if (res.status === 402) return { error: 'payment_required', status: 402 as const };
+    return { error: 'gateway_error', status: 502 as const };
+  }
+
+  let text = '';
+  try {
+    const payload = await res.json();
+    text = String(payload?.choices?.[0]?.message?.content ?? '');
+  } catch (err) {
+    console.error('generate: could not read AI response', (err as Error)?.message);
+    return { error: 'empty_result', status: 502 as const };
+  }
+
   const titleMatch = text.match(/TITEL:\s*(.+)/i);
   const bodyMatch = text.match(/BESKED:\s*([\s\S]+)/i);
 
   const title = (titleMatch?.[1] ?? 'Vigtig besked').trim().slice(0, 60);
   const message = (bodyMatch?.[1] ?? text).trim().replace(/\s+/g, ' ').slice(0, 200);
 
-  if (!message) return { error: 'empty_result', status: 502 as const };
+  if (!message) {
+    console.error('generate: model returned empty text');
+    return { error: 'empty_result', status: 502 as const };
+  }
+
+  console.log('generate: success');
   return { title, message };
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
