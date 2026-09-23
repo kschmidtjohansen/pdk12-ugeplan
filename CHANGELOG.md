@@ -1,3 +1,15 @@
+## 2026-09-23 — Gennemgå beskeden før den sendes
+
+- "Udsend notifikation" sender ikke længere med det samme: der kommer nu et bekræftelsesvindue med beskeden som den ser ud på telefonen, målgruppen og antal modtagere. Først "Send nu" sender.
+- Antal modtagere vises også i formularen og opdateres, når afdeling eller roller ændres (debounce på 400 ms, `staleTime` 30 s).
+- Ny "Lav om"-knap beder AI'en om et nyt forslag ud fra samme råtekst.
+- "Fortryd mine rettelser" vises kun, når man har ændret AI'ens forslag, og sætter det tilbage.
+- Tegntællere ved overskrift (45) og besked (130) med rolig advarselsfarve over grænsen — vejledende, ikke blokerende.
+- Forhåndsvisningen opdateres løbende og viser også det valgte link.
+- `broadcast-notification`: modtagerudvælgelsen er trukket ud i en delt `resolveRecipients()`, og ny `mode: 'preview_recipients'` returnerer kun antallet med samme rolle- og afdelingskontrol som `send`.
+- Nye DA/EN-tekster under `admin.broadcast` (`confirmTitle`, `confirmBody`, `confirmSend`, `confirmCancel`, `audienceLabel`, `recipientCount`, `recipientCountLoading`, `regenerate`, `resetEdits`, `charsLeft`, `previewLink`).
+- Verificeret: typecheck og lint uden fejl; funktionen er udrullet.
+
 ## 2026-09-23 — Genudsend besked til modtagere hvor leveringen fejlede
 
 - Migration: `notifications` har nu `push_status` (`pending|sent|failed|no_subscription|skipped`), `push_attempts`, `push_last_error`, `push_updated_at` samt et delvist indeks på `(broadcast_id, push_status)`.

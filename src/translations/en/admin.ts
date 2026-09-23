@@ -418,6 +418,18 @@ export const admin = {
     errorGateway: 'The AI service did not respond. Try again shortly.',
     errorEmpty: 'No text was returned. Try writing a bit more.',
     errorForbidden: 'You do not have access to send to this department.',
+    confirmTitle: 'Send the message?',
+    confirmBody: 'This is how it will look on the phone. Check it — it cannot be recalled.',
+    confirmSend: 'Send now',
+    confirmCancel: 'Cancel',
+    audienceLabel: 'Recipients',
+    recipientCount: '{count} employees',
+    recipientCountLoading: 'Loading count…',
+    regenerate: 'Try again',
+    resetEdits: 'Undo my edits',
+    charsLeft: '{count}/{max} characters',
+    previewLink: 'Opens: {link}',
+
 
     delivery: {
       title: 'Delivery status',
