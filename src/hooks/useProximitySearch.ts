@@ -9,6 +9,7 @@ import { useActiveTrainingsForRange } from '@/hooks/useActiveTrainings';
 import { getAllWeekDays } from '@/utils/dates';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
+import { isTemporaryExpiredOn } from '@/utils/employeeAvailability';
 import { estimateTravelMinutes } from '@/utils/travelTime';
 import { selectLastAssignment, selectProximityRankingDay } from '@/utils/proximityRanking';
 
@@ -295,7 +296,8 @@ export const useProximitySearch = ({
         const inTraining = trainingRanges.some(
           (range) => date >= range.start_date && date <= range.end_date
         );
-        const absent = onVacation || isSick || inTraining || !!emp.onLeave;
+        const expired = isTemporaryExpiredOn(emp, date);
+        const absent = onVacation || isSick || inTraining || expired || !!emp.onLeave;
 
         // 8-hour working day starting at the first assignment (default 07:00)
         const firstStart = dayAssignments.length > 0

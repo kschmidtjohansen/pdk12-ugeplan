@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Users, MapPin, Search } from 'lucide-react';
 
-import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus } from '@/utils/employeeAvailability';
+import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus, isTemporaryExpiredOn } from '@/utils/employeeAvailability';
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
 import { haversineDistanceKm } from '@/utils/haversine';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -25,19 +25,8 @@ import { useSickForDateValue } from '@/hooks/useSickDays';
 
 type MultiDateAvailability = 'full' | 'partial' | 'none';
 
-/**
- * A temporary employee (vikar) is expired RELATIVE TO THE ASSIGNMENT DATE —
- * not relative to "now". Booking a vikar on a date after his expiry must be
- * blocked, even if the expiry has not passed yet today.
- * The expiry day itself still counts as a valid working day.
- */
-const isExpiredOn = (employee: Employee, date: Date): boolean => {
-  if (!employee?.is_temporary || !employee.expires_at) return false;
-  const expiry = new Date(employee.expires_at);
-  if (isNaN(expiry.getTime())) return false;
-  expiry.setHours(23, 59, 59, 999);
-  return date.getTime() > expiry.getTime();
-};
+// Shared rule: a vikar is expired relative to the ASSIGNMENT date.
+const isExpiredOn = isTemporaryExpiredOn;
 
 interface EmployeeSelectorProps {
   employees: Employee[];

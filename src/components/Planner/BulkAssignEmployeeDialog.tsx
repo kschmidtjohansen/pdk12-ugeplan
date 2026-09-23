@@ -10,10 +10,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useEmployees } from '@/hooks/useEmployees';
+import { isTemporaryExpiredOn } from '@/utils/employeeAvailability';
 
 interface BulkAssignEmployeeDialogProps {
   open: boolean;
   count: number;
+  /** Dates (yyyy-MM-dd) of the selected assignments — used to block expired vikarer */
+  dates?: string[];
   onClose: () => void;
   onConfirm: (userId: string) => Promise<void> | void;
 }
@@ -21,6 +24,7 @@ interface BulkAssignEmployeeDialogProps {
 const BulkAssignEmployeeDialog: React.FC<BulkAssignEmployeeDialogProps> = ({
   open,
   count,
+  dates,
   onClose,
   onConfirm,
 }) => {
@@ -28,6 +32,12 @@ const BulkAssignEmployeeDialog: React.FC<BulkAssignEmployeeDialogProps> = ({
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const isExpiredForSelection = useMemo(() => {
+    const list = dates || [];
+    return (emp: { is_temporary?: boolean; expires_at?: string }) =>
+      list.length > 0 && list.some(d => isTemporaryExpiredOn(emp, d));
+  }, [dates]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -72,10 +82,14 @@ const BulkAssignEmployeeDialog: React.FC<BulkAssignEmployeeDialogProps> = ({
               <button
                 key={emp.id}
                 type="button"
+                disabled={isExpiredForSelection(emp)}
                 onClick={() => setSelectedId(emp.id)}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${selectedId === emp.id ? 'bg-muted font-medium' : ''}`}
+                className={`w-full text-left px-3 py-2 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isExpiredForSelection(emp) ? '' : 'hover:bg-muted'} ${selectedId === emp.id ? 'bg-muted font-medium' : ''}`}
               >
                 {emp.name}
+                {isExpiredForSelection(emp) && (
+                  <span className="ml-2 text-xs text-muted-foreground">Midlertidig adgang er udløbet</span>
+                )}
               </button>
             ))
           )}

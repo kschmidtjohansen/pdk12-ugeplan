@@ -9,7 +9,7 @@ import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
-import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
+import { getEmployeeAvailabilityStatus, isTemporaryExpiredOn } from '@/utils/employeeAvailability';
 import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
 import { useSickForDateValue } from '@/hooks/useSickDays';
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
@@ -88,6 +88,17 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
   // Sick employees for the selected date. Non-privileged roles only get the
   // ids (no reason), so the badge falls back to a neutral "Fraværende".
   const { sickIds } = useSickForDateValue(targetDate);
+
+  // Vikarer whose temporary access has expired ON the selected date — they
+  // must never appear as bookable resources for that day.
+  const expiredIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!employees || !Array.isArray(employees)) return set;
+    employees.forEach(emp => {
+      if (isTemporaryExpiredOn(emp, targetDate)) set.add(emp.id);
+    });
+    return set;
+  }, [employees, targetDate]);
 
   // Employees on training for the selected date (yellow "Kursus" label)
   const employeesOnTraining = useMemo(() => {
@@ -181,7 +192,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const allAvailable = [
       ...employeeAvailabilityData.available,
       ...employeeAvailabilityData.partiallyBooked,
-    ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id) && !sickIds.has(emp.id));
+    ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id) && !sickIds.has(emp.id) && !expiredIds.has(emp.id));
     const rolesOf = (emp: any): string[] => {
       const r = (emp.roles && emp.roles.length ? emp.roles : [emp.role]) as string[];
       return r || [];
@@ -215,7 +226,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   // Summary statistics
   const stats = useMemo(() => {
-    const notSick = (list: Array<{ id: string }>) => list.filter(e => !sickIds.has(e.id));
+    const notSick = (list: Array<{ id: string }>) => list.filter(e => !sickIds.has(e.id) && !expiredIds.has(e.id));
     const availableCount = notSick(employeeAvailabilityData.available).length;
     const partialCount = notSick(employeeAvailabilityData.partiallyBooked).length;
     return {
@@ -238,11 +249,19 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     const onVacation = employeeAvailabilityData.onVacation;
     if (!employees || !Array.isArray(employees)) return onVacation;
     const onVacationIds = new Set(onVacation.map(e => e.id));
+    const expiredOnly = employees
+      .filter(emp => expiredIds.has(emp.id) && !onVacationIds.has(emp.id))
+      .map(emp => ({
+        ...emp,
+        availabilityInfo: { text: t('employees.lockedReasonExpired') } as any,
+      }));
+    const expiredOnlyIds = new Set(expiredOnly.map(e => e.id));
     const sickOnly = employees
-      .filter(emp => sickIds.has(emp.id) && !onVacationIds.has(emp.id))
+      .filter(emp => sickIds.has(emp.id) && !onVacationIds.has(emp.id) && !expiredOnlyIds.has(emp.id))
       .map(emp => ({ ...emp, availabilityInfo: undefined as any }));
-    return [...onVacation, ...sickOnly];
-  }, [employeeAvailabilityData.onVacation, employees, sickIds]);
+    return [...onVacation, ...expiredOnly, ...sickOnly];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [employeeAvailabilityData.onVacation, employees, sickIds, expiredIds, t]);
 
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);

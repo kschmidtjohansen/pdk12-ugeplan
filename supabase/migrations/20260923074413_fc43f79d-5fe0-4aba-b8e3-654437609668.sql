@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.validate_temporary_employee_assignment() FROM PUBLIC, anon, authenticated;
