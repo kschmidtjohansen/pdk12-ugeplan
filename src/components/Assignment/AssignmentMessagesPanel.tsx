@@ -8,7 +8,8 @@
 import { Send, Reply, X, CornerDownRight, Trash2, MessageSquare } from 'lucide-react';
  import { format } from 'date-fns';
  import { da, enGB } from 'date-fns/locale';
- import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { useUnreadMessagesContext } from '@/context/UnreadMessagesContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,7 +65,25 @@ const AssignmentMessagesPanel: React.FC<AssignmentMessagesPanelProps> = ({
      siblingAssignmentIds
    );
  
-  const { user } = useAuth();
+   const { user } = useAuth();
+  const { unreadFor, markRead } = useUnreadMessagesContext();
+
+  const chatIds = React.useMemo(
+    () => (siblingAssignmentIds && siblingAssignmentIds.length > 0 ? siblingAssignmentIds : [assignmentId]),
+    [siblingAssignmentIds, assignmentId]
+  );
+
+  // Snapshot the unread count when the chat is opened, so we can show a marker
+  // before the first message the user has not seen yet.
+  const [unreadOnOpen] = useState(() => unreadFor(chatIds));
+
+  // Opening the chat marks the conversation as read
+  useEffect(() => {
+    markRead(chatIds);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatIds.join(',')]);
+
+  const firstUnreadIndex = unreadOnOpen > 0 ? Math.max(messages.length - unreadOnOpen, 0) : -1;
 
   // Permission check: owner can delete own messages, admin/skadeleder can delete all
   const canDeleteMessage = (message: AssignmentMessage): boolean => {
