@@ -1,3 +1,10 @@
+## Responsiv modtagerliste til notifikationer (2026-09-23)
+
+- [x] Kompakt foldbar overskriftsrække med antal og resumé af valgte personer
+- [x] Touch-venlig ryd-knap og personrækker med mindst 44 px trykflade
+- [x] Mobil- og tablettilpasset søgefelt, listehøjde og touch-scroll
+- [x] Eksisterende modtagerlogik og live antal bevaret
+
 ## Gennemgang af beskeden før udsendelse (2026-09-23)
 
 - [x] Bekræftelsesvindue med forhåndsvisning, målgruppe og antal modtagere

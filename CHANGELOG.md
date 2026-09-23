@@ -1,3 +1,10 @@
+## 2026-09-23 — Responsiv og kompakt modtagerliste i "Udsend besked"
+
+- `Admin/BroadcastNotification.tsx`: den foldbare overskrift samler nu ikon, antal valgte og et afkortet resumé af navnene på én kompakt række; "Ryd valg" er en touch-venlig ikonknap.
+- Den åbne personliste har mobiltilpasset højde og sikker touch-scroll. Søgefelt og personrækker har mindst 44 px trykflade, mens navn og e-mail afkortes stabilt på små skærme.
+- Modtagerudvælgelse, live antal og udsendelseslogik er uændret.
+- Verificeret: typecheck og målrettet lint uden fejl. Visuel kontrol bag login kræver en tilgængelig testsession.
+
 ## 2026-09-23 — Afdelingsvælger flyttet op ved overskriften i "Udsend besked"
 
 - `Admin/BroadcastNotification.tsx`: afdelingsvælgeren er fjernet fra selve formularen og ligger nu kompakt (h-8, w-40) i korthovedet på linje med titlen, ved siden af "Send test til min telefon".
