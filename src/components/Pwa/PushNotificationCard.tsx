@@ -1,4 +1,4 @@
-import { Bell, BellOff, BellRing, Send, Download } from 'lucide-react';
+import { Bell, BellOff, BellRing, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -6,8 +6,7 @@ import { usePwaInstall } from '@/hooks/usePwaInstall';
 import { useTranslation } from '@/context/TranslationContext';
 
 export const PushNotificationCard = () => {
-  const { status, busy, installed, permission, enable, disable, sendTest } =
-    usePushNotifications();
+  const { status, busy, installed, permission, enable, disable } = usePushNotifications();
   const { canPrompt, promptInstall } = usePwaInstall();
   const { currentLanguage } = useTranslation();
   const { toast } = useToast();
