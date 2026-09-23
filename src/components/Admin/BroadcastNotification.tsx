@@ -218,6 +218,7 @@ const BroadcastNotification: React.FC = () => {
           link: link || null,
           departmentId: departmentId || null,
           roles,
+          userIds: selectedUserIds,
         },
       });
       if (error) throw error;
