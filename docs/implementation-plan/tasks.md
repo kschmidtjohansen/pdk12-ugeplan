@@ -636,3 +636,14 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Filterpanelet kan altid lukkes med "Skjul", også mens filtre er aktive (`PlannerFilterBar.tsx`)
 - [x] Panelet foldes automatisk ud én gang, når et filter aktiveres — aktive filtre vises som chips i bjælken
 - [x] Overlay-placering bevaret (ingen layout-skift); typecheck ren; CHANGELOG opdateret
+
+## Dagens vagter og nærhedssøgning på vagtplanen (2026-09-23)
+
+- [x] Kort med dagens vagter øverst på `/duty` med navn, vagttype og klikbart telefonnummer
+- [x] Tydelig visning af eksterne og ledige vagter
+- [x] Postnummersøgning der rangerer vagtpersonale efter afstand fra hjemmeadresse
+- [x] Kun medarbejdere der er eller har været på vagtplanen medtages
+- [x] Km, estimeret køretid og "På vagt i dag"-badge i resultatlisten
+- [x] DAWA-opslag som fallback når koordinater mangler på profilen
+- [x] DA/EN-oversættelser, semantiske tokens og 44×44 px trykflader
+- [x] Typecheck og lint uden nye fejl

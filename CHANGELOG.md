@@ -1,3 +1,12 @@
+## 2026-09-23 — Dagens vagter med telefonnumre og nærhedssøgning på vagtplanen
+
+- Nyt kort "Vagter i dag" øverst på `/duty` (`src/components/Duty/TodayDutyCard.tsx`): viser dagens vagter med navn, vagttype og telefonnummer samt en "Ring"-knap (`tel:`), så nummeret ikke skal findes manuelt. Eksterne vagter og ledige vagter vises tydeligt.
+- Ny nærhedssøgning (`src/components/Duty/DutyProximitySearch.tsx` + `src/hooks/duty/useDutyProximitySearch.ts`): indtast skadens 4-cifrede postnummer og se vagtpersonalet sorteret efter afstand fra deres hjemmeadresse, med km, estimeret køretid og direkte ring-knap. Badge "På vagt i dag" markerer den aktuelle vagthavende.
+- Kun medarbejdere der er — eller tidligere har været — koblet på vagtplanen medtages (`src/hooks/duty/useDutyRosterMembers.ts` henter distinkte `employee_id` fra `on_call_duties` for valgt afdeling og delte vagtafdelinger).
+- Koordinater hentes fra profilens `lat`/`lng`; mangler de, slås hjemmeadresse eller hjemmepostnummer op via DAWA-proxyen. Ingen skrivninger til databasen — rent opslag.
+- `src/hooks/duty/useDutyEmployees.ts` medtager nu `home_postcode`, `home_address`, `lat` og `lng`.
+- DA/EN-tekster tilføjet i `translations/*/duty.ts`. Semantiske farvetokens, 44×44 px trykflader og responsivt to-kolonne-layout. Verificeret: typecheck uden fejl, lint uden nye advarsler.
+
 ## 2026-09-23 — AI-genereret fællesbesked og personlige notifikationsvalg
 
 - Ny fane "Udsend besked" under Administration (`src/components/Admin/BroadcastNotification.tsx`, `src/pages/AdminPage.tsx`): administrator/super admin skriver fri tekst, vælger afdeling, roller og evt. link, og får via Lovable AI Gateway (`openai/gpt-6-astra`, Responses API, streaming) omskrevet teksten til en kort titel (maks. 45 tegn) og besked (maks. 130 tegn).
