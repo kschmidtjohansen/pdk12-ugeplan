@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
 
       const { data: notification, error } = await admin
         .from('notifications')
-        .select('id, user_id, title, message, link, type, is_demo, broadcast_id')
+        .select('id, user_id, title, message, link, type, is_demo, broadcast_id, push_attempts')
         .eq('id', notificationId)
         .maybeSingle();
 
@@ -161,13 +161,14 @@ Deno.serve(async (req) => {
       }
 
       const campaignId: string | null = notification.broadcast_id ?? null;
+      const attempts: number = notification.push_attempts ?? 0;
 
       const allowed = await userAllowsCategory(
         notification.user_id,
         categoryForType(notification.type),
       );
       if (!allowed) {
-        if (campaignId) await recordBroadcastOutcome(campaignId, { skipped: 1 });
+        await recordDelivery(notification.id, campaignId, 'skipped', attempts, null);
         return new Response(JSON.stringify({ skipped: true, reason: 'preference-off' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -180,14 +181,15 @@ Deno.serve(async (req) => {
         tag: `${notification.type}-${notification.id}`,
       });
 
-      if (campaignId) {
-        await recordBroadcastOutcome(campaignId, {
-          // One recipient counts as reached when at least one device accepted it.
-          sent: result.sent > 0 ? 1 : 0,
-          failed: result.sent === 0 && result.failed > 0 ? 1 : 0,
-          noSub: result.hadSubscription ? 0 : 1,
-        });
-      }
+      // One recipient counts as reached when at least one device accepted it.
+      const status: DeliveryStatus = result.sent > 0
+        ? 'sent'
+        : !result.hadSubscription
+          ? 'no_subscription'
+          : 'failed';
+
+      await recordDelivery(notification.id, campaignId, status, attempts, result.lastError ?? null);
+
 
       return new Response(JSON.stringify({ ok: true, ...result }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
