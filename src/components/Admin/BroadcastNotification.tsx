@@ -355,25 +355,8 @@ const BroadcastNotification: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>{t('admin.broadcast.link')}</Label>
-            <Select value={link || 'none'} onValueChange={(v) => setLink(v === 'none' ? '' : v)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">{t('admin.broadcast.noLink')}</SelectItem>
-                {LINK_OPTIONS.filter(Boolean).map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
+
 
         <div className="space-y-2">
           <Label>{t('admin.broadcast.roles')}</Label>
