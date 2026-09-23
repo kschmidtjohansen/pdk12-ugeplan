@@ -215,6 +215,19 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Only administrators may trigger test notifications.
+    const { data: roleRows } = await admin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userData.user.id);
+    const roles = (roleRows ?? []).map((r: { role: string }) => r.role);
+    if (!roles.includes('administrator') && !roles.includes('super_admin')) {
+      return new Response(JSON.stringify({ error: 'forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const result = await sendToUser(userData.user.id, {
       title: typeof body?.title === 'string' ? body.title.slice(0, 120) : 'Test-notifikation',
       body:
