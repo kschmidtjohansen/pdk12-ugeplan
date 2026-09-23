@@ -72,3 +72,31 @@ export const useBroadcastRecipients = (campaignId: string | null) =>
     enabled: !!campaignId,
     staleTime: 30 * 1000,
   });
+
+/** Resends a broadcast to the recipients whose push delivery failed. */
+export const useResendFailed = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (campaignId: string): Promise<ResendResult> => {
+      const { data, error } = await supabase.functions.invoke('broadcast-notification', {
+        body: { mode: 'resend_failed', campaignId },
+      });
+      if (error) throw error;
+      return {
+        retried: data?.retried ?? 0,
+        sent: data?.sent ?? 0,
+        stillFailed: data?.stillFailed ?? 0,
+      };
+    },
+    onSuccess: (_result, campaignId) => {
+      queryClient.invalidateQueries({ queryKey: ['broadcast_campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['broadcast_recipients', campaignId] });
+      // Counters are written asynchronously by the push service.
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['broadcast_campaigns'] });
+        queryClient.invalidateQueries({ queryKey: ['broadcast_recipients', campaignId] });
+      }, 4000);
+    },
+  });
+};
