@@ -42,7 +42,7 @@ const MobileBottomNav: React.FC = () => {
       aria-label="Mobil navigation"
     >
       <ul className="flex items-stretch justify-around min-h-[56px]">
-        {TABS.map(({ to, label, icon: Icon }) => (
+        {TABS.map(({ to, label, icon: Icon, badge }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
@@ -58,7 +58,17 @@ const MobileBottomNav: React.FC = () => {
             >
               {({ isActive }) => (
                 <>
-                  <Icon className={cn('h-5 w-5', isActive && 'stroke-[2.25]')} />
+                  <span className="relative">
+                    <Icon className={cn('h-5 w-5', isActive && 'stroke-[2.25]')} />
+                    {!!badge && badge > 0 && (
+                      <span
+                        aria-label={isDa ? `${badge} nye beskeder` : `${badge} new messages`}
+                        className="absolute -right-2 -top-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold tabular-nums text-destructive-foreground"
+                      >
+                        {badge > 9 ? '9+' : badge}
+                      </span>
+                    )}
+                  </span>
                   <span className="leading-none">{label}</span>
                 </>
               )}
