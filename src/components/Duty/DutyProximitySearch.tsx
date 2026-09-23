@@ -18,6 +18,8 @@ interface DutyProximitySearchProps {
   todayStr: string;
 }
 
+const STORAGE_KEY = 'duty.proximity.open';
+
 /**
  * Search a damage postcode and see which duty personnel live closest to it.
  * Distances are measured from each person's home address.
