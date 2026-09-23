@@ -137,31 +137,18 @@ export const PushNotificationCard = () => {
         )}
 
         {!needsInstall && status === 'on' && (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="touch-target gap-1.5 px-2 sm:px-3"
-              onClick={handleTest}
-              aria-label={isDa ? 'Send test' : 'Send test'}
-            >
-              <Send className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">{isDa ? 'Send test' : 'Send test'}</span>
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="touch-target gap-1.5 px-2 text-muted-foreground sm:px-3"
-              onClick={disable}
-              disabled={busy}
-              aria-label={isDa ? 'Slå notifikationer fra' : 'Turn notifications off'}
-            >
-              <BellOff className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">{isDa ? 'Slå fra' : 'Turn off'}</span>
-            </Button>
-          </>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="touch-target gap-1.5 px-2 text-muted-foreground sm:px-3"
+            onClick={disable}
+            disabled={busy}
+            aria-label={isDa ? 'Slå notifikationer fra' : 'Turn notifications off'}
+          >
+            <BellOff className="h-4 w-4" aria-hidden />
+            <span className="hidden sm:inline">{isDa ? 'Slå fra' : 'Turn off'}</span>
+          </Button>
         )}
 
         {!needsInstall && status !== 'on' && (
