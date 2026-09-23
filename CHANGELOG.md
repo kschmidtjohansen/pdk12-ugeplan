@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-23 — Vikarer kan ikke længere bookes efter deres udløbsdato
+
+- Medarbejdervælgeren i ugeplanen vurderer nu vikarens udløbsdato i forhold til opgavens dato i stedet for dagens dato. En vikar, der udløber i denne uge, kan derfor ikke længere vælges til opgaver i næste uge.
+- Udløbsdagen selv tæller fortsat som en gyldig arbejdsdag, og ved flerdages-opgaver markeres vikaren korrekt som delvist eller helt utilgængelig.
+
+
 ## 2026-09-21 — Vikarer kan oprettes uden adgangskode igen
 
 - Rettet fejlen "Adgangskoden er for usikker eller kendt fra datalæk" ved oprettelse af vikarer: den automatisk genererede loginkode indeholdt kun små bogstaver og cifre og blev afvist af adgangskodekravene. Koden genereres nu med store bogstaver, små bogstaver, cifre og specialtegn.
