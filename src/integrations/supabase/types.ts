@@ -763,6 +763,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          assignment: boolean
+          broadcast: boolean
+          created_at: string
+          duty: boolean
+          sick_day: boolean
+          updated_at: string
+          user_id: string
+          vacation: boolean
+        }
+        Insert: {
+          assignment?: boolean
+          broadcast?: boolean
+          created_at?: string
+          duty?: boolean
+          sick_day?: boolean
+          updated_at?: string
+          user_id: string
+          vacation?: boolean
+        }
+        Update: {
+          assignment?: boolean
+          broadcast?: boolean
+          created_at?: string
+          duty?: boolean
+          sick_day?: boolean
+          updated_at?: string
+          user_id?: string
+          vacation?: boolean
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
