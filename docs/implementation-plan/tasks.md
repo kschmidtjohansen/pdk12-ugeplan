@@ -1,3 +1,10 @@
+## Installations-trin fjernet fra notifikationskortet (2026-09-23)
+
+- [x] Nummereret trinliste fjernet fra `PushNotificationCard`
+- [x] Kun kort forklaring + "Installer app nu" når browseren tilbyder det
+- [x] Ubetydelig kode fjernet (`installSteps`, ubrugte ikoner og platform-variable)
+- [x] Typecheck bekræftet uden fejl
+
 ## Notifikationer på Android og iPhone uanset browser (2026-09-23)
 
 - [x] Rigtige app-ikoner i 192, 512 og 180 (apple-touch-icon)
