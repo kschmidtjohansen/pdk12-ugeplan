@@ -4,22 +4,25 @@ import { Home, CalendarDays, Phone, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useTranslation } from '@/context/TranslationContext';
+import { useUnreadMessagesContext } from '@/context/UnreadMessagesContext';
 
 interface TabItem {
   to: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
 }
 
 const MobileBottomNav: React.FC = () => {
   const { setOpenMobile } = useSidebar();
   const location = useLocation();
   const { currentLanguage } = useTranslation();
+  const { totalUnread } = useUnreadMessagesContext();
   const isDa = currentLanguage === 'da';
 
   const TABS: TabItem[] = [
     { to: '/dashboard', label: isDa ? 'Min Dag' : 'My Day', icon: Home },
-    { to: '/planner', label: isDa ? 'Ugeplan' : 'Planner', icon: CalendarDays },
+    { to: '/planner', label: isDa ? 'Ugeplan' : 'Planner', icon: CalendarDays, badge: totalUnread },
     { to: '/duty', label: isDa ? 'Vagter' : 'Duties', icon: Phone },
   ];
 
