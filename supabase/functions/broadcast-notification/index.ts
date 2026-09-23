@@ -1,0 +1,183 @@
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createOpenAI } from 'npm:@ai-sdk/openai';
+import { streamText } from 'npm:ai';
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+  auth: { persistSession: false },
+});
+
+const json = (payload: unknown, status = 200) =>
+  new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+
+const ALLOWED_ROLES = [
+  'administrator',
+  'skadeleder',
+  'servicemedarbejder',
+  'vikar',
+  'fugttekniker',
+  'super_admin',
+];
+
+async function getRoles(userId: string) {
+  const { data } = await admin.from('user_roles').select('role').eq('user_id', userId);
+  return (data ?? []).map((r) => r.role as string);
+}
+
+async function getAccessibleDepartments(userId: string) {
+  const [{ data: profile }, { data: access }] = await Promise.all([
+    admin.from('profiles').select('home_department_id').eq('id', userId).maybeSingle(),
+    admin.from('user_access').select('department_id').eq('user_id', userId),
+  ]);
+  const ids = new Set<string>();
+  if (profile?.home_department_id) ids.add(profile.home_department_id);
+  for (const row of access ?? []) if (row.department_id) ids.add(row.department_id);
+  return ids;
+}
+
+async function generateNotification(rawText: string, audience: string) {
+  const key = Deno.env.get('LOVABLE_API_KEY');
+  if (!key) return { error: 'missing_api_key', status: 500 as const };
+
+  const lovable = createOpenAI({
+    baseURL: 'https://ai.gateway.lovable.dev/v1',
+    apiKey: key,
+    headers: { 'Lovable-API-Key': key, 'X-Lovable-AIG-SDK': 'vercel-ai-sdk' },
+  });
+
+  const result = streamText({
+    model: lovable.responses('openai/gpt-6-astra'),
+    system: [
+      'Du skriver korte push-notifikationer på professionelt dansk til medarbejdere i en skadeservicevirksomhed.',
+      'Svar ALTID præcist i dette format og intet andet:',
+      'TITEL: <maks 45 tegn>',
+      'BESKED: <maks 130 tegn>',
+      'Vær konkret, venlig og handlingsorienteret. Ingen emojis. Ingen indledning eller forklaring.',
+    ].join('\n'),
+    prompt: `Modtagere: ${audience}\n\nRåtekst fra administrator:\n${rawText}`,
+    providerOptions: {
+      openai: {
+        forceReasoning: true,
+        reasoningEffort: 'low',
+        reasoningSummary: 'auto',
+        store: false,
+        include: ['reasoning.encrypted_content'],
+      },
+    },
+  });
+
+  const text = (await result.text) ?? '';
+  const titleMatch = text.match(/TITEL:\s*(.+)/i);
+  const bodyMatch = text.match(/BESKED:\s*([\s\S]+)/i);
+
+  const title = (titleMatch?.[1] ?? 'Vigtig besked').trim().slice(0, 60);
+  const message = (bodyMatch?.[1] ?? text).trim().replace(/\s+/g, ' ').slice(0, 200);
+
+  if (!message) return { error: 'empty_result', status: 502 as const };
+  return { title, message };
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+
+  try {
+    const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '').trim();
+    if (!token) return json({ error: 'unauthorized' }, 401);
+
+    const { data: userData, error: userError } = await admin.auth.getUser(token);
+    if (userError || !userData?.user) return json({ error: 'unauthorized' }, 401);
+    const actor = userData.user;
+
+    const roles = await getRoles(actor.id);
+    const isSuperAdmin = roles.includes('super_admin');
+    const isAdmin = isSuperAdmin || roles.includes('administrator');
+    if (!isAdmin) return json({ error: 'forbidden' }, 403);
+
+    const body = await req.json().catch(() => ({}));
+    const mode = String(body?.mode ?? '');
+
+    if (mode === 'generate') {
+      const rawText = String(body?.text ?? '').trim();
+      if (rawText.length < 3 || rawText.length > 4000) {
+        return json({ error: 'invalid_text' }, 400);
+      }
+      const audience = String(body?.audience ?? 'alle medarbejdere').slice(0, 200);
+      const generated = await generateNotification(rawText, audience);
+      if ('error' in generated) return json({ error: generated.error }, generated.status);
+      return json(generated);
+    }
+
+    if (mode === 'send') {
+      const title = String(body?.title ?? '').trim().slice(0, 120);
+      const message = String(body?.message ?? '').trim().slice(0, 500);
+      const link = body?.link ? String(body.link).slice(0, 200) : null;
+      const departmentId = body?.departmentId ? String(body.departmentId) : null;
+      const targetRoles: string[] = Array.isArray(body?.roles)
+        ? body.roles.filter((r: unknown) => typeof r === 'string' && ALLOWED_ROLES.includes(r))
+        : [];
+
+      if (!title || !message) return json({ error: 'invalid_content' }, 400);
+
+      if (!isSuperAdmin) {
+        const accessible = await getAccessibleDepartments(actor.id);
+        if (!departmentId || !accessible.has(departmentId)) {
+          return json({ error: 'forbidden_department' }, 403);
+        }
+      }
+
+      // Resolve recipients
+      const recipients = new Set<string>();
+
+      if (departmentId) {
+        const [{ data: byHome }, { data: byAccess }] = await Promise.all([
+          admin.from('profiles').select('id').eq('home_department_id', departmentId).eq('is_demo', false),
+          admin.from('user_access').select('user_id').eq('department_id', departmentId),
+        ]);
+        for (const row of byHome ?? []) recipients.add(row.id);
+        for (const row of byAccess ?? []) recipients.add(row.user_id);
+      } else {
+        const { data: all } = await admin.from('profiles').select('id').eq('is_demo', false);
+        for (const row of all ?? []) recipients.add(row.id);
+      }
+
+      if (targetRoles.length > 0) {
+        const { data: roleRows } = await admin
+          .from('user_roles')
+          .select('user_id')
+          .in('role', targetRoles);
+        const allowed = new Set((roleRows ?? []).map((r) => r.user_id));
+        for (const id of [...recipients]) if (!allowed.has(id)) recipients.delete(id);
+      }
+
+      recipients.delete(actor.id);
+
+      const rows = [...recipients].map((userId) => ({
+        user_id: userId,
+        type: 'broadcast',
+        title,
+        message,
+        link,
+      }));
+
+      if (rows.length === 0) return json({ ok: true, recipients: 0 });
+
+      for (let i = 0; i < rows.length; i += 200) {
+        const { error } = await admin.from('notifications').insert(rows.slice(i, i + 200));
+        if (error) throw error;
+      }
+
+      return json({ ok: true, recipients: rows.length });
+    }
+
+    return json({ error: 'invalid_mode' }, 400);
+  } catch (err) {
+    const message = (err as { message?: string })?.message ?? 'unknown error';
+    return json({ error: message }, 500);
+  }
+});
