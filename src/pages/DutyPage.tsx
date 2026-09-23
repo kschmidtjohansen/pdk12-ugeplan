@@ -14,6 +14,9 @@ import { DutySwapDialog } from '@/components/Duty/DutySwapDialog';
 import { PendingSwapOffers } from '@/components/Duty/PendingSwapOffers';
 import { DutyList } from '@/components/Duty/DutyList';
 import { DutyMonthCalendar } from '@/components/Duty/DutyMonthCalendar';
+import TodayDutyCard from '@/components/Duty/TodayDutyCard';
+import DutyProximitySearch from '@/components/Duty/DutyProximitySearch';
+import { useDutyRosterMembers } from '@/hooks/duty/useDutyRosterMembers';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -53,8 +56,24 @@ export default function DutyPage() {
   const { employees, loading: employeesLoading } = useDutyEmployees();
   const { sharedDepartmentIds } = useSharedDutyDepartments();
   const { incoming, outgoing, refetch: refetchSwap } = useDutySwapRequests();
+  const { rosterIds } = useDutyRosterMembers();
 
   const loading = dutiesLoading || employeesLoading;
+
+  const todayStr = useMemo(() => {
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [today.toDateString()]);
+
+  // Only employees who are (or have been) on the duty plan
+  const rosterEmployees = useMemo(() => {
+    const idSet = new Set(rosterIds);
+    return employees.filter((e) => idSet.has(e.id));
+  }, [employees, rosterIds]);
+
 
   // Build a department name map for shared-dept badge labels
   const departmentNameMap = useMemo(() => {
@@ -170,6 +189,21 @@ export default function DutyPage() {
         outgoing={outgoing}
         onChanged={() => { refetchSwap(); refetch(); }}
       />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 items-start">
+        {loading ? (
+          <ListSkeleton rowCount={2} />
+        ) : (
+          <TodayDutyCard duties={dutiesWithRoles} employees={employees} todayStr={todayStr} />
+        )}
+        <DutyProximitySearch
+          rosterEmployees={rosterEmployees}
+          duties={dutiesWithRoles}
+          todayStr={todayStr}
+        />
+      </div>
+
+
 
       <Tabs defaultValue="calendar" className="space-y-4">
         <TabsList>

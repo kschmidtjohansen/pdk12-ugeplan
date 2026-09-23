@@ -57,7 +57,8 @@ export const useDutyEmployees = () => {
         .select(`
           id, name, email, phone, job_title, on_leave, status, notes, avatar_url,
           has_asbestos_certificate, has_pcb_certificate, has_trailer_license,
-          has_drivers_license, has_forklift_license, home_department_id
+          has_drivers_license, has_forklift_license, home_department_id,
+          home_postcode, home_address, lat, lng
         `)
         .eq('is_demo', false)
         .order('name', { ascending: true });
@@ -117,6 +118,10 @@ export const useDutyEmployees = () => {
           has_pcb_certificate: !!p.has_pcb_certificate,
           has_trailer_license: !!p.has_trailer_license,
           has_forklift_license: !!p.has_forklift_license,
+          home_postcode: p.home_postcode || '',
+          home_address: p.home_address || '',
+          lat: typeof p.lat === 'number' ? p.lat : undefined,
+          lng: typeof p.lng === 'number' ? p.lng : undefined,
           department_id: deptId,
           department_name: deptId ? deptNameMap.get(deptId) || null : null,
         } as Employee & { department_id?: string | null; department_name?: string | null };

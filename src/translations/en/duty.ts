@@ -119,6 +119,20 @@ export const duty = {
   confirmRemoveMultiple: "Confirm removal",
   confirmRemoveMultipleMessage: "Are you sure you want to remove {{count}} duties? This cannot be undone.",
   removeMultipleSuccess: "{{count}} duties removed",
+  noDutyToday: "No duties today",
+  noPhone: "No phone number",
+  call: "Call",
+  proximityTitle: "Find the closest on-call person",
+  proximityHint: "Enter the damage postcode. Distance is measured from each person's home address, and only duty personnel are included.",
+  postcodePlaceholder: "e.g. 2765",
+  postcodeInvalid: "Enter a 4-digit postcode",
+  postcodeNotFound: "Postcode not found",
+  searching: "Searching...",
+  noRosterEmployees: "No duty personnel to search",
+  noCoordinates: "No home address on file",
+  onDutyToday: "On duty today",
+  approx: "approx.",
 };
+
 
 export default duty;

@@ -119,6 +119,20 @@ export const duty = {
   confirmRemoveMultiple: "Bekræft sletning",
   confirmRemoveMultipleMessage: "Er du sikker på, at du vil fjerne {{count}} vagter? Handlingen kan ikke fortrydes.",
   removeMultipleSuccess: "{{count}} vagter fjernet",
+  noDutyToday: "Ingen vagter i dag",
+  noPhone: "Intet telefonnummer",
+  call: "Ring",
+  proximityTitle: "Find nærmeste vagtperson",
+  proximityHint: "Indtast skadens postnummer. Afstanden måles fra medarbejderens hjemmeadresse, og kun personer på vagtplanen medtages.",
+  postcodePlaceholder: "Fx 2765",
+  postcodeInvalid: "Indtast et 4-cifret postnummer",
+  postcodeNotFound: "Postnummeret blev ikke fundet",
+  searching: "Søger...",
+  noRosterEmployees: "Ingen på vagtplanen at søge blandt",
+  noCoordinates: "Ingen hjemmeadresse registreret",
+  onDutyToday: "På vagt i dag",
+  approx: "ca.",
 };
+
 
 export default duty;
