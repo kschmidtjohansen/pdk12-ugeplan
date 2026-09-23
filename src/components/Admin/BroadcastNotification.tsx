@@ -339,8 +339,7 @@ const BroadcastNotification: React.FC = () => {
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
+        <div className="space-y-2">
             <Label>{t('admin.broadcast.department')}</Label>
             <Select value={departmentId || 'all'} onValueChange={(v) => setDepartmentId(v === 'all' ? '' : v)}>
               <SelectTrigger>
