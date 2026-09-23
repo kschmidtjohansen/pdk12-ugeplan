@@ -419,6 +419,18 @@ export const admin = {
     errorGateway: 'AI-tjenesten svarede ikke. Prøv igen om lidt.',
     errorEmpty: 'Der kom ingen tekst retur. Prøv at skrive lidt mere.',
     errorForbidden: 'Du har ikke adgang til at sende til denne afdeling.',
+    confirmTitle: 'Send beskeden ud?',
+    confirmBody: 'Sådan ser beskeden ud på telefonen. Tjek den igennem — den kan ikke kaldes tilbage.',
+    confirmSend: 'Send nu',
+    confirmCancel: 'Fortryd',
+    audienceLabel: 'Modtagere',
+    recipientCount: '{count} medarbejdere',
+    recipientCountLoading: 'Henter antal…',
+    regenerate: 'Lav om',
+    resetEdits: 'Fortryd mine rettelser',
+    charsLeft: '{count}/{max} tegn',
+    previewLink: 'Åbner: {link}',
+
 
     delivery: {
       title: 'Leveringsstatus',
