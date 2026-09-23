@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -78,7 +78,16 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
     onPostcodeChange('');
   };
 
-  const isOpen = expanded || hasFilters;
+  // The panel is only visible while explicitly expanded. When a filter is
+  // first activated we auto-expand once, but the user can always hide the
+  // panel again — active filters stay visible as chips in the bar above.
+  const prevHasFilters = useRef(hasFilters);
+  useEffect(() => {
+    if (hasFilters && !prevHasFilters.current) setExpanded(true);
+    prevHasFilters.current = hasFilters;
+  }, [hasFilters]);
+
+  const isOpen = expanded;
 
   return (
     <div className="relative space-y-2">
