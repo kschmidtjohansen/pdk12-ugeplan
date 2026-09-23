@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDutyProximitySearch } from '@/hooks/duty/useDutyProximitySearch';
 import { formatKm, formatMinutes } from '@/utils/travelTime';
-import { Phone, Home, Loader2, MapPin, X } from 'lucide-react';
+import { Phone, Home, Loader2, MapPin, X, ChevronDown } from 'lucide-react';
 import type { Duty } from '@/types/duty';
 import type { Employee } from '@/types/employee';
 

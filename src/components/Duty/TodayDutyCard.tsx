@@ -23,8 +23,20 @@ const externalName = (notes?: string | null): string | null => {
  * Compact overview of who is on duty today, with directly callable phone
  * numbers so nobody has to dig through the plan.
  */
+const STORAGE_KEY = 'duty.todayCard.open';
+
 const TodayDutyCard: React.FC<TodayDutyCardProps> = ({ duties, employees, todayStr }) => {
   const { t } = useTranslation();
+  const [open, setOpen] = useState<boolean>(() => {
+    try { return localStorage.getItem(STORAGE_KEY) !== '0'; } catch { return true; }
+  });
+
+  const toggleOpen = () => {
+    setOpen((prev) => {
+      try { localStorage.setItem(STORAGE_KEY, prev ? '0' : '1'); } catch { /* ignore */ }
+      return !prev;
+    });
+  };
 
   const phoneById = useMemo(() => {
     const map = new Map<string, string>();
