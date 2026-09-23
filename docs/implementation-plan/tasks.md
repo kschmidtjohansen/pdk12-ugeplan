@@ -647,3 +647,14 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] DAWA-opslag som fallback når koordinater mangler på profilen
 - [x] DA/EN-oversættelser, semantiske tokens og 44×44 px trykflader
 - [x] Typecheck og lint uden nye fejl
+
+## Leveringsstatus for udsendte beskeder (2026-09-23)
+
+- [x] Tabel `broadcast_campaigns` med GRANTs, RLS og afdelingsafgrænset læseadgang for admins
+- [x] `notifications.broadcast_id` kobler hver notifikation til sin udsendelse
+- [x] `broadcast-notification` opretter kampagne og registrerer antal modtagere
+- [x] `send-push` tæller leveret / fejlet / uden tilmelding / fravalgt op pr. modtager
+- [x] Administrationsvisning med nøgletal pr. udsendt besked
+- [x] Detaljedialog med modtagerliste og læst-status via sikker SECURITY DEFINER-funktion
+- [x] DA/EN-oversættelser, semantiske tokens og 44×44 px trykflader
+- [x] Typecheck, lint og deploy af edge functions uden fejl

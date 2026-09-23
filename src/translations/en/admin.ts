@@ -411,6 +411,27 @@ export const admin = {
     send: 'Send notification',
     sent: 'Notification sent',
     sentCount: 'Sent to {count} employees.',
-    sendFailed: 'Could not send the notification'
+    sendFailed: 'Could not send the notification',
+    delivery: {
+      title: 'Delivery status',
+      description: 'See how previous messages reached the employees.',
+      empty: 'No messages have been sent yet.',
+      loadFailed: 'Could not load delivery status',
+      recipients: 'Recipients',
+      sent: 'Delivered to phone',
+      failed: 'Failed',
+      pending: 'Awaiting delivery',
+      noPush: 'No mobile app',
+      skipped: 'Opted out',
+      read: 'Read in app',
+      allDepartments: 'All departments',
+      allRoles: 'All roles',
+      details: 'View recipients',
+      detailsTitle: 'Message recipients',
+      statusRead: 'Read in app',
+      statusUnread: 'Not read yet',
+      refresh: 'Refresh',
+      noRecipients: 'No recipients found.'
+    }
   },
 };

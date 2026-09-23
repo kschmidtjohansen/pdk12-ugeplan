@@ -157,22 +157,47 @@ Deno.serve(async (req) => {
 
       recipients.delete(actor.id);
 
+      if (recipients.size === 0) return json({ ok: true, recipients: 0 });
+
+      const { data: actorProfile } = await admin
+        .from('profiles')
+        .select('name')
+        .eq('id', actor.id)
+        .maybeSingle();
+
+      const { data: campaign, error: campaignError } = await admin
+        .from('broadcast_campaigns')
+        .insert({
+          created_by: actor.id,
+          created_by_name: actorProfile?.name ?? actor.email ?? '',
+          department_id: departmentId,
+          roles: targetRoles,
+          title,
+          message,
+          link,
+          total_recipients: recipients.size,
+        })
+        .select('id')
+        .single();
+
+      if (campaignError) throw campaignError;
+
       const rows = [...recipients].map((userId) => ({
         user_id: userId,
         type: 'broadcast',
         title,
         message,
         link,
+        broadcast_id: campaign.id,
       }));
-
-      if (rows.length === 0) return json({ ok: true, recipients: 0 });
 
       for (let i = 0; i < rows.length; i += 200) {
         const { error } = await admin.from('notifications').insert(rows.slice(i, i + 200));
         if (error) throw error;
       }
 
-      return json({ ok: true, recipients: rows.length });
+      return json({ ok: true, recipients: rows.length, campaignId: campaign.id });
+
     }
 
     return json({ error: 'invalid_mode' }, 400);

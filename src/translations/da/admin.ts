@@ -412,6 +412,27 @@ export const admin = {
     send: 'Udsend notifikation',
     sent: 'Notifikationen er sendt',
     sentCount: 'Sendt til {count} medarbejdere.',
-    sendFailed: 'Kunne ikke sende notifikationen'
+    sendFailed: 'Kunne ikke sende notifikationen',
+    delivery: {
+      title: 'Leveringsstatus',
+      description: 'Se hvordan tidligere beskeder er nået frem til medarbejderne.',
+      empty: 'Der er endnu ikke sendt nogen beskeder.',
+      loadFailed: 'Kunne ikke hente leveringsstatus',
+      recipients: 'Modtagere',
+      sent: 'Leveret til telefon',
+      failed: 'Fejlet',
+      pending: 'Afventer levering',
+      noPush: 'Uden mobil-app',
+      skipped: 'Fravalgt',
+      read: 'Læst i appen',
+      allDepartments: 'Alle afdelinger',
+      allRoles: 'Alle roller',
+      details: 'Se modtagere',
+      detailsTitle: 'Modtagere af beskeden',
+      statusRead: 'Læst i appen',
+      statusUnread: 'Ikke læst endnu',
+      refresh: 'Opdater',
+      noRecipients: 'Ingen modtagere fundet.'
+    }
   },
 };

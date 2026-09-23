@@ -52,10 +52,11 @@ async function sendToUser(userId: string, payload: PushPayload) {
     .eq('user_id', userId);
 
   if (error) throw error;
-  if (!subs || subs.length === 0) return { sent: 0, removed: 0 };
+  if (!subs || subs.length === 0) return { sent: 0, removed: 0, failed: 0, hadSubscription: false };
 
   let sent = 0;
   let removed = 0;
+  let failed = 0;
 
   for (const sub of subs) {
     try {
@@ -71,6 +72,7 @@ async function sendToUser(userId: string, payload: PushPayload) {
     } catch (err) {
       const statusCode = (err as { statusCode?: number })?.statusCode;
       const message = (err as { message?: string })?.message ?? 'unknown error';
+      failed++;
       if (statusCode === 404 || statusCode === 410) {
         await admin.from('push_subscriptions').delete().eq('id', sub.id);
         removed++;
@@ -83,8 +85,23 @@ async function sendToUser(userId: string, payload: PushPayload) {
     }
   }
 
-  return { sent, removed };
+  return { sent, removed, failed, hadSubscription: true };
 }
+
+/** Records the outcome of one broadcast recipient on its campaign. */
+async function recordBroadcastOutcome(
+  campaignId: string,
+  outcome: { sent?: number; failed?: number; skipped?: number; noSub?: number },
+) {
+  await admin.rpc('increment_broadcast_stats', {
+    p_campaign_id: campaignId,
+    p_sent: outcome.sent ?? 0,
+    p_failed: outcome.failed ?? 0,
+    p_skipped: outcome.skipped ?? 0,
+    p_no_sub: outcome.noSub ?? 0,
+  });
+}
+
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -114,7 +131,7 @@ Deno.serve(async (req) => {
 
       const { data: notification, error } = await admin
         .from('notifications')
-        .select('id, user_id, title, message, link, type, is_demo')
+        .select('id, user_id, title, message, link, type, is_demo, broadcast_id')
         .eq('id', notificationId)
         .maybeSingle();
 
@@ -125,11 +142,14 @@ Deno.serve(async (req) => {
         });
       }
 
+      const campaignId: string | null = notification.broadcast_id ?? null;
+
       const allowed = await userAllowsCategory(
         notification.user_id,
         categoryForType(notification.type),
       );
       if (!allowed) {
+        if (campaignId) await recordBroadcastOutcome(campaignId, { skipped: 1 });
         return new Response(JSON.stringify({ skipped: true, reason: 'preference-off' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -142,9 +162,19 @@ Deno.serve(async (req) => {
         tag: `${notification.type}-${notification.id}`,
       });
 
+      if (campaignId) {
+        await recordBroadcastOutcome(campaignId, {
+          // One recipient counts as reached when at least one device accepted it.
+          sent: result.sent > 0 ? 1 : 0,
+          failed: result.sent === 0 && result.failed > 0 ? 1 : 0,
+          noSub: result.hadSubscription ? 0 : 1,
+        });
+      }
+
       return new Response(JSON.stringify({ ok: true, ...result }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+
     }
 
     // 2) Authenticated self-test from the app

@@ -1,3 +1,13 @@
+## 2026-09-23 — Leveringsstatus for udsendte beskeder
+
+- Ny sektion "Leveringsstatus" under Administration → "Udsend besked" (`src/components/Admin/BroadcastDeliveryStatus.tsx`): kronologisk liste over de seneste 50 udsendte beskeder med dato, afsender, afdeling og målgruppe.
+- Hver besked viser tællere: antal modtagere, leveret til telefon, fejlet, uden mobil-app (ingen push-tilmelding), fravalgt (kategorien slået fra i profilen) og afventer levering.
+- "Se modtagere" åbner en dialog med hele modtagerlisten og om beskeden er læst i appen — hentet via `get_broadcast_recipients` (SECURITY DEFINER, `SET search_path = ''`), der selv håndhæver at kun admins/super admins med adgang til afdelingen kan se listen.
+- Ny tabel `broadcast_campaigns` med GRANTs og RLS (kun læsning for administratorer i egne afdelinger, super admin ser alle; skrives kun af service_role). Notifikationer kobles til udsendelsen via ny kolonne `notifications.broadcast_id` med indeks.
+- `supabase/functions/broadcast-notification/index.ts` opretter kampagnen før udsendelsen og stempler alle notifikationer med `broadcast_id`.
+- `supabase/functions/send-push/index.ts` tæller det faktiske resultat pr. modtager op på kampagnen via `increment_broadcast_stats` (service_role-only): leveret, fejlet, uden tilmelding eller fravalgt.
+- DA/EN-tekster i `translations/*/admin.ts`, semantiske farvetokens og 44×44 px trykflader. Verificeret: migrationer kørt, edge functions deployet, typecheck og lint uden fejl.
+
 ## 2026-09-23 — Dagens vagter med telefonnumre og nærhedssøgning på vagtplanen
 
 - Nyt kort "Vagter i dag" øverst på `/duty` (`src/components/Duty/TodayDutyCard.tsx`): viser dagens vagter med navn, vagttype og telefonnummer samt en "Ring"-knap (`tel:`), så nummeret ikke skal findes manuelt. Eksterne vagter og ledige vagter vises tydeligt.
