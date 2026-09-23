@@ -52,10 +52,11 @@ async function sendToUser(userId: string, payload: PushPayload) {
     .eq('user_id', userId);
 
   if (error) throw error;
-  if (!subs || subs.length === 0) return { sent: 0, removed: 0 };
+  if (!subs || subs.length === 0) return { sent: 0, removed: 0, failed: 0, hadSubscription: false };
 
   let sent = 0;
   let removed = 0;
+  let failed = 0;
 
   for (const sub of subs) {
     try {
@@ -71,6 +72,7 @@ async function sendToUser(userId: string, payload: PushPayload) {
     } catch (err) {
       const statusCode = (err as { statusCode?: number })?.statusCode;
       const message = (err as { message?: string })?.message ?? 'unknown error';
+      failed++;
       if (statusCode === 404 || statusCode === 410) {
         await admin.from('push_subscriptions').delete().eq('id', sub.id);
         removed++;
@@ -83,8 +85,23 @@ async function sendToUser(userId: string, payload: PushPayload) {
     }
   }
 
-  return { sent, removed };
+  return { sent, removed, failed, hadSubscription: true };
 }
+
+/** Records the outcome of one broadcast recipient on its campaign. */
+async function recordBroadcastOutcome(
+  campaignId: string,
+  outcome: { sent?: number; failed?: number; skipped?: number; noSub?: number },
+) {
+  await admin.rpc('increment_broadcast_stats', {
+    p_campaign_id: campaignId,
+    p_sent: outcome.sent ?? 0,
+    p_failed: outcome.failed ?? 0,
+    p_skipped: outcome.skipped ?? 0,
+    p_no_sub: outcome.noSub ?? 0,
+  });
+}
+
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
