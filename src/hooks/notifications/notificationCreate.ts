@@ -24,7 +24,9 @@ const saveCreatedNotificationHash = (hash: string): void => {
   try {
     const hashes = getCreatedNotificationHashes();
     hashes.add(hash);
-    localStorage.setItem(NOTIFICATION_CREATED_KEY, JSON.stringify(Array.from(hashes)));
+    // Keep the list short so old entries never block new notifications
+    const trimmed = Array.from(hashes).slice(-200);
+    localStorage.setItem(NOTIFICATION_CREATED_KEY, JSON.stringify(trimmed));
   } catch (err) {
     if (import.meta.env.DEV) console.error("Error saving notification hash to localStorage:", err);
   }

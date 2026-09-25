@@ -316,14 +316,8 @@ export const useDutyActions = (onSuccess?: () => void) => {
         });
       if (error) throw error;
 
-      // Notify each candidate
-      const requesterName = user.name || user.email || 'Kollega';
-      await createDutySwapOfferNotification(
-        candidateIds,
-        duty.duty_type,
-        duty.duty_date,
-        requesterName,
-      );
+      // Notifications for candidates are created server-side by the
+      // duty_swap_requests trigger (works for all roles).
 
       toast.success(t('duty.swapRequestSent'));
       queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
