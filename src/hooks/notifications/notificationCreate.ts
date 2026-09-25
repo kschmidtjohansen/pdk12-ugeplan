@@ -30,10 +30,15 @@ const saveCreatedNotificationHash = (hash: string): void => {
   }
 };
 
-// Generate a hash for notification content to identify duplicates
+// Generate a hash for notification content to identify duplicates.
+// A short time bucket is included so identical texts sent later (e.g. a new
+// vacation approval with the same wording) are never treated as duplicates.
+const DEDUPE_WINDOW_MS = 60_000;
+
 const hashNotification = (notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }): string => {
   const userId = notification.targetUserId || '';
-  return `${userId}:${notification.type}:${notification.title}:${notification.message || ''}`;
+  const bucket = Math.floor(Date.now() / DEDUPE_WINDOW_MS);
+  return `${bucket}:${userId}:${notification.type}:${notification.title}:${notification.message || ''}`;
 };
 
 export const useNotificationCreate = (
