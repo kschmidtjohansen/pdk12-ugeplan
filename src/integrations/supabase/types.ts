@@ -1692,6 +1692,10 @@ export type Database = {
       decline_duty_swap: { Args: { _request_id: string }; Returns: string }
       delete_expired_approved_vacations: { Args: never; Returns: undefined }
       delete_old_rejected_vacations: { Args: never; Returns: undefined }
+      duty_type_label_da: {
+        Args: { _duty_type: Database["public"]["Enums"]["duty_type"] }
+        Returns: string
+      }
       emergency_log_cleanup: { Args: never; Returns: Json }
       enhanced_security_monitor: { Args: never; Returns: Json }
       ensure_logs_rls_consistency: { Args: never; Returns: string }

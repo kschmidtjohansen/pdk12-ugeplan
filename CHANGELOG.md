@@ -1,3 +1,11 @@
+## 2026-09-23 — Vagtbytte- og ferienotifikationer virker igen + cache-knap til servicemedarbejdere
+
+- Database: nye SECURITY DEFINER-triggere `notify_duty_swap_offer` (INSERT) og `notify_duty_swap_status` (UPDATE) på `duty_swap_requests` opretter nu notifikationer til kandidater, anmoder og øvrige kandidater. Tidligere blev klientens INSERT i `notifications` blokeret af RLS (`user_id = auth.uid() OR is_admin_or_skadeleder()`), så servicemedarbejderes byttetilbud aldrig nåede frem. EXECUTE er tilbagekaldt for anon/authenticated.
+- `src/hooks/duty/useDutyActions.ts`: klientens dublerede swap-offer- og afslags-notifikationer er fjernet (håndteres nu serverside).
+- `src/hooks/notifications/notificationCreate.ts`: dublet-hashen indeholder nu et 60-sekunders tidsvindue, og listen trimmes til 200 poster. Tidligere blokerede en gammel hash i lederens browser fx gentagne "ferie godkendt"-beskeder med samme ordlyd.
+- `src/components/Dashboard/ServicemedarbejderDashboard.tsx`: "Ryd offline cache" er nu tilgængelig for servicemedarbejdere, også på mobil.
+- Verificeret: typecheck uden fejl; migrationer kørt.
+
 ## 2026-09-23 — Demo-kontoen udelukkes fra notifikationsmodtagere
 
 - `supabase/functions/broadcast-notification/index.ts`: demo-loginkontoen (`test@polygongroup.com`) filtreres nu fra på e-mail, fordi profilen ikke har `is_demo = true`. Gælder personlisten, modtagerantallet og selve udsendelsen.

@@ -4,6 +4,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import MineOpgaver from './MineOpgaver';
 import MinDag from './MinDag';
 import DutySummaryWidget from './DutySummaryWidget';
+import ClearCacheButton from './ClearCacheButton';
 
 const ServicemedarbejderDashboard: React.FC = () => {
   const { isDutyEnabled } = useDepartment();
@@ -15,6 +16,10 @@ const ServicemedarbejderDashboard: React.FC = () => {
       {isDutyEnabled && <DutySummaryWidget />}
 
       <MineOpgaver />
+
+      <div className="flex justify-center pt-2">
+        <ClearCacheButton />
+      </div>
     </div>
   );
 };

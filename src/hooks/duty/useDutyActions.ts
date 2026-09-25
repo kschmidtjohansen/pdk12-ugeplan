@@ -17,7 +17,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
-  const { createDutyAssignmentNotification, createDutySwapOfferNotification, createDutySwapDeclinedNotification } = useDutyNotifications(addNotification);
+  const { createDutyAssignmentNotification } = useDutyNotifications(addNotification);
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
@@ -316,14 +316,8 @@ export const useDutyActions = (onSuccess?: () => void) => {
         });
       if (error) throw error;
 
-      // Notify each candidate
-      const requesterName = user.name || user.email || 'Kollega';
-      await createDutySwapOfferNotification(
-        candidateIds,
-        duty.duty_type,
-        duty.duty_date,
-        requesterName,
-      );
+      // Notifications for candidates are created server-side by the
+      // duty_swap_requests trigger (works for all roles).
 
       toast.success(t('duty.swapRequestSent'));
       queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
@@ -408,14 +402,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       const status = (data as unknown as string) || 'unknown';
       if (status === 'declined' || status === 'declined_partial') {
         toast.success(t('duty.swapDeclinedSuccess'));
-        if (context?.requesterId && context.dutyType && context.dutyDate) {
-          await createDutySwapDeclinedNotification(
-            context.requesterId,
-            context.dutyType as any,
-            context.dutyDate,
-            user.name || user.email || 'Kollega',
-          );
-        }
+        // The requester is notified server-side by the duty_swap_requests trigger.
       }
       queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
       queryClient.invalidateQueries({ queryKey: ['duties'] });
