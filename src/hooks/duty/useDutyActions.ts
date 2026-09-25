@@ -402,14 +402,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       const status = (data as unknown as string) || 'unknown';
       if (status === 'declined' || status === 'declined_partial') {
         toast.success(t('duty.swapDeclinedSuccess'));
-        if (context?.requesterId && context.dutyType && context.dutyDate) {
-          await createDutySwapDeclinedNotification(
-            context.requesterId,
-            context.dutyType as any,
-            context.dutyDate,
-            user.name || user.email || 'Kollega',
-          );
-        }
+        // The requester is notified server-side by the duty_swap_requests trigger.
       }
       queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
       queryClient.invalidateQueries({ queryKey: ['duties'] });
