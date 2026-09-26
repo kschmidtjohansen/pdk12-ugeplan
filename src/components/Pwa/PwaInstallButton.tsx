@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Download, Share, Plus, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,13 +11,37 @@ import {
 import { usePwaInstall } from '@/hooks/usePwaInstall';
 import { useTranslation } from '@/context/TranslationContext';
 
+/** True on touch devices (phones/tablets) — false on desktop with mouse/keyboard. */
+const useIsTouchDevice = () => {
+  const [isTouch, setIsTouch] = useState(() =>
+    typeof window !== 'undefined' &&
+    (window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(hover: none)').matches)
+  );
+
+  useEffect(() => {
+    const coarse = window.matchMedia('(pointer: coarse)');
+    const noHover = window.matchMedia('(hover: none)');
+    const onChange = () => setIsTouch(coarse.matches || noHover.matches);
+    coarse.addEventListener('change', onChange);
+    noHover.addEventListener('change', onChange);
+    return () => {
+      coarse.removeEventListener('change', onChange);
+      noHover.removeEventListener('change', onChange);
+    };
+  }, []);
+
+  return isTouch;
+};
+
 export const PwaInstallButton = () => {
   const { installed, canPrompt, isIos, promptInstall } = usePwaInstall();
   const { currentLanguage } = useTranslation();
   const [helpOpen, setHelpOpen] = useState(false);
+  const isTouch = useIsTouchDevice();
   const isDa = currentLanguage === 'da';
 
-  if (installed) return null;
+  // Kun synlig på mobil og tablet — aldrig i web/desktop-versionen.
+  if (installed || !isTouch) return null;
 
   const label = isDa ? 'Installer som app på telefonen' : 'Install as an app on your phone';
 
