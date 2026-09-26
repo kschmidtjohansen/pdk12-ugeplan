@@ -14,6 +14,8 @@ import { useAssignmentFiles } from '@/hooks/assignment/useAssignmentFiles';
 import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages';
 import { useDepartment } from '@/context/DepartmentContext';
 import { usePermissions } from '@/context/AuthContext';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
  
  interface AssignmentDetailsDialogProps {
    assignment: Assignment | null;
@@ -55,6 +57,8 @@ import { usePermissions } from '@/context/AuthContext';
     assignment?.responsibleUserId,
     siblingAssignmentIds
   );
+
+  const isMobile = useIsMobile();
 
   // Safe to return early after all hooks are called
   if (!assignment) return null;
@@ -114,11 +118,17 @@ import { usePermissions } from '@/context/AuthContext';
  
    const carNames = getCarNames();
  
+   const Root: any = isMobile ? Drawer : Dialog;
+   const Content: any = isMobile ? DrawerContent : DialogContent;
+   const Header: any = isMobile ? DrawerHeader : DialogHeader;
+   const Title: any = isMobile ? DrawerTitle : DialogTitle;
+   const Desc: any = isMobile ? DrawerDescription : DialogDescription;
+
    return (
-     <Dialog open={isOpen} onOpenChange={onClose}>
-       <DialogContent className={`${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[95dvh] flex flex-col p-0`}>
-        <DialogHeader className="px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b bg-card">
-            <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 text-lg pr-14">
+     <Root open={isOpen} onOpenChange={(o: boolean) => { if (!o) onClose(); }}>
+       <Content className={isMobile ? 'max-h-[92dvh] flex flex-col p-0' : `${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[95dvh] flex flex-col p-0`}>
+        <Header className="text-left shrink-0 px-4 sm:px-8 pt-4 sm:pt-8 pb-4 sm:pb-6 border-b bg-card">
+            <Title className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 text-lg pr-14">
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary shrink-0" />
                 <span className="break-words">{assignment.location}</span>
@@ -142,14 +152,14 @@ import { usePermissions } from '@/context/AuthContext';
                   </Button>
                 )}
               </div>
-            </DialogTitle>
-           <DialogDescription className="sr-only mt-1">
+            </Title>
+           <Desc className="sr-only mt-1">
              {t('planner.assignmentDetails')}
-           </DialogDescription>
-         </DialogHeader>
+           </Desc>
+         </Header>
  
         {/* Main content: 2-column layout */}
-         <div className="lg:flex-1 flex flex-col lg:flex-row lg:min-h-0 lg:overflow-hidden">
+         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col lg:flex-row lg:overflow-hidden">
           {/* Left column: Details */}
            <div className={`h-auto flex-shrink-0 lg:flex-1 lg:flex-shrink ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col lg:min-h-0`}>
              <div className="lg:flex-1 lg:overflow-y-auto">
@@ -376,8 +386,8 @@ import { usePermissions } from '@/context/AuthContext';
            </div>
           )}
         </div>
-       </DialogContent>
-     </Dialog>
+       </Content>
+     </Root>
    );
  };
  

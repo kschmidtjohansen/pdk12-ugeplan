@@ -5,6 +5,11 @@
 - FAQ'ens afsnit 9 omskrevet til rollekort med "Det vigtigste for dig" og "Det kan du ikke" pr. rolle; tjeklisten for første uge henviser til afsnittet.
 - Webadressen i både video og FAQ er ændret fra pdk12.dk til polyplan.dk.
 
+## 2026-09-26 — Mobilløft på Min Dag og sagsvindue
+- Sagsvinduet åbner som bundark (drawer) på mobil med scrollbart indhold.
+- Min Dag: højere kontrast på sagsnummer og adresse, tydeligere markering af aktiv opgave.
+- "Kør dertil" åbner Apple Maps på iPhone/iPad og Google Maps på øvrige enheder.
+
 ## 2026-09-26 — Onboarding-video og onboarding-FAQ til nye kolleger
 
 - Ny videoguide `Polyplan_PDK12_Onboarding.mp4` (1920×1080, 30 fps, ca. 52 sek.) med 8 kapitler målrettet nye kolleger: første login og adgangskode, installation på hjemmeskærm (iPhone/Android), beskeder, Min Dag, ugeplanen, vagter og vagtbytte, ferie/fri/sygemelding samt fejlfinding — afsluttes med tjekliste for den første uge. Produceret med Remotion.

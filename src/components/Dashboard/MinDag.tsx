@@ -119,8 +119,11 @@ const MinDag: React.FC = () => {
   const handleNavigate = (assignment: Assignment) => {
     const address = buildFullAddress(assignment);
     if (!address) return;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`,
+      isIOS
+        ? `https://maps.apple.com/?daddr=${encodeURIComponent(address)}`
+        : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`,
       '_blank',
       'noopener,noreferrer'
     );
@@ -208,7 +211,7 @@ const MinDag: React.FC = () => {
                   }
                 }}
                 className={`cursor-pointer rounded-xl border bg-card p-4 transition-colors hover:bg-accent/40 ${
-                  isCurrent ? 'border-primary/50 ring-1 ring-primary/20' : 'border-border/60'
+                  isCurrent ? 'border-primary ring-2 ring-primary/25' : 'border-border/60'
                 } ${isPast ? 'opacity-60' : ''}`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -224,7 +227,7 @@ const MinDag: React.FC = () => {
                     </div>
                     <p className="mt-1 truncate text-base font-medium">{assignment.title}</p>
                     {assignment.case_number && (
-                      <p className="text-xs text-muted-foreground">{assignment.case_number}</p>
+                      <p className="text-sm font-medium text-foreground/80 tabular-nums">{assignment.case_number}</p>
                     )}
                   </div>
                   {warehouseCount > 0 && (
@@ -236,8 +239,8 @@ const MinDag: React.FC = () => {
                 </div>
 
                 {address && (
-                  <p className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p className="mt-2 flex items-start gap-2 text-sm font-medium text-foreground/90">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <span>{address}</span>
                   </p>
                 )}
