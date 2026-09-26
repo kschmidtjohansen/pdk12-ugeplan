@@ -121,7 +121,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
    return (
      <Root open={isOpen} onOpenChange={(o: boolean) => { if (!o) onClose(); }}>
        <Content className={isMobile ? 'max-h-[92dvh] flex flex-col p-0' : `${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[95dvh] flex flex-col p-0`}>
-        <Header className="text-left shrink-0 "px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b bg-card">
+        <Header className="text-left shrink-0 px-4 sm:px-8 pt-4 sm:pt-8 pb-4 sm:pb-6 border-b bg-card">
             <Title className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 text-lg pr-14">
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary shrink-0" />
