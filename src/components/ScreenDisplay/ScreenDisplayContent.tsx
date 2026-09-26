@@ -28,6 +28,7 @@ export const ScreenDisplayContent: React.FC<ScreenDisplayContentProps> = ({
     if (currentTimeStr >= assignment.fromTime && currentTimeStr <= assignment.toTime) return 'active';
     return 'completed';
   };
+  // Bevidst faste farver: kioskskærmen skal have ens, høj kontrast uanset tema.
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':

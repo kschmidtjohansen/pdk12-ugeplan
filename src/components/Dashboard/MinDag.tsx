@@ -13,6 +13,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import ErrorState from '@/components/shared/ErrorState';
+import CaseNumber from '@/components/shared/CaseNumber';
 import { Assignment } from '@/types/assignment';
 
 const AssignmentDetailsDialog = lazy(() => import('./AssignmentDetailsDialog'));
@@ -225,9 +226,10 @@ const MinDag: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 truncate text-base font-medium">{assignment.title}</p>
-                    {assignment.case_number && (
-                      <p className="text-sm font-medium text-foreground/80 tabular-nums">{assignment.case_number}</p>
+                    <CaseNumber value={assignment.case_number} className="mt-1.5" />
+                    <p className="truncate text-base font-semibold text-foreground">{assignment.title}</p>
+                    {assignment.description && (
+                      <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{assignment.description}</p>
                     )}
                   </div>
                   {warehouseCount > 0 && (

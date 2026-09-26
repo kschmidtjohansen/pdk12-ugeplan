@@ -16,6 +16,7 @@ const AssignmentDetailsDialog = lazy(() => import('./AssignmentDetailsDialog'));
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 import { Assignment } from '@/types/assignment';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
+import CaseNumber from '@/components/shared/CaseNumber';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const MineOpgaver: React.FC = () => {
@@ -253,8 +254,9 @@ const MineOpgaver: React.FC = () => {
             
             {/* Title and Date */}
             <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2 flex-1">
-                <h4 className="font-medium text-sm leading-tight">
+              <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                <CaseNumber value={assignment.case_number} />
+                <h4 className="font-semibold text-sm leading-tight">
                   {assignment.title}
                 </h4>
               </div>

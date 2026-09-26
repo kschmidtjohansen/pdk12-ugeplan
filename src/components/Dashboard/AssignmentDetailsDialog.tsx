@@ -15,6 +15,7 @@ import { useAssignmentMessages } from '@/hooks/assignment/useAssignmentMessages'
 import { useDepartment } from '@/context/DepartmentContext';
 import { usePermissions } from '@/context/AuthContext';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
+import CaseNumber from '@/components/shared/CaseNumber';
 import { useIsMobile } from '@/hooks/use-mobile';
  
  interface AssignmentDetailsDialogProps {
@@ -165,7 +166,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
              <div className="lg:flex-1 lg:overflow-y-auto">
                 <div className="p-4 sm:p-8 space-y-6">
                 {/* Title */}
-                 <div>
+                 <div className="space-y-1">
+                    <CaseNumber value={assignment.case_number} className="text-xs" />
                     <h3 className="text-2xl font-semibold tracking-tight">{assignment.title}</h3>
                  </div>
 
