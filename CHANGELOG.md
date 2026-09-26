@@ -1,3 +1,8 @@
+## 2026-09-25 — "Installer som app" vises kun på mobil og tablet
+
+- `src/pages/DashboardPage.tsx` og `src/pages/LoginPage.tsx`: knappen "Installer som app på telefonen" er skjult på store skærme (`lg:hidden`), da installation kun er relevant på mobil/tablet.
+- Ingen ændringer i logik eller PWA-opsætning.
+
 ## 2026-09-23 — Vagtbytte- og ferienotifikationer virker igen + cache-knap til servicemedarbejdere
 
 - Database: nye SECURITY DEFINER-triggere `notify_duty_swap_offer` (INSERT) og `notify_duty_swap_status` (UPDATE) på `duty_swap_requests` opretter nu notifikationer til kandidater, anmoder og øvrige kandidater. Tidligere blev klientens INSERT i `notifications` blokeret af RLS (`user_id = auth.uid() OR is_admin_or_skadeleder()`), så servicemedarbejderes byttetilbud aldrig nåede frem. EXECUTE er tilbagekaldt for anon/authenticated.
