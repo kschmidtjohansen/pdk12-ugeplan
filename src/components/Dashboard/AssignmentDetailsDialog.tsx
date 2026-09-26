@@ -118,6 +118,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
  
    const carNames = getCarNames();
  
+   const Root: any = isMobile ? Drawer : Dialog;
+   const Content: any = isMobile ? DrawerContent : DialogContent;
+   const Header: any = isMobile ? DrawerHeader : DialogHeader;
+   const Title: any = isMobile ? DrawerTitle : DialogTitle;
+   const Desc: any = isMobile ? DrawerDescription : DialogDescription;
+
    return (
      <Root open={isOpen} onOpenChange={(o: boolean) => { if (!o) onClose(); }}>
        <Content className={isMobile ? 'max-h-[92dvh] flex flex-col p-0' : `${isChatEnabled ? 'max-w-5xl' : 'max-w-3xl'} max-h-[95dvh] flex flex-col p-0`}>
