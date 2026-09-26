@@ -101,8 +101,10 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Installer som app */}
-        <PwaInstallButton />
+        {/* Installer som app - kun mobil/tablet */}
+        <div className="lg:hidden">
+          <PwaInstallButton />
+        </div>
 
         {/* Footer-linje */}
         <p

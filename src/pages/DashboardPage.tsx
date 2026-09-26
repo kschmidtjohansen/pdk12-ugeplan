@@ -117,8 +117,10 @@ const DashboardPage: React.FC = () => {
             <PushNotificationCard />
           </div>
 
-          {/* Installér som app (skjules når appen allerede er installeret) */}
-          <PwaInstallButton />
+          {/* Installér som app (kun mobil/tablet, skjules når appen allerede er installeret) */}
+          <div className="lg:hidden">
+            <PwaInstallButton />
+          </div>
 
         </div>
       </div>
