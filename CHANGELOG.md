@@ -3,6 +3,7 @@
 - Sygemelding beskrives nu korrekt: medarbejdere kan ikke sygemelde sig selv i Polyplan. Kun administratorer (og Super Admins) sætter og fjerner markeringen under Medarbejdere. Rettet i både `Polyplan_PDK12_Onboarding_FAQ.txt/.md` (version 3.0) og i videoen.
 - Videoen `Polyplan_PDK12_Onboarding.mp4` er lavet om til 8 kapitler med et kapitel pr. rolle — Servicemedarbejder, Skadeleder og Administrator — så hver gruppe ser sine vigtigste opgaver og begrænsninger (1920×1080, 30 fps, ca. 55 sek.).
 - FAQ'ens afsnit 9 omskrevet til rollekort med "Det vigtigste for dig" og "Det kan du ikke" pr. rolle; tjeklisten for første uge henviser til afsnittet.
+- Webadressen i både video og FAQ er ændret fra pdk12.dk til polyplan.dk.
 
 ## 2026-09-26 — Onboarding-video og onboarding-FAQ til nye kolleger
 
