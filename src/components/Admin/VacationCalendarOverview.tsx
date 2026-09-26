@@ -170,9 +170,9 @@ const VacationCalendarOverview: React.FC = () => {
   }, [vacations, totalServiceEmployees, monthStart, monthEnd]);
 
   const getAvailabilityColor = (pct: number) => {
-    if (pct > 75) return 'bg-green-100 text-green-800 border-green-200';
-    if (pct >= 50) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    return 'bg-red-100 text-red-800 border-red-200';
+    if (pct > 75) return 'bg-success-soft text-success-soft-foreground border-success/30';
+    if (pct >= 50) return 'bg-warning-soft text-warning-soft-foreground border-warning/30';
+    return 'bg-destructive-soft text-destructive-soft-foreground border-destructive/30';
   };
 
   const selectedDateVacations = selectedDate
@@ -233,13 +233,13 @@ const VacationCalendarOverview: React.FC = () => {
                     ${!isCurrentMonth ? 'opacity-30' : ''}
                     ${isSelected ? 'ring-2 ring-primary border-primary' : 'border-transparent hover:border-border'}
                     ${isToday ? 'font-bold' : ''}
-                    ${dayVacations.length > 0 ? 'bg-orange-50 dark:bg-orange-950/20' : 'hover:bg-muted/50'}
+                    ${dayVacations.length > 0 ? 'bg-warning-soft' : 'hover:bg-muted/50'}
                   `}
                 >
                   <span className="text-xs">{format(day, 'd')}</span>
                   {dayVacations.length > 0 && (
                     <div className="absolute bottom-1 left-1/2 -translate-x-1/2">
-                      <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-orange-200 text-orange-800">
+                      <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-warning-soft text-warning-soft-foreground">
                         {dayVacations.length}
                       </Badge>
                     </div>
@@ -262,7 +262,7 @@ const VacationCalendarOverview: React.FC = () => {
                 <ul className="space-y-1">
                   {selectedDateVacations.map(v => (
                     <li key={v.id} className="flex items-center gap-2 text-sm">
-                      <span className="w-2 h-2 rounded-full bg-orange-400" />
+                      <span className="w-2 h-2 rounded-full bg-warning/60" />
                       <span>{v.user_name}</span>
                       <span className="text-muted-foreground text-xs">
                         ({format(parseISO(v.start_date), 'd/M')} – {format(parseISO(v.end_date), 'd/M')})

@@ -198,7 +198,7 @@ const LocationManagement: React.FC = () => {
                         autoFocus
                       />
                       <Button size="sm" variant="ghost" onClick={saveEdit}>
-                        <Check className="h-4 w-4 text-green-600" />
+                        <Check className="h-4 w-4 text-success" />
                       </Button>
                       <Button size="sm" variant="ghost" onClick={cancelEdit}>
                         <X className="h-4 w-4 text-destructive" />

@@ -73,7 +73,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
             </label>
           </div>
           {forceDelete && (
-            <p className="text-sm text-amber-600 mt-2 ml-6">
+            <p className="text-sm text-warning mt-2 ml-6">
               {t('deleteConfirm.forceDeleteWarning')}
             </p>
           )}

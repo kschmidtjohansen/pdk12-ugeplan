@@ -48,7 +48,7 @@ const UserDeleteDialog: React.FC<UserDeleteDialogProps> = ({
         >
           {isDeleting ? (
             <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-background"></div>
               {t('common.deleting')}
             </div>
           ) : (

@@ -16,6 +16,7 @@ const AssignmentDetailsDialog = lazy(() => import('./AssignmentDetailsDialog'));
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 import { Assignment } from '@/types/assignment';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
+import CaseNumber from '@/components/shared/CaseNumber';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const MineOpgaver: React.FC = () => {
@@ -233,7 +234,7 @@ const MineOpgaver: React.FC = () => {
                 <TooltipProvider delayDuration={100}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1 px-2 py-0.5 bg-amber-500 text-white rounded shadow-sm cursor-help">
+                      <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1 px-2 py-0.5 bg-warning text-primary-foreground rounded shadow-sm cursor-help">
                         <Package className="h-4 w-4" />
                         <span className="text-xs font-bold">{warehouseCount}</span>
                       </div>
@@ -253,8 +254,9 @@ const MineOpgaver: React.FC = () => {
             
             {/* Title and Date */}
             <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2 flex-1">
-                <h4 className="font-medium text-sm leading-tight">
+              <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                <CaseNumber value={assignment.case_number} />
+                <h4 className="font-semibold text-sm leading-tight">
                   {assignment.title}
                 </h4>
               </div>
@@ -306,7 +308,7 @@ const MineOpgaver: React.FC = () => {
               const carNames = getCarNames(assignment);
               return carNames.length > 0 ? (
                 <div className="flex items-center gap-1.5 text-xs flex-wrap">
-                  <Car className="h-3 w-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <Car className="h-3 w-3 text-warning shrink-0" />
                   {carNames.map((n, i) => (
                     <span key={i} className="chip">{n}</span>
                   ))}
@@ -326,7 +328,7 @@ const MineOpgaver: React.FC = () => {
               const teamMembers = filterDisplayNames(names);
               return teamMembers.length > 0 ? (
                 <div className="flex items-center gap-1.5 text-xs flex-wrap">
-                  <Users className="h-3 w-3 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                  <Users className="h-3 w-3 text-success flex-shrink-0" />
                   {teamMembers.map((name, i) => (
                     <span key={i} className="chip">{name}</span>
                   ))}
@@ -338,7 +340,7 @@ const MineOpgaver: React.FC = () => {
             {assignment.responsibleUser?.name && (
               <div className="flex items-center gap-1.5 text-xs">
                 <span className="chip">
-                  <UserCheck className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                  <UserCheck className="h-3 w-3 text-info" />
                   <span className="text-muted-foreground">{t('planner.responsibleUser') || 'Sagsansvarlig'}:</span>
                   <span className="font-medium text-foreground">{assignment.responsibleUser.name}</span>
                 </span>

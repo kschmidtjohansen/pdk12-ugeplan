@@ -20,10 +20,10 @@ interface LogRow {
 
 const getDotColor = (op: string): string => {
   const o = (op || '').toUpperCase();
-  if (o === 'CREATE' || o === 'CREATED') return 'bg-amber-400';
-  if (o === 'UPDATE' || o === 'UPDATED') return 'bg-blue-500';
+  if (o === 'CREATE' || o === 'CREATED') return 'bg-warning/60';
+  if (o === 'UPDATE' || o === 'UPDATED') return 'bg-info';
   if (o === 'PUBLISH' || o === 'PUBLISHED') return 'bg-primary';
-  if (o === 'COMPLETE' || o === 'COMPLETED') return 'bg-emerald-500';
+  if (o === 'COMPLETE' || o === 'COMPLETED') return 'bg-success';
   if (o === 'DELETE' || o === 'DELETED') return 'bg-destructive';
   return 'bg-muted-foreground';
 };

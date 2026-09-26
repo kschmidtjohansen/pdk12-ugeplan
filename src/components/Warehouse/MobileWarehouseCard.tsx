@@ -33,8 +33,8 @@ const MobileWarehouseCard: React.FC<MobileWarehouseCardProps> = ({ item, onEdit,
             <div>
               <p className="text-sm font-medium text-muted-foreground">{t('warehouse.fields.isCleaned')}</p>
               <span className={`text-sm ${
-                item.is_cleaned === 'ja' ? 'text-green-600' : 
-                item.is_cleaned === 'ikke_noedvendigt' ? 'text-blue-600' : 
+                item.is_cleaned === 'ja' ? 'text-success' : 
+                item.is_cleaned === 'ikke_noedvendigt' ? 'text-info' : 
                 'text-muted-foreground'
               }`}>
                 {t(`warehouse.cleanedStatus.${item.is_cleaned}`)}
@@ -67,7 +67,7 @@ const MobileWarehouseCard: React.FC<MobileWarehouseCardProps> = ({ item, onEdit,
                 variant="outline"
                 size="sm"
                 onClick={() => onDelete(item)}
-                className="w-full gap-2 hover:bg-green-600 hover:text-white hover:border-green-600 transition-colors"
+                className="w-full gap-2 hover:bg-success/90 hover:text-primary-foreground hover:border-success transition-colors"
               >
                 <CheckCircle className="h-4 w-4" />
                 {t('warehouse.actions.markAsDelivered')}

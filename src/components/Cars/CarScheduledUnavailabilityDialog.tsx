@@ -212,7 +212,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
           </div>
 
           {conflicts.length > 0 && (
-            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+            <div className="rounded-lg border border-warning/30 bg-warning-soft p-3 text-sm text-warning-soft-foreground">
               <div className="flex items-center gap-2 font-medium mb-1">
                 <AlertTriangle className="h-4 w-4" />
                 {conflicts.length} opgave(r) rammes af perioden

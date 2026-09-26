@@ -58,7 +58,7 @@ const CarAvailabilityModal: React.FC<CarAvailabilityModalProps> = ({
                 
                 <div className="flex flex-col items-end gap-1">
                   <Badge 
-                    className="bg-green-100 text-green-800 border-green-200 text-xs"
+                    className="bg-success-soft text-success-soft-foreground border-success/30 text-xs"
                     variant="outline"
                   >
                     {t('common.available')}

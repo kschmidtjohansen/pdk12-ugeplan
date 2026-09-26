@@ -66,13 +66,13 @@ const DutySummaryWidget: React.FC = () => {
               <div className="text-xs text-muted-foreground mt-1 space-y-1">
                 {skadelederDuty && (
                   <div className="flex items-center gap-1">
-                    <Phone className="h-3 w-3 text-blue-600 shrink-0" />
+                    <Phone className="h-3 w-3 text-info shrink-0" />
                     <span className="truncate">{getDisplayName(skadelederDuty)}</span>
                   </div>
                 )}
                 {kørevagt && (
                   <div className="flex items-center gap-1">
-                    <Car className="h-3 w-3 text-green-600 shrink-0" />
+                    <Car className="h-3 w-3 text-success shrink-0" />
                     <span className="truncate">{getDisplayName(kørevagt)}</span>
                   </div>
                 )}

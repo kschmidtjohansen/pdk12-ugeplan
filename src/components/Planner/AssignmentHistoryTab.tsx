@@ -185,10 +185,10 @@ const AssignmentHistoryTab: React.FC<AssignmentHistoryTabProps> = ({ assignment 
             {/* Timeline dot */}
             <div className="absolute -left-6 mt-1.5">
               <div className={`h-2.5 w-2.5 rounded-full border-2 border-background ${
-                variant === 'success' ? 'bg-green-500' :
-                variant === 'info' ? 'bg-blue-500' :
-                variant === 'error' ? 'bg-red-500' :
-                variant === 'warning' ? 'bg-orange-500' :
+                variant === 'success' ? 'bg-success' :
+                variant === 'info' ? 'bg-info' :
+                variant === 'error' ? 'bg-destructive' :
+                variant === 'warning' ? 'bg-warning' :
                 'bg-muted-foreground'
               }`} />
             </div>

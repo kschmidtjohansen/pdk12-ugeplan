@@ -263,3 +263,7 @@ Brug disse filer som kanoniske eksempler på det nye look:
 | Icon-pills i detaljer | `src/components/Planner/AssignmentDetails.tsx` |
 | Dialog (clean header + rækker) | `src/components/Dashboard/AssignmentDetailsDialog.tsx` |
 | Base-komponenter | `src/components/ui/{button,card,dialog,input,badge}.tsx` |
+
+## Farveregel og sagshierarki (2026-09-26)
+- Brug kun semantiske tokens (success, warning, destructive, info, muted, primary, foreground/background). Ingen `text-red-500`, `bg-white` o.l. og ingen `dark:`-farveoverrides. Undtagelser: kioskvisning, billedbeskærer.
+- Sagshierarki: `CaseNumber` (sagsnummer, lille/mono/dæmpet) → titel (fed, foreground) → beskrivelse/adresse (muted, højst 2 linjer).

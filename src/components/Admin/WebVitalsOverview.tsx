@@ -41,9 +41,9 @@ const percentile = (sorted: number[], p: number): number => {
 
 const ratingColor = (r: string | null) =>
   r === 'good'
-    ? 'text-emerald-600'
+    ? 'text-success'
     : r === 'needs-improvement'
-      ? 'text-amber-600'
+      ? 'text-warning'
       : r === 'poor'
         ? 'text-destructive'
         : 'text-muted-foreground';
@@ -223,8 +223,8 @@ const WebVitalsOverview: React.FC = () => {
                 </div>
                 <div className="text-xs text-muted-foreground">p75</div>
                 <div className="text-xs">
-                  <span className="text-emerald-600">{s.good}</span>{' / '}
-                  <span className="text-amber-600">{s.ni}</span>{' / '}
+                  <span className="text-success">{s.good}</span>{' / '}
+                  <span className="text-warning">{s.ni}</span>{' / '}
                   <span className="text-destructive">{s.poor}</span>
                   <span className="text-muted-foreground"> ({s.total} prøver, {goodPct}% good)</span>
                 </div>

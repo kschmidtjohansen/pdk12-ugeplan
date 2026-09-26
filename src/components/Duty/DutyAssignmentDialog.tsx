@@ -165,9 +165,9 @@ export const DutyAssignmentDialog = ({
           </TabsList>
 
           <TabsContent value={formData.duty_type} className="space-y-4">
-            <div className={`space-y-2 ${!hasEmployee && attempted ? 'ring-2 ring-red-500 rounded-md p-2' : ''}`}>
+            <div className={`space-y-2 ${!hasEmployee && attempted ? 'ring-2 ring-destructive rounded-md p-2' : ''}`}>
               <div className="flex items-center justify-between">
-                <Label className={!hasEmployee && attempted ? 'text-red-500' : ''}>
+                <Label className={!hasEmployee && attempted ? 'text-destructive' : ''}>
                   {t('duty.selectEmployee')} *
                 </Label>
                 {selectedEmployeeIds.length > 0 && (
@@ -222,7 +222,7 @@ export const DutyAssignmentDialog = ({
                             />
                             <span className="text-sm flex-1">{emp.name}</span>
                             {emp.department_name && (
-                              <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
+                              <Badge variant="outline" className="text-[10px] bg-info-soft text-info-soft-foreground border-info/30">
                                 {emp.department_name}
                               </Badge>
                             )}
@@ -259,8 +259,8 @@ export const DutyAssignmentDialog = ({
               )}
             </div>
 
-            <div className={`space-y-2 ${!hasDates && attempted ? 'ring-2 ring-red-500 rounded-md p-2' : ''}`}>
-              <Label className={!hasDates && attempted ? 'text-red-500' : ''}>
+            <div className={`space-y-2 ${!hasDates && attempted ? 'ring-2 ring-destructive rounded-md p-2' : ''}`}>
+              <Label className={!hasDates && attempted ? 'text-destructive' : ''}>
                 {t('duty.selectDates')} *
               </Label>
               <p className="text-xs text-muted-foreground">
@@ -287,7 +287,7 @@ export const DutyAssignmentDialog = ({
 
             <div className="flex flex-col gap-2 pt-4">
               {!canSubmit && attempted && (
-                <p className="text-xs text-red-500">
+                <p className="text-xs text-destructive">
                   * {t('common.required')}
                 </p>
               )}

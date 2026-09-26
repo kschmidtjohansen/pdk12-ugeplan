@@ -39,7 +39,7 @@ const EmptyDayCTA: React.FC<EmptyDayCTAProps> = ({
   return (
     <div className="col-span-full py-8 px-4 rounded-lg text-center bg-muted/50 border border-dashed border-border">
       <CalendarX2 className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-      <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+      <p className="text-sm font-medium text-foreground mb-1">
         {isDa ? 'Ingen opgaver' : 'No tasks'}
       </p>
       <p className="text-xs text-muted-foreground mb-4">

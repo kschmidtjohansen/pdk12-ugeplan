@@ -824,13 +824,13 @@ const UserManagement: React.FC = () => {
     const getStatusColor = () => {
       switch (connectionStatus) {
         case 'connected':
-          return 'text-green-600';
+          return 'text-success';
         case 'fallback':
-          return 'text-blue-600';
+          return 'text-info';
         case 'disconnected':
-          return 'text-orange-600';
+          return 'text-warning';
         case 'error':
-          return 'text-red-600';
+          return 'text-destructive';
         default:
           return 'text-muted-foreground';
       }
@@ -884,7 +884,7 @@ const UserManagement: React.FC = () => {
                 {t('admin.userManagement.description')} 
                 
               </CardDescription>
-              {lastError && <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+              {lastError && <div className="mt-2 text-sm text-destructive bg-destructive-soft p-2 rounded">
                   <div className="flex items-center space-x-2">
                     <AlertCircle className="h-4 w-4" />
                     <span>{lastError}</span>
@@ -941,7 +941,7 @@ const UserManagement: React.FC = () => {
                 <p className="text-muted-foreground mb-2">
                   {lastError ? 'Failed to load users. Fixed error handling active.' : 'No users found with current role authorization.'}
                 </p>
-                {lastError && <p className="text-sm text-red-600 mb-4">{lastError}</p>}
+                {lastError && <p className="text-sm text-destructive mb-4">{lastError}</p>}
               </div>
               <div className="space-x-2">
                 <Button onClick={handleSmartRetry} variant="outline">
@@ -956,7 +956,7 @@ const UserManagement: React.FC = () => {
               </div>
             </div> : <div>
               <div className="mb-2 flex items-center justify-end">
-                {retryCount > 0 && <div className="text-xs text-orange-600">
+                {retryCount > 0 && <div className="text-xs text-warning">
                     Smart retry attempts: {retryCount}
                   </div>}
               </div>

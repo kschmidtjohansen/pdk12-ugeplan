@@ -60,14 +60,14 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
   return (
     <TooltipProvider delayDuration={150}>
       <div
-        className="flex flex-wrap items-center gap-1.5 rounded-lg border border-amber-200/70 bg-amber-50/70 px-2.5 py-1.5 dark:border-amber-900/40 dark:bg-amber-950/30"
+        className="flex flex-wrap items-center gap-1.5 rounded-lg border border-warning/30 bg-warning-soft/70 px-2.5 py-1.5"
         role="list"
         aria-label="Fravær denne dag"
       >
-        <span className="icon-bubble icon-bubble-sm bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-200" aria-hidden>
+        <span className="icon-bubble icon-bubble-sm bg-warning-soft text-warning-soft-foreground" aria-hidden>
           <Plane className="h-3 w-3" />
         </span>
-        <span className="text-[11px] font-medium text-amber-900 dark:text-amber-100">
+        <span className="text-[11px] font-medium text-warning-soft-foreground">
           Fravær:
         </span>
         {dayVacations.map((v) => {
@@ -81,7 +81,7 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
               <TooltipTrigger asChild>
                 <span
                   role="listitem"
-                  className="inline-flex items-center gap-1 rounded-full border border-amber-300/70 bg-white/70 px-2 py-0.5 text-[11px] font-medium text-amber-900 dark:border-amber-800/60 dark:bg-amber-900/30 dark:text-amber-100"
+                  className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-card/70 px-2 py-0.5 text-[11px] font-medium text-warning-soft-foreground"
                 >
                   {isPartial && <Clock className="h-2.5 w-2.5" />}
                   {label}
@@ -101,7 +101,7 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
             <TooltipTrigger asChild>
               <span
                 role="listitem"
-                className="inline-flex items-center gap-1 rounded-full border border-amber-300/70 bg-white/70 px-2 py-0.5 text-[11px] font-medium text-amber-900 dark:border-amber-800/60 dark:bg-amber-900/30 dark:text-amber-100"
+                className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-card/70 px-2 py-0.5 text-[11px] font-medium text-warning-soft-foreground"
               >
                 {employee.name}
               </span>

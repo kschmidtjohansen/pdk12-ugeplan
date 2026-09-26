@@ -223,7 +223,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         )}
 
         {success && (
-          <Alert className="animate-fade-in border-green-500/40 bg-green-50 text-green-900 dark:bg-green-950/40 dark:text-green-100" role="status">
+          <Alert className="animate-fade-in border-success/40 bg-success-soft text-success-soft-foreground" role="status">
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
               {isDanish ? 'Login lykkedes — omdirigerer…' : 'Sign-in successful — redirecting…'}
@@ -351,7 +351,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <span aria-hidden className="animate-spin rounded-full h-4 w-4 border-2 border-white/40 border-t-white" />
+                <span aria-hidden className="animate-spin rounded-full h-4 w-4 border-2 border-background/40 border-t-white" />
                 <span>{t('login.buttonLoading')}</span>
               </span>
             ) : (

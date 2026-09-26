@@ -93,7 +93,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
             <AvatarImage src={employee.avatar_url || undefined} />
-            <AvatarFallback className="text-xs bg-polygon-blue text-white">
+            <AvatarFallback className="text-xs bg-polygon-blue text-primary-foreground">
               {getInitials(employee.name)}
             </AvatarFallback>
           </Avatar>
@@ -242,7 +242,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                       variant="ghost"
                       size="sm"
                       onClick={() => onTraining(employee)}
-                      className="h-8 w-8 p-0 text-yellow-600"
+                      className="h-8 w-8 p-0 text-warning"
                     >
                       <span className="sr-only">Kursus</span>
                       <GraduationCap className="h-4 w-4" />
@@ -263,7 +263,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                       variant="ghost"
                       size="sm"
                       onClick={() => onToggleSick(employee)}
-                      className={`h-8 w-8 p-0 ${isSick ? 'text-green-600' : 'text-red-600'}`}
+                      className={`h-8 w-8 p-0 ${isSick ? 'text-success' : 'text-destructive'}`}
                     >
                       <span className="sr-only">{isSick ? 'Fjern sygemelding' : 'Meld syg i dag'}</span>
                       {isSick ? <HeartPulse className="h-4 w-4" /> : <Thermometer className="h-4 w-4" />}
@@ -284,7 +284,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                       variant="ghost" 
                       size="sm" 
                       onClick={() => onToggleLeave(employee)}
-                      className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-green-600' : 'text-amber-600'}`}
+                      className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-success' : 'text-warning'}`}
                     >
                       <span className="sr-only">
                         {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}

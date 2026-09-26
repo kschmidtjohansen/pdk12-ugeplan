@@ -120,6 +120,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ imageSrc, onCropComplete, o
           }}
           onMouseDown={handleMouseDown}
         >
+          {/* Bevidst hvid: beskæringsrammen skal ses oven på billedet */}
           <div className="absolute inset-0 border border-white border-dashed" />
         </div>
       </div>

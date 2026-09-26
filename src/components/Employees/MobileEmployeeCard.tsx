@@ -84,7 +84,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                   variant="ghost"
                   size="sm"
                   onClick={() => onTraining(employee)}
-                  className="h-8 w-8 p-0 text-yellow-600"
+                  className="h-8 w-8 p-0 text-warning"
                   aria-label="Kursus"
                 >
                   <GraduationCap className="h-4 w-4" />
@@ -95,7 +95,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                   variant="ghost"
                   size="sm"
                   onClick={() => onToggleLeave(employee)}
-                  className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-green-600' : 'text-amber-600'}`}
+                  className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-success' : 'text-warning'}`}
                 >
                   {employee.onLeave ? <UserCheck className="h-4 w-4" /> : <UserMinus className="h-4 w-4" />}
                 </Button>
@@ -182,7 +182,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                 variant="ghost"
                 size="sm"
                 onClick={() => onToggleSick(employee)}
-                className={`h-8 px-2 ${isSick ? 'text-green-600' : 'text-red-600'}`}
+                className={`h-8 px-2 ${isSick ? 'text-success' : 'text-destructive'}`}
               >
                 {isSick ? <HeartPulse className="h-4 w-4" /> : <Thermometer className="h-4 w-4" />}
                 <span className="ml-1 text-xs">{isSick ? 'Rask' : 'Syg'}</span>

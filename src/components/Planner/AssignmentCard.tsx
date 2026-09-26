@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import ConflictBadge from './ConflictBadge';
+import CaseNumber from '@/components/shared/CaseNumber';
 import { cn } from '@/lib/utils';
 
 interface AssignmentCardProps {
@@ -172,6 +173,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           )}
       <div className="flex justify-between items-start gap-2">
         <div className="flex flex-col flex-1 min-w-0">
+          <CaseNumber value={assignment.case_number} className="mb-0.5" />
           <div className="flex items-center gap-1.5 flex-wrap">
             <h3 className="font-semibold text-sm text-foreground tracking-tight truncate">
               {assignment.title || t('planner.titleLabel')}

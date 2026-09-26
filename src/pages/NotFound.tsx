@@ -41,8 +41,8 @@ const NotFound = () => {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-red-50">
-                <AlertTriangle className="h-6 w-6 text-red-500" />
+              <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-lg bg-destructive-soft">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
             </div>
           </div>
@@ -53,8 +53,8 @@ const NotFound = () => {
           <div className="p-12">
             <Card className="border-0 shadow-none max-w-md mx-auto text-center">
               <CardHeader className="space-y-4">
-                <div className="mx-auto w-24 h-24 bg-red-50 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="h-12 w-12 text-red-500" />
+                <div className="mx-auto w-24 h-24 bg-destructive-soft rounded-full flex items-center justify-center">
+                  <AlertTriangle className="h-12 w-12 text-destructive" />
                 </div>
                 <CardTitle className="text-6xl font-bold text-foreground">404</CardTitle>
                 <div className="space-y-2">
@@ -73,7 +73,7 @@ const NotFound = () => {
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button 
                     onClick={handleGoHome}
-                    className="bg-primary hover:bg-primary/90 text-white"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     <Home className="mr-2 h-4 w-4" />
                     {t('common.goHome') || 'Go to Dashboard'}

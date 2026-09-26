@@ -99,17 +99,17 @@ export const DutyMonthCalendar = ({
   const getDutyColor = (dutyType: string) => {
     if (dutyType === 'skadeleder_vagt') {
       return {
-        bg: 'bg-blue-100 dark:bg-blue-900/30',
-        border: 'border-blue-300 dark:border-blue-700',
-        text: 'text-blue-900 dark:text-blue-100',
-        hover: 'hover:bg-blue-200 dark:hover:bg-blue-800/40'
+        bg: 'bg-info-soft',
+        border: 'border-info/30',
+        text: 'text-info-soft-foreground',
+        hover: 'hover:bg-info-soft'
       };
     }
     return {
-      bg: 'bg-green-100 dark:bg-green-900/30',
-      border: 'border-green-300 dark:border-green-700',
-      text: 'text-green-900 dark:text-green-100',
-      hover: 'hover:bg-green-200 dark:hover:bg-green-800/40'
+      bg: 'bg-success-soft',
+      border: 'border-success/30',
+      text: 'text-success-soft-foreground',
+      hover: 'hover:bg-success-soft'
     };
   };
 
@@ -405,13 +405,13 @@ export const DutyMonthCalendar = ({
         {/* Legend */}
         <div className="flex items-center gap-4 mt-4 pt-4 border-t">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700"></div>
+            <div className="w-4 h-4 rounded bg-info-soft border border-info/30"></div>
             <span className="text-sm text-muted-foreground">
               {t('duty.skadelederVagt')}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700"></div>
+            <div className="w-4 h-4 rounded bg-success-soft border border-success/30"></div>
             <span className="text-sm text-muted-foreground">
               {t('duty.kørevagt')}
             </span>

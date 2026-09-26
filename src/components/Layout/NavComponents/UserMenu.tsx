@@ -88,7 +88,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
                 {!userDataLoaded ? 'Loading...' : user?.name}
-                {isDemoMode && <span className="ml-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">DEMO</span>}
+                {isDemoMode && <span className="ml-2 px-2 py-0.5 text-xs bg-warning-soft text-warning-soft-foreground rounded-full">DEMO</span>}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
                 {!userDataLoaded ? 'Loading...' : (jobTitle || user?.role)}
@@ -139,7 +139,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
           {isDemoMode && (
             <>
               <DropdownMenuLabel className="flex items-center gap-2">
-                <Crown className="h-4 w-4 text-amber-600" />
+                <Crown className="h-4 w-4 text-warning" />
                 Demo Role
               </DropdownMenuLabel>
               <DropdownMenuRadioGroup value={demoRole || 'administrator'} onValueChange={(value) => setDemoRole(value as UserRole)}>
