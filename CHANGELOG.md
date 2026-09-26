@@ -1,3 +1,7 @@
+## 2026-09-26 — "Installer som app" skjules helt i web-versionen
+
+- `src/components/Pwa/PwaInstallButton.tsx`: knappen "Installer som app på telefonen" vises nu kun på berøringsenheder (mobil/tablet, via pointer/hover-detektion). Tidligere brugte vi kun en breddegrænse (`lg:hidden`), så knappen stadig kunne dukke op i smalle browservinduer på PC — fx i previewet. På desktop med mus/tastatur er den nu altid skjult, uanset vinduets bredde.
+
 ## 2026-09-26 — Videoguide og FAQ som downloadbare filer
 
 - Ny videoguide `Polyplan_PDK12_Videoguide.mp4` (1920×1080, 30 fps, ~45 sek.) med 7 kapitler: log ind/afdelingsvalg, ugeplanen, medarbejdere og nærhed, Min Dag, vagtplan og vagtbytte, ferie/sygemelding, PWA-installation og beskeder. Produceret med Remotion og gemt under Files.
