@@ -1,3 +1,9 @@
+## 2026-09-26 — Onboarding-video og onboarding-FAQ til nye kolleger
+
+- Ny videoguide `Polyplan_PDK12_Onboarding.mp4` (1920×1080, 30 fps, ca. 52 sek.) med 8 kapitler målrettet nye kolleger: første login og adgangskode, installation på hjemmeskærm (iPhone/Android), beskeder, Min Dag, ugeplanen, vagter og vagtbytte, ferie/fri/sygemelding samt fejlfinding — afsluttes med tjekliste for den første uge. Produceret med Remotion.
+- Ny `Polyplan_PDK12_Onboarding_FAQ.txt` / `.md`: FAQ'en er omskrevet til onboarding-tone via AI Gateway (Gemini), med alle fakta bevaret (180 min. timeout, 12 tegns adgangskode, 20 MB filer, udgivelse kl. 00:00, først til mølle, kun skadeledere/admins ser sygdomsårsag, vikarer modtager aldrig beskeder).
+- Ingen kodeændringer i appen: leverancerne er filer, ikke nye sider eller ruter.
+
 ## 2026-09-26 — "Installer som app" skjules helt i web-versionen
 
 - `src/components/Pwa/PwaInstallButton.tsx`: knappen "Installer som app på telefonen" vises nu kun på berøringsenheder (mobil/tablet, via pointer/hover-detektion). Tidligere brugte vi kun en breddegrænse (`lg:hidden`), så knappen stadig kunne dukke op i smalle browservinduer på PC — fx i previewet. På desktop med mus/tastatur er den nu altid skjult, uanset vinduets bredde.
