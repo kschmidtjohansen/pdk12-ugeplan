@@ -55,9 +55,9 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-white w-48">
+      <DropdownMenuContent align="end" className="bg-card w-48">
         <DropdownMenuItem onClick={() => onToggleUserStatus(user)}>
-          {isUserActive ? <UserX className="h-4 w-4 mr-2 text-red-600" /> : <UserCheck className="h-4 w-4 mr-2 text-green-600" />}
+          {isUserActive ? <UserX className="h-4 w-4 mr-2 text-destructive" /> : <UserCheck className="h-4 w-4 mr-2 text-success" />}
           {isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onResetPassword(user)}>
@@ -83,7 +83,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" onClick={() => onToggleUserStatus(user)}
               aria-label={isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser')}
-              className={`h-8 w-8 ${isUserActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}`}>
+              className={`h-8 w-8 ${isUserActive ? 'text-destructive hover:text-destructive-soft-foreground' : 'text-success hover:text-success-soft-foreground'}`}>
               {isUserActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
             </Button>
           </TooltipTrigger>
@@ -127,7 +127,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
     <tr className="border-b border-gray-200 hover:bg-gray-50">
       <td className="py-4 pl-4 pr-3 text-sm sm:pl-6">
         <div className="flex items-center">
-          <Avatar className="h-8 w-8 bg-polygon-blue text-white">
+          <Avatar className="h-8 w-8 bg-polygon-blue text-primary-foreground">
             <AvatarImage src={user.avatar_url || undefined} />
             <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
           </Avatar>
@@ -135,7 +135,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
             <div className={`font-medium ${isUserActive ? 'text-gray-900' : 'text-gray-500'}`}>
               {user.name}
               {!isUserActive && (
-                <span className="ml-2 text-xs text-red-600">({t('admin.userManagement.inactive')})</span>
+                <span className="ml-2 text-xs text-destructive">({t('admin.userManagement.inactive')})</span>
               )}
             </div>
             <div className="text-gray-500">{user.email}</div>

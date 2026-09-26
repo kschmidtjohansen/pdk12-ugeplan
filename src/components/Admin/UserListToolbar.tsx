@@ -72,7 +72,7 @@ const UserListToolbar: React.FC<UserListToolbarProps> = ({
             </span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56 bg-white">
+        <DropdownMenuContent align="start" className="w-56 bg-card">
           {availableRoles.map(role => (
             <DropdownMenuCheckboxItem
               key={role}

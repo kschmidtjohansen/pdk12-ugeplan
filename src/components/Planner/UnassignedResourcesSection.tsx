@@ -388,7 +388,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                 {user?.role !== 'fugttekniker' && (
                 <>
                 <div>
-                  <h4 className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-1.5">
                     <UserCheck className="h-4 w-4" />
                     {t('planner.skadeledere')} ({categorizedByRole.skadeledere.length})
                   </h4>
@@ -402,8 +402,8 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                                 variant="outline"
                                 className={`text-xs cursor-default ${
                                   emp.availabilityInfo?.status === 'partiallyBooked'
-                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                    : 'bg-purple-50 border-purple-200 text-purple-700'
+                                    ? 'bg-warning-soft border-warning/30 text-warning-soft-foreground'
+                                    : 'bg-primary/10 border-primary/30 text-primary'
                                 }`}
                               >
                                 {displayFirstName(emp.name)}
@@ -429,7 +429,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
                 {/* Fugtteknikere — blå */}
                 <div>
-                  <h4 className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-info-soft-foreground mb-2 flex items-center gap-1.5">
                     <Wrench className="h-4 w-4" />
                     {t('planner.fugtteknikere')} ({categorizedByRole.fugtteknikere.length})
                   </h4>
@@ -443,8 +443,8 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                                 variant="outline"
                                 className={`text-xs cursor-default ${
                                   emp.availabilityInfo?.status === 'partiallyBooked'
-                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                    : 'bg-blue-50 border-blue-200 text-blue-700'
+                                    ? 'bg-warning-soft border-warning/30 text-warning-soft-foreground'
+                                    : 'bg-info-soft border-info/30 text-info-soft-foreground'
                                 }`}
                               >
                                 {displayFirstName(emp.name)}
@@ -473,7 +473,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
                 {/* Servicemedarbejdere — grøn */}
                 <div>
-                  <h4 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-success-soft-foreground mb-2 flex items-center gap-1.5">
                     <Wrench className="h-4 w-4" />
                     {t('planner.servicemedarbejdere')} ({categorizedByRole.servicemedarbejdere.length})
                   </h4>
@@ -487,8 +487,8 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                                 variant="outline"
                                 className={`text-xs cursor-default ${
                                   emp.availabilityInfo?.status === 'partiallyBooked'
-                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                    : 'bg-green-50 border-green-200 text-green-700'
+                                    ? 'bg-warning-soft border-warning/30 text-warning-soft-foreground'
+                                    : 'bg-success-soft border-success/30 text-success-soft-foreground'
                                 }`}
                               >
                                 {displayFirstName(emp.name)}
@@ -516,7 +516,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
               {/* Available Cars - Compact badges */}
               {availableCars.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1.5">
                     <Car className="h-4 w-4" />
                     {t('planner.availableCars')} ({availableCars.length})
                   </h4>
@@ -527,7 +527,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                           <TooltipTrigger asChild>
                             <Badge 
                               variant="outline" 
-                              className="text-xs bg-slate-50 border-slate-200 cursor-default truncate max-w-[100px]"
+                              className="text-xs bg-muted border-border cursor-default truncate max-w-[100px]"
                             >
                               {car.name}
                               {car.has_trailer_hitch && <span className="ml-1">🚗</span>}
@@ -537,7 +537,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                             <p className="font-medium">{car.name}</p>
                             <p className="text-xs text-muted-foreground">{car.number_plate}</p>
                             {car.has_trailer_hitch && (
-                              <p className="text-xs text-orange-600">{t('planner.carWithTrailerLabel')}</p>
+                              <p className="text-xs text-warning">{t('planner.carWithTrailerLabel')}</p>
                             )}
                           </TooltipContent>
                         </Tooltip>
@@ -552,7 +552,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                   the reason is only visible on the employees page. */}
               {absentEmployees.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-orange-700 mb-2 flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-warning-soft-foreground mb-2 flex items-center gap-1.5">
                     <AlertCircle className="h-4 w-4" />
                     {t('planner.onVacationEmployees')} ({absentEmployees.length})
                   </h4>
@@ -563,7 +563,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                           <TooltipTrigger asChild>
                             <Badge 
                               variant="outline" 
-                              className="text-xs bg-orange-50 border-orange-200 text-orange-700 cursor-default"
+                              className="text-xs bg-warning-soft border-warning/30 text-warning-soft-foreground cursor-default"
                             >
                               {displayFirstName(employee.name)}
                             </Badge>
@@ -585,7 +585,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
               {/* Employees on Training - yellow */}
               {employeesOnTraining.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-yellow-700 mb-2 flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-warning-soft-foreground mb-2 flex items-center gap-1.5">
                     <AlertCircle className="h-4 w-4" />
                     {t('planner.onTrainingEmployees')} ({employeesOnTraining.length})
                   </h4>
@@ -598,7 +598,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                             <TooltipTrigger asChild>
                               <Badge
                                 variant="outline"
-                                className="text-xs bg-yellow-50 border-yellow-200 text-yellow-800 cursor-default"
+                                className="text-xs bg-warning-soft border-warning/30 text-warning-soft-foreground cursor-default"
                               >
                                 {displayFirstName(employee.name)}
                               </Badge>

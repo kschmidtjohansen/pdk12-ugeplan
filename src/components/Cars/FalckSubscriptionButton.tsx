@@ -126,7 +126,7 @@ const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdm
                     autoFocus
                   />
                   <Button size="icon" variant="ghost" onClick={handleSave} disabled={mutation.isPending} aria-label="Gem">
-                    <Check className="h-4 w-4 text-green-600" />
+                    <Check className="h-4 w-4 text-success" />
                   </Button>
                   <Button size="icon" variant="ghost" onClick={() => setEditing(false)} aria-label="Annullér">
                     <X className="h-4 w-4 text-destructive" />

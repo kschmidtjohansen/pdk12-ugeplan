@@ -56,9 +56,9 @@ type CellKind = 'vacation' | 'training' | 'leave' | 'skadeleder_vagt' | 'køreva
 type Group = { key: 'skadeleder' | 'fugttekniker' | 'servicemedarbejder'; label: string; tone: string; rowTone: string; border: string };
 
 const GROUPS: Group[] = [
-  { key: 'skadeleder',         label: 'Skadeleder',         tone: 'bg-purple-100 text-purple-800', rowTone: 'bg-purple-50/30', border: 'border-l-purple-500' },
-  { key: 'fugttekniker',       label: 'Fugttekniker',       tone: 'bg-blue-100 text-blue-800',     rowTone: 'bg-blue-50/30',   border: 'border-l-blue-500' },
-  { key: 'servicemedarbejder', label: 'Servicemedarbejder', tone: 'bg-green-100 text-green-800',   rowTone: 'bg-green-50/30',  border: 'border-l-green-500' },
+  { key: 'skadeleder',         label: 'Skadeleder',         tone: 'bg-primary/10 text-primary', rowTone: 'bg-primary/10', border: 'border-l-purple-500' },
+  { key: 'fugttekniker',       label: 'Fugttekniker',       tone: 'bg-info-soft text-info-soft-foreground',     rowTone: 'bg-info-soft/30',   border: 'border-l-blue-500' },
+  { key: 'servicemedarbejder', label: 'Servicemedarbejder', tone: 'bg-success-soft text-success-soft-foreground',   rowTone: 'bg-success-soft/30',  border: 'border-l-green-500' },
 ];
 
 const groupForRole = (role?: string): Group['key'] => {
@@ -78,10 +78,10 @@ const groupForRole = (role?: string): Group['key'] => {
 
 const cellColor: Record<CellKind, string> = {
   vacation: 'bg-foreground',           // sort
-  training: 'bg-yellow-400',           // gul
-  leave: 'bg-red-500',                 // rød
-  skadeleder_vagt: 'bg-blue-500',      // blå
-  'kørevagt': 'bg-green-500',          // grøn
+  training: 'bg-warning/60',           // gul
+  leave: 'bg-destructive',                 // rød
+  skadeleder_vagt: 'bg-info',      // blå
+  'kørevagt': 'bg-success',          // grøn
 };
 
 const cellLabel: Record<CellKind, string> = {
@@ -536,10 +536,10 @@ const VacationGridOverview: React.FC = () => {
           <span className="text-muted-foreground mr-1">Filter:</span>
           {([
             { kind: 'vacation' as CellKind, color: 'bg-foreground', label: 'Ferie' },
-            { kind: 'training' as CellKind, color: 'bg-yellow-400', label: 'Kursus' },
-            { kind: 'leave' as CellKind, color: 'bg-red-500', label: 'Fravær' },
-            { kind: 'skadeleder_vagt' as CellKind, color: 'bg-blue-500', label: 'Skadelederv.' },
-            { kind: 'kørevagt' as CellKind, color: 'bg-green-500', label: 'Kørevagt' },
+            { kind: 'training' as CellKind, color: 'bg-warning/60', label: 'Kursus' },
+            { kind: 'leave' as CellKind, color: 'bg-destructive', label: 'Fravær' },
+            { kind: 'skadeleder_vagt' as CellKind, color: 'bg-info', label: 'Skadelederv.' },
+            { kind: 'kørevagt' as CellKind, color: 'bg-success', label: 'Kørevagt' },
           ]).map(({ kind, color, label }) => {
             const active = activeKinds[kind];
             return (
@@ -677,10 +677,10 @@ const VacationGridOverview: React.FC = () => {
           type StatusEntry = { name: string; period: string | null };
           const sections: { kind: CellKind; color: string; label: string; entries: StatusEntry[] }[] = [
             { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', entries: vacationEntries },
-            { kind: 'training', color: 'bg-yellow-400', label: 'Kursus', entries: trainingEntries },
-            { kind: 'leave', color: 'bg-red-500', label: 'Fravær', entries: leaveEntries },
-            { kind: 'skadeleder_vagt', color: 'bg-blue-500', label: 'Skadelederv.', entries: skadelederEntries },
-            { kind: 'kørevagt', color: 'bg-green-500', label: 'Kørevagt', entries: korevagtEntries },
+            { kind: 'training', color: 'bg-warning/60', label: 'Kursus', entries: trainingEntries },
+            { kind: 'leave', color: 'bg-destructive', label: 'Fravær', entries: leaveEntries },
+            { kind: 'skadeleder_vagt', color: 'bg-info', label: 'Skadelederv.', entries: skadelederEntries },
+            { kind: 'kørevagt', color: 'bg-success', label: 'Kørevagt', entries: korevagtEntries },
           ];
 
           const weekNum = getISOWeek(weekStart);

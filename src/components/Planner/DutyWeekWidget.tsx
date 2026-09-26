@@ -208,7 +208,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
                             ) : (
                               <>
                                 <Avatar className="h-5 w-5">
-                                  <AvatarFallback className="text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                  <AvatarFallback className="text-[10px] bg-info-soft text-info-soft-foreground">
                                     {getExternalInitials(skadeleder.notes)}
                                   </AvatarFallback>
                                 </Avatar>
@@ -221,7 +221,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
 
                       {kørevagt && (
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">
+                          <Badge variant="outline" className="gap-1 bg-success-soft text-success-soft-foreground border-success/30">
                             <Car className="h-3 w-3" />
                             {t('duty.kørevagt')}
                           </Badge>
@@ -241,7 +241,7 @@ export const DutyWeekWidget = ({ selectedWeek, selectedYear }: DutyWeekWidgetPro
                             ) : (
                               <>
                                 <Avatar className="h-5 w-5">
-                                  <AvatarFallback className="text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                  <AvatarFallback className="text-[10px] bg-success-soft text-success-soft-foreground">
                                     {getExternalInitials(kørevagt.notes)}
                                   </AvatarFallback>
                                 </Avatar>

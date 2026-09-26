@@ -20,8 +20,8 @@ const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onD
       <TableCell>{item.case_number || '-'}</TableCell>
       <TableCell>
         <span className={`text-sm ${
-          item.is_cleaned === 'ja' ? 'text-green-600' : 
-          item.is_cleaned === 'ikke_noedvendigt' ? 'text-blue-600' : 
+          item.is_cleaned === 'ja' ? 'text-success' : 
+          item.is_cleaned === 'ikke_noedvendigt' ? 'text-info' : 
           'text-muted-foreground'
         }`}>
           {t(`warehouse.cleanedStatus.${item.is_cleaned}`)}
@@ -60,7 +60,7 @@ const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onD
               variant="outline"
               size="sm"
               onClick={() => onDelete(item)}
-              className="gap-2 hover:bg-green-600 hover:text-white hover:border-green-600 transition-colors"
+              className="gap-2 hover:bg-success/90 hover:text-primary-foreground hover:border-success transition-colors"
             >
               <CheckCircle className="h-4 w-4" />
               {t('warehouse.actions.markAsDelivered')}

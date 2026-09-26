@@ -176,7 +176,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
                 value={passwords.current}
                 onChange={(e) => handleInputChange('current', e.target.value)}
                 placeholder={t('profile.enterCurrentPassword')}
-                className={errors.current ? 'border-red-500' : ''}
+                className={errors.current ? 'border-destructive' : ''}
                 disabled={loading}
               />
               <Button
@@ -195,7 +195,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
               </Button>
             </div>
             {errors.current && (
-              <p className="text-sm text-red-500">{errors.current}</p>
+              <p className="text-sm text-destructive">{errors.current}</p>
             )}
           </div>
 
@@ -209,7 +209,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
                 value={passwords.new}
                 onChange={(e) => handleInputChange('new', e.target.value)}
                 placeholder={t('profile.enterNewPassword')}
-                className={errors.new ? 'border-red-500' : ''}
+                className={errors.new ? 'border-destructive' : ''}
                 disabled={loading}
               />
               <Button
@@ -228,7 +228,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
               </Button>
             </div>
             {errors.new && (
-              <p className="text-sm text-red-500">{errors.new}</p>
+              <p className="text-sm text-destructive">{errors.new}</p>
             )}
           </div>
 
@@ -242,7 +242,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
                 value={passwords.confirm}
                 onChange={(e) => handleInputChange('confirm', e.target.value)}
                 placeholder={t('profile.confirmNewPassword')}
-                className={errors.confirm ? 'border-red-500' : ''}
+                className={errors.confirm ? 'border-destructive' : ''}
                 disabled={loading}
               />
               <Button
@@ -261,7 +261,7 @@ const PasswordChangeDialog: React.FC<PasswordChangeDialogProps> = ({
               </Button>
             </div>
             {errors.confirm && (
-              <p className="text-sm text-red-500">{errors.confirm}</p>
+              <p className="text-sm text-destructive">{errors.confirm}</p>
             )}
           </div>
         </div>

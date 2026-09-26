@@ -33,11 +33,11 @@ export const EmployeeListItem: React.FC<EmployeeListItemProps> = ({
     <div 
       key={employee.id} 
       className={`flex items-center justify-between p-2 rounded-lg border ${
-        status.hasEndTimeAtSixteen ? 'border-red-300 bg-red-50' : ''
+        status.hasEndTimeAtSixteen ? 'border-destructive/30 bg-destructive-soft' : ''
       }`}
     >
       <span className={`font-medium ${
-        status.hasEndTimeAtSixteen ? '!text-red-600 !font-bold' : ''
+        status.hasEndTimeAtSixteen ? '!text-destructive !font-bold' : ''
       }`}>
         {employee.name}
       </span>

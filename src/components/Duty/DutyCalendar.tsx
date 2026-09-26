@@ -62,17 +62,17 @@ export const DutyCalendar = ({
         weekStartsOn={1}
         modifiers={getDayModifiers()}
         modifiersClassNames={{
-          skadeleder: 'bg-blue-100 dark:bg-blue-900/30',
-          kørevagt: 'bg-green-100 dark:bg-green-900/30',
+          skadeleder: 'bg-info-soft',
+          kørevagt: 'bg-success-soft',
         }}
       />
       <div className="mt-4 space-y-2 text-sm">
         <div className="flex items-center gap-2">
-          <div className="h-4 w-4 rounded bg-blue-100 dark:bg-blue-900/30" />
+          <div className="h-4 w-4 rounded bg-info-soft" />
           <span>{t('duty.skadelederVagt')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="h-4 w-4 rounded bg-green-100 dark:bg-green-900/30" />
+          <div className="h-4 w-4 rounded bg-success-soft" />
           <span>{t('duty.kørevagt')}</span>
         </div>
       </div>

@@ -46,17 +46,17 @@ export const DemoDashboard: React.FC = () => {
   };
 
   return (
-    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+    <div className="mb-4 p-3 bg-warning-soft border border-warning/30 rounded-lg">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-2 text-sm text-amber-700">
+          <div className="flex items-center gap-2 text-sm text-warning-soft-foreground">
             <Activity className="h-4 w-4" />
             <span className="font-medium">{t('common.demoMode')}</span>
           </div>
           <DemoRoleSwitcher />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-xs text-amber-600 flex items-center gap-1">
+          <div className="text-xs text-warning flex items-center gap-1">
             <Timer className="h-3 w-3" />
             {timeRemainingFormatted}
           </div>
@@ -73,7 +73,7 @@ export const DemoDashboard: React.FC = () => {
       </div>
       
       {showWarning && (
-        <div className="mt-2 text-xs text-red-600 font-medium flex items-center gap-1">
+        <div className="mt-2 text-xs text-destructive font-medium flex items-center gap-1">
           <AlertTriangle className="h-3 w-3" />
           ⚠️ {t('common.allDemoDataWillBeDeleted')}
         </div>

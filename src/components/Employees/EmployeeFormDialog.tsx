@@ -475,15 +475,15 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           {isAdmin && <>
               {/* Vikar conversion section - only show when editing a vikar */}
               {isEditingVikar && (
-                <div className="space-y-3 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
+                <div className="space-y-3 p-3 bg-warning-soft border border-warning/30 rounded-md">
                   <div className="flex items-start space-x-2">
-                    <UserCheck className="h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-400" />
+                    <UserCheck className="h-4 w-4 mt-0.5 text-warning" />
                     <div className="space-y-1 flex-1">
-                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                      <p className="text-sm font-medium text-warning-soft-foreground">
                         {t('employees.currentlyVikar')}
                       </p>
                       {currentEmployee?.expires_at && !convertToPermanent && (
-                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                        <p className="text-xs text-warning">
                           {t('employees.vikarExpiresInfo', { 
                             date: format(new Date(currentEmployee.expires_at), 'd. MMMM yyyy', { locale: da })
                           })}
@@ -498,8 +498,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                     const baseDate = currentExpiryDate && currentExpiryDate > today ? currentExpiryDate : today;
                     const minDate = format(baseDate, 'yyyy-MM-dd');
                     return (
-                    <div className="pt-2 border-t border-amber-200 dark:border-amber-700 space-y-2">
-                      <Label htmlFor="edit_expires_at" className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                    <div className="pt-2 border-t border-warning/30 space-y-2">
+                      <Label htmlFor="edit_expires_at" className="text-sm font-medium text-warning-soft-foreground">
                         {t('employees.newExpirationDate')}
                       </Label>
                       <Button
@@ -547,7 +547,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                         ))}
                       </div>
                       {formData.expires_at && currentEmployee?.expires_at && formData.expires_at !== new Date(currentEmployee.expires_at).toISOString().split('T')[0] && (
-                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                        <p className="text-xs text-warning">
                           {t('employees.newExpiryPreview', {
                             date: format(new Date(formData.expires_at), 'd. MMMM yyyy', { locale: da })
                           })}
@@ -556,7 +556,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                     </div>
                     );
                   })()}
-                  <div className="flex items-center space-x-2 pt-2 border-t border-amber-200 dark:border-amber-700">
+                  <div className="flex items-center space-x-2 pt-2 border-t border-warning/30">
                     <Checkbox 
                       id="convertToPermanent" 
                       checked={convertToPermanent} 
@@ -568,7 +568,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                     </Label>
                   </div>
                   {convertToPermanent && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400 pl-6">
+                    <p className="text-xs text-warning pl-6">
                       {t('employees.convertToPermanentNote')}
                     </p>
                   )}
@@ -717,7 +717,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
 
               {/* Skip department checkbox - visible when role is super_admin */}
               {formData.role === 'super_admin' && !formData.is_temporary && (
-                <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md">
+                <div className="space-y-2 p-3 bg-info-soft border border-info/30 rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="skip_department" 

@@ -223,11 +223,11 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   const getAvailabilityDot = (availability: CarAvailability) => {
     switch (availability) {
       case 'full':
-        return <span className="inline-block w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />;
+        return <span className="inline-block w-2 h-2 rounded-full bg-success flex-shrink-0" />;
       case 'partial':
-        return <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" />;
+        return <span className="inline-block w-2 h-2 rounded-full bg-warning flex-shrink-0" />;
       case 'none':
-        return <span className="inline-block w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />;
+        return <span className="inline-block w-2 h-2 rounded-full bg-destructive flex-shrink-0" />;
     }
   };
 
@@ -301,15 +301,15 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
                     ) : selectedDateStrings.length > 0 ? (
                       <Badge variant="outline" className={`text-xs max-w-[120px] truncate ${
                         availability === 'full'
-                          ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800'
+                          ? 'bg-success-soft text-success-soft-foreground border-success/30'
                           : availability === 'partial'
-                          ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800'
-                          : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800'
+                          ? 'bg-warning-soft text-warning-soft-foreground border-warning/30'
+                          : 'bg-destructive-soft text-destructive-soft-foreground border-destructive/30'
                       }`}>
                         {getAvailabilityLabel(car, availability)}
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
+                      <Badge variant="outline" className="text-xs bg-success-soft text-success-soft-foreground border-success/30">
                         {t('cars.available')}
                       </Badge>
                     )}
@@ -349,7 +349,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
               <button
                 type="button"
                 onClick={() => onCarToggle(car.id)}
-                className="ml-1 hover:text-red-500"
+                className="ml-1 hover:text-destructive"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -402,7 +402,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         <AlertDialogContent className="z-[100]">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              <AlertTriangle className="h-5 w-5 text-warning" />
               {t('planner.carBookingConflict')}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
@@ -432,7 +432,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+              className="bg-warning hover:bg-warning/90 text-primary-foreground"
               onClick={() => {
                 if (dialog) onCarToggle(dialog.carId);
                 setDialog(null);

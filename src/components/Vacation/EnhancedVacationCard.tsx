@@ -172,7 +172,7 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
             {onDelete && (
               <button
                 onClick={() => onDelete(vacation)}
-                className="px-3 py-1 text-xs bg-muted-foreground text-white rounded hover:bg-muted-foreground/80"
+                className="px-3 py-1 text-xs bg-muted-foreground text-primary-foreground rounded hover:bg-muted-foreground/80"
               >
                 {t('common.delete')}
               </button>

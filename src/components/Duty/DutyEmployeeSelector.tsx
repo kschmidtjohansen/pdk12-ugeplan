@@ -63,7 +63,7 @@ export const DutyEmployeeSelector = ({
                 <span className="flex items-center gap-2">
                   {employee.name}
                   {isOnTraining && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-300">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-warning-soft text-warning-soft-foreground border border-warning/30">
                       Kursus
                     </span>
                   )}

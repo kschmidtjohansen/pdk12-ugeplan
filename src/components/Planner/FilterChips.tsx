@@ -123,7 +123,7 @@ const FilterChips: React.FC<FilterChipsProps> = ({ weekAssignments }) => {
         : 'Show only drafts not yet published to employees.',
       count: counts.unpublished,
       activeClass:
-        'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/40 dark:text-amber-100 dark:border-amber-800',
+        'bg-warning-soft text-warning-soft-foreground border-warning/30',
     },
     {
       key: 'conflicts',
@@ -133,7 +133,7 @@ const FilterChips: React.FC<FilterChipsProps> = ({ weekAssignments }) => {
         : 'Show tasks with double-booked cars or employees.',
       count: counts.conflicts,
       activeClass:
-        'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/40 dark:text-rose-100 dark:border-rose-800',
+        'bg-destructive-soft text-destructive-soft-foreground border-destructive/30',
     },
     {
       key: 'noResponsible',
@@ -144,7 +144,7 @@ const FilterChips: React.FC<FilterChipsProps> = ({ weekAssignments }) => {
         : 'Show tasks without an assigned case manager.',
       count: counts.noResponsible,
       activeClass:
-        'bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-950/40 dark:text-sky-100 dark:border-sky-800',
+        'bg-info-soft text-info-soft-foreground border-info/30',
     },
     {
       key: 'noLocation',

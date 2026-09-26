@@ -471,10 +471,10 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                         <span
                           className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
                             multiDateAvailability.get(employee.id) === 'full'
-                              ? 'bg-green-500'
+                              ? 'bg-success'
                               : multiDateAvailability.get(employee.id) === 'partial'
-                                ? 'bg-yellow-500'
-                                : 'bg-red-500'
+                                ? 'bg-warning'
+                                : 'bg-destructive'
                           }`}
                         />
                       )}
@@ -487,8 +487,8 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                       </Badge>
                     </span>
                     {isNearby && formattedDist && (
-                      <span className={`text-xs flex items-center gap-1 mt-0.5 ${isTop3 ? 'text-green-600 font-medium' : 'text-muted-foreground'}`}>
-                        <MapPin className={`h-3 w-3 ${isTop3 ? 'text-green-600' : ''}`} />
+                      <span className={`text-xs flex items-center gap-1 mt-0.5 ${isTop3 ? 'text-success font-medium' : 'text-muted-foreground'}`}>
+                        <MapPin className={`h-3 w-3 ${isTop3 ? 'text-success' : ''}`} />
                         {formattedDist} km {currentLanguage === 'da' ? 'væk' : 'away'}
                       </span>
                     )}
@@ -500,7 +500,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                   </div>
                   <div className="flex gap-1 ml-2 flex-shrink-0">
                     {isOnTraining && (
-                      <Badge size="sm" className="bg-yellow-100 text-yellow-800 border border-yellow-300 hover:bg-yellow-100">
+                      <Badge size="sm" className="bg-warning-soft text-warning-soft-foreground border border-warning/30 hover:bg-warning-soft">
                         Kursus
                       </Badge>
                     )}
@@ -645,7 +645,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       <label className="text-sm font-medium">{t('planner.employees')}</label>
       
       {autoRemovedEmployees.length > 0 && (
-        <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded p-2">
+        <div className="text-sm text-warning bg-warning-soft border border-warning/30 rounded p-2">
           {t('employees.autoRemovedUnavailable')}: {autoRemovedEmployees.join(', ')}
         </div>
       )}

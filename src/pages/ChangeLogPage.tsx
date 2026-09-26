@@ -53,19 +53,19 @@ const ChangeLogPage: React.FC = () => {
   const getOperationIcon = (operation: string) => {
     switch (operation) {
       case 'CREATE':
-        return <FilePlus className="h-4 w-4 text-green-500" />;
+        return <FilePlus className="h-4 w-4 text-success" />;
       case 'UPDATE':
-        return <FileEdit className="h-4 w-4 text-blue-500" />;
+        return <FileEdit className="h-4 w-4 text-info" />;
       case 'DELETE':
-        return <FileX className="h-4 w-4 text-red-500" />;
+        return <FileX className="h-4 w-4 text-destructive" />;
       case 'PUBLISH':
-        return <Upload className="h-4 w-4 text-purple-500" />;
+        return <Upload className="h-4 w-4 text-primary" />;
       case 'VACATION_REQUESTED':
-        return <CalendarPlus className="h-4 w-4 text-amber-500" />;
+        return <CalendarPlus className="h-4 w-4 text-warning" />;
       case 'VACATION_APPROVED':
-        return <CalendarCheck className="h-4 w-4 text-green-500" />;
+        return <CalendarCheck className="h-4 w-4 text-success" />;
       case 'VACATION_REJECTED':
-        return <CalendarX className="h-4 w-4 text-red-500" />;
+        return <CalendarX className="h-4 w-4 text-destructive" />;
       case 'VACATION_CANCELLED':
         return <CalendarClock className="h-4 w-4 text-muted-foreground" />;
       case 'EMPLOYEE_CREATED':

@@ -705,8 +705,8 @@ const FileItem: React.FC<FileItemProps> = ({
             alt={file.file_name}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/0 hover:bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-            <ZoomIn className="h-4 w-4 text-white" />
+          <div className="absolute inset-0 bg-transparent hover:bg-foreground/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+            <ZoomIn className="h-4 w-4 text-primary-foreground" />
           </div>
         </button>
       ) : isImage && thumbnailLoading ? (

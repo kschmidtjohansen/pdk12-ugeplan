@@ -209,7 +209,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5 text-yellow-600" />
+            <GraduationCap className="h-5 w-5 text-warning" />
             Kurser for {employee?.name ?? 'medarbejder'}
           </DialogTitle>
           <DialogDescription>

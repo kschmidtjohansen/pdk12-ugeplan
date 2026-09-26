@@ -76,7 +76,7 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
                     </div>
                   </div>
                   {isOngoing && (
-                    <Badge variant="outline" className="bg-green-50 whitespace-nowrap">
+                    <Badge variant="outline" className="bg-success-soft whitespace-nowrap">
                       {calculateDaysRemaining(new Date(vacation.end_date))} {t("vacation.days")}
                     </Badge>
                   )}

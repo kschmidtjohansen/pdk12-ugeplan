@@ -64,7 +64,7 @@ export const DemoRoleSwitcher: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          className="flex items-center gap-2 border-amber-300 hover:border-amber-400 text-amber-700"
+          className="flex items-center gap-2 border-warning/30 hover:border-warning text-warning-soft-foreground"
         >
           <UserCog className="h-4 w-4" />
           {t('common.switchRole') || 'Switch Role'}: {currentRoleLabel}
@@ -78,7 +78,7 @@ export const DemoRoleSwitcher: React.FC = () => {
             onClick={() => handleRoleSwitch(roleOption.role)}
             className={`cursor-pointer p-3 ${
               currentRole === roleOption.role 
-                ? 'bg-amber-50 text-amber-900 font-medium' 
+                ? 'bg-warning-soft text-warning-soft-foreground font-medium' 
                 : 'hover:bg-accent'
             }`}
           >
