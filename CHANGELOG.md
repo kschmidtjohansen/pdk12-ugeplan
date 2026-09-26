@@ -1,4 +1,11 @@
+## 2026-09-26 — Videoguide og FAQ som downloadbare filer
+
+- Ny videoguide `Polyplan_PDK12_Videoguide.mp4` (1920×1080, 30 fps, ~45 sek.) med 7 kapitler: log ind/afdelingsvalg, ugeplanen, medarbejdere og nærhed, Min Dag, vagtplan og vagtbytte, ferie/sygemelding, PWA-installation og beskeder. Produceret med Remotion og gemt under Files.
+- Ny FAQ `Polyplan_PDK12_FAQ.txt` / `.md` med 11 afsnit, bl.a. installation på iPhone/Android, notifikationer og "Ryd offline cache", vagtbytte, vikarers udløb, roller og fejlfinding.
+- Ingen kodeændringer i appen: begge leverancer er filer, ikke nye sider eller ruter.
+
 ## 2026-09-25 — "Installer som app" vises kun på mobil og tablet
+
 
 - `src/pages/DashboardPage.tsx` og `src/pages/LoginPage.tsx`: knappen "Installer som app på telefonen" er skjult på store skærme (`lg:hidden`), da installation kun er relevant på mobil/tablet.
 - Ingen ændringer i logik eller PWA-opsætning.
