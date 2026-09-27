@@ -64,7 +64,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     () => getSeriesPosition(assignment, assignments),
     [assignment, assignments]
   );
-  const isSeries = !!seriesPosition;
 
 
   const warehouseData = warehouseIndicators 
