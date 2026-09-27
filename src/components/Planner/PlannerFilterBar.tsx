@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Users, MapPin, X, Check, SlidersHorizontal } from 'lucide-react';
+import { Users, MapPin, X, Check, SlidersHorizontal, Search } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { Employee } from '@/types/employee';
@@ -22,11 +22,14 @@ interface PlannerFilterBarProps {
   weekAssignments: Assignment[];
   weekDates: { start: Date; end: Date; startStr: string; endStr: string };
   showProximity?: boolean;
+  /** Free-text quick search across case number, title, customer and employees. */
+  query?: string;
+  onQueryChange?: (value: string) => void;
 }
 
 /**
- * Compact filter bar above the week list: multi-select employee filter and a
- * postcode lookup that ranks employees by proximity.
+ * Compact filter bar above the week list: quick search, multi-select employee
+ * filter and a postcode lookup that ranks employees by proximity.
  */
 const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   employees,
@@ -37,6 +40,8 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   weekAssignments,
   weekDates,
   showProximity = true,
+  query = '',
+  onQueryChange,
 }) => {
   const { t } = useTranslation();
   const { userSubDepartments, selectedSubDepartmentId } = useDepartment();
@@ -89,9 +94,50 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
 
   const isOpen = expanded;
 
+  // "/" focuses the quick search from anywhere on the planner page.
+  const queryInputRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    if (!onQueryChange) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement as HTMLElement | null;
+      const tag = el?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || el?.isContentEditable) return;
+      e.preventDefault();
+      queryInputRef.current?.focus();
+      queryInputRef.current?.select();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onQueryChange]);
+
   return (
     <div className="relative space-y-2">
       <div className="flex flex-wrap items-center gap-2">
+        {onQueryChange && (
+          <div className="relative w-full sm:w-72">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              ref={queryInputRef}
+              value={query}
+              onChange={(e) => onQueryChange(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Escape') onQueryChange(''); }}
+              placeholder="Søg sag, kunde, adresse eller medarbejder"
+              aria-label="Søg i ugens opgaver"
+              className="h-8 pl-9 pr-8"
+            />
+            {query.trim() && (
+              <button
+                type="button"
+                aria-label="Ryd søgning"
+                onClick={() => onQueryChange('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:bg-muted"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        )}
         <Button
           variant="outline"
           size="sm"

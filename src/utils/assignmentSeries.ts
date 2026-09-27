@@ -39,3 +39,33 @@ export const getSeriesSiblingIds = (
 
   return ids.length > 0 ? ids : [assignment.id];
 };
+
+/**
+ * Returns the position of an assignment within its multi-day series,
+ * e.g. { index: 2, total: 5 } for "Dag 2 af 5". Returns null for one-off jobs.
+ */
+export const getSeriesPosition = (
+  assignment: Pick<Assignment, 'id' | 'groupId' | 'case_number' | 'title' | 'date'> | null | undefined,
+  allAssignments: Assignment[] | null | undefined
+): { index: number; total: number } | null => {
+  if (!assignment?.id || !allAssignments || allAssignments.length === 0) return null;
+
+  const siblingIds = new Set(getSeriesSiblingIds(assignment, allAssignments));
+  if (siblingIds.size <= 1) return null;
+
+  const dates = Array.from(
+    new Set(
+      allAssignments
+        .filter(a => siblingIds.has(a.id) && typeof a.date === 'string' && a.date)
+        .map(a => (a.date.includes('T') ? a.date.split('T')[0] : a.date))
+    )
+  ).sort();
+
+  if (dates.length <= 1) return null;
+
+  const own = assignment.date?.includes('T') ? assignment.date.split('T')[0] : assignment.date;
+  const index = own ? dates.indexOf(own) + 1 : 0;
+  if (index <= 0) return null;
+
+  return { index, total: dates.length };
+};

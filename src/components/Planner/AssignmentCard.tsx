@@ -8,7 +8,7 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
 import { useTranslation } from '@/context/TranslationContext';
-import { Package, Pencil, Copy, Trash2, Send } from 'lucide-react';
+import { Package, Pencil, Copy, Trash2, Send, CalendarArrowDown, CalendarArrowUp, Layers } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -16,6 +16,9 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import ConflictBadge from './ConflictBadge';
 import CaseNumber from '@/components/shared/CaseNumber';
+import AssignmentTimeStrip from './AssignmentTimeStrip';
+import { getSeriesPosition } from '@/utils/assignmentSeries';
+import { usePlannerActions } from '@/context/PlannerActionsContext';
 import { cn } from '@/lib/utils';
 
 interface AssignmentCardProps {
@@ -55,6 +58,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const { getConflicts } = useAssignmentConflicts(assignments);
   const conflicts = getConflicts(assignment.id);
   const hasConflict = conflicts.length > 0;
+
+  const plannerActions = usePlannerActions();
+  const seriesPosition = React.useMemo(
+    () => getSeriesPosition(assignment, assignments),
+    [assignment, assignments]
+  );
+  const isSeries = !!seriesPosition;
+
 
   const warehouseData = warehouseIndicators 
     ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
@@ -146,7 +157,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       <ContextMenuTrigger asChild>
         <Card
           className={cn(
-            'group relative flex h-full w-full flex-col p-3 brand-card-hover bg-card border-border/60 shadow-xs',
+            'group relative flex h-full w-full flex-col p-3 brand-card-hover bg-card border-border/60 shadow-xs overflow-hidden',
             hasConflict && 'border-destructive/40',
 
             isLoading && 'opacity-75',
@@ -155,6 +166,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           )}
           onClick={handleCardClick}
         >
+          {isSeries && (
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 h-full w-1 bg-primary/40"
+            />
+          )}
           {canEdit && onToggleSelect && (
             <div
               data-select-checkbox
@@ -187,6 +204,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                 employees={employees}
                 cars={cars}
               />
+            )}
+            {seriesPosition && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary shrink-0">
+                <Layers className="h-3 w-3" />
+                Dag {seriesPosition.index} af {seriesPosition.total}
+              </span>
             )}
             {operationState && (
               <span className="text-xs text-primary font-medium animate-pulse">
@@ -225,6 +248,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         <p className="text-muted-foreground mt-2 text-xs line-clamp-2">{assignment.description}</p>
       )}
 
+      <AssignmentTimeStrip
+        fromTime={assignment.fromTime}
+        toTime={assignment.toTime}
+        className="mt-2.5"
+      />
+
       <div className="mt-auto pt-2 flex items-end justify-between gap-2">
         <div className="min-w-0 flex-1">
           <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
@@ -260,6 +289,19 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             <Copy className="h-4 w-4" />
             {t('planner.contextMenu.duplicate')}
           </ContextMenuItem>
+        )}
+        {canEdit && plannerActions && (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuItem onClick={() => plannerActions.quickMove(assignment, 1)} className="gap-2">
+              <CalendarArrowDown className="h-4 w-4" />
+              Skub 1 dag frem
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => plannerActions.quickMove(assignment, -1)} className="gap-2">
+              <CalendarArrowUp className="h-4 w-4" />
+              Træk 1 dag tilbage
+            </ContextMenuItem>
+          </>
         )}
         {!assignment.published && onPublish && canEdit && (
           <ContextMenuItem onClick={() => handlePublishClick(assignment.id)} className="gap-2">

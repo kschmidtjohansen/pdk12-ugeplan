@@ -1,3 +1,10 @@
+## 2026-09-27 — Ugeplanen: tidsstribe, serier, hurtig-flyt og lyn-søgning
+- Ny `AssignmentTimeStrip` (07:00–17:00) på alle opgavekort i ugeplanen: den bookede tid farves, så huller i dagen ses uden at læse klokkeslæt. Tider uden for vinduet klippes visuelt.
+- Serier: ny `getSeriesPosition` i `utils/assignmentSeries.ts`. Flerdagesforløb får badge "Dag X af Y" og en diskret serie-streg i kortets venstre kant.
+- Hurtig-flyt: ny `PlannerActionsContext` med `quickMove`. Højrekliksmenuen på opgavekortet har nu "Skub 1 dag frem" og "Træk 1 dag tilbage" med fortryd-toast (6 s, sonner) — ingen redigeringsdialog nødvendig.
+- Lyn-søgning i `PlannerFilterBar`: altid synligt søgefelt med `/` som genvej og Esc for at rydde. Filtrerer ugens opgaver på sagsnummer, titel, adresse, by, postnummer, beskrivelse og medarbejdernavn.
+- Ny `DayQuickNav`: slank dagstribe over ugelisten med antal opgaver og kladde-prik pr. dag. Klik folder kun den dag ud og scroller til den (`data-day-section` + `scroll-mt-20` på DaySection).
+
 ## 2026-09-27 — Dagens citat fremhævet
 - Ny delt komponent `src/components/Dashboard/DailyQuoteCard.tsx`: fremhævet citatkort med accentkant, citat-ikon, "Dagens citat"-label og større, læsbar tekst (kun semantiske tokens).
 - Bruges i `WelcomeHeader` (servicemedarbejdere, fuld størrelse) og `CommandBar` (ledere, kompakt variant på egen linje).

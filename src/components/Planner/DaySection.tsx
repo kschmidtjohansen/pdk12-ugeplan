@@ -106,11 +106,14 @@ const DaySection: React.FC<DaySectionProps> = ({
   };
 
   return (
-    <div className={cn(
-      "w-full bg-card rounded-xl border border-border/60 p-4 space-y-3",
-      isWeekend && "bg-muted/40",
-      isToday && "border-primary/40 ring-1 ring-primary/20"
-    )}>
+    <div
+      data-day-section={dateKey}
+      className={cn(
+        "w-full scroll-mt-20 bg-card rounded-xl border border-border/60 p-4 space-y-3",
+        isWeekend && "bg-muted/40",
+        isToday && "border-primary/40 ring-1 ring-primary/20"
+      )}
+    >
       <div className="flex items-center justify-between gap-2">
         <div 
           className="flex items-center min-w-0 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors duration-200" 

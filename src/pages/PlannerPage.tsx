@@ -23,6 +23,9 @@ import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import SubDepartmentQuickSwitcher from '@/components/shared/SubDepartmentQuickSwitcher';
 import PlannerFilterBar from '@/components/Planner/PlannerFilterBar';
+import DayQuickNav from '@/components/Planner/DayQuickNav';
+import { PlannerActionsProvider } from '@/context/PlannerActionsContext';
+import { toast as sonnerToast } from 'sonner';
 
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
@@ -69,6 +72,9 @@ const PlannerPage: React.FC = () => {
   // Planner filters: employee multi-select + postcode proximity lookup
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
   const [filterPostcode, setFilterPostcode] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  
   
   
   // Use optimized assignments hook for unified data management
@@ -448,24 +454,94 @@ const PlannerPage: React.FC = () => {
     });
   }, [assignments, vacations, createAssignment, toast, currentLanguage]);
 
+  // Quick search index: employee id -> lowercase name (built once per employee list)
+  const employeeNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    (employees || []).forEach(e => map.set(e.id, (e.name || '').toLowerCase()));
+    return map;
+  }, [employees]);
+
   const sortedWeekAssignments = useMemo(() => {
     if (!weekAssignments) return [];
     // Employee filter: only keep assignments where at least one selected employee is assigned
-    const base = selectedEmployeeIds.length > 0
+    let base = selectedEmployeeIds.length > 0
       ? weekAssignments.filter(a => (a.employees || []).some(id => selectedEmployeeIds.includes(id)))
       : weekAssignments;
+
+    // Quick search across case number, title, address, city, description and employee names
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      base = base.filter(a => {
+        if ((a.case_number || '').toLowerCase().includes(q)) return true;
+        if ((a.title || '').toLowerCase().includes(q)) return true;
+        if ((a.location || '').toLowerCase().includes(q)) return true;
+        if ((a.city || '').toLowerCase().includes(q)) return true;
+        if ((a.zip_code || '').toLowerCase().includes(q)) return true;
+        if ((a.description || '').toLowerCase().includes(q)) return true;
+        return (a.employees || []).some(id => (employeeNameById.get(id) || '').includes(q));
+      });
+    }
+
     return [...base].sort((a, b) => {
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
       return a.fromTime.localeCompare(b.fromTime);
     });
-  }, [weekAssignments, selectedEmployeeIds]);
+  }, [weekAssignments, selectedEmployeeIds, searchQuery, employeeNameById]);
+
+  // Focus a single day from the day strip: expand only that day and scroll to it
+  const handleFocusDay = useCallback((date: string) => {
+    setAllExpanded(false);
+    setExpandedDays({ [date]: true });
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`[data-day-section="${date}"]`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, []);
+
+  const focusedDate = useMemo(() => {
+    const active = Object.entries(expandedDays).filter(([, v]) => v).map(([k]) => k);
+    return active.length === 1 ? active[0] : null;
+  }, [expandedDays]);
 
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
     await publishAssignmentsByDate(date);
   }, [publishAssignmentsByDate]);
+
+  // Quick move: shift a single assignment N days with an undo toast
+  const handleQuickMove = useCallback(async (assignment: Assignment, days: number) => {
+    const base = assignment.date?.includes('T') ? assignment.date.split('T')[0] : assignment.date;
+    if (!base) return;
+    const target = new Date(`${base}T00:00:00`);
+    target.setDate(target.getDate() + days);
+    const newDate = format(target, 'yyyy-MM-dd');
+
+    try {
+      await updateAssignment(assignment.id, { date: newDate });
+      sonnerToast.success(
+        `Flyttet til ${target.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'short' })}`,
+        {
+          duration: 6000,
+          action: {
+            label: 'Fortryd',
+            onClick: () => {
+              updateAssignment(assignment.id, { date: base }).catch(() => {
+                sonnerToast.error('Kunne ikke fortryde flytningen');
+              });
+            },
+          },
+        }
+      );
+    } catch (err) {
+      sonnerToast.error('Kunne ikke flytte opgaven');
+      if (import.meta.env.DEV) console.error('[PlannerPage] Quick move failed:', err);
+    }
+  }, [updateAssignment]);
+
+  const plannerActions = useMemo(() => ({ quickMove: handleQuickMove }), [handleQuickMove]);
+
 
   // ---- Bulk actions ----
   const handleBulkAssignCar = useCallback(async (carId: string) => {
@@ -753,7 +829,7 @@ const PlannerPage: React.FC = () => {
         {/* Quick sub-department switch, so users don't have to go via the dashboard */}
         <SubDepartmentQuickSwitcher />
 
-        {/* Filters: employee multi-select + postcode proximity lookup */}
+        {/* Filters: quick search + employee multi-select + postcode proximity lookup */}
         <PlannerFilterBar
           employees={employees}
           selectedEmployeeIds={selectedEmployeeIds}
@@ -763,6 +839,16 @@ const PlannerPage: React.FC = () => {
           weekAssignments={weekAssignments}
           weekDates={weekDates}
           showProximity={canCreate || canPublishTasks}
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+        />
+
+        {/* Day strip: overview of the week, click to focus a single day */}
+        <DayQuickNav
+          days={getAllWeekDays(weekDates)}
+          weekAssignments={sortedWeekAssignments}
+          activeDate={focusedDate}
+          onSelectDay={handleFocusDay}
         />
 
         {/* Main Content — skeleton reserves the same vertical space as the week list */}
@@ -771,29 +857,31 @@ const PlannerPage: React.FC = () => {
             <ListSkeleton rowCount={5} rowHeight={168} variant="card" className="p-0 sm:p-0" />
           </div>
         ) : (
-          <PlannerContent 
-            weekAssignments={sortedWeekAssignments} 
-            allAssignments={assignments}
-            operationStates={convertedOperationStates}
-            expandedDays={expandedDays}
-            onToggleExpansion={handleToggleExpansion}
-            onEditAssignment={handleOpenEditDialog} 
-            onDeleteAssignment={handleDeleteAssignment} 
-            onPublishAssignment={handlePublishAssignment} 
-            onPublishDay={handlePublishDay} 
-            onCreateAssignment={handleOpenCreateDialog} 
-            onCopyAssignment={handleCopyAssignment} 
-            onCopyDayFromYesterday={handleCopyDayFromYesterday}
-            selectedWeek={selectedWeek} 
-            selectedYear={selectedYear} 
-            weekDates={weekDates}
-            viewMode={viewMode}
-            selectedIds={selectedIds}
-            selectionActive={selectedIds.size > 0}
-            onToggleSelect={handleToggleSelect}
-            allExpanded={allExpanded}
-            onToggleAllExpanded={handleToggleAllExpanded}
-          />
+          <PlannerActionsProvider value={plannerActions}>
+            <PlannerContent 
+              weekAssignments={sortedWeekAssignments} 
+              allAssignments={assignments}
+              operationStates={convertedOperationStates}
+              expandedDays={expandedDays}
+              onToggleExpansion={handleToggleExpansion}
+              onEditAssignment={handleOpenEditDialog} 
+              onDeleteAssignment={handleDeleteAssignment} 
+              onPublishAssignment={handlePublishAssignment} 
+              onPublishDay={handlePublishDay} 
+              onCreateAssignment={handleOpenCreateDialog} 
+              onCopyAssignment={handleCopyAssignment} 
+              onCopyDayFromYesterday={handleCopyDayFromYesterday}
+              selectedWeek={selectedWeek} 
+              selectedYear={selectedYear} 
+              weekDates={weekDates}
+              viewMode={viewMode}
+              selectedIds={selectedIds}
+              selectionActive={selectedIds.size > 0}
+              onToggleSelect={handleToggleSelect}
+              allExpanded={allExpanded}
+              onToggleAllExpanded={handleToggleAllExpanded}
+            />
+          </PlannerActionsProvider>
         )}
 
 
