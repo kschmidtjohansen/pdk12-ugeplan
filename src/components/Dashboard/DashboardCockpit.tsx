@@ -4,6 +4,9 @@ import QuickAccessGrid from './QuickAccessGrid';
 import CompactKpiStack from './CompactKpiStack';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import TodayTimeline from './TodayTimeline';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WeeklyAssignments from './WeeklyAssignments';
 import ListSkeleton from '@/components/shared/ListSkeleton';
@@ -34,6 +37,8 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   const { vacations } = useVacations();
   const { assignments, loading: assignmentsLoading } = useAssignments();
   const [tab, setTab] = useState<string>(() => localStorage.getItem('dashboardTab') || 'today');
+  const isMobile = useIsMobile();
+  const [moreOpen, setMoreOpen] = useState(false);
   const changeTab = (v: string) => { setTab(v); localStorage.setItem('dashboardTab', v); };
 
   // Filter assignments for the selected ISO week
@@ -82,12 +87,12 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {/* LEFT — main work surface (2/3) */}
       <div className="lg:col-span-2 min-w-0">
         <Tabs value={tab} onValueChange={changeTab}>
-          <TabsList className="mb-3 h-10 rounded-lg border border-border/60 bg-card/70 p-1 backdrop-blur">
-            <TabsTrigger value="today" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">I dag</TabsTrigger>
-            <TabsTrigger value="week" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Ugens overblik</TabsTrigger>
+          <TabsList className="sticky top-14 z-10 mb-3 grid h-11 w-full grid-cols-2 rounded-lg border border-border/60 bg-card/90 p-1 backdrop-blur sm:static sm:inline-flex sm:h-10 sm:w-auto">
+            <TabsTrigger value="today" className="h-9 px-4 sm:h-8 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">I dag</TabsTrigger>
+            <TabsTrigger value="week" className="h-9 px-4 sm:h-8 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Ugens overblik</TabsTrigger>
           </TabsList>
-          <TabsContent value="today" className="mt-0 rounded-xl border border-border/60 bg-card/70 p-4 backdrop-blur">
-            <TodayTimeline />
+          <TabsContent value="today" className="mt-0 rounded-xl border border-border/60 bg-card/70 p-3 backdrop-blur sm:p-4">
+            <TodayTimeline active={tab === 'today'} />
           </TabsContent>
           <TabsContent value="week" className="mt-0">
             {assignmentsLoading && personalWeekAssignments.length === 0 ? (
@@ -106,11 +111,25 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       </div>
 
       {/* RIGHT — sticky cockpit panel (1/3) */}
+      {isMobile ? (
+        <Collapsible open={moreOpen} onOpenChange={setMoreOpen}>
+          <CollapsibleTrigger className="flex h-11 w-full items-center justify-between rounded-xl border border-border/60 bg-card/70 px-4 text-sm font-medium text-foreground">
+            Mere: nøgletal, ferier og genveje
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-3 space-y-4">
+        {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
+        <UpcomingVacationsWidget vacations={vacations} />
+        <QuickAccessGrid userRole={userRole} />
+          </CollapsibleContent>
+        </Collapsible>
+      ) : (
       <aside className="space-y-4 lg:sticky lg:top-14 lg:self-start">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
         <UpcomingVacationsWidget vacations={vacations} />
         <QuickAccessGrid userRole={userRole} />
       </aside>
+      )}
     </div>
   );
 };
