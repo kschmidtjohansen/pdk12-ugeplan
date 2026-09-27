@@ -42,14 +42,6 @@ export const EmployeeAvailabilityDialog: React.FC<EmployeeAvailabilityDialogProp
     vacations
   });
 
-  if (import.meta.env.DEV) {
-    console.log(`[EmployeeAvailabilityDialog] === DIALOG DEBUG INFO ===`);
-    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Dialog title: ${title}`);
-    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Initial selected date: ${selectedDate}`);
-    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Currently viewed date: ${viewedDate}`);
-    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Date changed: ${viewedDate !== selectedDate}`);
-    if (import.meta.env.DEV) console.log(`[EmployeeAvailabilityDialog] Initial employees passed: ${initialEmployees.length}`);
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

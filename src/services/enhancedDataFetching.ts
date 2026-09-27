@@ -312,7 +312,8 @@ export class EnhancedDataFetching {
             id: profile.id,
             name: profile.name,
             email: profile.email,
-            status: profile.status
+            status: profile.status,
+            phone: profile.phone
           }));
         
         return { data: filtered, error: null };
@@ -322,7 +323,7 @@ export class EnhancedDataFetching {
         
         const { data, error } = await client
           .from('profiles')
-          .select('id, name, email, status')
+          .select('id, name, email, status, phone')
           .eq('is_demo', false)
           .in('id', userIds);
 

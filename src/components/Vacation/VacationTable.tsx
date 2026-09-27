@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/table';
 import { EnhancedVacationCard } from './EnhancedVacationCard';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import EmployeeContactActions from '@/components/Shared/EmployeeContactActions';
 
 interface VacationTableProps {
   vacations: Vacation[];
@@ -139,7 +140,10 @@ const VacationTable: React.FC<VacationTableProps> = ({
           {vacations.map((vacation) => (
             <TableRow key={vacation.id}>
               <TableCell className="font-medium">
-                {vacation.user?.name || 'Unknown Employee'}
+                <span className="flex items-center gap-1">
+                  <span className="truncate">{vacation.user?.name || 'Unknown Employee'}</span>
+                  <EmployeeContactActions phone={vacation.user?.phone} name={vacation.user?.name} size="sm" />
+                </span>
               </TableCell>
               <TableCell>
                 {formatDateRange(new Date(vacation.start_date), new Date(vacation.end_date))}

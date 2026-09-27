@@ -16,6 +16,7 @@ import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { buildFirstNameResolver } from '@/utils/people';
+import EmployeeContactActions from '@/components/Shared/EmployeeContactActions';
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
@@ -417,6 +418,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                               {emp.availabilityInfo?.text && (
                                 <p className="text-xs text-muted-foreground">{emp.availabilityInfo.text}</p>
                               )}
+                              <EmployeeContactActions phone={emp.phone} name={emp.name} size="sm" className="mt-1" />
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -458,6 +460,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                               {emp.availabilityInfo?.text && (
                                 <p className="text-xs text-muted-foreground">{emp.availabilityInfo.text}</p>
                               )}
+                              <EmployeeContactActions phone={emp.phone} name={emp.name} size="sm" className="mt-1" />
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -502,6 +505,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                               {emp.availabilityInfo?.text && (
                                 <p className="text-xs text-muted-foreground">{emp.availabilityInfo.text}</p>
                               )}
+                              <EmployeeContactActions phone={emp.phone} name={emp.name} size="sm" className="mt-1" />
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -573,6 +577,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                             <p className="text-xs text-muted-foreground">
                               {employee.availabilityInfo?.text || t('employees.lockedReasonAbsent')}
                             </p>
+                            <EmployeeContactActions phone={employee.phone} name={employee.name} size="sm" className="mt-1" />
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -609,6 +614,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                                 {info?.title || 'Kursus'}
                                 {info?.end_date && ` · til ${format(parseISO(info.end_date), 'dd/MM/yyyy')}`}
                               </p>
+                              <EmployeeContactActions phone={employee.phone} name={employee.name} size="sm" className="mt-1" />
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
