@@ -5,6 +5,11 @@
 - FAQ'ens afsnit 9 omskrevet til rollekort med "Det vigtigste for dig" og "Det kan du ikke" pr. rolle; tjeklisten for første uge henviser til afsnittet.
 - Webadressen i både video og FAQ er ændret fra pdk12.dk til polyplan.dk.
 
+## 2026-09-27 — Nærmeste lige nu, vikar-advarsel og tilbagetræk af byttetilbud
+- Opgaveformular: boks "Nærmeste lige nu" over medarbejdervælgeren med de 2 nærmeste ledige (fra dagens seneste opgave, ellers hjem) og én-klik "Tilføj".
+- Vikarer der udløber inden for 3 dage får gult mærke i medarbejderlisten og vælgeren; ledere ser kort på forsiden med link til at forlænge.
+- Træk byttetilbud tilbage kræver bekræftelse; venlig besked hvis vagten allerede er taget; kandidater får notifikation/push via notify_duty_swap_status().
+
 ## 2026-09-27 — Lettere app: PDF, cache og oprydning
 - pdf-lib må kun dynamisk importeres (ESLint no-restricted-imports).
 - Medarbejder-, vagtmedarbejder- og bildata: staleTime 15 min / gcTime 30 min; bilutilgængelighed 10 min. Opgaver/vagter uændret (Realtime).
