@@ -5,10 +5,8 @@ import { CloudRain, Wind, Users, Car as CarIcon } from 'lucide-react';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
-
-// Thresholds (forecast-based, DMI HARMONIE via Open-Meteo)
-const RAIN_6H_MM = 15;
-const GUST_MS = 20;
+import { useDepartment } from '@/context/DepartmentContext';
+import { useWeatherAlertSettings, usePostalCodeCoordinates } from '@/hooks/useWeatherAlertSettings';
 
 interface HourPoint { time: string; rain: number; gust: number }
 
