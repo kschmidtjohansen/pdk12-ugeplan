@@ -1981,3 +1981,5 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 ## 2026-09-27 — Kældertilstand + smartere live-opdatering
 - Min dag gemmer dagens opgaver lokalt og viser dem offline med diskret "Offline (kældertilstand)"-mærke; genindlæser automatisk ved genforbindelse.
 - Ugeplan: sletninger/flytninger opdateres straks i hukommelsen; adaptiv samling af mange ændringer (maks 2,5 s) før fuld synk.
+
+- Ugeplan: tidsstriben på opgavekort er fjernet efter ønske — kortene er nu renere og mere kompakte.
