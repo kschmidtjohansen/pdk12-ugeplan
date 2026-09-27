@@ -29,11 +29,6 @@ const LoginPage = () => {
 
   const isDanish = currentLanguage === 'da';
 
-  const features = [
-    { icon: CalendarDays, label: isDanish ? 'Ugeplan' : 'Weekly planner' },
-    { icon: Users, label: isDanish ? 'Vagter & ferie' : 'Duty & vacation' },
-    { icon: Shield, label: isDanish ? 'Adgang pr. afdeling' : 'Access per department' },
-  ];
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background flex items-center justify-center">
