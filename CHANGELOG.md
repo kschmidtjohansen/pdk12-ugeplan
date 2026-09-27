@@ -1,3 +1,9 @@
+## 2026-09-27 — Oprydning: ubrugt kode fjernet
+- Slettet 15 filer uden referencer i projektet: `Planner/AssignmentTimeStrip`, `Planner/DutyWeekWidget`, `Planner/FilterChips`, `Planner/PlannerSearchFilter`, `Dashboard/QuickAccessGrid`, `Dashboard/ExpiringTempsCard`, `Dashboard/VacationNotificationsPanel`, `Layout/NavComponents/NotificationActions`, `NotificationsDropdown`, `NotificationsList`, `Admin/VacationCalendarOverview`, `shared/LoadingSpinner`, `hooks/data/useUnifiedData`, `utils/dbHelpers`, `utils/roles`.
+- Fjernet ubrugte afhængigheder: `zod` og `@hookform/resolvers`.
+- Bevaret bevidst: `public/sw.js` + `public/push-sw.js` (registreres ved kørsel), alle `supabase/functions/*` (kaldes over HTTP/cron) og shadcn-UI-primitiver.
+- Verificeret: typecheck ren og build OK efter oprydningen.
+
 ## 2026-09-27 — Ugeplan: dagstribe (DayQuickNav) fjernet
 - `DayQuickNav` er fjernet fra `PlannerPage` og slettet som komponent (inkl. `handleFocusDay`/`focusedDate`, som kun den brugte). Ugelisten og øvrige funktioner er uændrede.
 
