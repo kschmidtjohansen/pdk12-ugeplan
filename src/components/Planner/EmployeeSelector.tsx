@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, MapPin, Search } from 'lucide-react';
+import { Users, MapPin, Search, Navigation, Plus } from 'lucide-react';
 
 import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus, isTemporaryExpiredOn } from '@/utils/employeeAvailability';
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
