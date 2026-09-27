@@ -58,65 +58,53 @@ const TodayGuardsWidget: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="brand-card-header flex flex-row items-center justify-between">
+      <CardHeader className="brand-card-header flex flex-row items-center justify-between py-2">
         <CardTitle className="text-sm font-semibold brand-dot">Vagter i dag</CardTitle>
         <Shield className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-1 py-2">
         {todayDuties.length === 0 ? (
-          <p className="py-2 text-sm text-muted-foreground">Ingen vagter i dag.</p>
+          <p className="py-1 text-xs text-muted-foreground">Ingen vagter i dag.</p>
         ) : (
-          <div className="space-y-2">
-            {todayDuties.map(d => (
-              <div key={d.id} className="rounded-lg border border-border/60 bg-muted/30 p-3">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{d.type}</p>
-                <p className="truncate text-sm font-semibold text-foreground">{d.name}</p>
-                {d.phone && (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <Button variant="outline" className="h-11" asChild>
-                      <a href={`tel:${telHref(d.phone)}`}>
-                        <Phone className="mr-1.5 h-4 w-4" />Ring
-                      </a>
-                    </Button>
-                    <Button variant="outline" className="h-11" asChild>
-                      <a href={`sms:${telHref(d.phone)}`}>
-                        <MessageSquare className="mr-1.5 h-4 w-4" />SMS
-                      </a>
-                    </Button>
-                  </div>
-                )}
+          todayDuties.map(d => (
+            <div key={d.id} className="flex items-center justify-between gap-2 py-0.5">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium leading-tight text-foreground">{d.name}</p>
+                <p className="truncate text-[11px] leading-tight text-muted-foreground">{d.type}</p>
               </div>
-            ))}
-          </div>
+              {d.phone && (
+                <div className="flex shrink-0 items-center">
+                  <Button size="icon" variant="ghost" className="h-8 w-8" asChild aria-label="Ring">
+                    <a href={`tel:${telHref(d.phone)}`}><Phone className="h-3.5 w-3.5" /></a>
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8" asChild aria-label="SMS">
+                    <a href={`sms:${telHref(d.phone)}`}><MessageSquare className="h-3.5 w-3.5" /></a>
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))
         )}
 
         <Collapsible open={open} onOpenChange={setOpen}>
-          <button
-            type="button"
-            onClick={() => setOpen(!open)}
-            className="flex h-11 w-full items-center justify-between rounded-lg border border-border/60 px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            {open ? 'Skjul ugen' : 'Vis hele ugen'}
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
-          </button>
-          <CollapsibleContent className="mt-2 space-y-2">
+          <CollapsibleContent className="space-y-1 border-t border-border/40 pt-1">
             {restOfWeek.length === 0 ? (
-              <p className="py-2 text-sm text-muted-foreground">Ingen flere vagter denne uge.</p>
+              <p className="py-1 text-xs text-muted-foreground">Ingen flere vagter denne uge.</p>
             ) : (
               restOfWeek.map(group => (
-                <div key={group.date} className="rounded-lg border border-border/40 p-2.5">
-                  <p className="mb-1 text-[11px] font-medium capitalize text-muted-foreground">
-                    {format(new Date(group.date + 'T00:00:00'), 'EEEE d/M', { locale: da })}
+                <div key={group.date}>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {format(new Date(group.date + 'T00:00:00'), 'EEE d/M', { locale: da })}
                   </p>
                   {group.items.map(i => (
-                    <div key={i.id} className="flex min-h-[36px] items-center justify-between gap-2">
-                      <div className="min-w-0 text-sm">
+                    <div key={i.id} className="flex items-center justify-between gap-2">
+                      <p className="min-w-0 truncate text-xs">
                         <span className="font-medium text-foreground">{i.name}</span>
                         <span className="text-muted-foreground"> · {i.type}</span>
-                      </div>
+                      </p>
                       {i.phone && (
-                        <Button size="icon" variant="ghost" className="h-9 w-9 shrink-0" asChild aria-label="Ring">
-                          <a href={`tel:${telHref(i.phone)}`}><Phone className="h-4 w-4" /></a>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" asChild aria-label="Ring">
+                          <a href={`tel:${telHref(i.phone)}`}><Phone className="h-3.5 w-3.5" /></a>
                         </Button>
                       )}
                     </div>
@@ -127,9 +115,23 @@ const TodayGuardsWidget: React.FC = () => {
           </CollapsibleContent>
         </Collapsible>
 
-        <Button variant="ghost" className="h-11 w-full" onClick={() => navigate('/duty')}>
-          Åbn vagtplan
-        </Button>
+        <div className="flex items-center justify-between border-t border-border/40 pt-1">
+          <button
+            type="button"
+            onClick={() => setOpen(!open)}
+            className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {open ? 'Skjul ugen' : 'Vis hele ugen'}
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/duty')}
+            className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Åbn vagtplan
+          </button>
+        </div>
       </CardContent>
     </Card>
   );
