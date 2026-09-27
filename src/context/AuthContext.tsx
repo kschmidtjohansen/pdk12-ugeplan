@@ -924,7 +924,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setDemoRole: handleSetDemoRole,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <BiometricRetryDialog
+        open={!!biometricPrompt}
+        busy={biometricBusy}
+        reason={biometricPrompt?.reason}
+        onRetry={retryBiometric}
+        onContinue={() => setBiometricPrompt(null)}
+      />
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);
