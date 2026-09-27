@@ -1,3 +1,8 @@
+## 2026-09-27 — Vejrvarsel pr. afdeling og redigerbar SMS
+- Administration → Funktioner: ny sektion "Vejrvarsel (beredskab)" med til/fra, postnumre for dækningsområdet (DAWA-opslag) samt egne grænser for regn (mm/6 t) og vindstød (m/s). Gemmes i department_settings som weather_alert.
+- Beredskabsbjælken bruger nu afdelingens postnumre og grænser; er funktionen slået fra, vises bjælken ikke. Uden postnumre bruges opgavernes placering som før.
+- "SMS: På vej" åbner nu et vindue (ark på mobil) med hurtigvalg for ankomsttid (10-60 min eller eget antal), visning af forventet klokkeslæt og redigerbar forhåndsvisning, før telefonens besked-app åbnes. Sidste valg huskes på enheden.
+
 ## 2026-09-27 — Mission Control-forside
 - Ny Command Bar for ledere: hilsen, søgefelt (sag, adresse, kollega, bil; genvej /) og status-piller for vagt (med Ring), ledige medarbejdere, ledige biler og vikarer der udløber.
 - Faner "I dag" / "Ugens overblik"; "I dag" vises som tidslinje med pulserende markering af sagen i gang og en Nu-markør.
