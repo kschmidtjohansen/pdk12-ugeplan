@@ -829,7 +829,7 @@ const PlannerPage: React.FC = () => {
         {/* Quick sub-department switch, so users don't have to go via the dashboard */}
         <SubDepartmentQuickSwitcher />
 
-        {/* Filters: employee multi-select + postcode proximity lookup */}
+        {/* Filters: quick search + employee multi-select + postcode proximity lookup */}
         <PlannerFilterBar
           employees={employees}
           selectedEmployeeIds={selectedEmployeeIds}
@@ -839,6 +839,16 @@ const PlannerPage: React.FC = () => {
           weekAssignments={weekAssignments}
           weekDates={weekDates}
           showProximity={canCreate || canPublishTasks}
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+        />
+
+        {/* Day strip: overview of the week, click to focus a single day */}
+        <DayQuickNav
+          days={getAllWeekDays(weekDates)}
+          weekAssignments={sortedWeekAssignments}
+          activeDate={focusedDate}
+          onSelectDay={handleFocusDay}
         />
 
         {/* Main Content — skeleton reserves the same vertical space as the week list */}
@@ -847,29 +857,31 @@ const PlannerPage: React.FC = () => {
             <ListSkeleton rowCount={5} rowHeight={168} variant="card" className="p-0 sm:p-0" />
           </div>
         ) : (
-          <PlannerContent 
-            weekAssignments={sortedWeekAssignments} 
-            allAssignments={assignments}
-            operationStates={convertedOperationStates}
-            expandedDays={expandedDays}
-            onToggleExpansion={handleToggleExpansion}
-            onEditAssignment={handleOpenEditDialog} 
-            onDeleteAssignment={handleDeleteAssignment} 
-            onPublishAssignment={handlePublishAssignment} 
-            onPublishDay={handlePublishDay} 
-            onCreateAssignment={handleOpenCreateDialog} 
-            onCopyAssignment={handleCopyAssignment} 
-            onCopyDayFromYesterday={handleCopyDayFromYesterday}
-            selectedWeek={selectedWeek} 
-            selectedYear={selectedYear} 
-            weekDates={weekDates}
-            viewMode={viewMode}
-            selectedIds={selectedIds}
-            selectionActive={selectedIds.size > 0}
-            onToggleSelect={handleToggleSelect}
-            allExpanded={allExpanded}
-            onToggleAllExpanded={handleToggleAllExpanded}
-          />
+          <PlannerActionsProvider value={plannerActions}>
+            <PlannerContent 
+              weekAssignments={sortedWeekAssignments} 
+              allAssignments={assignments}
+              operationStates={convertedOperationStates}
+              expandedDays={expandedDays}
+              onToggleExpansion={handleToggleExpansion}
+              onEditAssignment={handleOpenEditDialog} 
+              onDeleteAssignment={handleDeleteAssignment} 
+              onPublishAssignment={handlePublishAssignment} 
+              onPublishDay={handlePublishDay} 
+              onCreateAssignment={handleOpenCreateDialog} 
+              onCopyAssignment={handleCopyAssignment} 
+              onCopyDayFromYesterday={handleCopyDayFromYesterday}
+              selectedWeek={selectedWeek} 
+              selectedYear={selectedYear} 
+              weekDates={weekDates}
+              viewMode={viewMode}
+              selectedIds={selectedIds}
+              selectionActive={selectedIds.size > 0}
+              onToggleSelect={handleToggleSelect}
+              allExpanded={allExpanded}
+              onToggleAllExpanded={handleToggleAllExpanded}
+            />
+          </PlannerActionsProvider>
         )}
 
 
