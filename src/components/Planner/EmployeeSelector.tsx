@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, MapPin, Search } from 'lucide-react';
+import { Users, MapPin, Search, Navigation, Plus } from 'lucide-react';
 
 import { getEmployeeAvailabilityStatus, getEmployeeVacationStatus, isTemporaryExpiredOn } from '@/utils/employeeAvailability';
 import { shouldRemoveEmployeeFromAssignment } from '@/utils/employeeAssignmentUtils';
@@ -21,6 +21,8 @@ import { haversineDistanceKm } from '@/utils/haversine';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getRoleBadgeClass } from '@/utils/roleColors';
 import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
+import TempExpiryBadge from '@/components/Employees/TempExpiryBadge';
+import { selectLastAssignment } from '@/utils/proximityRanking';
 import { useSickForDateValue } from '@/hooks/useSickDays';
 
 type MultiDateAvailability = 'full' | 'partial' | 'none';
@@ -228,6 +230,26 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
     }
   }, [employees, vacations, currentDate, selectedEmployees, onToggle]);
   
+  // "Nærmeste lige nu": afstand fra dagens seneste opgave, ellers hjemmeadresse.
+  const nearestNow = useMemo(() => {
+    if (caseLat == null || caseLng == null) return [];
+    const dayStr = (() => { const d = dateForComparison; return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
+    const dayAssignments = assignments.filter(a => a.date === dayStr && a.lat != null && a.lng != null);
+    const rows: { emp: Employee; km: number; from: string }[] = [];
+    for (const emp of employees) {
+      if (!emp?.id || selectedEmployees.includes(emp.id) || disabledIdSet.has(emp.id)) continue;
+      const mine = dayAssignments.filter(a =>
+        a.assignedEmployees?.some(e => e.id === emp.id) || (Array.isArray(a.employees) && a.employees.includes(emp.id)));
+      const last = selectLastAssignment(mine);
+      if (last) {
+        rows.push({ emp, km: haversineDistanceKm(caseLat, caseLng, last.lat!, last.lng!), from: `${last.location} (${last.fromTime?.slice(0, 5)}–${last.toTime?.slice(0, 5)})` });
+      } else if (emp.lat != null && emp.lng != null) {
+        rows.push({ emp, km: haversineDistanceKm(caseLat, caseLng, emp.lat, emp.lng), from: currentLanguage === 'da' ? 'hjemmeadresse' : 'home' });
+      }
+    }
+    return rows.sort((a, b) => a.km - b.km).slice(0, 2);
+  }, [caseLat, caseLng, assignments, employees, selectedEmployees, disabledIdSet, dateForComparison, currentLanguage]);
+
   const getDisplayText = () => {
     if (selectedEmployees.length === 0) {
       return t('planner.selectEmployees');
@@ -504,6 +526,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                         Kursus
                       </Badge>
                     )}
+                    {!isExpired && <TempExpiryBadge employee={employee} short />}
                     {isExpired && (
                       <Badge variant="destructive" size="sm">
                         {t('employees.statusExpired')}
@@ -643,6 +666,33 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">{t('planner.employees')}</label>
+
+      {caseLat != null && caseLng != null && (
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-2">
+          <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-primary">
+            <Navigation className="h-3.5 w-3.5" aria-hidden />
+            {currentLanguage === 'da' ? 'Nærmeste lige nu' : 'Nearest right now'}
+          </p>
+          {nearestNow.length === 0 ? (
+            <p className="text-xs text-muted-foreground">{currentLanguage === 'da' ? 'Ingen ledige i nærheden' : 'No one available nearby'}</p>
+          ) : (
+            <ul className="space-y-1">
+              {nearestNow.map(({ emp, km, from }) => (
+                <li key={emp.id} className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 text-sm">
+                    <span className="font-medium text-foreground">{emp.name}</span>
+                    <span className="text-muted-foreground tabular-nums"> · {km.toFixed(1).replace('.', currentLanguage === 'da' ? ',' : '.')} km</span>
+                    <p className="truncate text-xs text-muted-foreground">{currentLanguage === 'da' ? 'fra' : 'from'} {from}</p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline" className="min-h-9 shrink-0" onClick={() => onToggle(emp.id)}>
+                    <Plus className="mr-1 h-3.5 w-3.5" />{currentLanguage === 'da' ? 'Tilføj' : 'Add'}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       
       {autoRemovedEmployees.length > 0 && (
         <div className="text-sm text-warning bg-warning-soft border border-warning/30 rounded p-2">

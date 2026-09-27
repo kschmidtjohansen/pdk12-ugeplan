@@ -8,6 +8,7 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { usePermissions } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
+import TempExpiryBadge from '@/components/Employees/TempExpiryBadge';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 
 interface MobileEmployeeCardProps {
@@ -69,6 +70,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
             </Avatar>
             <div>
               <h3 className="font-semibold text-foreground">{employee.name}</h3>
+              <TempExpiryBadge employee={employee} />
               {employee.jobTitle && (
                 <p className="text-sm text-muted-foreground">{employee.jobTitle}</p>
               )}

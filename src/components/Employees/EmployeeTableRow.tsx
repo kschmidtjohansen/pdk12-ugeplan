@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
+import TempExpiryBadge from '@/components/Employees/TempExpiryBadge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
@@ -98,6 +99,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
             </AvatarFallback>
           </Avatar>
           <span>{employee.name}</span>
+          <TempExpiryBadge employee={employee} />
         </div>
         {(isAdmin || isSkadeleder) && employee.notes && (
           <TooltipProvider>
