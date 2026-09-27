@@ -4,7 +4,7 @@ import { da as daLocale } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Navigation, Phone, Clock, MapPin, Car as CarIcon, Users, Package, CalendarCheck } from 'lucide-react';
+import { Navigation, Phone, Clock, MapPin, Car as CarIcon, Users, Package, CalendarCheck, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
@@ -299,6 +299,17 @@ const MinDag: React.FC = () => {
                       </a>
                     </Button>
                   )}
+                  <Button size="sm" variant="outline" asChild className="min-h-11 flex-1 sm:flex-none">
+                    <a
+                      href={`sms:?&body=${encodeURIComponent(
+                        `Hej, jeg er på vej fra Polygon Skadeservice${assignment.case_number ? ` (sag ${assignment.case_number})` : ''} og forventer at være hos dig om ca. 15-20 minutter. Mvh ${user?.name?.split(' ')[0] ?? ''}`.trim()
+                      )}`}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      {isDa ? 'SMS: På vej' : 'SMS: On my way'}
+                    </a>
+                  </Button>
                 </div>
               </div>
             );
