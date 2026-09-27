@@ -1,3 +1,6 @@
+## 2026-09-27 — Ugeplan: dagstribe (DayQuickNav) fjernet
+- `DayQuickNav` er fjernet fra `PlannerPage` og slettet som komponent (inkl. `handleFocusDay`/`focusedDate`, som kun den brugte). Ugelisten og øvrige funktioner er uændrede.
+
 ## 2026-09-27 — Dagens citat: ny samling og daglig rotation
 - `utils/dailyQuotes.ts` udvidet fra 30 til 75 danske citater (anerkendelse, faglig stolthed, samarbejde, pres, kundemøde, vedholdenhed, humør, sikkerhed, dagens afslutning).
 - `getDailyQuote(date?)` bruger nu dagen i året kombineret med årstallet i stedet for dagen i måneden, så citatet skifter hver dag og ikke gentages måned for måned eller år for år. Eksporterer også `dailyQuotesCount`.

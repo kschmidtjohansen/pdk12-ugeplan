@@ -23,7 +23,6 @@ import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import SubDepartmentQuickSwitcher from '@/components/shared/SubDepartmentQuickSwitcher';
 import PlannerFilterBar from '@/components/Planner/PlannerFilterBar';
-import DayQuickNav from '@/components/Planner/DayQuickNav';
 import { PlannerActionsProvider } from '@/context/PlannerActionsContext';
 import { toast as sonnerToast } from 'sonner';
 
@@ -490,20 +489,6 @@ const PlannerPage: React.FC = () => {
     });
   }, [weekAssignments, selectedEmployeeIds, searchQuery, employeeNameById]);
 
-  // Focus a single day from the day strip: expand only that day and scroll to it
-  const handleFocusDay = useCallback((date: string) => {
-    setAllExpanded(false);
-    setExpandedDays({ [date]: true });
-    requestAnimationFrame(() => {
-      const el = document.querySelector(`[data-day-section="${date}"]`);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }, []);
-
-  const focusedDate = useMemo(() => {
-    const active = Object.entries(expandedDays).filter(([, v]) => v).map(([k]) => k);
-    return active.length === 1 ? active[0] : null;
-  }, [expandedDays]);
 
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
@@ -843,15 +828,8 @@ const PlannerPage: React.FC = () => {
           onQueryChange={setSearchQuery}
         />
 
-        {/* Day strip: overview of the week, click to focus a single day */}
-        <DayQuickNav
-          days={getAllWeekDays(weekDates)}
-          weekAssignments={sortedWeekAssignments}
-          activeDate={focusedDate}
-          onSelectDay={handleFocusDay}
-        />
-
         {/* Main Content — skeleton reserves the same vertical space as the week list */}
+
         {loading ? (
           <div aria-label={`${t('common.loading')}...`}>
             <ListSkeleton rowCount={5} rowHeight={168} variant="card" className="p-0 sm:p-0" />
