@@ -20,7 +20,7 @@ const StatusPill = React.forwardRef<HTMLButtonElement, StatusPillProps>(
       ref={ref}
       type="button"
       className={cn(
-        'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'inline-flex h-11 sm:h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         toneMap[tone],
         className
       )}
