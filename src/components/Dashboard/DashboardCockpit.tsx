@@ -1,14 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks, format } from 'date-fns';
 import QuickAccessGrid from './QuickAccessGrid';
 import CompactKpiStack from './CompactKpiStack';
-import DutySummaryWidget from './DutySummaryWidget';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
-
-
+import TodayTimeline from './TodayTimeline';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WeeklyAssignments from './WeeklyAssignments';
 import ListSkeleton from '@/components/shared/ListSkeleton';
-import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
 import { useVacations } from '@/hooks/useVacations';
 import { useAssignments } from '@/hooks/useAssignments';
@@ -32,10 +30,11 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   onPreviousWeek,
   onNextWeek,
 }) => {
-  const { isDutyEnabled } = useDepartment();
-  const { isEffectiveAdmin, user } = useAuth();
+  const { user } = useAuth();
   const { vacations } = useVacations();
   const { assignments, loading: assignmentsLoading } = useAssignments();
+  const [tab, setTab] = useState<string>(() => localStorage.getItem('dashboardTab') || 'today');
+  const changeTab = (v: string) => { setTab(v); localStorage.setItem('dashboardTab', v); };
 
   // Filter assignments for the selected ISO week
   const weekAssignments = useMemo(() => {
@@ -81,28 +80,36 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* LEFT — main work surface (2/3) */}
-      <div className="lg:col-span-2 space-y-4 min-w-0">
-        <QuickAccessGrid userRole={userRole} />
-        {assignmentsLoading && personalWeekAssignments.length === 0 ? (
-          <ListSkeleton variant="card" rowCount={3} />
-        ) : (
-          <WeeklyAssignments
-            assignments={personalWeekAssignments}
-            selectedWeek={selectedWeek}
-            selectedYear={selectedYear}
-            onPreviousWeek={onPreviousWeek}
-            onNextWeek={onNextWeek}
-          />
-        )}
+      <div className="lg:col-span-2 min-w-0">
+        <Tabs value={tab} onValueChange={changeTab}>
+          <TabsList className="mb-3 h-10 rounded-lg border border-border/60 bg-card/70 p-1 backdrop-blur">
+            <TabsTrigger value="today" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">I dag</TabsTrigger>
+            <TabsTrigger value="week" className="px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Ugens overblik</TabsTrigger>
+          </TabsList>
+          <TabsContent value="today" className="mt-0 rounded-xl border border-border/60 bg-card/70 p-4 backdrop-blur">
+            <TodayTimeline />
+          </TabsContent>
+          <TabsContent value="week" className="mt-0">
+            {assignmentsLoading && personalWeekAssignments.length === 0 ? (
+              <ListSkeleton variant="card" rowCount={3} />
+            ) : (
+              <WeeklyAssignments
+                assignments={personalWeekAssignments}
+                selectedWeek={selectedWeek}
+                selectedYear={selectedYear}
+                onPreviousWeek={onPreviousWeek}
+                onNextWeek={onNextWeek}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* RIGHT — sticky cockpit panel (1/3) */}
       <aside className="space-y-4 lg:sticky lg:top-14 lg:self-start">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
-        
-        
-        {isDutyEnabled && <DutySummaryWidget />}
         <UpcomingVacationsWidget vacations={vacations} />
+        <QuickAccessGrid userRole={userRole} />
       </aside>
     </div>
   );
