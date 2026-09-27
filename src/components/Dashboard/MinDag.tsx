@@ -299,16 +299,18 @@ const MinDag: React.FC = () => {
                       </a>
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" asChild className="min-h-11 flex-1 sm:flex-none">
-                    <a
-                      href={`sms:?&body=${encodeURIComponent(
-                        `Hej, jeg er på vej fra Polygon Skadeservice${assignment.case_number ? ` (sag ${assignment.case_number})` : ''} og forventer at være hos dig om ca. 15-20 minutter. Mvh ${user?.name?.split(' ')[0] ?? ''}`.trim()
-                      )}`}
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      {isDa ? 'SMS: På vej' : 'SMS: On my way'}
-                    </a>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="min-h-11 flex-1 sm:flex-none"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSmsCaseNumber(assignment.case_number ?? null);
+                      setIsSmsOpen(true);
+                    }}
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    {isDa ? 'SMS: På vej' : 'SMS: On my way'}
                   </Button>
                 </div>
               </div>
