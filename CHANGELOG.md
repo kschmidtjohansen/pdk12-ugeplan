@@ -1973,3 +1973,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - **Rettelse i `src/components/Planner/PlannerFilterBar.tsx`:** Panelets synlighed styres nu udelukkende af `expanded`. Når et filter aktiveres første gang, foldes panelet automatisk ud én gang (via ref + useEffect på `hasFilters`), men brugeren kan altid lukke det igen med "Skjul" — aktive filtre vises fortsat som chips i bjælken. Overlay-placeringen bevares, så listen stadig ikke skubbes ned (ingen CLS-regression).
 - Verificeret med typecheck (ren).
 - 2026-09-23: Fjernet hjlpeteksten "Vlg ingen personer..." under personlisten i Udsend besked (BroadcastNotification.tsx).
+
+## 2026-09-27 — Kældertilstand + smartere live-opdatering
+- Min dag gemmer dagens opgaver lokalt og viser dem offline med diskret "Offline (kældertilstand)"-mærke; genindlæser automatisk ved genforbindelse.
+- Ugeplan: sletninger/flytninger opdateres straks i hukommelsen; adaptiv samling af mange ændringer (maks 2,5 s) før fuld synk.
