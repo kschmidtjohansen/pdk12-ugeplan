@@ -27,7 +27,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
     <ScrollArea className="max-h-96">
       <div className="space-y-2">
         {employees.length === 0 ? (
-          <div className="text-center text-gray-500 py-4">
+          <div className="text-center text-muted-foreground py-4">
             {t('dashboard.noEmployeesFoundForDate')}
           </div>
         ) : (
