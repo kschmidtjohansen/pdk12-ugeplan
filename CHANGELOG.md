@@ -5,6 +5,10 @@
 - Lyn-søgning i `PlannerFilterBar`: altid synligt søgefelt med `/` som genvej og Esc for at rydde. Filtrerer ugens opgaver på sagsnummer, titel, adresse, by, postnummer, beskrivelse og medarbejdernavn.
 - Ny `DayQuickNav`: slank dagstribe over ugelisten med antal opgaver og kladde-prik pr. dag. Klik folder kun den dag ud og scroller til den (`data-day-section` + `scroll-mt-20` på DaySection).
 
+## 2026-09-27 — Ugeplan: én hentning af medarbejdere og biler
+- PlannerContent henter ikke længere medarbejdere og biler selv (useUnifiedData uden cache + egen realtime-kanal); data sendes fra PlannerPage's cachede queries.
+- Uge-afgrænset opgavehentning er bevidst fravalgt: konfliktkontrol og flerdagsserier kræver hele datasættet.
+
 ## 2026-09-27 — Dagens citat fremhævet
 - Ny delt komponent `src/components/Dashboard/DailyQuoteCard.tsx`: fremhævet citatkort med accentkant, citat-ikon, "Dagens citat"-label og større, læsbar tekst (kun semantiske tokens).
 - Bruges i `WelcomeHeader` (servicemedarbejdere, fuld størrelse) og `CommandBar` (ledere, kompakt variant på egen linje).
