@@ -96,9 +96,6 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
               <span className="sm:hidden">{format(now, "EEE d. MMM · 'uge' I", { locale: da })}</span>
               <span className="hidden sm:inline">{format(now, "EEEE d. MMMM · 'uge' I", { locale: da })}</span>
             </p>
-            <p className="mt-0.5 truncate text-xs italic text-muted-foreground/80 sm:line-clamp-2 sm:whitespace-normal">
-              {getDailyQuote()}
-            </p>
           </div>
           <div className="flex items-center gap-1 lg:hidden">{actions}</div>
         </div>
