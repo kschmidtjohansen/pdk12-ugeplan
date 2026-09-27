@@ -1,3 +1,7 @@
+## 2026-09-27 — Status-piller med fokus-visninger og mobil-forside
+- Status-piller (vagt, ledige medarbejdere, biler, vikarer) åbner fokus-visning: drawer på mobil, dialog på desktop (StatusDetailSheet + StatusPanels). Vagt med Ring/SMS og resten af ugen; medarbejdere/biler med Ledige/Optaget.
+- Mobil: kompakt CommandBar, 44 px piller med fade-kant, faner i fuld bredde og sticky, strammere tidslinje med auto-scroll til aktiv sag, højre kolonne samlet i "Mere".
+
 ## 2026-09-27 — Vejrvarsel pr. afdeling og redigerbar SMS
 - Administration → Funktioner: ny sektion "Vejrvarsel (beredskab)" med til/fra, postnumre for dækningsområdet (DAWA-opslag) samt egne grænser for regn (mm/6 t) og vindstød (m/s). Gemmes i department_settings som weather_alert.
 - Beredskabsbjælken bruger nu afdelingens postnumre og grænser; er funktionen slået fra, vises bjælken ikke. Uden postnumre bruges opgavernes placering som før.
