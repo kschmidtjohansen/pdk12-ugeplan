@@ -652,6 +652,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Login method
+  /**
+   * Runs the device biometric confirmation. Returns a friendly reason when it
+   * was cancelled, unavailable or failed — or null when it succeeded.
+   */
+  const runBiometricStep = async (factorId: string): Promise<string | null> => {
+    try {
+      toast({
+        title: "Bekræft med Face ID / fingeraftryk",
+        description: "Følg vejledningen på din enhed for at fuldføre login.",
+      });
+      const { error: mfaError } = await supabase.auth.mfa.webauthn.authenticate({ factorId });
+      if (!mfaError) return null;
+      if (import.meta.env.DEV) console.warn('[AuthProvider] Biometric step skipped:', mfaError.message);
+      return /cancel|abort|not allowed|timed out/i.test(mfaError.message ?? '')
+        ? 'Bekræftelsen blev afbrudt. Du er logget ind med din adgangskode og kan fortsætte.'
+        : 'Bekræftelsen kunne ikke gennemføres på denne enhed. Du er logget ind med din adgangskode og kan fortsætte.';
+    } catch (err) {
+      if (import.meta.env.DEV) console.warn('[AuthProvider] Biometric step error:', err instanceof Error ? err.message : 'Unknown');
+      return 'Bekræftelsen blev afbrudt. Du er logget ind med din adgangskode og kan fortsætte.';
+    }
+  };
+
+  const retryBiometric = async () => {
+    if (!biometricPrompt) return;
+    setBiometricBusy(true);
+    const failure = await runBiometricStep(biometricPrompt.factorId);
+    setBiometricBusy(false);
+    if (failure) {
+      setBiometricPrompt({ ...biometricPrompt, reason: failure });
+    } else {
+      setBiometricPrompt(null);
+      toast({ title: "Bekræftet", description: "Din enhed bekræftede dit login." });
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
