@@ -880,6 +880,8 @@ const PlannerPage: React.FC = () => {
               onToggleSelect={handleToggleSelect}
               allExpanded={allExpanded}
               onToggleAllExpanded={handleToggleAllExpanded}
+              employees={employees || []}
+              cars={cars || []}
             />
           </PlannerActionsProvider>
         )}
