@@ -1,10 +1,11 @@
-import React, { useMemo, useState, Suspense, lazy } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import { useOnlineStatus, saveSnapshot, loadSnapshot } from '@/hooks/useOfflineTodaySnapshot';
 import { format, parseISO } from 'date-fns';
 import { da as daLocale } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Navigation, Phone, Clock, MapPin, Car as CarIcon, Users, Package, CalendarCheck, MessageSquare } from 'lucide-react';
+import { Navigation, Phone, Clock, MapPin, Car as CarIcon, Users, Package, CalendarCheck, MessageSquare, CloudOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
@@ -56,13 +57,31 @@ const MinDag: React.FC = () => {
     });
   }, [assignments, user]);
 
-  const todayAssignments = useMemo(
+  const liveTodayAssignments = useMemo(
     () =>
       myAssignments
         .filter(a => a.date === todayStr)
         .sort((a, b) => toMinutes(a.fromTime) - toMinutes(b.fromTime)),
     [myAssignments, todayStr]
   );
+
+  const reconnect = useCallback(() => { fetchAssignments(); }, [fetchAssignments]);
+  const online = useOnlineStatus(reconnect);
+
+  // Save a snapshot after each successful load (only when online with real data)
+  useEffect(() => {
+    if (!user?.id || loading || error || !online) return;
+    const phones: Record<string, string> = {};
+    employees.forEach(e => { if (e.phone) phones[e.id] = e.phone; });
+    saveSnapshot(user.id, todayStr, liveTodayAssignments, phones);
+  }, [user?.id, todayStr, liveTodayAssignments, employees, loading, error, online]);
+
+  const snapshot = useMemo(
+    () => (user?.id && (!online || error) ? loadSnapshot(user.id, todayStr) : null),
+    [user?.id, online, error, todayStr]
+  );
+  const isOfflineMode = !!snapshot && (!online || (!!error && liveTodayAssignments.length === 0));
+  const todayAssignments = isOfflineMode ? snapshot!.assignments : liveTodayAssignments;
 
   const nextAssignment = useMemo(() => {
     if (todayAssignments.length > 0) return null;
@@ -107,7 +126,7 @@ const MinDag: React.FC = () => {
     return {
       id,
       name: assignment.responsibleUser?.name || employee?.name || '',
-      phone: employee?.phone || '',
+      phone: employee?.phone || snapshot?.phones[id] || '',
     };
   };
 
@@ -161,9 +180,18 @@ const MinDag: React.FC = () => {
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {loading && todayAssignments.length === 0 ? (
+        {isOfflineMode && (
+          <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+            <CloudOff className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              {isDa ? 'Offline (kældertilstand)' : 'Offline (basement mode)'} · {isDa ? 'Viser opgaver gemt kl.' : 'Showing tasks saved at'}{' '}
+              {format(new Date(snapshot!.savedAt), 'HH:mm')}
+            </span>
+          </div>
+        )}
+        {loading && !isOfflineMode && todayAssignments.length === 0 ? (
           <ListSkeleton variant="card" rowCount={2} />
-        ) : error && todayAssignments.length === 0 ? (
+        ) : error && !isOfflineMode && todayAssignments.length === 0 ? (
           <ErrorState onRetry={handleRetry} retrying={retrying} />
         ) : todayAssignments.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-muted/50 px-4 py-8 text-center">
