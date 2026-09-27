@@ -1,3 +1,7 @@
+## 2026-09-27 — Vagter i dag erstatter hurtigadgang på forsiden
+- Nyt kort "Vagter i dag" i forsidens sidepanel: dagens vagter med type, navn og Ring/SMS-knapper (44 px), samt "Vis hele ugen" der folder ugens resterende vagter ud dag for dag med ring-genvej. Knap til at åbne vagtplanen.
+- Genvejsboksen (Ugeplan/Fridage/Vagt/Medarbejdere/Biler) fjernet fra både desktop-panelet og mobilens "Mere"-sektion.
+
 ## 2026-09-27 — Ét-tryk ring og besked til medarbejdere alle steder
 - Ny delt komponent EmployeeContactActions (Ring/SMS-ikoner, tel:- og sms:-links, 44 px touch-targets, stopPropagation, skjult uden nummer).
 - Brugt tre steder: (1) den fulde medarbejderliste på forsiden (EmployeeAvailabilityDialog) ved siden af status-mærket; (2) planlæggerens medarbejderrækker — i info-boksen ved tryk på skadeledere, fugtteknikere, servicemedarbejdere samt fraværs- og kursusrækker; (3) ferie-siden — ved siden af medarbejderens navn i både tabel (desktop) og kort (mobil).
