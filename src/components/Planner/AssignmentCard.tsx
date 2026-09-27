@@ -166,12 +166,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           )}
           onClick={handleCardClick}
         >
-          {isSeries && (
-            <span
-              aria-hidden
-              className="absolute left-0 top-0 h-full w-1 bg-primary/40"
-            />
-          )}
           {canEdit && onToggleSelect && (
             <div
               data-select-checkbox
