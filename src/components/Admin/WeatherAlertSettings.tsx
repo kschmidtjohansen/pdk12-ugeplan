@@ -86,6 +86,8 @@ const WeatherAlertSettings: React.FC = () => {
         </CardTitle>
         <CardDescription>
           Bestem hvilke postnumre og grænseværdier der udløser beredskabsbjælken på forsiden.
+          Standardgrænserne følger forsikringens dækningsgrænser (Forsikringsvejret): storm ved
+          vindstød ≥ 17,2 m/s, skybrud ved ≥ 30 mm regn på 24 timer og kraftig regn ved ≥ 15 mm på 30 min.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -146,19 +148,34 @@ const WeatherAlertSettings: React.FC = () => {
           )}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="weather-rain">Regn over 6 timer (mm)</Label>
+            <Label htmlFor="weather-rain24">Regn pr. 24 timer (mm)</Label>
             <Input
-              id="weather-rain"
+              id="weather-rain24"
               type="number"
               min={1}
               max={200}
               inputMode="numeric"
-              value={rain}
+              value={rain24}
               className="h-11"
-              onChange={e => setRain(e.target.value)}
+              onChange={e => setRain24(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">Skybrudsdækning typisk fra 30 mm.</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="weather-rain30">Kraftig regn pr. 30 min (mm)</Label>
+            <Input
+              id="weather-rain30"
+              type="number"
+              min={1}
+              max={100}
+              inputMode="numeric"
+              value={rain30}
+              className="h-11"
+              onChange={e => setRain30(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Forsikringens grænse: 15 mm.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="weather-gust">Vindstød (m/s)</Label>
@@ -167,11 +184,13 @@ const WeatherAlertSettings: React.FC = () => {
               type="number"
               min={5}
               max={60}
-              inputMode="numeric"
+              step="0.1"
+              inputMode="decimal"
               value={gust}
               className="h-11"
               onChange={e => setGust(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">Stormdækning fra 17,2 m/s.</p>
           </div>
         </div>
 
