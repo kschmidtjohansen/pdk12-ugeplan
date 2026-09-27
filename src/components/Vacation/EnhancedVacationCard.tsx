@@ -7,6 +7,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Clock, Calendar, User } from 'lucide-react';
+import EmployeeContactActions from '@/components/Shared/EmployeeContactActions';
 
 interface EnhancedVacationCardProps {
   vacation: Vacation;
@@ -83,9 +84,12 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
         </div>
         
         {vacation.user && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span>{vacation.user.name}</span>
+          <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span>{vacation.user.name}</span>
+            </span>
+            <EmployeeContactActions phone={vacation.user.phone} name={vacation.user.name} size="sm" />
           </div>
         )}
       </CardHeader>
