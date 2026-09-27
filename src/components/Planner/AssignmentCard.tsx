@@ -205,6 +205,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
                 cars={cars}
               />
             )}
+            {seriesPosition && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary shrink-0">
+                <Layers className="h-3 w-3" />
+                Dag {seriesPosition.index} af {seriesPosition.total}
+              </span>
+            )}
             {operationState && (
               <span className="text-xs text-primary font-medium animate-pulse">
                 {getOperationText(operationState)}
