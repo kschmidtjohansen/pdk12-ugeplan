@@ -665,24 +665,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // If the user has registered a biometric factor (Face ID / fingerprint / PIN),
-      // complete the sign-in with a device confirmation instead of an extra typed step.
+      // offer a device confirmation. It is always optional: a cancelled, failed or
+      // unavailable prompt never blocks the valid password session.
       try {
         const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
           const { data: factors } = await supabase.auth.mfa.listFactors();
           const webauthnFactor = (factors?.webauthn ?? []).find(f => f.status === 'verified');
           if (webauthnFactor) {
-            toast({
-              title: "Bekræft med Face ID / fingeraftryk",
-              description: "Følg vejledningen på din enhed for at fuldføre login.",
-            });
-            const { error: mfaError } = await supabase.auth.mfa.webauthn.authenticate({
-              factorId: webauthnFactor.id,
-            });
-            if (mfaError) {
-              // Biometrics are optional: keep the password session (e.g. passkey
-              // lives on another device, or the prompt was dismissed).
-              if (import.meta.env.DEV) console.warn('[AuthProvider] Biometric step skipped:', mfaError.message);
+            const failure = await runBiometricStep(webauthnFactor.id);
+            if (failure) {
+              setBiometricPrompt({ factorId: webauthnFactor.id, reason: failure });
             }
           }
         }
