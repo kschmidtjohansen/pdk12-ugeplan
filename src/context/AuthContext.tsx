@@ -654,16 +654,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Login method
   const login = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ 
-        email: email.trim().toLowerCase(), 
-        password 
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password
       });
-      
+
       if (error) {
         if (import.meta.env.DEV) console.error('[AuthProvider] Login error:', error.message);
         return { error: error.message };
       }
-      
+
+      // If the user has registered a biometric factor (Face ID / fingerprint / PIN),
+      // complete the sign-in with a device confirmation instead of an extra typed step.
+      try {
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
+          const { data: factors } = await supabase.auth.mfa.listFactors();
+          const webauthnFactor = (factors?.webauthn ?? []).find(f => f.status === 'verified');
+          if (webauthnFactor) {
+            toast({
+              title: "Bekræft med Face ID / fingeraftryk",
+              description: "Følg vejledningen på din enhed for at fuldføre login.",
+            });
+            const { error: mfaError } = await supabase.auth.mfa.webauthn.authenticate({
+              factorId: webauthnFactor.id,
+            });
+            if (mfaError) {
+              await supabase.auth.signOut();
+              return { error: 'Biometrisk bekræftelse blev afbrudt eller fejlede. Prøv igen.' };
+            }
+          }
+        }
+      } catch (mfaErr) {
+        // Biometric confirmation failed unexpectedly — sign out to avoid a partial session
+        if (import.meta.env.DEV) console.error('[AuthProvider] MFA step failed:', mfaErr instanceof Error ? mfaErr.message : 'Unknown');
+        await supabase.auth.signOut();
+        return { error: 'Biometrisk bekræftelse fejlede. Prøv igen.' };
+      }
+
       toast({
         title: "Login Succesfuld",
         description: "Du er nu logget ind.",
