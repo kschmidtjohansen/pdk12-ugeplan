@@ -10,6 +10,7 @@ import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { unifiedDataService } from '@/services/data/unifiedDataService';
 import { OptimizedAssignmentService } from '@/services/optimizedAssignmentService';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
+import BiometricRetryDialog from '@/components/Auth/BiometricRetryDialog';
 
 // Define user roles
 export type UserRole = 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'fugttekniker' | 'vikar';
