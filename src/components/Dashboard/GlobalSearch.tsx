@@ -88,7 +88,7 @@ const GlobalSearch: React.FC = () => {
         }}
         placeholder="Søg sag, adresse, kollega eller bil"
         aria-label="Søg"
-        className="h-10 w-full rounded-lg border border-border/60 bg-background/70 pl-9 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        className="h-11 sm:h-10 w-full rounded-lg border border-border/60 bg-background/70 pl-9 pr-10 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
       <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-border/60 px-1.5 text-[10px] text-muted-foreground sm:block">/</kbd>
 
