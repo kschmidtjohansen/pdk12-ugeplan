@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor, Bell } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor, Bell, Fingerprint } from 'lucide-react';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,6 +10,7 @@ import { languageNames } from '../../../translations';
 import PasswordChangeDialog from '../../Profile/PasswordChangeDialog';
 import ProfilePictureDialog from '../../Profile/ProfilePictureDialog';
 import NotificationPreferencesDialog from '../../Profile/NotificationPreferencesDialog';
+import BiometricLoginDialog from '../../Profile/BiometricLoginDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth, UserRole } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -33,6 +34,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const [biometricDialogOpen, setBiometricDialogOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string | null>(null);
   const { scheme, setScheme } = useColorScheme();
@@ -171,6 +173,10 @@ const UserMenu: React.FC<UserMenuProps> = ({
             <Bell className="mr-2 h-4 w-4" />
             <span>{t('profile.notificationSettings')}</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setBiometricDialogOpen(true)} className="cursor-pointer">
+            <Fingerprint className="mr-2 h-4 w-4" />
+            <span>{currentLanguage === 'da' ? 'Hurtig login (Face ID / fingeraftryk)' : 'Quick sign-in (Face ID / fingerprint)'}</span>
+          </DropdownMenuItem>
           
           <DropdownMenuSeparator />
 
@@ -212,6 +218,11 @@ const UserMenu: React.FC<UserMenuProps> = ({
       <NotificationPreferencesDialog
         open={notificationDialogOpen}
         onOpenChange={setNotificationDialogOpen}
+      />
+
+      <BiometricLoginDialog
+        open={biometricDialogOpen}
+        onOpenChange={setBiometricDialogOpen}
       />
 
       <PasswordChangeDialog 
