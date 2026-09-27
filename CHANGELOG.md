@@ -1,3 +1,7 @@
+## 2026-09-27 — Dagens citat fremhævet
+- Ny delt komponent `src/components/Dashboard/DailyQuoteCard.tsx`: fremhævet citatkort med accentkant, citat-ikon, "Dagens citat"-label og større, læsbar tekst (kun semantiske tokens).
+- Bruges i `WelcomeHeader` (servicemedarbejdere, fuld størrelse) og `CommandBar` (ledere, kompakt variant på egen linje).
+
 ## 2026-09-27 — Valgfri biometri: prøv igen eller fortsæt med adgangskode
 - Ny BiometricRetryDialog vises når Face ID / fingeraftryk afbrydes, fejler eller ikke er tilgængelig: "Prøv Face ID / fingeraftryk igen" og "Fortsæt med adgangskode".
 - AuthContext: `runBiometricStep` og `retryBiometric`; adgangskode-sessionen bevares altid, ingen udlogning ved biometrisk fejl. Dialogen kan lukkes, hvilket svarer til "Fortsæt med adgangskode".
