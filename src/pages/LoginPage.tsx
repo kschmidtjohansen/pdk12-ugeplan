@@ -26,7 +26,6 @@ const LoginPage = () => {
     // Navigation handled by the useEffect when session is available
   };
 
-  const isDanish = currentLanguage === 'da';
 
 
   return (
