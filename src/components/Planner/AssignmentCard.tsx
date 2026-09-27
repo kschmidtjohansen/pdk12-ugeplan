@@ -59,6 +59,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const conflicts = getConflicts(assignment.id);
   const hasConflict = conflicts.length > 0;
 
+  const plannerActions = usePlannerActions();
+  const seriesPosition = React.useMemo(
+    () => getSeriesPosition(assignment, assignments),
+    [assignment, assignments]
+  );
+  const isSeries = !!seriesPosition;
+
+
   const warehouseData = warehouseIndicators 
     ? (assignment.case_number && warehouseIndicators.get(assignment.case_number)) || 
       warehouseIndicators.get(assignment.title) || { count: 0, totalQuantity: 0 }
