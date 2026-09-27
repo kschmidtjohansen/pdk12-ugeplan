@@ -128,6 +128,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const toastRef = useRef(toast);
   useEffect(() => { toastRef.current = toast; }, [toast]);
   
+  // Optional biometric confirmation after a valid password sign-in
+  const [biometricPrompt, setBiometricPrompt] = useState<{ factorId: string; reason: string } | null>(null);
+  const [biometricBusy, setBiometricBusy] = useState(false);
+
   // Demo mode detection
   const demoService = DemoUserService.getInstance();
   const isDemoMode = user ? demoService.isDemoUser(user.email) : false;
