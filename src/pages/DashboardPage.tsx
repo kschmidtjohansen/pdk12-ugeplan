@@ -18,6 +18,7 @@ import PwaInstallButton from '@/components/Pwa/PwaInstallButton';
 import PushNotificationCard from '@/components/Pwa/PushNotificationCard';
 
 import { useState, useEffect, useCallback } from 'react';
+import ExpiringTempsCard from '@/components/Dashboard/ExpiringTempsCard';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks } from 'date-fns';
 
 const DashboardPage: React.FC = () => {
@@ -96,6 +97,8 @@ const DashboardPage: React.FC = () => {
 
           {/* Quick sub-department switcher (only if > 1 sub-dept) */}
           {!isServicemedarbejder && <SubDepartmentQuickSwitcher />}
+
+          {(effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder') && !isDemoMode && <ExpiringTempsCard />}
 
           {/* Role-based Dashboard Content */}
           {isServicemedarbejder ? (
