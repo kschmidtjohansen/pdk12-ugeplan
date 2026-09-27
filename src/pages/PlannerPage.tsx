@@ -510,6 +510,39 @@ const PlannerPage: React.FC = () => {
     await publishAssignmentsByDate(date);
   }, [publishAssignmentsByDate]);
 
+  // Quick move: shift a single assignment N days with an undo toast
+  const handleQuickMove = useCallback(async (assignment: Assignment, days: number) => {
+    const base = assignment.date?.includes('T') ? assignment.date.split('T')[0] : assignment.date;
+    if (!base) return;
+    const target = new Date(`${base}T00:00:00`);
+    target.setDate(target.getDate() + days);
+    const newDate = format(target, 'yyyy-MM-dd');
+
+    try {
+      await updateAssignment(assignment.id, { date: newDate });
+      sonnerToast.success(
+        `Flyttet til ${target.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'short' })}`,
+        {
+          duration: 6000,
+          action: {
+            label: 'Fortryd',
+            onClick: () => {
+              updateAssignment(assignment.id, { date: base }).catch(() => {
+                sonnerToast.error('Kunne ikke fortryde flytningen');
+              });
+            },
+          },
+        }
+      );
+    } catch (err) {
+      sonnerToast.error('Kunne ikke flytte opgaven');
+      if (import.meta.env.DEV) console.error('[PlannerPage] Quick move failed:', err);
+    }
+  }, [updateAssignment]);
+
+  const plannerActions = useMemo(() => ({ quickMove: handleQuickMove }), [handleQuickMove]);
+
+
   // ---- Bulk actions ----
   const handleBulkAssignCar = useCallback(async (carId: string) => {
     if (selectedIds.size === 0) return;
