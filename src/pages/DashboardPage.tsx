@@ -18,7 +18,7 @@ import PwaInstallButton from '@/components/Pwa/PwaInstallButton';
 import PushNotificationCard from '@/components/Pwa/PushNotificationCard';
 
 import { useState, useEffect, useCallback } from 'react';
-import ExpiringTempsCard from '@/components/Dashboard/ExpiringTempsCard';
+import CommandBar from '@/components/Dashboard/CommandBar';
 import WeatherAlertBar from '@/components/Dashboard/WeatherAlertBar';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks } from 'date-fns';
 
@@ -78,30 +78,27 @@ const DashboardPage: React.FC = () => {
     <DataFetchErrorBoundary>
         <div className="min-h-screen w-full bg-background">
           <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 space-y-4 sm:space-y-5">
-          {/* Last Refresh Indicator */}
-          {!isServicemedarbejder && (
-            <div className="flex justify-end items-center gap-2">
-              <ClearCacheButton />
-              <LastRefreshIndicator 
-                lastRefresh={lastRefresh}
-                isRefreshing={isRefreshing}
-                onRefresh={handleRefresh}
-              />
-            </div>
-          )}
-
           {/* Demo Dashboard - Only in demo mode */}
           {isDemoMode && <DemoDashboard />}
 
-          {/* Welcome Header */}
-          <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
+          {isServicemedarbejder ? (
+            <WelcomeHeader userName={user?.name} dailyQuote={dailyQuote} />
+          ) : (
+            <CommandBar
+              userName={user?.name}
+              actions={
+                <>
+                  <ClearCacheButton />
+                  <LastRefreshIndicator lastRefresh={lastRefresh} isRefreshing={isRefreshing} onRefresh={handleRefresh} />
+                </>
+              }
+            />
+          )}
 
           {/* Quick sub-department switcher (only if > 1 sub-dept) */}
           {!isServicemedarbejder && <SubDepartmentQuickSwitcher />}
 
           {(effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder') && !isDemoMode && <WeatherAlertBar />}
-
-          {(effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder') && !isDemoMode && <ExpiringTempsCard />}
 
           {/* Role-based Dashboard Content */}
           {isServicemedarbejder ? (

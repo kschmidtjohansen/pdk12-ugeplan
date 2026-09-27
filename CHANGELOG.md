@@ -1,3 +1,8 @@
+## 2026-09-27 — Mission Control-forside
+- Ny Command Bar for ledere: hilsen, søgefelt (sag, adresse, kollega, bil; genvej /) og status-piller for vagt (med Ring), ledige medarbejdere, ledige biler og vikarer der udløber.
+- Faner "I dag" / "Ugens overblik"; "I dag" vises som tidslinje med pulserende markering af sagen i gang og en Nu-markør.
+- Genveje flyttet til højre kolonne; velkomstboks, vagtkort og vikarkort erstattet af bjælken for ledere.
+
 ## 2026-09-27 — Vejr-beredskab og "SMS: På vej"
 - Beredskabsbjælke på dashboardet (skadeleder/admin) ud fra DMI-prognose: tændes ved ≥15 mm regn på 6 timer eller vindstød ≥20 m/s inden for 24 timer; viser ledige teknikere og biler.
 - "SMS: På vej"-knap på Min Dag åbner telefonens besked-app med færdig tekst; teknikeren vælger selv modtager.
