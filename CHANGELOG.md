@@ -5,6 +5,11 @@
 - FAQ'ens afsnit 9 omskrevet til rollekort med "Det vigtigste for dig" og "Det kan du ikke" pr. rolle; tjeklisten for første uge henviser til afsnittet.
 - Webadressen i både video og FAQ er ændret fra pdk12.dk til polyplan.dk.
 
+## 2026-09-27 — Lettere app: PDF, cache og oprydning
+- pdf-lib må kun dynamisk importeres (ESLint no-restricted-imports).
+- Medarbejder-, vagtmedarbejder- og bildata: staleTime 15 min / gcTime 30 min; bilutilgængelighed 10 min. Opgaver/vagter uændret (Realtime).
+- Fjernet ubrugte klientfunktioner til vagtbytte-notifikationer (håndteres af DB-triggere).
+
 ## 2026-09-26 — Temafarver overalt + tydeligere sagshierarki
 - ~210 faste farver i 53 ældre komponenter erstattet med semantiske tokens (success/warning/destructive/info/muted/primary); dark:-overrides fjernet da tokens håndterer mørk tilstand. Bevidste undtagelser: kioskvisning og billedbeskærer.
 - Ny CaseNumber-komponent: sagsnummer (lille, mono, dæmpet) over titel (fed) og beskrivelse (dæmpet, 2 linjer) i opgavekort, Min Dag, Mine opgaver og sagsvinduet.

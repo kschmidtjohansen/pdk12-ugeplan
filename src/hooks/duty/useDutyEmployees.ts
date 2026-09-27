@@ -128,7 +128,8 @@ export const useDutyEmployees = () => {
       });
     },
     enabled: userDataLoaded && !!user && !isDemoMode && departmentIds.length > 0,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   // Realtime invalidation
