@@ -15,6 +15,7 @@ interface EnhancedSecureLoginFormProps {
 }
 
 const REMEMBER_KEY = 'auth_remember_me';
+const LAST_EMAIL_KEY = 'auth_last_email';
 
 type ErrorKind = 'invalid' | 'network' | 'timeout' | 'locked' | 'required' | 'unknown';
 
@@ -35,7 +36,9 @@ const classifyError = (raw: unknown): ErrorKind => {
 export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = ({
   onSuccess,
 }) => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() =>
+    typeof window !== 'undefined' ? window.localStorage.getItem(LAST_EMAIL_KEY) ?? '' : ''
+  );
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -181,6 +184,8 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         setAttempts(0);
         clearError();
         setSuccess(true);
+        // Prefill the email field on the next visit
+        window.localStorage.setItem(LAST_EMAIL_KEY, email.trim().toLowerCase());
         toast.success(isDanish ? 'Du er logget ind' : 'You are signed in', {
           description: isDanish ? 'Omdirigerer til ugeplan…' : 'Redirecting to your planner…',
         });

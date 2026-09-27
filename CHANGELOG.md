@@ -1,3 +1,8 @@
+## 2026-09-27 — Vejrgrænser fra Forsikringsvejret og lettere login på telefonen
+- Vejr-bjælken bruger nu forsikringsrelevante grænser: regn pr. 24 timer (30 mm), kraftig regn pr. 30 min (15 mm) og vindstød (17,2 m/s). Bjælken viser hvilken forsikringsgrænse der er overskredet og har et diskret link "Tjek på Forsikringsvejret". Admin-indstillingen har tre felter med hjælpetekster; gamle gemte værdier (regn/6t) falder tilbage til standarderne.
+- Login-siden forudfylder e-mail med sidst brugte adresse (gemmes ved succesfuld login; kun e-mail, aldrig adgangskode).
+- Ny "Hurtig login (Face ID / fingeraftryk)" under profil-menuen: registrér enhedens biometri (WebAuthn/MFA) og fjern den igen. Ved næste login bekræfter brugeren med Face ID, fingeraftryk eller pinkode efter adgangskoden; afbrydes bekræftelsen, logges brugeren ud igen. Kræver at MFA WebAuthn er slået til i Supabase-projektet — ellers vises en venlig fejlbesked.
+
 ## 2026-09-27 — Dagens citat tilbage på leder-forsiden
 - CommandBar viser igen dagens motiverende citat (getDailyQuote) som en diskret kursiv linje under datoen; én linje med ellipsis på mobil, op til to linjer på større skærme. Servicemedarbejdernes WelcomeHeader er uændret — begge dashboards har nu citatet.
 

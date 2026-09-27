@@ -4,15 +4,20 @@ import { supabase } from '@/integrations/supabase/client';
 export interface WeatherAlertSettings {
   enabled: boolean;
   postalCodes: string[];
-  rain6hMm: number;
+  /** Insurance threshold: rain over a rolling 24h window (skybrud coverage typically 30–40 mm). */
+  rain24hMm: number;
+  /** Insurance threshold: heavy rain within 30 minutes. */
+  rain30minMm: number;
+  /** Insurance threshold: wind gusts (storm coverage at >= 17.2 m/s). */
   gustMs: number;
 }
 
 export const DEFAULT_WEATHER_ALERT_SETTINGS: WeatherAlertSettings = {
   enabled: true,
   postalCodes: [],
-  rain6hMm: 15,
-  gustMs: 20,
+  rain24hMm: 30,
+  rain30minMm: 15,
+  gustMs: 17.2,
 };
 
 const SETTING_KEY = 'weather_alert';
@@ -26,7 +31,9 @@ const parseSettings = (raw?: string | null): WeatherAlertSettings => {
       postalCodes: Array.isArray(p.postalCodes)
         ? p.postalCodes.filter((x: unknown) => typeof x === 'string' && /^\d{4}$/.test(x))
         : [],
-      rain6hMm: Number.isFinite(p.rain6hMm) ? Number(p.rain6hMm) : DEFAULT_WEATHER_ALERT_SETTINGS.rain6hMm,
+      // Legacy saves only had rain6hMm — fall back to insurance defaults for the new fields.
+      rain24hMm: Number.isFinite(p.rain24hMm) ? Number(p.rain24hMm) : DEFAULT_WEATHER_ALERT_SETTINGS.rain24hMm,
+      rain30minMm: Number.isFinite(p.rain30minMm) ? Number(p.rain30minMm) : DEFAULT_WEATHER_ALERT_SETTINGS.rain30minMm,
       gustMs: Number.isFinite(p.gustMs) ? Number(p.gustMs) : DEFAULT_WEATHER_ALERT_SETTINGS.gustMs,
     };
   } catch {
