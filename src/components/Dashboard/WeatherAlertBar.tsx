@@ -59,6 +59,7 @@ const WeatherAlertBar: React.FC = () => {
   });
 
   const alert = useMemo(() => {
+    if (!settings.enabled) return null;
     if (!hours || hours.length < 6) return null;
     let best = { sum: 0, start: 0 };
     for (let i = 0; i + 6 <= hours.length; i++) {
