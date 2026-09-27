@@ -1,3 +1,6 @@
+## 2026-09-27 — Ugeplan: serie-streg fjernet
+- Den blå venstre serie-streg på opgavekort er fjernet; "Dag X af Y"-badge og øvrige seriefunktioner er uændrede.
+
 ## 2026-09-27 — Ugeplanen: tidsstribe, serier, hurtig-flyt og lyn-søgning
 - Ny `AssignmentTimeStrip` (07:00–17:00) på alle opgavekort i ugeplanen: den bookede tid farves, så huller i dagen ses uden at læse klokkeslæt. Tider uden for vinduet klippes visuelt.
 - Serier: ny `getSeriesPosition` i `utils/assignmentSeries.ts`. Flerdagesforløb får badge "Dag X af Y" og en diskret serie-streg i kortets venstre kant.
