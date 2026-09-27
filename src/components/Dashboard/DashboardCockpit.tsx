@@ -119,15 +119,15 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3 space-y-4">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
-        <TodayGuardsWidget />
         <UpcomingVacationsWidget vacations={vacations} />
+        <TodayGuardsWidget />
           </CollapsibleContent>
         </Collapsible>
       ) : (
       <aside className="space-y-4 lg:sticky lg:top-14 lg:self-start">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
-        <TodayGuardsWidget />
         <UpcomingVacationsWidget vacations={vacations} />
+        <TodayGuardsWidget />
       </aside>
       )}
     </div>
