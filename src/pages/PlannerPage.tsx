@@ -454,19 +454,56 @@ const PlannerPage: React.FC = () => {
     });
   }, [assignments, vacations, createAssignment, toast, currentLanguage]);
 
+  // Quick search index: employee id -> lowercase name (built once per employee list)
+  const employeeNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    (employees || []).forEach(e => map.set(e.id, (e.name || '').toLowerCase()));
+    return map;
+  }, [employees]);
+
   const sortedWeekAssignments = useMemo(() => {
     if (!weekAssignments) return [];
     // Employee filter: only keep assignments where at least one selected employee is assigned
-    const base = selectedEmployeeIds.length > 0
+    let base = selectedEmployeeIds.length > 0
       ? weekAssignments.filter(a => (a.employees || []).some(id => selectedEmployeeIds.includes(id)))
       : weekAssignments;
+
+    // Quick search across case number, title, address, city, description and employee names
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      base = base.filter(a => {
+        if ((a.case_number || '').toLowerCase().includes(q)) return true;
+        if ((a.title || '').toLowerCase().includes(q)) return true;
+        if ((a.location || '').toLowerCase().includes(q)) return true;
+        if ((a.city || '').toLowerCase().includes(q)) return true;
+        if ((a.zip_code || '').toLowerCase().includes(q)) return true;
+        if ((a.description || '').toLowerCase().includes(q)) return true;
+        return (a.employees || []).some(id => (employeeNameById.get(id) || '').includes(q));
+      });
+    }
+
     return [...base].sort((a, b) => {
       if (a.date !== b.date) {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
       return a.fromTime.localeCompare(b.fromTime);
     });
-  }, [weekAssignments, selectedEmployeeIds]);
+  }, [weekAssignments, selectedEmployeeIds, searchQuery, employeeNameById]);
+
+  // Focus a single day from the day strip: expand only that day and scroll to it
+  const handleFocusDay = useCallback((date: string) => {
+    setAllExpanded(false);
+    setExpandedDays({ [date]: true });
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`[data-day-section="${date}"]`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, []);
+
+  const focusedDate = useMemo(() => {
+    const active = Object.entries(expandedDays).filter(([, v]) => v).map(([k]) => k);
+    return active.length === 1 ? active[0] : null;
+  }, [expandedDays]);
 
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
