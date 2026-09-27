@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { format, getISOWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
+import DailyQuoteCard from './DailyQuoteCard';
 
 interface WelcomeHeaderProps {
   userName?: string;
@@ -66,13 +67,11 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
   return (
     <div className="rounded-xl border border-border bg-card shadow-xs px-5 py-4 animate-fade-in-up">
       <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0 space-y-1">
+        <div className="min-w-0 space-y-2.5">
           <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground truncate">
             {greeting} <span aria-hidden>👋</span>
           </h1>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {dailyQuote}
-          </p>
+          <DailyQuoteCard quote={dailyQuote} />
         </div>
         <div className="hidden md:flex flex-col items-end text-right border-l border-border pl-4 min-w-[140px]">
           <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
