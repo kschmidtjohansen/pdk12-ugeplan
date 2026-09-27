@@ -31,6 +31,7 @@ export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
   const locale = currentLanguage === 'da' ? da : enUS;
   const { acceptSwapRequest, cancelSwapRequest, declineSwapRequest, loading } = useDutyActions(onChanged);
   const [alreadyTakenOpen, setAlreadyTakenOpen] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [declineTarget, setDeclineTarget] = useState<DutySwapRequestWithDuty | null>(null);
 
   if (incoming.length === 0 && outgoing.length === 0) return null;
@@ -158,7 +159,7 @@ export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => cancelSwapRequest(req.id)}
+                    onClick={() => setCancelTarget(req.id)}
                     disabled={loading}
                   >
                     <X className="h-4 w-4 mr-1" />
@@ -182,6 +183,20 @@ export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setAlreadyTakenOpen(false)}>
               OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={!!cancelTarget} onOpenChange={(o) => !o && setCancelTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('duty.cancelSwapTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('duty.cancelSwapDescription')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => { const id = cancelTarget; setCancelTarget(null); if (id) await cancelSwapRequest(id); }}>
+              {t('duty.cancelSwapOffer')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

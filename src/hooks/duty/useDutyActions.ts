@@ -373,6 +373,8 @@ export const useDutyActions = (onSuccess?: () => void) => {
       const status = (data as unknown as string) || 'unknown';
       if (status === 'cancelled') {
         toast.success(t('duty.swapRequestCancelled'));
+      } else {
+        toast.info(t('duty.swapCancelTooLate'));
       }
       queryClient.invalidateQueries({ queryKey: ['duty_swap_requests'] });
       onSuccess?.();
