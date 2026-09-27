@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { CloudRain, Wind, Users, Car as CarIcon } from 'lucide-react';
+import { CloudRain, Wind, Users, Car as CarIcon, ExternalLink } from 'lucide-react';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
@@ -136,15 +136,26 @@ const WeatherAlertBar: React.FC = () => {
         <Icon className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
           <span className="font-semibold">Beredskab: </span>
-          {alert.rain && <>ca. {alert.mm} mm regn {dayLabel} kl. {format(new Date(alert.startTime), 'HH:mm')}–{format(new Date(alert.endTime), 'HH:mm')}</>}
-          {alert.rain && alert.wind && ' · '}
-          {alert.wind && <>vindstød op til {alert.gust} m/s</>}
+          {alert.rain24 && <>ca. {alert.mm24} mm regn på 24 timer {dayLabel} — over grænsen for skybrudsdækning ({settings.rain24hMm} mm/24t)</>}
+          {alert.rain24 && (alert.rain30 || alert.wind) && ' · '}
+          {alert.rain30 && <>kraftig regn ({alert.mm30} mm/30 min) kl. {format(new Date(alert.startTime), 'HH:mm')}</>}
+          {alert.rain30 && alert.wind && ' · '}
+          {alert.wind && <>vindstød op til {alert.gust} m/s — stormdækning fra 17,2 m/s</>}
         </span>
       </div>
-      <div className="flex items-center gap-3 text-xs font-medium tabular-nums">
+      <div className="flex flex-wrap items-center gap-3 text-xs font-medium tabular-nums">
         <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" />{reserve.techs} teknikere</span>
         <span className="inline-flex items-center gap-1"><CarIcon className="h-3.5 w-3.5" />{reserve.cars} biler</span>
         <span className="opacity-80">ledige efter kl. {reserve.from}</span>
+        <a
+          href="https://forsikringsvejret.dk/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-11 items-center gap-1 underline underline-offset-2 hover:no-underline sm:min-h-0"
+        >
+          Tjek på Forsikringsvejret
+          <ExternalLink className="h-3 w-3" />
+        </a>
       </div>
     </div>
   );
