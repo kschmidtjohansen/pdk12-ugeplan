@@ -1,3 +1,8 @@
+## 2026-09-27 — Strammere rettigheder på serverfunktioner
+- Ikke-indloggede kan ikke længere køre beskyttede funktioner (kun kioskvisningen er åben).
+- 40 ubrugte interne funktioner (fejlsøgning, test, gammel logning) er lukket for brugere.
+- app_internal_config dokumenteret som ren backend-tabel.
+
 ## 2026-09-26 — Onboarding-video og FAQ rettet: sygemelding og rollefokus
 
 - Sygemelding beskrives nu korrekt: medarbejdere kan ikke sygemelde sig selv i Polyplan. Kun administratorer (og Super Admins) sætter og fjerner markeringen under Medarbejdere. Rettet i både `Polyplan_PDK12_Onboarding_FAQ.txt/.md` (version 3.0) og i videoen.
