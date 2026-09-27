@@ -78,7 +78,8 @@ export const useVacationData = () => {
         user: userProfile ? {
           id: userProfile.id,
           name: userProfile.name || 'Demo Medarbejder',
-          email: userProfile.email || ''
+          email: userProfile.email || '',
+          phone: userProfile.phone || undefined
         } : {
           id: vacation.user_id,
           name: 'Demo Medarbejder',

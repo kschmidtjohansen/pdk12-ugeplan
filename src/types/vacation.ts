@@ -17,6 +17,7 @@ export interface Vacation {
     id: string;
     name: string;
     email: string;
+    phone?: string;
   };
 }
 
