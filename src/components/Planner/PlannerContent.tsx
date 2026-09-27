@@ -42,8 +42,8 @@ interface PlannerContentProps {
   allExpanded?: boolean;
   onToggleAllExpanded?: () => void;
   /** Employees and cars already loaded (and cached) by PlannerPage. */
-  employees: any[];
-  cars: any[];
+  employees: import('@/types/employee').Employee[];
+  cars: import('@/types/car').Car[];
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
