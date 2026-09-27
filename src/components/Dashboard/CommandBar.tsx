@@ -13,6 +13,7 @@ import { getDailyQuote } from '@/utils/dailyQuotes';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
 import GlobalSearch from './GlobalSearch';
+import DailyQuoteCard from './DailyQuoteCard';
 import StatusPill from './StatusPill';
 import StatusDetailSheet from './StatusDetailSheet';
 import { DutyDetailPanel, AvailableEmployeesPanel, AvailableCarsPanel, ExpiringTempsPanel } from './StatusPanels';
@@ -96,9 +97,6 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
               <span className="sm:hidden">{format(now, "EEE d. MMM · 'uge' I", { locale: da })}</span>
               <span className="hidden sm:inline">{format(now, "EEEE d. MMMM · 'uge' I", { locale: da })}</span>
             </p>
-            <p className="mt-0.5 truncate text-xs italic text-muted-foreground/80 sm:line-clamp-2 sm:whitespace-normal">
-              {getDailyQuote()}
-            </p>
           </div>
           <div className="flex items-center gap-1 lg:hidden">{actions}</div>
         </div>
@@ -107,6 +105,8 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
           <div className="hidden items-center gap-1 lg:flex">{actions}</div>
         </div>
       </div>
+
+      <DailyQuoteCard quote={getDailyQuote()} compact className="mt-3" />
 
       <div className="relative mt-3">
         <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-0.5 pr-6 [scrollbar-width:none] sm:pr-1">
