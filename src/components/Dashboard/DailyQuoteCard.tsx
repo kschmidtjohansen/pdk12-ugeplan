@@ -33,7 +33,7 @@ const DailyQuoteCard: React.FC<DailyQuoteCardProps> = ({ quote, compact = false,
       )}
       aria-hidden
     >
-      <Quote className={compact ? 'h-3.5 w-3.5' : 'h-4.5 w-4.5'} />
+      <Quote className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
     </span>
     <div className="min-w-0">
       <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
