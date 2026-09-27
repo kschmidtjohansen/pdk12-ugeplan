@@ -20,22 +20,30 @@ const WeatherAlertBar: React.FC = () => {
   const { assignments } = useAssignments();
   const { employees } = useEmployees();
   const { cars } = useCars();
+  const { selectedDepartmentId } = useDepartment();
+  const { settings } = useWeatherAlertSettings(selectedDepartmentId);
+  const { data: postalPoints } = usePostalCodeCoordinates(settings.postalCodes);
 
-  // Area centre: tasks with coordinates, fallback staff home coordinates
+  // Area centre: configured postal codes, else tasks, else staff home coordinates
   const centre = useMemo(() => {
+    const postal = (postalPoints ?? []).map(p => [p.lat, p.lng]);
     const pts = [
       ...(assignments ?? []).filter(a => a.lat && a.lng).map(a => [a.lat!, a.lng!]),
     ];
-    const src = pts.length ? pts : (employees ?? []).filter(e => e.lat && e.lng).map(e => [e.lat!, e.lng!]);
+    const src = postal.length
+      ? postal
+      : pts.length
+        ? pts
+        : (employees ?? []).filter(e => e.lat && e.lng).map(e => [e.lat!, e.lng!]);
     if (!src.length) return null;
     const lat = src.reduce((s, p) => s + p[0], 0) / src.length;
     const lng = src.reduce((s, p) => s + p[1], 0) / src.length;
     return { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 };
-  }, [assignments, employees]);
+  }, [assignments, employees, postalPoints]);
 
   const { data: hours } = useQuery({
     queryKey: ['weather-forecast', centre?.lat, centre?.lng],
-    enabled: !!centre,
+    enabled: !!centre && settings.enabled,
     staleTime: 30 * 60 * 1000,
     queryFn: async (): Promise<HourPoint[]> => {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${centre!.lat}&longitude=${centre!.lng}&hourly=precipitation,wind_gusts_10m&wind_speed_unit=ms&models=dmi_seamless&forecast_hours=24&timezone=Europe%2FCopenhagen`;
