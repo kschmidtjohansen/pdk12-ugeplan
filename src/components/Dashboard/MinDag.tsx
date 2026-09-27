@@ -17,6 +17,7 @@ import CaseNumber from '@/components/shared/CaseNumber';
 import { Assignment } from '@/types/assignment';
 
 const AssignmentDetailsDialog = lazy(() => import('./AssignmentDetailsDialog'));
+const OnMyWaySmsDialog = lazy(() => import('./OnMyWaySmsDialog'));
 
 const toMinutes = (time?: string): number => {
   if (!time) return 0;
@@ -39,6 +40,8 @@ const MinDag: React.FC = () => {
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [isSmsOpen, setIsSmsOpen] = useState(false);
+  const [smsCaseNumber, setSmsCaseNumber] = useState<string | null>(null);
 
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
