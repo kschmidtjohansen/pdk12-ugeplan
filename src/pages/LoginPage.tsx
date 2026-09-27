@@ -111,9 +111,7 @@ const LoginPage = () => {
           className="mt-8 text-center text-xs text-muted-foreground/70 tracking-wide animate-fade-in-up"
           style={{ animationDelay: '200ms' }}
         >
-          © {new Date().getFullYear()} Polygon Group · {isDanish ? 'Internt system' : 'Internal system'}
-          {' · '}
-          {isDanish ? 'Kontakt jeres administrator for adgang.' : 'Contact your administrator for access.'}
+          © {new Date().getFullYear()} Polygon Group
         </p>
       </main>
     </div>
