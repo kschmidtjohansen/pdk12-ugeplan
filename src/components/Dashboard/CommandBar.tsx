@@ -13,6 +13,7 @@ import { getDailyQuote } from '@/utils/dailyQuotes';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
 import GlobalSearch from './GlobalSearch';
+import DailyQuoteCard from './DailyQuoteCard';
 import StatusPill from './StatusPill';
 import StatusDetailSheet from './StatusDetailSheet';
 import { DutyDetailPanel, AvailableEmployeesPanel, AvailableCarsPanel, ExpiringTempsPanel } from './StatusPanels';
@@ -104,6 +105,8 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
           <div className="hidden items-center gap-1 lg:flex">{actions}</div>
         </div>
       </div>
+
+      <DailyQuoteCard quote={getDailyQuote()} compact className="mt-3" />
 
       <div className="relative mt-3">
         <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-0.5 pr-6 [scrollbar-width:none] sm:pr-1">
