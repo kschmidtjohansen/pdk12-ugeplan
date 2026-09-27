@@ -20,7 +20,7 @@ export default tseslint.config(
       "unused-imports": unusedImports,
     },
     rules: {
-      "no-restricted-imports": ["error", { paths: [{ name: "pdf-lib", message: "Brug await import('pdf-lib') så PDF ikke belaster første indlæsning.", allowTypeImports: true }] }],
+      "no-restricted-imports": ["error", { paths: [{ name: "pdf-lib", message: "Brug await import('pdf-lib') så PDF ikke belaster første indlæsning." }] }],
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": [
         "warn",
