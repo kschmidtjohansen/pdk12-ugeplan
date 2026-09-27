@@ -1,3 +1,6 @@
+## 2026-09-27 — Både skadeledervagt og kørevagt i kommandobjælken
+- Vagt-pillen i CommandBar delt op i to piller: "Skadeleder: …" (skjold-ikon) og "Kørevagt(er): …" (telefon-ikon), så begge vagttyper altid er synlige. Er der ingen vagter, vises "Ingen vagt i dag". Begge piller åbner DutyDetailPanel med telefonnumre og Ring/SMS.
+
 ## 2026-09-27 — Vagter i dag erstatter hurtigadgang på forsiden
 - Nyt kort "Vagter i dag" i forsidens sidepanel: dagens vagter med type, navn og Ring/SMS-knapper (44 px), samt "Vis hele ugen" der folder ugens resterende vagter ud dag for dag med ring-genvej. Knap til at åbne vagtplanen.
 - Genvejsboksen (Ugeplan/Fridage/Vagt/Medarbejdere/Biler) fjernet fra både desktop-panelet og mobilens "Mere"-sektion.
