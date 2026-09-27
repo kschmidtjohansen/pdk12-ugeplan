@@ -12,7 +12,6 @@ import PastAssignments from './PastAssignments';
 import CompactCurrentAndFutureDays from './CompactCurrentAndFutureDays';
 import CompactPastAssignments from './CompactPastAssignments';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
-import { useUnifiedData } from '@/hooks/data/useUnifiedData';
 import { useVacations } from '@/hooks/useVacations';
 import { useCrossSubDeptBusy } from '@/hooks/useCrossSubDeptBusy';
 const AssignmentDetailsDialog = lazy(() => import('@/components/Dashboard/AssignmentDetailsDialog'));
@@ -42,6 +41,9 @@ interface PlannerContentProps {
   onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
   allExpanded?: boolean;
   onToggleAllExpanded?: () => void;
+  /** Employees and cars already loaded (and cached) by PlannerPage. */
+  employees: import('@/types/employee').Employee[];
+  cars: import('@/types/car').Car[];
 }
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
@@ -66,13 +68,13 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   onToggleSelect,
   allExpanded = false,
   onToggleAllExpanded,
+  employees = [],
+  cars = [],
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   
-  // Assignments come from PlannerPage — fetching them again here would pull the
-  // department's full history on every page load.
-  const { employees, cars } = useUnifiedData({ includeAssignments: false });
+  // Employees/cars/assignments come from PlannerPage's cached queries — no second fetch here.
   const { vacations } = useVacations();
   const { crossBusyByDate } = useCrossSubDeptBusy({ weekDates });
   
