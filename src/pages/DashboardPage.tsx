@@ -19,6 +19,7 @@ import PushNotificationCard from '@/components/Pwa/PushNotificationCard';
 
 import { useState, useEffect, useCallback } from 'react';
 import ExpiringTempsCard from '@/components/Dashboard/ExpiringTempsCard';
+import WeatherAlertBar from '@/components/Dashboard/WeatherAlertBar';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, addWeeks } from 'date-fns';
 
 const DashboardPage: React.FC = () => {
@@ -97,6 +98,8 @@ const DashboardPage: React.FC = () => {
 
           {/* Quick sub-department switcher (only if > 1 sub-dept) */}
           {!isServicemedarbejder && <SubDepartmentQuickSwitcher />}
+
+          {(effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder') && !isDemoMode && <WeatherAlertBar />}
 
           {(effectiveRole === 'super_admin' || effectiveRole === 'administrator' || effectiveRole === 'skadeleder') && !isDemoMode && <ExpiringTempsCard />}
 

@@ -1,3 +1,7 @@
+## 2026-09-27 — Vejr-beredskab og "SMS: På vej"
+- Beredskabsbjælke på dashboardet (skadeleder/admin) ud fra DMI-prognose: tændes ved ≥15 mm regn på 6 timer eller vindstød ≥20 m/s inden for 24 timer; viser ledige teknikere og biler.
+- "SMS: På vej"-knap på Min Dag åbner telefonens besked-app med færdig tekst; teknikeren vælger selv modtager.
+
 ## 2026-09-27 — Strammere rettigheder på serverfunktioner
 - Ikke-indloggede kan ikke længere køre beskyttede funktioner (kun kioskvisningen er åben).
 - 40 ubrugte interne funktioner (fejlsøgning, test, gammel logning) er lukket for brugere.
