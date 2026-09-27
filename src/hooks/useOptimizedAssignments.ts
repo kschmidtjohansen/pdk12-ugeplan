@@ -296,16 +296,61 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
     let isMounted = true;
 
-    const handleRealtimeChange = () => {
+    // Adaptive burst debounce: a single change syncs after 500 ms; during bursts
+    // (>3 events/sec) we wait for quiet, but never longer than 2.5 s in total.
+    let burstStart = 0;
+    let burstCount = 0;
+
+    // Surgical in-memory patch so only the affected day(s) re-render instantly.
+    const patchCache = (table: string, payload: any) => {
+      if (table !== 'assignments') return;
+      const oldRow = payload?.old;
+      const newRow = payload?.new;
+      queryClient.setQueriesData<Assignment[]>({ queryKey: ['assignments'] }, (prev) => {
+        if (!Array.isArray(prev)) return prev;
+        if (payload?.eventType === 'DELETE' && oldRow?.id) {
+          return prev.some(a => a.id === oldRow.id) ? prev.filter(a => a.id !== oldRow.id) : prev;
+        }
+        if (payload?.eventType === 'UPDATE' && newRow?.id) {
+          const idx = prev.findIndex(a => a.id === newRow.id);
+          if (idx === -1) return prev;
+          const cur = prev[idx];
+          const next: Assignment = {
+            ...cur,
+            date: newRow.assignment_date ?? cur.date,
+            fromTime: newRow.from_time ? String(newRow.from_time).slice(0, 5) : cur.fromTime,
+            toTime: newRow.to_time ? String(newRow.to_time).slice(0, 5) : cur.toTime,
+            title: newRow.title ?? cur.title,
+            location: newRow.location ?? cur.location,
+            published: newRow.published ?? cur.published,
+          };
+          const copy = prev.slice();
+          copy[idx] = next;
+          return copy;
+        }
+        return prev;
+      });
+    };
+
+    const handleRealtimeChange = (table: string, payload: any) => {
       if (!isMounted) return;
+      try { patchCache(table, payload); } catch { /* fall back to full sync */ }
+
+      const now = Date.now();
+      if (now - burstStart > 1000 && burstCount === 0) burstStart = now;
+      burstCount++;
+      const isBurst = burstCount > 3;
+      const elapsed = now - burstStart;
+      const delay = isBurst ? Math.max(0, Math.min(1000, 2500 - elapsed)) : 500;
+
       if (realtimeThrottleRef.current) clearTimeout(realtimeThrottleRef.current);
       realtimeThrottleRef.current = setTimeout(() => {
+        burstCount = 0;
         if (isMounted) {
-          if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Realtime change detected, invalidating...');
           OptimizedAssignmentService.clearCache();
           queryClient.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
         }
-      }, 500);
+      }, delay);
     };
 
     const unsubscribe = subscribeToTables(
@@ -314,7 +359,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         { table: 'assignments' },
         { table: 'assignments_employees' },
       ],
-      () => handleRealtimeChange()
+      (table, payload) => handleRealtimeChange(table, payload)
     );
 
     return () => {
