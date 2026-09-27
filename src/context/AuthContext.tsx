@@ -680,16 +680,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               factorId: webauthnFactor.id,
             });
             if (mfaError) {
-              await supabase.auth.signOut();
-              return { error: 'Biometrisk bekræftelse blev afbrudt eller fejlede. Prøv igen.' };
+              // Biometrics are optional: keep the password session (e.g. passkey
+              // lives on another device, or the prompt was dismissed).
+              if (import.meta.env.DEV) console.warn('[AuthProvider] Biometric step skipped:', mfaError.message);
             }
           }
         }
       } catch (mfaErr) {
-        // Biometric confirmation failed unexpectedly — sign out to avoid a partial session
-        if (import.meta.env.DEV) console.error('[AuthProvider] MFA step failed:', mfaErr instanceof Error ? mfaErr.message : 'Unknown');
-        await supabase.auth.signOut();
-        return { error: 'Biometrisk bekræftelse fejlede. Prøv igen.' };
+        // Never block a valid password login on biometric failures
+        if (import.meta.env.DEV) console.warn('[AuthProvider] MFA step skipped:', mfaErr instanceof Error ? mfaErr.message : 'Unknown');
       }
 
       toast({
