@@ -187,7 +187,8 @@ export const useEmployeeData = () => {
     queryKey,
     queryFn: fetchEmployeesFn,
     enabled: userDataLoaded && !!user && (isDemoMode || !!selectedDepartmentId),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   // Backfill missing GPS coordinates for employees with home_postcode

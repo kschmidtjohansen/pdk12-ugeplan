@@ -165,3 +165,8 @@ Detaljeret beskrivelse af projektets sikkerhedsarkitektur, kryptering, adgangsko
 - **Rate limiting**: Ingen officiel grænse, debounced 300ms klient-side
 - **Fallback**: Manuel fritekst-indtastning hvis proxy eller API fejler
 - **Data brugt**: vejnavn, husnr, postnr, postnrnavn
+
+## Cache-strategi (2026-09-27)
+- Sjældent ændrede data (medarbejdere, vagtmedarbejdere, biler): staleTime 15 min, gcTime 30 min. Mutationer invaliderer straks.
+- Opgaver og vagter: standard 5 min, holdes friske via Supabase Realtime.
+- `pdf-lib` må kun indlæses via `await import('pdf-lib')`.

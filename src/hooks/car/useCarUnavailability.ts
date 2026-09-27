@@ -16,7 +16,7 @@ export const useCarUnavailability = () => {
     queryKey,
     queryFn: () => CarUnavailabilityService.listActive(selectedDepartmentId ?? undefined),
     enabled: !isDemoMode && userDataLoaded && !!user && !!selectedDepartmentId,
-    staleTime: 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 
   useEffect(() => {
