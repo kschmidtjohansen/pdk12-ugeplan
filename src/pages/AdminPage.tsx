@@ -15,6 +15,7 @@ import UserManagement from '@/components/Admin/UserManagement';
 import DepartmentManagement from '@/components/Admin/DepartmentManagement';
 import SubDepartmentManagement from '@/components/Admin/SubDepartmentManagement';
 import FeatureToggleManagement from '@/components/Admin/FeatureToggleManagement';
+import WeatherAlertSettings from '@/components/Admin/WeatherAlertSettings';
 import LocationManagement from '@/components/Admin/LocationManagement';
 
 import WebVitalsOverview from '@/components/Admin/WebVitalsOverview';
@@ -151,8 +152,9 @@ const AdminPage: React.FC = () => {
             <SubDepartmentManagement />
           </TabsContent>
 
-          <TabsContent value="features" className="animate-fade-in">
+          <TabsContent value="features" className="animate-fade-in space-y-4">
             <FeatureToggleManagement />
+            <WeatherAlertSettings />
           </TabsContent>
 
           {isWarehouseEnabled && (isSuperAdmin || isAdmin) && (

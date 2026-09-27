@@ -5,10 +5,8 @@ import { CloudRain, Wind, Users, Car as CarIcon } from 'lucide-react';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCars } from '@/hooks/car';
-
-// Thresholds (forecast-based, DMI HARMONIE via Open-Meteo)
-const RAIN_6H_MM = 15;
-const GUST_MS = 20;
+import { useDepartment } from '@/context/DepartmentContext';
+import { useWeatherAlertSettings, usePostalCodeCoordinates } from '@/hooks/useWeatherAlertSettings';
 
 interface HourPoint { time: string; rain: number; gust: number }
 
@@ -22,22 +20,30 @@ const WeatherAlertBar: React.FC = () => {
   const { assignments } = useAssignments();
   const { employees } = useEmployees();
   const { cars } = useCars();
+  const { selectedDepartmentId } = useDepartment();
+  const { settings } = useWeatherAlertSettings(selectedDepartmentId);
+  const { data: postalPoints } = usePostalCodeCoordinates(settings.postalCodes);
 
-  // Area centre: tasks with coordinates, fallback staff home coordinates
+  // Area centre: configured postal codes, else tasks, else staff home coordinates
   const centre = useMemo(() => {
+    const postal = (postalPoints ?? []).map(p => [p.lat, p.lng]);
     const pts = [
       ...(assignments ?? []).filter(a => a.lat && a.lng).map(a => [a.lat!, a.lng!]),
     ];
-    const src = pts.length ? pts : (employees ?? []).filter(e => e.lat && e.lng).map(e => [e.lat!, e.lng!]);
+    const src = postal.length
+      ? postal
+      : pts.length
+        ? pts
+        : (employees ?? []).filter(e => e.lat && e.lng).map(e => [e.lat!, e.lng!]);
     if (!src.length) return null;
     const lat = src.reduce((s, p) => s + p[0], 0) / src.length;
     const lng = src.reduce((s, p) => s + p[1], 0) / src.length;
     return { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 };
-  }, [assignments, employees]);
+  }, [assignments, employees, postalPoints]);
 
   const { data: hours } = useQuery({
     queryKey: ['weather-forecast', centre?.lat, centre?.lng],
-    enabled: !!centre,
+    enabled: !!centre && settings.enabled,
     staleTime: 30 * 60 * 1000,
     queryFn: async (): Promise<HourPoint[]> => {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${centre!.lat}&longitude=${centre!.lng}&hourly=precipitation,wind_gusts_10m&wind_speed_unit=ms&models=dmi_seamless&forecast_hours=24&timezone=Europe%2FCopenhagen`;
@@ -53,6 +59,7 @@ const WeatherAlertBar: React.FC = () => {
   });
 
   const alert = useMemo(() => {
+    if (!settings.enabled) return null;
     if (!hours || hours.length < 6) return null;
     let best = { sum: 0, start: 0 };
     for (let i = 0; i + 6 <= hours.length; i++) {
@@ -60,13 +67,13 @@ const WeatherAlertBar: React.FC = () => {
       if (sum > best.sum) best = { sum, start: i };
     }
     const maxGust = hours.reduce((m, h) => (h.gust > m.gust ? h : m), hours[0]);
-    const rain = best.sum >= RAIN_6H_MM;
-    const wind = maxGust.gust >= GUST_MS;
+    const rain = best.sum >= settings.rain6hMm;
+    const wind = maxGust.gust >= settings.gustMs;
     if (!rain && !wind) return null;
     const startTime = rain ? hours[best.start].time : maxGust.time;
     const endTime = rain ? hours[best.start + 5].time : maxGust.time;
     return { rain, wind, mm: Math.round(best.sum), gust: Math.round(maxGust.gust), startTime, endTime };
-  }, [hours]);
+  }, [hours, settings.enabled, settings.rain6hMm, settings.gustMs]);
 
   const reserve = useMemo(() => {
     if (!alert) return null;
