@@ -1,3 +1,7 @@
+## 2026-09-27 — Valgfri biometri: prøv igen eller fortsæt med adgangskode
+- Ny BiometricRetryDialog vises når Face ID / fingeraftryk afbrydes, fejler eller ikke er tilgængelig: "Prøv Face ID / fingeraftryk igen" og "Fortsæt med adgangskode".
+- AuthContext: `runBiometricStep` og `retryBiometric`; adgangskode-sessionen bevares altid, ingen udlogning ved biometrisk fejl. Dialogen kan lukkes, hvilket svarer til "Fortsæt med adgangskode".
+
 ## 2026-09-27 — Både skadeledervagt og kørevagt i kommandobjælken
 - Vagt-pillen i CommandBar delt op i to piller: "Skadeleder: …" (skjold-ikon) og "Kørevagt(er): …" (telefon-ikon), så begge vagttyper altid er synlige. Er der ingen vagter, vises "Ingen vagt i dag". Begge piller åbner DutyDetailPanel med telefonnumre og Ring/SMS.
 
