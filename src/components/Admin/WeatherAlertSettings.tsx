@@ -21,7 +21,8 @@ const WeatherAlertSettings: React.FC = () => {
 
   const [enabled, setEnabled] = useState(DEFAULT_WEATHER_ALERT_SETTINGS.enabled);
   const [postalCodes, setPostalCodes] = useState<string[]>([]);
-  const [rain, setRain] = useState(String(DEFAULT_WEATHER_ALERT_SETTINGS.rain6hMm));
+  const [rain24, setRain24] = useState(String(DEFAULT_WEATHER_ALERT_SETTINGS.rain24hMm));
+  const [rain30, setRain30] = useState(String(DEFAULT_WEATHER_ALERT_SETTINGS.rain30minMm));
   const [gust, setGust] = useState(String(DEFAULT_WEATHER_ALERT_SETTINGS.gustMs));
   const [newCode, setNewCode] = useState('');
 
@@ -29,7 +30,8 @@ const WeatherAlertSettings: React.FC = () => {
     if (isLoading) return;
     setEnabled(settings.enabled);
     setPostalCodes(settings.postalCodes);
-    setRain(String(settings.rain6hMm));
+    setRain24(String(settings.rain24hMm));
+    setRain30(String(settings.rain30minMm));
     setGust(String(settings.gustMs));
   }, [isLoading, settings]);
 
@@ -51,11 +53,13 @@ const WeatherAlertSettings: React.FC = () => {
   };
 
   const handleSave = async () => {
-    const rainMm = Math.max(1, Math.min(200, parseInt(rain, 10) || DEFAULT_WEATHER_ALERT_SETTINGS.rain6hMm));
-    const gustMs = Math.max(5, Math.min(60, parseInt(gust, 10) || DEFAULT_WEATHER_ALERT_SETTINGS.gustMs));
+    const rain24hMm = Math.max(1, Math.min(200, parseInt(rain24, 10) || DEFAULT_WEATHER_ALERT_SETTINGS.rain24hMm));
+    const rain30minMm = Math.max(1, Math.min(100, parseInt(rain30, 10) || DEFAULT_WEATHER_ALERT_SETTINGS.rain30minMm));
+    const gustMs = Math.max(5, Math.min(60, parseFloat(gust.replace(',', '.')) || DEFAULT_WEATHER_ALERT_SETTINGS.gustMs);
     try {
-      await save({ enabled, postalCodes, rain6hMm: rainMm, gustMs });
-      setRain(String(rainMm));
+      await save({ enabled, postalCodes, rain24hMm, rain30minMm, gustMs });
+      setRain24(String(rain24hMm));
+      setRain30(String(rain30minMm));
       setGust(String(gustMs));
       toast({ title: 'Gemt', description: 'Indstillinger for vejrvarsel er opdateret.' });
     } catch (error) {
@@ -68,7 +72,7 @@ const WeatherAlertSettings: React.FC = () => {
   };
 
   const summary = enabled
-    ? `Bjælken vises ved mindst ${rain || '—'} mm regn på 6 timer eller vindstød over ${gust || '—'} m/s${
+    ? `Bjælken vises ved mindst ${rain24 || '—'} mm regn på 24 timer, ${rain30 || '—'} mm på 30 min eller vindstød over ${gust || '—'} m/s${
         postalCodes.length ? ` i ${postalCodes.join(', ')}` : ' i afdelingens opgaveområde'
       }.`
     : 'Beredskabsbjælken er slået fra for denne afdeling.';
