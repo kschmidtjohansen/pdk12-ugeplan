@@ -85,20 +85,6 @@ const LoginPage = () => {
           {/* Login-formular */}
           <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
 
-          {/* Feature-piller */}
-          <div className="mt-8 pt-6 border-t border-border/60">
-            <div className="flex flex-wrap justify-center gap-2">
-              {features.map((f) => (
-                <span
-                  key={f.label}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-muted/50 rounded-full border border-border/60 text-xs font-semibold text-muted-foreground transition-colors hover:bg-primary/5 hover:text-primary cursor-default"
-                >
-                  <f.icon className="h-3.5 w-3.5 text-polygon-blue" aria-hidden />
-                  {f.label}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Installer som app - kun mobil/tablet */}
