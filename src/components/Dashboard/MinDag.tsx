@@ -336,6 +336,18 @@ const MinDag: React.FC = () => {
           />
         </Suspense>
       )}
+
+      {isSmsOpen && (
+        <Suspense fallback={null}>
+          <OnMyWaySmsDialog
+            isOpen={isSmsOpen}
+            onClose={() => setIsSmsOpen(false)}
+            caseNumber={smsCaseNumber}
+            senderFirstName={user?.name?.split(' ')[0] ?? ''}
+            isDa={isDa}
+          />
+        </Suspense>
+      )}
     </Card>
   );
 };
