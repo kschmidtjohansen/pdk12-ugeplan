@@ -290,6 +290,19 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             {t('planner.contextMenu.duplicate')}
           </ContextMenuItem>
         )}
+        {canEdit && plannerActions && (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuItem onClick={() => plannerActions.quickMove(assignment, 1)} className="gap-2">
+              <CalendarArrowDown className="h-4 w-4" />
+              Skub 1 dag frem
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => plannerActions.quickMove(assignment, -1)} className="gap-2">
+              <CalendarArrowUp className="h-4 w-4" />
+              Træk 1 dag tilbage
+            </ContextMenuItem>
+          </>
+        )}
         {!assignment.published && onPublish && canEdit && (
           <ContextMenuItem onClick={() => handlePublishClick(assignment.id)} className="gap-2">
             <Send className="h-4 w-4" />
