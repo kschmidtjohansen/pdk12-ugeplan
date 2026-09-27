@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { getISOWeek, getISOWeekYear, startOfISOWeek, endOfISOWeek, addWeeks, format } from 'date-fns';
-import QuickAccessGrid from './QuickAccessGrid';
+import TodayGuardsWidget from './TodayGuardsWidget';
 import CompactKpiStack from './CompactKpiStack';
 import UpcomingVacationsWidget from './UpcomingVacationsWidget';
 import TodayTimeline from './TodayTimeline';
@@ -114,20 +114,20 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {isMobile ? (
         <Collapsible open={moreOpen} onOpenChange={setMoreOpen}>
           <CollapsibleTrigger className="flex h-11 w-full items-center justify-between rounded-xl border border-border/60 bg-card/70 px-4 text-sm font-medium text-foreground">
-            Mere: nøgletal, ferier og genveje
+            Mere: nøgletal, vagter og ferier
             <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3 space-y-4">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
+        <TodayGuardsWidget />
         <UpcomingVacationsWidget vacations={vacations} />
-        <QuickAccessGrid userRole={userRole} />
           </CollapsibleContent>
         </Collapsible>
       ) : (
       <aside className="space-y-4 lg:sticky lg:top-14 lg:self-start">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
+        <TodayGuardsWidget />
         <UpcomingVacationsWidget vacations={vacations} />
-        <QuickAccessGrid userRole={userRole} />
       </aside>
       )}
     </div>
