@@ -43,7 +43,9 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
     const name = d.employee?.name || emp?.name || (d.notes?.startsWith('EKSTERN:') ? d.notes.split('\n')[0].replace('EKSTERN: ', '') : 'Ukendt');
     return { id: d.id, type: d.duty_type === 'skadeleder_vagt' ? 'Skadeledervagt' : 'Kørevagt', name, phone: emp?.phone };
   });
-  const mainDuty = dutyPeople.find(d => d.type === 'Skadeledervagt') ?? dutyPeople[0];
+  const leaderDuties = dutyPeople.filter(d => d.type === 'Skadeledervagt');
+  const driveDuties = dutyPeople.filter(d => d.type === 'Kørevagt');
+  const names = (list: typeof dutyPeople) => list.map(d => d.name.split(' ')[0]).join(', ');
   const upcomingDuties = useMemo(() => duties
     .filter(d => d.duty_date > todayStr)
     .sort((a, b) => a.duty_date.localeCompare(b.duty_date))
