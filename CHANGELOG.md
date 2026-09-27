@@ -1,3 +1,9 @@
+## 2026-09-27 — Ét-tryk ring og besked til medarbejdere alle steder
+- Ny delt komponent EmployeeContactActions (Ring/SMS-ikoner, tel:- og sms:-links, 44 px touch-targets, stopPropagation, skjult uden nummer).
+- Brugt tre steder: (1) den fulde medarbejderliste på forsiden (EmployeeAvailabilityDialog) ved siden af status-mærket; (2) planlæggerens medarbejderrækker — i info-boksen ved tryk på skadeledere, fugtteknikere, servicemedarbejdere samt fraværs- og kursusrækker; (3) ferie-siden — ved siden af medarbejderens navn i både tabel (desktop) og kort (mobil).
+- Ferie-datakæden udvidet med telefonnummer: profiles-hentningen (produktion + demo) udvælger nu phone, og Vacation-typen har phone-feltet.
+- Rensning: ubeskyttet debug-logning fjernet fra medarbejderdialogen, og en fast grå farve erstattet med semantisk token.
+
 ## 2026-09-27 — Vejrgrænser fra Forsikringsvejret og lettere login på telefonen
 - Vejr-bjælken bruger nu forsikringsrelevante grænser: regn pr. 24 timer (30 mm), kraftig regn pr. 30 min (15 mm) og vindstød (17,2 m/s). Bjælken viser hvilken forsikringsgrænse der er overskredet og har et diskret link "Tjek på Forsikringsvejret". Admin-indstillingen har tre felter med hjælpetekster; gamle gemte værdier (regn/6t) falder tilbage til standarderne.
 - Login-siden forudfylder e-mail med sidst brugte adresse (gemmes ved succesfuld login; kun e-mail, aldrig adgangskode).
