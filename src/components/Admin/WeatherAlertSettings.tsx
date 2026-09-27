@@ -55,7 +55,7 @@ const WeatherAlertSettings: React.FC = () => {
   const handleSave = async () => {
     const rain24hMm = Math.max(1, Math.min(200, parseInt(rain24, 10) || DEFAULT_WEATHER_ALERT_SETTINGS.rain24hMm));
     const rain30minMm = Math.max(1, Math.min(100, parseInt(rain30, 10) || DEFAULT_WEATHER_ALERT_SETTINGS.rain30minMm));
-    const gustMs = Math.max(5, Math.min(60, parseFloat(gust.replace(',', '.')) || DEFAULT_WEATHER_ALERT_SETTINGS.gustMs);
+    const gustMs = Math.max(5, Math.min(60, parseFloat(gust.replace(',', '.')) || DEFAULT_WEATHER_ALERT_SETTINGS.gustMs));
     try {
       await save({ enabled, postalCodes, rain24hMm, rain30minMm, gustMs });
       setRain24(String(rain24hMm));
