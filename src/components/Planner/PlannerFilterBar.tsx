@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Users, MapPin, X, Check, SlidersHorizontal } from 'lucide-react';
+import { Users, MapPin, X, Check, SlidersHorizontal, Search } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { Employee } from '@/types/employee';
@@ -22,11 +22,14 @@ interface PlannerFilterBarProps {
   weekAssignments: Assignment[];
   weekDates: { start: Date; end: Date; startStr: string; endStr: string };
   showProximity?: boolean;
+  /** Free-text quick search across case number, title, customer and employees. */
+  query?: string;
+  onQueryChange?: (value: string) => void;
 }
 
 /**
- * Compact filter bar above the week list: multi-select employee filter and a
- * postcode lookup that ranks employees by proximity.
+ * Compact filter bar above the week list: quick search, multi-select employee
+ * filter and a postcode lookup that ranks employees by proximity.
  */
 const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   employees,
@@ -37,6 +40,8 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   weekAssignments,
   weekDates,
   showProximity = true,
+  query = '',
+  onQueryChange,
 }) => {
   const { t } = useTranslation();
   const { userSubDepartments, selectedSubDepartmentId } = useDepartment();
