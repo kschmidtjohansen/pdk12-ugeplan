@@ -23,6 +23,9 @@ import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import SubDepartmentQuickSwitcher from '@/components/shared/SubDepartmentQuickSwitcher';
 import PlannerFilterBar from '@/components/Planner/PlannerFilterBar';
+import DayQuickNav from '@/components/Planner/DayQuickNav';
+import { PlannerActionsProvider } from '@/context/PlannerActionsContext';
+import { toast as sonnerToast } from 'sonner';
 
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
@@ -69,6 +72,9 @@ const PlannerPage: React.FC = () => {
   // Planner filters: employee multi-select + postcode proximity lookup
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
   const [filterPostcode, setFilterPostcode] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  
   
   
   // Use optimized assignments hook for unified data management
