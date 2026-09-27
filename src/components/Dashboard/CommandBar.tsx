@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { Phone, Users, Car, Clock } from 'lucide-react';
+import { Phone, Users, Car, Clock, Shield } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { useDutyData } from '@/hooks/duty/useDutyData';
@@ -43,7 +43,9 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
     const name = d.employee?.name || emp?.name || (d.notes?.startsWith('EKSTERN:') ? d.notes.split('\n')[0].replace('EKSTERN: ', '') : 'Ukendt');
     return { id: d.id, type: d.duty_type === 'skadeleder_vagt' ? 'Skadeledervagt' : 'Kørevagt', name, phone: emp?.phone };
   });
-  const mainDuty = dutyPeople.find(d => d.type === 'Skadeledervagt') ?? dutyPeople[0];
+  const leaderDuties = dutyPeople.filter(d => d.type === 'Skadeledervagt');
+  const driveDuties = dutyPeople.filter(d => d.type === 'Kørevagt');
+  const names = (list: typeof dutyPeople) => list.map(d => d.name.split(' ')[0]).join(', ');
   const upcomingDuties = useMemo(() => duties
     .filter(d => d.duty_date > todayStr)
     .sort((a, b) => a.duty_date.localeCompare(b.duty_date))
@@ -108,7 +110,15 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
 
       <div className="relative mt-3">
         <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-0.5 pr-6 [scrollbar-width:none] sm:pr-1">
-          <StatusPill className="snap-start" icon={Phone} tone="primary" label={mainDuty ? `Vagt: ${mainDuty.name}` : 'Ingen vagt i dag'} onClick={() => setPanel('duty')} />
+          {leaderDuties.length === 0 && driveDuties.length === 0 && (
+            <StatusPill className="snap-start" icon={Phone} tone="primary" label="Ingen vagt i dag" onClick={() => setPanel('duty')} />
+          )}
+          {leaderDuties.length > 0 && (
+            <StatusPill className="snap-start" icon={Shield} tone="primary" label={`Skadeleder: ${names(leaderDuties)}`} onClick={() => setPanel('duty')} />
+          )}
+          {driveDuties.length > 0 && (
+            <StatusPill className="snap-start" icon={Phone} tone="primary" label={`${driveDuties.length > 1 ? 'Kørevagter' : 'Kørevagt'}: ${names(driveDuties)}`} onClick={() => setPanel('duty')} />
+          )}
           <StatusPill className="snap-start" icon={Users} label={`${metrics.availableEmployees.count}/${metrics.availableEmployees.total} ledige`} onClick={() => setPanel('emp')} />
           <StatusPill className="snap-start" icon={Car} label={`${metrics.availableCars.count}/${metrics.availableCars.total} biler`} onClick={() => setPanel('car')} />
           {expiring.length > 0 && (
