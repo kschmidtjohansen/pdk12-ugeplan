@@ -8,7 +8,7 @@ import { PwaInstallButton } from '@/components/Pwa/PwaInstallButton';
 const LoginPage = () => {
   const { isAuthenticated, authReady, session, userDataLoaded } = useAuth();
   const navigate = useNavigate();
-  const { t, currentLanguage } = useTranslation();
+  const { t } = useTranslation();
   const departmentName = localStorage.getItem('selected_department_name');
   const lastUserName = typeof window !== 'undefined' ? localStorage.getItem('last_user_name') : null;
   const firstName = lastUserName ? lastUserName.split(' ')[0].trim() : '';
