@@ -157,7 +157,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
       <ContextMenuTrigger asChild>
         <Card
           className={cn(
-            'group relative flex h-full w-full flex-col p-3 brand-card-hover bg-card border-border/60 shadow-xs',
+            'group relative flex h-full w-full flex-col p-3 brand-card-hover bg-card border-border/60 shadow-xs overflow-hidden',
             hasConflict && 'border-destructive/40',
 
             isLoading && 'opacity-75',
@@ -166,6 +166,12 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           )}
           onClick={handleCardClick}
         >
+          {isSeries && (
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 h-full w-1 bg-primary/40"
+            />
+          )}
           {canEdit && onToggleSelect && (
             <div
               data-select-checkbox
