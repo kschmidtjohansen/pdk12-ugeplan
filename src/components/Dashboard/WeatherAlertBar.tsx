@@ -67,13 +67,13 @@ const WeatherAlertBar: React.FC = () => {
       if (sum > best.sum) best = { sum, start: i };
     }
     const maxGust = hours.reduce((m, h) => (h.gust > m.gust ? h : m), hours[0]);
-    const rain = best.sum >= RAIN_6H_MM;
-    const wind = maxGust.gust >= GUST_MS;
+    const rain = best.sum >= settings.rain6hMm;
+    const wind = maxGust.gust >= settings.gustMs;
     if (!rain && !wind) return null;
     const startTime = rain ? hours[best.start].time : maxGust.time;
     const endTime = rain ? hours[best.start + 5].time : maxGust.time;
     return { rain, wind, mm: Math.round(best.sum), gust: Math.round(maxGust.gust), startTime, endTime };
-  }, [hours]);
+  }, [hours, settings.enabled, settings.rain6hMm, settings.gustMs]);
 
   const reserve = useMemo(() => {
     if (!alert) return null;
