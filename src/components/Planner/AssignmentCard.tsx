@@ -8,7 +8,7 @@ import AssignmentStatusBadge from './AssignmentStatusBadge';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import AssignmentDetails from './AssignmentDetails';
 import { useTranslation } from '@/context/TranslationContext';
-import { Package, Pencil, Copy, Trash2, Send } from 'lucide-react';
+import { Package, Pencil, Copy, Trash2, Send, CalendarArrowDown, CalendarArrowUp, Layers } from 'lucide-react';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useWarehouseIndicators } from '@/hooks/warehouse/useWarehouseIndicators';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -16,6 +16,9 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import ConflictBadge from './ConflictBadge';
 import CaseNumber from '@/components/shared/CaseNumber';
+import AssignmentTimeStrip from './AssignmentTimeStrip';
+import { getSeriesPosition } from '@/utils/assignmentSeries';
+import { usePlannerActions } from '@/context/PlannerActionsContext';
 import { cn } from '@/lib/utils';
 
 interface AssignmentCardProps {
