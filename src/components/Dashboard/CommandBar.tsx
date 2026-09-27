@@ -9,6 +9,7 @@ import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
 import { isTempExpiringSoon, getTempDaysLeft, expiryLabel } from '@/utils/tempExpiry';
+import { getDailyQuote } from '@/utils/dailyQuotes';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
 import GlobalSearch from './GlobalSearch';
@@ -92,6 +93,9 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
             <p className="text-xs capitalize text-muted-foreground">
               <span className="sm:hidden">{format(now, "EEE d. MMM · 'uge' I", { locale: da })}</span>
               <span className="hidden sm:inline">{format(now, "EEEE d. MMMM · 'uge' I", { locale: da })}</span>
+            </p>
+            <p className="mt-0.5 truncate text-xs italic text-muted-foreground/80 sm:line-clamp-2 sm:whitespace-normal">
+              {getDailyQuote()}
             </p>
           </div>
           <div className="flex items-center gap-1 lg:hidden">{actions}</div>

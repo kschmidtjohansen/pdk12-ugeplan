@@ -1,3 +1,6 @@
+## 2026-09-27 — Dagens citat tilbage på leder-forsiden
+- CommandBar viser igen dagens motiverende citat (getDailyQuote) som en diskret kursiv linje under datoen; én linje med ellipsis på mobil, op til to linjer på større skærme. Servicemedarbejdernes WelcomeHeader er uændret — begge dashboards har nu citatet.
+
 ## 2026-09-27 — Status-piller med fokus-visninger og mobil-forside
 - Status-piller (vagt, ledige medarbejdere, biler, vikarer) åbner fokus-visning: drawer på mobil, dialog på desktop (StatusDetailSheet + StatusPanels). Vagt med Ring/SMS og resten af ugen; medarbejdere/biler med Ledige/Optaget.
 - Mobil: kompakt CommandBar, 44 px piller med fade-kant, faner i fuld bredde og sticky, strammere tidslinje med auto-scroll til aktiv sag, højre kolonne samlet i "Mere".
