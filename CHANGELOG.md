@@ -1,4 +1,11 @@
+## 2026-09-28 — Præcis fejlbesked ved registrering af Face ID / fingeraftryk
+- `BiometricLoginDialog` viser nu den nøjagtige fejl fra server og enhed (besked, fejlkode og HTTP-status) i stedet for en generisk tekst.
+- Serverafvisning genkendes bredere: `mfa_webauthn_enroll_not_enabled`, HTTP 422 samt formuleringerne "disabled"/"not enabled" — beskeden peger på at WebAuthn skal slås til som MFA-faktor i Supabase.
+- Afbrudt bekræftelse på enheden (`NotAllowedError`/`AbortError`/timeout) vises separat fra rigtige fejl.
+- Fejlen bliver desuden stående i dialogen, så den kan læses og kopieres videre.
+
 ## 2026-09-28 — Offline cache ryddes automatisk ved hver udgivelse
+
 - Nyt build-stempel injiceres i `vite.config.ts` (`__APP_BUILD_ID__`) og sammenlignes ved opstart i ny `src/lib/appVersionReset.ts` (kaldes fra `main.tsx`).
 - Ved ny version ryddes: alle Cache Storage-buckets, app-shell service worker-registreringer og `polyplan_offline_today_*`-snapshots (kældertilstand).
 - `push-sw.js` og login-/auth-lagring røres ikke: notifikationer virker videre, og ingen bliver logget ud.
