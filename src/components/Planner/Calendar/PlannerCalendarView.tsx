@@ -197,6 +197,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
