@@ -1,3 +1,7 @@
+## 2026-09-28 — Bedre skalering i kalendervisningen
+- Medarbejderbanerne i kalendervisningen fylder nu hele bredden og skalerer automatisk ned, jo flere medarbejdere der vælges (med en minimumsbredde, hvorefter der scrolles vandret).
+- Medarbejderlisten til venstre: "Alle"/"Fugt" er flyttet til egen række med ens bredde, og overskriften afkortes pænt, så knapperne ikke længere ligger skævt.
+
 ## 2026-09-28 — Rettelser: hurtig-flyt i ugeplanen og mobilkalender-swipe
 - Højreklik-menuens "Skub 1 dag frem" / "Træk 1 dag tilbage" virkede aldrig, fordi kun datoen blev sendt til opdateringen, som kræver titel, adresse og tidspunkter. Hurtig-flyt sender nu hele opgaven (inkl. medarbejder-ID'er, så tildelinger bevares) og fortryd-knappen gør det samme.
 - `updateAssignment` i `useOptimizedAssignments` kaster nu fejlen videre efter fejl-toasten, så kalderen kan reagere korrekt (success-toast vises kun ved faktisk succes).

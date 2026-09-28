@@ -101,7 +101,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
     <TooltipProvider delayDuration={300}>
     <div className="flex flex-col lg:flex-row gap-3 lg:gap-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Filterkolonne — sammenklappelig på mobil */}
-      <aside className={cn('shrink-0 rounded-xl border border-border bg-card p-3 transition-all duration-200', minimized ? 'lg:w-11' : 'lg:w-56')}>
+      <aside className={cn('shrink-0 rounded-xl border border-border bg-card p-3 transition-all duration-200', minimized ? 'lg:w-11' : 'lg:w-60')}>
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
@@ -110,17 +110,17 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
               else setFiltersOpen(o => !o);
             }}
             title={minimized ? 'Vis medarbejdere' : 'Minimer medarbejderliste'}
-            className="flex items-center gap-2 min-h-[36px] text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+            className="flex min-w-0 flex-1 items-center gap-2 min-h-[36px] text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
           >
-            <Users className="h-3.5 w-3.5" />
-            <span className={cn(minimized && 'lg:hidden')}>Medarbejdere ({lanes.length})</span>
-            <ChevronDown className={cn('h-3.5 w-3.5 lg:hidden transition-transform', filtersOpen && 'rotate-180')} />
-            <ChevronDown className={cn('hidden lg:block h-3.5 w-3.5 transition-transform', minimized ? 'rotate-180' : 'rotate-90')} />
+            <Users className="h-3.5 w-3.5 shrink-0" />
+            <span className={cn('truncate', minimized && 'lg:hidden')}>Medarbejdere ({lanes.length})</span>
+            <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 lg:hidden transition-transform', filtersOpen && 'rotate-180')} />
+            <ChevronDown className={cn('hidden lg:block h-3.5 w-3.5 shrink-0 transition-transform', minimized ? 'rotate-180' : 'rotate-90')} />
           </button>
-          <div className={cn('flex gap-1', minimized && 'lg:hidden')}>
-            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
-            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
-          </div>
+        </div>
+        <div className={cn('mt-2 grid grid-cols-2 gap-1', minimized && 'lg:hidden', !filtersOpen && 'hidden lg:grid')}>
+          <Button variant="outline" size="sm" className="h-8 w-full px-2 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
+          <Button variant="outline" size="sm" className="h-8 w-full px-2 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
         </div>
         <div className={cn('mt-2 max-h-56 lg:max-h-[640px] overflow-y-auto space-y-0.5', !filtersOpen && 'hidden', !minimized && 'lg:block')}>
           {sorted.map((e, i) => {
@@ -154,7 +154,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
           <div className="p-8 text-center text-sm text-muted-foreground">Vælg medarbejdere i listen for at se deres kalender.</div>
         ) : (
           <div className="overflow-auto max-h-[75vh]">
-            <div className="min-w-max">
+            <div className="min-w-full w-max">
               {/* Header + heldagsrække */}
               <div className="flex sticky top-0 z-20 bg-card border-b border-border">
                 <div className="w-14 shrink-0 sticky left-0 bg-card z-30" />
@@ -162,7 +162,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                   const abs = absentOn(e.id);
                   const c = getEmployeeColor(e.id, sorted.findIndex(s => s.id === e.id));
                   return (
-                    <div key={e.id} className="w-36 sm:w-44 shrink-0 border-l border-border px-2 py-1.5" style={{ borderTop: `3px solid ${c.border}` }}>
+                    <div key={e.id} className="flex-1 min-w-[130px] sm:min-w-[150px] border-l border-border px-2 py-1.5" style={{ borderTop: `3px solid ${c.border}` }}>
                       <div className="flex items-center gap-1.5">
                         <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: c.border }} />
                         <span className="text-xs font-semibold truncate">{e.name}</span>
@@ -188,7 +188,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                   const items = dayAssignments.filter(a => a.assignedEmployees?.some(x => x.id === e.id) || a.employees?.includes(e.id));
                   const c = getEmployeeColor(e.id, sorted.findIndex(s => s.id === e.id));
                   return (
-                    <div key={e.id} className={cn('w-36 sm:w-44 shrink-0 border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
+                    <div key={e.id} className={cn('flex-1 min-w-[130px] sm:min-w-[150px] border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
                       {hours.map(h => (
                         <button key={h} type="button" disabled={!canEdit || !onCreateAssignment}
                           onClick={() => onCreateAssignment?.(day)}
