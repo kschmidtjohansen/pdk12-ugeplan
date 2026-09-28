@@ -1,3 +1,9 @@
+## 2026-09-28 — Rettelser: hurtig-flyt i ugeplanen og mobilkalender-swipe
+- Højreklik-menuens "Skub 1 dag frem" / "Træk 1 dag tilbage" virkede aldrig, fordi kun datoen blev sendt til opdateringen, som kræver titel, adresse og tidspunkter. Hurtig-flyt sender nu hele opgaven (inkl. medarbejder-ID'er, så tildelinger bevares) og fortryd-knappen gør det samme.
+- `updateAssignment` i `useOptimizedAssignments` kaster nu fejlen videre efter fejl-toasten, så kalderen kan reagere korrekt (success-toast vises kun ved faktisk succes).
+- Sonner-toasteren er nu monteret i `App.tsx`, så success-/fortryd-beskeder (og alle øvrige Sonner-toasts i appen) rent faktisk vises.
+- Mobilkalenderen: vandret scroll i dagsvælgeren eller medarbejdergitteret skifter ikke længere ugen ved et uheld — ugen skiftes kun, hvis gestussen ikke scrollede et indholdsområde.
+
 ## 2026-09-28 — Baggrundsmusik til onboardingvideo
 - Ny version af `Polyplan_PDK12_Onboarding.mp4` med original, rolig corporate-baggrundsmusik lagt i Filer som `Polyplan_PDK12_Onboarding_med_musik_v2.mp4`.
 - Videoen er fortsat Full HD og 55 sekunder; musikken har blød ind- og udtoning.
