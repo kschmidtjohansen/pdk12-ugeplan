@@ -66,24 +66,35 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   const gridHeight = (END_HOUR - START_HOUR) * HOUR_PX;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4">
-      {/* Filterkolonne */}
+    <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
+      {/* Filterkolonne — sammenklappelig på mobil */}
       <aside className="lg:w-56 shrink-0 rounded-xl border border-border bg-card p-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Medarbejdere</span>
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(o => !o)}
+            className="flex items-center gap-2 min-h-[36px] text-xs font-semibold text-muted-foreground uppercase tracking-wide lg:cursor-default"
+          >
+            <Users className="h-3.5 w-3.5" />
+            <span>Medarbejdere ({lanes.length})</span>
+            <ChevronDown className={cn('h-3.5 w-3.5 lg:hidden transition-transform', filtersOpen && 'rotate-180')} />
+          </button>
           <div className="flex gap-1">
-            <Button variant="ghost" size="sm" className="h-6 px-1.5 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
-            <Button variant="ghost" size="sm" className="h-6 px-1.5 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
+            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
+            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
           </div>
         </div>
-        <div className="max-h-48 lg:max-h-[640px] overflow-y-auto space-y-0.5">
-          {sorted.map((e, i) => (
-            <label key={e.id} className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm hover:bg-muted cursor-pointer min-h-[32px]">
-              <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggle(e.id)} />
-              <span className={cn('h-2 w-2 rounded-full border', LANE_COLORS[i % LANE_COLORS.length])} />
-              <span className="truncate">{e.name}</span>
-            </label>
-          ))}
+        <div className={cn('mt-2 max-h-56 lg:max-h-[640px] overflow-y-auto space-y-0.5', !filtersOpen && 'hidden lg:block')}>
+          {sorted.map((e, i) => {
+            const c = getEmployeeColor(e.id, i);
+            return (
+              <label key={e.id} className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm hover:bg-muted cursor-pointer min-h-[40px] lg:min-h-[32px]">
+                <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggle(e.id)} />
+                <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.border }} />
+                <span className="truncate">{e.name}</span>
+              </label>
+            );
+          })}
         </div>
       </aside>
 
