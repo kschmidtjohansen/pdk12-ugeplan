@@ -721,3 +721,10 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Dansk speak til guiden om opgave og opgaveserie
 - [x] Synkroniserede, indbrændte undertekster i alle fire Full HD-videoer
 - [x] Kontrol af lydspor, undertekstplacering, billedformat og varighed
+
+## Musik til onboardingvideo (2026-09-28)
+
+- [x] Original rolig corporate-baggrundsmusik til den 55 sekunder lange onboardingvideo
+- [x] Blød ind- og udtoning samt kontrolleret lydniveau
+- [x] Ny version gemt uden at overskrive den oprindelige video
+- [x] Kontrol af billedformat, lydspor og varighed
