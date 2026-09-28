@@ -149,9 +149,9 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                 </div>
                 {lanes.map((e, li) => {
                   const items = dayAssignments.filter(a => a.assignedEmployees?.some(x => x.id === e.id) || a.employees?.includes(e.id));
-                  const color = LANE_COLORS[sorted.findIndex(s => s.id === e.id) % LANE_COLORS.length];
+                  const c = getEmployeeColor(e.id, sorted.findIndex(s => s.id === e.id));
                   return (
-                    <div key={e.id} className={cn('w-44 shrink-0 border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
+                    <div key={e.id} className={cn('w-36 sm:w-44 shrink-0 border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
                       {hours.map(h => (
                         <button key={h} type="button" disabled={!canEdit || !onCreateAssignment}
                           onClick={() => onCreateAssignment?.(day)}
@@ -166,8 +166,8 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                         const height = Math.max(22, ((Math.min(en, END_HOUR * 60) - Math.max(s, START_HOUR * 60)) / 60) * HOUR_PX - 2);
                         return (
                           <button key={a.id} type="button" onClick={() => onViewDetails(a)}
-                            className={cn('absolute left-1 right-1 z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', color, !a.published && 'border-dashed opacity-80')}
-                            style={{ top, height }}>
+                            className={cn('absolute left-1 right-1 z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden text-foreground shadow-sm hover:shadow-md transition-shadow', !a.published && 'border-dashed opacity-80')}
+                            style={{ top, height, backgroundColor: c.background, borderColor: c.border }}>
                             <div className="text-[10px] font-medium opacity-80">{a.fromTime?.slice(0, 5)}–{a.toTime?.slice(0, 5)}</div>
                             <div className="text-xs font-semibold leading-tight line-clamp-2">{a.title}</div>
                             {height > 60 && <div className="text-[10px] opacity-80 truncate">{a.location}</div>}
