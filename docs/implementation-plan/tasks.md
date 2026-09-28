@@ -712,3 +712,12 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Nærmeste lige nu i opgaveformular (2026-09-27)
 - [x] Vikar-udløbsadvarsel 3 dage før (2026-09-27)
 - [x] Tilbagetræk af byttetilbud med bekræftelse og notifikation (2026-09-27)
+
+## Dansk speak og undertekster til videoguides (2026-09-28)
+
+- [x] Dansk speak til guiden om vagtbytte
+- [x] Dansk speak til guiden om fridage, godkendelse og afvisning
+- [x] Dansk speak til guiden om medarbejder, bil og vikar
+- [x] Dansk speak til guiden om opgave og opgaveserie
+- [x] Synkroniserede, indbrændte undertekster i alle fire Full HD-videoer
+- [x] Kontrol af lydspor, undertekstplacering, billedformat og varighed
