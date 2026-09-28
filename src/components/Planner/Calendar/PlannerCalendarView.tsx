@@ -6,12 +6,13 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { ChevronDown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getEmployeeColor } from './employeeColors';
 
 const START_HOUR = 6;
 const END_HOUR = 19;
 const HOUR_PX = 56;
-const LANE_COLORS = ['bg-primary/15 border-primary text-foreground', 'bg-accent border-accent-foreground/40 text-accent-foreground', 'bg-secondary border-secondary-foreground/40 text-secondary-foreground', 'bg-muted border-muted-foreground/50 text-foreground'];
 
 interface Props {
   dates: string[];
@@ -57,6 +58,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
 
   const absentOn = (empId: string) => vacations.find(v => v.status === 'approved' && v.user_id === empId && v.start_date <= day && v.end_date >= day);
 
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [now, setNow] = useState(new Date());
   useEffect(() => { const i = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(i); }, []);
   const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -65,24 +67,35 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   const gridHeight = (END_HOUR - START_HOUR) * HOUR_PX;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4">
-      {/* Filterkolonne */}
+    <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
+      {/* Filterkolonne — sammenklappelig på mobil */}
       <aside className="lg:w-56 shrink-0 rounded-xl border border-border bg-card p-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Medarbejdere</span>
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(o => !o)}
+            className="flex items-center gap-2 min-h-[36px] text-xs font-semibold text-muted-foreground uppercase tracking-wide lg:cursor-default"
+          >
+            <Users className="h-3.5 w-3.5" />
+            <span>Medarbejdere ({lanes.length})</span>
+            <ChevronDown className={cn('h-3.5 w-3.5 lg:hidden transition-transform', filtersOpen && 'rotate-180')} />
+          </button>
           <div className="flex gap-1">
-            <Button variant="ghost" size="sm" className="h-6 px-1.5 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
-            <Button variant="ghost" size="sm" className="h-6 px-1.5 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
+            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
+            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
           </div>
         </div>
-        <div className="max-h-48 lg:max-h-[640px] overflow-y-auto space-y-0.5">
-          {sorted.map((e, i) => (
-            <label key={e.id} className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm hover:bg-muted cursor-pointer min-h-[32px]">
-              <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggle(e.id)} />
-              <span className={cn('h-2 w-2 rounded-full border', LANE_COLORS[i % LANE_COLORS.length])} />
-              <span className="truncate">{e.name}</span>
-            </label>
-          ))}
+        <div className={cn('mt-2 max-h-56 lg:max-h-[640px] overflow-y-auto space-y-0.5', !filtersOpen && 'hidden lg:block')}>
+          {sorted.map((e, i) => {
+            const c = getEmployeeColor(e.id, i);
+            return (
+              <label key={e.id} className="flex items-center gap-2 rounded-md px-1.5 py-1 text-sm hover:bg-muted cursor-pointer min-h-[40px] lg:min-h-[32px]">
+                <Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggle(e.id)} />
+                <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: c.border }} />
+                <span className="truncate">{e.name}</span>
+              </label>
+            );
+          })}
         </div>
       </aside>
 
@@ -110,9 +123,13 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                 <div className="w-14 shrink-0 sticky left-0 bg-card z-30" />
                 {lanes.map(e => {
                   const abs = absentOn(e.id);
+                  const c = getEmployeeColor(e.id, sorted.findIndex(s => s.id === e.id));
                   return (
-                    <div key={e.id} className="w-44 shrink-0 border-l border-border px-2 py-1.5">
-                      <div className="text-xs font-semibold truncate">{e.name}</div>
+                    <div key={e.id} className="w-36 sm:w-44 shrink-0 border-l border-border px-2 py-1.5" style={{ borderTop: `3px solid ${c.border}` }}>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: c.border }} />
+                        <span className="text-xs font-semibold truncate">{e.name}</span>
+                      </div>
                       <div className="h-5 mt-1">
                         {abs && <span className="inline-block max-w-full truncate rounded bg-destructive/15 text-destructive text-[10px] font-medium px-1.5 py-0.5">{abs.request_type === 'partial_day' ? `Fravær ${abs.start_time?.slice(0,5) ?? ''}–${abs.end_time?.slice(0,5) ?? ''}` : 'Fravær / ferie'}</span>}
                       </div>
@@ -132,9 +149,9 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                 </div>
                 {lanes.map((e, li) => {
                   const items = dayAssignments.filter(a => a.assignedEmployees?.some(x => x.id === e.id) || a.employees?.includes(e.id));
-                  const color = LANE_COLORS[sorted.findIndex(s => s.id === e.id) % LANE_COLORS.length];
+                  const c = getEmployeeColor(e.id, sorted.findIndex(s => s.id === e.id));
                   return (
-                    <div key={e.id} className={cn('w-44 shrink-0 border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
+                    <div key={e.id} className={cn('w-36 sm:w-44 shrink-0 border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
                       {hours.map(h => (
                         <button key={h} type="button" disabled={!canEdit || !onCreateAssignment}
                           onClick={() => onCreateAssignment?.(day)}
@@ -149,8 +166,8 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                         const height = Math.max(22, ((Math.min(en, END_HOUR * 60) - Math.max(s, START_HOUR * 60)) / 60) * HOUR_PX - 2);
                         return (
                           <button key={a.id} type="button" onClick={() => onViewDetails(a)}
-                            className={cn('absolute left-1 right-1 z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', color, !a.published && 'border-dashed opacity-80')}
-                            style={{ top, height }}>
+                            className={cn('absolute left-1 right-1 z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', !a.published && 'border-dashed opacity-80')}
+                            style={{ top, height, backgroundColor: c.background, borderColor: c.border, color: c.text }}>
                             <div className="text-[10px] font-medium opacity-80">{a.fromTime?.slice(0, 5)}–{a.toTime?.slice(0, 5)}</div>
                             <div className="text-xs font-semibold leading-tight line-clamp-2">{a.title}</div>
                             {height > 60 && <div className="text-[10px] opacity-80 truncate">{a.location}</div>}
