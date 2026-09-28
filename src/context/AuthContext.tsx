@@ -896,6 +896,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isEffectiveServicemedarbejder,
     effectiveRole: currentRole,
     login,
+    loginWithPasskey,
     logout,
     signUp,
     requestPasswordReset: resetPassword,
