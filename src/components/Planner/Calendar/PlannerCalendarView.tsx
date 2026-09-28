@@ -60,6 +60,8 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   const absentOn = (empId: string) => vacations.find(v => v.status === 'approved' && v.user_id === empId && v.start_date <= day && v.end_date >= day);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [tapped, setTapped] = useState<Assignment | null>(null);
+  const isTouch = useMemo(() => typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches, []);
   const [minimized, setMinimized] = useState<boolean>(() => {
     try { return localStorage.getItem('plannerCalendarSidebarMinimized') === '1'; } catch { return false; }
   });
