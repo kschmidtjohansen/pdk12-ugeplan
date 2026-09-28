@@ -40,12 +40,20 @@ const dateLabel = (d?: string) => {
 };
 
 const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek }) => {
-  const swipeRef = React.useRef<{ x: number; y: number } | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => { const t = e.touches[0]; swipeRef.current = { x: t.clientX, y: t.clientY }; };
+  const swipeRef = React.useRef<{ x: number; y: number; scroller: Element | null; scrollLeft: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    // Remember the nearest horizontally scrollable ancestor so we can tell a
+    // week-swipe apart from a pan-scroll inside the day strip or grid.
+    const scroller = (e.target as HTMLElement).closest?.('.overflow-x-auto, .overflow-auto') ?? null;
+    swipeRef.current = { x: t.clientX, y: t.clientY, scroller, scrollLeft: scroller?.scrollLeft ?? 0 };
+  };
   const onTouchEnd = (e: React.TouchEvent) => {
     const st = swipeRef.current; swipeRef.current = null; if (!st) return;
     const t = e.changedTouches[0]; const dx = t.clientX - st.x; const dy = t.clientY - st.y;
     if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    // If the gesture scrolled a scrollable child, it was a pan — not a week swipe.
+    if (st.scroller && Math.abs(st.scroller.scrollLeft - st.scrollLeft) > 4) return;
     if (dx < 0) onNextWeek?.(); else onPreviousWeek?.();
   };
   const todayStr = format(new Date(), 'yyyy-MM-dd');
