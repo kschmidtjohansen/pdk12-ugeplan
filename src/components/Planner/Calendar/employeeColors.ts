@@ -13,6 +13,8 @@ export interface EmployeeColor {
   background: string;
   /** Lidt kraftigere baggrund til hover/valgt */
   backgroundStrong: string;
+  /** Læsbar tekstfarve oven på baggrunden */
+  text: string;
 }
 
 const HUES = [210, 152, 28, 340, 265, 186, 45, 0, 120, 300, 20, 240, 170, 320, 60, 200];
@@ -21,6 +23,7 @@ const makeColor = (hue: number): EmployeeColor => ({
   border: `hsl(${hue} 70% 45%)`,
   background: `hsl(${hue} 78% 94%)`,
   backgroundStrong: `hsl(${hue} 72% 88%)`,
+  text: `hsl(${hue} 75% 22%)`,
 });
 
 /** Stabil hash, så den samme medarbejder altid får den samme farve. */
