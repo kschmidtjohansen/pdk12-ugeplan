@@ -184,9 +184,20 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
 
           {supported && !rightDomain && (
             <p className="text-sm text-muted-foreground">
-              Hurtig login virker kun på hovedadressen <strong>www.pdk12.dk</strong>. Åbn siden
-              der, og aktivér det på denne enhed.
+              Hurtig login virker på <strong>pdk12.dk</strong> og <strong>www.pdk12.dk</strong>.
+              Åbn siden der, og aktivér det på denne enhed.
             </p>
+          )}
+
+          {supported && rightDomain && (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <p className="text-sm font-medium text-foreground">Vigtigt: registrér din enhed igen</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Hurtig login virker nu på både pdk12.dk og www.pdk12.dk — også når appen er
+                installeret på telefonen. Har du aktiveret det tidligere, skal du fjerne den gamle
+                registrering herunder og trykke "Aktivér" igen.
+              </p>
+            </div>
           )}
 
           {lastError && (
