@@ -40,6 +40,8 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
   const [isRegistering, setIsRegistering] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [supported] = useState(isWebAuthnSupported);
+  const [lastError, setLastError] = useState<string | null>(null);
+
 
   const loadFactors = useCallback(async () => {
     setIsLoading(true);
