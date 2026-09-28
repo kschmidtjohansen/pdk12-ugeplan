@@ -11,6 +11,7 @@ import { unifiedDataService } from '@/services/data/unifiedDataService';
 import { OptimizedAssignmentService } from '@/services/optimizedAssignmentService';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import BiometricRetryDialog from '@/components/Auth/BiometricRetryDialog';
+import PasskeyEnrollPrompt from '@/components/Auth/PasskeyEnrollPrompt';
 
 // Define user roles
 export type UserRole = 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'fugttekniker' | 'vikar';
@@ -695,6 +696,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
     return { error: null };
   };
+
+  const handlePasskeyOfferDone = useCallback(() => setOfferPasskey(false), []);
 
   const retryBiometric = async () => {
     if (!biometricPrompt) return;
