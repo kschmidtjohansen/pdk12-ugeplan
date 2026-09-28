@@ -1,3 +1,7 @@
+## 2026-09-28 — Ugenumre i vagtkalenderen
+- `DutyMonthCalendar`: ny smal ugenummer-kolonne i venstre side af månedsgitteret med ISO-ugenummer (`getISOWeek`) for hver ugerække; overskrift "Uge" (da) / "Wk" (en).
+- Den aktuelle uge fremhæves med primærfarve. Kolonnebredden er 2rem (mobil) / 2,5rem (desktop), så dagsfeltene kun bliver marginalt smallere.
+
 ## 2026-09-28 — Tryk på opgave i kalendervisningen på mobil viser detaljer
 - `PlannerCalendarView`: på touch-enheder åbner tryk på en opgaveblok et lille kort nederst på skærmen med titel, sagsnummer, tidspunkt og adresse samt knapperne "Åbn detaljer" og "Luk". På desktop er klik-adfærden (hover-tooltip + direkte åbning af detaljer) uændret.
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,7 +28,9 @@ import {
   subMonths,
   startOfWeek,
   endOfWeek,
-  isSameDay
+  isSameDay,
+  isSameWeek,
+  getISOWeek
 } from 'date-fns';
 import { da, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -213,8 +215,11 @@ export const DutyMonthCalendar = ({
       </CardHeader>
       <CardContent>
 
-        <div className="grid grid-cols-7 gap-2">
-          {/* Day headers */}
+        <div className="grid grid-cols-[2rem_repeat(7,minmax(0,1fr))] md:grid-cols-[2.5rem_repeat(7,minmax(0,1fr))] gap-2">
+          {/* Week + day headers */}
+          <div className="text-center text-xs font-semibold text-muted-foreground py-2">
+            {currentLanguage === 'da' ? 'Uge' : 'Wk'}
+          </div>
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
             <div
               key={i}
@@ -232,16 +237,30 @@ export const DutyMonthCalendar = ({
             const dayDuties = getDutiesForDate(day);
             const isCurrentMonth = isSameMonth(day, month);
             const isToday = isSameDay(day, new Date());
+            const isCurrentWeek = isSameWeek(day, new Date(), { weekStartsOn: 1 });
 
             return (
-              <div
-                key={i}
-                className={cn(
-                  "min-h-[120px] md:min-h-[100px] border rounded-lg p-1.5 md:p-2",
-                  isCurrentMonth ? "bg-card" : "bg-muted/30",
-                  isToday && "ring-2 ring-primary"
+              <Fragment key={i}>
+                {i % 7 === 0 && (
+                  <div
+                    className={cn(
+                      "flex items-center justify-center rounded-lg text-xs font-medium",
+                      isCurrentWeek
+                        ? "bg-primary/10 text-primary font-bold"
+                        : "text-muted-foreground"
+                    )}
+                    title={`Uge ${getISOWeek(day)}`}
+                  >
+                    {getISOWeek(day)}
+                  </div>
                 )}
-              >
+                <div
+                  className={cn(
+                    "min-h-[120px] md:min-h-[100px] border rounded-lg p-1.5 md:p-2",
+                    isCurrentMonth ? "bg-card" : "bg-muted/30",
+                    isToday && "ring-2 ring-primary"
+                  )}
+                >
                 <div className="flex items-center justify-between mb-1">
                   <div
                     className={cn(
@@ -398,6 +417,7 @@ export const DutyMonthCalendar = ({
                   })}
                 </div>
               </div>
+                </Fragment>
             );
           })}
         </div>
