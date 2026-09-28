@@ -40,6 +40,8 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
   const [isRegistering, setIsRegistering] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [supported] = useState(isWebAuthnSupported);
+  const [lastError, setLastError] = useState<string | null>(null);
+
 
   const loadFactors = useCallback(async () => {
     setIsLoading(true);
@@ -62,6 +64,7 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
 
   const handleRegister = async () => {
     setIsRegistering(true);
+    setLastError(null);
     try {
       const { error } = await supabase.auth.mfa.webauthn.register({
         friendlyName: `Denne enhed (${new Date().toLocaleDateString('da-DK')})`,
@@ -73,19 +76,50 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
       });
       await loadFactors();
     } catch (error) {
-      const msg = (error as { message?: string })?.message ?? '';
-      const notEnabled = /not enabled|not supported|factor type/i.test(msg);
+      const err = error as { message?: string; code?: string; status?: number; name?: string };
+      const msg = err?.message ?? '';
+      const code = err?.code ?? '';
+      const status = err?.status;
+
+      // Serveren afviser tilmelding når WebAuthn ikke er slået til som MFA-faktor.
+      const serverDisabled =
+        code === 'mfa_webauthn_enroll_not_enabled' ||
+        status === 422 ||
+        /disabled|not enabled|not supported|factor type/i.test(msg);
+
+      // Brugeren afbrød, eller enheden gav op.
+      const cancelled =
+        err?.name === 'NotAllowedError' ||
+        err?.name === 'AbortError' ||
+        /cancel|abort|not allowed|timed out|timeout/i.test(msg);
+
+      const detail = [msg, code ? `kode: ${code}` : '', status ? `status: ${status}` : '']
+        .filter(Boolean)
+        .join(' · ');
+
+      let description: string;
+      if (serverDisabled) {
+        description = `Serveren afviste tilmeldingen. Face ID / fingeraftryk skal slås til som MFA-faktor i Supabase. Svar fra serveren: ${detail || 'MFA enroll is disabled for WebAuthn'}`;
+      } else if (cancelled) {
+        description = `Bekræftelsen blev afbrudt på enheden. ${detail}`.trim();
+      } else {
+        description = detail
+          ? `Fejl: ${detail}`
+          : 'Registreringen fejlede uden en nærmere forklaring. Prøv igen.';
+      }
+
+      setLastError(description);
       toast({
         title: 'Kunne ikke aktivere',
-        description: notEnabled
-          ? 'Biometrisk login er ikke slået til på serveren endnu. Kontakt en administrator.'
-          : 'Registreringen blev afbrudt eller fejlede. Prøv igen.',
+        description,
         variant: 'destructive',
       });
+
     } finally {
       setIsRegistering(false);
     }
   };
+
 
   const handleRemove = async (factorId: string) => {
     setRemovingId(factorId);
@@ -125,6 +159,15 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
               Denne browser understøtter desværre ikke biometrisk login.
             </p>
           )}
+
+          {lastError && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+              <p className="text-sm font-medium text-destructive">Kunne ikke aktivere</p>
+              <p className="mt-1 break-words text-xs text-destructive/90">{lastError}</p>
+            </div>
+          )}
+
+
 
           {isLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
