@@ -215,8 +215,11 @@ export const DutyMonthCalendar = ({
       </CardHeader>
       <CardContent>
 
-        <div className="grid grid-cols-7 gap-2">
-          {/* Day headers */}
+        <div className="grid grid-cols-[2rem_repeat(7,minmax(0,1fr))] md:grid-cols-[2.5rem_repeat(7,minmax(0,1fr))] gap-2">
+          {/* Week + day headers */}
+          <div className="text-center text-xs font-semibold text-muted-foreground py-2">
+            {currentLanguage === 'da' ? 'Uge' : 'Wk'}
+          </div>
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
             <div
               key={i}
