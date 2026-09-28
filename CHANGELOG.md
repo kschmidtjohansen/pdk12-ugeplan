@@ -1,3 +1,8 @@
+## 2026-09-28 — Offline cache ryddes automatisk ved hver udgivelse
+- Nyt build-stempel injiceres i `vite.config.ts` (`__APP_BUILD_ID__`) og sammenlignes ved opstart i ny `src/lib/appVersionReset.ts` (kaldes fra `main.tsx`).
+- Ved ny version ryddes: alle Cache Storage-buckets, app-shell service worker-registreringer og `polyplan_offline_today_*`-snapshots (kældertilstand).
+- `push-sw.js` og login-/auth-lagring røres ikke: notifikationer virker videre, og ingen bliver logget ud.
+
 ## 2026-09-27 — Oprydning: ubrugt kode fjernet
 - Slettet 15 filer uden referencer i projektet: `Planner/AssignmentTimeStrip`, `Planner/DutyWeekWidget`, `Planner/FilterChips`, `Planner/PlannerSearchFilter`, `Dashboard/QuickAccessGrid`, `Dashboard/ExpiringTempsCard`, `Dashboard/VacationNotificationsPanel`, `Layout/NavComponents/NotificationActions`, `NotificationsDropdown`, `NotificationsList`, `Admin/VacationCalendarOverview`, `shared/LoadingSpinner`, `hooks/data/useUnifiedData`, `utils/dbHelpers`, `utils/roles`.
 - Fjernet ubrugte afhængigheder: `zod` og `@hookform/resolvers`.
