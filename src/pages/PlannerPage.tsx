@@ -503,8 +503,27 @@ const PlannerPage: React.FC = () => {
     target.setDate(target.getDate() + days);
     const newDate = format(target, 'yyyy-MM-dd');
 
+    // updateAssignment validates title/location/times and relinks employees, so
+    // pass the full assignment (with employee IDs, not display names).
+    const buildPayload = (date: string): Partial<Assignment> => ({
+      title: assignment.title,
+      description: assignment.description,
+      location: assignment.location,
+      fromTime: assignment.fromTime,
+      toTime: assignment.toTime,
+      date,
+      case_number: assignment.case_number,
+      published: assignment.published,
+      responsibleUserId: assignment.responsibleUserId,
+      car: assignment.car,
+      cars: assignment.cars,
+      employees: assignment.assignedEmployees?.map(e => e.id) ?? [],
+      ...(assignment.lat != null ? { lat: assignment.lat } : {}),
+      ...(assignment.lng != null ? { lng: assignment.lng } : {}),
+    });
+
     try {
-      await updateAssignment(assignment.id, { date: newDate });
+      await updateAssignment(assignment.id, buildPayload(newDate));
       sonnerToast.success(
         `Flyttet til ${target.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'short' })}`,
         {

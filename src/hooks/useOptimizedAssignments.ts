@@ -644,6 +644,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       setOperationState(id, 'error');
       await refetch();
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorUpdatingAssignment'), variant: "destructive" });
+      throw error;
     } finally {
       inFlightUpdates.delete(id);
     }
