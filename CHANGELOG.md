@@ -1,3 +1,7 @@
+## 2026-09-28 — Minimerbar medarbejderliste i kalendervisningen
+- `PlannerCalendarView`: medarbejderlisten til venstre kan nu minimeres på desktop (klik på "Medarbejdere"-overskriften) — kolonnen bliver til en smal bjælke med kun ikon, så kalenderen får mere plads.
+- Valget huskes i `localStorage` (`plannerCalendarSidebarMinimized`); mobiladfærden (samme-/fold-ud-liste) er uændret.
+
 ## 2026-09-28 — Hover-detaljer på opgaveblokke i kalendervisningen
 - `PlannerCalendarView`: holding musen over en opgaveblok viser nu en tooltip med sagsnummer, tidspunkt og adresse (vises kun, hvis oplysningen findes).
 - Implementeret med shadcn `Tooltip` indeni `TooltipProvider` omkring kalenderen; klik-adfærd (detaljer/udgivelses-striplet) er uændret.

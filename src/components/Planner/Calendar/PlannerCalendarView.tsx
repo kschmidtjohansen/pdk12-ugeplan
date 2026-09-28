@@ -60,6 +60,10 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   const absentOn = (empId: string) => vacations.find(v => v.status === 'approved' && v.user_id === empId && v.start_date <= day && v.end_date >= day);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [minimized, setMinimized] = useState<boolean>(() => {
+    try { return localStorage.getItem('plannerCalendarSidebarMinimized') === '1'; } catch { return false; }
+  });
+  useEffect(() => { try { localStorage.setItem('plannerCalendarSidebarMinimized', minimized ? '1' : '0'); } catch { /* ignore */ } }, [minimized]);
   const [now, setNow] = useState(new Date());
   useEffect(() => { const i = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(i); }, []);
   const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -71,23 +75,28 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
     <TooltipProvider delayDuration={300}>
     <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
       {/* Filterkolonne — sammenklappelig på mobil */}
-      <aside className="lg:w-56 shrink-0 rounded-xl border border-border bg-card p-3">
+      <aside className={cn('shrink-0 rounded-xl border border-border bg-card p-3 transition-all duration-200', minimized ? 'lg:w-11' : 'lg:w-56')}>
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
-            onClick={() => setFiltersOpen(o => !o)}
-            className="flex items-center gap-2 min-h-[36px] text-xs font-semibold text-muted-foreground uppercase tracking-wide lg:cursor-default"
+            onClick={() => {
+              if (window.matchMedia('(min-width: 1024px)').matches) setMinimized(m => !m);
+              else setFiltersOpen(o => !o);
+            }}
+            title={minimized ? 'Vis medarbejdere' : 'Minimer medarbejderliste'}
+            className="flex items-center gap-2 min-h-[36px] text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
           >
             <Users className="h-3.5 w-3.5" />
-            <span>Medarbejdere ({lanes.length})</span>
+            <span className={cn(minimized && 'lg:hidden')}>Medarbejdere ({lanes.length})</span>
             <ChevronDown className={cn('h-3.5 w-3.5 lg:hidden transition-transform', filtersOpen && 'rotate-180')} />
+            <ChevronDown className={cn('hidden lg:block h-3.5 w-3.5 transition-transform', minimized ? 'rotate-180' : 'rotate-90')} />
           </button>
-          <div className="flex gap-1">
+          <div className={cn('flex gap-1', minimized && 'lg:hidden')}>
             <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
             <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
           </div>
         </div>
-        <div className={cn('mt-2 max-h-56 lg:max-h-[640px] overflow-y-auto space-y-0.5', !filtersOpen && 'hidden lg:block')}>
+        <div className={cn('mt-2 max-h-56 lg:max-h-[640px] overflow-y-auto space-y-0.5', !filtersOpen && 'hidden', !minimized && 'lg:block')}>
           {sorted.map((e, i) => {
             const c = getEmployeeColor(e.id, i);
             return (
