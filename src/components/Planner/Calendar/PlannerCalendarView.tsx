@@ -6,12 +6,13 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { ChevronDown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getEmployeeColor } from './employeeColors';
 
 const START_HOUR = 6;
 const END_HOUR = 19;
 const HOUR_PX = 56;
-const LANE_COLORS = ['bg-primary/15 border-primary text-foreground', 'bg-accent border-accent-foreground/40 text-accent-foreground', 'bg-secondary border-secondary-foreground/40 text-secondary-foreground', 'bg-muted border-muted-foreground/50 text-foreground'];
 
 interface Props {
   dates: string[];
