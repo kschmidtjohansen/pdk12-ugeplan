@@ -6,6 +6,7 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChevronDown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEmployeeColor } from './employeeColors';
