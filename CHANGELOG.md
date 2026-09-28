@@ -1,3 +1,9 @@
+## 2026-09-28 — Dansk speak og undertekster til fire videoguider
+- Fire nye versioner i Full HD med naturlig dansk speak og indbrændte, synkroniserede undertekster er lagt i Filer.
+- Guiderne dækker vagtbytte, fridage med godkendelse/afvisning, oprettelse af medarbejder/bil/vikar samt opgave/opgaveserie.
+- De oprindelige lydløse videoer er bevaret; de nye filer har suffikset `_med_speak_og_undertekster_v2`.
+- Alle videoer er kontrolleret for billedformat, undertekstplacering og hørbart lydspor.
+
 ## 2026-09-28 — Fire videoguider produceret
 - Nye animerede guider i Full HD (ca. 28 sek. hver) lagt i Filer: `Polyplan_Guide_Vagtbytte.mp4`, `Polyplan_Guide_Fravaer_og_Fridage.mp4`, `Polyplan_Guide_Medarbejder_Bil_Vikar.mp4`, `Polyplan_Guide_Opgave_og_Serie.mp4`.
 - Indhold: vagtbytte (tilbyd, vælg modtager, accept/afslag, træk tilbage), fridage (ansøg + godkend/afvis med bemandingstjek), oprettelse af medarbejder/bil/vikar med udløbsdato, samt opret opgave og opgaveserie med udgivelse.
