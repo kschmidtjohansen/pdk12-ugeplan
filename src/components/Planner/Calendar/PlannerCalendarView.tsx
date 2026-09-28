@@ -208,6 +208,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                             <TooltipContent side="right" className="max-w-64 p-2.5">
                               <div className="text-xs font-semibold leading-tight">{a.title}</div>
                               {a.case_number && <div className="mt-1 text-[11px] opacity-90">Sagsnummer: {a.case_number}</div>}
+                              <div className="text-[11px] opacity-90">Dato: {dateLabel(a.date)}</div>
                               <div className="text-[11px] opacity-90">Tidspunkt: {timeLabel}</div>
                               {a.location && <div className="text-[11px] opacity-90">Adresse: {a.location}</div>}
                             </TooltipContent>
