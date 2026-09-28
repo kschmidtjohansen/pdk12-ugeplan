@@ -64,6 +64,7 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
 
   const handleRegister = async () => {
     setIsRegistering(true);
+    setLastError(null);
     try {
       const { error } = await supabase.auth.mfa.webauthn.register({
         friendlyName: `Denne enhed (${new Date().toLocaleDateString('da-DK')})`,
@@ -92,22 +93,28 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
         err?.name === 'AbortError' ||
         /cancel|abort|not allowed|timed out|timeout/i.test(msg);
 
+      const detail = [msg, code ? `kode: ${code}` : '', status ? `status: ${status}` : '']
+        .filter(Boolean)
+        .join(' · ');
+
       let description: string;
       if (serverDisabled) {
-        description = `Serveren afviste tilmeldingen: "${msg || 'MFA enroll is disabled for WebAuthn'}". Face ID / fingeraftryk skal slås til som MFA-faktor i Supabase. Kontakt en administrator.`;
+        description = `Serveren afviste tilmeldingen. Face ID / fingeraftryk skal slås til som MFA-faktor i Supabase. Svar fra serveren: ${detail || 'MFA enroll is disabled for WebAuthn'}`;
       } else if (cancelled) {
-        description = `Bekræftelsen blev afbrudt på enheden${msg ? `: "${msg}"` : ''}. Prøv igen.`;
+        description = `Bekræftelsen blev afbrudt på enheden. ${detail}`.trim();
       } else {
-        description = msg
-          ? `Fejl fra systemet: "${msg}"`
+        description = detail
+          ? `Fejl: ${detail}`
           : 'Registreringen fejlede uden en nærmere forklaring. Prøv igen.';
       }
 
+      setLastError(description);
       toast({
         title: 'Kunne ikke aktivere',
         description,
         variant: 'destructive',
       });
+
     } finally {
       setIsRegistering(false);
     }
