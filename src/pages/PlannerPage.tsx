@@ -853,6 +853,8 @@ const PlannerPage: React.FC = () => {
               onCopyAssignment={handleCopyAssignment} 
               onCopyDayFromYesterday={handleCopyDayFromYesterday}
               selectedWeek={selectedWeek} 
+              onPreviousWeek={handlePreviousWeek}
+              onNextWeek={handleNextWeek}
               selectedYear={selectedYear} 
               weekDates={weekDates}
               viewMode={viewMode}

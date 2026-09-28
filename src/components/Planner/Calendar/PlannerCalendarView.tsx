@@ -23,6 +23,9 @@ interface Props {
   onViewDetails: (a: Assignment) => void;
   onCreateAssignment?: (date: string) => void;
   canEdit: boolean;
+  onEditAssignment?: (a: Assignment) => void;
+  onPreviousWeek?: () => void;
+  onNextWeek?: () => void;
 }
 
 const toMin = (t?: string) => {
@@ -31,7 +34,15 @@ const toMin = (t?: string) => {
   return Number.isFinite(h) ? h * 60 + (m || 0) : null;
 };
 
-const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit }) => {
+const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek }) => {
+  const swipeRef = React.useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => { const t = e.touches[0]; swipeRef.current = { x: t.clientX, y: t.clientY }; };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const st = swipeRef.current; swipeRef.current = null; if (!st) return;
+    const t = e.changedTouches[0]; const dx = t.clientX - st.x; const dy = t.clientY - st.y;
+    if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0) onNextWeek?.(); else onPreviousWeek?.();
+  };
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const [day, setDay] = useState<string>(() => (dates.includes(todayStr) ? todayStr : dates[0]));
   useEffect(() => { if (!dates.includes(day)) setDay(dates.includes(todayStr) ? todayStr : dates[0]); }, [dates, day, todayStr]);
@@ -75,7 +86,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
 
   return (
     <TooltipProvider delayDuration={300}>
-    <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
+    <div className="flex flex-col lg:flex-row gap-3 lg:gap-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Filterkolonne — sammenklappelig på mobil */}
       <aside className={cn('shrink-0 rounded-xl border border-border bg-card p-3 transition-all duration-200', minimized ? 'lg:w-11' : 'lg:w-56')}>
         <div className="flex items-center justify-between gap-2">
@@ -218,6 +229,9 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
             {tapped.location && <div className="text-xs text-muted-foreground">Adresse: {tapped.location}</div>}
             <div className="mt-3 flex gap-2">
               <Button size="sm" onClick={() => { setTapped(null); onViewDetails(tapped); }}>Åbn detaljer</Button>
+              {canEdit && onEditAssignment && (
+                <Button size="sm" variant="outline" onClick={() => { setTapped(null); onEditAssignment(tapped); }}>Redigér</Button>
+              )}
               <Button size="sm" variant="ghost" onClick={() => setTapped(null)}>Luk</Button>
             </div>
           </div>

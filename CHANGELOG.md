@@ -2044,3 +2044,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-09-28 — Outlook-kalendervisning i ugeplanen
 - Ny 4. visning (kalenderikon): teknikere side om side med tidsgitter 06–19, fraværsbånd, filterliste (Alle/Fugt), dagsvælger og "lige nu"-linje.
+
+## 2026-09-28 — Kalender: redigér fra mobilkort + swipe mellem uger
+- Skadeledere kan trykke "Redigér" i opgavekortet på mobil.
+- Swipe til venstre/højre i kalendervisningen skifter uge.
