@@ -244,7 +244,7 @@ export const DutyMonthCalendar = ({
                 {i % 7 === 0 && (
                   <div
                     className={cn(
-                      "flex items-center justify-center rounded-lg text-xs font-medium",
+                      "flex items-center justify-center rounded-lg text-[11px] md:text-xs font-semibold md:font-medium leading-none",
                       isCurrentWeek
                         ? "bg-primary/10 text-primary font-bold"
                         : "text-muted-foreground"
@@ -256,7 +256,7 @@ export const DutyMonthCalendar = ({
                 )}
                 <div
                   className={cn(
-                    "min-h-[120px] md:min-h-[100px] border rounded-lg p-1.5 md:p-2",
+                    "min-h-[120px] md:min-h-[100px] border rounded-lg p-1 md:p-2",
                     isCurrentMonth ? "bg-card" : "bg-muted/30",
                     isToday && "ring-2 ring-primary"
                   )}
