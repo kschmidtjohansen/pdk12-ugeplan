@@ -11,6 +11,7 @@ import CurrentAndFutureDays from './CurrentAndFutureDays';
 import PastAssignments from './PastAssignments';
 import CompactCurrentAndFutureDays from './CompactCurrentAndFutureDays';
 import CompactPastAssignments from './CompactPastAssignments';
+import PlannerCalendarView from './Calendar/PlannerCalendarView';
 import UnassignedResourcesSection from './UnassignedResourcesSection';
 import { useVacations } from '@/hooks/useVacations';
 import { useCrossSubDeptBusy } from '@/hooks/useCrossSubDeptBusy';
@@ -35,7 +36,7 @@ interface PlannerContentProps {
   selectedWeek: number;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
-  viewMode?: 'standard' | 'compact' | 'grid';
+  viewMode?: 'standard' | 'compact' | 'grid' | 'calendar';
   selectedIds?: Set<string>;
   selectionActive?: boolean;
   onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
@@ -163,7 +164,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       )}
 
       {/* Expand/Collapse all — sits with the day list */}
-      {onToggleAllExpanded && viewMode !== 'compact' && (
+      {onToggleAllExpanded && viewMode !== 'compact' && viewMode !== 'calendar' && (
         <div className="flex justify-end">
           <Button
             variant="outline"
@@ -180,14 +181,26 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       )}
 
       {/* Show empty state message if no assignments, but still render the days */}
-      {hasNoAssignments && (
+      {hasNoAssignments && viewMode !== 'calendar' && (
         <div className="text-center py-8 text-muted-foreground">
           {t("planner.noAssignmentsWeek")}
         </div>
       )}
       
       {/* Render view based on viewMode */}
-      {viewMode === 'compact' ? (
+      {viewMode === 'calendar' ? (
+        <PlannerWidgetErrorBoundary label="Calendar">
+          <PlannerCalendarView
+            dates={weekDateStrings}
+            assignments={weekAssignments}
+            employees={employees}
+            vacations={vacations || []}
+            onViewDetails={setDetailsDialogAssignment}
+            onCreateAssignment={onCreateAssignment}
+            canEdit={canEdit}
+          />
+        </PlannerWidgetErrorBoundary>
+      ) : viewMode === 'compact' ? (
         <>
           <PlannerWidgetErrorBoundary label="Current & Future">
             <CompactCurrentAndFutureDays 
