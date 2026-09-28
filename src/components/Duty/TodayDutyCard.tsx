@@ -94,6 +94,9 @@ const TodayDutyCard: React.FC<TodayDutyCardProps> = ({ duties, employees, todayS
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{name}</p>
+                  {duty.employee?.department_name && (
+                    <p className="text-[11px] text-muted-foreground truncate">{duty.employee.department_name}</p>
+                  )}
                   <div className="mt-0.5 flex items-center gap-2">
                     <Badge variant="secondary" className="text-[11px] font-normal">
                       {t(`duty.${duty.duty_type === 'kørevagt' ? 'kørevagt' : 'skadelederVagt'}`)}
