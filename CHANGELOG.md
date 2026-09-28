@@ -1,3 +1,8 @@
+## 2026-09-28 — Baggrundsmusik til onboardingvideo
+- Ny version af `Polyplan_PDK12_Onboarding.mp4` med original, rolig corporate-baggrundsmusik lagt i Filer som `Polyplan_PDK12_Onboarding_med_musik_v2.mp4`.
+- Videoen er fortsat Full HD og 55 sekunder; musikken har blød ind- og udtoning.
+- Billede, lydspor, varighed og lydniveau er kontrolleret. Originalvideoen er bevaret.
+
 ## 2026-09-28 — Dansk speak og undertekster til fire videoguider
 - Fire nye versioner i Full HD med naturlig dansk speak og indbrændte, synkroniserede undertekster er lagt i Filer.
 - Guiderne dækker vagtbytte, fridage med godkendelse/afvisning, oprettelse af medarbejder/bil/vikar samt opgave/opgaveserie.
