@@ -188,7 +188,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                   const items = dayAssignments.filter(a => a.assignedEmployees?.some(x => x.id === e.id) || a.employees?.includes(e.id));
                   const c = getEmployeeColor(e.id, sorted.findIndex(s => s.id === e.id));
                   return (
-                    <div key={e.id} className={cn('w-36 sm:w-44 shrink-0 border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
+                    <div key={e.id} className={cn('flex-1 min-w-[130px] sm:min-w-[150px] border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
                       {hours.map(h => (
                         <button key={h} type="button" disabled={!canEdit || !onCreateAssignment}
                           onClick={() => onCreateAssignment?.(day)}
