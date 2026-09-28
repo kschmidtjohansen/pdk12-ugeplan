@@ -207,6 +207,22 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
           </div>
         )}
       </div>
+
+      {/* Mobil: tryk på opgave viser kort med detaljer */}
+      {tapped && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4" onClick={() => setTapped(null)}>
+          <div className="w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-lg" onClick={e => e.stopPropagation()}>
+            <div className="text-sm font-semibold leading-tight">{tapped.title}</div>
+            {tapped.case_number && <div className="mt-1.5 text-xs text-muted-foreground">Sagsnummer: {tapped.case_number}</div>}
+            <div className="text-xs text-muted-foreground">Tidspunkt: {tapped.fromTime?.slice(0, 5) ?? ''}–{tapped.toTime?.slice(0, 5) ?? ''}</div>
+            {tapped.location && <div className="text-xs text-muted-foreground">Adresse: {tapped.location}</div>}
+            <div className="mt-3 flex gap-2">
+              <Button size="sm" onClick={() => { setTapped(null); onViewDetails(tapped); }}>Åbn detaljer</Button>
+              <Button size="sm" variant="ghost" onClick={() => setTapped(null)}>Luk</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </TooltipProvider>
   );
