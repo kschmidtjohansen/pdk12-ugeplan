@@ -60,6 +60,8 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   const absentOn = (empId: string) => vacations.find(v => v.status === 'approved' && v.user_id === empId && v.start_date <= day && v.end_date >= day);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [tapped, setTapped] = useState<Assignment | null>(null);
+  const isTouch = useMemo(() => typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches, []);
   const [minimized, setMinimized] = useState<boolean>(() => {
     try { return localStorage.getItem('plannerCalendarSidebarMinimized') === '1'; } catch { return false; }
   });
@@ -179,7 +181,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                         return (
                           <Tooltip key={a.id} delayDuration={300}>
                             <TooltipTrigger asChild>
-                              <button type="button" onClick={() => onViewDetails(a)}
+                              <button type="button" onClick={() => (isTouch ? setTapped(a) : onViewDetails(a))}
                                 className={cn('absolute left-1 right-1 z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', !a.published && 'border-dashed opacity-80')}
                                 style={{ top, height, backgroundColor: c.background, borderColor: c.border, color: c.text }}>
                                 <div className="text-[10px] font-medium opacity-80">{timeLabel}</div>
@@ -205,6 +207,22 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
           </div>
         )}
       </div>
+
+      {/* Mobil: tryk på opgave viser kort med detaljer */}
+      {tapped && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4" onClick={() => setTapped(null)}>
+          <div className="w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-lg" onClick={e => e.stopPropagation()}>
+            <div className="text-sm font-semibold leading-tight">{tapped.title}</div>
+            {tapped.case_number && <div className="mt-1.5 text-xs text-muted-foreground">Sagsnummer: {tapped.case_number}</div>}
+            <div className="text-xs text-muted-foreground">Tidspunkt: {tapped.fromTime?.slice(0, 5) ?? ''}–{tapped.toTime?.slice(0, 5) ?? ''}</div>
+            {tapped.location && <div className="text-xs text-muted-foreground">Adresse: {tapped.location}</div>}
+            <div className="mt-3 flex gap-2">
+              <Button size="sm" onClick={() => { setTapped(null); onViewDetails(tapped); }}>Åbn detaljer</Button>
+              <Button size="sm" variant="ghost" onClick={() => setTapped(null)}>Luk</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </TooltipProvider>
   );
