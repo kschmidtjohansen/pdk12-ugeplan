@@ -1992,3 +1992,5 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Ugeplan: sletninger/flytninger opdateres straks i hukommelsen; adaptiv samling af mange ændringer (maks 2,5 s) før fuld synk.
 
 - Ugeplan: tidsstriben på opgavekort er fjernet efter ønske — kortene er nu renere og mere kompakte.
+
+- Vagtside: afdelingsnavn vises under navnet på "Vagter i dag" (kun for medarbejdere med tilknyttet afdeling).

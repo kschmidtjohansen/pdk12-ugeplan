@@ -46,6 +46,15 @@ const TodayDutyCard: React.FC<TodayDutyCardProps> = ({ duties, employees, todayS
     return map;
   }, [employees]);
 
+  const deptById = useMemo(() => {
+    const map = new Map<string, string>();
+    employees.forEach((e) => {
+      const name = (e as Employee & { department_name?: string | null }).department_name;
+      if (name) map.set(e.id, name);
+    });
+    return map;
+  }, [employees]);
+
   const todayDuties = useMemo(
     () => duties.filter((d) => d.duty_date === todayStr),
     [duties, todayStr]
@@ -94,6 +103,9 @@ const TodayDutyCard: React.FC<TodayDutyCardProps> = ({ duties, employees, todayS
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{name}</p>
+                  {duty.employee_id && deptById.get(duty.employee_id) && (
+                    <p className="text-[11px] text-muted-foreground truncate">{deptById.get(duty.employee_id)}</p>
+                  )}
                   <div className="mt-0.5 flex items-center gap-2">
                     <Badge variant="secondary" className="text-[11px] font-normal">
                       {t(`duty.${duty.duty_type === 'kørevagt' ? 'kørevagt' : 'skadelederVagt'}`)}
