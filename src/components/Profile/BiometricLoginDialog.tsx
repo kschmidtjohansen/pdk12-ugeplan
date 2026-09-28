@@ -29,13 +29,31 @@ export const isWebAuthnSupported = () =>
   typeof window.PublicKeyCredential === 'function';
 
 /**
- * Passkeys er registreret med RP ID "www.pdk12.dk" i Supabase — de virker kun
- * på præcis det domæne (og localhost til udvikling).
+ * Passkeys er registreret med RP ID "pdk12.dk" i Supabase. Et RP ID uden
+ * subdomæne dækker både pdk12.dk, www.pdk12.dk og appen installeret på
+ * telefonen (samme origin i standalone-tilstand).
  */
+export const PASSKEY_RP_ID = 'pdk12.dk';
+
 export const isPasskeyDomain = () => {
   if (typeof window === 'undefined') return false;
-  const host = window.location.hostname;
-  return host === 'www.pdk12.dk' || host === 'localhost' || host === '127.0.0.1';
+  const host = window.location.hostname.toLowerCase();
+  return (
+    host === PASSKEY_RP_ID ||
+    host.endsWith(`.${PASSKEY_RP_ID}`) ||
+    host === 'localhost' ||
+    host === '127.0.0.1'
+  );
+};
+
+/** Appen kører som installeret app på telefonen (PWA). */
+export const isStandalonePwa = () => {
+  if (typeof window === 'undefined') return false;
+  const nav = window.navigator as Navigator & { standalone?: boolean };
+  return (
+    window.matchMedia?.('(display-mode: standalone)').matches === true ||
+    nav.standalone === true
+  );
 };
 
 export const isPasskeyAvailable = () => isWebAuthnSupported() && isPasskeyDomain();
@@ -166,9 +184,20 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
 
           {supported && !rightDomain && (
             <p className="text-sm text-muted-foreground">
-              Hurtig login virker kun på hovedadressen <strong>www.pdk12.dk</strong>. Åbn siden
-              der, og aktivér det på denne enhed.
+              Hurtig login virker på <strong>pdk12.dk</strong> og <strong>www.pdk12.dk</strong>.
+              Åbn siden der, og aktivér det på denne enhed.
             </p>
+          )}
+
+          {supported && rightDomain && (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <p className="text-sm font-medium text-foreground">Vigtigt: registrér din enhed igen</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Hurtig login virker nu på både pdk12.dk og www.pdk12.dk — også når appen er
+                installeret på telefonen. Har du aktiveret det tidligere, skal du fjerne den gamle
+                registrering herunder og trykke "Aktivér" igen.
+              </p>
+            </div>
           )}
 
           {lastError && (

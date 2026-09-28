@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ import { unifiedDataService } from '@/services/data/unifiedDataService';
 import { OptimizedAssignmentService } from '@/services/optimizedAssignmentService';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import BiometricRetryDialog from '@/components/Auth/BiometricRetryDialog';
+import PasskeyEnrollPrompt from '@/components/Auth/PasskeyEnrollPrompt';
 
 // Define user roles
 export type UserRole = 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'fugttekniker' | 'vikar';
@@ -133,6 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   // Optional passkey sign-in (Face ID / fingerprint) — retry dialog state
   const [biometricPrompt, setBiometricPrompt] = useState<{ reason: string } | null>(null);
+  const [offerPasskey, setOfferPasskey] = useState(false);
   const [biometricBusy, setBiometricBusy] = useState(false);
 
   // Demo mode detection
@@ -695,6 +697,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { error: null };
   };
 
+  const handlePasskeyOfferDone = useCallback(() => setOfferPasskey(false), []);
+
   const retryBiometric = async () => {
     if (!biometricPrompt) return;
     setBiometricBusy(true);
@@ -724,6 +728,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         title: "Login Succesfuld",
         description: "Du er nu logget ind.",
       });
+
+      // Tilbyd hurtig login på denne enhed, hvis den ikke er registreret endnu.
+      setOfferPasskey(true);
 
       return { error: null };
     } catch (error: any) {
@@ -932,6 +939,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         onRetry={retryBiometric}
         onContinue={() => setBiometricPrompt(null)}
       />
+      <PasskeyEnrollPrompt trigger={offerPasskey} onDone={handlePasskeyOfferDone} />
     </AuthContext.Provider>
   );
 };
