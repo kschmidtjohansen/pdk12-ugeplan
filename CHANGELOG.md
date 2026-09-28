@@ -1,3 +1,8 @@
+## 2026-09-28 — Nyt sidetitel og meta-beskrivelse
+- Nyt site-titel i `index.html`: "Polygon Ugeplan – Samlet planlægning af opgaver, vagter og ferie".
+- Ny meta-beskrivelse: "Med Polygon Ugeplan planlægger du skadeservice-opgaver, vagter, ferie og afdelinger i ét samlet overblik – for både medarbejdere og skadeledere."
+- `og:title` / `og:description` spejler de nye tekster, og `manifest.webmanifest`-beskrivelsen er opdateret. Appens korte navn ("Polygon Ugeplan") er uændret.
+
 ## 2026-09-28 — Passkeys på både pdk12.dk og www.pdk12.dk + tilbud efter login
 - `isPasskeyDomain()` accepterer nu RP ID `pdk12.dk` og alle underdomæner (inkl. `www`) samt localhost — hurtig login virker dermed også i den installerede app på telefonen (samme origin i standalone-tilstand). Ny eksport `isStandalonePwa()`.
 - `BiometricLoginDialog` viser en tydelig besked om, at tidligere registrerede enheder skal fjernes og registreres igen efter skiftet af RP ID.
