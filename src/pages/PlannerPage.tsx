@@ -531,7 +531,7 @@ const PlannerPage: React.FC = () => {
           action: {
             label: 'Fortryd',
             onClick: () => {
-              updateAssignment(assignment.id, { date: base }).catch(() => {
+              updateAssignment(assignment.id, buildPayload(base)).catch(() => {
                 sonnerToast.error('Kunne ikke fortryde flytningen');
               });
             },
