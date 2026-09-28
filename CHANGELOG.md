@@ -1,3 +1,7 @@
+## 2026-09-28 — Hover-detaljer på opgaveblokke i kalendervisningen
+- `PlannerCalendarView`: holding musen over en opgaveblok viser nu en tooltip med sagsnummer, tidspunkt og adresse (vises kun, hvis oplysningen findes).
+- Implementeret med shadcn `Tooltip` indeni `TooltipProvider` omkring kalenderen; klik-adfærd (detaljer/udgivelses-striplet) er uændret.
+
 ## 2026-09-28 — Individuelle medarbejderfarver i kalendervisningen + kalender på mobil
 - Ny `src/components/Planner/Calendar/employeeColors.ts`: 16 tydeligt adskilte HSL-farver tildelt stabilt pr. medarbejder-id (med fallback-hash). Bruges udelukkende i kalendervisningen — standard-, gitter- og kompaktvisningen er uændrede.
 - `PlannerCalendarView`: farvet prik i medarbejderlisten, farvet kolonneoverskrift og farvede opgaveblokke (baggrund, venstrekant og læsbar tekstfarve) pr. medarbejder.
