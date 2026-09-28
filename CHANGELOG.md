@@ -1,3 +1,6 @@
+## 2026-09-28 — Dato i opgavedetaljer i kalendervisningen
+- `PlannerCalendarView`: hover-tooltip og mobil-tap-kortet viser nu også datoen (fx "man 28. sep 2026") ud over sagsnummer, tidspunkt og adresse.
+
 ## 2026-09-28 — Ugenummerkolonne tilpasset mobil
 - `DutyMonthCalendar`: ugenummerkolonnen er smallere på mobil (1,75rem), med lidt mindre gitterafstand og tættere dagsfelter, så kalenderen ikke bliver trang.
 - Ugenumrene er tydeligere på mobil (11 px, semibold); "Uge"-overskriften er 10 px på mobil. Desktop-udseendet er uændret.
