@@ -58,6 +58,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
 
   const absentOn = (empId: string) => vacations.find(v => v.status === 'approved' && v.user_id === empId && v.start_date <= day && v.end_date >= day);
 
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [now, setNow] = useState(new Date());
   useEffect(() => { const i = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(i); }, []);
   const nowMin = now.getHours() * 60 + now.getMinutes();
