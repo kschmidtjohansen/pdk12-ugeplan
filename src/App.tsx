@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -137,6 +138,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <Toaster />
+      <SonnerToaster position="bottom-center" richColors />
       <OfflineFallback />
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>
