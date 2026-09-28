@@ -181,7 +181,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                         return (
                           <Tooltip key={a.id} delayDuration={300}>
                             <TooltipTrigger asChild>
-                              <button type="button" onClick={() => onViewDetails(a)}
+                              <button type="button" onClick={() => (isTouch ? setTapped(a) : onViewDetails(a))}
                                 className={cn('absolute left-1 right-1 z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', !a.published && 'border-dashed opacity-80')}
                                 style={{ top, height, backgroundColor: c.background, borderColor: c.border, color: c.text }}>
                                 <div className="text-[10px] font-medium opacity-80">{timeLabel}</div>
