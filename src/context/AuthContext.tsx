@@ -658,39 +658,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // Login method
+  // Login methods
   /**
-   * Runs the device biometric confirmation. Returns a friendly reason when it
-   * was cancelled, unavailable or failed — or null when it succeeded.
+   * Signs in with a device passkey (Face ID / fingerprint / PIN). Returns a
+   * friendly reason when it was cancelled, unavailable or failed — or null
+   * when it succeeded. Never throws.
    */
-  const runBiometricStep = async (factorId: string): Promise<string | null> => {
+  const runPasskeySignIn = async (): Promise<string | null> => {
     try {
       toast({
         title: "Bekræft med Face ID / fingeraftryk",
-        description: "Følg vejledningen på din enhed for at fuldføre login.",
+        description: "Følg vejledningen på din enhed for at logge ind.",
       });
-      const { error: mfaError } = await supabase.auth.mfa.webauthn.authenticate({ factorId });
-      if (!mfaError) return null;
-      if (import.meta.env.DEV) console.warn('[AuthProvider] Biometric step skipped:', mfaError.message);
-      return /cancel|abort|not allowed|timed out/i.test(mfaError.message ?? '')
-        ? 'Bekræftelsen blev afbrudt. Du er logget ind med din adgangskode og kan fortsætte.'
-        : 'Bekræftelsen kunne ikke gennemføres på denne enhed. Du er logget ind med din adgangskode og kan fortsætte.';
+      const { error } = await supabase.auth.signInWithPasskey();
+      if (!error) return null;
+      if (import.meta.env.DEV) console.warn('[AuthProvider] Passkey sign-in failed:', error.message);
+      return /cancel|abort|not allowed|timed out/i.test(error.message ?? '')
+        ? 'Bekræftelsen blev afbrudt. Prøv igen, eller log ind med din adgangskode.'
+        : 'Bekræftelsen kunne ikke gennemføres på denne enhed. Prøv igen, eller log ind med din adgangskode.';
     } catch (err) {
-      if (import.meta.env.DEV) console.warn('[AuthProvider] Biometric step error:', err instanceof Error ? err.message : 'Unknown');
-      return 'Bekræftelsen blev afbrudt. Du er logget ind med din adgangskode og kan fortsætte.';
+      if (import.meta.env.DEV) console.warn('[AuthProvider] Passkey sign-in error:', err instanceof Error ? err.message : 'Unknown');
+      return 'Bekræftelsen blev afbrudt. Prøv igen, eller log ind med din adgangskode.';
     }
+  };
+
+  const loginWithPasskey = async (): Promise<{ error: string | null }> => {
+    const failure = await runPasskeySignIn();
+    if (failure) {
+      setBiometricPrompt({ reason: failure });
+      return { error: failure };
+    }
+    toast({
+      title: "Login Succesfuld",
+      description: "Du er nu logget ind.",
+    });
+    return { error: null };
   };
 
   const retryBiometric = async () => {
     if (!biometricPrompt) return;
     setBiometricBusy(true);
-    const failure = await runBiometricStep(biometricPrompt.factorId);
+    const failure = await runPasskeySignIn();
     setBiometricBusy(false);
     if (failure) {
-      setBiometricPrompt({ ...biometricPrompt, reason: failure });
+      setBiometricPrompt({ reason: failure });
     } else {
       setBiometricPrompt(null);
-      toast({ title: "Bekræftet", description: "Din enhed bekræftede dit login." });
+      toast({ title: "Login Succesfuld", description: "Din enhed bekræftede dit login." });
     }
   };
 
@@ -704,26 +718,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         if (import.meta.env.DEV) console.error('[AuthProvider] Login error:', error.message);
         return { error: error.message };
-      }
-
-      // If the user has registered a biometric factor (Face ID / fingerprint / PIN),
-      // offer a device confirmation. It is always optional: a cancelled, failed or
-      // unavailable prompt never blocks the valid password session.
-      try {
-        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
-          const { data: factors } = await supabase.auth.mfa.listFactors();
-          const webauthnFactor = (factors?.webauthn ?? []).find(f => f.status === 'verified');
-          if (webauthnFactor) {
-            const failure = await runBiometricStep(webauthnFactor.id);
-            if (failure) {
-              setBiometricPrompt({ factorId: webauthnFactor.id, reason: failure });
-            }
-          }
-        }
-      } catch (mfaErr) {
-        // Never block a valid password login on biometric failures
-        if (import.meta.env.DEV) console.warn('[AuthProvider] MFA step skipped:', mfaErr instanceof Error ? mfaErr.message : 'Unknown');
       }
 
       toast({
