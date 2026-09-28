@@ -160,6 +160,15 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
             </p>
           )}
 
+          {lastError && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+              <p className="text-sm font-medium text-destructive">Kunne ikke aktivere</p>
+              <p className="mt-1 break-words text-xs text-destructive/90">{lastError}</p>
+            </div>
+          )}
+
+
+
           {isLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
