@@ -1,3 +1,7 @@
+## 2026-09-28 — Ugenummerkolonne tilpasset mobil
+- `DutyMonthCalendar`: ugenummerkolonnen er smallere på mobil (1,75rem), med lidt mindre gitterafstand og tættere dagsfelter, så kalenderen ikke bliver trang.
+- Ugenumrene er tydeligere på mobil (11 px, semibold); "Uge"-overskriften er 10 px på mobil. Desktop-udseendet er uændret.
+
 ## 2026-09-28 — Ugenumre i vagtkalenderen
 - `DutyMonthCalendar`: ny smal ugenummer-kolonne i venstre side af månedsgitteret med ISO-ugenummer (`getISOWeek`) for hver ugerække; overskrift "Uge" (da) / "Wk" (en).
 - Den aktuelle uge fremhæves med primærfarve. Kolonnebredden er 2rem (mobil) / 2,5rem (desktop), så dagsfeltene kun bliver marginalt smallere.
