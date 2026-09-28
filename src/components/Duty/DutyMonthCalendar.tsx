@@ -417,6 +417,7 @@ export const DutyMonthCalendar = ({
                   })}
                 </div>
               </div>
+                </Fragment>
             );
           })}
         </div>
