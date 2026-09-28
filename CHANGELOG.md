@@ -1,3 +1,9 @@
+## 2026-09-28 — Individuelle medarbejderfarver i kalendervisningen + kalender på mobil
+- Ny `src/components/Planner/Calendar/employeeColors.ts`: 16 tydeligt adskilte HSL-farver tildelt stabilt pr. medarbejder-id (med fallback-hash). Bruges udelukkende i kalendervisningen — standard-, gitter- og kompaktvisningen er uændrede.
+- `PlannerCalendarView`: farvet prik i medarbejderlisten, farvet kolonneoverskrift og farvede opgaveblokke (baggrund, venstrekant og læsbar tekstfarve) pr. medarbejder.
+- Kalendervisningen kan nu vælges på mobil: visningsvælgeren i `PlannerPage` er ikke længere skjult på små skærme, og knapperne er 36 px høje på mobil.
+- Kalenderens medarbejderfilter er sammenklappeligt på mobil (åbent på desktop), baner er smallere på mobil (`w-36`), og rækkerne har 40 px touch-højde.
+
 ## 2026-09-28 — Nyt sidetitel og meta-beskrivelse
 - Nyt site-titel i `index.html`: "PolyPlan – Daglig planlægning og overblik for skadeservice".
 - Ny meta-beskrivelse: "PolyPlan giver medarbejdere og skadeledere fuldt overblik over opgaver, vagter, ferie og afdelinger – ét værktøj til den daglige drift i skadeservice."
