@@ -215,9 +215,9 @@ export const DutyMonthCalendar = ({
       </CardHeader>
       <CardContent>
 
-        <div className="grid grid-cols-[2rem_repeat(7,minmax(0,1fr))] md:grid-cols-[2.5rem_repeat(7,minmax(0,1fr))] gap-2">
+        <div className="grid grid-cols-[1.75rem_repeat(7,minmax(0,1fr))] md:grid-cols-[2.5rem_repeat(7,minmax(0,1fr))] gap-1 md:gap-2">
           {/* Week + day headers */}
-          <div className="text-center text-xs font-semibold text-muted-foreground py-2">
+          <div className="text-center text-[10px] md:text-xs font-semibold text-muted-foreground py-2">
             {currentLanguage === 'da' ? 'Uge' : 'Wk'}
           </div>
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
@@ -244,7 +244,7 @@ export const DutyMonthCalendar = ({
                 {i % 7 === 0 && (
                   <div
                     className={cn(
-                      "flex items-center justify-center rounded-lg text-xs font-medium",
+                      "flex items-center justify-center rounded-lg text-[11px] md:text-xs font-semibold md:font-medium leading-none",
                       isCurrentWeek
                         ? "bg-primary/10 text-primary font-bold"
                         : "text-muted-foreground"
@@ -256,7 +256,7 @@ export const DutyMonthCalendar = ({
                 )}
                 <div
                   className={cn(
-                    "min-h-[120px] md:min-h-[100px] border rounded-lg p-1.5 md:p-2",
+                    "min-h-[120px] md:min-h-[100px] border rounded-lg p-1 md:p-2",
                     isCurrentMonth ? "bg-card" : "bg-muted/30",
                     isToday && "ring-2 ring-primary"
                   )}
