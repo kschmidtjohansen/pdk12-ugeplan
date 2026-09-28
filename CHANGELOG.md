@@ -1,3 +1,8 @@
+## 2026-09-28 — Fire videoguider produceret
+- Nye animerede guider i Full HD (ca. 28 sek. hver) lagt i Filer: `Polyplan_Guide_Vagtbytte.mp4`, `Polyplan_Guide_Fravaer_og_Fridage.mp4`, `Polyplan_Guide_Medarbejder_Bil_Vikar.mp4`, `Polyplan_Guide_Opgave_og_Serie.mp4`.
+- Indhold: vagtbytte (tilbyd, vælg modtager, accept/afslag, træk tilbage), fridage (ansøg + godkend/afvis med bemandingstjek), oprettelse af medarbejder/bil/vikar med udløbsdato, samt opret opgave og opgaveserie med udgivelse.
+- Produceret med Remotion (kildekode i sandkassen, ingen ændringer i app-koden).
+
 ## 2026-09-28 — Dato i opgavedetaljer i kalendervisningen
 - `PlannerCalendarView`: hover-tooltip og mobil-tap-kortet viser nu også datoen (fx "man 28. sep 2026") ud over sagsnummer, tidspunkt og adresse.
 
