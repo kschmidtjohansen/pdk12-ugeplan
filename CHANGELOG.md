@@ -2024,3 +2024,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Ugeplan: tidsstriben på opgavekort er fjernet efter ønske — kortene er nu renere og mere kompakte.
 
 - Vagtside: afdelingsnavn vises under navnet på "Vagter i dag" (kun for medarbejdere med tilknyttet afdeling).
+
+## 2026-09-28 — Outlook-kalendervisning i ugeplanen
+- Ny 4. visning (kalenderikon): teknikere side om side med tidsgitter 06–19, fraværsbånd, filterliste (Alle/Fugt), dagsvælger og "lige nu"-linje.

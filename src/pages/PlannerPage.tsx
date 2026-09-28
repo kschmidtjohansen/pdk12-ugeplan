@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import PlannerContent from '../components/Planner/PlannerContent';
 const PlannerDialogContainer = lazy(() => import('../components/Planner/PlannerDialogContainer'));
 const SeriesActionDialog = lazy(() => import('../components/Planner/SeriesActionDialog'));
-import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import ListSkeleton from '@/components/shared/ListSkeleton';
@@ -105,9 +105,9 @@ const PlannerPage: React.FC = () => {
   });
   
   // View mode state with localStorage persistence
-  const [viewMode, setViewMode] = useState<'standard' | 'compact' | 'grid'>(() => {
+  const [viewMode, setViewMode] = useState<'standard' | 'compact' | 'grid' | 'calendar'>(() => {
     const saved = localStorage.getItem('plannerViewMode');
-    return (saved === 'compact' || saved === 'standard' || saved === 'grid') ? saved : 'standard';
+    return (saved === 'compact' || saved === 'standard' || saved === 'grid' || saved === 'calendar') ? saved : 'standard';
   });
   
   
@@ -768,7 +768,7 @@ const PlannerPage: React.FC = () => {
               <ToggleGroup
                 type="single"
                 value={viewMode}
-                onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid')}
+                onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid' | 'calendar')}
                 className="bg-muted/50 border border-border rounded-lg p-0.5"
               >
                 <ToggleGroupItem value="standard" size="sm" aria-label={t('planner.viewModeStandard')} title={t('planner.viewModeStandard')} className="h-7 w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
@@ -779,6 +779,9 @@ const PlannerPage: React.FC = () => {
                 </ToggleGroupItem>
                 <ToggleGroupItem value="compact" size="sm" aria-label={t('planner.viewModeCompact')} title={t('planner.viewModeCompact')} className="h-7 w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
                   <LayoutList className="h-3.5 w-3.5" />
+                </ToggleGroupItem>
+                <ToggleGroupItem value="calendar" size="sm" aria-label={currentLanguage === 'da' ? 'Kalender' : 'Calendar'} title={currentLanguage === 'da' ? 'Kalender (Outlook)' : 'Calendar'} className="h-7 w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                  <CalendarDays className="h-3.5 w-3.5" />
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
