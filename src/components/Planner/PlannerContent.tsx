@@ -34,6 +34,8 @@ interface PlannerContentProps {
   onCopyAssignment: (assignment: Assignment) => void;
   onCopyDayFromYesterday?: (date: string) => void;
   selectedWeek: number;
+  onPreviousWeek?: () => void;
+  onNextWeek?: () => void;
   selectedYear: number;
   weekDates: ReturnType<typeof import('@/utils/dates').getWeekDates>;
   viewMode?: 'standard' | 'compact' | 'grid' | 'calendar';
@@ -61,6 +63,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   onCopyAssignment,
   onCopyDayFromYesterday,
   selectedWeek,
+  onPreviousWeek,
+  onNextWeek,
   selectedYear,
   weekDates,
   viewMode = 'standard',
@@ -198,6 +202,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             onViewDetails={setDetailsDialogAssignment}
             onCreateAssignment={onCreateAssignment}
             canEdit={canEdit}
+            onEditAssignment={onEditAssignment}
+            onPreviousWeek={onPreviousWeek}
+            onNextWeek={onNextWeek}
           />
         </PlannerWidgetErrorBoundary>
       ) : viewMode === 'compact' ? (
