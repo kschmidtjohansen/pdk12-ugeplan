@@ -123,9 +123,13 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                 <div className="w-14 shrink-0 sticky left-0 bg-card z-30" />
                 {lanes.map(e => {
                   const abs = absentOn(e.id);
+                  const c = getEmployeeColor(e.id, sorted.findIndex(s => s.id === e.id));
                   return (
-                    <div key={e.id} className="w-44 shrink-0 border-l border-border px-2 py-1.5">
-                      <div className="text-xs font-semibold truncate">{e.name}</div>
+                    <div key={e.id} className="w-36 sm:w-44 shrink-0 border-l border-border px-2 py-1.5" style={{ borderTop: `3px solid ${c.border}` }}>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: c.border }} />
+                        <span className="text-xs font-semibold truncate">{e.name}</span>
+                      </div>
                       <div className="h-5 mt-1">
                         {abs && <span className="inline-block max-w-full truncate rounded bg-destructive/15 text-destructive text-[10px] font-medium px-1.5 py-0.5">{abs.request_type === 'partial_day' ? `Fravær ${abs.start_time?.slice(0,5) ?? ''}–${abs.end_time?.slice(0,5) ?? ''}` : 'Fravær / ferie'}</span>}
                       </div>
