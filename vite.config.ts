@@ -25,6 +25,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    // Unique per build: used to wipe offline caches after every deploy.
+    __APP_BUILD_ID__: JSON.stringify(`${Date.now()}`),
+  },
   optimizeDeps: {
     include: ['lucide-react'],
   },

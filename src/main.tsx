@@ -2,8 +2,12 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { Sentry, initSentry } from './lib/sentry';
+import { resetCachesOnNewBuild } from './lib/appVersionReset';
 
 initSentry();
+
+// Wipe offline caches whenever a new version has been deployed.
+void resetCachesOnNewBuild();
 
 // Guard: never run the PWA service worker inside the Lovable editor preview
 // (iframes or *.lovableproject.com / id-preview--*.lovable.app hosts).
