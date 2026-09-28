@@ -40,6 +40,7 @@ interface AuthContextType {
   isEffectiveServicemedarbejder: boolean;
   effectiveRole: UserRole | null;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
+  loginWithPasskey: () => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>;
@@ -78,6 +79,7 @@ const AuthContext = createContext<AuthContextType>({
   isEffectiveServicemedarbejder: false,
   effectiveRole: null,
   login: async () => ({ error: null }),
+  loginWithPasskey: async () => ({ error: null }),
   logout: async () => {},
   signUp: async () => ({ error: null }),
   requestPasswordReset: async () => ({ error: null }),
@@ -129,8 +131,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const toastRef = useRef(toast);
   useEffect(() => { toastRef.current = toast; }, [toast]);
   
-  // Optional biometric confirmation after a valid password sign-in
-  const [biometricPrompt, setBiometricPrompt] = useState<{ factorId: string; reason: string } | null>(null);
+  // Optional passkey sign-in (Face ID / fingerprint) — retry dialog state
+  const [biometricPrompt, setBiometricPrompt] = useState<{ reason: string } | null>(null);
   const [biometricBusy, setBiometricBusy] = useState(false);
 
   // Demo mode detection
