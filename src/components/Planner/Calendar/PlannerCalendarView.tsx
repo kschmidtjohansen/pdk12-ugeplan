@@ -68,6 +68,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   const gridHeight = (END_HOUR - START_HOUR) * HOUR_PX;
 
   return (
+    <TooltipProvider delayDuration={300}>
     <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
       {/* Filterkolonne — sammenklappelig på mobil */}
       <aside className="lg:w-56 shrink-0 rounded-xl border border-border bg-card p-3">
