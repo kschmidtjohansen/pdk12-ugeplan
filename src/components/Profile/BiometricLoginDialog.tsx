@@ -29,13 +29,31 @@ export const isWebAuthnSupported = () =>
   typeof window.PublicKeyCredential === 'function';
 
 /**
- * Passkeys er registreret med RP ID "www.pdk12.dk" i Supabase — de virker kun
- * på præcis det domæne (og localhost til udvikling).
+ * Passkeys er registreret med RP ID "pdk12.dk" i Supabase. Et RP ID uden
+ * subdomæne dækker både pdk12.dk, www.pdk12.dk og appen installeret på
+ * telefonen (samme origin i standalone-tilstand).
  */
+export const PASSKEY_RP_ID = 'pdk12.dk';
+
 export const isPasskeyDomain = () => {
   if (typeof window === 'undefined') return false;
-  const host = window.location.hostname;
-  return host === 'www.pdk12.dk' || host === 'localhost' || host === '127.0.0.1';
+  const host = window.location.hostname.toLowerCase();
+  return (
+    host === PASSKEY_RP_ID ||
+    host.endsWith(`.${PASSKEY_RP_ID}`) ||
+    host === 'localhost' ||
+    host === '127.0.0.1'
+  );
+};
+
+/** Appen kører som installeret app på telefonen (PWA). */
+export const isStandalonePwa = () => {
+  if (typeof window === 'undefined') return false;
+  const nav = window.navigator as Navigator & { standalone?: boolean };
+  return (
+    window.matchMedia?.('(display-mode: standalone)').matches === true ||
+    nav.standalone === true
+  );
 };
 
 export const isPasskeyAvailable = () => isWebAuthnSupported() && isPasskeyDomain();
