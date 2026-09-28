@@ -133,6 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   // Optional passkey sign-in (Face ID / fingerprint) — retry dialog state
   const [biometricPrompt, setBiometricPrompt] = useState<{ reason: string } | null>(null);
+  const [offerPasskey, setOfferPasskey] = useState(false);
   const [biometricBusy, setBiometricBusy] = useState(false);
 
   // Demo mode detection
@@ -935,6 +936,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         onRetry={retryBiometric}
         onContinue={() => setBiometricPrompt(null)}
       />
+      <PasskeyEnrollPrompt trigger={offerPasskey} onDone={handlePasskeyOfferDone} />
     </AuthContext.Provider>
   );
 };
