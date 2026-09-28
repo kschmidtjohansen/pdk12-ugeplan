@@ -154,7 +154,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
           <div className="p-8 text-center text-sm text-muted-foreground">Vælg medarbejdere i listen for at se deres kalender.</div>
         ) : (
           <div className="overflow-auto max-h-[75vh]">
-            <div className="min-w-max">
+            <div className="min-w-full w-max">
               {/* Header + heldagsrække */}
               <div className="flex sticky top-0 z-20 bg-card border-b border-border">
                 <div className="w-14 shrink-0 sticky left-0 bg-card z-30" />
