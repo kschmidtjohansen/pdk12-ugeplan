@@ -725,6 +725,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         description: "Du er nu logget ind.",
       });
 
+      // Tilbyd hurtig login på denne enhed, hvis den ikke er registreret endnu.
+      setOfferPasskey(true);
+
       return { error: null };
     } catch (error: any) {
       if (import.meta.env.DEV) console.error('[AuthProvider] Login exception:', error instanceof Error ? error.message : 'Unknown error');
