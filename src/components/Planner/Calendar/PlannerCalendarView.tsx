@@ -34,6 +34,11 @@ const toMin = (t?: string) => {
   return Number.isFinite(h) ? h * 60 + (m || 0) : null;
 };
 
+const dateLabel = (d?: string) => {
+  if (!d) return '';
+  try { return format(parseISO(d), 'EEE d. MMM yyyy', { locale: da }); } catch { return d; }
+};
+
 const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek }) => {
   const swipeRef = React.useRef<{ x: number; y: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => { const t = e.touches[0]; swipeRef.current = { x: t.clientX, y: t.clientY }; };
