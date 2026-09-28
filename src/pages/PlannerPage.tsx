@@ -764,7 +764,7 @@ const PlannerPage: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <div className="hidden sm:flex items-center">
+            <div className="flex items-center justify-center sm:justify-start">
               <ToggleGroup
                 type="single"
                 value={viewMode}
