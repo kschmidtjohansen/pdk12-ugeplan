@@ -165,14 +165,25 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                         const en = Math.max(toMin(a.toTime) ?? s + 60, s + 20);
                         const top = Math.max(0, ((s - START_HOUR * 60) / 60) * HOUR_PX);
                         const height = Math.max(22, ((Math.min(en, END_HOUR * 60) - Math.max(s, START_HOUR * 60)) / 60) * HOUR_PX - 2);
+                        const timeLabel = `${a.fromTime?.slice(0, 5) ?? ''}–${a.toTime?.slice(0, 5) ?? ''}`;
                         return (
-                          <button key={a.id} type="button" onClick={() => onViewDetails(a)}
-                            className={cn('absolute left-1 right-1 z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', !a.published && 'border-dashed opacity-80')}
-                            style={{ top, height, backgroundColor: c.background, borderColor: c.border, color: c.text }}>
-                            <div className="text-[10px] font-medium opacity-80">{a.fromTime?.slice(0, 5)}–{a.toTime?.slice(0, 5)}</div>
-                            <div className="text-xs font-semibold leading-tight line-clamp-2">{a.title}</div>
-                            {height > 60 && <div className="text-[10px] opacity-80 truncate">{a.location}</div>}
-                          </button>
+                          <Tooltip key={a.id} delayDuration={300}>
+                            <TooltipTrigger asChild>
+                              <button type="button" onClick={() => onViewDetails(a)}
+                                className={cn('absolute left-1 right-1 z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', !a.published && 'border-dashed opacity-80')}
+                                style={{ top, height, backgroundColor: c.background, borderColor: c.border, color: c.text }}>
+                                <div className="text-[10px] font-medium opacity-80">{timeLabel}</div>
+                                <div className="text-xs font-semibold leading-tight line-clamp-2">{a.title}</div>
+                                {height > 60 && <div className="text-[10px] opacity-80 truncate">{a.location}</div>}
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-64 p-2.5">
+                              <div className="text-xs font-semibold leading-tight">{a.title}</div>
+                              {a.case_number && <div className="mt-1 text-[11px] opacity-90">Sagsnummer: {a.case_number}</div>}
+                              <div className="text-[11px] opacity-90">Tidspunkt: {timeLabel}</div>
+                              {a.location && <div className="text-[11px] opacity-90">Adresse: {a.location}</div>}
+                            </TooltipContent>
+                          </Tooltip>
                         );
                       })}
                       {showNow && li >= 0 && <div className="absolute inset-x-0 z-[6] h-0.5 bg-destructive pointer-events-none" style={{ top: ((nowMin - START_HOUR * 60) / 60) * HOUR_PX }} />}
