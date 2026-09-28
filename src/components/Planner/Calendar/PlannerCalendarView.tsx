@@ -162,7 +162,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                   const abs = absentOn(e.id);
                   const c = getEmployeeColor(e.id, sorted.findIndex(s => s.id === e.id));
                   return (
-                    <div key={e.id} className="w-36 sm:w-44 shrink-0 border-l border-border px-2 py-1.5" style={{ borderTop: `3px solid ${c.border}` }}>
+                    <div key={e.id} className="flex-1 min-w-[130px] sm:min-w-[150px] border-l border-border px-2 py-1.5" style={{ borderTop: `3px solid ${c.border}` }}>
                       <div className="flex items-center gap-1.5">
                         <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: c.border }} />
                         <span className="text-xs font-semibold truncate">{e.name}</span>
