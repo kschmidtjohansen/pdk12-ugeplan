@@ -1,6 +1,6 @@
 ## 2026-09-28 — Nyt sidetitel og meta-beskrivelse
-- Nyt site-titel i `index.html`: "PolyPlan – Samlet planlægning af opgaver, vagter og ferie".
-- Ny meta-beskrivelse: "Med PolyPlan planlægger du skadeservice-opgaver, vagter, ferie og afdelinger i ét samlet overblik – for både medarbejdere og skadeledere."
+- Nyt site-titel i `index.html`: "PolyPlan – Daglig planlægning og overblik for skadeservice".
+- Ny meta-beskrivelse: "PolyPlan giver medarbejdere og skadeledere fuldt overblik over opgaver, vagter, ferie og afdelinger – ét værktøj til den daglige drift i skadeservice."
 - `og:title` / `og:description` spejler de nye tekster, og `manifest.webmanifest`-beskrivelsen er opdateret. Appens korte navn ("Polygon Ugeplan") er uændret.
 
 ## 2026-09-28 — Passkeys på både pdk12.dk og www.pdk12.dk + tilbud efter login

@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Polygon Ugeplan",
   "short_name": "Ugeplan",
-  "description": "Med PolyPlan planlægger du skadeservice-opgaver, vagter, ferie og afdelinger i ét samlet overblik – for både medarbejdere og skadeledere.",
+  "description": "PolyPlan giver medarbejdere og skadeledere fuldt overblik over opgaver, vagter, ferie og afdelinger – ét værktøj til den daglige drift i skadeservice.",
   "theme_color": "#00aeef",
   "background_color": "#f8fafc",
   "display": "standalone",
