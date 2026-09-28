@@ -1,3 +1,9 @@
+## 2026-09-28 — Passkeys på både pdk12.dk og www.pdk12.dk + tilbud efter login
+- `isPasskeyDomain()` accepterer nu RP ID `pdk12.dk` og alle underdomæner (inkl. `www`) samt localhost — hurtig login virker dermed også i den installerede app på telefonen (samme origin i standalone-tilstand). Ny eksport `isStandalonePwa()`.
+- `BiometricLoginDialog` viser en tydelig besked om, at tidligere registrerede enheder skal fjernes og registreres igen efter skiftet af RP ID.
+- Ny `src/components/Auth/PasskeyEnrollPrompt.tsx`: efter et almindeligt adgangskode-login tilbydes hurtig login, hvis enheden understøtter det og endnu ikke er registreret. "Ikke nu" huskes i browseren (`passkey_enroll_dismissed`).
+- Kræver manuel ændring i Supabase: Relying Party ID sættes til `pdk12.dk`, og origins skal omfatte både `https://pdk12.dk` og `https://www.pdk12.dk`.
+
 ## 2026-09-28 — Hurtig login skiftet fra MFA WebAuthn til Passkeys
 - Registrering af Face ID / fingeraftryk bruger nu Supabase Passkeys (`auth.registerPasskey()` / `auth.passkey.*`) i stedet for den gamle MFA WebAuthn-vej, som serveren afviste med `mfa_webauthn_enroll_not_enabled`.
 - Login-siden har fået knappen "Log ind med Face ID / fingeraftryk" — ét tryk logger ind helt uden adgangskode. Ved afbrud/fejl vises dialogen "Prøv igen / fortsæt med adgangskode-login".
