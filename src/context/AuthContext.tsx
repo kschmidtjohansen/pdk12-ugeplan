@@ -40,6 +40,7 @@ interface AuthContextType {
   isEffectiveServicemedarbejder: boolean;
   effectiveRole: UserRole | null;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
+  loginWithPasskey: () => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>;
@@ -78,6 +79,7 @@ const AuthContext = createContext<AuthContextType>({
   isEffectiveServicemedarbejder: false,
   effectiveRole: null,
   login: async () => ({ error: null }),
+  loginWithPasskey: async () => ({ error: null }),
   logout: async () => {},
   signUp: async () => ({ error: null }),
   requestPasswordReset: async () => ({ error: null }),
@@ -129,8 +131,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const toastRef = useRef(toast);
   useEffect(() => { toastRef.current = toast; }, [toast]);
   
-  // Optional biometric confirmation after a valid password sign-in
-  const [biometricPrompt, setBiometricPrompt] = useState<{ factorId: string; reason: string } | null>(null);
+  // Optional passkey sign-in (Face ID / fingerprint) — retry dialog state
+  const [biometricPrompt, setBiometricPrompt] = useState<{ reason: string } | null>(null);
   const [biometricBusy, setBiometricBusy] = useState(false);
 
   // Demo mode detection
@@ -656,39 +658,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return true;
   };
 
-  // Login method
+  // Login methods
   /**
-   * Runs the device biometric confirmation. Returns a friendly reason when it
-   * was cancelled, unavailable or failed — or null when it succeeded.
+   * Signs in with a device passkey (Face ID / fingerprint / PIN). Returns a
+   * friendly reason when it was cancelled, unavailable or failed — or null
+   * when it succeeded. Never throws.
    */
-  const runBiometricStep = async (factorId: string): Promise<string | null> => {
+  const runPasskeySignIn = async (): Promise<string | null> => {
     try {
       toast({
         title: "Bekræft med Face ID / fingeraftryk",
-        description: "Følg vejledningen på din enhed for at fuldføre login.",
+        description: "Følg vejledningen på din enhed for at logge ind.",
       });
-      const { error: mfaError } = await supabase.auth.mfa.webauthn.authenticate({ factorId });
-      if (!mfaError) return null;
-      if (import.meta.env.DEV) console.warn('[AuthProvider] Biometric step skipped:', mfaError.message);
-      return /cancel|abort|not allowed|timed out/i.test(mfaError.message ?? '')
-        ? 'Bekræftelsen blev afbrudt. Du er logget ind med din adgangskode og kan fortsætte.'
-        : 'Bekræftelsen kunne ikke gennemføres på denne enhed. Du er logget ind med din adgangskode og kan fortsætte.';
+      const { error } = await supabase.auth.signInWithPasskey();
+      if (!error) return null;
+      if (import.meta.env.DEV) console.warn('[AuthProvider] Passkey sign-in failed:', error.message);
+      return /cancel|abort|not allowed|timed out/i.test(error.message ?? '')
+        ? 'Bekræftelsen blev afbrudt. Prøv igen, eller log ind med din adgangskode.'
+        : 'Bekræftelsen kunne ikke gennemføres på denne enhed. Prøv igen, eller log ind med din adgangskode.';
     } catch (err) {
-      if (import.meta.env.DEV) console.warn('[AuthProvider] Biometric step error:', err instanceof Error ? err.message : 'Unknown');
-      return 'Bekræftelsen blev afbrudt. Du er logget ind med din adgangskode og kan fortsætte.';
+      if (import.meta.env.DEV) console.warn('[AuthProvider] Passkey sign-in error:', err instanceof Error ? err.message : 'Unknown');
+      return 'Bekræftelsen blev afbrudt. Prøv igen, eller log ind med din adgangskode.';
     }
+  };
+
+  const loginWithPasskey = async (): Promise<{ error: string | null }> => {
+    const failure = await runPasskeySignIn();
+    if (failure) {
+      setBiometricPrompt({ reason: failure });
+      return { error: failure };
+    }
+    toast({
+      title: "Login Succesfuld",
+      description: "Du er nu logget ind.",
+    });
+    return { error: null };
   };
 
   const retryBiometric = async () => {
     if (!biometricPrompt) return;
     setBiometricBusy(true);
-    const failure = await runBiometricStep(biometricPrompt.factorId);
+    const failure = await runPasskeySignIn();
     setBiometricBusy(false);
     if (failure) {
-      setBiometricPrompt({ ...biometricPrompt, reason: failure });
+      setBiometricPrompt({ reason: failure });
     } else {
       setBiometricPrompt(null);
-      toast({ title: "Bekræftet", description: "Din enhed bekræftede dit login." });
+      toast({ title: "Login Succesfuld", description: "Din enhed bekræftede dit login." });
     }
   };
 
@@ -702,26 +718,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         if (import.meta.env.DEV) console.error('[AuthProvider] Login error:', error.message);
         return { error: error.message };
-      }
-
-      // If the user has registered a biometric factor (Face ID / fingerprint / PIN),
-      // offer a device confirmation. It is always optional: a cancelled, failed or
-      // unavailable prompt never blocks the valid password session.
-      try {
-        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
-          const { data: factors } = await supabase.auth.mfa.listFactors();
-          const webauthnFactor = (factors?.webauthn ?? []).find(f => f.status === 'verified');
-          if (webauthnFactor) {
-            const failure = await runBiometricStep(webauthnFactor.id);
-            if (failure) {
-              setBiometricPrompt({ factorId: webauthnFactor.id, reason: failure });
-            }
-          }
-        }
-      } catch (mfaErr) {
-        // Never block a valid password login on biometric failures
-        if (import.meta.env.DEV) console.warn('[AuthProvider] MFA step skipped:', mfaErr instanceof Error ? mfaErr.message : 'Unknown');
       }
 
       toast({
@@ -900,6 +896,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isEffectiveServicemedarbejder,
     effectiveRole: currentRole,
     login,
+    loginWithPasskey,
     logout,
     signUp,
     requestPasswordReset: resetPassword,

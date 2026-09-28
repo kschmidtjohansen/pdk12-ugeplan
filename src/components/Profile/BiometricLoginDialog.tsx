@@ -16,76 +16,87 @@ interface BiometricLoginDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface BiometricFactor {
+interface PasskeyItem {
   id: string;
   friendly_name?: string;
-  status: string;
   created_at: string;
+  last_used_at?: string;
 }
 
-const isWebAuthnSupported = () =>
+export const isWebAuthnSupported = () =>
   typeof window !== 'undefined' &&
   !!window.PublicKeyCredential &&
   typeof window.PublicKeyCredential === 'function';
 
 /**
+ * Passkeys er registreret med RP ID "www.pdk12.dk" i Supabase — de virker kun
+ * på præcis det domæne (og localhost til udvikling).
+ */
+export const isPasskeyDomain = () => {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host === 'www.pdk12.dk' || host === 'localhost' || host === '127.0.0.1';
+};
+
+export const isPasskeyAvailable = () => isWebAuthnSupported() && isPasskeyDomain();
+
+/**
  * Lets the user register the device's biometric unlock (Face ID, fingerprint,
- * PIN) as a WebAuthn factor. On later logins the device confirms with
- * biometrics instead of an extra typed step.
+ * PIN) as a passkey. On later logins the device signs the user in directly —
+ * no password needed.
  */
 const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpenChange }) => {
   const { toast } = useToast();
-  const [factors, setFactors] = useState<BiometricFactor[]>([]);
+  const [passkeys, setPasskeys] = useState<PasskeyItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [supported] = useState(isWebAuthnSupported);
+  const [rightDomain] = useState(isPasskeyDomain);
   const [lastError, setLastError] = useState<string | null>(null);
 
-
-  const loadFactors = useCallback(async () => {
+  const loadPasskeys = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.mfa.listFactors();
+      const { data, error } = await supabase.auth.passkey.list();
       if (error) throw error;
-      setFactors(
-        (data?.webauthn ?? []).filter(f => f.status === 'verified') as BiometricFactor[]
-      );
+      setPasskeys((data ?? []) as PasskeyItem[]);
     } catch {
-      setFactors([]);
+      setPasskeys([]);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (open) loadFactors();
-  }, [open, loadFactors]);
+    if (open) loadPasskeys();
+  }, [open, loadPasskeys]);
 
   const handleRegister = async () => {
     setIsRegistering(true);
     setLastError(null);
     try {
-      const { error } = await supabase.auth.mfa.webauthn.register({
-        friendlyName: `Denne enhed (${new Date().toLocaleDateString('da-DK')})`,
-      });
+      const { data, error } = await supabase.auth.registerPasskey();
       if (error) throw error;
+
+      // Giv nøglen et venligt navn, så brugeren kan kende enheden i listen.
+      if (data?.id) {
+        await supabase.auth.passkey.update({
+          passkeyId: data.id,
+          friendlyName: `Denne enhed (${new Date().toLocaleDateString('da-DK')})`,
+        });
+      }
+
       toast({
-        title: 'Biometrisk login aktiveret',
-        description: 'Næste login på denne enhed bekræfter du med Face ID, fingeraftryk eller pinkode.',
+        title: 'Hurtig login aktiveret',
+        description: 'Næste gang kan du logge ind med Face ID, fingeraftryk eller pinkode — helt uden adgangskode.',
       });
-      await loadFactors();
+      await loadPasskeys();
     } catch (error) {
       const err = error as { message?: string; code?: string; status?: number; name?: string };
       const msg = err?.message ?? '';
       const code = err?.code ?? '';
       const status = err?.status;
-
-      // Serveren afviser tilmelding når WebAuthn ikke er slået til som MFA-faktor.
-      const serverDisabled =
-        code === 'mfa_webauthn_enroll_not_enabled' ||
-        status === 422 ||
-        /disabled|not enabled|not supported|factor type/i.test(msg);
 
       // Brugeren afbrød, eller enheden gav op.
       const cancelled =
@@ -97,16 +108,11 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
         .filter(Boolean)
         .join(' · ');
 
-      let description: string;
-      if (serverDisabled) {
-        description = `Serveren afviste tilmeldingen. Face ID / fingeraftryk skal slås til som MFA-faktor i Supabase. Svar fra serveren: ${detail || 'MFA enroll is disabled for WebAuthn'}`;
-      } else if (cancelled) {
-        description = `Bekræftelsen blev afbrudt på enheden. ${detail}`.trim();
-      } else {
-        description = detail
+      const description = cancelled
+        ? `Bekræftelsen blev afbrudt på enheden. ${detail}`.trim()
+        : detail
           ? `Fejl: ${detail}`
           : 'Registreringen fejlede uden en nærmere forklaring. Prøv igen.';
-      }
 
       setLastError(description);
       toast({
@@ -114,20 +120,18 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
         description,
         variant: 'destructive',
       });
-
     } finally {
       setIsRegistering(false);
     }
   };
 
-
-  const handleRemove = async (factorId: string) => {
-    setRemovingId(factorId);
+  const handleRemove = async (passkeyId: string) => {
+    setRemovingId(passkeyId);
     try {
-      const { error } = await supabase.auth.mfa.unenroll({ factorId });
+      const { error } = await supabase.auth.passkey.delete({ passkeyId });
       if (error) throw error;
-      toast({ title: 'Fjernet', description: 'Biometrisk login er slået fra på denne enhed.' });
-      await loadFactors();
+      toast({ title: 'Fjernet', description: 'Hurtig login er slået fra på denne enhed.' });
+      await loadPasskeys();
     } catch (error) {
       toast({
         title: 'Kunne ikke fjerne',
@@ -148,8 +152,8 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
             Hurtig login på denne enhed
           </DialogTitle>
           <DialogDescription>
-            Brug telefonens Face ID, fingeraftryk eller pinkode til at bekræfte login — så slipper
-            du for at taste mere end din adgangskode.
+            Brug telefonens Face ID, fingeraftryk eller pinkode til at logge ind — helt uden
+            at taste din adgangskode.
           </DialogDescription>
         </DialogHeader>
 
@@ -160,6 +164,13 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
             </p>
           )}
 
+          {supported && !rightDomain && (
+            <p className="text-sm text-muted-foreground">
+              Hurtig login virker kun på hovedadressen <strong>www.pdk12.dk</strong>. Åbn siden
+              der, og aktivér det på denne enhed.
+            </p>
+          )}
+
           {lastError && (
             <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
               <p className="text-sm font-medium text-destructive">Kunne ikke aktivere</p>
@@ -167,26 +178,24 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
             </div>
           )}
 
-
-
           {isLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Henter enheder…
             </div>
-          ) : factors.length > 0 ? (
+          ) : passkeys.length > 0 ? (
             <ul className="space-y-2">
-              {factors.map(f => (
+              {passkeys.map(p => (
                 <li
-                  key={f.id}
+                  key={p.id}
                   className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
-                      {f.friendly_name || 'Biometrisk enhed'}
+                      {p.friendly_name || 'Biometrisk enhed'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Tilføjet {new Date(f.created_at).toLocaleDateString('da-DK')}
+                      Tilføjet {new Date(p.created_at).toLocaleDateString('da-DK')}
                     </p>
                   </div>
                   <Button
@@ -194,11 +203,11 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
                     variant="ghost"
                     size="sm"
                     className="min-h-11 shrink-0"
-                    disabled={removingId === f.id}
-                    onClick={() => handleRemove(f.id)}
-                    aria-label="Fjern biometrisk login"
+                    disabled={removingId === p.id}
+                    onClick={() => handleRemove(p.id)}
+                    aria-label="Fjern hurtig login"
                   >
-                    {removingId === f.id ? (
+                    {removingId === p.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Trash2 className="h-4 w-4" />
@@ -208,14 +217,14 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
               ))}
             </ul>
           ) : (
-            supported && (
+            supported && rightDomain && (
               <p className="text-sm text-muted-foreground">
                 Ingen enheder registreret endnu.
               </p>
             )
           )}
 
-          {supported && (
+          {supported && rightDomain && (
             <Button
               type="button"
               onClick={handleRegister}

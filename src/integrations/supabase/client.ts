@@ -56,6 +56,8 @@ export const supabase = (() => {
         storage: typeof window !== 'undefined' ? hybridStorage : undefined,
         persistSession: true,
         autoRefreshToken: true,
+        // Aktiverer passkey-login (Face ID / fingeraftryk) via auth.signInWithPasskey()
+        experimental: { passkey: true },
       },
     });
   }

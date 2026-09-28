@@ -19,9 +19,9 @@ interface BiometricRetryDialogProps {
 }
 
 /**
- * Shown when the device biometric confirmation was cancelled, unavailable or
- * failed. The password session is already valid, so the user can simply
- * continue — or try the device prompt once more.
+ * Shown when the passkey sign-in (Face ID / fingerprint) was cancelled,
+ * unavailable or failed. The user can try the device prompt once more — or
+ * simply sign in with their password instead.
  */
 const BiometricRetryDialog: React.FC<BiometricRetryDialogProps> = ({
   open,
@@ -39,7 +39,7 @@ const BiometricRetryDialog: React.FC<BiometricRetryDialogProps> = ({
         </DialogTitle>
         <DialogDescription>
           {reason ??
-            'Bekræftelsen blev afbrudt eller er ikke tilgængelig på denne enhed. Du er logget ind med din adgangskode og kan fortsætte.'}
+            'Bekræftelsen blev afbrudt eller er ikke tilgængelig på denne enhed. Prøv igen, eller log ind med din adgangskode.'}
         </DialogDescription>
       </DialogHeader>
 
@@ -49,7 +49,7 @@ const BiometricRetryDialog: React.FC<BiometricRetryDialogProps> = ({
           Prøv Face ID / fingeraftryk igen
         </Button>
         <Button variant="outline" className="h-11 w-full" onClick={onContinue} disabled={busy}>
-          Fortsæt med adgangskode
+          Fortsæt med adgangskode-login
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>

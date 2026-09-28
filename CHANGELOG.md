@@ -1,3 +1,10 @@
+## 2026-09-28 — Hurtig login skiftet fra MFA WebAuthn til Passkeys
+- Registrering af Face ID / fingeraftryk bruger nu Supabase Passkeys (`auth.registerPasskey()` / `auth.passkey.*`) i stedet for den gamle MFA WebAuthn-vej, som serveren afviste med `mfa_webauthn_enroll_not_enabled`.
+- Login-siden har fået knappen "Log ind med Face ID / fingeraftryk" — ét tryk logger ind helt uden adgangskode. Ved afbrud/fejl vises dialogen "Prøv igen / fortsæt med adgangskode-login".
+- Adgangskode-login er uændret og aldrig blokeret; passkey er et tilvalg.
+- Passkeys virker kun på RP ID-domænet `www.pdk12.dk` — dialogen og login-knappen viser en venlig besked på andre domæner.
+- `experimental: { passkey: true }` aktiveret i Supabase-klienten.
+
 ## 2026-09-28 — Præcis fejlbesked ved registrering af Face ID / fingeraftryk
 - `BiometricLoginDialog` viser nu den nøjagtige fejl fra server og enhed (besked, fejlkode og HTTP-status) i stedet for en generisk tekst.
 - Serverafvisning genkendes bredere: `mfa_webauthn_enroll_not_enabled`, HTTP 422 samt formuleringerne "disabled"/"not enabled" — beskeden peger på at WebAuthn skal slås til som MFA-faktor i Supabase.

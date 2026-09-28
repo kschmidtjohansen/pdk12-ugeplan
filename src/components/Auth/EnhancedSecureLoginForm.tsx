@@ -7,7 +7,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertTriangle, Eye, EyeOff, CheckCircle2, WifiOff, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Eye, EyeOff, CheckCircle2, WifiOff, ArrowRight, Fingerprint } from 'lucide-react';
+import { isPasskeyAvailable } from '@/components/Profile/BiometricLoginDialog';
 import { toast } from 'sonner';
 
 interface EnhancedSecureLoginFormProps {
@@ -55,11 +56,13 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
+  const [isPasskeyLoading, setIsPasskeyLoading] = useState(false);
+  const [passkeyAvailable] = useState(isPasskeyAvailable);
 
   const emailRef = useRef<HTMLInputElement | null>(null);
   const errorRef = useRef<HTMLDivElement | null>(null);
 
-  const { login } = useAuth();
+  const { login, loginWithPasskey } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const isDanish = currentLanguage === 'da';
 
@@ -202,6 +205,29 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
       setError(kind === 'unknown' ? (isOnline ? 'unknown' : 'network') : kind);
     } finally {
       if (!timedOut) setIsLoading(false);
+    }
+  };
+
+  const handlePasskeyLogin = async () => {
+    if (!isOnline) {
+      setError('network');
+      return;
+    }
+    clearError();
+    setIsPasskeyLoading(true);
+    try {
+      const result = await loginWithPasskey();
+      if (!result.error) {
+        setAttempts(0);
+        setSuccess(true);
+        toast.success(isDanish ? 'Du er logget ind' : 'You are signed in', {
+          description: isDanish ? 'Omdirigerer til ugeplan…' : 'Redirecting to your planner…',
+        });
+        onSuccess?.();
+      }
+      // Ved fejl viser AuthContext dialogen "Prøv igen / fortsæt med adgangskode".
+    } finally {
+      setIsPasskeyLoading(false);
     }
   };
 
@@ -366,6 +392,36 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
               </span>
             )}
           </Button>
+
+          {passkeyAvailable && (
+            <>
+              <div className="flex items-center gap-3 py-1" aria-hidden>
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">{isDanish ? 'eller' : 'or'}</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98]"
+                onClick={handlePasskeyLogin}
+                disabled={isLoading || isPasskeyLoading || isBlocked || !isOnline}
+                aria-busy={isPasskeyLoading}
+              >
+                {isPasskeyLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span aria-hidden className="animate-spin rounded-full h-4 w-4 border-2 border-foreground/30 border-t-foreground" />
+                    <span>{isDanish ? 'Bekræft på enheden…' : 'Confirm on your device…'}</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <Fingerprint className="h-5 w-5" aria-hidden />
+                    {isDanish ? 'Log ind med Face ID / fingeraftryk' : 'Sign in with Face ID / fingerprint'}
+                  </span>
+                )}
+              </Button>
+            </>
+          )}
         </form>
       </CardContent>
     </Card>
