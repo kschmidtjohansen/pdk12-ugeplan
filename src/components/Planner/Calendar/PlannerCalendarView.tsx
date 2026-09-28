@@ -101,7 +101,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
     <TooltipProvider delayDuration={300}>
     <div className="flex flex-col lg:flex-row gap-3 lg:gap-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Filterkolonne — sammenklappelig på mobil */}
-      <aside className={cn('shrink-0 rounded-xl border border-border bg-card p-3 transition-all duration-200', minimized ? 'lg:w-11' : 'lg:w-56')}>
+      <aside className={cn('shrink-0 rounded-xl border border-border bg-card p-3 transition-all duration-200', minimized ? 'lg:w-11' : 'lg:w-60')}>
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
@@ -110,17 +110,17 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
               else setFiltersOpen(o => !o);
             }}
             title={minimized ? 'Vis medarbejdere' : 'Minimer medarbejderliste'}
-            className="flex items-center gap-2 min-h-[36px] text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+            className="flex min-w-0 flex-1 items-center gap-2 min-h-[36px] text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
           >
-            <Users className="h-3.5 w-3.5" />
-            <span className={cn(minimized && 'lg:hidden')}>Medarbejdere ({lanes.length})</span>
-            <ChevronDown className={cn('h-3.5 w-3.5 lg:hidden transition-transform', filtersOpen && 'rotate-180')} />
-            <ChevronDown className={cn('hidden lg:block h-3.5 w-3.5 transition-transform', minimized ? 'rotate-180' : 'rotate-90')} />
+            <Users className="h-3.5 w-3.5 shrink-0" />
+            <span className={cn('truncate', minimized && 'lg:hidden')}>Medarbejdere ({lanes.length})</span>
+            <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 lg:hidden transition-transform', filtersOpen && 'rotate-180')} />
+            <ChevronDown className={cn('hidden lg:block h-3.5 w-3.5 shrink-0 transition-transform', minimized ? 'rotate-180' : 'rotate-90')} />
           </button>
-          <div className={cn('flex gap-1', minimized && 'lg:hidden')}>
-            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
-            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
-          </div>
+        </div>
+        <div className={cn('mt-2 grid grid-cols-2 gap-1', minimized && 'lg:hidden', !filtersOpen && 'hidden lg:grid')}>
+          <Button variant="outline" size="sm" className="h-8 w-full px-2 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
+          <Button variant="outline" size="sm" className="h-8 w-full px-2 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
         </div>
         <div className={cn('mt-2 max-h-56 lg:max-h-[640px] overflow-y-auto space-y-0.5', !filtersOpen && 'hidden', !minimized && 'lg:block')}>
           {sorted.map((e, i) => {
