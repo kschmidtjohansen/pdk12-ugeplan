@@ -68,9 +68,7 @@ export default defineConfig(({ mode }) => ({
           ],
           'data-vendor': [
             '@tanstack/react-query',
-            'react-hook-form',
-            '@hookform/resolvers',
-            'zod'
+            'react-hook-form'
           ],
           'supabase-vendor': ['@supabase/supabase-js'],
           'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge']
