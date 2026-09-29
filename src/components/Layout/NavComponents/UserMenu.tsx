@@ -142,7 +142,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
             <>
               <DropdownMenuLabel className="flex items-center gap-2">
                 <Crown className="h-4 w-4 text-warning" />
-                Demo Role
+                {t('ui.demoRole')}
               </DropdownMenuLabel>
               <DropdownMenuRadioGroup value={demoRole || 'administrator'} onValueChange={(value) => setDemoRole(value as UserRole)}>
                 <DropdownMenuRadioItem value="administrator" className="cursor-pointer">

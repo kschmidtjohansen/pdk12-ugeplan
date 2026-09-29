@@ -385,7 +385,7 @@ const AssignmentFilesPanel: React.FC<AssignmentFilesPanelProps> = ({
                 />
               ))}
               {filteredContent.files.length === 0 && (
-                <p className="text-sm text-muted-foreground py-2">Ingen filer i denne mappe</p>
+                <p className="text-sm text-muted-foreground py-2">{t('ui.noFilesInFolder')}</p>
               )}
             </div>
           </div>

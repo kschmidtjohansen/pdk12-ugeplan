@@ -226,7 +226,7 @@ const NotificationsDrawer: React.FC = () => {
             </div>
           ) : (
             <>
-              {renderGroup('I dag', groups.today)}
+              {renderGroup(t('common.today'), groups.today)}
               {renderGroup('Denne uge', groups.week)}
               {renderGroup('Tidligere', groups.older)}
               <div ref={sentinelRef} className="h-8 flex items-center justify-center">

@@ -6,6 +6,7 @@ import { useCars } from '@/hooks/car';
 import { Assignment } from '@/types/assignment';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/context/TranslationContext';
 
 const AssignmentDetailsDialog = lazy(() => import('./AssignmentDetailsDialog'));
 
@@ -16,6 +17,7 @@ const toMin = (t?: string) => {
 };
 
 const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
+  const { t } = useTranslation();
   const currentRef = useRef<HTMLLIElement>(null);
   const { assignments, loading } = useAssignments();
   const { cars } = useCars();
@@ -51,7 +53,7 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
     return (
       <div className="rounded-xl border border-dashed border-border/60 px-4 py-10 text-center">
         <CalendarCheck className="mx-auto mb-2 h-7 w-7 text-muted-foreground/60" />
-        <p className="text-sm text-muted-foreground">Ingen sager i dag</p>
+        <p className="text-sm text-muted-foreground">{t('ui.noCasesToday')}</p>
       </div>
     );
   }
@@ -87,7 +89,7 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
                 <div className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
                   <span className="font-semibold text-foreground">{a.fromTime?.slice(0, 5)}–{a.toTime?.slice(0, 5)}</span>
                   {a.case_number && <span>#{a.case_number}</span>}
-                  {current && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">I gang nu</span>}
+                  {current && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">{t('ui.inProgressNow')}</span>}
                 </div>
                 <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{a.title}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">

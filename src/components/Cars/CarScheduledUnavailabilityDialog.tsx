@@ -157,7 +157,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarClock className="h-5 w-5" />
-            Planlæg værkstedsbesøg
+            {t('ui.scheduleWorkshopVisit')}
           </DialogTitle>
           <DialogDescription>
             {car.name} · {car.car_number}

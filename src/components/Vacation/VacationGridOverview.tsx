@@ -568,7 +568,7 @@ const VacationGridOverview: React.FC = () => {
             <span className="inline-block w-3 h-3 bg-muted/40 border rounded-sm" /> Weekend
           </div>
           <div className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="inline-block w-3 h-3 border-l-2 border-primary" /> I dag
+            <span className="inline-block w-3 h-3 border-l-2 border-primary" /> {t('common.today')}
           </div>
         </div>
 
@@ -723,7 +723,7 @@ const VacationGridOverview: React.FC = () => {
                     className="h-7"
                     onClick={() => setWeekAnchor(startOfISOWeek(today))}
                   >
-                    I dag
+                    {t('common.today')}
                   </Button>
                 )}
               </div>
