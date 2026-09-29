@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/context/TranslationContext';
 
 const CLEANUP_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 const WARNING_BEFORE_CLEANUP_MS = 60 * 1000; // 1 minute warning
@@ -9,6 +10,7 @@ const WARNING_BEFORE_CLEANUP_MS = 60 * 1000; // 1 minute warning
 export const useDemoAutoCleanup = () => {
   const { isDemoMode } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [timeUntilCleanup, setTimeUntilCleanup] = useState<number>(CLEANUP_INTERVAL_MS);
   const [showWarning, setShowWarning] = useState(false);
 
@@ -19,8 +21,8 @@ export const useDemoAutoCleanup = () => {
       if (error) throw error;
       
       toast({
-        title: "Demo Session Nulstillet",
-        description: "Demo-data ryddet fra databasen.",
+        title: t('ui.demoSessionReset'),
+        description: t('ui.demoDataCleared'),
       });
       
       // Reset the timer
@@ -34,8 +36,8 @@ export const useDemoAutoCleanup = () => {
     } catch (error) {
       if (import.meta.env.DEV) console.error('[Demo Auto-Cleanup] Cleanup failed:', error);
       toast({
-        title: "Nulstilling Mislykkedes",
-        description: "Kunne ikke nulstille demo data.",
+        title: t('ui.resetFailed'),
+        description: t('ui.couldNotResetDemo'),
         variant: "destructive",
       });
     }
@@ -44,8 +46,8 @@ export const useDemoAutoCleanup = () => {
   const showCleanupWarning = useCallback(() => {
     setShowWarning(true);
     toast({
-      title: "Demo Data Vil Blive Ryddet",
-      description: "Demo data ryddes automatisk om 1 minut. Alle ændringer mistes.",
+      title: t('ui.demoDataWillBeCleared'),
+      description: t('ui.demoAutoCleanupWarning'),
       variant: "default",
     });
   }, [toast]);
@@ -55,8 +57,8 @@ export const useDemoAutoCleanup = () => {
     setShowWarning(false);
     
     toast({
-      title: "Demo Session Forlænget",
-      description: "Demo session forlænget med 15 minutter.",
+      title: t('ui.demoSessionExtended'),
+      description: t('ui.demoSessionExtendedDesc'),
     });
   }, [toast]);
 

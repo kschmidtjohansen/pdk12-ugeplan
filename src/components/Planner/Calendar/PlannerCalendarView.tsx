@@ -153,7 +153,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
         </div>
 
         {lanes.length === 0 ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">Vælg medarbejdere i listen for at se deres kalender.</div>
+          <div className="p-8 text-center text-sm text-muted-foreground">{tr('ui.selectEmployeesForCalendar')}</div>
         ) : (
           <div className="overflow-auto max-h-[75vh]">
             <div className="min-w-full w-max">
