@@ -525,24 +525,24 @@ const PlannerPage: React.FC = () => {
     try {
       await updateAssignment(assignment.id, buildPayload(newDate));
       sonnerToast.success(
-        `Flyttet til ${target.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'short' })}`,
+        t('ui.movedTo', { date: target.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'short' }) }),
         {
           duration: 6000,
           action: {
-            label: 'Fortryd',
+            label: t('ui.undo'),
             onClick: () => {
               updateAssignment(assignment.id, buildPayload(base)).catch(() => {
-                sonnerToast.error('Kunne ikke fortryde flytningen');
+                sonnerToast.error(t('ui.undoMoveFailed'));
               });
             },
           },
         }
       );
     } catch (err) {
-      sonnerToast.error('Kunne ikke flytte opgaven');
+      sonnerToast.error(t('ui.moveFailed'));
       if (import.meta.env.DEV) console.error('[PlannerPage] Quick move failed:', err);
     }
-  }, [updateAssignment]);
+  }, [updateAssignment, t, currentLanguage]);
 
   const plannerActions = useMemo(() => ({ quickMove: handleQuickMove }), [handleQuickMove]);
 
@@ -597,9 +597,9 @@ const PlannerPage: React.FC = () => {
         .from('assignments_employees')
         .upsert(rows, { onConflict: 'assignment_id,user_id', ignoreDuplicates: true });
       if (error) {
-        toast({ title: 'Kunne ikke tildele medarbejder', description: error.message, variant: 'destructive' });
+        toast({ title: t('ui.employeeAssignFailed'), description: error.message, variant: 'destructive' });
       } else {
-        toast({ title: `Medarbejder tildelt ${ids.length} opgave${ids.length === 1 ? '' : 'r'}` });
+        toast({ title: ids.length === 1 ? t('ui.employeeAssignedOne') : t('ui.employeeAssignedMany', { count: ids.length }) });
         await refetch();
         clearSelection();
       }
@@ -751,7 +751,7 @@ const PlannerPage: React.FC = () => {
       <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-destructive mb-2">{t('common.error')}</h2>
-          <p className="text-muted-foreground">{typeof error === 'string' ? error : 'An error occurred'}</p>
+          <p className="text-muted-foreground">{typeof error === 'string' ? error : t('ui.unexpectedError')}</p>
         </div>
       </div>
     );
