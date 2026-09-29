@@ -41,7 +41,7 @@ export const DutyDetailPanel: React.FC<{ today: DutyPerson[]; upcoming: DutyPers
     )}
     {upcoming.length > 0 && (
       <div>
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Resten af ugen</p>
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('ui.restOfWeek')}</p>
         {upcoming.map(d => (
           <Row key={d.id}>
             <div className="min-w-0 text-sm">
@@ -52,9 +52,10 @@ export const DutyDetailPanel: React.FC<{ today: DutyPerson[]; upcoming: DutyPers
         ))}
       </div>
     )}
-    <Button variant="ghost" className="h-11 w-full" onClick={onOpenPlan}>Åbn vagtplan</Button>
+    <Button variant="ghost" className="h-11 w-full" onClick={onOpenPlan}>{t('ui.openDutyPlan')}</Button>
   </div>
-);
+  );
+};
 
 type Emp = { id: string; name: string; phone?: string | null };
 type Busy = Emp & { task: string };

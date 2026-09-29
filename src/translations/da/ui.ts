@@ -358,6 +358,7 @@ export const ui = {
   busyCount: "Optaget",
   inUseCount: "I brug",
   retryingEvery30s: "Prøver automatisk igen hvert 30. sekund.",
+  openDutyPlan: "Åbn vagtplan",
 };
 
 export default ui;
