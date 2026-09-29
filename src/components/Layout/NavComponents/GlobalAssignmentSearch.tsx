@@ -26,7 +26,7 @@ const GlobalAssignmentSearch: React.FC = () => {
   const [activeIdx, setActiveIdx] = useState(0);
   const reqRef = useRef(0);
 
-  const placeholder = currentLanguage === 'da' ? 'Søg i alle opgaver…' : 'Search all assignments…';
+  const placeholder = t('ui.searchAllAssignments');
   const noResults = currentLanguage === 'da' ? 'Ingen resultater' : 'No results';
 
   useEffect(() => {

@@ -45,7 +45,7 @@ const ChangeLogDropdown: React.FC = () => {
       <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
         <SheetHeader className="px-4 py-3 border-b flex-row items-center justify-between space-y-0">
           <SheetTitle className="text-base">
-            {t('changeLog.recentChanges') || 'Seneste ændringer'}
+            {t('changeLog.recentChanges') || t('ui.latestChanges')}
           </SheetTitle>
         </SheetHeader>
         <div className="flex-1 overflow-y-auto">

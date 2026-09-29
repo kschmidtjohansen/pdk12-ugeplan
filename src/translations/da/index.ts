@@ -18,6 +18,7 @@ import screenDisplay from './screenDisplay';
 import { warehouse } from './warehouse';
 import { changeLog } from './changeLog';
 import { duty } from './duty';
+import { ui } from './ui';
 
 
 export const da = {
@@ -39,4 +40,5 @@ export const da = {
   warehouse,
   changeLog,
   duty,
+  ui,
 };

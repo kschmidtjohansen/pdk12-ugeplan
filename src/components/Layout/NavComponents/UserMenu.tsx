@@ -38,7 +38,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string | null>(null);
   const { scheme, setScheme } = useColorScheme();
-  const schemeLabel = scheme === 'light' ? 'Lyst tema' : scheme === 'dark' ? 'Mørkt tema' : 'System';
+  const schemeLabel = scheme === 'light' ? t('ui.lightTheme') : scheme === 'dark' ? t('ui.darkTheme') : t('ui.systemTheme');
   const SchemeIcon = scheme === 'light' ? Sun : scheme === 'dark' ? Moon : Monitor;
 
   const getInitials = (name: string): string => {
@@ -186,8 +186,8 @@ const UserMenu: React.FC<UserMenuProps> = ({
             {schemeLabel}
           </DropdownMenuLabel>
           <DropdownMenuRadioGroup value={scheme} onValueChange={(v) => setScheme(v as 'light' | 'dark' | 'system')}>
-            <DropdownMenuRadioItem value="light" className="cursor-pointer">Lyst tema</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="dark" className="cursor-pointer">Mørkt tema</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="light" className="cursor-pointer">{t('ui.lightTheme')}</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="dark" className="cursor-pointer">{t('ui.darkTheme')}</DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="system" className="cursor-pointer">System</DropdownMenuRadioItem>
           </DropdownMenuRadioGroup>
 

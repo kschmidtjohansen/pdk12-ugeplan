@@ -1,6 +1,7 @@
 import React, { useState, useRef, ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void>;
@@ -18,6 +19,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   const [pullDistance, setPullDistance] = useState(0);
   const startY = useRef(0);
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   // Only enable on mobile
   if (!isMobile || disabled) {
@@ -92,7 +94,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
               }}
             />
             <span className="text-xs text-muted-foreground font-medium">
-              {isRefreshing ? 'Opdaterer...' : pullPercentage >= 100 ? 'Slip for at opdatere' : 'Træk ned'}
+              {isRefreshing ? t('common.updating') : pullPercentage >= 100 ? t('ui.releaseToRefresh') : t('ui.pullDown')}
             </span>
           </div>
         </div>

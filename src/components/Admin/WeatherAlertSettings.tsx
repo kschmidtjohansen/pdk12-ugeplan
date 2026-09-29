@@ -13,10 +13,12 @@ import {
   usePostalCodeCoordinates,
   DEFAULT_WEATHER_ALERT_SETTINGS,
 } from '@/hooks/useWeatherAlertSettings';
+import { useTranslation } from '@/context/TranslationContext';
 
 const WeatherAlertSettings: React.FC = () => {
   const { selectedDepartmentId } = useDepartment();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { settings, isLoading, save, isSaving } = useWeatherAlertSettings(selectedDepartmentId);
 
   const [enabled, setEnabled] = useState(DEFAULT_WEATHER_ALERT_SETTINGS.enabled);
@@ -42,8 +44,8 @@ const WeatherAlertSettings: React.FC = () => {
     const code = newCode.trim();
     if (!/^\d{4}$/.test(code)) {
       toast({
-        title: 'Ugyldigt postnummer',
-        description: 'Skriv et dansk postnummer på 4 cifre.',
+        title: t('ui.weatherZipInvalidTitle'),
+        description: t('ui.weatherZipInvalid'),
         variant: 'destructive',
       });
       return;
@@ -61,53 +63,51 @@ const WeatherAlertSettings: React.FC = () => {
       setRain24(String(rain24hMm));
       setRain30(String(rain30minMm));
       setGust(String(gustMs));
-      toast({ title: 'Gemt', description: 'Indstillinger for vejrvarsel er opdateret.' });
+      toast({ title: t('ui.saved'), description: t('ui.weatherSaved') });
     } catch (error) {
       toast({
-        title: 'Kunne ikke gemme',
-        description: (error as { message?: string })?.message ?? 'Prøv igen.',
+        title: t('ui.couldNotSave'),
+        description: (error as { message?: string })?.message ?? t('ui.tryAgainDot'),
         variant: 'destructive',
       });
     }
   };
 
   const summary = enabled
-    ? `Bjælken vises ved mindst ${rain24 || '—'} mm regn på 24 timer, ${rain30 || '—'} mm på 30 min eller vindstød over ${gust || '—'} m/s${
-        postalCodes.length ? ` i ${postalCodes.join(', ')}` : ' i afdelingens opgaveområde'
+    ? `${t('ui.weatherBarShown', { rain24: rain24 || '—', rain30: rain30 || '—', gust: gust || '—' })} ${
+        postalCodes.length ? `${t('ui.inZips')} ${postalCodes.join(', ')}` : t('ui.weatherInDepartmentArea')
       }.`
-    : 'Beredskabsbjælken er slået fra for denne afdeling.';
+    : t('ui.weatherBarDisabled');
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <CloudRain className="h-4 w-4" />
-          Vejrvarsel (beredskab)
+          {t('ui.weatherTitle')}
         </CardTitle>
         <CardDescription>
-          Bestem hvilke postnumre og grænseværdier der udløser beredskabsbjælken på forsiden.
-          Standardgrænserne følger forsikringens dækningsgrænser (Forsikringsvejret): storm ved
-          vindstød ≥ 17,2 m/s, skybrud ved ≥ 30 mm regn på 24 timer og kraftig regn ved ≥ 15 mm på 30 min.
+          {t('ui.weatherCardDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <Label htmlFor="weather-enabled">Vis beredskabsbjælke</Label>
-            <p className="text-sm text-muted-foreground">Kun synlig for skadeledere og administratorer.</p>
+            <Label htmlFor="weather-enabled">{t('ui.weatherShowBar')}</Label>
+            <p className="text-sm text-muted-foreground">{t('ui.weatherVisibleForManagers')}</p>
           </div>
           <Switch id="weather-enabled" checked={enabled} onCheckedChange={setEnabled} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="weather-postal">Postnumre i dækningsområdet</Label>
+          <Label htmlFor="weather-postal">{t('ui.weatherZipsLabel')}</Label>
           <div className="flex gap-2">
             <Input
               id="weather-postal"
               value={newCode}
               inputMode="numeric"
               maxLength={4}
-              placeholder="fx 2600"
+              placeholder={t('ui.weatherZipPlaceholder')}
               className="h-11 w-32"
               onChange={e => setNewCode(e.target.value.replace(/\D/g, ''))}
               onKeyDown={e => {
@@ -119,7 +119,7 @@ const WeatherAlertSettings: React.FC = () => {
             />
             <Button type="button" variant="outline" className="min-h-11" onClick={addCode}>
               <Plus className="mr-1 h-4 w-4" />
-              Tilføj
+              {t('common.add')}
             </Button>
           </div>
           {postalCodes.length > 0 ? (
@@ -132,7 +132,7 @@ const WeatherAlertSettings: React.FC = () => {
                   )}
                   <button
                     type="button"
-                    aria-label={`Fjern ${code}`}
+                    aria-label={`${t('common.remove')} ${code}`}
                     className="rounded p-1 hover:bg-muted"
                     onClick={() => setPostalCodes(postalCodes.filter(c => c !== code))}
                   >
@@ -143,14 +143,14 @@ const WeatherAlertSettings: React.FC = () => {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Uden postnumre bruges placeringen af afdelingens opgaver.
+              {t('ui.weatherNoZipsHint')}
             </p>
           )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="weather-rain24">Regn pr. 24 timer (mm)</Label>
+            <Label htmlFor="weather-rain24">{t('ui.weatherRain24Label')}</Label>
             <Input
               id="weather-rain24"
               type="number"
@@ -161,10 +161,10 @@ const WeatherAlertSettings: React.FC = () => {
               className="h-11"
               onChange={e => setRain24(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">Skybrudsdækning typisk fra 30 mm.</p>
+            <p className="text-xs text-muted-foreground">{t('ui.weatherRain24Hint')}</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="weather-rain30">Kraftig regn pr. 30 min (mm)</Label>
+            <Label htmlFor="weather-rain30">{t('ui.weatherRain30Label')}</Label>
             <Input
               id="weather-rain30"
               type="number"
@@ -175,10 +175,10 @@ const WeatherAlertSettings: React.FC = () => {
               className="h-11"
               onChange={e => setRain30(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">Forsikringens grænse: 15 mm.</p>
+            <p className="text-xs text-muted-foreground">{t('ui.weatherRain30Hint')}</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="weather-gust">Vindstød (m/s)</Label>
+            <Label htmlFor="weather-gust">{t('ui.weatherGustLabel')}</Label>
             <Input
               id="weather-gust"
               type="number"
@@ -190,14 +190,14 @@ const WeatherAlertSettings: React.FC = () => {
               className="h-11"
               onChange={e => setGust(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">Stormdækning fra 17,2 m/s.</p>
+            <p className="text-xs text-muted-foreground">{t('ui.weatherGustHint')}</p>
           </div>
         </div>
 
         <p className="text-sm text-muted-foreground">{summary}</p>
 
         <Button onClick={handleSave} disabled={isSaving || !selectedDepartmentId} className="min-h-11">
-          {isSaving ? 'Gemmer…' : 'Gem indstillinger'}
+          {isSaving ? t('common.saving') : t('ui.saveSettings')}
         </Button>
       </CardContent>
     </Card>

@@ -912,7 +912,7 @@ const UserManagement: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button variant="outline" size="icon" onClick={handleSmartRetry} title="Refresh users list with smart retry" aria-label="Genindlæs brugerliste" disabled={loading}>
+              <Button variant="outline" size="icon" onClick={handleSmartRetry} title="Refresh users list with smart retry" aria-label={t('ui.reloadUserList')} disabled={loading}>
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
               <Button variant="outline" size="icon" onClick={toggleSortDirection} title={sortDirection === 'asc' ? 'Sort Z-A' : 'Sort A-Z'} aria-label={sortDirection === 'asc' ? 'Sortér Z-A' : 'Sortér A-Z'}>

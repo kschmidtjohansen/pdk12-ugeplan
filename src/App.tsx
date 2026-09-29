@@ -124,8 +124,8 @@ const AppContent = () => {
       return lang.startsWith('da') ? 'da' : 'en';
     };
     
-    const loadingText = getBrowserLanguage() === 'da' 
-      ? 'Indlæser applikation...' 
+    const loadingText = getBrowserLanguage() === 'da'
+      ? 'Indlæser applikation...'
       : 'Loading application...';
     
     return (

@@ -8,13 +8,15 @@ import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Shield, Phone, MessageSquare, ChevronDown } from 'lucide-react';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useTranslation } from '@/context/TranslationContext';
 
 const telHref = (p: string) => p.replace(/\s/g, '');
 
-const dutyLabel = (type: string) => (type === 'skadeleder_vagt' ? 'Skadeledervagt' : 'Kørevagt');
+const dutyLabelKey = (type: string) => (type === 'skadeleder_vagt' ? 'ui.dutyLeader' : 'ui.drivingDuty');
 
 const TodayGuardsWidget: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const now = useMemo(() => new Date(), []);
   const todayStr = format(now, 'yyyy-MM-dd');
@@ -31,15 +33,15 @@ const TodayGuardsWidget: React.FC = () => {
     return {
       id: d.id,
       date: d.duty_date as string,
-      type: dutyLabel(d.duty_type),
-      name: d.employee?.name || emp?.name || external || 'Ukendt',
+      type: t(dutyLabelKey(d.duty_type)),
+      name: d.employee?.name || emp?.name || external || t('ui.unknown'),
       phone: emp?.phone as string | undefined,
     };
   };
 
   const todayDuties = useMemo(
     () => duties.filter(d => d.duty_date === todayStr).map(resolve),
-    [duties, employees, todayStr]
+    [duties, employees, todayStr, t]
   );
 
   const restOfWeek = useMemo(() => {
@@ -54,17 +56,17 @@ const TodayGuardsWidget: React.FC = () => {
       else groups.push({ date: i.date, items: [i] });
     });
     return groups;
-  }, [duties, employees, todayStr]);
+  }, [duties, employees, todayStr, t]);
 
   return (
     <Card>
       <CardHeader className="brand-card-header flex flex-row items-center justify-between py-2">
-        <CardTitle className="text-sm font-semibold brand-dot">Vagter i dag</CardTitle>
+        <CardTitle className="text-sm font-semibold brand-dot">{t('ui.dutiesToday')}</CardTitle>
         <Shield className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent className="space-y-1 py-2">
         {todayDuties.length === 0 ? (
-          <p className="py-1 text-xs text-muted-foreground">Ingen vagter i dag.</p>
+          <p className="py-1 text-xs text-muted-foreground">{t('ui.noDutiesToday')}</p>
         ) : (
           todayDuties.map(d => (
             <div key={d.id} className="flex items-center justify-between gap-2 py-0.5">
@@ -74,10 +76,10 @@ const TodayGuardsWidget: React.FC = () => {
               </div>
               {d.phone && (
                 <div className="flex shrink-0 items-center">
-                  <Button size="icon" variant="ghost" className="h-8 w-8" asChild aria-label="Ring">
+                  <Button size="icon" variant="ghost" className="h-8 w-8" asChild aria-label={t('ui.call')}>
                     <a href={`tel:${telHref(d.phone)}`}><Phone className="h-3.5 w-3.5" /></a>
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8" asChild aria-label="SMS">
+                  <Button size="icon" variant="ghost" className="h-8 w-8" asChild aria-label={t('ui.sms')}>
                     <a href={`sms:${telHref(d.phone)}`}><MessageSquare className="h-3.5 w-3.5" /></a>
                   </Button>
                 </div>
@@ -89,7 +91,7 @@ const TodayGuardsWidget: React.FC = () => {
         <Collapsible open={open} onOpenChange={setOpen}>
           <CollapsibleContent className="space-y-1 border-t border-border/40 pt-1">
             {restOfWeek.length === 0 ? (
-              <p className="py-1 text-xs text-muted-foreground">Ingen flere vagter denne uge.</p>
+              <p className="py-1 text-xs text-muted-foreground">{t('ui.noMoreDutiesThisWeek')}</p>
             ) : (
               restOfWeek.map(group => (
                 <div key={group.date}>
@@ -103,7 +105,7 @@ const TodayGuardsWidget: React.FC = () => {
                         <span className="text-muted-foreground"> · {i.type}</span>
                       </p>
                       {i.phone && (
-                        <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" asChild aria-label="Ring">
+                        <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" asChild aria-label={t('ui.call')}>
                           <a href={`tel:${telHref(i.phone)}`}><Phone className="h-3.5 w-3.5" /></a>
                         </Button>
                       )}
@@ -121,7 +123,7 @@ const TodayGuardsWidget: React.FC = () => {
             onClick={() => setOpen(!open)}
             className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            {open ? 'Skjul ugen' : 'Vis hele ugen'}
+            {open ? t('ui.hideWeek') : t('ui.showWholeWeek')}
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
           <button
@@ -129,7 +131,7 @@ const TodayGuardsWidget: React.FC = () => {
             onClick={() => navigate('/duty')}
             className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            Åbn vagtplan
+            {t('ui.openDutyPlan')}
           </button>
         </div>
       </CardContent>

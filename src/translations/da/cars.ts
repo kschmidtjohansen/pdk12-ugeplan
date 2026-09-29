@@ -79,6 +79,7 @@ const cars = {
   
   // Error messages for fetching
   fetchError: 'Kunne ikke hente køretøjer. Prøv venligst igen.',
+  empty: 'Ingen køretøjer i afdelingen.',
   noCarsInSubDepartment: 'Der er ingen biler tilknyttet denne underafdeling',
   todayDriver: 'I dag',
   notBookedToday: 'Ikke booket i dag',

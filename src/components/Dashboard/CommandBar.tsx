@@ -17,9 +17,10 @@ import DailyQuoteCard from './DailyQuoteCard';
 import StatusPill from './StatusPill';
 import StatusDetailSheet from './StatusDetailSheet';
 import { DutyDetailPanel, AvailableEmployeesPanel, AvailableCarsPanel, ExpiringTempsPanel } from './StatusPanels';
+import { useTranslation } from '@/context/TranslationContext';
 
-const greet = (h: number) =>
-  h >= 5 && h < 10 ? 'Godmorgen' : h < 12 && h >= 10 ? 'God formiddag' : h >= 12 && h < 17 ? 'God eftermiddag' : 'Godaften';
+const greetKey = (h: number) =>
+  h >= 5 && h < 10 ? 'ui.goodMorning' : h < 12 && h >= 10 ? 'ui.goodForenoon' : h >= 12 && h < 17 ? 'ui.goodAfternoon' : 'ui.goodEvening';
 
 interface CommandBarProps {
   userName?: string;
@@ -28,6 +29,7 @@ interface CommandBarProps {
 
 const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const now = useMemo(() => new Date(), []);
   const todayStr = format(now, 'yyyy-MM-dd');
   const weekStart = useMemo(() => startOfWeek(now, { weekStartsOn: 1 }), [now]);
@@ -41,19 +43,19 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
   const todayDuties = useMemo(() => duties.filter(d => d.duty_date === todayStr), [duties, todayStr]);
   const dutyPeople = todayDuties.map(d => {
     const emp = employees.find(e => e.id === d.employee_id);
-    const name = d.employee?.name || emp?.name || (d.notes?.startsWith('EKSTERN:') ? d.notes.split('\n')[0].replace('EKSTERN: ', '') : 'Ukendt');
-    return { id: d.id, type: d.duty_type === 'skadeleder_vagt' ? 'Skadeledervagt' : 'Kørevagt', name, phone: emp?.phone };
+    const name = d.employee?.name || emp?.name || (d.notes?.startsWith('EKSTERN:') ? d.notes.split('\n')[0].replace('EKSTERN: ', '') : t('ui.unknown'));
+    return { id: d.id, type: d.duty_type === 'skadeleder_vagt' ? 'skadeleder' : 'drive', name, phone: emp?.phone };
   });
-  const leaderDuties = dutyPeople.filter(d => d.type === 'Skadeledervagt');
-  const driveDuties = dutyPeople.filter(d => d.type === 'Kørevagt');
+  const leaderDuties = dutyPeople.filter(d => d.type === 'skadeleder');
+  const driveDuties = dutyPeople.filter(d => d.type === 'drive');
   const names = (list: typeof dutyPeople) => list.map(d => d.name.split(' ')[0]).join(', ');
   const upcomingDuties = useMemo(() => duties
     .filter(d => d.duty_date > todayStr)
     .sort((a, b) => a.duty_date.localeCompare(b.duty_date))
     .map(d => ({
       id: d.id,
-      type: d.duty_type === 'skadeleder_vagt' ? 'Skadeledervagt' : 'Kørevagt',
-      name: d.employee?.name || employees.find(e => e.id === d.employee_id)?.name || 'Ekstern',
+      type: d.duty_type === 'skadeleder_vagt' ? t('ui.dutyLeader') : t('ui.drivingDuty'),
+      name: d.employee?.name || employees.find(e => e.id === d.employee_id)?.name || t('ui.external'),
       date: format(new Date(d.duty_date + 'T00:00:00'), 'EEE d/M', { locale: da }),
     })), [duties, employees, todayStr]);
 
@@ -91,7 +93,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
         <div className="flex items-center justify-between gap-3 min-w-0">
           <div className="min-w-0">
             <h1 className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg">
-              {greet(now.getHours())}{firstName && `, ${firstName}`}
+              {t(greetKey(now.getHours()))}{firstName && `, ${firstName}`}
             </h1>
             <p className="text-xs capitalize text-muted-foreground">
               <span className="sm:hidden">{format(now, "EEE d. MMM · 'uge' I", { locale: da })}</span>
@@ -111,37 +113,37 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
       <div className="relative mt-3">
         <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-0.5 pr-6 [scrollbar-width:none] sm:pr-1">
           {leaderDuties.length === 0 && driveDuties.length === 0 && (
-            <StatusPill className="snap-start" icon={Phone} tone="primary" label="Ingen vagt i dag" onClick={() => setPanel('duty')} />
+            <StatusPill className="snap-start" icon={Phone} tone="primary" label={t('ui.noDutyToday')} onClick={() => setPanel('duty')} />
           )}
           {leaderDuties.length > 0 && (
-            <StatusPill className="snap-start" icon={Shield} tone="primary" label={`Skadeleder: ${names(leaderDuties)}`} onClick={() => setPanel('duty')} />
+            <StatusPill className="snap-start" icon={Shield} tone="primary" label={`${t('ui.caseManager')}: ${names(leaderDuties)}`} onClick={() => setPanel('duty')} />
           )}
           {driveDuties.length > 0 && (
-            <StatusPill className="snap-start" icon={Phone} tone="primary" label={`${driveDuties.length > 1 ? 'Kørevagter' : 'Kørevagt'}: ${names(driveDuties)}`} onClick={() => setPanel('duty')} />
+            <StatusPill className="snap-start" icon={Phone} tone="primary" label={`${driveDuties.length > 1 ? t('ui.drivingDuties') : t('ui.drivingDuty')}: ${names(driveDuties)}`} onClick={() => setPanel('duty')} />
           )}
-          <StatusPill className="snap-start" icon={Users} label={`${metrics.availableEmployees.count}/${metrics.availableEmployees.total} ledige`} onClick={() => setPanel('emp')} />
-          <StatusPill className="snap-start" icon={Car} label={`${metrics.availableCars.count}/${metrics.availableCars.total} biler`} onClick={() => setPanel('car')} />
+          <StatusPill className="snap-start" icon={Users} label={`${metrics.availableEmployees.count}/${metrics.availableEmployees.total} ${t('ui.availableLower')}`} onClick={() => setPanel('emp')} />
+          <StatusPill className="snap-start" icon={Car} label={`${metrics.availableCars.count}/${metrics.availableCars.total} ${t('ui.carsLower')}`} onClick={() => setPanel('car')} />
           {expiring.length > 0 && (
-            <StatusPill className="snap-start" icon={Clock} tone="warning" label={`${expiring.length} ${expiring.length === 1 ? 'vikar udløber' : 'vikarer udløber'}`} onClick={() => setPanel('temp')} />
+            <StatusPill className="snap-start" icon={Clock} tone="warning" label={`${expiring.length} ${expiring.length === 1 ? t('ui.tempExpiringOne') : t('ui.tempExpiringMany')}`} onClick={() => setPanel('temp')} />
           )}
         </div>
         <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent sm:hidden" />
       </div>
 
-      <StatusDetailSheet open={panel === 'duty'} onOpenChange={o => !o && setPanel(null)} title="Vagt" description="Dagens vagthavende">
+      <StatusDetailSheet open={panel === 'duty'} onOpenChange={o => !o && setPanel(null)} title={t('ui.duty')} description={t('ui.todaysOnCall')}>
         <DutyDetailPanel today={dutyPeople} upcoming={upcomingDuties} onOpenPlan={() => { setPanel(null); navigate('/duty'); }} />
       </StatusDetailSheet>
-      <StatusDetailSheet open={panel === 'emp'} onOpenChange={o => !o && setPanel(null)} title="Medarbejdere i dag">
+      <StatusDetailSheet open={panel === 'emp'} onOpenChange={o => !o && setPanel(null)} title={t('ui.employeesToday')}>
         <AvailableEmployeesPanel available={metrics.availableEmployees.employees as any} busy={busyEmployees} onShowAll={() => { setPanel(null); setEmpOpen(true); }} />
       </StatusDetailSheet>
-      <StatusDetailSheet open={panel === 'car'} onOpenChange={o => !o && setPanel(null)} title="Biler i dag">
+      <StatusDetailSheet open={panel === 'car'} onOpenChange={o => !o && setPanel(null)} title={t('ui.carsToday')}>
         <AvailableCarsPanel
           available={metrics.availableCars.cars.map((c: any) => ({ id: c.id, name: c.name, plate: c.number_plate }))}
           busy={busyCars}
           onShowAll={() => { setPanel(null); setCarOpen(true); }}
         />
       </StatusDetailSheet>
-      <StatusDetailSheet open={panel === 'temp'} onOpenChange={o => !o && setPanel(null)} title="Vikarer der udløber">
+      <StatusDetailSheet open={panel === 'temp'} onOpenChange={o => !o && setPanel(null)} title={t('ui.tempExpiringTitle')}>
         <ExpiringTempsPanel
           items={expiring.map(e => ({ id: e.id, name: e.name, label: expiryLabel(getTempDaysLeft(e) ?? 0, true) }))}
           onExtend={() => { setPanel(null); navigate('/employees'); }}
@@ -155,13 +157,13 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
         selectedDate={todayStr}
         assignments={assignments}
         vacations={vacations}
-        title="Ledige medarbejdere"
+        title={t('ui.availableEmployees')}
       />
       <CarAvailabilityModal
         isOpen={carOpen}
         onClose={() => setCarOpen(false)}
         cars={metrics.availableCars.cars}
-        title="Ledige biler"
+        title={t('ui.availableCars')}
         selectedDate={todayStr}
       />
     </section>
