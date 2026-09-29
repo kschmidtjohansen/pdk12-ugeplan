@@ -102,6 +102,7 @@ const saveSubscription = async (subscription: PushSubscription) => {
 };
 
 export const usePushNotifications = () => {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<PushStatus>('unsupported');
   const [busy, setBusy] = useState(false);
   const isIos = detectIos();
@@ -249,7 +250,7 @@ export const usePushNotifications = () => {
     });
     if (error) throw error;
     return data as { sent?: number; removed?: number };
-  }, []);
+  }, [t]);
 
   return {
     status,
