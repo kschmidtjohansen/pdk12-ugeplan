@@ -425,7 +425,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">{currentLanguage === 'da' ? 'Ingen tilgængelige' : 'None available'}</p>
+                    <p className="text-xs text-muted-foreground">{t('ui.noneAvailable')}</p>
                   )}
                 </div>
 
@@ -467,7 +467,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">{currentLanguage === 'da' ? 'Ingen tilgængelige' : 'None available'}</p>
+                    <p className="text-xs text-muted-foreground">{t('ui.noneAvailable')}</p>
                   )}
                 </div>
 
@@ -512,7 +512,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">{currentLanguage === 'da' ? 'Ingen tilgængelige' : 'None available'}</p>
+                    <p className="text-xs text-muted-foreground">{t('ui.noneAvailable')}</p>
                   )}
                 </div>
               </div>

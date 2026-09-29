@@ -511,7 +511,7 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                     {isNearby && formattedDist && (
                       <span className={`text-xs flex items-center gap-1 mt-0.5 ${isTop3 ? 'text-success font-medium' : 'text-muted-foreground'}`}>
                         <MapPin className={`h-3 w-3 ${isTop3 ? 'text-success' : ''}`} />
-                        {formattedDist} km {currentLanguage === 'da' ? 'væk' : 'away'}
+                        {formattedDist} km {t('ui.away')}
                       </span>
                     )}
                     {isDisabled && lockReason && (
@@ -671,10 +671,10 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-2">
           <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-primary">
             <Navigation className="h-3.5 w-3.5" aria-hidden />
-            {currentLanguage === 'da' ? 'Nærmeste lige nu' : 'Nearest right now'}
+            {t('ui.nearestNow')}
           </p>
           {nearestNow.length === 0 ? (
-            <p className="text-xs text-muted-foreground">{currentLanguage === 'da' ? 'Ingen ledige i nærheden' : 'No one available nearby'}</p>
+            <p className="text-xs text-muted-foreground">{t('ui.noneNearby')}</p>
           ) : (
             <ul className="space-y-1">
               {nearestNow.map(({ emp, km, from }) => (
@@ -682,10 +682,10 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                   <div className="min-w-0 text-sm">
                     <span className="font-medium text-foreground">{emp.name}</span>
                     <span className="text-muted-foreground tabular-nums"> · {km.toFixed(1).replace('.', currentLanguage === 'da' ? ',' : '.')} km</span>
-                    <p className="truncate text-xs text-muted-foreground">{currentLanguage === 'da' ? 'fra' : 'from'} {from}</p>
+                    <p className="truncate text-xs text-muted-foreground">{t('ui.fromLower')} {from}</p>
                   </div>
                   <Button type="button" size="sm" variant="outline" className="min-h-9 shrink-0" onClick={() => onToggle(emp.id)}>
-                    <Plus className="mr-1 h-3.5 w-3.5" />{currentLanguage === 'da' ? 'Tilføj' : 'Add'}
+                    <Plus className="mr-1 h-3.5 w-3.5" />{t('common.add')}
                   </Button>
                 </li>
               ))}
