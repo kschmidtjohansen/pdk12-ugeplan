@@ -16,6 +16,7 @@ import { useScreenDisplayAbsences } from '@/hooks/useScreenDisplayAbsences';
 type SubDept = { id: string; name: string };
 
 const ScreenDisplayPage: React.FC = () => {
+  const { t } = useTranslation();
   const getInitialDate = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const dateParam = urlParams.get('date');

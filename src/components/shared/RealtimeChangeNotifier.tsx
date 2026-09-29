@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 const TABLES_WITH_DEPT = ['assignments', 'cars', 'warehouse_items', 'on_call_duties', 'vacations'] as const;
 
 export const RealtimeChangeNotifier: React.FC = () => {
+  const { t } = useTranslation();
   const { isDemoMode, user } = useAuth();
   const { selectedDepartmentId } = useDepartment();
   const [hasChanges, setHasChanges] = useState(false);

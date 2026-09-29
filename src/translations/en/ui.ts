@@ -358,7 +358,6 @@ export const ui = {
   busyCount: "Busy",
   inUseCount: "In use",
   retryingEvery30s: "Retrying automatically every 30 seconds.",
-  openDutyPlan: "Open duty schedule",
 };
 
 export default ui;
