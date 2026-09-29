@@ -18,6 +18,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/context/TranslationContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -44,6 +45,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
   const { user, isDemoMode } = useAuth();
   const { selectedDepartmentId } = useDepartment();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const qc = useQueryClient();
 
   const today = new Date();
@@ -91,7 +93,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
   const submit = async () => {
     if (!employee) return;
     if (endDate < startDate) {
-      toast({ title: 'Ugyldigt datointerval', description: 'Slutdato skal være efter startdato.', variant: 'destructive' });
+      toast({ title: t('ui.invalidDateRange'), description: t('ui.endDateAfterStartDot'), variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -105,7 +107,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
       if (editingId) {
         const { error } = await supabase.from('trainings').update(payload).eq('id', editingId);
         if (error) throw error;
-        toast({ title: 'Kursus opdateret' });
+        toast({ title: t('ui.courseUpdated') });
       } else {
         const { error } = await supabase.from('trainings').insert({
           ...payload,
@@ -115,7 +117,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
           created_by: user?.id ?? null,
         });
         if (error) throw error;
-        toast({ title: 'Kursus registreret', description: `${employee.name} er meldt på kursus.` });
+        toast({ title: t('ui.courseRegistered'), description: t('ui.employeeEnrolledCourse', { name: employee.name }) });
       }
 
       // Auto-remove employee from assignments in the training period (skip demo mode)

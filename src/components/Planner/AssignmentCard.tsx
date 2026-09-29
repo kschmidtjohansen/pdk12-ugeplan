@@ -175,7 +175,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             >
               <Checkbox
                 checked={selected}
-                aria-label="Vælg opgave"
+                aria-label={t('ui.selectAssignment')}
                 className="bg-background border-border shadow-sm"
               />
             </div>

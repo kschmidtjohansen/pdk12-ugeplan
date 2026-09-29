@@ -392,10 +392,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               }
             >
               <SelectTrigger id="sub-department">
-                <SelectValue placeholder="Vælg underafdeling" />
+                <SelectValue placeholder={t('ui.selectSubDepartment')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__all__">Alle</SelectItem>
+                <SelectItem value="__all__">{t('common.all')}</SelectItem>
                 {userSubDepartments.map((sd) => (
                   <SelectItem key={sd.id} value={sd.id}>{sd.name}</SelectItem>
                 ))}

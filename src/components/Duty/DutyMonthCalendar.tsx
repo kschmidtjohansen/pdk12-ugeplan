@@ -182,7 +182,7 @@ export const DutyMonthCalendar = ({
               variant="outline"
               size="icon"
               onClick={() => onMonthChange(subMonths(month, 1))}
-              aria-label="Forrige måned"
+              aria-label={t('ui.previousMonth')}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -190,7 +190,7 @@ export const DutyMonthCalendar = ({
               variant="outline"
               size="icon"
               onClick={() => onMonthChange(addMonths(month, 1))}
-              aria-label="Næste måned"
+              aria-label={t('ui.nextMonth')}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
