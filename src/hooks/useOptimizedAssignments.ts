@@ -378,7 +378,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
       // LAG 3: Guard mod oprettelse uden department_id (forhindrer cross-tenant lækage)
       if (!selectedDepartmentId && user?.email !== 'test@polygongroup.com') {
-        throw new Error('Afdeling er ikke klar endnu. Vent et øjeblik og prøv igen.');
+        throw new Error(t('ui.departmentNotReady'));
       }
       
       if (!data.title?.trim()) throw new Error(t('planner.validation.titleRequired'));

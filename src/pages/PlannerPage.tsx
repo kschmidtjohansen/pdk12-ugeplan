@@ -558,9 +558,9 @@ const PlannerPage: React.FC = () => {
         .update({ car_id: carId })
         .in('id', ids);
       if (error) {
-        toast({ title: 'Kunne ikke tildele køretøj', description: error.message, variant: 'destructive' });
+        toast({ title: t('ui.carAssignFailed'), description: error.message, variant: 'destructive' });
       } else {
-        toast({ title: `Køretøj tildelt ${ids.length} opgave${ids.length === 1 ? '' : 'r'}` });
+        toast({ title: ids.length === 1 ? t('ui.carAssignedOne') : t('ui.carAssignedMany', { count: ids.length }) });
         await refetch();
         clearSelection();
       }

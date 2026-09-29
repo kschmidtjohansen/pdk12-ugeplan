@@ -100,7 +100,7 @@ const EmployeesPage: React.FC = () => {
       { key: 'onleave', label: t('employees.onLeaveSegment') || 'Fraværende', count: onLeaveCount, highlight: onLeaveCount > 0 },
     ];
     if (isSubstituteEnabled) {
-      base.push({ key: 'vikarer', label: 'Vikarer', count: vikarer.length });
+      base.push({ key: 'vikarer', label: t('ui.substitutes'), count: vikarer.length });
     }
     return base;
   }, [employees, regularEmployees, vikarer, isSubstituteEnabled, t, onLeaveTodayIds, trainingIds, sickIds]);
@@ -135,7 +135,7 @@ const EmployeesPage: React.FC = () => {
           .eq('user_id', employee.id)
           .eq('sick_date', todayStr);
         if (error) throw error;
-        toast.success(`${employee.name} er ikke længere markeret som syg`);
+        toast.success(t('ui.employeeNoLongerSick', { name: employee.name }));
       } else {
         const { error } = await supabase.from('sick_days').insert({
           user_id: employee.id,
