@@ -3,6 +3,7 @@
 import { subscribeToTable } from '@/lib/realtimeChannels';
  import { useNotifications } from '@/context/NotificationContext';
  import { toast } from 'sonner';
+import { useTranslation } from '@/context/TranslationContext';
  import { format } from 'date-fns';
  import { da } from 'date-fns/locale';
  
@@ -41,6 +42,7 @@ export const useAssignmentMessages = (
   responsibleUserId?: string | null,
   siblingAssignmentIds?: string[]
 ): UseAssignmentMessagesReturn => {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<AssignmentMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const { addNotification } = useNotifications();
@@ -103,13 +105,13 @@ export const useAssignmentMessages = (
             replyTo = {
               id: msg.reply_to_id,
               message: parentMsg.message,
-              sender_name: parentSender?.name || 'Ukendt'
+              sender_name: parentSender?.name || t('ui.unknown')
             };
           }
         }
         return {
           ...msg,
-          sender: profilesMap[msg.user_id] || { id: msg.user_id, name: 'Ukendt' },
+          sender: profilesMap[msg.user_id] || { id: msg.user_id, name: t('ui.unknown') },
           reply_to: replyTo
         };
       });
@@ -128,14 +130,14 @@ export const useAssignmentMessages = (
       
       // Client-side length validation (matches DB CHECK constraint)
       if (messageText.trim().length > 5000) {
-        toast.error('Beskeden er for lang (max 5000 tegn)');
+        toast.error(t('ui.messageTooLong'));
         return;
       }
  
      try {
        const { data: { user } } = await supabase.auth.getUser();
        if (!user) {
-         toast.error('Du skal være logget ind for at sende beskeder');
+         toast.error(t('ui.mustBeLoggedInSend'));
          return;
        }
  
@@ -188,21 +190,21 @@ export const useAssignmentMessages = (
  
        // Refetch to show new message
        await fetchMessages();
-       toast.success('Besked sendt');
+       toast.success(t('ui.messageSent'));
      } catch (error) {
        if (import.meta.env.DEV) console.error('[useAssignmentMessages] Error sending message:', error);
-       toast.error('Kunne ikke sende besked');
+       toast.error(t('ui.couldNotSendMessage'));
      }
    }, [assignmentId, assignmentTitle, assignedEmployeeIds, responsibleUserId, addNotification, fetchMessages]);
  
    const exportMessages = useCallback(() => {
      if (messages.length === 0) {
-       toast.error('Ingen beskeder at eksportere');
+       toast.error(t('ui.noMessagesToExport'));
        return;
      }
  
      const lines = [
-       `Besked-eksport for sag: ${assignmentTitle || 'Ukendt'}`,
+       `${t('ui.messageExportFor')}: ${assignmentTitle || t('ui.unknown')}`,
        `Eksporteret: ${format(new Date(), 'dd-MM-yyyy HH:mm', { locale: da })}`,
        '',
        '---',
@@ -215,7 +217,7 @@ export const useAssignmentMessages = (
         if (msg.reply_to) {
           prefix = `  ↳ Svar på: "${msg.reply_to.message.substring(0, 30)}${msg.reply_to.message.length > 30 ? '...' : ''}"\n  `;
         }
-        lines.push(`[${timestamp}] ${msg.sender?.name || 'Ukendt'}:`);
+        lines.push(`[${timestamp}] ${msg.sender?.name || t('ui.unknown')}:`);
         if (prefix) lines.push(prefix);
        lines.push(msg.message);
        lines.push('');
@@ -232,7 +234,7 @@ export const useAssignmentMessages = (
      document.body.removeChild(link);
      URL.revokeObjectURL(url);
  
-     toast.success('Beskeder eksporteret');
+     toast.success(t('ui.messagesExported'));
    }, [messages, assignmentTitle]);
  
   const deleteMessage = useCallback(async (messageId: string) => {
@@ -248,10 +250,10 @@ export const useAssignmentMessages = (
       
       // Refetch to update the list
       await fetchMessages();
-      toast.success('Besked slettet');
+      toast.success(t('ui.messageDeleted'));
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useAssignmentMessages] Error deleting message:', error);
-      toast.error('Kunne ikke slette besked');
+      toast.error(t('ui.couldNotDeleteMessage'));
     }
   }, [assignmentId, fetchMessages]);
 

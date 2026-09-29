@@ -762,17 +762,17 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                     disabled={isSubmitting}
                   >
                     <SelectTrigger id="sub_department_id">
-                      <SelectValue placeholder="Vælg underafdeling" />
+                      <SelectValue placeholder={t('ui.selectSubDepartment')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__none__">Ingen (kun hovedafdeling)</SelectItem>
+                      <SelectItem value="__none__">{t('ui.noneMainDeptOnly')}</SelectItem>
                       {subDepartments.map(sd => (
                         <SelectItem key={sd.id} value={sd.id}>{sd.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Medarbejderen vises kun i den valgte underafdelings visning. "Ingen" gør medarbejderen synlig i hovedafdelingens "Alle"-visning.
+                    {t('ui.subDepartmentHint')}
                   </p>
                 </div>
               )}

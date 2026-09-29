@@ -186,10 +186,10 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     if (allMaintenance) {
       const first = getMaintenanceForDate(car.id, maintenanceDates[0]);
       toast({
-        title: 'Bilen er på værksted',
+        title: t('ui.carInWorkshop'),
         description: first
-          ? `${car.name} er planlagt til værksted ${first.start_date} → ${first.end_date}${first.reason ? ` (${first.reason})` : ''}.`
-          : `${car.name} er ikke tilgængelig i den valgte periode.`,
+          ? `${t('ui.carScheduledWorkshop', { car: car.name, from: first.start_date, to: first.end_date })}${first.reason ? ` (${first.reason})` : ''}.`
+          : t('ui.carUnavailablePeriod', { car: car.name }),
         variant: 'destructive',
       });
       return;
@@ -206,7 +206,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         })
         .map(a => a.title || a.case_number || t('planner.assignment'));
 
-      const maintenanceLabels = maintenanceDates.map((d) => `Værksted ${d}`);
+      const maintenanceLabels = maintenanceDates.map((d) => t('ui.workshopOnDate', { date: d }));
 
       setPending({
         carId: car.id,
@@ -236,8 +236,8 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
     const maintenanceDates = getMaintenanceConflictDates(car.id);
     const allMaintenance =
       maintenanceDates.length > 0 && maintenanceDates.length === selectedDateStrings.length;
-    if (allMaintenance) return 'Værksted';
-    if (maintenanceDates.length > 0 && availability !== 'full') return 'Værksted (delvis)';
+    if (allMaintenance) return t('ui.workshop');
+    if (maintenanceDates.length > 0 && availability !== 'full') return t('ui.workshopPartial');
     switch (availability) {
       case 'full': return t('cars.available');
       case 'partial': return t('planner.partiallyBooked');

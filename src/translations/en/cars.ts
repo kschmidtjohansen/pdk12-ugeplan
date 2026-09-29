@@ -79,6 +79,7 @@ const cars = {
   
   // Error messages for fetching
   fetchError: 'Failed to fetch vehicles. Please try again.',
+  empty: 'No vehicles in the department.',
   noCarsInSubDepartment: 'No cars assigned to this sub-department',
   todayDriver: 'Today',
   notBookedToday: 'Not booked today',

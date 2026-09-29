@@ -18,6 +18,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/context/TranslationContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
@@ -44,6 +45,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
   const { user, isDemoMode } = useAuth();
   const { selectedDepartmentId } = useDepartment();
   const { toast } = useToast();
+  const { t: tr } = useTranslation();
   const qc = useQueryClient();
 
   const today = new Date();
@@ -91,7 +93,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
   const submit = async () => {
     if (!employee) return;
     if (endDate < startDate) {
-      toast({ title: 'Ugyldigt datointerval', description: 'Slutdato skal være efter startdato.', variant: 'destructive' });
+      toast({ title: tr('ui.invalidDateRange'), description: tr('ui.endDateAfterStartDot'), variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -105,7 +107,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
       if (editingId) {
         const { error } = await supabase.from('trainings').update(payload).eq('id', editingId);
         if (error) throw error;
-        toast({ title: 'Kursus opdateret' });
+        toast({ title: tr('ui.courseUpdated') });
       } else {
         const { error } = await supabase.from('trainings').insert({
           ...payload,
@@ -115,7 +117,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
           created_by: user?.id ?? null,
         });
         if (error) throw error;
-        toast({ title: 'Kursus registreret', description: `${employee.name} er meldt på kursus.` });
+        toast({ title: tr('ui.courseRegistered'), description: tr('ui.employeeEnrolledCourse', { name: employee.name }) });
       }
 
       // Auto-remove employee from assignments in the training period (skip demo mode)
@@ -136,16 +138,16 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
           const cleared = (cleanup as any)?.clearedResponsibleCount || 0;
           if (removed > 0 || cleared > 0) {
             toast({
-              title: 'Opgaver opdateret',
-              description: `${employee.name} er fjernet fra ${removed + cleared} opgave(r) i kursusperioden.`,
+              title: tr('ui.assignmentsUpdated'),
+              description: tr('ui.removedFromAssignmentsCourse', { name: employee.name, count: removed + cleared }),
             });
             qc.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
             qc.invalidateQueries({ queryKey: ['optimizedAssignments'], refetchType: 'active' });
           }
         } catch (cleanupErr: any) {
           toast({
-            title: 'Kunne ikke fjerne fra opgaver',
-            description: cleanupErr?.message ?? 'Ukendt fejl — tjek opgaver manuelt',
+            title: tr('ui.couldNotRemoveFromAssignments'),
+            description: cleanupErr?.message ?? tr('ui.unknownErrorCheckAssignments'),
             variant: 'destructive',
           });
         }
@@ -154,7 +156,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
       invalidateGrids();
       resetForm();
     } catch (e: any) {
-      toast({ title: 'Kunne ikke gemme kursus', description: e?.message ?? 'Ukendt fejl', variant: 'destructive' });
+      toast({ title: tr('ui.couldNotSaveCourse'), description: e?.message ?? tr('ui.unknownError'), variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -169,15 +171,15 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
   };
 
   const removeTraining = async (id: string) => {
-    if (!confirm('Slet dette kursus?')) return;
+    if (!confirm(tr('ui.deleteCourseConfirm'))) return;
     try {
       const { error } = await supabase.from('trainings').delete().eq('id', id);
       if (error) throw error;
-      toast({ title: 'Kursus slettet' });
+      toast({ title: tr('ui.courseDeleted') });
       if (editingId === id) resetForm();
       invalidateGrids();
     } catch (e: any) {
-      toast({ title: 'Kunne ikke slette', description: e?.message ?? 'Ukendt fejl', variant: 'destructive' });
+      toast({ title: tr('ui.couldNotDelete'), description: e?.message ?? tr('ui.unknownError'), variant: 'destructive' });
     }
   };
 
@@ -210,17 +212,17 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-warning" />
-            Kurser for {employee?.name ?? 'medarbejder'}
+            {tr('ui.coursesFor', { name: employee?.name ?? tr('ui.employeeLower') })}
           </DialogTitle>
           <DialogDescription>
-            Kursus vises som gul markering i ferieoversigten.
+            {tr('ui.courseShownYellow')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label className="text-xs uppercase tracking-wide text-muted-foreground">Eksisterende kurser</Label>
+          <Label className="text-xs uppercase tracking-wide text-muted-foreground">{tr('ui.existingCourses')}</Label>
           {trainings.length === 0 ? (
-            <div className="text-sm text-muted-foreground py-2">Ingen kurser registreret.</div>
+            <div className="text-sm text-muted-foreground py-2">{tr('ui.noCoursesRegistered')}</div>
           ) : (
             <ul className="space-y-1.5">
               {trainings.map((t) => (
@@ -229,7 +231,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
                   editingId === t.id && 'border-primary bg-primary/5'
                 )}>
                   <div className="min-w-0">
-                    <div className="font-medium truncate">{t.title || 'Kursus'}</div>
+                    <div className="font-medium truncate">{t.title || tr('ui.course')}</div>
                     <div className="text-xs text-muted-foreground">
                       {format(parseISO(t.start_date), 'd. MMM yyyy', { locale: da })} – {format(parseISO(t.end_date), 'd. MMM yyyy', { locale: da })}
                     </div>
@@ -253,32 +255,32 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              {editingId ? 'Redigér kursus' : 'Nyt kursus'}
+              {editingId ? tr('ui.editCourse') : tr('ui.newCourse')}
             </Label>
             {editingId && (
               <Button size="sm" variant="ghost" onClick={resetForm}>
-                <Plus className="h-3.5 w-3.5 mr-1" /> Nyt
+                <Plus className="h-3.5 w-3.5 mr-1" /> {tr('ui.newShort')}
               </Button>
             )}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <DateBtn value={startDate} onChange={setStartDate} label="Fra" />
-            <DateBtn value={endDate} onChange={setEndDate} label="Til" />
+            <DateBtn value={startDate} onChange={setStartDate} label={tr('ui.from')} />
+            <DateBtn value={endDate} onChange={setEndDate} label={tr('ui.to')} />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="training-title">Titel (valgfri)</Label>
-            <Input id="training-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="f.eks. Asbestkursus" />
+            <Label htmlFor="training-title">{tr('ui.titleOptional')}</Label>
+            <Input id="training-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tr('ui.coursePlaceholder')} />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="training-notes">Noter (valgfri)</Label>
+            <Label htmlFor="training-notes">{tr('ui.notesOptional')}</Label>
             <Textarea id="training-notes" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Luk</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>{tr('common.close')}</Button>
           <Button onClick={submit} disabled={saving}>
-            {saving ? 'Gemmer...' : editingId ? 'Opdatér kursus' : 'Gem kursus'}
+            {saving ? tr('common.saving') : editingId ? tr('ui.updateCourse') : tr('ui.saveCourse')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -204,7 +204,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
       <TableCell>
         {isSick ? (
           <StatusBadge variant={canSeeSickReason ? 'destructive' : 'warning'}>
-            {canSeeSickReason ? 'Syg' : 'Fraværende'}
+            {canSeeSickReason ? t('ui.sick') : t('ui.absent')}
           </StatusBadge>
         ) : isOnTraining ? (
           <StatusBadge variant="warning">Kursus</StatusBadge>

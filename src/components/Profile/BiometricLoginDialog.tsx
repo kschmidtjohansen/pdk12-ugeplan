@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/context/TranslationContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface BiometricLoginDialogProps {
@@ -65,6 +66,7 @@ export const isPasskeyAvailable = () => isWebAuthnSupported() && isPasskeyDomain
  */
 const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpenChange }) => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [passkeys, setPasskeys] = useState<PasskeyItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -106,8 +108,8 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
       }
 
       toast({
-        title: 'Hurtig login aktiveret',
-        description: 'Næste gang kan du logge ind med Face ID, fingeraftryk eller pinkode — helt uden adgangskode.',
+        title: t('ui.quickLoginEnabled'),
+        description: t('ui.biometricEnrollDesc'),
       });
       await loadPasskeys();
     } catch (error) {
@@ -130,11 +132,11 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
         ? `Bekræftelsen blev afbrudt på enheden. ${detail}`.trim()
         : detail
           ? `Fejl: ${detail}`
-          : 'Registreringen fejlede uden en nærmere forklaring. Prøv igen.';
+          : t('ui.enrollFailedUnknown');
 
       setLastError(description);
       toast({
-        title: 'Kunne ikke aktivere',
+        title: t('ui.couldNotEnable'),
         description,
         variant: 'destructive',
       });
@@ -148,12 +150,12 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
     try {
       const { error } = await supabase.auth.passkey.delete({ passkeyId });
       if (error) throw error;
-      toast({ title: 'Fjernet', description: 'Hurtig login er slået fra på denne enhed.' });
+      toast({ title: t('ui.released'), description: t('ui.quickLoginDisabled') });
       await loadPasskeys();
     } catch (error) {
       toast({
-        title: 'Kunne ikke fjerne',
-        description: (error as { message?: string })?.message ?? 'Prøv igen.',
+        title: t('ui.couldNotRemove'),
+        description: (error as { message?: string })?.message ?? t('ui.tryAgainDot'),
         variant: 'destructive',
       });
     } finally {
@@ -191,18 +193,16 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
 
           {supported && rightDomain && (
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
-              <p className="text-sm font-medium text-foreground">Vigtigt: registrér din enhed igen</p>
+              <p className="text-sm font-medium text-foreground">{t('ui.passkeyReenrollTitle')}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Hurtig login virker nu på både pdk12.dk og www.pdk12.dk — også når appen er
-                installeret på telefonen. Har du aktiveret det tidligere, skal du fjerne den gamle
-                registrering herunder og trykke "Aktivér" igen.
+                {t('ui.passkeyReenrollDesc')}
               </p>
             </div>
           )}
 
           {lastError && (
             <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
-              <p className="text-sm font-medium text-destructive">Kunne ikke aktivere</p>
+              <p className="text-sm font-medium text-destructive">{t('ui.couldNotEnable')}</p>
               <p className="mt-1 break-words text-xs text-destructive/90">{lastError}</p>
             </div>
           )}
@@ -221,7 +221,7 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
-                      {p.friendly_name || 'Biometrisk enhed'}
+                      {p.friendly_name || t('ui.biometricDevice')}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Tilføjet {new Date(p.created_at).toLocaleDateString('da-DK')}
@@ -234,7 +234,7 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
                     className="min-h-11 shrink-0"
                     disabled={removingId === p.id}
                     onClick={() => handleRemove(p.id)}
-                    aria-label="Fjern hurtig login"
+                    aria-label={t('ui.removeQuickLogin')}
                   >
                     {removingId === p.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

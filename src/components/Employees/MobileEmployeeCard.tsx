@@ -170,7 +170,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
             {isSick ? (
               <StatusBadge variant={canSeeSickReason ? 'destructive' : 'warning'}>
-                {canSeeSickReason ? 'Syg' : 'Fraværende'}
+                {canSeeSickReason ? t('ui.sick') : t('ui.absent')}
               </StatusBadge>
             ) : isOnTraining ? (
               <StatusBadge variant="warning">Kursus</StatusBadge>

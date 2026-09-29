@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/context/TranslationContext';
 
 export const VAPID_PUBLIC_KEY =
   'BKKmMLcowtNDuG9bFN9eC7T7BunqymROog_FBSqoY3mNOmmgkJJVMl-z2Wy55gwTBnUTxol6j8p9SdpL1wTUAps';
@@ -101,6 +102,7 @@ const saveSubscription = async (subscription: PushSubscription) => {
 };
 
 export const usePushNotifications = () => {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<PushStatus>('unsupported');
   const [busy, setBusy] = useState(false);
   const isIos = detectIos();
@@ -244,11 +246,11 @@ export const usePushNotifications = () => {
 
   const sendTest = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke('send-push', {
-      body: { title: 'Test-notifikation', body: 'Push-notifikationer virker på denne enhed.' },
+      body: { title: t('ui.testNotification'), body: t('ui.pushWorksOnDevice') },
     });
     if (error) throw error;
     return data as { sent?: number; removed?: number };
-  }, []);
+  }, [t]);
 
   return {
     status,

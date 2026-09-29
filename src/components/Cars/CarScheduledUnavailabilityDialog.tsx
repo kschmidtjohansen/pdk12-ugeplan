@@ -32,7 +32,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
 
   const [startDate, setStartDate] = useState<string>(today());
   const [endDate, setEndDate] = useState<string>(today());
-  const [reason, setReason] = useState<string>('Værkstedsbesøg');
+  const [reason, setReason] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [conflicts, setConflicts] = useState<any[]>([]);
   const [existing, setExisting] = useState<CarUnavailability[]>([]);
@@ -42,7 +42,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
     if (!open || !car) return;
     setStartDate(today());
     setEndDate(today());
-    setReason('Værkstedsbesøg');
+    setReason('');
     setNotes('');
     CarUnavailabilityService.listForCar(car.id).then(setExisting).catch(() => setExisting([]));
   }, [open, car]);
@@ -88,7 +88,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
   const handleSubmit = async () => {
     if (!car) return;
     if (endDate < startDate) {
-      toast({ title: t('common.error'), description: 'Slutdato skal være efter startdato', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('ui.endDateAfterStart'), variant: 'destructive' });
       return;
     }
     setSubmitting(true);
@@ -97,7 +97,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
         car_id: car.id,
         start_date: startDate,
         end_date: endDate,
-        reason: reason.trim() || 'Værkstedsbesøg',
+        reason: reason.trim() || t('ui.workshopVisit'),
         notes: notes.trim() || null,
         department_id: selectedDepartmentId ?? null,
       });
@@ -118,15 +118,15 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
       queryClient.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
 
       toast({
-        title: 'Værkstedsbesøg registreret',
+        title: t('ui.workshopVisitRegistered'),
         description:
           removed > 0
-            ? `${car.name} er markeret som ikke tilgængelig. ${removed} opgave(r) er opdateret.`
-            : `${car.name} er markeret som ikke tilgængelig i perioden.`,
+            ? t('ui.carMarkedUnavailableUpdated', { car: car.name, count: removed })
+            : t('ui.carMarkedUnavailable', { car: car.name }),
       });
       onOpenChange(false);
     } catch (err: any) {
-      toast({ title: t('common.error'), description: err?.message || 'Kunne ikke gemme', variant: 'destructive' });
+      toast({ title: t('common.error'), description: err?.message || t('ui.couldNotSave'), variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -143,9 +143,9 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
       queryClient.invalidateQueries({ queryKey: ['cars'] });
       queryClient.invalidateQueries({ queryKey: ['car-unavailability'] });
       setExisting((prev) => prev.map((p) => (p.id === id ? { ...p, released_at: new Date().toISOString() } : p)));
-      toast({ title: 'Frigivet', description: `${car.name} er nu tilgængelig igen.` });
+      toast({ title: t('ui.released'), description: t('ui.carAvailableAgain', { car: car.name }) });
     } catch (err: any) {
-      toast({ title: t('common.error'), description: err?.message || 'Fejl', variant: 'destructive' });
+      toast({ title: t('common.error'), description: err?.message || t('common.error'), variant: 'destructive' });
     }
   };
 
@@ -191,22 +191,22 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
           </div>
 
           <div>
-            <Label htmlFor="reason">Årsag</Label>
+            <Label htmlFor="reason">{t('ui.reason')}</Label>
             <Input
               id="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Værkstedsbesøg"
+              placeholder={t('ui.workshopVisit')}
             />
           </div>
 
           <div>
-            <Label htmlFor="notes">Noter (valgfri)</Label>
+            <Label htmlFor="notes">{t('ui.notesOptional')}</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Fx værksted, kontaktperson..."
+              placeholder={t('ui.reasonPlaceholder')}
               rows={2}
             />
           </div>

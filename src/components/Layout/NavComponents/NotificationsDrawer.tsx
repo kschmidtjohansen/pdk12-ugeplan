@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { NotificationType } from '@/types/notification';
+import { useTranslation } from '@/context/TranslationContext';
 
 const PAGE_SIZE = 20;
 
@@ -138,7 +139,7 @@ const NotificationsDrawer: React.FC = () => {
           'mt-1.5 h-2 w-2 rounded-full shrink-0',
           n.read ? 'bg-muted-foreground/40' : 'bg-primary'
         )}
-        aria-label={n.read ? 'Læst' : 'Ulæst'}
+        aria-label={n.read ? t('ui.read') : t('ui.unread')}
       />
       <div className="flex-1 min-w-0">
         <div className={cn('text-sm', !n.read && 'font-semibold')}>{n.title}</div>

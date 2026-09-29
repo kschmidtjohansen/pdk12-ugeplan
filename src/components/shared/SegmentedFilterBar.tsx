@@ -2,6 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useTranslation } from '@/context/TranslationContext';
 
 export interface FilterSegment {
   key: string;
@@ -84,7 +85,7 @@ const SegmentedFilterBar: React.FC<SegmentedFilterBarProps> = ({
               <Input
                 value={searchValue ?? ''}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder={searchPlaceholder || 'Søg…'}
+                placeholder={searchPlaceholder || t('ui.searchEllipsis')}
                 className="h-8 pl-8 text-sm"
               />
             </div>

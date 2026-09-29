@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { isPasskeyAvailable } from '@/components/Profile/BiometricLoginDialog';
+import { useTranslation } from '@/context/TranslationContext';
 
 const DISMISS_KEY = 'passkey_enroll_dismissed';
 
@@ -26,6 +27,7 @@ interface PasskeyEnrollPromptProps {
  */
 const PasskeyEnrollPrompt: React.FC<PasskeyEnrollPromptProps> = ({ trigger, onDone }) => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -65,22 +67,22 @@ const PasskeyEnrollPrompt: React.FC<PasskeyEnrollPromptProps> = ({ trigger, onDo
       if (data?.id) {
         await supabase.auth.passkey.update({
           passkeyId: data.id,
-          friendlyName: `Denne enhed (${new Date().toLocaleDateString('da-DK')})`,
+          friendlyName: `${t('ui.thisDevice')} (${new Date().toLocaleDateString()})`,
         });
       }
       toast({
-        title: 'Hurtig login aktiveret',
-        description: 'Næste gang logger du ind med Face ID, fingeraftryk eller pinkode.',
+        title: t('ui.quickLoginEnabled'),
+        description: t('ui.passkeyNextTime'),
       });
       close();
     } catch (error) {
       const err = error as { message?: string; code?: string; status?: number };
       toast({
-        title: 'Kunne ikke aktivere',
+        title: t('ui.couldNotEnable'),
         description:
           [err?.message, err?.code ? `kode: ${err.code}` : '', err?.status ? `status: ${err.status}` : '']
             .filter(Boolean)
-            .join(' · ') || 'Prøv igen fra profilmenuen.',
+            .join(' · ') || t('ui.passkeyTryFromProfile'),
         variant: 'destructive',
       });
     } finally {
@@ -99,11 +101,10 @@ const PasskeyEnrollPrompt: React.FC<PasskeyEnrollPromptProps> = ({ trigger, onDo
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Fingerprint className="h-5 w-5" />
-            Gør dit næste login lynhurtigt
+            {t('ui.passkeyPromptTitle')}
           </DialogTitle>
           <DialogDescription>
-            Aktivér Face ID, fingeraftryk eller pinkode på denne enhed, så slipper du for at taste
-            din adgangskode næste gang.
+            {t('ui.passkeyPromptDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -112,12 +113,12 @@ const PasskeyEnrollPrompt: React.FC<PasskeyEnrollPromptProps> = ({ trigger, onDo
             {busy ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Følg vejledningen på enheden…
+                {t('ui.followDeviceGuide')}
               </>
             ) : (
               <>
                 <Fingerprint className="mr-2 h-4 w-4" />
-                Aktivér Face ID / fingeraftryk
+                {t('ui.enablePasskey')}
               </>
             )}
           </Button>
@@ -128,7 +129,7 @@ const PasskeyEnrollPrompt: React.FC<PasskeyEnrollPromptProps> = ({ trigger, onDo
             disabled={busy}
             className="h-11 w-full"
           >
-            Ikke nu
+            {t('ui.notNow')}
           </Button>
         </div>
       </DialogContent>

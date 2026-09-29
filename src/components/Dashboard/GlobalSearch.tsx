@@ -1,3 +1,4 @@
+import { useTranslation } from '@/context/TranslationContext';
 import React, { useEffect, useMemo, useRef, useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, FileText, User, Car as CarIcon } from 'lucide-react';
@@ -21,6 +22,7 @@ const GlobalSearch: React.FC = () => {
   const [selected, setSelected] = useState<Assignment | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { t: tr } = useTranslation();
   const { assignments } = useAssignments();
   const { employees } = useEmployees();
   const { cars } = useCars();
@@ -86,8 +88,8 @@ const GlobalSearch: React.FC = () => {
           else if (e.key === 'Enter' && results[active]) pick(results[active]);
           else if (e.key === 'Escape') { setOpen(false); inputRef.current?.blur(); }
         }}
-        placeholder="Søg sag, adresse, kollega eller bil"
-        aria-label="Søg"
+        placeholder={tr('ui.globalSearchPlaceholder')}
+        aria-label={tr('common.search')}
         className="h-11 sm:h-10 w-full rounded-lg border border-border/60 bg-background/70 pl-9 pr-10 text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
       <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-border/60 px-1.5 text-[10px] text-muted-foreground sm:block">/</kbd>
@@ -95,7 +97,7 @@ const GlobalSearch: React.FC = () => {
       {open && q.trim().length >= 2 && (
         <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto rounded-lg border border-border/60 bg-popover p-1 shadow-lg">
           {results.length === 0 ? (
-            <p className="px-3 py-4 text-center text-sm text-muted-foreground">Ingen resultater</p>
+            <p className="px-3 py-4 text-center text-sm text-muted-foreground">{tr('ui.noResults')}</p>
           ) : results.map((r, i) => {
             const I = Icon[r.kind];
             return (

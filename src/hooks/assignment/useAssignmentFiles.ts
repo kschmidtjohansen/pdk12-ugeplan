@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { subscribeToTable } from '@/lib/realtimeChannels';
 import { toast } from 'sonner';
+import { useTranslation } from '@/context/TranslationContext';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 // Note: pdf-lib (~600 kB) and jszip (~100 kB) are dynamically imported where
@@ -53,6 +54,7 @@ export const useAssignmentFiles = (
   assignmentId: string | null,
   siblingAssignmentIds?: string[]
 ): UseAssignmentFilesReturn => {
+  const { t } = useTranslation();
   const [files, setFiles] = useState<AssignmentFile[]>([]);
   const [folders, setFolders] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -105,7 +107,7 @@ export const useAssignmentFiles = (
 
       const filesWithUploaders = (filesData || []).map(f => ({
         ...f,
-        uploader: profilesMap[f.user_id] || { id: f.user_id, name: 'Ukendt' }
+        uploader: profilesMap[f.user_id] || { id: f.user_id, name: t('ui.unknown') }
       }));
 
       setFiles(filesWithUploaders);
@@ -131,7 +133,7 @@ export const useAssignmentFiles = (
     if (!assignmentId) return;
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('Filen er for stor. Maksimal størrelse er 20MB.');
+      toast.error(t('ui.fileTooLarge'));
       return;
     }
 
@@ -141,7 +143,7 @@ export const useAssignmentFiles = (
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error('Du skal være logget ind for at uploade filer');
+        toast.error(t('ui.mustBeLoggedInUpload'));
         return;
       }
 
@@ -196,22 +198,22 @@ export const useAssignmentFiles = (
         .eq('file_path', filePath);
 
       if (!count) {
-        toast.error('Filen blev ikke gemt korrekt — prøv igen', { duration: 8000 });
+        toast.error(t('ui.fileNotSaved'), { duration: 8000 });
         return;
       }
 
       await fetchFiles();
-      toast.success(`${file.name} uploadet`);
+      toast.success(t('ui.fileUploaded', { name: file.name }));
     } catch (error: any) {
       if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error uploading file:', error);
-      toast.error(`Kunne ikke uploade fil: ${error?.message || 'Ukendt fejl'}`, { duration: 8000 });
+      toast.error(`${t('ui.couldNotUploadFile')}: ${error?.message || t('ui.unknownError')}`, { duration: 8000 });
     }
   }, [assignmentId, fetchFiles]);
 
   const updateFileComment = useCallback(async (fileId: string, comment: string) => {
     // Client-side length validation (matches DB CHECK constraint)
     if (comment && comment.length > 2000) {
-      toast.error('Kommentaren er for lang (max 2000 tegn)');
+      toast.error(t('ui.commentTooLong'));
       return;
     }
     try {
@@ -223,10 +225,10 @@ export const useAssignmentFiles = (
       if (error) throw error;
 
       await fetchFiles();
-      toast.success('Kommentar opdateret');
+      toast.success(t('ui.commentUpdated'));
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error updating comment:', error);
-      toast.error('Kunne ikke opdatere kommentar');
+      toast.error(t('ui.couldNotUpdateComment'));
     }
   }, [fetchFiles]);
 
@@ -304,7 +306,7 @@ export const useAssignmentFiles = (
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      toast.success('Download færdig');
+      toast.success(t('ui.downloadDone'));
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error downloading folder:', error);
       toast.error('Kunne ikke downloade mappe');
@@ -343,10 +345,10 @@ export const useAssignmentFiles = (
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      toast.success('Download færdig');
+      toast.success(t('ui.downloadDone'));
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error downloading all files:', error);
-      toast.error('Kunne ikke downloade filer');
+      toast.error(t('ui.couldNotDownloadFiles'));
     }
   }, [files, downloadFileAsBlob]);
 
@@ -357,11 +359,11 @@ export const useAssignmentFiles = (
     );
 
     if (imageFiles.length === 0) {
-      toast.error('Ingen billeder at eksportere');
+      toast.error(t('ui.noImagesToExport'));
       return;
     }
 
-    toast.info('Genererer PDF...');
+    toast.info(t('ui.generatingPdf'));
 
     try {
       // Lazy-load pdf-lib only when actually generating a PDF (~600 kB)
@@ -440,9 +442,9 @@ export const useAssignmentFiles = (
 
           // Draw comment below image
           const commentY = imageY - 25;
-          const commentText = file.comment || 'Ingen kommentar';
+          const commentText = file.comment || t('ui.noComment');
           
-          page.drawText('Kommentar:', {
+          page.drawText(`${t('ui.comment')}:`, {
             x: margin,
             y: commentY,
             size: 10,
@@ -479,7 +481,7 @@ export const useAssignmentFiles = (
           // Draw metadata
           const metaY = commentY - (Math.min(commentLines.length, 4) * 14) - 20;
           const uploadDate = format(new Date(file.created_at), 'dd. MMM yyyy', { locale: da });
-          const metaText = `Uploadet: ${uploadDate} • ${file.uploader?.name || 'Ukendt'}`;
+          const metaText = `${t('ui.uploaded')}: ${uploadDate} • ${file.uploader?.name || t('ui.unknown')}`;
           
           page.drawText(metaText, {
             x: margin,
@@ -505,7 +507,7 @@ export const useAssignmentFiles = (
       }
 
       if (pdfDoc.getPageCount() === 0) {
-        toast.error('Ingen billeder kunne eksporteres');
+        toast.error(t('ui.noImagesCouldExport'));
         return;
       }
 
@@ -523,13 +525,13 @@ export const useAssignmentFiles = (
       URL.revokeObjectURL(url);
 
       if (skippedCount > 0) {
-        toast.success(`PDF genereret (${skippedCount} billede(r) sprunget over)`);
+        toast.success(t('ui.pdfGeneratedSkipped', { count: skippedCount }));
       } else {
-        toast.success('PDF genereret');
+        toast.success(t('ui.pdfGenerated'));
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error generating PDF:', error);
-      toast.error('Kunne ikke generere PDF');
+      toast.error(t('ui.couldNotGeneratePdf'));
     }
   }, [files, downloadFileAsBlob]);
 
@@ -553,10 +555,10 @@ export const useAssignmentFiles = (
       if (dbError) throw dbError;
 
       await fetchFiles();
-      toast.success('Fil slettet');
+      toast.success(t('ui.fileDeleted'));
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error deleting file:', error);
-      toast.error('Kunne ikke slette fil');
+      toast.error(t('ui.couldNotDeleteFile'));
     }
   }, [fetchFiles]);
 

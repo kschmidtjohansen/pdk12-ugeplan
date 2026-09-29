@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface BiometricRetryDialogProps {
   open: boolean;
@@ -29,32 +30,34 @@ const BiometricRetryDialog: React.FC<BiometricRetryDialogProps> = ({
   reason,
   onRetry,
   onContinue,
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <Dialog open={open} onOpenChange={(next) => { if (!next) onContinue(); }}>
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           <Fingerprint className="h-5 w-5" />
-          Face ID / fingeraftryk blev ikke bekræftet
+          {t('ui.passkeyNotConfirmed')}
         </DialogTitle>
         <DialogDescription>
-          {reason ??
-            'Bekræftelsen blev afbrudt eller er ikke tilgængelig på denne enhed. Prøv igen, eller log ind med din adgangskode.'}
+          {reason ?? t('ui.biometricRetryDesc')}
         </DialogDescription>
       </DialogHeader>
 
       <div className="mt-2 grid gap-2">
         <Button className="h-11 w-full" onClick={onRetry} disabled={busy}>
           {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Fingerprint className="mr-2 h-4 w-4" />}
-          Prøv Face ID / fingeraftryk igen
+          {t('ui.passkeyRetry')}
         </Button>
         <Button variant="outline" className="h-11 w-full" onClick={onContinue} disabled={busy}>
-          Fortsæt med adgangskode-login
+          {t('ui.continueWithPassword')}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </DialogContent>
   </Dialog>
-);
+  );
+};
 
 export default BiometricRetryDialog;

@@ -84,7 +84,7 @@ const CarsPage: React.FC = () => {
       { key: 'all', label: t('common.all') || 'Alle', count: enrichedCars.length },
       { key: 'available', label: t('cars.available') || 'Tilgængelige', count: available },
       { key: 'unavailable', label: t('cars.unavailable') || 'Optaget', count: unavailable, highlight: unavailable > 0 },
-      { key: 'scheduled', label: 'Planlagt værksted', count: scheduled },
+      { key: 'scheduled', label: t('ui.scheduledWorkshop'), count: scheduled },
     ];
   }, [enrichedCars, t]);
 

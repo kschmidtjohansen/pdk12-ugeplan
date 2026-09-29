@@ -122,14 +122,14 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Escape') onQueryChange(''); }}
-              placeholder="Søg sag, kunde, adresse eller medarbejder"
-              aria-label="Søg i ugens opgaver"
+              placeholder={t('ui.searchPlannerPlaceholder')}
+              aria-label={t('ui.searchPlannerAria')}
               className="h-8 pl-9 pr-8"
             />
             {query.trim() && (
               <button
                 type="button"
-                aria-label="Ryd søgning"
+                aria-label={t('ui.clearSearch')}
                 onClick={() => onQueryChange('')}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:bg-muted"
               >

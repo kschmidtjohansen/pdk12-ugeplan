@@ -368,7 +368,7 @@ export const admin = {
     administratorDesc: 'Fuld adgang til alle funktioner',
     skadelederDesc: 'Kan administrere opgaver og godkende opgaver',
     servicemedarbejderDesc: 'Kan se tildelte opgaver og anmode om ferie',
-    fugttekniderDesc: 'Samme rettigheder som servicemedarbejder, men ser fuldt dashboard',
+    fugtteknikerDesc: 'Samme rettigheder som servicemedarbejder, men ser fuldt dashboard',
     fugtteknikerDesc: 'Samme rettigheder som servicemedarbejder, men ser fuldt dashboard',
     vikarDesc: 'Vikarer med midlertidig adgang'
   },

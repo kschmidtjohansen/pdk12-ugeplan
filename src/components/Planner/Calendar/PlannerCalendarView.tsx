@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { ChevronDown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEmployeeColor } from './employeeColors';
+import { useTranslation } from '@/context/TranslationContext';
 
 const START_HOUR = 6;
 const END_HOUR = 19;
@@ -40,6 +41,7 @@ const dateLabel = (d?: string) => {
 };
 
 const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek }) => {
+  const { t: tr } = useTranslation();
   const swipeRef = React.useRef<{ x: number; y: number; scroller: Element | null; scrollLeft: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];
@@ -109,18 +111,18 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
               if (window.matchMedia('(min-width: 1024px)').matches) setMinimized(m => !m);
               else setFiltersOpen(o => !o);
             }}
-            title={minimized ? 'Vis medarbejdere' : 'Minimer medarbejderliste'}
+            title={minimized ? tr('ui.showEmployees') : tr('ui.minimizeEmployeeList')}
             className="flex min-w-0 flex-1 items-center gap-2 min-h-[36px] text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
           >
             <Users className="h-3.5 w-3.5 shrink-0" />
-            <span className={cn('truncate', minimized && 'lg:hidden')}>Medarbejdere ({lanes.length})</span>
+            <span className={cn('truncate', minimized && 'lg:hidden')}>{tr('ui.employees')} ({lanes.length})</span>
             <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 lg:hidden transition-transform', filtersOpen && 'rotate-180')} />
             <ChevronDown className={cn('hidden lg:block h-3.5 w-3.5 shrink-0 transition-transform', minimized ? 'rotate-180' : 'rotate-90')} />
           </button>
         </div>
         <div className={cn('mt-2 grid grid-cols-2 gap-1', minimized && 'lg:hidden', !filtersOpen && 'hidden lg:grid')}>
-          <Button variant="outline" size="sm" className="h-8 w-full px-2 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>Alle</Button>
-          <Button variant="outline" size="sm" className="h-8 w-full px-2 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>Fugt</Button>
+          <Button variant="outline" size="sm" className="h-8 w-full px-2 text-xs" onClick={() => setSelected(new Set(sorted.map(e => e.id)))}>{tr('common.all')}</Button>
+          <Button variant="outline" size="sm" className="h-8 w-full px-2 text-xs" onClick={() => setSelected(new Set(sorted.filter(e => e.role === 'fugttekniker' || e.roles?.includes('fugttekniker')).map(e => e.id)))}>{tr('ui.moisture')}</Button>
         </div>
         <div className={cn('mt-2 max-h-56 lg:max-h-[640px] overflow-y-auto space-y-0.5', !filtersOpen && 'hidden', !minimized && 'lg:block')}>
           {sorted.map((e, i) => {
@@ -151,7 +153,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
         </div>
 
         {lanes.length === 0 ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">Vælg medarbejdere i listen for at se deres kalender.</div>
+          <div className="p-8 text-center text-sm text-muted-foreground">{tr('ui.selectEmployeesForCalendar')}</div>
         ) : (
           <div className="overflow-auto max-h-[75vh]">
             <div className="min-w-full w-max">
@@ -168,7 +170,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                         <span className="text-xs font-semibold truncate">{e.name}</span>
                       </div>
                       <div className="h-5 mt-1">
-                        {abs && <span className="inline-block max-w-full truncate rounded bg-destructive/15 text-destructive text-[10px] font-medium px-1.5 py-0.5">{abs.request_type === 'partial_day' ? `Fravær ${abs.start_time?.slice(0,5) ?? ''}–${abs.end_time?.slice(0,5) ?? ''}` : 'Fravær / ferie'}</span>}
+                        {abs && <span className="inline-block max-w-full truncate rounded bg-destructive/15 text-destructive text-[10px] font-medium px-1.5 py-0.5">{abs.request_type === 'partial_day' ? `${tr('ui.absence')} ${abs.start_time?.slice(0,5) ?? ''}–${abs.end_time?.slice(0,5) ?? ''}` : tr('ui.absenceOrVacation')}</span>}
                       </div>
                     </div>
                   );
@@ -215,10 +217,10 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                             </TooltipTrigger>
                             <TooltipContent side="right" className="max-w-64 p-2.5">
                               <div className="text-xs font-semibold leading-tight">{a.title}</div>
-                              {a.case_number && <div className="mt-1 text-[11px] opacity-90">Sagsnummer: {a.case_number}</div>}
-                              <div className="text-[11px] opacity-90">Dato: {dateLabel(a.date)}</div>
-                              <div className="text-[11px] opacity-90">Tidspunkt: {timeLabel}</div>
-                              {a.location && <div className="text-[11px] opacity-90">Adresse: {a.location}</div>}
+                              {a.case_number && <div className="mt-1 text-[11px] opacity-90">{tr('ui.caseNumberLabel')}: {a.case_number}</div>}
+                              <div className="text-[11px] opacity-90">{tr('ui.dateLabel')}: {dateLabel(a.date)}</div>
+                              <div className="text-[11px] opacity-90">{tr('ui.timeLabel')}: {timeLabel}</div>
+                              {a.location && <div className="text-[11px] opacity-90">{tr('ui.addressLabel')}: {a.location}</div>}
                             </TooltipContent>
                           </Tooltip>
                         );
@@ -238,16 +240,16 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4" onClick={() => setTapped(null)}>
           <div className="w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-lg" onClick={e => e.stopPropagation()}>
             <div className="text-sm font-semibold leading-tight">{tapped.title}</div>
-            {tapped.case_number && <div className="mt-1.5 text-xs text-muted-foreground">Sagsnummer: {tapped.case_number}</div>}
-            <div className="text-xs text-muted-foreground">Dato: {dateLabel(tapped.date)}</div>
-            <div className="text-xs text-muted-foreground">Tidspunkt: {tapped.fromTime?.slice(0, 5) ?? ''}–{tapped.toTime?.slice(0, 5) ?? ''}</div>
-            {tapped.location && <div className="text-xs text-muted-foreground">Adresse: {tapped.location}</div>}
+            {tapped.case_number && <div className="mt-1.5 text-xs text-muted-foreground">{tr('ui.caseNumberLabel')}: {tapped.case_number}</div>}
+            <div className="text-xs text-muted-foreground">{tr('ui.dateLabel')}: {dateLabel(tapped.date)}</div>
+            <div className="text-xs text-muted-foreground">{tr('ui.timeLabel')}: {tapped.fromTime?.slice(0, 5) ?? ''}–{tapped.toTime?.slice(0, 5) ?? ''}</div>
+            {tapped.location && <div className="text-xs text-muted-foreground">{tr('ui.addressLabel')}: {tapped.location}</div>}
             <div className="mt-3 flex gap-2">
-              <Button size="sm" onClick={() => { setTapped(null); onViewDetails(tapped); }}>Åbn detaljer</Button>
+              <Button size="sm" onClick={() => { setTapped(null); onViewDetails(tapped); }}>{tr('ui.openDetails')}</Button>
               {canEdit && onEditAssignment && (
-                <Button size="sm" variant="outline" onClick={() => { setTapped(null); onEditAssignment(tapped); }}>Redigér</Button>
+                <Button size="sm" variant="outline" onClick={() => { setTapped(null); onEditAssignment(tapped); }}>{tr('common.edit')}</Button>
               )}
-              <Button size="sm" variant="ghost" onClick={() => setTapped(null)}>Luk</Button>
+              <Button size="sm" variant="ghost" onClick={() => setTapped(null)}>{tr('common.close')}</Button>
             </div>
           </div>
         </div>
