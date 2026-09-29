@@ -200,7 +200,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
           onSelect={(d) => d && onChange(d)}
           initialFocus
           weekStartsOn={1}
-          locale={da}
+          locale={dateLocale}
           className={cn('p-3 pointer-events-auto')}
         />
       </PopoverContent>
