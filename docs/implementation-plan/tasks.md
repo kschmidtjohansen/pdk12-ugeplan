@@ -728,3 +728,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Blød ind- og udtoning samt kontrolleret lydniveau
 - [x] Ny version gemt uden at overskrive den oprindelige video
 - [x] Kontrol af billedformat, lydspor og varighed
+
+## 2026-09-29 — Fuld DA/EN-oversættelse af resterende hardkodede tekster
+- [x] Vagtwidget, kalendervisning, masse-tildelingsdialoger, fraværsrække, vælgere og planlæggerens toasts oversat
+- [x] Ferieoversigt, kursusdialog, opgavefiler/-beskeder, demo-nulstilling, push-test og hurtig login-dialog oversat
+- [x] 179 nye nøgler tilføjet i `da/ui.ts` og `en/ui.ts`; fuld nøgleparitet mellem sprogene
+- [x] Dublet-nøgle `fugtteknikerDesc` fjernet i `da/admin.ts`
