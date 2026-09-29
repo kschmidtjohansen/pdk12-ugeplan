@@ -31,7 +31,7 @@ const buildFullAddress = (assignment: Assignment): string =>
 
 const MinDag: React.FC = () => {
   const { user } = useAuth();
-  const { currentLanguage } = useTranslation();
+  const { currentLanguage, t } = useTranslation();
   const isDa = currentLanguage === 'da';
   const { assignments, loading, error, fetchAssignments } = useAssignmentDataOptimized();
   const { cars } = useCars();
