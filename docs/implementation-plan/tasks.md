@@ -734,3 +734,10 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Ferieoversigt, kursusdialog, opgavefiler/-beskeder, demo-nulstilling, push-test og hurtig login-dialog oversat
 - [x] 179 nye nøgler tilføjet i `da/ui.ts` og `en/ui.ts`; fuld nøgleparitet mellem sprogene
 - [x] Dublet-nøgle `fugtteknikerDesc` fjernet i `da/admin.ts`
+
+## 2026-09-29 — Manglende oversættelser og sprogafhængige datoer
+- [x] Hilsner på forsiden (godmorgen/formiddag/eftermiddag/aften) tilføjet i DA og EN
+- [x] 22 manglende `t()`-nøgler tilføjet i begge sprog
+- [x] Resterende hardkodede danske tekster oversat (forside, biler, opgavefiler, notifikationer, admin, kiosk)
+- [x] `useDateLocale()` indført, så datoer og relative tider følger valgt sprog
+- [x] Nøgleparitet bekræftet: 2188 nøgler i både DA og EN
