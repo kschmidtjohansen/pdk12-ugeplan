@@ -669,18 +669,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const runPasskeySignIn = async (): Promise<string | null> => {
     try {
       toast({
-        title: "Bekræft med Face ID / fingeraftryk",
-        description: "Følg vejledningen på din enhed for at logge ind.",
+        title: t('ui.confirmWithBiometrics'),
+        description: t('ui.followDeviceInstructions'),
       });
       const { error } = await supabase.auth.signInWithPasskey();
       if (!error) return null;
       if (import.meta.env.DEV) console.warn('[AuthProvider] Passkey sign-in failed:', error.message);
       return /cancel|abort|not allowed|timed out/i.test(error.message ?? '')
-        ? 'Bekræftelsen blev afbrudt. Prøv igen, eller log ind med din adgangskode.'
-        : 'Bekræftelsen kunne ikke gennemføres på denne enhed. Prøv igen, eller log ind med din adgangskode.';
+        ? t('ui.confirmCancelled')
+        : t('ui.confirmFailedDevice');
     } catch (err) {
       if (import.meta.env.DEV) console.warn('[AuthProvider] Passkey sign-in error:', err instanceof Error ? err.message : 'Unknown');
-      return 'Bekræftelsen blev afbrudt. Prøv igen, eller log ind med din adgangskode.';
+      return t('ui.confirmCancelled');
     }
   };
 
@@ -691,8 +691,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error: failure };
     }
     toast({
-      title: "Login Succesfuld",
-      description: "Du er nu logget ind.",
+      title: t('ui.loginSuccess'),
+      description: t('ui.youAreLoggedIn'),
     });
     return { error: null };
   };
@@ -708,7 +708,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setBiometricPrompt({ reason: failure });
     } else {
       setBiometricPrompt(null);
-      toast({ title: "Login Succesfuld", description: "Din enhed bekræftede dit login." });
+      toast({ title: t('ui.loginSuccess'), description: t('ui.deviceConfirmedLogin') });
     }
   };
 
@@ -725,8 +725,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       toast({
-        title: "Login Succesfuld",
-        description: "Du er nu logget ind.",
+        title: t('ui.loginSuccess'),
+        description: t('ui.youAreLoggedIn'),
       });
 
       // Tilbyd hurtig login på denne enhed, hvis den ikke er registreret endnu.
