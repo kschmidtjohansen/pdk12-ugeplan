@@ -25,6 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useTranslation } from '@/context/TranslationContext';
 import { cn } from '@/lib/utils';
 import type { Employee } from '@/types/employee';
 
@@ -56,9 +57,9 @@ type CellKind = 'vacation' | 'training' | 'leave' | 'skadeleder_vagt' | 'køreva
 type Group = { key: 'skadeleder' | 'fugttekniker' | 'servicemedarbejder'; label: string; tone: string; rowTone: string; border: string };
 
 const GROUPS: Group[] = [
-  { key: 'skadeleder',         label: 'Skadeleder',         tone: 'bg-primary/10 text-primary', rowTone: 'bg-primary/10', border: 'border-l-purple-500' },
-  { key: 'fugttekniker',       label: 'Fugttekniker',       tone: 'bg-info-soft text-info-soft-foreground',     rowTone: 'bg-info-soft/30',   border: 'border-l-blue-500' },
-  { key: 'servicemedarbejder', label: 'Servicemedarbejder', tone: 'bg-success-soft text-success-soft-foreground',   rowTone: 'bg-success-soft/30',  border: 'border-l-green-500' },
+  { key: 'skadeleder',         label: 'ui.roleSkadeleder',         tone: 'bg-primary/10 text-primary', rowTone: 'bg-primary/10', border: 'border-l-purple-500' },
+  { key: 'fugttekniker',       label: 'ui.roleFugttekniker',       tone: 'bg-info-soft text-info-soft-foreground',     rowTone: 'bg-info-soft/30',   border: 'border-l-blue-500' },
+  { key: 'servicemedarbejder', label: 'ui.roleServicemedarbejder', tone: 'bg-success-soft text-success-soft-foreground',   rowTone: 'bg-success-soft/30',  border: 'border-l-green-500' },
 ];
 
 const groupForRole = (role?: string): Group['key'] => {
@@ -85,17 +86,18 @@ const cellColor: Record<CellKind, string> = {
 };
 
 const cellLabel: Record<CellKind, string> = {
-  vacation: 'Ferie',
-  training: 'Kursus',
-  leave: 'Fravær',
-  skadeleder_vagt: 'Skadelederv.',
-  'kørevagt': 'Kørevagt',
+  vacation: 'ui.kindVacation',
+  training: 'ui.kindTraining',
+  leave: 'ui.kindLeave',
+  skadeleder_vagt: 'ui.kindDutyLeaderShort',
+  'kørevagt': 'ui.kindDrivingDuty',
 };
 
 const VacationGridOverview: React.FC = () => {
   const { selectedDepartmentId } = useDepartment();
   const { isDemoMode } = useAuth();
   const { regularEmployees, loading: employeesLoading } = useEmployees();
+  const { t } = useTranslation();
 
   const today = useMemo(() => new Date(), []);
   const [fromDate, setFromDate] = useState<Date>(today);
@@ -411,8 +413,8 @@ const VacationGridOverview: React.FC = () => {
             <DatePickerButton date={fromDate} onChange={setFromDate} label="Fra" />
             <DatePickerButton date={toDate} onChange={setToDate} label="Til" />
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" onClick={() => setQuick('thisMonth')}>Denne måned</Button>
-              <Button variant="ghost" size="sm" onClick={() => setQuick('nextMonth')}>Næste måned</Button>
+              <Button variant="ghost" size="sm" onClick={() => setQuick('thisMonth')}>{t('ui.thisMonth')}</Button>
+              <Button variant="ghost" size="sm" onClick={() => setQuick('nextMonth')}>{t('ui.nextMonthLabel')}</Button>
               <Button variant="ghost" size="sm" onClick={() => setQuick('threeMonths')}>3 måneder</Button>
             </div>
           </div>
@@ -444,7 +446,7 @@ const VacationGridOverview: React.FC = () => {
                       className="sticky left-0 z-20 bg-muted/50 border-b border-r px-2 py-1 text-left"
                       rowSpan={3}
                     >
-                      <span className="font-medium">Medarbejder</span>
+                      <span className="font-medium">{t('ui.employee')}</span>
                     </th>
                     {weekGroups.map((g, i) => (
                       <th
@@ -519,7 +521,7 @@ const VacationGridOverview: React.FC = () => {
                               g.tone
                             )}
                           >
-                            {g.label} <span className="opacity-60 font-normal normal-case">({list.length})</span>
+                            {t(g.label)} <span className="opacity-60 font-normal normal-case">({list.length})</span>
                           </td>
                         </tr>
                         {list.map((emp) => renderEmployeeRow(emp, g))}
@@ -574,7 +576,7 @@ const VacationGridOverview: React.FC = () => {
           const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
           const weekDayKeys = new Set(weekDays.map((d) => format(d, 'yyyy-MM-dd')));
           const nameOf = (uid: string) =>
-            regularEmployees.find((e) => e.id === uid)?.name ?? 'Ukendt';
+            regularEmployees.find((e) => e.id === uid)?.name ?? t('ui.unknown');
 
           // Extract a manually entered name from a duty's notes field.
           // Format used elsewhere: "EKSTERN: <name> [INI]\n<optional notes>"
@@ -586,7 +588,7 @@ const VacationGridOverview: React.FC = () => {
           };
           const dutyNameOf = (d: DutyRow): string => {
             if (d.employee_id) return nameOf(d.employee_id);
-            return extractManualName(d.notes) ?? 'Ukendt';
+            return extractManualName(d.notes) ?? t('ui.unknown');
           };
 
           type DateInterval = { start: Date; end: Date };
@@ -617,7 +619,7 @@ const VacationGridOverview: React.FC = () => {
 
           const formatPeriod = (merged: DateInterval[]): string | null => {
             if (merged.length === 0) return null;
-            if (coversWholeWeek(merged)) return 'Hele ugen';
+            if (coversWholeWeek(merged)) return t('ui.wholeWeek');
             return merged.map((i) => fmtRange(i.start, i.end)).join(', ');
           };
 
@@ -677,10 +679,10 @@ const VacationGridOverview: React.FC = () => {
           type StatusEntry = { name: string; period: string | null };
           const sections: { kind: CellKind; color: string; label: string; entries: StatusEntry[] }[] = [
             { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', entries: vacationEntries },
-            { kind: 'training', color: 'bg-warning/60', label: 'Kursus', entries: trainingEntries },
-            { kind: 'leave', color: 'bg-destructive', label: 'Fravær', entries: leaveEntries },
-            { kind: 'skadeleder_vagt', color: 'bg-info', label: 'Skadelederv.', entries: skadelederEntries },
-            { kind: 'kørevagt', color: 'bg-success', label: 'Kørevagt', entries: korevagtEntries },
+            { kind: 'training', color: 'bg-warning/60', label: 'ui.kindTraining', entries: trainingEntries },
+            { kind: 'leave', color: 'bg-destructive', label: 'ui.kindLeave', entries: leaveEntries },
+            { kind: 'skadeleder_vagt', color: 'bg-info', label: 'ui.kindDutyLeaderShort', entries: skadelederEntries },
+            { kind: 'kørevagt', color: 'bg-success', label: 'ui.kindDrivingDuty', entries: korevagtEntries },
           ];
 
           const weekNum = getISOWeek(weekStart);
@@ -693,7 +695,7 @@ const VacationGridOverview: React.FC = () => {
                   size="icon"
                   className="h-7 w-7"
                   onClick={() => setWeekAnchor((w) => addDays(w, -7))}
-                  aria-label="Forrige uge"
+                  aria-label={t('ui.previousWeek')}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -709,7 +711,7 @@ const VacationGridOverview: React.FC = () => {
                   size="icon"
                   className="h-7 w-7"
                   onClick={() => setWeekAnchor((w) => addDays(w, 7))}
-                  aria-label="Næste uge"
+                  aria-label={t('ui.nextWeek')}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -729,13 +731,13 @@ const VacationGridOverview: React.FC = () => {
                   <div key={s.kind} className="border rounded-lg p-2 bg-background">
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <span className={cn('inline-block w-3 h-3 rounded-sm', s.color)} />
-                      <span className="font-medium">{s.label}</span>
+                      <span className="font-medium">{t(s.label)}</span>
                       <span className="ml-auto text-muted-foreground tabular-nums">
                         {s.entries.length}
                       </span>
                     </div>
                     {s.entries.length === 0 ? (
-                      <div className="text-muted-foreground italic">Ingen</div>
+                      <div className="text-muted-foreground italic">{t('ui.none')}</div>
                     ) : (
                       <ul className="space-y-0.5">
                         {s.entries.map((entry, idx) => (

@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { ChevronDown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEmployeeColor } from './employeeColors';
+import { useTranslation } from '@/context/TranslationContext';
 
 const START_HOUR = 6;
 const END_HOUR = 19;
