@@ -2107,3 +2107,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-09-29
 - Sygemeldings- og fridagsansøgnings-notifikationer vises kun for administratorer/superadmins; skadeledere mister ferie-badge i topbjælken.
+
+## 2026-09-29
+- Sikkerhed: EXECUTE fjernet for anon/authenticated på 10 trigger-funktioner og cleanup_expired_temporary_users/cleanup_old_change_logs (kun service_role). Linter 55 → 43.
