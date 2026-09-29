@@ -53,6 +53,8 @@ const DailyQuoteCard: React.FC<DailyQuoteCardProps> = ({ quote, compact = false,
       </p>
     </div>
   </div>
-);
+  );
+};
+
 
 export default DailyQuoteCard;
