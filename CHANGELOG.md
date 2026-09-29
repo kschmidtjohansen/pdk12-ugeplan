@@ -1,4 +1,5 @@
 ## 2026-09-29 — Sprogvælger med flag på login-siden
+- Flagene er rigtige SVG-flag (ikke emoji), så de vises på alle enheder inkl. Windows.
 - Ny LanguageSwitcher-komponent (src/components/shared/LanguageSwitcher.tsx) med dansk og engelsk flag; valget gemmes og styrer hele appens sprog.
 - Vælgeren vises øverst til højre på login-siden, så sproget kan skiftes allerede før login.
 
