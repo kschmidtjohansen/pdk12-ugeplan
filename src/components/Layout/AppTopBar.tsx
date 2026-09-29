@@ -38,7 +38,7 @@ const AppTopBar: React.FC = () => {
   const isPlanner = location.pathname === '/planner';
 
   // Vacation overview dropdown is visible to Skadeleder, Administrator and Super Admin
-  const canSeeVacationOverview = isEffectiveAdmin || isSkadeleder;
+  const canSeeVacationOverview = isEffectiveAdmin;
 
   const handleLogout = async () => {
     try {

@@ -55,7 +55,8 @@ export const useNotifications = () => {
     if (user && user.role !== 'administrator' && user.role !== 'super_admin' && notifications.length > 0) {
       const filteredNotifications = notifications.filter(notification => {
         if (notification.targetUserId === user.id) return true;
-        if (notification.type === 'vacation' && !notification.message?.includes(user.name)) return false;
+        if (notification.type === 'sick_day') return false;
+        if (notification.type === 'vacation' && /ansøgt|anmod|requested/i.test(notification.message || '')) return false;
         return true;
       });
       
