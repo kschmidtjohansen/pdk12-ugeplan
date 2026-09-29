@@ -66,7 +66,7 @@ export const isPasskeyAvailable = () => isWebAuthnSupported() && isPasskeyDomain
  */
 const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpenChange }) => {
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const [passkeys, setPasskeys] = useState<PasskeyItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -129,9 +129,9 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
         .join(' · ');
 
       const description = cancelled
-        ? `Bekræftelsen blev afbrudt på enheden. ${detail}`.trim()
+        ? `${t('ui.biometricCancelledDevice')} ${detail}`.trim()
         : detail
-          ? `Fejl: ${detail}`
+          ? `${t('common.error')}: ${detail}`
           : t('ui.enrollFailedUnknown');
 
       setLastError(description);
@@ -169,25 +169,23 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Fingerprint className="h-5 w-5" />
-            Hurtig login på denne enhed
+            {t('ui.quickLoginOnDevice')}
           </DialogTitle>
           <DialogDescription>
-            Brug telefonens Face ID, fingeraftryk eller pinkode til at logge ind — helt uden
-            at taste din adgangskode.
+            {t('ui.quickLoginDialogDesc')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {!supported && (
             <p className="text-sm text-muted-foreground">
-              Denne browser understøtter desværre ikke biometrisk login.
+              {t('ui.browserNoBiometrics')}
             </p>
           )}
 
           {supported && !rightDomain && (
             <p className="text-sm text-muted-foreground">
-              Hurtig login virker på <strong>pdk12.dk</strong> og <strong>www.pdk12.dk</strong>.
-              Åbn siden der, og aktivér det på denne enhed.
+              {t('ui.quickLoginDomainHint')}
             </p>
           )}
 
@@ -224,7 +222,7 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
                       {p.friendly_name || t('ui.biometricDevice')}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Tilføjet {new Date(p.created_at).toLocaleDateString('da-DK')}
+                      {t('ui.addedOn', { date: new Date(p.created_at).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') })}
                     </p>
                   </div>
                   <Button
@@ -248,7 +246,7 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
           ) : (
             supported && rightDomain && (
               <p className="text-sm text-muted-foreground">
-                Ingen enheder registreret endnu.
+                {t('ui.noDevicesRegistered')}
               </p>
             )
           )}
@@ -263,12 +261,12 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
               {isRegistering ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Følg vejledningen på enheden…
+                  {t('ui.followDeviceGuide')}
                 </>
               ) : (
                 <>
                   <Fingerprint className="mr-2 h-4 w-4" />
-                  Aktivér Face ID / fingeraftryk på denne enhed
+                  {t('ui.enableBiometricsOnDevice')}
                 </>
               )}
             </Button>
