@@ -24,6 +24,7 @@ interface DutySwapDialogProps {
 
 export function DutySwapDialog({ duty, employees, open, onOpenChange, onSuccess }: DutySwapDialogProps) {
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const { createSwapRequest, loading } = useDutyActions(onSuccess);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 

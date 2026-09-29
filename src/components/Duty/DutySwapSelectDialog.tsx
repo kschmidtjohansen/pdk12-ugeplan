@@ -28,6 +28,7 @@ export function DutySwapSelectDialog({
   onDutySelected,
 }: DutySwapSelectDialogProps) {
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const { user } = useAuth();
   const [selectedDutyId, setSelectedDutyId] = useState<string>('');
 

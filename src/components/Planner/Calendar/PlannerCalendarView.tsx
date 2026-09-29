@@ -42,6 +42,7 @@ const dateLabel = (d?: string) => {
 
 const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek }) => {
   const { t: tr } = useTranslation();
+  const dateLocale = useDateLocale();
   const swipeRef = React.useRef<{ x: number; y: number; scroller: Element | null; scrollLeft: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];

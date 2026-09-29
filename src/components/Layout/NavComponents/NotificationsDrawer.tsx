@@ -63,6 +63,7 @@ const NotificationsDrawer: React.FC = () => {
   const { unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);

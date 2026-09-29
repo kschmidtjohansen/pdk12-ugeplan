@@ -43,6 +43,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   const {
     t
   } = useTranslation();
+  const dateLocale = useDateLocale();
   const {
     isAdmin,
     isSkadeleder

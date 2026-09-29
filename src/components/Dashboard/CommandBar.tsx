@@ -30,6 +30,7 @@ interface CommandBarProps {
 const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const now = useMemo(() => new Date(), []);
   const todayStr = format(now, 'yyyy-MM-dd');
   const weekStart = useMemo(() => startOfWeek(now, { weekStartsOn: 1 }), [now]);

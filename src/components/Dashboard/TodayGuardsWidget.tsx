@@ -17,6 +17,7 @@ const dutyLabelKey = (type: string) => (type === 'skadeleder_vagt' ? 'ui.dutyLea
 const TodayGuardsWidget: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const [open, setOpen] = useState(false);
   const now = useMemo(() => new Date(), []);
   const todayStr = format(now, 'yyyy-MM-dd');

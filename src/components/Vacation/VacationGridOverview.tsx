@@ -98,6 +98,7 @@ const VacationGridOverview: React.FC = () => {
   const { isDemoMode } = useAuth();
   const { regularEmployees, loading: employeesLoading } = useEmployees();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
 
   const today = useMemo(() => new Date(), []);
   const [fromDate, setFromDate] = useState<Date>(today);

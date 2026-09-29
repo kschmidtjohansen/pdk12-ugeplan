@@ -46,6 +46,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
   const { selectedDepartmentId } = useDepartment();
   const { toast } = useToast();
   const { t: tr } = useTranslation();
+  const dateLocale = useDateLocale();
   const qc = useQueryClient();
 
   const today = new Date();

@@ -15,6 +15,8 @@ export const LastRefreshIndicator: React.FC<LastRefreshIndicatorProps> = ({
   isRefreshing = false,
   onRefresh
 }) => {
+  const dateLocale = useDateLocale();
+
   if (!lastRefresh) return null;
 
   const relativeTime = formatDistanceToNow(lastRefresh, {

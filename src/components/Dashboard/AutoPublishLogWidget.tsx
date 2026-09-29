@@ -9,6 +9,7 @@ import { useAutoPublishLog } from '@/hooks/useAutoPublishLog';
 
 const AutoPublishLogWidget: React.FC = () => {
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const { data, isLoading, error } = useAutoPublishLog(10);
 
   return (
