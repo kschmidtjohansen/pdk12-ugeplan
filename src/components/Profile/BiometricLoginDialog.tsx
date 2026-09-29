@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/context/TranslationContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface BiometricLoginDialogProps {
@@ -65,6 +66,7 @@ export const isPasskeyAvailable = () => isWebAuthnSupported() && isPasskeyDomain
  */
 const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpenChange }) => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [passkeys, setPasskeys] = useState<PasskeyItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -191,11 +193,9 @@ const BiometricLoginDialog: React.FC<BiometricLoginDialogProps> = ({ open, onOpe
 
           {supported && rightDomain && (
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
-              <p className="text-sm font-medium text-foreground">Vigtigt: registrér din enhed igen</p>
+              <p className="text-sm font-medium text-foreground">{t('ui.passkeyReenrollTitle')}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Hurtig login virker nu på både pdk12.dk og www.pdk12.dk — også når appen er
-                installeret på telefonen. Har du aktiveret det tidligere, skal du fjerne den gamle
-                registrering herunder og trykke "Aktivér" igen.
+                {t('ui.passkeyReenrollDesc')}
               </p>
             </div>
           )}
