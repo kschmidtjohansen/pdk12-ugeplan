@@ -18,7 +18,9 @@ const CallBtn: React.FC<{ phone?: string }> = ({ phone }) =>
     </Button>
   ) : null;
 
-export const DutyDetailPanel: React.FC<{ today: DutyPerson[]; upcoming: DutyPerson[]; onOpenPlan: () => void }> = ({ today, upcoming, onOpenPlan }) => (
+export const DutyDetailPanel: React.FC<{ today: DutyPerson[]; upcoming: DutyPerson[]; onOpenPlan: () => void }> = ({ today, upcoming, onOpenPlan }) => {
+  const { t } = useTranslation();
+  return (
   <div className="space-y-4">
     {today.length === 0 ? (
       <p className="text-sm text-muted-foreground">{t('ui.noDutiesToday')}</p>
@@ -69,11 +71,12 @@ const Segment: React.FC<{ value: 'a' | 'b'; onChange: (v: 'a' | 'b') => void; a:
 );
 
 export const AvailableEmployeesPanel: React.FC<{ available: Emp[]; busy: Busy[]; onShowAll: () => void }> = ({ available, busy, onShowAll }) => {
+  const { t } = useTranslation();
   const [seg, setSeg] = useState<'a' | 'b'>('a');
   const list = seg === 'a' ? available : busy;
   return (
     <div>
-      <Segment value={seg} onChange={setSeg} a={`Ledige (${available.length})`} b={`Optaget (${busy.length})`} />
+      <Segment value={seg} onChange={setSeg} a={`${t('ui.availableCount')} (${available.length})`} b={`${t('ui.busyCount')} (${busy.length})`} />
       {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">{t('ui.none')}</p>}
       {list.map(e => (
         <Row key={e.id}>
@@ -92,11 +95,12 @@ export const AvailableEmployeesPanel: React.FC<{ available: Emp[]; busy: Busy[];
 type CarItem = { id: string; name: string; plate?: string; by?: string };
 
 export const AvailableCarsPanel: React.FC<{ available: CarItem[]; busy: CarItem[]; onShowAll: () => void }> = ({ available, busy, onShowAll }) => {
+  const { t } = useTranslation();
   const [seg, setSeg] = useState<'a' | 'b'>('a');
   const list = seg === 'a' ? available : busy;
   return (
     <div>
-      <Segment value={seg} onChange={setSeg} a={`Ledige (${available.length})`} b={`I brug (${busy.length})`} />
+      <Segment value={seg} onChange={setSeg} a={`${t('ui.availableCount')} (${available.length})`} b={`${t('ui.inUseCount')} (${busy.length})`} />
       {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">{t('ui.none')}</p>}
       {list.map(c => (
         <Row key={c.id}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from '@/context/TranslationContext';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { useScreenDisplayData } from '@/hooks/useScreenDisplayData';
 import { ScreenDisplayHeader } from '@/components/ScreenDisplay/ScreenDisplayHeader';
@@ -340,7 +341,7 @@ const ScreenDisplayPage: React.FC = () => {
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-semibold text-destructive mb-2">{t('ui.couldNotFetchAssignments')}</h2>
             <p className="text-muted-foreground mb-4">{error.message}</p>
-            <p className="text-xs text-muted-foreground mb-4">Prøver automatisk igen hvert 30. sekund.</p>
+            <p className="text-xs text-muted-foreground mb-4">{t('ui.retryingEvery30s')}</p>
             <button
               onClick={refetch}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"

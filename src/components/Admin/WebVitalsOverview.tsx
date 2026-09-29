@@ -49,6 +49,7 @@ const ratingColor = (r: string | null) =>
         : 'text-muted-foreground';
 
 const WebVitalsOverview: React.FC = () => {
+  const { t } = useTranslation();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('7');

@@ -354,6 +354,10 @@ export const ui = {
   samplesLower: "samples",
   noDataYetCollected: "No data yet — collected from the next visit.",
   element: "Element",
+  availableCount: "Available",
+  busyCount: "Busy",
+  inUseCount: "In use",
+  retryingEvery30s: "Retrying automatically every 30 seconds.",
 };
 
 export default ui;

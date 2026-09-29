@@ -354,6 +354,10 @@ export const ui = {
   samplesLower: "prøver",
   noDataYetCollected: "Ingen data endnu — opsamles fra næste besøg.",
   element: "Element",
+  availableCount: "Ledige",
+  busyCount: "Optaget",
+  inUseCount: "I brug",
+  retryingEvery30s: "Prøver automatisk igen hvert 30. sekund.",
 };
 
 export default ui;
