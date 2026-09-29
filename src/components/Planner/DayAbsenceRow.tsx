@@ -62,13 +62,13 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
       <div
         className="flex flex-wrap items-center gap-1.5 rounded-lg border border-warning/30 bg-warning-soft/70 px-2.5 py-1.5"
         role="list"
-        aria-label="Fravær denne dag"
+        aria-label={t('ui.absenceThisDay')}
       >
         <span className="icon-bubble icon-bubble-sm bg-warning-soft text-warning-soft-foreground" aria-hidden>
           <Plane className="h-3 w-3" />
         </span>
         <span className="text-[11px] font-medium text-warning-soft-foreground">
-          Fravær:
+          {t('ui.absence')}:
         </span>
         {dayVacations.map((v) => {
           const name = resolveName(v.user_id, v.user?.name);
@@ -90,7 +90,7 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
               <TooltipContent side="top" className="text-xs">
                 <div className="font-medium">{name}</div>
                 <div className="text-muted-foreground">
-                  {v.reason || (isPartial ? 'Fravær (del af dag)' : 'Fravær (hel dag)')}
+                  {v.reason || (isPartial ? t('ui.absencePartDay') : t('ui.absenceFullDay'))}
                 </div>
               </TooltipContent>
             </Tooltip>

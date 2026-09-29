@@ -1,3 +1,4 @@
+import { useTranslation } from '@/context/TranslationContext';
 import React, { useMemo, useState } from 'react';
 import {
   Dialog,
@@ -25,6 +26,7 @@ const BulkAssignCarDialog: React.FC<BulkAssignCarDialogProps> = ({
   onConfirm,
 }) => {
   const { cars } = useCars();
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -57,20 +59,20 @@ const BulkAssignCarDialog: React.FC<BulkAssignCarDialogProps> = ({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Tildel køretøj til {count} opgave{count === 1 ? '' : 'r'}</DialogTitle>
+          <DialogTitle>{t('ui.bulkAssignCarTitle', { count })}</DialogTitle>
           <DialogDescription>
-            Vælg et køretøj, der sættes på alle valgte opgaver.
+            {t('ui.bulkAssignCarDesc')}
           </DialogDescription>
         </DialogHeader>
         <Input
-          placeholder="Søg køretøj…"
+          placeholder={t('ui.searchVehicle')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
         />
         <div className="max-h-64 overflow-y-auto rounded-md border">
           {filtered.length === 0 ? (
-            <div className="p-3 text-sm text-muted-foreground">Ingen køretøjer fundet.</div>
+            <div className="p-3 text-sm text-muted-foreground">{t('ui.noVehiclesFound')}</div>
           ) : (
             filtered.map(car => (
               <button
@@ -88,9 +90,9 @@ const BulkAssignCarDialog: React.FC<BulkAssignCarDialogProps> = ({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={busy}>Annullér</Button>
+          <Button variant="outline" onClick={onClose} disabled={busy}>{t('common.cancel')}</Button>
           <Button onClick={handleConfirm} disabled={!selectedId || busy}>
-            {busy ? 'Tildeler…' : 'Tildel'}
+            {busy ? t('ui.assigning') : t('ui.assign')}
           </Button>
         </DialogFooter>
       </DialogContent>

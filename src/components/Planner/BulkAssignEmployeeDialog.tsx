@@ -1,3 +1,4 @@
+import { useTranslation } from '@/context/TranslationContext';
 import React, { useMemo, useState } from 'react';
 import {
   Dialog,
@@ -29,6 +30,7 @@ const BulkAssignEmployeeDialog: React.FC<BulkAssignEmployeeDialogProps> = ({
   onConfirm,
 }) => {
   const { employees } = useEmployees();
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -63,20 +65,20 @@ const BulkAssignEmployeeDialog: React.FC<BulkAssignEmployeeDialogProps> = ({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Tildel medarbejder til {count} opgave{count === 1 ? '' : 'r'}</DialogTitle>
+          <DialogTitle>{t('ui.bulkAssignEmployeeTitle', { count })}</DialogTitle>
           <DialogDescription>
-            Vælg en medarbejder, der tilføjes til alle valgte opgaver.
+            {t('ui.bulkAssignEmployeeDesc')}
           </DialogDescription>
         </DialogHeader>
         <Input
-          placeholder="Søg medarbejder…"
+          placeholder={t('ui.searchEmployee')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
         />
         <div className="max-h-64 overflow-y-auto rounded-md border">
           {filtered.length === 0 ? (
-            <div className="p-3 text-sm text-muted-foreground">Ingen medarbejdere fundet.</div>
+            <div className="p-3 text-sm text-muted-foreground">{t('ui.noEmployeesFound')}</div>
           ) : (
             filtered.map(emp => (
               <button
@@ -88,16 +90,16 @@ const BulkAssignEmployeeDialog: React.FC<BulkAssignEmployeeDialogProps> = ({
               >
                 {emp.name}
                 {isExpiredForSelection(emp) && (
-                  <span className="ml-2 text-xs text-muted-foreground">Midlertidig adgang er udløbet</span>
+                  <span className="ml-2 text-xs text-muted-foreground">{t('ui.tempAccessExpired')}</span>
                 )}
               </button>
             ))
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={busy}>Annullér</Button>
+          <Button variant="outline" onClick={onClose} disabled={busy}>{t('common.cancel')}</Button>
           <Button onClick={handleConfirm} disabled={!selectedId || busy}>
-            {busy ? 'Tildeler…' : 'Tildel'}
+            {busy ? t('ui.assigning') : t('ui.assign')}
           </Button>
         </DialogFooter>
       </DialogContent>
