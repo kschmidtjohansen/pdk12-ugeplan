@@ -344,6 +344,7 @@ export const ui = {
   carRemovedFromAssignments: "The car is automatically removed from these assignments.",
   all2: "All",
   exportLabel: "Export",
+  noResults: "No results",
 };
 
 export default ui;

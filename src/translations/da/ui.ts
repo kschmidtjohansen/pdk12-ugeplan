@@ -344,6 +344,7 @@ export const ui = {
   carRemovedFromAssignments: "Bilen fjernes automatisk fra disse opgaver.",
   all2: "Alle",
   exportLabel: "Eksport",
+  noResults: "Ingen resultater",
 };
 
 export default ui;

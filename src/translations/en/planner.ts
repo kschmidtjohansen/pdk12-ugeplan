@@ -320,6 +320,7 @@ const planner = {
   
   // Messages
   messages: {
+    send: 'Send message',
     title: 'Messages',
     sendMessage: 'Send message',
     messagePlaceholder: 'Write a message...',
@@ -461,6 +462,7 @@ const planner = {
   },
   previousWeek: "Previous week",
   nextWeek: "Next week",
+  cancel: "Cancel",
 };
 
 export default planner;

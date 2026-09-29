@@ -276,6 +276,7 @@ const planner = {
   
   // Messages
   messages: {
+    send: 'Send besked',
     title: 'Beskeder',
     sendMessage: 'Send besked',
     messagePlaceholder: 'Skriv en besked...',
@@ -461,6 +462,7 @@ const planner = {
   },
   previousWeek: "Forrige uge",
   nextWeek: "Næste uge",
+  cancel: "Annullér",
 };
 
 export default planner;
