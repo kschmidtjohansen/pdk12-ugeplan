@@ -57,7 +57,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
       type: d.duty_type === 'skadeleder_vagt' ? t('ui.dutyLeader') : t('ui.drivingDuty'),
       name: d.employee?.name || employees.find(e => e.id === d.employee_id)?.name || t('ui.external'),
       date: format(new Date(d.duty_date + 'T00:00:00'), 'EEE d/M', { locale: da }),
-    })), [duties, employees, todayStr]);
+    })), [duties, employees, todayStr, t]);
 
   const expiring = useMemo(() => employees.filter(isTempExpiringSoon), [employees]);
   const firstName = userName?.split(' ')[0] ?? '';
