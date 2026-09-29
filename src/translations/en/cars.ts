@@ -103,6 +103,7 @@ const cars = {
   isAuxiliary: 'Auxiliary vehicle (trailer/environmental)',
   isAuxiliaryHint: 'Hidden from "Available cars" in the planner and dashboard, but still selectable on assignments.',
   auxiliaryBadge: 'Auxiliary',
+  noCars: "No cars found",
 };
 
 export default cars;

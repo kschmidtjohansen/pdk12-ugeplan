@@ -19,4 +19,6 @@ export const auth = {
   logoutFailed: 'Logout mislykkedes. Prøv venligst igen.',
   sessionTimedOut: 'Session udløbet',
   sessionTimedOutDescription: 'Din session er automatisk afsluttet efter 180 minutter. Log venligst ind igen.'
+  adminRequired: "Du skal være administrator for at gøre dette.",
+  skadelederRequired: "Du skal være skadeleder eller administrator for at gøre dette.",
 };

@@ -235,6 +235,10 @@ const employees = {
   skipDepartmentNote: 'User will be created without department affiliation. Select this for IT support staff and other users not belonging to an operational department.',
   searchPlaceholder: 'Search employee...',
   noResults: 'No employees found',
+  showingAll: "Showing all",
+  fetchError: "Could not load employees",
+  updateError: "Could not update the employee",
+  deleteError: "Could not delete the employee",
 };
 
 export default employees;

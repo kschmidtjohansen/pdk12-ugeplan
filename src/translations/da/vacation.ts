@@ -146,6 +146,7 @@ const vacation = {
   // Auto-fjernelse af medarbejder fra opgaver ved godkendt fri
   autoUnassignSuccess: 'Fjernet fra {count} opgaver i fri-perioden.',
   autoUnassignResponsibleCleared: 'Skadeleder-feltet er nulstillet på {count} opgaver.',
+  selectVacationDates: "Vælg datoer for fridage",
 };
 
 export default vacation;

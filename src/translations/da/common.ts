@@ -162,4 +162,9 @@ export const common = {
   showMore: "Vis detaljer",
   showLess: "Skjul detaljer",
   selectDate: "Vælg dato"
+  of: "af",
+  pageNotFound: "Siden blev ikke fundet",
+  pageNotFoundDescription: "Siden, du leder efter, findes ikke eller er blevet flyttet.",
+  goHome: "Gå til forsiden",
+  goBack: "Gå tilbage",
 };

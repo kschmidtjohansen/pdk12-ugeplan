@@ -19,4 +19,6 @@ export const auth = {
   logoutFailed: 'Logout failed. Please try again.',
   sessionTimedOut: 'Session timed out',
   sessionTimedOutDescription: 'Your session was automatically ended after 180 minutes. Please log in again.'
+  adminRequired: "You need administrator privileges for this action.",
+  skadelederRequired: "You need case manager or administrator privileges for this action.",
 };

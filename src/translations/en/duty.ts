@@ -138,6 +138,8 @@ export const duty = {
   expand: "Expand",
   collapse: "Collapse",
   onDutyCount: "{{count}} on duty",
+  clearSearch: "Clear search",
+  reassignSuccess: "The duty was reassigned to another employee",
 };
 
 

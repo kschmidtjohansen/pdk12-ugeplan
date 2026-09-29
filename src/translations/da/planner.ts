@@ -459,6 +459,8 @@ const planner = {
     proximityHint: 'Afstand måles fra dagens sidste opgave — eller fra hjemadressen, når medarbejderen ikke er booket. Viser også ledig tid i den viste uge (8-timers arbejdsdag, mindst 1 time fremhæves).',
 
   },
+  previousWeek: "Forrige uge",
+  nextWeek: "Næste uge",
 };
 
 export default planner;

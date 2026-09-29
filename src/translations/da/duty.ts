@@ -138,6 +138,8 @@ export const duty = {
   expand: "Udvid",
   collapse: "Minimer",
   onDutyCount: "{{count}} på vagt",
+  clearSearch: "Ryd søgning",
+  reassignSuccess: "Vagten er flyttet til en anden medarbejder",
 };
 
 
