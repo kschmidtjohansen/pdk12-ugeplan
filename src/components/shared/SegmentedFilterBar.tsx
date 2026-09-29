@@ -32,6 +32,7 @@ const SegmentedFilterBar: React.FC<SegmentedFilterBarProps> = ({
   trailing,
   className,
 }) => {
+  const { t } = useTranslation();
   return (
     <div
       className={cn(

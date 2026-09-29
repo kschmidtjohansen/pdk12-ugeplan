@@ -369,7 +369,6 @@ export const admin = {
     skadelederDesc: 'Kan administrere opgaver og godkende opgaver',
     servicemedarbejderDesc: 'Kan se tildelte opgaver og anmode om ferie',
     fugtteknikerDesc: 'Samme rettigheder som servicemedarbejder, men ser fuldt dashboard',
-    fugtteknikerDesc: 'Samme rettigheder som servicemedarbejder, men ser fuldt dashboard',
     vikarDesc: 'Vikarer med midlertidig adgang'
   },
   vacationCalendar: {
