@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
@@ -96,7 +96,7 @@ const TodayGuardsWidget: React.FC = () => {
               restOfWeek.map(group => (
                 <div key={group.date}>
                   <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                    {format(new Date(group.date + 'T00:00:00'), 'EEE d/M', { locale: da })}
+                    {format(new Date(group.date + 'T00:00:00'), 'EEE d/M', { locale: dateLocale })}
                   </p>
                   {group.items.map(i => (
                     <div key={i.id} className="flex items-center justify-between gap-2">

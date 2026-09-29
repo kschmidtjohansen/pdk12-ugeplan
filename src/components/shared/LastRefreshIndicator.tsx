@@ -2,7 +2,7 @@ import React from 'react';
 import { RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 
 interface LastRefreshIndicatorProps {
   lastRefresh: Date | null;
@@ -19,7 +19,7 @@ export const LastRefreshIndicator: React.FC<LastRefreshIndicatorProps> = ({
 
   const relativeTime = formatDistanceToNow(lastRefresh, {
     addSuffix: true,
-    locale: da
+    locale: dateLocale
   });
 
   return (

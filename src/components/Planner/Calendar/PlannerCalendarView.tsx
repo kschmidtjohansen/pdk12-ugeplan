@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { format, parseISO, isSameDay } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
@@ -37,7 +37,7 @@ const toMin = (t?: string) => {
 
 const dateLabel = (d?: string) => {
   if (!d) return '';
-  try { return format(parseISO(d), 'EEE d. MMM yyyy', { locale: da }); } catch { return d; }
+  try { return format(parseISO(d), 'EEE d. MMM yyyy', { locale: dateLocale }); } catch { return d; }
 };
 
 const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek }) => {
@@ -146,7 +146,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
             return (
               <Button key={d} size="sm" variant={d === day ? 'default' : 'ghost'} onClick={() => setDay(d)}
                 className={cn('h-9 px-3 text-xs capitalize shrink-0', isSameDay(dt, new Date()) && d !== day && 'text-primary font-semibold')}>
-                {format(dt, 'EEE d. MMM', { locale: da })}
+                {format(dt, 'EEE d. MMM', { locale: dateLocale })}
               </Button>
             );
           })}

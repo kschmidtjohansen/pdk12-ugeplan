@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { AlertTriangle, Wifi, WifiOff, Calendar, CalendarPlus, UserCheck } from 'lucide-react';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { format, addWeeks, addMonths, startOfToday } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 interface EmployeeFormDialogProps {
   currentEmployee: Employee | null;
   formData: any;
@@ -196,7 +196,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           currentExpiry.setHours(0, 0, 0, 0);
           if (expiry < currentExpiry) {
             setErrorMessage(t('employees.expiryBeforeCurrent', {
-              date: format(currentExpiry, 'd. MMMM yyyy', { locale: da })
+              date: format(currentExpiry, 'd. MMMM yyyy', { locale: dateLocale })
             }));
             setIsSubmitting(false);
             return;
@@ -485,7 +485,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                       {currentEmployee?.expires_at && !convertToPermanent && (
                         <p className="text-xs text-warning">
                           {t('employees.vikarExpiresInfo', { 
-                            date: format(new Date(currentEmployee.expires_at), 'd. MMMM yyyy', { locale: da })
+                            date: format(new Date(currentEmployee.expires_at), 'd. MMMM yyyy', { locale: dateLocale })
                           })}
                         </p>
                       )}
@@ -549,7 +549,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                       {formData.expires_at && currentEmployee?.expires_at && formData.expires_at !== new Date(currentEmployee.expires_at).toISOString().split('T')[0] && (
                         <p className="text-xs text-warning">
                           {t('employees.newExpiryPreview', {
-                            date: format(new Date(formData.expires_at), 'd. MMMM yyyy', { locale: da })
+                            date: format(new Date(formData.expires_at), 'd. MMMM yyyy', { locale: dateLocale })
                           })}
                         </p>
                       )}

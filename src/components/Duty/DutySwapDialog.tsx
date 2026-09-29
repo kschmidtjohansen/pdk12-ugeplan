@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { format } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDutyActions } from '@/hooks/duty/useDutyActions';
 import type { Duty } from '@/types/duty';
@@ -57,7 +57,7 @@ export function DutySwapDialog({ duty, employees, open, onOpenChange, onSuccess 
   const getDutyTypeLabel = (dutyType: string) =>
     dutyType === 'skadeleder_vagt' ? t('duty.skadelederVagt') : t('duty.kørevagt');
 
-  const formatDutyDate = (date: string) => format(new Date(date), 'EEEE d. MMMM', { locale: da });
+  const formatDutyDate = (date: string) => format(new Date(date), 'EEEE d. MMMM', { locale: dateLocale });
 
   const handleClose = () => {
     setSelectedIds([]);

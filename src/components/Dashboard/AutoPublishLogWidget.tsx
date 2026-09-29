@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAutoPublishLog } from '@/hooks/useAutoPublishLog';
 
@@ -43,7 +43,7 @@ const AutoPublishLogWidget: React.FC = () => {
                 className="flex items-center justify-between py-2 text-sm"
               >
                 <span className="text-foreground">
-                  {format(parseISO(entry.run_at), 'dd. MMM HH:mm', { locale: da })}
+                  {format(parseISO(entry.run_at), 'dd. MMM HH:mm', { locale: dateLocale })}
                 </span>
                 <Badge variant="secondary" className="text-xs">
                   {t('dashboard.autoPublishLog.assignmentsUpdated', {

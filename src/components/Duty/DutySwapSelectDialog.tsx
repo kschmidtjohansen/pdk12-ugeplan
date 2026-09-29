@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Phone, Car } from 'lucide-react';
 import { format } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import type { Duty } from '@/types/duty';
@@ -71,7 +71,7 @@ export function DutySwapSelectDialog({
 
   const formatDutyDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return format(date, 'EEEE d. MMMM yyyy', { locale: da });
+    return format(date, 'EEEE d. MMMM yyyy', { locale: dateLocale });
   };
 
   const handleContinue = () => {

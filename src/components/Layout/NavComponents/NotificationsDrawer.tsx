@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Bell, Trash2, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow, isToday, isThisWeek } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
@@ -148,7 +148,7 @@ const NotificationsDrawer: React.FC = () => {
           <div className="text-sm text-muted-foreground line-clamp-2">{n.message}</div>
         )}
         <div className="text-xs text-muted-foreground mt-0.5">
-          {formatDistanceToNow(n.date, { addSuffix: true, locale: da })}
+          {formatDistanceToNow(n.date, { addSuffix: true, locale: dateLocale })}
         </div>
       </div>
       <Button

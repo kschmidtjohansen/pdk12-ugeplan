@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { CalendarIcon, GraduationCap, Pencil, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -189,7 +189,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
         <Button variant="outline" className="justify-start text-left font-normal gap-2 w-full">
           <CalendarIcon className="h-4 w-4" />
           <span className="text-xs text-muted-foreground">{label}:</span>
-          {format(value, 'd. MMM yyyy', { locale: da })}
+          {format(value, 'd. MMM yyyy', { locale: dateLocale })}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -233,7 +233,7 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
                   <div className="min-w-0">
                     <div className="font-medium truncate">{t.title || tr('ui.course')}</div>
                     <div className="text-xs text-muted-foreground">
-                      {format(parseISO(t.start_date), 'd. MMM yyyy', { locale: da })} – {format(parseISO(t.end_date), 'd. MMM yyyy', { locale: da })}
+                      {format(parseISO(t.start_date), 'd. MMM yyyy', { locale: dateLocale })} – {format(parseISO(t.end_date), 'd. MMM yyyy', { locale: dateLocale })}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
