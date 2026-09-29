@@ -345,6 +345,11 @@ export const ui = {
   all2: "All",
   exportLabel: "Export",
   noResults: "No results",
+  fromDate: "From date",
+  toDate: "To date",
+  deleteNotification: "Delete notification",
+  selectLanguage: "Vælg sprog / Choose language",
+  couldNotFetchAssignments: "Could not load assignments",
 };
 
 export default ui;

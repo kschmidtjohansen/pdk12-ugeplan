@@ -345,6 +345,11 @@ export const ui = {
   all2: "Alle",
   exportLabel: "Eksport",
   noResults: "Ingen resultater",
+  fromDate: "Fra dato",
+  toDate: "Til dato",
+  deleteNotification: "Slet notifikation",
+  selectLanguage: "Vælg sprog / Choose language",
+  couldNotFetchAssignments: "Kunne ikke hente opgaver",
 };
 
 export default ui;
