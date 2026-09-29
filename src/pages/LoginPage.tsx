@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginForm';
 import { useTranslation } from '@/context/TranslationContext';
 import { PwaInstallButton } from '@/components/Pwa/PwaInstallButton';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 const LoginPage = () => {
   const { isAuthenticated, authReady, session, userDataLoaded } = useAuth();
@@ -36,6 +37,9 @@ const LoginPage = () => {
         <div className="login-ambient-glow absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full opacity-20 blur-[120px]" />
         <div className="login-dot-pattern absolute inset-0" />
       </div>
+
+      {/* Sprogvælger med flag – øverst til højre */}
+      <LanguageSwitcher className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 animate-fade-in-down" />
 
       <main className="relative z-10 w-full max-w-[480px] px-4 sm:px-6 py-12">
         {/* Flydende logo-chip der overlapper kortet */}
