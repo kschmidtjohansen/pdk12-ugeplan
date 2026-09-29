@@ -1,3 +1,7 @@
+## 2026-09-29 — Sprogvælger med flag på login-siden
+- Ny LanguageSwitcher-komponent (src/components/shared/LanguageSwitcher.tsx) med dansk og engelsk flag; valget gemmes og styrer hele appens sprog.
+- Vælgeren vises øverst til højre på login-siden, så sproget kan skiftes allerede før login.
+
 ## 2026-09-29 — Fuld dansk/engelsk oversættelse af resterende tekster
 - Vagtwidget, kalendervisning, masse-tildeling (medarbejder/bil), fraværsrække, medarbejder- og bilvælgere, filterbjælke i ugeplanen samt planlæggerens beskeder er nu oversat.
 - Ferieoversigten (rollegrupper, forklaringer, uge-/månedsknapper), kursusdialogen, filer/beskeder på opgaver, demo-nulstilling, push-test og hele hurtig login-dialogen er oversat.
