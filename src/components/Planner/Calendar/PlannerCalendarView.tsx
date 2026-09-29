@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { format, parseISO, isSameDay } from 'date-fns';
-import { da } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
@@ -35,13 +36,14 @@ const toMin = (t?: string) => {
   return Number.isFinite(h) ? h * 60 + (m || 0) : null;
 };
 
-const dateLabel = (d?: string) => {
+const dateLabel = (d: string | undefined, dateLocale: Locale) => {
   if (!d) return '';
-  try { return format(parseISO(d), 'EEE d. MMM yyyy', { locale: da }); } catch { return d; }
+  try { return format(parseISO(d), 'EEE d. MMM yyyy', { locale: dateLocale }); } catch { return d; }
 };
 
 const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek }) => {
   const { t: tr } = useTranslation();
+  const dateLocale = useDateLocale();
   const swipeRef = React.useRef<{ x: number; y: number; scroller: Element | null; scrollLeft: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];
@@ -146,7 +148,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
             return (
               <Button key={d} size="sm" variant={d === day ? 'default' : 'ghost'} onClick={() => setDay(d)}
                 className={cn('h-9 px-3 text-xs capitalize shrink-0', isSameDay(dt, new Date()) && d !== day && 'text-primary font-semibold')}>
-                {format(dt, 'EEE d. MMM', { locale: da })}
+                {format(dt, 'EEE d. MMM', { locale: dateLocale })}
               </Button>
             );
           })}
@@ -218,7 +220,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                             <TooltipContent side="right" className="max-w-64 p-2.5">
                               <div className="text-xs font-semibold leading-tight">{a.title}</div>
                               {a.case_number && <div className="mt-1 text-[11px] opacity-90">{tr('ui.caseNumberLabel')}: {a.case_number}</div>}
-                              <div className="text-[11px] opacity-90">{tr('ui.dateLabel')}: {dateLabel(a.date)}</div>
+                              <div className="text-[11px] opacity-90">{tr('ui.dateLabel')}: {dateLabel(a.date, dateLocale)}</div>
                               <div className="text-[11px] opacity-90">{tr('ui.timeLabel')}: {timeLabel}</div>
                               {a.location && <div className="text-[11px] opacity-90">{tr('ui.addressLabel')}: {a.location}</div>}
                             </TooltipContent>
@@ -241,7 +243,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
           <div className="w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-lg" onClick={e => e.stopPropagation()}>
             <div className="text-sm font-semibold leading-tight">{tapped.title}</div>
             {tapped.case_number && <div className="mt-1.5 text-xs text-muted-foreground">{tr('ui.caseNumberLabel')}: {tapped.case_number}</div>}
-            <div className="text-xs text-muted-foreground">{tr('ui.dateLabel')}: {dateLabel(tapped.date)}</div>
+            <div className="text-xs text-muted-foreground">{tr('ui.dateLabel')}: {dateLabel(tapped.date, dateLocale)}</div>
             <div className="text-xs text-muted-foreground">{tr('ui.timeLabel')}: {tapped.fromTime?.slice(0, 5) ?? ''}–{tapped.toTime?.slice(0, 5) ?? ''}</div>
             {tapped.location && <div className="text-xs text-muted-foreground">{tr('ui.addressLabel')}: {tapped.location}</div>}
             <div className="mt-3 flex gap-2">

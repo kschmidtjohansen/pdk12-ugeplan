@@ -1,6 +1,7 @@
 import React from 'react';
 import { Quote, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface DailyQuoteCardProps {
   quote: string;
@@ -13,7 +14,9 @@ interface DailyQuoteCardProps {
  * Dagens citat — fremhævet, motiverende kort.
  * Bruger udelukkende semantiske design tokens.
  */
-const DailyQuoteCard: React.FC<DailyQuoteCardProps> = ({ quote, compact = false, className }) => (
+const DailyQuoteCard: React.FC<DailyQuoteCardProps> = ({ quote, compact = false, className }) => {
+  const { t } = useTranslation();
+  return (
   <div
     className={cn(
       'relative overflow-hidden rounded-xl border border-primary/20 bg-primary/5',
@@ -38,7 +41,7 @@ const DailyQuoteCard: React.FC<DailyQuoteCardProps> = ({ quote, compact = false,
     <div className="min-w-0">
       <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
         <Sparkles className="h-3 w-3" aria-hidden />
-        Dagens citat
+        {t('ui.dailyQuote')}
       </p>
       <p
         className={cn(
@@ -50,6 +53,8 @@ const DailyQuoteCard: React.FC<DailyQuoteCardProps> = ({ quote, compact = false,
       </p>
     </div>
   </div>
-);
+  );
+};
+
 
 export default DailyQuoteCard;

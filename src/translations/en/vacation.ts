@@ -145,6 +145,7 @@ const vacation = {
   // Auto-removal from assignments on approval
   autoUnassignSuccess: 'Removed from {count} assignments in the vacation period.',
   autoUnassignResponsibleCleared: 'Case manager field cleared on {count} assignments.',
+  selectVacationDates: "Select days off",
 };
 
 export default vacation;

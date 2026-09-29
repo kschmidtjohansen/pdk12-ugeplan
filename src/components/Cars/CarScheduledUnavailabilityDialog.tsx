@@ -157,7 +157,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarClock className="h-5 w-5" />
-            Planlæg værkstedsbesøg
+            {t('ui.scheduleWorkshopVisit')}
           </DialogTitle>
           <DialogDescription>
             {car.name} · {car.car_number}
@@ -167,7 +167,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="start">Fra dato</Label>
+              <Label htmlFor="start">{t('ui.fromDate')}</Label>
               <Input
                 id="start"
                 type="date"
@@ -179,7 +179,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
               />
             </div>
             <div>
-              <Label htmlFor="end">Til dato</Label>
+              <Label htmlFor="end">{t('ui.toDate')}</Label>
               <Input
                 id="end"
                 type="date"
@@ -217,7 +217,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
                 <AlertTriangle className="h-4 w-4" />
                 {conflicts.length} opgave(r) rammes af perioden
               </div>
-              <p className="text-xs mb-2">Bilen fjernes automatisk fra disse opgaver.</p>
+              <p className="text-xs mb-2">{t('ui.carRemovedFromAssignments')}</p>
               <ul className="space-y-1 max-h-32 overflow-auto">
                 {conflicts.map((c) => (
                   <li key={c.id} className="text-xs">

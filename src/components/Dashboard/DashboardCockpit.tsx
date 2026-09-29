@@ -13,6 +13,7 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 import { useAuth } from '@/context/AuthContext';
 import { useVacations } from '@/hooks/useVacations';
 import { useAssignments } from '@/hooks/useAssignments';
+import { useTranslation } from '@/context/TranslationContext';
 
 interface DashboardCockpitProps {
   showMetrics: boolean;
@@ -34,6 +35,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   onNextWeek,
 }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { vacations } = useVacations();
   const { assignments, loading: assignmentsLoading } = useAssignments();
   const [tab, setTab] = useState<string>(() => localStorage.getItem('dashboardTab') || 'today');
@@ -88,8 +90,8 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       <div className="lg:col-span-2 min-w-0">
         <Tabs value={tab} onValueChange={changeTab}>
           <TabsList className="sticky top-14 z-10 mb-3 grid h-11 w-full grid-cols-2 rounded-lg border border-border/60 bg-card/90 p-1 backdrop-blur sm:static sm:inline-flex sm:h-10 sm:w-auto">
-            <TabsTrigger value="today" className="h-9 px-4 sm:h-8 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">I dag</TabsTrigger>
-            <TabsTrigger value="week" className="h-9 px-4 sm:h-8 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Ugens overblik</TabsTrigger>
+            <TabsTrigger value="today" className="h-9 px-4 sm:h-8 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{t('ui.tabToday')}</TabsTrigger>
+            <TabsTrigger value="week" className="h-9 px-4 sm:h-8 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{t('ui.tabWeekOverview')}</TabsTrigger>
           </TabsList>
           <TabsContent value="today" className="mt-0 rounded-xl border border-border/60 bg-card/70 p-3 backdrop-blur sm:p-4">
             <TodayTimeline active={tab === 'today'} />
@@ -114,7 +116,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {isMobile ? (
         <Collapsible open={moreOpen} onOpenChange={setMoreOpen}>
           <CollapsibleTrigger className="flex h-11 w-full items-center justify-between rounded-xl border border-border/60 bg-card/70 px-4 text-sm font-medium text-foreground">
-            Mere: nøgletal, vagter og ferier
+            {t('ui.moreKpisDutiesVacations')}
             <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3 space-y-4">

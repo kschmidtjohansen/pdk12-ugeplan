@@ -320,6 +320,7 @@ const planner = {
   
   // Messages
   messages: {
+    send: 'Send message',
     title: 'Messages',
     sendMessage: 'Send message',
     messagePlaceholder: 'Write a message...',
@@ -459,6 +460,9 @@ const planner = {
     proximityHint: 'Distance is measured from the last task of the day — or from the home address when the employee is not booked. Also shows free time during the displayed week (8-hour working day, at least 1 hour is highlighted).',
 
   },
+  previousWeek: "Previous week",
+  nextWeek: "Next week",
+  cancel: "Cancel",
 };
 
 export default planner;

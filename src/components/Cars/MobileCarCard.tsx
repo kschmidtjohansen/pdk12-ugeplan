@@ -130,11 +130,11 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="sm" onClick={() => onSchedule(car)} className="h-8 w-8 p-0">
-                      <span className="sr-only">Planlæg værkstedsbesøg</span>
+                      <span className="sr-only">{t('ui.scheduleWorkshopVisit')}</span>
                       <Wrench className="h-4 w-4 text-warning" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent><p>Planlæg værkstedsbesøg</p></TooltipContent>
+                  <TooltipContent><p>{t('ui.scheduleWorkshopVisit')}</p></TooltipContent>
                 </Tooltip>
               )}
 

@@ -159,5 +159,10 @@ export const common = {
   or: "or",
   showMore: "Show details",
   showLess: "Hide details",
-  selectDate: "Select date"
+  selectDate: "Select date",
+  of: "of",
+  pageNotFound: "Page not found",
+  pageNotFoundDescription: "The page you are looking for does not exist or has been moved.",
+  goHome: "Go to dashboard",
+  goBack: "Go back",
 };

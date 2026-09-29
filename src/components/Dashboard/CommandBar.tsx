@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { Phone, Users, Car, Clock, Shield } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ interface CommandBarProps {
 const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const now = useMemo(() => new Date(), []);
   const todayStr = format(now, 'yyyy-MM-dd');
   const weekStart = useMemo(() => startOfWeek(now, { weekStartsOn: 1 }), [now]);
@@ -56,7 +57,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
       id: d.id,
       type: d.duty_type === 'skadeleder_vagt' ? t('ui.dutyLeader') : t('ui.drivingDuty'),
       name: d.employee?.name || employees.find(e => e.id === d.employee_id)?.name || t('ui.external'),
-      date: format(new Date(d.duty_date + 'T00:00:00'), 'EEE d/M', { locale: da }),
+      date: format(new Date(d.duty_date + 'T00:00:00'), 'EEE d/M', { locale: dateLocale }),
     })), [duties, employees, todayStr, t]);
 
   const expiring = useMemo(() => employees.filter(isTempExpiringSoon), [employees]);
@@ -96,8 +97,8 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
               {t(greetKey(now.getHours()))}{firstName && `, ${firstName}`}
             </h1>
             <p className="text-xs capitalize text-muted-foreground">
-              <span className="sm:hidden">{format(now, "EEE d. MMM · 'uge' I", { locale: da })}</span>
-              <span className="hidden sm:inline">{format(now, "EEEE d. MMMM · 'uge' I", { locale: da })}</span>
+              <span className="sm:hidden">{format(now, "EEE d. MMM · 'uge' I", { locale: dateLocale })}</span>
+              <span className="hidden sm:inline">{format(now, "EEEE d. MMMM · 'uge' I", { locale: dateLocale })}</span>
             </p>
           </div>
           <div className="flex items-center gap-1 lg:hidden">{actions}</div>

@@ -87,7 +87,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                         <Truck className="h-4 w-4 text-warning" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Trailer</p>
+                        <p>{t('ui.trailer')}</p>
                       </TooltipContent>
                     </Tooltip>
                   )}
@@ -97,7 +97,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                         <Recycle className="h-4 w-4 text-success" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Miljøvogn</p>
+                        <p>{t('ui.environmentalVan')}</p>
                       </TooltipContent>
                     </Tooltip>
                   )}
@@ -193,7 +193,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           <StickyNote className="h-4 w-4 text-primary" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent><p>Tilføj/ret note</p></TooltipContent>
+                      <TooltipContent><p>{t('ui.addEditNote')}</p></TooltipContent>
                     </Tooltip>
                   )}
                   {isAdmin && (
@@ -233,12 +233,12 @@ const CarsTable: React.FC<CarsTableProps> = ({
                             onClick={() => onSchedule(car)}
                             className="h-8 w-8 p-0"
                           >
-                            <span className="sr-only">Planlæg værkstedsbesøg</span>
+                            <span className="sr-only">{t('ui.scheduleWorkshopVisit')}</span>
                             <Wrench className="h-4 w-4 text-warning" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Planlæg værkstedsbesøg</p>
+                          <p>{t('ui.scheduleWorkshopVisit')}</p>
                         </TooltipContent>
                       </Tooltip>
                     )}

@@ -235,6 +235,10 @@ const employees = {
   skipDepartmentNote: 'Brugeren oprettes uden afdelingstilknytning. Vælg dette for IT-supportere og andre brugere, der ikke tilhører en driftsafdeling.',
   searchPlaceholder: 'Søg medarbejder...',
   noResults: 'Ingen medarbejdere fundet',
+  showingAll: "Viser alle",
+  fetchError: "Kunne ikke hente medarbejdere",
+  updateError: "Kunne ikke opdatere medarbejderen",
+  deleteError: "Kunne ikke slette medarbejderen",
 };
 
 export default employees;

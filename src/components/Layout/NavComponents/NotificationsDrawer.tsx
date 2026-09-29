@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Bell, Trash2, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow, isToday, isThisWeek } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
@@ -63,6 +63,7 @@ const NotificationsDrawer: React.FC = () => {
   const { unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -148,7 +149,7 @@ const NotificationsDrawer: React.FC = () => {
           <div className="text-sm text-muted-foreground line-clamp-2">{n.message}</div>
         )}
         <div className="text-xs text-muted-foreground mt-0.5">
-          {formatDistanceToNow(n.date, { addSuffix: true, locale: da })}
+          {formatDistanceToNow(n.date, { addSuffix: true, locale: dateLocale })}
         </div>
       </div>
       <Button
@@ -156,7 +157,7 @@ const NotificationsDrawer: React.FC = () => {
         size="icon"
         className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
         onClick={(e) => handleDelete(e, n.id)}
-        aria-label="Slet notifikation"
+        aria-label="{t('ui.deleteNotification')}"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
@@ -225,7 +226,7 @@ const NotificationsDrawer: React.FC = () => {
             </div>
           ) : (
             <>
-              {renderGroup('I dag', groups.today)}
+              {renderGroup(t('common.today'), groups.today)}
               {renderGroup('Denne uge', groups.week)}
               {renderGroup('Tidligere', groups.older)}
               <div ref={sentinelRef} className="h-8 flex items-center justify-center">

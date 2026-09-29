@@ -1,3 +1,11 @@
+## 2026-09-29 — Manglende oversættelser og sprogafhængige datoer
+
+- Rettet forkert overskrift på forsiden ("ui.goodAfternoon, Kasper"): hilsnerne godmorgen/formiddag/eftermiddag/aften findes nu på både dansk og engelsk.
+- 22 manglende tekstnøgler tilføjet (bl.a. sidefod-fejlside, uge-navigation, søgning, medarbejder-fejlbeskeder, ferie- og vagttekster) i både `da/` og `en/`.
+- Hardkodede danske tekster oversat i forsidens faneblade og tidslinje, dagens citat, statuspaneler, bil-tabel og mobilkort, værkstedsbesøg-dialog, opgavefiler, notifikationer, afdelings-funktioner, ydelsesoversigt og kioskvisningen.
+- Nyt `useDateLocale()`-hook: alle datoer og "for X minutter siden" følger nu det valgte sprog i 11 komponenter (før altid dansk).
+- Fuld nøgleparitet: 2188 tekster i både dansk og engelsk, ingen manglende nøgler i `t()`-kald.
+
 ## 2026-09-29 — Sprogvælger med flag på login-siden
 - Flagene er rigtige SVG-flag (ikke emoji), så de vises på alle enheder inkl. Windows.
 - Ny LanguageSwitcher-komponent (src/components/shared/LanguageSwitcher.tsx) med dansk og engelsk flag; valget gemmes og styrer hele appens sprog.

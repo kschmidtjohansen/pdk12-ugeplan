@@ -20,7 +20,7 @@ import {
   differenceInCalendarDays,
   startOfISOWeek,
 } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { useDateLocale } from '@/hooks/useDateLocale';
 import { supabase } from '@/integrations/supabase/client';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
@@ -98,6 +98,7 @@ const VacationGridOverview: React.FC = () => {
   const { isDemoMode } = useAuth();
   const { regularEmployees, loading: employeesLoading } = useEmployees();
   const { t } = useTranslation();
+  const dateLocale = useDateLocale();
 
   const today = useMemo(() => new Date(), []);
   const [fromDate, setFromDate] = useState<Date>(today);
@@ -321,7 +322,7 @@ const VacationGridOverview: React.FC = () => {
         <Button variant="outline" size="sm" className="justify-start text-left font-normal gap-2">
           <CalendarIcon className="h-4 w-4" />
           <span className="text-xs text-muted-foreground">{label}:</span>
-          {format(date, 'd. MMM yyyy', { locale: da })}
+          {format(date, 'd. MMM yyyy', { locale: dateLocale })}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -331,7 +332,7 @@ const VacationGridOverview: React.FC = () => {
           onSelect={(d) => d && onChange(d)}
           initialFocus
           weekStartsOn={1}
-          locale={da}
+          locale={dateLocale}
           className={cn('p-3 pointer-events-auto')}
         />
       </PopoverContent>
@@ -383,7 +384,7 @@ const VacationGridOverview: React.FC = () => {
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="text-xs">
-                    {emp.name} — {cellLabel[kind]} {format(d, 'd. MMM', { locale: da })}
+                    {emp.name} — {cellLabel[kind]} {format(d, 'd. MMM', { locale: dateLocale })}
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -567,7 +568,7 @@ const VacationGridOverview: React.FC = () => {
             <span className="inline-block w-3 h-3 bg-muted/40 border rounded-sm" /> Weekend
           </div>
           <div className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="inline-block w-3 h-3 border-l-2 border-primary" /> I dag
+            <span className="inline-block w-3 h-3 border-l-2 border-primary" /> {t('common.today')}
           </div>
         </div>
 
@@ -593,7 +594,7 @@ const VacationGridOverview: React.FC = () => {
 
           type DateInterval = { start: Date; end: Date };
           const clampToWeek = (d: Date) => (d < weekStart ? weekStart : d > weekEnd ? weekEnd : d);
-          const fmtDay = (d: Date) => format(d, 'dd.MM', { locale: da });
+          const fmtDay = (d: Date) => format(d, 'dd.MM', { locale: dateLocale });
           const fmtRange = (s: Date, e: Date) =>
             isSameDay(s, e) ? fmtDay(s) : `${fmtDay(s)}–${fmtDay(e)}`;
 
@@ -703,7 +704,7 @@ const VacationGridOverview: React.FC = () => {
                   Uge {weekNum}
                   <span className="text-muted-foreground font-normal">
                     {' · '}
-                    {format(weekStart, 'd. MMM', { locale: da })} – {format(weekEnd, 'd. MMM yyyy', { locale: da })}
+                    {format(weekStart, 'd. MMM', { locale: dateLocale })} – {format(weekEnd, 'd. MMM yyyy', { locale: dateLocale })}
                   </span>
                 </div>
                 <Button
@@ -722,7 +723,7 @@ const VacationGridOverview: React.FC = () => {
                     className="h-7"
                     onClick={() => setWeekAnchor(startOfISOWeek(today))}
                   >
-                    I dag
+                    {t('common.today')}
                   </Button>
                 )}
               </div>

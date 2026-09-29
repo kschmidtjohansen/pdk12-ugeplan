@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '@/context/TranslationContext';
 import { Phone, MessageSquare, Car as CarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,10 +19,12 @@ const CallBtn: React.FC<{ phone?: string }> = ({ phone }) =>
     </Button>
   ) : null;
 
-export const DutyDetailPanel: React.FC<{ today: DutyPerson[]; upcoming: DutyPerson[]; onOpenPlan: () => void }> = ({ today, upcoming, onOpenPlan }) => (
+export const DutyDetailPanel: React.FC<{ today: DutyPerson[]; upcoming: DutyPerson[]; onOpenPlan: () => void }> = ({ today, upcoming, onOpenPlan }) => {
+  const { t } = useTranslation();
+  return (
   <div className="space-y-4">
     {today.length === 0 ? (
-      <p className="text-sm text-muted-foreground">Ingen vagter i dag.</p>
+      <p className="text-sm text-muted-foreground">{t('ui.noDutiesToday')}</p>
     ) : (
       today.map(d => (
         <div key={d.id} className="rounded-xl border border-border/60 bg-card p-3">
@@ -39,7 +42,7 @@ export const DutyDetailPanel: React.FC<{ today: DutyPerson[]; upcoming: DutyPers
     )}
     {upcoming.length > 0 && (
       <div>
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Resten af ugen</p>
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('ui.restOfWeek')}</p>
         {upcoming.map(d => (
           <Row key={d.id}>
             <div className="min-w-0 text-sm">
@@ -50,9 +53,10 @@ export const DutyDetailPanel: React.FC<{ today: DutyPerson[]; upcoming: DutyPers
         ))}
       </div>
     )}
-    <Button variant="ghost" className="h-11 w-full" onClick={onOpenPlan}>Åbn vagtplan</Button>
+    <Button variant="ghost" className="h-11 w-full" onClick={onOpenPlan}>{t('ui.openDutyPlan')}</Button>
   </div>
-);
+  );
+};
 
 type Emp = { id: string; name: string; phone?: string | null };
 type Busy = Emp & { task: string };
@@ -69,12 +73,13 @@ const Segment: React.FC<{ value: 'a' | 'b'; onChange: (v: 'a' | 'b') => void; a:
 );
 
 export const AvailableEmployeesPanel: React.FC<{ available: Emp[]; busy: Busy[]; onShowAll: () => void }> = ({ available, busy, onShowAll }) => {
+  const { t } = useTranslation();
   const [seg, setSeg] = useState<'a' | 'b'>('a');
   const list = seg === 'a' ? available : busy;
   return (
     <div>
-      <Segment value={seg} onChange={setSeg} a={`Ledige (${available.length})`} b={`Optaget (${busy.length})`} />
-      {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">Ingen</p>}
+      <Segment value={seg} onChange={setSeg} a={`${t('ui.availableCount')} (${available.length})`} b={`${t('ui.busyCount')} (${busy.length})`} />
+      {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">{t('ui.none')}</p>}
       {list.map(e => (
         <Row key={e.id}>
           <div className="min-w-0">
@@ -92,12 +97,13 @@ export const AvailableEmployeesPanel: React.FC<{ available: Emp[]; busy: Busy[];
 type CarItem = { id: string; name: string; plate?: string; by?: string };
 
 export const AvailableCarsPanel: React.FC<{ available: CarItem[]; busy: CarItem[]; onShowAll: () => void }> = ({ available, busy, onShowAll }) => {
+  const { t } = useTranslation();
   const [seg, setSeg] = useState<'a' | 'b'>('a');
   const list = seg === 'a' ? available : busy;
   return (
     <div>
-      <Segment value={seg} onChange={setSeg} a={`Ledige (${available.length})`} b={`I brug (${busy.length})`} />
-      {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">Ingen</p>}
+      <Segment value={seg} onChange={setSeg} a={`${t('ui.availableCount')} (${available.length})`} b={`${t('ui.inUseCount')} (${busy.length})`} />
+      {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">{t('ui.none')}</p>}
       {list.map(c => (
         <Row key={c.id}>
           <div className="flex min-w-0 items-center gap-2">

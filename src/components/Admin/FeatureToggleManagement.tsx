@@ -282,7 +282,7 @@ const FeatureToggleManagement: React.FC = () => {
                   );
                 })}
               {departments.filter(d => d.id !== selectedDepartmentId).length === 0 && (
-                <p className="text-sm text-muted-foreground">Ingen andre afdelinger tilgængelige.</p>
+                <p className="text-sm text-muted-foreground">{t('ui.noOtherDepartments')}</p>
               )}
             </div>
           </div>

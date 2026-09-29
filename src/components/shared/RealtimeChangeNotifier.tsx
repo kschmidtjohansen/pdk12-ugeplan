@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '@/context/TranslationContext';
 import { subscribeToTables } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 const TABLES_WITH_DEPT = ['assignments', 'cars', 'warehouse_items', 'on_call_duties', 'vacations'] as const;
 
 export const RealtimeChangeNotifier: React.FC = () => {
+  const { t } = useTranslation();
   const { isDemoMode, user } = useAuth();
   const { selectedDepartmentId } = useDepartment();
   const [hasChanges, setHasChanges] = useState(false);
@@ -65,12 +67,12 @@ export const RealtimeChangeNotifier: React.FC = () => {
           onClick={() => window.location.reload()}
           className="h-7 text-xs px-2"
         >
-          Opdatér
+          {t('common.refresh')}
         </Button>
         <button
           onClick={() => setHasChanges(false)}
           className="p-1 hover:bg-muted rounded"
-          aria-label="Luk"
+          aria-label={t('common.close')}
         >
           <X className="h-3.5 w-3.5" />
         </button>

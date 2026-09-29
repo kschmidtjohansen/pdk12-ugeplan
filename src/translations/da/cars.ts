@@ -103,6 +103,7 @@ const cars = {
   isAuxiliary: 'Hjælpekøretøj (trailer/miljøvogn)',
   isAuxiliaryHint: 'Vises ikke under "Tilgængelige biler" i planlæggeren eller dashboardet, men kan stadig vælges til sager.',
   auxiliaryBadge: 'Hjælpekøretøj',
+  noCars: "Ingen biler fundet",
 };
 
 export default cars;

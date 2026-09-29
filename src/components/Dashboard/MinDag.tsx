@@ -31,7 +31,7 @@ const buildFullAddress = (assignment: Assignment): string =>
 
 const MinDag: React.FC = () => {
   const { user } = useAuth();
-  const { currentLanguage } = useTranslation();
+  const { currentLanguage, t } = useTranslation();
   const isDa = currentLanguage === 'da';
   const { assignments, loading, error, fetchAssignments } = useAssignmentDataOptimized();
   const { cars } = useCars();
@@ -253,7 +253,7 @@ const MinDag: React.FC = () => {
                       {assignment.fromTime?.slice(0, 5)} – {assignment.toTime?.slice(0, 5)}
                       {isCurrent && (
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-                          {isDa ? 'I gang nu' : 'In progress'}
+                          {t('ui.inProgressNow')}
                         </span>
                       )}
                     </div>
