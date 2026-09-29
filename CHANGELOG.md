@@ -2104,3 +2104,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 ## 2026-09-28 — Kalender: redigér fra mobilkort + swipe mellem uger
 - Skadeledere kan trykke "Redigér" i opgavekortet på mobil.
 - Swipe til venstre/højre i kalendervisningen skifter uge.
+
+## 2026-09-29
+- Sygemeldings- og fridagsansøgnings-notifikationer vises kun for administratorer/superadmins; skadeledere mister ferie-badge i topbjælken.

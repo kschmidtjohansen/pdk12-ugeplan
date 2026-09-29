@@ -55,7 +55,7 @@ const NotificationPreferencesDialog: React.FC<Props> = ({ open, onOpenChange }) 
       key: 'sick_day',
       label: t('profile.notifications.sickDay'),
       hint: t('profile.notifications.sickDayHint'),
-      show: isAdmin || isSkadeleder,
+      show: isAdmin,
     },
   ];
 
