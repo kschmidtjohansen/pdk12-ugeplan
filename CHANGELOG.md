@@ -1,3 +1,9 @@
+## 2026-09-29 — Fuld dansk/engelsk oversættelse af resterende tekster
+- Vagtwidget, kalendervisning, masse-tildeling (medarbejder/bil), fraværsrække, medarbejder- og bilvælgere, filterbjælke i ugeplanen samt planlæggerens beskeder er nu oversat.
+- Ferieoversigten (rollegrupper, forklaringer, uge-/månedsknapper), kursusdialogen, filer/beskeder på opgaver, demo-nulstilling, push-test og hele hurtig login-dialogen er oversat.
+- 179 nye tekster tilføjet i både `src/translations/da/ui.ts` og `src/translations/en/ui.ts`; dansk og engelsk har nu præcis samme nøgler.
+- Rettet dublet-nøgle `fugtteknikerDesc` i `src/translations/da/admin.ts`.
+
 ## 2026-09-28 — Bedre skalering i kalendervisningen
 - Medarbejderbanerne i kalendervisningen fylder nu hele bredden og skalerer automatisk ned, jo flere medarbejdere der vælges (med en minimumsbredde, hvorefter der scrolles vandret).
 - Medarbejderlisten til venstre: "Alle"/"Fugt" er flyttet til egen række med ens bredde, og overskriften afkortes pænt, så knapperne ikke længere ligger skævt.
