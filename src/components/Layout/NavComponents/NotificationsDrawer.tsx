@@ -157,7 +157,7 @@ const NotificationsDrawer: React.FC = () => {
         size="icon"
         className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
         onClick={(e) => handleDelete(e, n.id)}
-        aria-label="Slet notifikation"
+        aria-label="{t('ui.deleteNotification')}"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>

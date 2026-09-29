@@ -21,7 +21,7 @@ const CallBtn: React.FC<{ phone?: string }> = ({ phone }) =>
 export const DutyDetailPanel: React.FC<{ today: DutyPerson[]; upcoming: DutyPerson[]; onOpenPlan: () => void }> = ({ today, upcoming, onOpenPlan }) => (
   <div className="space-y-4">
     {today.length === 0 ? (
-      <p className="text-sm text-muted-foreground">Ingen vagter i dag.</p>
+      <p className="text-sm text-muted-foreground">{t('ui.noDutiesToday')}</p>
     ) : (
       today.map(d => (
         <div key={d.id} className="rounded-xl border border-border/60 bg-card p-3">
@@ -74,7 +74,7 @@ export const AvailableEmployeesPanel: React.FC<{ available: Emp[]; busy: Busy[];
   return (
     <div>
       <Segment value={seg} onChange={setSeg} a={`Ledige (${available.length})`} b={`Optaget (${busy.length})`} />
-      {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">Ingen</p>}
+      {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">{t('ui.none')}</p>}
       {list.map(e => (
         <Row key={e.id}>
           <div className="min-w-0">
@@ -97,7 +97,7 @@ export const AvailableCarsPanel: React.FC<{ available: CarItem[]; busy: CarItem[
   return (
     <div>
       <Segment value={seg} onChange={setSeg} a={`Ledige (${available.length})`} b={`I brug (${busy.length})`} />
-      {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">Ingen</p>}
+      {list.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">{t('ui.none')}</p>}
       {list.map(c => (
         <Row key={c.id}>
           <div className="flex min-w-0 items-center gap-2">

@@ -338,7 +338,7 @@ const ScreenDisplayPage: React.FC = () => {
       <div className="min-h-screen w-full bg-background flex items-center justify-center">
         <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
           <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold text-destructive mb-2">Kunne ikke hente opgaver</h2>
+            <h2 className="text-xl font-semibold text-destructive mb-2">{t('ui.couldNotFetchAssignments')}</h2>
             <p className="text-muted-foreground mb-4">{error.message}</p>
             <p className="text-xs text-muted-foreground mb-4">Prøver automatisk igen hvert 30. sekund.</p>
             <button

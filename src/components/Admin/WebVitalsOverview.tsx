@@ -173,7 +173,7 @@ const WebVitalsOverview: React.FC = () => {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
           <Activity className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Periode</span>
+          <span className="text-sm font-medium">{t('ui.period')}</span>
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-44">
               <SelectValue />
@@ -188,7 +188,7 @@ const WebVitalsOverview: React.FC = () => {
           </Select>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Side</span>
+          <span className="text-sm font-medium">{t('ui.page')}</span>
           <Select value={route} onValueChange={setRoute}>
             <SelectTrigger className="w-56">
               <SelectValue />
@@ -226,7 +226,7 @@ const WebVitalsOverview: React.FC = () => {
                   <span className="text-success">{s.good}</span>{' / '}
                   <span className="text-warning">{s.ni}</span>{' / '}
                   <span className="text-destructive">{s.poor}</span>
-                  <span className="text-muted-foreground"> ({s.total} prøver, {goodPct}% good)</span>
+                  <span className="text-muted-foreground"> ({s.total} {t('ui.samplesLower')}, {goodPct}% good)</span>
                 </div>
               </CardContent>
             </Card>
@@ -236,21 +236,21 @@ const WebVitalsOverview: React.FC = () => {
 
       <Card className="rounded-xl">
         <CardHeader>
-          <CardTitle className="text-base">Top 10 langsomste (p75 pr. side)</CardTitle>
+          <CardTitle className="text-base">{t('ui.slowestPages')}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">Indlæser…</p>
+            <p className="text-sm text-muted-foreground">{t('common.loading')}…</p>
           ) : slowestPerRoute.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Ingen målinger endnu.</p>
+            <p className="text-sm text-muted-foreground">{t('ui.noMeasurementsYet')}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Side</TableHead>
+                  <TableHead>{t('ui.page')}</TableHead>
                   <TableHead>Metric</TableHead>
                   <TableHead className="text-right">p75</TableHead>
-                  <TableHead className="text-right">Prøver</TableHead>
+                  <TableHead className="text-right">{t('ui.samples')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -272,23 +272,23 @@ const WebVitalsOverview: React.FC = () => {
 
       <Card className="rounded-xl">
         <CardHeader>
-          <CardTitle className="text-base">Største layout-skift (CLS pr. element)</CardTitle>
+          <CardTitle className="text-base">{t('ui.largestLayoutShifts')}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">Indlæser…</p>
+            <p className="text-sm text-muted-foreground">{t('common.loading')}…</p>
           ) : topShiftTargets.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Ingen data endnu — opsamles fra næste besøg.
+              {t('ui.noDataYetCollected')}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Side</TableHead>
-                  <TableHead>Element</TableHead>
+                  <TableHead>{t('ui.page')}</TableHead>
+                  <TableHead>{t('ui.element')}</TableHead>
                   <TableHead className="text-right">CLS p75</TableHead>
-                  <TableHead className="text-right">Prøver</TableHead>
+                  <TableHead className="text-right">{t('ui.samples')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

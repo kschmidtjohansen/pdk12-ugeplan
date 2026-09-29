@@ -350,6 +350,10 @@ export const ui = {
   deleteNotification: "Slet notifikation",
   selectLanguage: "Vælg sprog / Choose language",
   couldNotFetchAssignments: "Kunne ikke hente opgaver",
+  samples: "Prøver",
+  samplesLower: "prøver",
+  noDataYetCollected: "Ingen data endnu — opsamles fra næste besøg.",
+  element: "Element",
 };
 
 export default ui;
