@@ -68,6 +68,12 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-card w-48">
+        {showImpersonate && (
+          <DropdownMenuItem onClick={handleImpersonate}>
+            <UserCog className="h-4 w-4 mr-2" />
+            {t('ui.impersonationAct')}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={() => onToggleUserStatus(user)}>
           {isUserActive ? <UserX className="h-4 w-4 mr-2 text-destructive" /> : <UserCheck className="h-4 w-4 mr-2 text-success" />}
           {isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser')}
