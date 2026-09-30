@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { useDateLocale } from '@/hooks/useDateLocale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
-import { Shield, Phone, MessageSquare, ChevronDown } from 'lucide-react';
+import { Shield, ChevronDown } from 'lucide-react';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useTranslation } from '@/context/TranslationContext';
-
-const telHref = (p: string) => p.replace(/\s/g, '');
+import EmployeeContactActions from '@/components/Shared/EmployeeContactActions';
 
 const dutyLabelKey = (type: string) => (type === 'skadeleder_vagt' ? 'ui.dutyLeader' : 'ui.drivingDuty');
 
