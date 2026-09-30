@@ -2110,3 +2110,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-09-29
 - Sikkerhed: EXECUTE fjernet for anon/authenticated på 10 trigger-funktioner og cleanup_expired_temporary_users/cleanup_old_change_logs (kun service_role). Linter 55 → 43.
+
+## 2026-09-30 – Vagtplan: korrekt afdeling og automatisk kobling af manuelle navne
+- Afdelingsmærkatet på vagter vises nu ud fra medarbejderens egen afdeling (ikke hvor vagten blev oprettet).
+- Manuelt indtastede (EKSTERN) navne kobles automatisk til en matchende bruger; eksisterende vagter er koblet permanent.
