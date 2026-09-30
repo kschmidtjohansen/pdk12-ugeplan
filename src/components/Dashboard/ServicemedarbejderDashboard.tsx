@@ -3,7 +3,7 @@ import React from 'react';
 import { useDepartment } from '@/context/DepartmentContext';
 import MineOpgaver from './MineOpgaver';
 import MinDag from './MinDag';
-import DutySummaryWidget from './DutySummaryWidget';
+import TodayGuardsWidget from './TodayGuardsWidget';
 import ClearCacheButton from './ClearCacheButton';
 
 const ServicemedarbejderDashboard: React.FC = () => {
@@ -13,7 +13,7 @@ const ServicemedarbejderDashboard: React.FC = () => {
     <div className="space-y-6">
       <MinDag />
 
-      {isDutyEnabled && <DutySummaryWidget />}
+      {isDutyEnabled && <TodayGuardsWidget />}
 
       <MineOpgaver />
 
