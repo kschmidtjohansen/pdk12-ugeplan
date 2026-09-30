@@ -1,3 +1,6 @@
+## 2026-09-30
+- Dashboard "Vagter i dag": Ring/SMS bruger nu vagtmodulets medarbejderliste (inkl. delte afdelinger), så telefonnumre findes for alle vagter.
+
 ## 2026-09-29 — Manglende oversættelser og sprogafhængige datoer
 
 - Rettet forkert overskrift på forsiden ("ui.goodAfternoon, Kasper"): hilsnerne godmorgen/formiddag/eftermiddag/aften findes nu på både dansk og engelsk.

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Shield, ChevronDown } from 'lucide-react';
 import { useDutyData } from '@/hooks/duty/useDutyData';
-import { useEmployees } from '@/hooks/useEmployees';
+import { useDutyEmployees } from '@/hooks/duty/useDutyEmployees';
 import { useTranslation } from '@/context/TranslationContext';
 import EmployeeContactActions from '@/components/Shared/EmployeeContactActions';
 
@@ -22,7 +22,7 @@ const TodayGuardsWidget: React.FC = () => {
   const weekStart = useMemo(() => startOfWeek(now, { weekStartsOn: 1 }), [now]);
   const weekEnd = useMemo(() => endOfWeek(now, { weekStartsOn: 1 }), [now]);
   const { duties } = useDutyData(weekStart, weekEnd);
-  const { employees } = useEmployees();
+  const { employees } = useDutyEmployees();
 
   const resolve = (d: any) => {
     const emp = employees.find(e => e.id === d.employee_id);
