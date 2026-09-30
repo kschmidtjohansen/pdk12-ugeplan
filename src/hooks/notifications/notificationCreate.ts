@@ -76,10 +76,15 @@ export const useNotificationCreate = (
       
       if (import.meta.env.DEV) console.log(`Creating notification for user ${userId}:`, notification);
       
-      const { data, error } = await supabase
+      // Generate id client-side and skip RETURNING: SELECT-RLS only allows reading own
+      // rows, so inserting for another user (or while IT-Support impersonates) would fail.
+      const newId = crypto.randomUUID();
+      const createdAt = new Date().toISOString();
+      const { error } = await supabase
         .from('notifications')
         .insert([
           {
+            id: newId,
             user_id: userId,
             type: notification.type,
             title: notification.title,
@@ -87,8 +92,8 @@ export const useNotificationCreate = (
             link: notification.link,
             read: false
           }
-        ])
-        .select();
+        ]);
+      const data = [{ id: newId, type: notification.type, title: notification.title, message: notification.message, link: notification.link, created_at: createdAt }];
       
       if (error) {
         // Specific handling for RLS policy violations

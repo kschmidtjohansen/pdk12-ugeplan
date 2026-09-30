@@ -2126,3 +2126,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-09-30
 - Dashboard "Vagter i dag": Ring/SMS-knapper bruger nu EmployeeContactActions (samme som Duty-siden) og faldt tilbage til vagtens eget telefonnummer, så knapperne også vises når medarbejderlisten mangler nummeret. Gælder både dagens vagter og resten af ugen.
+
+## 2026-09-30 – IT-Support kan sende notifikationer under "Ager som"
+- Notifikationer oprettes uden RETURNING (id genereres i klienten), så RLS ikke blokerer ved oprettelse for andre brugere/impersonering.
+- Rigtig super_admin bevarer fulde rettigheder (opret/rediger/godkend/brændstofkort) mens der ageres som medarbejder.
