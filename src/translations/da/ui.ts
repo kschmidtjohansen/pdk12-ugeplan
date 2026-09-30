@@ -358,6 +358,12 @@ export const ui = {
   busyCount: "Optaget",
   inUseCount: "I brug",
   retryingEvery30s: "Prøver automatisk igen hvert 30. sekund.",
+  impersonationAct: "Ager som",
+  impersonationActFor: "Ager som {name}",
+  impersonationStarted: "Du agerer nu som {name}",
+  impersonationActive: "Du agerer nu som: {name} ({role})",
+  impersonationLoggedInAs: "Logget ind som {name}",
+  impersonationStop: "Afslut og vend tilbage",
 };
 
 export default ui;

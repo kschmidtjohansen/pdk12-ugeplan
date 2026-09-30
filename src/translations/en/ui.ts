@@ -358,6 +358,12 @@ export const ui = {
   busyCount: "Busy",
   inUseCount: "In use",
   retryingEvery30s: "Retrying automatically every 30 seconds.",
+  impersonationAct: "Act as",
+  impersonationActFor: "Act as {name}",
+  impersonationStarted: "You are now acting as {name}",
+  impersonationActive: "You are acting as: {name} ({role})",
+  impersonationLoggedInAs: "Signed in as {name}",
+  impersonationStop: "Exit and return",
 };
 
 export default ui;
