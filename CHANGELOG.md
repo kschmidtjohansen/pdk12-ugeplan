@@ -1,4 +1,5 @@
 ## 2026-09-30
+- Indsat kørevagter for afd. 06 - Holsted, uge 40–52/2026: 91 vagtdage (13 uger × 7 dage) i `on_call_duties` efter ugeplan fra billede — Jack L L Madsen (uge 40, 47), Peter Kringhøj (41, 42, 48, 49), Christian Christensen (43, 50), Oskar Tomasz Uller (44, 51), Frederik Schierenberg Jensen (45, 52), Julie Hansen (46). Verificeret med optælling pr. uge.
 - IT-Support kan nu "Ager som" en medarbejder fra Admin > Brugerstyring: `startImpersonation`/`stopImpersonation` i `AuthContext` (kun `super_admin`, gemt i sessionStorage, Supabase-sessionen røres ikke), `user`/`effectiveRole` skifter til den valgte medarbejder, caches ryddes ved start og stop, nyt advarselsbanner `ImpersonationBanner` i `MainLayout` med "Afslut og vend tilbage", knap i både desktop- og mobilhandlinger i `UserTableRow`, nye tekster i da/en.
 - Dashboard "Vagter i dag": Ring/SMS bruger nu vagtmodulets medarbejderliste (inkl. delte afdelinger), så telefonnumre findes for alle vagter.
 
