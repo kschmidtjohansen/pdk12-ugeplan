@@ -36,7 +36,7 @@ const TodayGuardsWidget: React.FC = () => {
       date: d.duty_date as string,
       type: t(dutyLabelKey(d.duty_type)),
       name: d.employee?.name || emp?.name || external || t('ui.unknown'),
-      phone: emp?.phone as string | undefined,
+      phone: (d.employee?.phone || emp?.phone) as string | undefined,
     };
   };
 
