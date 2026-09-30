@@ -11,6 +11,7 @@ import { RealtimeChangeNotifier } from '@/components/shared/RealtimeChangeNotifi
 import { useQueryClient } from '@tanstack/react-query';
 import { notifyOwnAction } from '@/lib/realtimeUtils';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import ImpersonationBanner from '@/components/Layout/ImpersonationBanner';
 
 interface MainLayoutProps {
   children: React.ReactNode;
