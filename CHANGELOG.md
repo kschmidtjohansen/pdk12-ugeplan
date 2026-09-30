@@ -2114,3 +2114,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 ## 2026-09-30 – Vagtplan: korrekt afdeling og automatisk kobling af manuelle navne
 - Afdelingsmærkatet på vagter vises nu ud fra medarbejderens egen afdeling (ikke hvor vagten blev oprettet).
 - Manuelt indtastede (EKSTERN) navne kobles automatisk til en matchende bruger; eksisterende vagter er koblet permanent.
+
+## 2026-09-30
+- Dashboard "Vagter i dag": Ring/SMS-knapper bruger nu EmployeeContactActions (samme som Duty-siden) og faldt tilbage til vagtens eget telefonnummer, så knapperne også vises når medarbejderlisten mangler nummeret. Gælder både dagens vagter og resten af ugen.
