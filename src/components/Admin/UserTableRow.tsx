@@ -1,13 +1,15 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Edit, Key, Trash, UserCheck, UserX, MoreHorizontal } from 'lucide-react';
+import { Edit, Key, Trash, UserCheck, UserX, MoreHorizontal, UserCog } from 'lucide-react';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar';
-import { UserRole } from '@/context/AuthContext';
+import { UserRole, useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
