@@ -75,16 +75,7 @@ const TodayGuardsWidget: React.FC = () => {
                 <p className="truncate text-sm font-medium leading-tight text-foreground">{d.name}</p>
                 <p className="truncate text-[11px] leading-tight text-muted-foreground">{d.type}</p>
               </div>
-              {d.phone && (
-                <div className="flex shrink-0 items-center">
-                  <Button size="icon" variant="ghost" className="h-8 w-8" asChild aria-label={t('ui.call')}>
-                    <a href={`tel:${telHref(d.phone)}`}><Phone className="h-3.5 w-3.5" /></a>
-                  </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8" asChild aria-label={t('ui.sms')}>
-                    <a href={`sms:${telHref(d.phone)}`}><MessageSquare className="h-3.5 w-3.5" /></a>
-                  </Button>
-                </div>
-              )}
+              <EmployeeContactActions phone={d.phone} name={d.name} size="sm" />
             </div>
           ))
         )}
@@ -105,11 +96,7 @@ const TodayGuardsWidget: React.FC = () => {
                         <span className="font-medium text-foreground">{i.name}</span>
                         <span className="text-muted-foreground"> · {i.type}</span>
                       </p>
-                      {i.phone && (
-                        <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" asChild aria-label={t('ui.call')}>
-                          <a href={`tel:${telHref(i.phone)}`}><Phone className="h-3.5 w-3.5" /></a>
-                        </Button>
-                      )}
+                      <EmployeeContactActions phone={i.phone} name={i.name} size="sm" />
                     </div>
                   ))}
                 </div>
