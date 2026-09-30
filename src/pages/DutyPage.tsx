@@ -82,29 +82,39 @@ export default function DutyPage() {
     return map;
   }, [departments]);
 
-  // Enrich duties with employee roles + shared department label
+  // Enrich duties with employee roles + department label based on the EMPLOYEE's department
   const dutiesWithRoles = useMemo(() => {
+    const normalize = (s: string) => s.toLowerCase().replace(/[^a-zæøå]/g, '');
+    const byName = new Map<string, any>();
+    employees.forEach((e: any) => byName.set(normalize(e.name || ''), e));
+
     return duties.map(duty => {
-      const isShared = !!duty.department_id
-        && duty.department_id !== selectedDepartmentId
-        && sharedDepartmentIds.includes(duty.department_id);
-      const sharedDepartmentName = isShared ? (departmentNameMap[duty.department_id!] || null) : null;
+      let employee: any = duty.employee_id ? employees.find(emp => emp.id === duty.employee_id) : undefined;
+      let linkedEmployee = duty.employee;
 
-      if (!duty.employee_id) {
-        return { ...duty, sharedDepartmentName } as Duty & { sharedDepartmentName: string | null };
+      // Auto-link manually typed EKSTERN names to a matching user
+      if (!employee && !duty.employee_id && duty.notes?.startsWith('EKSTERN:')) {
+        const typed = duty.notes.split('\n')[0].replace('EKSTERN: ', '').replace(/\s*\[.*?\]\s*/, '').trim();
+        const match = byName.get(normalize(typed));
+        if (match) {
+          employee = match;
+          linkedEmployee = { id: match.id, name: match.name, email: match.email, avatar_url: match.avatar_url ?? null };
+        }
       }
 
-      const employee = employees.find(emp => emp.id === duty.employee_id);
-      if (employee && duty.employee) {
-        return {
-          ...duty,
-          employee: { ...duty.employee, role: employee.role },
-          sharedDepartmentName,
-        } as Duty & { sharedDepartmentName: string | null };
-      }
-      return { ...duty, sharedDepartmentName } as Duty & { sharedDepartmentName: string | null };
+      const labelDeptId: string | null = employee?.department_id ?? (employee ? null : duty.department_id ?? null);
+      const sharedDepartmentName = labelDeptId && labelDeptId !== selectedDepartmentId
+        ? (departmentNameMap[labelDeptId] || null)
+        : null;
+
+      return {
+        ...duty,
+        employee_id: duty.employee_id || employee?.id || duty.employee_id,
+        employee: linkedEmployee ? { ...linkedEmployee, role: employee?.role } : undefined,
+        sharedDepartmentName,
+      } as Duty & { sharedDepartmentName: string | null };
     });
-  }, [duties, employees, selectedDepartmentId, sharedDepartmentIds, departmentNameMap]);
+  }, [duties, employees, selectedDepartmentId, departmentNameMap]);
 
   const upcomingDuties = dutiesWithRoles.filter(
     duty => new Date(duty.duty_date) >= todayStart

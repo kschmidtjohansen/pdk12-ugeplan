@@ -101,7 +101,10 @@ export const useDutyEmployees = () => {
       return filtered.map((p: any) => {
         const roles = rolesMap.get(p.id) || [];
         const effective = roles.length ? getEffectiveRole(roles as any) : 'servicemedarbejder';
-        const deptId = userIdToDept.get(p.id) || p.home_department_id || null;
+        // Prefer the employee's real home department when it is one of the target departments
+        const deptId = (p.home_department_id && departmentIds.includes(p.home_department_id))
+          ? p.home_department_id
+          : (userIdToDept.get(p.id) || p.home_department_id || null);
         return {
           id: p.id,
           name: p.name || 'Unknown',
