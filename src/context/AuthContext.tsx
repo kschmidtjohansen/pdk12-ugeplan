@@ -28,6 +28,14 @@ export interface AppUser {
   roles?: UserRole[];    // All assigned roles
 }
 
+export interface ImpersonationTarget {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  roles?: UserRole[];
+}
+
 interface AuthContextType {
   user: AppUser | null;
   session: Session | null;
@@ -40,6 +48,12 @@ interface AuthContextType {
   isEffectiveSkadeleder: boolean;
   isEffectiveServicemedarbejder: boolean;
   effectiveRole: UserRole | null;
+  // IT-Support: "ager som medarbejder"
+  realUser: AppUser | null;
+  isImpersonating: boolean;
+  canImpersonate: boolean;
+  startImpersonation: (target: ImpersonationTarget) => void;
+  stopImpersonation: () => void;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   loginWithPasskey: () => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
