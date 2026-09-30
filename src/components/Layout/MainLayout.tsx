@@ -121,6 +121,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <SecurityErrorBoundary>
       <SecurityHeaders />
+      <ImpersonationBanner />
       <AppShell>
         <RealtimeChangeNotifier />
         <PullToRefresh onRefresh={handlePullRefresh}>
