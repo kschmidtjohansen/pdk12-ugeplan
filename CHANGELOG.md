@@ -1,4 +1,5 @@
 ## 2026-09-30
+- IT-Support kan nu "Ager som" en medarbejder fra Admin > Brugerstyring: `startImpersonation`/`stopImpersonation` i `AuthContext` (kun `super_admin`, gemt i sessionStorage, Supabase-sessionen røres ikke), `user`/`effectiveRole` skifter til den valgte medarbejder, caches ryddes ved start og stop, nyt advarselsbanner `ImpersonationBanner` i `MainLayout` med "Afslut og vend tilbage", knap i både desktop- og mobilhandlinger i `UserTableRow`, nye tekster i da/en.
 - Dashboard "Vagter i dag": Ring/SMS bruger nu vagtmodulets medarbejderliste (inkl. delte afdelinger), så telefonnumre findes for alle vagter.
 
 ## 2026-09-29 — Manglende oversættelser og sprogafhængige datoer

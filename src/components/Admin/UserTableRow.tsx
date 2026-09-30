@@ -1,13 +1,15 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Edit, Key, Trash, UserCheck, UserX, MoreHorizontal } from 'lucide-react';
+import { Edit, Key, Trash, UserCheck, UserX, MoreHorizontal, UserCog } from 'lucide-react';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar';
-import { UserRole } from '@/context/AuthContext';
+import { UserRole, useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -45,8 +47,18 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
 }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { canImpersonate, realUser, startImpersonation } = useAuth();
 
   const isUserActive = !user.banned_until || new Date(user.banned_until) <= new Date();
+  const showImpersonate = canImpersonate && realUser?.id !== user.id && isUserActive;
+
+  const handleImpersonate = () => {
+    startImpersonation({ id: user.id, name: user.name, email: user.email, role: user.role });
+    toast.success(t('ui.impersonationStarted', { name: user.name }));
+    navigate('/dashboard');
+  };
+
 
   const MobileActions = () => (
     <DropdownMenu>
@@ -56,6 +68,12 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-card w-48">
+        {showImpersonate && (
+          <DropdownMenuItem onClick={handleImpersonate}>
+            <UserCog className="h-4 w-4 mr-2" />
+            {t('ui.impersonationAct')}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={() => onToggleUserStatus(user)}>
           {isUserActive ? <UserX className="h-4 w-4 mr-2 text-destructive" /> : <UserCheck className="h-4 w-4 mr-2 text-success" />}
           {isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser')}
@@ -78,6 +96,18 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
 
   const DesktopActions = () => (
     <div className="flex justify-end gap-2">
+      {showImpersonate && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={handleImpersonate} className="h-8 w-8" aria-label={t('ui.impersonationAct')}>
+                <UserCog className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent><p>{t('ui.impersonationActFor', { name: user.name })}</p></TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

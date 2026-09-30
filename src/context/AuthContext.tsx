@@ -28,6 +28,14 @@ export interface AppUser {
   roles?: UserRole[];    // All assigned roles
 }
 
+export interface ImpersonationTarget {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  roles?: UserRole[];
+}
+
 interface AuthContextType {
   user: AppUser | null;
   session: Session | null;
@@ -40,6 +48,12 @@ interface AuthContextType {
   isEffectiveSkadeleder: boolean;
   isEffectiveServicemedarbejder: boolean;
   effectiveRole: UserRole | null;
+  // IT-Support: "ager som medarbejder"
+  realUser: AppUser | null;
+  isImpersonating: boolean;
+  canImpersonate: boolean;
+  startImpersonation: (target: ImpersonationTarget) => void;
+  stopImpersonation: () => void;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   loginWithPasskey: () => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
@@ -79,6 +93,11 @@ const AuthContext = createContext<AuthContextType>({
   isEffectiveSkadeleder: false,
   isEffectiveServicemedarbejder: false,
   effectiveRole: null,
+  realUser: null,
+  isImpersonating: false,
+  canImpersonate: false,
+  startImpersonation: () => {},
+  stopImpersonation: () => {},
   login: async () => ({ error: null }),
   loginWithPasskey: async () => ({ error: null }),
   logout: async () => {},
@@ -118,6 +137,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userDataLoaded, setUserDataLoaded] = useState<boolean>(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
+
+  // IT-Support impersonation ("ager som medarbejder"). The Supabase session is
+  // untouched — only the identity the UI renders for changes. Kept in
+  // sessionStorage so it survives navigation but never outlives the tab.
+  const IMPERSONATION_KEY = 'impersonated_user';
+  const [impersonatedUser, setImpersonatedUser] = useState<AppUser | null>(() => {
+    try {
+      const raw = sessionStorage.getItem(IMPERSONATION_KEY);
+      return raw ? (JSON.parse(raw) as AppUser) : null;
+    } catch {
+      return null;
+    }
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const manualLogoutRef = useRef(false);
@@ -603,9 +635,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // isAuthenticated based on session only, not user data
   const isAuthenticated = !!session;
-  
+
+  // Only IT-Support (super admin) may act as another employee.
+  const canImpersonate = user?.role === 'super_admin';
+  const isImpersonating = !!impersonatedUser && canImpersonate;
+  const effectiveUser: AppUser | null = isImpersonating ? impersonatedUser : user;
+
+  const startImpersonation = useCallback((target: ImpersonationTarget) => {
+    if (user?.role !== 'super_admin' || target.id === user.id) return;
+    const next: AppUser = {
+      id: target.id,
+      name: target.name,
+      email: target.email,
+      role: target.role,
+      roles: target.roles && target.roles.length > 0 ? target.roles : [target.role],
+    };
+    try {
+      sessionStorage.setItem(IMPERSONATION_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage errors
+    }
+    setImpersonatedUser(next);
+    queryClient.clear();
+    unifiedDataService.clearCache();
+    OptimizedAssignmentService.clearCache();
+    enhancedDataFetching.clearCache();
+  }, [user, queryClient]);
+
+  const stopImpersonation = useCallback(() => {
+    try {
+      sessionStorage.removeItem(IMPERSONATION_KEY);
+    } catch {
+      // ignore storage errors
+    }
+    setImpersonatedUser(null);
+    queryClient.clear();
+    unifiedDataService.clearCache();
+    OptimizedAssignmentService.clearCache();
+    enhancedDataFetching.clearCache();
+  }, [queryClient]);
+
   // Permissions based on current user (with demo role override)
-  const currentRole = isDemoMode && demoRole ? demoRole : user?.role;
+  const currentRole = isDemoMode && demoRole ? demoRole : effectiveUser?.role;
   const isSuperAdmin = currentRole === 'super_admin';
   const isAdmin = currentRole === 'administrator' || isSuperAdmin;
   const isSkadeleder = currentRole === 'skadeleder';  
@@ -752,6 +823,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await supabase.auth.signOut();
       setUser(null);
+      setImpersonatedUser(null);
       setSession(null);
       setSessionExpired(false);
       
@@ -891,7 +963,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const value: AuthContextType = {
-    user,
+    user: effectiveUser,
     session,
     isAuthenticated,
     userDataLoaded,
@@ -902,6 +974,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isEffectiveSkadeleder,
     isEffectiveServicemedarbejder,
     effectiveRole: currentRole,
+    realUser: user,
+    isImpersonating,
+    canImpersonate,
+    startImpersonation,
+    stopImpersonation,
     login,
     loginWithPasskey,
     logout,
