@@ -96,6 +96,18 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
 
   const DesktopActions = () => (
     <div className="flex justify-end gap-2">
+      {showImpersonate && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={handleImpersonate} className="h-8 w-8" aria-label={t('ui.impersonationAct')}>
+                <UserCog className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent><p>{t('ui.impersonationActFor', { name: user.name })}</p></TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
