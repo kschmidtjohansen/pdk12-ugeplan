@@ -962,7 +962,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const value: AuthContextType = {
-    user,
+    user: effectiveUser,
     session,
     isAuthenticated,
     userDataLoaded,
@@ -973,6 +973,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isEffectiveSkadeleder,
     isEffectiveServicemedarbejder,
     effectiveRole: currentRole,
+    realUser: user,
+    isImpersonating,
+    canImpersonate,
+    startImpersonation,
+    stopImpersonation,
     login,
     loginWithPasskey,
     logout,
