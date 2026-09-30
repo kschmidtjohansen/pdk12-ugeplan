@@ -18,6 +18,8 @@ import AssignmentFormFields from './AssignmentFormFields';
 import { getEmployeeVacationStatus } from '@/utils/employeeAvailability';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { unifiedDataService } from '@/services/data/unifiedDataService';
+import { useAuth } from '@/context/AuthContext';
 
 export interface EmployeeConflict {
   employeeId: string;
@@ -62,7 +64,35 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 }) => {
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
-  const { userSubDepartments } = useDepartment();
+  const { userSubDepartments, selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
+  const { isDemoMode } = useAuth();
+
+  // Resources must follow the sub-department chosen IN the form, not the planner page filter.
+  const formSubDeptId = formData.subDepartmentId === undefined ? (selectedSubDepartmentId || null) : formData.subDepartmentId;
+  const needsOwnResources = !isDemoMode && !!selectedDepartmentId && formSubDeptId !== (selectedSubDepartmentId || null);
+  const { data: formEmployees, isLoading: formEmployeesLoading } = useQuery({
+    queryKey: ['assignment-form-employees', selectedDepartmentId, formSubDeptId],
+    enabled: needsOwnResources,
+    queryFn: async () => {
+      const res = await unifiedDataService.fetchEmployees(selectedDepartmentId!, formSubDeptId);
+      if (res.error) throw new Error(res.error);
+      return res.data as Employee[];
+    },
+    staleTime: 60_000,
+  });
+  const { data: formCars } = useQuery({
+    queryKey: ['assignment-form-cars', selectedDepartmentId, formSubDeptId],
+    enabled: needsOwnResources,
+    queryFn: async () => {
+      const res = await unifiedDataService.fetchCars(selectedDepartmentId!, formSubDeptId);
+      if (res.error) throw new Error(res.error);
+      return res.data as Car[];
+    },
+    staleTime: 60_000,
+  });
+  const effectiveEmployees = needsOwnResources ? (formEmployees || []) : employees;
+  const effectiveCars = needsOwnResources ? (formCars || []) : cars;
+  const effectiveEmployeesLoading = needsOwnResources ? formEmployeesLoading : employeesLoading;
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = React.useRef(false);
@@ -118,7 +148,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     const toTime = formData.toTime || '16:00';
 
     for (const empId of selectedEmployeeIds) {
-      const emp = employees.find(e => e.id === empId);
+      const emp = effectiveEmployees.find(e => e.id === empId);
       if (!emp) continue;
 
       for (const dateStr of dates) {
@@ -206,7 +236,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       }
     }
     return conflicts;
-  }, [formData, employees, vacations, assignments, currentAssignment, trainingRows, t]);
+  }, [formData, effectiveEmployees, vacations, assignments, currentAssignment, trainingRows, t]);
 
   // Absence reasons that block saving entirely (no "proceed anyway")
   const hasBlockingConflicts = (c: EmployeeConflict[]) =>
@@ -291,7 +321,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   const setResponsibleUserById = (userId: string) => {
     if (userId) {
-      const user = employees.find(emp => emp.id === userId);
+      const user = effectiveEmployees.find(emp => emp.id === userId);
       const userName = user ? user.name : '';
       setFormData({ ...formData, responsibleUser: { id: userId, name: userName }, responsibleUserId: userId });
     } else {
@@ -440,9 +470,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           setSelectedResponsibleUserId={setResponsibleUserById}
           selectedEmployees={normalizeEmployees(formData.employees)}
           onEmployeeToggle={onEmployeeToggle}
-          cars={cars}
-          employees={employees}
-          employeesLoading={employeesLoading}
+          cars={effectiveCars}
+          employees={effectiveEmployees}
+          employeesLoading={effectiveEmployeesLoading}
           vacations={vacations}
           assignmentId={currentAssignment?.id}
           assignments={assignments}
