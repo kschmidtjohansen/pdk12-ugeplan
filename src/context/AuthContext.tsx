@@ -823,6 +823,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await supabase.auth.signOut();
       setUser(null);
+      setImpersonatedUser(null);
       setSession(null);
       setSessionExpired(false);
       
