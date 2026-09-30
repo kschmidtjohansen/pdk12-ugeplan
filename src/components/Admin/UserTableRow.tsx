@@ -47,8 +47,18 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
 }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { canImpersonate, realUser, startImpersonation } = useAuth();
 
   const isUserActive = !user.banned_until || new Date(user.banned_until) <= new Date();
+  const showImpersonate = canImpersonate && realUser?.id !== user.id && isUserActive;
+
+  const handleImpersonate = () => {
+    startImpersonation({ id: user.id, name: user.name, email: user.email, role: user.role });
+    toast.success(t('ui.impersonationStarted', { name: user.name }));
+    navigate('/dashboard');
+  };
+
 
   const MobileActions = () => (
     <DropdownMenu>
