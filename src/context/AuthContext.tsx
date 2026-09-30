@@ -137,6 +137,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userDataLoaded, setUserDataLoaded] = useState<boolean>(false);
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
+
+  // IT-Support impersonation ("ager som medarbejder"). The Supabase session is
+  // untouched — only the identity the UI renders for changes. Kept in
+  // sessionStorage so it survives navigation but never outlives the tab.
+  const IMPERSONATION_KEY = 'impersonated_user';
+  const [impersonatedUser, setImpersonatedUser] = useState<AppUser | null>(() => {
+    try {
+      const raw = sessionStorage.getItem(IMPERSONATION_KEY);
+      return raw ? (JSON.parse(raw) as AppUser) : null;
+    } catch {
+      return null;
+    }
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const manualLogoutRef = useRef(false);
