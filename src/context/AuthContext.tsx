@@ -687,12 +687,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const isEffectiveSkadeleder = currentRole === 'skadeleder';
   const isEffectiveServicemedarbejder = currentRole === 'servicemedarbejder';
 
-  const canViewFuelCardCode = isAdmin;
-  const canPublishTasks = isAdmin || isSkadeleder;
-  const canApproveVacation = isAdmin;
-  const canEdit = isAdmin || isSkadeleder;
-  const canCreate = isAdmin || isSkadeleder;
-  const canSeeUnpublishedTasks = isAdmin || isSkadeleder;
+  // IT-Support (real super_admin) keeps full rights even while impersonating.
+  const realIsSuperAdmin = !isDemoMode && user?.role === 'super_admin';
+  const canViewFuelCardCode = isAdmin || realIsSuperAdmin;
+  const canPublishTasks = isAdmin || isSkadeleder || realIsSuperAdmin;
+  const canApproveVacation = isAdmin || realIsSuperAdmin;
+  const canEdit = isAdmin || isSkadeleder || realIsSuperAdmin;
+  const canCreate = isAdmin || isSkadeleder || realIsSuperAdmin;
+  const canSeeUnpublishedTasks = isAdmin || isSkadeleder || realIsSuperAdmin;
 
   // Validation methods
   const validateAdminAccess = (): boolean => {
