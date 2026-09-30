@@ -635,9 +635,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // isAuthenticated based on session only, not user data
   const isAuthenticated = !!session;
-  
+
+  // Only IT-Support (super admin) may act as another employee.
+  const canImpersonate = user?.role === 'super_admin';
+  const isImpersonating = !!impersonatedUser && canImpersonate;
+  const effectiveUser: AppUser | null = isImpersonating ? impersonatedUser : user;
+
+  const startImpersonation = useCallback((target: ImpersonationTarget) => {
+    if (user?.role !== 'super_admin' || target.id === user.id) return;
+    const next: AppUser = {
+      id: target.id,
+      name: target.name,
+      email: target.email,
+      role: target.role,
+      roles: target.roles && target.roles.length > 0 ? target.roles : [target.role],
+    };
+    try {
+      sessionStorage.setItem(IMPERSONATION_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage errors
+    }
+    setImpersonatedUser(next);
+    queryClient.clear();
+    unifiedDataService.clearCache();
+    OptimizedAssignmentService.clearCache();
+    enhancedDataFetching.clearCache();
+  }, [user, queryClient]);
+
+  const stopImpersonation = useCallback(() => {
+    try {
+      sessionStorage.removeItem(IMPERSONATION_KEY);
+    } catch {
+      // ignore storage errors
+    }
+    setImpersonatedUser(null);
+    queryClient.clear();
+    unifiedDataService.clearCache();
+    OptimizedAssignmentService.clearCache();
+    enhancedDataFetching.clearCache();
+  }, [queryClient]);
+
   // Permissions based on current user (with demo role override)
-  const currentRole = isDemoMode && demoRole ? demoRole : user?.role;
+  const currentRole = isDemoMode && demoRole ? demoRole : effectiveUser?.role;
   const isSuperAdmin = currentRole === 'super_admin';
   const isAdmin = currentRole === 'administrator' || isSuperAdmin;
   const isSkadeleder = currentRole === 'skadeleder';  
