@@ -27,18 +27,18 @@ const ImpersonationBanner: React.FC = () => {
         <div className="flex items-center gap-2 min-w-0">
           <UserCog className="h-4 w-4 shrink-0" />
           <span className="text-sm font-medium truncate">
-            {t('impersonation.activeBanner', { name: user.name, role: t(`roles.${user.role}`) })}
+            {t('ui.impersonationActive', { name: user.name, role: t(`admin.roles.${user.role}`) })}
           </span>
         </div>
         <div className="flex items-center gap-2">
           {realUser?.name && (
             <span className="hidden sm:inline text-xs opacity-80">
-              {t('impersonation.loggedInAs', { name: realUser.name })}
+              {t('ui.impersonationLoggedInAs', { name: realUser.name })}
             </span>
           )}
           <Button size="sm" variant="secondary" className="h-8" onClick={handleStop}>
             <LogOut className="h-4 w-4 mr-1" />
-            {t('impersonation.stop')}
+            {t('ui.impersonationStop')}
           </Button>
         </div>
       </div>
