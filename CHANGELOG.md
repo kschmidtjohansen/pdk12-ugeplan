@@ -1,3 +1,6 @@
+## 2026-10-01
+- Fix: Man kan nu scrolle med musen i hele opgavedialogen, også når Filer-sektionen er udvidet. Filer-sektionen er flyttet ind i venstre kolonnes scroll-område i `AssignmentDetailsDialog.tsx`, og den indre højdebegrænsning (`max-h-72`) på fillisten er fjernet, så hele kolonnen scroller samlet.
+
 ## 2026-09-30
 - Servicemedarbejder-forsiden viser nu samme "Vagter i dag"-widget som skadeleder-forsiden (`TodayGuardsWidget`): alle dagens vagter med Ring/SMS-knapper og fold-ud for resten af ugen. Den gamle `DutySummaryWidget` (kun antal + navne, ingen kontaktknapper) er slettet som ubrugt.
 - Indsat kørevagter for afd. 06 - Holsted, uge 40–52/2026: 91 vagtdage (13 uger × 7 dage) i `on_call_duties` efter ugeplan fra billede — Jack L L Madsen (uge 40, 47), Peter Kringhøj (41, 42, 48, 49), Christian Christensen (43, 50), Oskar Tomasz Uller (44, 51), Frederik Schierenberg Jensen (45, 52), Julie Hansen (46). Verificeret med optælling pr. uge.
