@@ -266,81 +266,81 @@ import { useIsMobile } from '@/hooks/use-mobile';
                    </div>
                 </div>
 
-                <StatusTimeline assignmentId={assignment.id} />
-              </div>
-            </div>
-
-            {/* Files section - collapsible at the bottom of left column */}
-            {isFilesEnabled && (
-              <div className="border-t bg-muted/20">
-               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-8 py-4 gap-3">
-                 <button
-                   onClick={() => setShowFiles(!showFiles)}
-                   className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
-                 >
-                   <Files className="h-4 w-4 text-primary shrink-0" />
-                   {t('planner.tabs.files')}
-                   {(imageCount > 0 || documentCount > 0) && (
-                     <span className="text-muted-foreground">
-                       ({imageCount > 0 && <><Image className="h-3 w-3 inline mr-0.5" />{imageCount}</>}
-                       {imageCount > 0 && documentCount > 0 && ' • '}
-                       {documentCount > 0 && <><FileText className="h-3 w-3 inline mr-0.5" />{documentCount}</>})
-                     </span>
-                   )}
-                   {showFiles ? <ChevronDown className="h-4 w-4 ml-1" /> : <ChevronUp className="h-4 w-4 ml-1" />}
-                 </button>
-                 
-                 <div className="flex flex-wrap items-center gap-2">
-                   {imageCount > 0 && (
-                     <Button
-                       variant="ghost"
-                       size="sm"
-                       onClick={handleGeneratePdf}
-                       disabled={generatingPdf}
-                       className="h-8 text-primary hover:text-primary hover:bg-primary/10"
-                     >
-                       {generatingPdf ? (
-                         <>
-                           <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                           <span className="hidden sm:inline">{t('planner.files.generatingPdf')}</span>
-                           <span className="sm:hidden">...</span>
-                         </>
-                       ) : (
-                         <>
-                           <FileImage className="h-4 w-4 mr-1.5" />
-                           <span className="hidden sm:inline">{t('planner.files.downloadAsPdf')}</span>
-                           <span className="sm:hidden">PDF</span>
-                         </>
-                       )}
-                     </Button>
-                   )}
-                   {files.length > 0 && (
-                     <Button
-                       variant="ghost"
-                       size="sm"
-                       onClick={downloadAll}
-                       className="h-8 text-primary hover:text-primary hover:bg-primary/10"
-                     >
-                       <FolderDown className="h-4 w-4 mr-1.5" />
-                       <span className="hidden sm:inline">{t('planner.files.downloadAll')}</span>
-                       <span className="sm:hidden">Alle</span>
-                     </Button>
-                   )}
-                 </div>
+                 <StatusTimeline assignmentId={assignment.id} />
                </div>
-                {showFiles && (
-                  <div className="px-4 sm:px-8 pb-6 max-h-72 overflow-y-auto">
-                  <AssignmentFilesPanel 
-                    assignmentId={assignment.id} 
-                    assignmentTitle={assignment.title || assignment.case_number || undefined}
-                    hideHeader={true}
-                    siblingAssignmentIds={siblingAssignmentIds}
-                  />
-                </div>
-              )}
-            </div>
-            )}
-          </div>
+
+               {/* Files section - collapsible at the bottom of left column (inside scroll area) */}
+               {isFilesEnabled && (
+                 <div className="border-t bg-muted/20">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-8 py-4 gap-3">
+                    <button
+                      onClick={() => setShowFiles(!showFiles)}
+                      className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+                    >
+                      <Files className="h-4 w-4 text-primary shrink-0" />
+                      {t('planner.tabs.files')}
+                      {(imageCount > 0 || documentCount > 0) && (
+                        <span className="text-muted-foreground">
+                          ({imageCount > 0 && <><Image className="h-3 w-3 inline mr-0.5" />{imageCount}</>}
+                          {imageCount > 0 && documentCount > 0 && ' • '}
+                          {documentCount > 0 && <><FileText className="h-3 w-3 inline mr-0.5" />{documentCount}</>})
+                        </span>
+                      )}
+                      {showFiles ? <ChevronDown className="h-4 w-4 ml-1" /> : <ChevronUp className="h-4 w-4 ml-1" />}
+                    </button>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      {imageCount > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleGeneratePdf}
+                          disabled={generatingPdf}
+                          className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+                        >
+                          {generatingPdf ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                              <span className="hidden sm:inline">{t('planner.files.generatingPdf')}</span>
+                              <span className="sm:hidden">...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FileImage className="h-4 w-4 mr-1.5" />
+                              <span className="hidden sm:inline">{t('planner.files.downloadAsPdf')}</span>
+                              <span className="sm:hidden">PDF</span>
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      {files.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={downloadAll}
+                          className="h-8 text-primary hover:text-primary hover:bg-primary/10"
+                        >
+                          <FolderDown className="h-4 w-4 mr-1.5" />
+                          <span className="hidden sm:inline">{t('planner.files.downloadAll')}</span>
+                          <span className="sm:hidden">Alle</span>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                   {showFiles && (
+                     <div className="px-4 sm:px-8 pb-6">
+                     <AssignmentFilesPanel
+                       assignmentId={assignment.id}
+                       assignmentTitle={assignment.title || assignment.case_number || undefined}
+                       hideHeader={true}
+                       siblingAssignmentIds={siblingAssignmentIds}
+                     />
+                   </div>
+                 )}
+               </div>
+               )}
+             </div>
+           </div>
 
           {/* Right column: Messages sidebar */}
           {isChatEnabled && (
