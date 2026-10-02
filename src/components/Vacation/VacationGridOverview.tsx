@@ -384,7 +384,7 @@ const VacationGridOverview: React.FC = () => {
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="text-xs">
-                    {emp.name} — {cellLabel[kind]} {format(d, 'd. MMM', { locale: dateLocale })}
+                    {emp.name} — {t(cellLabel[kind])} {format(d, 'd. MMM', { locale: dateLocale })}
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -679,7 +679,7 @@ const VacationGridOverview: React.FC = () => {
 
           type StatusEntry = { name: string; period: string | null };
           const sections: { kind: CellKind; color: string; label: string; entries: StatusEntry[] }[] = [
-            { kind: 'vacation', color: 'bg-foreground', label: 'Ferie', entries: vacationEntries },
+            { kind: 'vacation', color: 'bg-foreground', label: 'ui.kindVacation', entries: vacationEntries },
             { kind: 'training', color: 'bg-warning/60', label: 'ui.kindTraining', entries: trainingEntries },
             { kind: 'leave', color: 'bg-destructive', label: 'ui.kindLeave', entries: leaveEntries },
             { kind: 'skadeleder_vagt', color: 'bg-info', label: 'ui.kindDutyLeaderShort', entries: skadelederEntries },
