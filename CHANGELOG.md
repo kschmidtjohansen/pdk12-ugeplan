@@ -1,3 +1,6 @@
+## 2026-10-02
+- Fix: Tooltips i ferieoversigten viser nu oversat tekst (fx "Ferie"/"Vacation") i stedet for rå oversættelsesnøgler — `cellLabel`-værdier pakkes med `t()` i cellens Tooltip i `VacationGridOverview.tsx`. Ferie-sektionens label i ugevisningen er samtidig konverteret fra fastkodet "Ferie" til `ui.kindVacation`, så den også oversættes til engelsk.
+
 ## 2026-10-01
 - Fix: Man kan nu scrolle med musen i hele opgavedialogen, også når Filer-sektionen er udvidet. Filer-sektionen er flyttet ind i venstre kolonnes scroll-område i `AssignmentDetailsDialog.tsx`, og den indre højdebegrænsning (`max-h-72`) på fillisten er fjernet, så hele kolonnen scroller samlet.
 
