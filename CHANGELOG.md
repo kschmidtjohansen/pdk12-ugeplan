@@ -2133,3 +2133,8 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 ## 2026-09-30 – IT-Support kan sende notifikationer under "Ager som"
 - Notifikationer oprettes uden RETURNING (id genereres i klienten), så RLS ikke blokerer ved oprettelse for andre brugere/impersonering.
 - Rigtig super_admin bevarer fulde rettigheder (opret/rediger/godkend/brændstofkort) mens der ageres som medarbejder.
+
+## 2026-10-02 – Brugere med flere roller ser altid egne opgaver
+- Rolleopslag prioriterer nu højeste rolle (super_admin > administrator > skadeleder > fugttekniker > servicemedarbejder > vikar).
+- list_accessible_assignments_with_team: ledere ser alle opgaver; ansvarlige ser egne ikke-offentliggjorte opgaver.
+- Caspers profilnavn rettet til "Casper Søbjerg Petersen".
