@@ -1856,6 +1856,14 @@ export type Database = {
           name: string
         }[]
       }
+      get_duty_contacts: {
+        Args: { _department_id: string }
+        Returns: {
+          id: string
+          name: string
+          phone: string
+        }[]
+      }
       get_enhanced_system_metrics: { Args: never; Returns: Json }
       get_profile_detailed: {
         Args: { profile_user_id: string }
