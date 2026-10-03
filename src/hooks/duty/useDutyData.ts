@@ -61,7 +61,7 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
         .select(`
           *,
           employee:profiles!on_call_duties_employee_id_fkey (
-            id, name, email, avatar_url
+            id, name, email, avatar_url, phone
           )
         `)
         .eq('is_demo', false)
