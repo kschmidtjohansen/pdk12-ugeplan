@@ -2141,3 +2141,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Rolleopslag prioriterer nu højeste rolle (super_admin > administrator > skadeleder > fugttekniker > servicemedarbejder > vikar).
 - list_accessible_assignments_with_team: ledere ser alle opgaver; ansvarlige ser egne ikke-offentliggjorte opgaver.
 - Caspers profilnavn rettet til "Casper Søbjerg Petersen".
+
+## 2026-10-03 – Vagter i dag viser navn og telefon på tværs af delte afdelinger
+- Ny databasefunktion get_duty_contacts giver navn/telefon for kolleger i afdelinger med delt vagtplan.
+- TodayGuardsWidget matcher EKSTERN-notater med rigtige profiler; telefon medtages i vagtdata.

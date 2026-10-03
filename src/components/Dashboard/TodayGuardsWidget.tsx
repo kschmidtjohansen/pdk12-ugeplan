@@ -9,6 +9,9 @@ import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useDutyEmployees } from '@/hooks/duty/useDutyEmployees';
 import { useTranslation } from '@/context/TranslationContext';
 import EmployeeContactActions from '@/components/Shared/EmployeeContactActions';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useDepartment } from '@/context/DepartmentContext';
 
 const dutyLabelKey = (type: string) => (type === 'skadeleder_vagt' ? 'ui.dutyLeader' : 'ui.drivingDuty');
 
@@ -24,17 +27,39 @@ const TodayGuardsWidget: React.FC = () => {
   const { duties } = useDutyData(weekStart, weekEnd);
   const { employees } = useDutyEmployees();
 
+  const { selectedDepartmentId } = useDepartment();
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['duty-contacts', selectedDepartmentId],
+    enabled: !!selectedDepartmentId,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)('get_duty_contacts', { _department_id: selectedDepartmentId });
+      if (error) return [];
+      return (data || []) as { id: string; name: string; phone: string | null }[];
+    },
+  });
+
+  const normalize = (s: string) =>
+    s.toLowerCase().replace(/\[.*?\]/g, '').replace(/[-\s]+/g, ' ').trim();
+
   const resolve = (d: any) => {
     const emp = employees.find(e => e.id === d.employee_id);
     const external = d.notes?.startsWith('EKSTERN:')
       ? d.notes.split('\n')[0].replace('EKSTERN: ', '')
       : undefined;
+    let contact = contacts.find(c => c.id === d.employee_id);
+    if (external) {
+      const n = normalize(external);
+      const matches = contacts.filter(c => normalize(c.name) === n);
+      if (matches.length === 1) contact = matches[0];
+    }
+    const cleanExternal = external?.replace(/\s*\[.*?\]\s*/g, '').trim();
     return {
       id: d.id,
       date: d.duty_date as string,
       type: t(dutyLabelKey(d.duty_type)),
-      name: d.employee?.name || emp?.name || external || t('ui.unknown'),
-      phone: (d.employee?.phone || emp?.phone) as string | undefined,
+      name: (external ? contact?.name || cleanExternal : d.employee?.name || emp?.name || contact?.name) || t('ui.unknown'),
+      phone: ((external ? contact?.phone : d.employee?.phone || emp?.phone || contact?.phone) || undefined) as string | undefined,
     };
   };
 
