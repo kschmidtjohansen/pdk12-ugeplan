@@ -65,7 +65,7 @@ const TodayGuardsWidget: React.FC = () => {
 
   const todayDuties = useMemo(
     () => duties.filter(d => d.duty_date === todayStr).map(resolve),
-    [duties, employees, todayStr, t]
+    [duties, employees, contacts, todayStr, t]
   );
 
   const restOfWeek = useMemo(() => {
@@ -80,7 +80,7 @@ const TodayGuardsWidget: React.FC = () => {
       else groups.push({ date: i.date, items: [i] });
     });
     return groups;
-  }, [duties, employees, todayStr, t]);
+  }, [duties, employees, contacts, todayStr, t]);
 
   return (
     <Card>
