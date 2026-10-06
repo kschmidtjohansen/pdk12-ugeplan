@@ -1,24 +1,21 @@
-# Adressesøgning: skift fra DAWA til Datafordeleren/Dataforsyningen
+# Adressesøgning: skift fra DAWA til Datafordeleren
 
 ## Årsag (bekræftet)
-DAWA er lukket. `api.dataforsyningen.dk/autocomplete` og `/adresser/autocomplete` svarer nu `410 Gone`, så `dawa-proxy` returnerer en tom liste, og opgaveformularen viser ingen forslag. Samme lukning rammer postnummer-opslag (nærheds-søgning, vejrgrænser) og adresse→GPS-opslag for ældre opgaver.
+DAWA er lukket. Den gamle adressetjeneste svarer nu `410 Gone`, så adresseforslag i opgaveformularen er tomme. Samme lukning rammer postnummer-opslag (nærhedssøgning, vejrgrænser) og adresse→GPS for ældre opgaver.
 
-## Det du skal gøre (én gang)
-1. Opret gratis bruger på dataforsyningen.dk og lav en **token** (Min side → Tokens).
-2. Jeg beder om den via en sikker formular (`DATAFORSYNINGEN_TOKEN`). Da backend er jeres egen Supabase, skal den også lægges ind under Edge Function Secrets i Supabase-dashboardet, og `dawa-proxy` gen-deployes — jeg giver præcis vejledning.
+## Nøglen
+- Nøglen er modtaget. Datafordeleren svarer pt. "Unrecognized Authentication key – vent 15 min efter oprettelse", så den er sandsynligvis bare ikke aktiv endnu. Den testes igen ved start.
+- Nøglen gemmes som hemmelighed `DATAFORDELER_API_KEY` i Supabase (Edge Function Secrets) — aldrig i koden. Da den er sendt i chatten, anbefales det at lave en ny nøgle senere.
 
 ## Ændringer
-- **`dawa-proxy` edge function** omskrives til den nye søgetjeneste (Gsearch v2):
-  - Forslag: `rest/gsearch/v2.0/adresse?q=...&token=...` (max 8 forslag).
-  - Adresse→GPS: samme kald, første resultat.
-  - Postnummer: `rest/gsearch/v2.0/postnummer?q=...`.
-  - Resultatet omformes til det nuværende format (`tekst`, `adresse.vejnavn/husnr/postnr/postnrnavn/x/y`), så `AddressAutocomplete`, nærhedssøgning og medarbejder-/lageradresser virker uændret.
-  - Koordinater konverteres til WGS84 (lat/lng) via `srid=4326`.
-  - Token holdes kun på serveren; ingen følsom logging.
-- **`useWeatherAlertSettings.ts`**: det direkte kald til `/postnumre/{nr}` flyttes til proxyen.
-- **`useDawaAutocomplete.ts`**: bruger `VITE_SUPABASE_URL` i stedet for hardkodet URL; viser tom tilstand pænt ved fejl.
+- **`dawa-proxy`** omskrives til Datafordelerens adresseregister (DAR) og postnummer-opslag:
+  - Forslag mens man skriver (max 8), adresse→GPS og postnummer→center.
+  - Svarene omformes til det nuværende format (`tekst`, `adresse.vejnavn/husnr/postnr/postnrnavn/x/y`), så adressefeltet, nærhedssøgning og medarbejder-/lageradresser virker uændret.
+  - Koordinater leveres som lat/lng. Ingen følsom logging.
+- **`useWeatherAlertSettings.ts`**: direkte kald til den lukkede tjeneste flyttes til proxyen.
+- **`useDawaAutocomplete.ts`**: bruger projektets Supabase-URL i stedet for hardkodet adresse.
 - CHANGELOG og `docs/implementation-plan/tasks.md` opdateres.
 
 ## Verifikation
-- Kald proxyen med "Vejlevej 1" og et postnummer og bekræft forslag + koordinater.
+- Kald proxyen med en adresse og et postnummer og bekræft forslag + koordinater.
 - Åbn Opret opgave, skriv en adresse, og se forslag.
