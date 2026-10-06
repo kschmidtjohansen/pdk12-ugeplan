@@ -127,7 +127,14 @@ Deno.serve(async (req) => {
     const trimmed = postnr.trim();
     if (!/^\d{4}$/.test(trimmed)) return json({ error: 'Invalid postnr format' }, 400);
     try {
-      const [first] = await searchAddresses(`, ${trimmed} `, 1, 'contains');
+      const tid = lit(now());
+      const pd = await gql(`{ DAR_Postnummer(first: 1, virkningstid: ${tid}, registreringstid: ${tid}, where: { postnr: { eq: ${lit(trimmed)} } }) { nodes { id_lokalId navn } } }`, {});
+      const pn = pd?.DAR_Postnummer?.nodes?.[0];
+      if (!pn) return json({ error: 'Postnr not found' }, 404);
+      const hd = await gql(`{ DAR_Husnummer(first: 1, virkningstid: ${tid}, registreringstid: ${tid}, where: { postnummer: { eq: ${lit(pn.id_lokalId)} }, status: { eq: "3" } }) { nodes { adgangsadressebetegnelse } } }`, {});
+      const txt = hd?.DAR_Husnummer?.nodes?.[0]?.adgangsadressebetegnelse;
+      const [first] = txt ? await searchAddresses(txt, 1) : [];
+      if (first) first.adresse.postnrnavn = pn.navn;
       if (first?.adresse.y == null) return json({ error: 'Postnr not found' }, 404);
       return json({ nr: trimmed, navn: first.adresse.postnrnavn, visueltcenter: [first.adresse.x, first.adresse.y] });
     } catch (e) {
