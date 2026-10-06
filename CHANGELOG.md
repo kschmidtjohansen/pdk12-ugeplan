@@ -1,6 +1,9 @@
 ## 2026-10-06
 - Fix: Adressesøgning virker igen. DAWA er lukket (410 Gone); `dawa-proxy` bruger nu Datafordelerens DAR GraphQL (secret `DATAFORDELER_API_KEY`) til forslag, adresse→GPS og postnummer→center, med samme svarformat som før. Vejrgrænsernes postnummeropslag går nu via proxyen.
 
+## 2026-10-06 – Adressesøgning virker igen via Datafordeleren
+- dawa-proxy bruger DAR v3, henter koordinater via `position { wkt }` og slår postnumre op via DAR_Postnummer.
+
 ## 2026-10-02
 - Fix: Tooltips i ferieoversigten viser nu oversat tekst (fx "Ferie"/"Vacation") i stedet for rå oversættelsesnøgler — `cellLabel`-værdier pakkes med `t()` i cellens Tooltip i `VacationGridOverview.tsx`. Ferie-sektionens label i ugevisningen er samtidig konverteret fra fastkodet "Ferie" til `ui.kindVacation`, så den også oversættes til engelsk.
 
