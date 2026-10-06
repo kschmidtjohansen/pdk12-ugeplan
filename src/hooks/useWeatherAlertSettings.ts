@@ -101,7 +101,9 @@ export const usePostalCodeCoordinates = (postalCodes: string[]) => {
       const results = await Promise.all(
         postalCodes.map(async nr => {
           try {
-            const res = await fetch(`https://api.dataforsyningen.dk/postnumre/${nr}`);
+            const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dawa-proxy?postnr=${nr}`, {
+              headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+            });
             if (!res.ok) return null;
             const j = await res.json();
             const c = j?.visueltcenter;

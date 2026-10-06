@@ -38,7 +38,7 @@ export const useDawaAutocomplete = (query: string) => {
 
       try {
         const res = await fetch(
-          `https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/dawa-proxy?q=${encodeURIComponent(query.trim())}`,
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dawa-proxy?q=${encodeURIComponent(query.trim())}`,
           { signal: abortRef.current.signal }
         );
 

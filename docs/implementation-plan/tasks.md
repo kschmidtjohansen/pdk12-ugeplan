@@ -741,3 +741,4 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Resterende hardkodede danske tekster oversat (forside, biler, opgavefiler, notifikationer, admin, kiosk)
 - [x] `useDateLocale()` indført, så datoer og relative tider følger valgt sprog
 - [x] Nøgleparitet bekræftet: 2188 nøgler i både DA og EN
+- [x] Skift adressesøgning fra DAWA til Datafordeleren (2026-10-06)
