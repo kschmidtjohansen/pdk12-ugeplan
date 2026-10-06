@@ -130,8 +130,8 @@ Deno.serve(async (req) => {
       const [first] = await searchAddresses(`, ${trimmed} `, 1, 'contains');
       if (first?.adresse.y == null) return json({ error: 'Postnr not found' }, 404);
       return json({ nr: trimmed, navn: first.adresse.postnrnavn, visueltcenter: [first.adresse.x, first.adresse.y] });
-    } catch {
-      return json({ error: 'Postnr lookup failed' }, 502);
+    } catch (e) {
+      return json({ error: 'Postnr lookup failed', detail: (e as Error).message }, 502);
     }
   }
 
@@ -142,6 +142,6 @@ Deno.serve(async (req) => {
     return json(await searchAddresses(q, 8));
   } catch (e) {
     console.error('autocomplete failed:', (e as Error).message);
-    return json([], 502);
+    return json({ error: (e as Error).message }, 502);
   }
 });
