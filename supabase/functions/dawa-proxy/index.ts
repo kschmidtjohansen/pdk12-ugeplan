@@ -8,7 +8,7 @@ const corsHeaders = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-const GQL_URL = 'https://graphql.datafordeler.dk/DAR/v1';
+const GQL_URL = 'https://graphql.datafordeler.dk/DAR/v3';
 
 // ETRS89 / UTM zone 32N (EPSG:25832) -> WGS84 lat/lng
 function utm32ToLatLng(E: number, N: number): { lat: number; lng: number } {
@@ -59,40 +59,34 @@ async function gql(query: string, variables: Record<string, unknown>) {
   });
   if (!res.ok) throw new Error(`datafordeler ${res.status}`);
   const body = await res.json();
-  if (body.errors?.length) throw new Error('datafordeler query error');
+  if (body.errors?.length) throw new Error('datafordeler query error: ' + String(body.errors[0]?.message ?? '').slice(0, 200));
   return body.data;
 }
 
 const now = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z');
-
-const HUSNUMMER_QUERY = `
-query ($tid: DafDateTime!, $first: Int!, $where: DAR_HusnummerFilterInput) {
-  DAR_Husnummer(first: $first, virkningstid: $tid, registreringstid: $tid, where: $where) {
-    nodes { id_lokalId adgangsadressebetegnelse adgangspunkt }
-  }
-}`;
-
-const POINT_QUERY = `
-query ($tid: DafDateTime!, $ids: [String]) {
-  DAR_Adressepunkt(first: 50, virkningstid: $tid, registreringstid: $tid, where: { id_lokalId: { in: $ids } }) {
-    nodes { id_lokalId position }
-  }
-}`;
+const lit = (s: string) => JSON.stringify(s);
 
 async function searchAddresses(text: string, limit: number, mode: 'startsWith' | 'contains' = 'startsWith') {
-  const tid = now();
-  const data = await gql(HUSNUMMER_QUERY, {
-    tid, first: limit,
-    where: { adgangsadressebetegnelse: { [mode]: text }, status: { eq: '3' } },
-  });
+  const tid = lit(now());
+  const data = await gql(`{
+    DAR_Husnummer(first: ${limit}, virkningstid: ${tid}, registreringstid: ${tid},
+      where: { adgangsadressebetegnelse: { ${mode}: ${lit(text)} }, status: { eq: "3" } }) {
+      nodes { id_lokalId adgangsadressebetegnelse adgangspunkt }
+    }
+  }`, {});
   const nodes: Array<{ id_lokalId: string; adgangsadressebetegnelse: string; adgangspunkt?: string }> =
     data?.DAR_Husnummer?.nodes ?? [];
   const ids = nodes.map(n => n.adgangspunkt).filter(Boolean) as string[];
   const points = new Map<string, { lat: number; lng: number }>();
   if (ids.length) {
-    const p = await gql(POINT_QUERY, { tid, ids });
+    const p = await gql(`{
+      DAR_Adressepunkt(first: 50, virkningstid: ${tid}, registreringstid: ${tid},
+        where: { id_lokalId: { in: [${ids.map(lit).join(',')}] } }) {
+        nodes { id_lokalId position { wkt } }
+      }
+    }`, {});
     for (const n of p?.DAR_Adressepunkt?.nodes ?? []) {
-      const pt = parsePoint(n.position);
+      const pt = parsePoint(n.position?.wkt ?? n.position);
       if (pt) points.set(n.id_lokalId, pt);
     }
   }
