@@ -66,6 +66,53 @@ async function gql(query: string, variables: Record<string, unknown>) {
 const now = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z');
 const lit = (s: string) => JSON.stringify(s);
 
+async function fetchPoints(ids: string[], tid: string) {
+  const points = new Map<string, { lat: number; lng: number }>();
+  if (!ids.length) return points;
+  const p = await gql(`{
+    DAR_Adressepunkt(first: ${ids.length}, virkningstid: ${tid}, registreringstid: ${tid},
+      where: { id_lokalId: { in: [${ids.map(lit).join(',')}] } }) {
+      nodes { id_lokalId position { wkt } }
+    }
+  }`, {});
+  for (const n of p?.DAR_Adressepunkt?.nodes ?? []) {
+    const pt = parsePoint(n.position?.wkt ?? n.position);
+    if (pt) points.set(n.id_lokalId, pt);
+  }
+  return points;
+}
+
+const norm = (s: string) => s.toLowerCase().replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim();
+const capFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Tolerant search: DAR only supports case-sensitive prefix matching, so we try
+// normalised variants and, for free text like "vejlevej 10 vejle", search on
+// "Vejlevej 10" and filter by the remaining words (postnr/by).
+async function tolerantSearch(raw: string, limit: number) {
+  const clean = raw.replace(/\s+/g, ' ').replace(/\s+,/g, ',').trim();
+  const tried = new Set<string>();
+  const attempt = async (prefix: string, n: number) => {
+    if (!prefix || tried.has(prefix)) return [];
+    tried.add(prefix);
+    return searchAddresses(prefix, n);
+  };
+  let r = await attempt(clean, limit);
+  if (r.length) return r;
+  r = await attempt(capFirst(clean), limit);
+  if (r.length) return r;
+  const m = clean.match(/^(.*?\D)\s*(\d+\s?[A-Za-zÆØÅæøå]?)\b[\s,]*(.*)$/);
+  if (m) {
+    const base = capFirst(`${m[1].trim()} ${m[2].replace(/\s/g, '').toUpperCase()}`);
+    const rest = norm(m[3]).split(' ').filter(w => w.length > 1);
+    const cands = await attempt(base, rest.length ? 100 : limit);
+    const hit = rest.length ? cands.filter(c => rest.every(w => norm(c.tekst).includes(w))) : cands;
+    if (hit.length) return hit.slice(0, limit);
+    // Fall back to unfiltered matches on street + number if the town part didn't match.
+    if (cands.length && rest.length) return cands.slice(0, limit);
+  }
+  return [];
+}
+
 async function searchAddresses(text: string, limit: number, mode: 'startsWith' | 'contains' = 'startsWith') {
   const tid = lit(now());
   const data = await gql(`{
@@ -76,20 +123,7 @@ async function searchAddresses(text: string, limit: number, mode: 'startsWith' |
   }`, {});
   const nodes: Array<{ id_lokalId: string; adgangsadressebetegnelse: string; adgangspunkt?: string }> =
     data?.DAR_Husnummer?.nodes ?? [];
-  const ids = nodes.map(n => n.adgangspunkt).filter(Boolean) as string[];
-  const points = new Map<string, { lat: number; lng: number }>();
-  if (ids.length) {
-    const p = await gql(`{
-      DAR_Adressepunkt(first: 50, virkningstid: ${tid}, registreringstid: ${tid},
-        where: { id_lokalId: { in: [${ids.map(lit).join(',')}] } }) {
-        nodes { id_lokalId position { wkt } }
-      }
-    }`, {});
-    for (const n of p?.DAR_Adressepunkt?.nodes ?? []) {
-      const pt = parsePoint(n.position?.wkt ?? n.position);
-      if (pt) points.set(n.id_lokalId, pt);
-    }
-  }
+  const points = await fetchPoints(nodes.map(n => n.adgangspunkt).filter(Boolean) as string[], tid);
   return nodes.map(n => {
     const pt = n.adgangspunkt ? points.get(n.adgangspunkt) : undefined;
     return {
@@ -113,7 +147,7 @@ Deno.serve(async (req) => {
     const trimmed = address.trim();
     if (trimmed.length < 3 || trimmed.length > 300) return json({ error: 'Invalid address' }, 400);
     try {
-      const [first] = await searchAddresses(trimmed, 1);
+      const [first] = await tolerantSearch(trimmed, 1);
       if (first?.adresse.y == null) return json({ error: 'Address not found' }, 404);
       return json({ lng: first.adresse.x, lat: first.adresse.y });
     } catch {
@@ -131,12 +165,13 @@ Deno.serve(async (req) => {
       const pd = await gql(`{ DAR_Postnummer(first: 1, virkningstid: ${tid}, registreringstid: ${tid}, where: { postnr: { eq: ${lit(trimmed)} } }) { nodes { id_lokalId navn } } }`, {});
       const pn = pd?.DAR_Postnummer?.nodes?.[0];
       if (!pn) return json({ error: 'Postnr not found' }, 404);
-      const hd = await gql(`{ DAR_Husnummer(first: 1, virkningstid: ${tid}, registreringstid: ${tid}, where: { postnummer: { eq: ${lit(pn.id_lokalId)} }, status: { eq: "3" } }) { nodes { adgangsadressebetegnelse } } }`, {});
-      const txt = hd?.DAR_Husnummer?.nodes?.[0]?.adgangsadressebetegnelse;
-      const [first] = txt ? await searchAddresses(txt, 1) : [];
-      if (first) first.adresse.postnrnavn = pn.navn;
-      if (first?.adresse.y == null) return json({ error: 'Postnr not found' }, 404);
-      return json({ nr: trimmed, navn: first.adresse.postnrnavn, visueltcenter: [first.adresse.x, first.adresse.y] });
+      // Centre = median of up to 100 address points in the postcode (robust to outliers).
+      const hd = await gql(`{ DAR_Husnummer(first: 100, virkningstid: ${tid}, registreringstid: ${tid}, where: { postnummer: { eq: ${lit(pn.id_lokalId)} }, status: { eq: "3" } }) { nodes { adgangspunkt } } }`, {});
+      const ids = (hd?.DAR_Husnummer?.nodes ?? []).map((n: { adgangspunkt?: string }) => n.adgangspunkt).filter(Boolean);
+      const pts = [...(await fetchPoints(ids, tid)).values()];
+      if (!pts.length) return json({ error: 'Postnr not found' }, 404);
+      const med = (a: number[]) => { const v = [...a].sort((x, y) => x - y); return v[Math.floor(v.length / 2)]; };
+      return json({ nr: trimmed, navn: pn.navn, visueltcenter: [med(pts.map(p => p.lng)), med(pts.map(p => p.lat))] });
     } catch (e) {
       return json({ error: 'Postnr lookup failed' }, 502);
     }
@@ -146,7 +181,7 @@ Deno.serve(async (req) => {
   const q = url.searchParams.get('q')?.trim();
   if (!q || q.length < 2 || q.length > 200) return json([]);
   try {
-    return json(await searchAddresses(q, 8));
+    return json(await tolerantSearch(q, 8));
   } catch (e) {
     console.error('autocomplete failed:', (e as Error).message);
     return json([], 502);
