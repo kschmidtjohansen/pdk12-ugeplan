@@ -1,6 +1,9 @@
 ## 2026-10-06
 - Fix: Adressesøgning virker igen. DAWA er lukket (410 Gone); `dawa-proxy` bruger nu Datafordelerens DAR GraphQL (secret `DATAFORDELER_API_KEY`) til forslag, adresse→GPS og postnummer→center, med samme svarformat som før. Vejrgrænsernes postnummeropslag går nu via proxyen.
 
+## 2026-10-08 – Bil på to opgaver med samme hold er ikke en konflikt
+- Konfliktmærket og bilvælgeren ignorerer bil-overlap, når holdet er det samme (eller det ene hold er en del af det andet).
+
 ## 2026-10-08 – Tilgivende adressesøgning og postnummer-centrum
 - Adressesøgning tåler små bogstaver, manglende komma og fri tekst (fx "vejlevej 151 kolding"); gælder også gamle opgaver og medarbejderadresser.
 - Postnummer giver nu midtpunktet af op til 100 adresser i postnummeret i stedet for ét tilfældigt hus.

@@ -41,6 +41,15 @@ const getEmployeeIds = (a: Assignment): string[] => {
   return Array.from(new Set(ids));
 };
 
+/** Same crew: both non-empty and one set is contained in the other. */
+export const sameCrew = (a: string[], b: string[]): boolean => {
+  if (!a.length || !b.length) return false;
+  const [small, big] = a.length <= b.length ? [a, new Set(b)] : [b, new Set(a)];
+  return small.every(id => big.has(id));
+};
+
+export { getEmployeeIds as getAssignmentEmployeeIds };
+
 export interface ConflictMaps {
   byAssignment: Map<string, AssignmentConflict[]>;
 }
@@ -98,8 +107,8 @@ export function computeConflicts(
           }
         });
 
-        // Car overlaps
-        getCarIds(b).forEach(cid => {
+        // Car overlaps — skipped when the same crew drives between both tasks
+        if (!sameCrew(aEmps, getEmployeeIds(b))) getCarIds(b).forEach(cid => {
           if (aCars.includes(cid)) {
             const name = carName.get(cid) || 'Bil';
             push(a.id, {
