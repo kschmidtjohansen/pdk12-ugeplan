@@ -152,7 +152,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       }
     }
     return map;
-  }, [cars, selectedDateStrings, assignments, currentAssignmentId, maintenancePeriods]);
+  }, [cars, selectedDateStrings, assignments, currentAssignmentId, maintenancePeriods, selectedEmployeeIds]);
 
   const getConflictDates = (carId: string): string[] => {
     return selectedDateStrings.filter(
