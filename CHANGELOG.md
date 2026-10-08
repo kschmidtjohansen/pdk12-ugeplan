@@ -1,3 +1,6 @@
+## 2026-10-08 – Bil-advarsel på opgavekort respekterer samme hold og tidsoverlap
+- `AssignmentDetails.tsx`: bil-chippens røde advarsel vises nu kun, når bilen reelt overlapper i tid med en anden opgave OG holdet er forskelligt. Samme hold (eller delmængde) på begge opgaver vises som en neutral bil uden advarsel.
+
 ## 2026-10-06
 - Fix: Adressesøgning virker igen. DAWA er lukket (410 Gone); `dawa-proxy` bruger nu Datafordelerens DAR GraphQL (secret `DATAFORDELER_API_KEY`) til forslag, adresse→GPS og postnummer→center, med samme svarformat som før. Vejrgrænsernes postnummeropslag går nu via proxyen.
 

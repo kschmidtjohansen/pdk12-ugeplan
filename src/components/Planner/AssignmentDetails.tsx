@@ -9,6 +9,7 @@ import { filterDisplayNames } from '../../utils/people';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { getRoleBadgeClass, getRoleDotClass } from '@/utils/roleColors';
+import { timesOverlap, sameCrew, getAssignmentEmployeeIds } from '@/utils/assignmentConflicts';
 
 interface AssignmentDetailsProps {
   assignment: Assignment;
@@ -40,16 +41,32 @@ const AssignmentDetails: React.FC<AssignmentDetailsProps> = ({
     return [];
   };
 
-  // Check if a car is shared with other assignments on the same day
+  // Check if a car is shared with other assignments on the same day.
+  // Only counts as shared when times actually overlap AND the crew differs —
+  // the same team driving between two tasks is not a conflict.
+  const normTime = (t?: string) => (t ? t.substring(0, 5) : '');
+  const ownEmployeeIds = getAssignmentEmployeeIds(assignment);
+
   const getCarSharingInfo = (carId: string): { isShared: boolean; otherAssignments: string[] } => {
     if (!assignments.length) return { isShared: false, otherAssignments: [] };
-    
+
     const otherAssignments = assignments.filter(a => {
       if (a.id === assignment.id) return false;
       if (a.date !== assignment.date) return false;
-      
+
       const assignmentCarIds = getCarIds(a);
-      return assignmentCarIds.includes(carId);
+      if (!assignmentCarIds.includes(carId)) return false;
+
+      // No overlap in time → not shared
+      if (!timesOverlap(
+        normTime(assignment.fromTime), normTime(assignment.toTime),
+        normTime(a.fromTime), normTime(a.toTime),
+      )) return false;
+
+      // Same crew (or one crew is a subset of the other) → not a conflict
+      if (sameCrew(ownEmployeeIds, getAssignmentEmployeeIds(a))) return false;
+
+      return true;
     });
     
     return {
