@@ -165,8 +165,8 @@ Deno.serve(async (req) => {
       const pd = await gql(`{ DAR_Postnummer(first: 1, virkningstid: ${tid}, registreringstid: ${tid}, where: { postnr: { eq: ${lit(trimmed)} } }) { nodes { id_lokalId navn } } }`, {});
       const pn = pd?.DAR_Postnummer?.nodes?.[0];
       if (!pn) return json({ error: 'Postnr not found' }, 404);
-      // Centre = median of up to 200 address points in the postcode (robust to outliers).
-      const hd = await gql(`{ DAR_Husnummer(first: 200, virkningstid: ${tid}, registreringstid: ${tid}, where: { postnummer: { eq: ${lit(pn.id_lokalId)} }, status: { eq: "3" } }) { nodes { adgangspunkt } } }`, {});
+      // Centre = median of up to 100 address points in the postcode (robust to outliers).
+      const hd = await gql(`{ DAR_Husnummer(first: 100, virkningstid: ${tid}, registreringstid: ${tid}, where: { postnummer: { eq: ${lit(pn.id_lokalId)} }, status: { eq: "3" } }) { nodes { adgangspunkt } } }`, {});
       const ids = (hd?.DAR_Husnummer?.nodes ?? []).map((n: { adgangspunkt?: string }) => n.adgangspunkt).filter(Boolean);
       const pts = [...(await fetchPoints(ids, tid)).values()];
       if (!pts.length) return json({ error: 'Postnr not found' }, 404);
