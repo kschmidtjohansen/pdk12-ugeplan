@@ -18,6 +18,7 @@ import { X, Car, AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Car as CarType } from '../../types/car';
 import { Assignment } from '../../types/assignment';
+import { sameCrew, getAssignmentEmployeeIds } from '@/utils/assignmentConflicts';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { useCarUnavailability } from '@/hooks/car/useCarUnavailability';
@@ -34,6 +35,7 @@ interface MultipleCarSelectorProps {
   assignments?: Assignment[];
   currentAssignmentId?: string;
   allSelectedDates?: Date[];
+  selectedEmployeeIds?: string[];
 }
 
 type ConflictPayload = {
@@ -50,8 +52,10 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
   currentDate,
   assignments = [],
   currentAssignmentId,
-  allSelectedDates = []
+  allSelectedDates = [],
+  selectedEmployeeIds = []
 }) => {
+  const isSameCrew = (a: Assignment) => sameCrew(selectedEmployeeIds, getAssignmentEmployeeIds(a));
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -104,6 +108,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
 
     return otherAssignments.some(assignment => {
       if (assignment.date !== dateStr) return false;
+      if (isSameCrew(assignment)) return false;
       const carIds = assignment.cars || (assignment.car ? [typeof assignment.car === 'string' ? assignment.car : assignment.car.id] : []);
       return carIds.includes(carId);
     });
@@ -147,7 +152,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
       }
     }
     return map;
-  }, [cars, selectedDateStrings, assignments, currentAssignmentId, maintenancePeriods]);
+  }, [cars, selectedDateStrings, assignments, currentAssignmentId, maintenancePeriods, selectedEmployeeIds]);
 
   const getConflictDates = (carId: string): string[] => {
     return selectedDateStrings.filter(
@@ -201,6 +206,7 @@ const MultipleCarSelector: React.FC<MultipleCarSelectorProps> = ({
         .filter(a => {
           if (a.id === currentAssignmentId) return false;
           if (!conflictDates.includes(a.date)) return false;
+          if (isSameCrew(a)) return false;
           const carIds = a.cars || (a.car ? [typeof a.car === 'string' ? a.car : a.car.id] : []);
           return carIds.includes(car.id);
         })
