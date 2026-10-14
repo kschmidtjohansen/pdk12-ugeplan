@@ -1,3 +1,8 @@
+## 2026-10-14 – Fase 1: Tilgængelighed & touch-targets
+- Ikonknapper i kursusdialogen (rediger/slet) har nu aria-label.
+- Rettet aria-label i notifikationsskuffen, der blev læst op som rå tekst "{t('ui.deleteNotification')}".
+- Trykflader øget til 44x44 px på mobil (kursusdialog, slet notifikation, ugeskift i ferieoversigt, annullér svar i beskeder); slet-knap på notifikationer er nu synlig på touch-enheder og ved tastaturfokus.
+
 ## 2026-10-08 – Bil-advarsel på opgavekort respekterer samme hold og tidsoverlap
 - `AssignmentDetails.tsx`: bil-chippens røde advarsel vises nu kun, når bilen reelt overlapper i tid med en anden opgave OG holdet er forskelligt. Samme hold (eller delmængde) på begge opgaver vises som en neutral bil uden advarsel.
 

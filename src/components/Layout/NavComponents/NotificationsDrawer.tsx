@@ -155,9 +155,9 @@ const NotificationsDrawer: React.FC = () => {
       <Button
         variant="ghost"
         size="icon"
-        className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0"
+        className="h-11 w-11 sm:h-7 sm:w-7 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 shrink-0"
         onClick={(e) => handleDelete(e, n.id)}
-        aria-label="{t('ui.deleteNotification')}"
+        aria-label={t('ui.deleteNotification')}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>

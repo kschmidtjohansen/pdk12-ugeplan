@@ -238,10 +238,10 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(t)}>
+                    <Button size="icon" variant="ghost" className="h-11 w-11 sm:h-8 sm:w-8" onClick={() => startEdit(t)} aria-label={tr("common.edit")}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => removeTraining(t.id)}>
+                    <Button size="icon" variant="ghost" className="h-11 w-11 sm:h-8 sm:w-8 text-destructive hover:text-destructive" onClick={() => removeTraining(t.id)} aria-label={tr("common.delete")}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>

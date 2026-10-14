@@ -742,3 +742,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] `useDateLocale()` indført, så datoer og relative tider følger valgt sprog
 - [x] Nøgleparitet bekræftet: 2188 nøgler i både DA og EN
 - [x] Skift adressesøgning fra DAWA til Datafordeleren (2026-10-06)
+
+## Audit-sprint (2026-10-14)
+- [x] Fase 1: aria-label på ikonknapper + 44px touch-targets på mobil
+- [ ] Fase 2: Fjern `any` i safeRpc/realtimeChannels + Vitest test-script
+- [ ] Fase 3: Opdel AuthContext og UserManagement
+- [ ] Fase 4: Database hardening (43 advarsler) + n8n webhooks

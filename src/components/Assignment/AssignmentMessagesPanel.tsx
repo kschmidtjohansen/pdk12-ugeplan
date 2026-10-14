@@ -255,7 +255,7 @@ const AssignmentMessagesPanel: React.FC<AssignmentMessagesPanelProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-               className="h-7 w-7 flex-shrink-0"
+               className="h-11 w-11 sm:h-7 sm:w-7 flex-shrink-0"
                 onClick={() => setReplyingTo(null)}
                 aria-label={t('common.cancel') || 'Annullér svar'}
               >
