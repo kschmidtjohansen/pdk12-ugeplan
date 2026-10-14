@@ -744,7 +744,7 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Skift adressesøgning fra DAWA til Datafordeleren (2026-10-06)
 
 ## Audit-sprint (2026-10-14)
-- [x] Fase 1: aria-label på ikonknapper + 44px touch-targets på mobil
+- [x] Fase 1: aria-labels, 44px touch-targets, min-h-dvh overalt, alt-tekster og overskriftsniveauer verificeret
 - [ ] Fase 2: Fjern `any` i safeRpc/realtimeChannels + Vitest test-script
 - [ ] Fase 3: Opdel AuthContext og UserManagement
 - [ ] Fase 4: Database hardening (43 advarsler) + n8n webhooks

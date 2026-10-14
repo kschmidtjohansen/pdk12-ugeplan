@@ -2169,3 +2169,8 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 ## 2026-10-03 – Vagter i dag viser navn og telefon på tværs af delte afdelinger
 - Ny databasefunktion get_duty_contacts giver navn/telefon for kolleger i afdelinger med delt vagtplan.
 - TodayGuardsWidget matcher EKSTERN-notater med rigtige profiler; telefon medtages i vagtdata.
+
+## 2026-10-14 – Fase 1 færdig: tilgængelighed og mobilhøjder
+- Alle fuldskærms-layouts bruger nu min-h-dvh i stedet for min-h-screen, så siderne ikke beskæres af mobilbrowserens adresselinje (16 filer: sider, layouts, fejlgrænser).
+- Verificeret: alle billeder har alt-tekster, hver side har præcis én h1-overskrift, og html lang="da" er sat.
+- Tidligere i fasen: aria-labels på ikonknapper (kurser, slet notifikation) og 44×44 px touch-targets på mobil.
