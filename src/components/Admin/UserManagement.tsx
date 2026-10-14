@@ -21,6 +21,10 @@ import UserStatusDialog from './UserStatusDialog';
 import { AdminUser } from './UserTableRow';
 import UserListToolbar, { UserStatusFilter } from './UserListToolbar';
 import UserListPagination from './UserListPagination';
+import {
+  filterUsersByDepartment, searchUsers, sortUsersByName, countRoles, mapProfileToAdminUser, type ProfileRow,
+} from './userManagement/userFilters';
+import { createAdminUserService, type UserUpdates } from './userManagement/adminUserService';
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -65,39 +69,14 @@ const UserManagement: React.FC = () => {
   const isAdmin = authUser?.role === 'administrator' || isSuperAdmin;
   const canSeeUnassigned = isSuperAdmin || isAdmin;
 
-  // Demo user constants
-  const DEMO_USER_EMAIL = 'test@polygongroup.com';
-  const DEMO_USER_ID = '165cdbc9-6722-4c96-97d2-1a87185c8133';
-
   // Filter users by department + hide demo user for non-demo users
-  const filteredUsers = useMemo(() => {
-    if (!users.length) return [];
-    
-    // First: remove demo user from list if current user is NOT the demo user
-    let baseUsers = users;
-    if (!isDemoMode) {
-      baseUsers = users.filter(u => u.email !== DEMO_USER_EMAIL && u.id !== DEMO_USER_ID);
-    }
-    
-    if (departmentFilter === 'unassigned') {
-      const usersWithAccess = new Set(userAccessData.map(ua => ua.user_id));
-      return baseUsers.filter(u => !usersWithAccess.has(u.id));
-    }
-    
-    // If a specific department is selected from the dropdown
-    const filterDeptId = departmentFilter === 'current' ? selectedDepartmentId : departmentFilter;
-    if (!filterDeptId) return baseUsers;
-    const usersInDept = new Set(
-      userAccessData.filter(ua => ua.department_id === filterDeptId).map(ua => ua.user_id)
-    );
-    return baseUsers.filter(u => usersInDept.has(u.id));
-  }, [users, userAccessData, departmentFilter, selectedDepartmentId, isDemoMode]);
+  const filteredUsers = useMemo(
+    () => filterUsersByDepartment(users, userAccessData, departmentFilter, selectedDepartmentId, isDemoMode),
+    [users, userAccessData, departmentFilter, selectedDepartmentId, isDemoMode]
+  );
 
   // Calculate role statistics from filtered users
-  const roleCounts = filteredUsers.reduce((acc, user) => {
-    acc[user.role] = (acc[user.role] || 0) + 1;
-    return acc;
-  }, {} as Record<UserRole, number>);
+  const roleCounts = countRoles(filteredUsers);
   const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
 
   const availableRoles = useMemo(() => {
@@ -112,21 +91,11 @@ const UserManagement: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const isUserActive = (user: AdminUser) => !user.banned_until || new Date(user.banned_until) <= new Date();
-
   // Apply search + role + status filters on top of the department filter
-  const searchedUsers = useMemo(() => {
-    return filteredUsers.filter(u => {
-      if (searchTerm) {
-        const haystack = `${u.name || ''} ${u.email || ''}`.toLowerCase();
-        if (!haystack.includes(searchTerm)) return false;
-      }
-      if (roleFilter.length > 0 && !roleFilter.includes(u.role)) return false;
-      if (statusFilter === 'active' && !isUserActive(u)) return false;
-      if (statusFilter === 'inactive' && isUserActive(u)) return false;
-      return true;
-    });
-  }, [filteredUsers, searchTerm, roleFilter, statusFilter]);
+  const searchedUsers = useMemo(
+    () => searchUsers(filteredUsers, searchTerm, roleFilter, statusFilter),
+    [filteredUsers, searchTerm, roleFilter, statusFilter]
+  );
 
   const paginatedUsers = useMemo(
     () => searchedUsers.slice((page - 1) * pageSize, page * pageSize),
@@ -191,20 +160,7 @@ const UserManagement: React.FC = () => {
         return { users: [], total: 0 };
       }
       
-      const demoUsers: AdminUser[] = data.map((profile: any) => ({
-        id: profile.id,
-        email: profile.email,
-        name: profile.name,
-        phone: profile.phone,
-        jobTitle: profile.job_title,
-        role: profile.role as UserRole,
-        created_at: profile.created_at,
-        updated_at: profile.updated_at,
-        last_sign_in_at: null,
-        banned_until: null,
-        onLeave: profile.on_leave || false,
-        notes: profile.notes
-      }));
+      const demoUsers: AdminUser[] = (data as ProfileRow[]).map(profile => mapProfileToAdminUser(profile));
       
       addDebugInfo(`DEMO: Loaded ${demoUsers.length} demo users`);
       return { users: demoUsers, total: demoUsers.length };
@@ -274,30 +230,11 @@ const UserManagement: React.FC = () => {
       addDebugInfo(`FALLBACK: Got ${profiles?.length || 0} profiles and ${userRoles?.length || 0} role assignments`);
 
       // FIXED: Proper data combination with role mapping
-      const combinedUsers = profiles?.map(profile => {
-        const roleData = userRoles?.find(r => r.user_id === profile.id);
-        const userRole = roleData?.role || 'servicemedarbejder';
-        return {
-          id: profile.id,
-          email: profile.email,
-          name: profile.name,
-          phone: profile.phone,
-          jobTitle: profile.job_title,
-          role: userRole as UserRole,
-          created_at: profile.created_at,
-          updated_at: profile.updated_at,
-          last_sign_in_at: null,
-          banned_until: null,
-          onLeave: profile.on_leave || false,
-          notes: profile.notes
-        };
-      }) || [];
+      const roleByUser = new Map((userRoles || []).map(r => [r.user_id, r.role]));
+      const combinedUsers = profiles.map(profile => mapProfileToAdminUser(profile as ProfileRow, roleByUser.get(profile.id)));
 
       // FIXED: Accurate statistics calculation
-      const roleStatistics = combinedUsers.reduce((acc, user) => {
-        acc[user.role] = (acc[user.role] || 0) + 1;
-        return acc;
-      }, {} as Record<UserRole, number>);
+      const roleStatistics = countRoles(combinedUsers);
       const eligibleCount = (roleStatistics.administrator || 0) + (roleStatistics.skadeleder || 0);
       addDebugInfo(`FALLBACK SUCCESS: Loaded ${combinedUsers.length} users`);
       addDebugInfo(`FALLBACK Role distribution - Admin: ${roleStatistics.administrator || 0}, Skadeleder: ${roleStatistics.skadeleder || 0}, Service: ${roleStatistics.servicemedarbejder || 0}`);
@@ -443,157 +380,12 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Create user with fallback
-  const createUserWithFallback = async (userData: any) => {
-    if (isDemoMode) {
-      throw new Error('Demo mode is read-only. Cannot create users.');
-    }
-    const {
-      data: {
-        session
-      }
-    } = await supabase.auth.getSession();
-    if (!session) throw new Error('No session');
-    addDebugInfo('Attempting to create user...');
-
-    // Try edge function first
-    try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('admin-create-user', {
-        body: userData
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      addDebugInfo('User created via edge function');
-      return data;
-    } catch (err) {
-      addDebugInfo(`Edge function create failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-
-      // Fallback: Manual user creation (this requires admin privileges)
-      throw new Error('User creation via edge function failed. Please try again or contact support.');
-    }
-  };
-  const updateUserWithFallback = async (userId: string, updates: any) => {
-    if (isDemoMode) {
-      throw new Error('Demo mode is read-only. Cannot update users.');
-    }
-    addDebugInfo(`Updating user ${userId}...`);
-    try {
-      // Update profile data
-      const {
-        error: profileError
-      } = await supabase.from('profiles').update({
-        name: updates.name,
-        phone: updates.phone,
-        job_title: updates.jobTitle
-      }).eq('id', userId);
-      if (profileError) throw profileError;
-
-      // Update roles via service-role edge function. Client-side writes to user_roles are blocked by RLS.
-      if (Array.isArray(updates.roles) && updates.roles.length > 0) {
-        const uniqueRoles: UserRole[] = Array.from(new Set(updates.roles as UserRole[]));
-        const { data, error } = await supabase.functions.invoke('admin-user-role', {
-          body: { userId, roles: uniqueRoles }
-        });
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
-      } else if (updates.role) {
-        const { data, error } = await supabase.functions.invoke('admin-user-role', {
-          body: { userId, role: updates.role }
-        });
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
-      }
-      addDebugInfo('User updated successfully');
-      return {
-        success: true
-      };
-    } catch (err) {
-      addDebugInfo(`User update failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      throw err;
-    }
-  };
-  const deleteUserWithFallback = async (userId: string) => {
-    if (isDemoMode) {
-      throw new Error('Demo mode is read-only. Cannot delete users.');
-    }
-    addDebugInfo(`Deleting user ${userId}...`);
-
-    // Try edge function first
-    try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('admin-user-delete', {
-        body: {
-          userId
-        }
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      addDebugInfo('User deleted via edge function');
-      return data;
-    } catch (err) {
-      addDebugInfo(`Edge function delete failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-
-      // Fallback: Manual deletion
-      try {
-        // Delete from profiles first (this will cascade due to foreign keys)
-        const {
-          error: profileError
-        } = await supabase.from('profiles').delete().eq('id', userId);
-        if (profileError) throw profileError;
-        addDebugInfo('User deleted via fallback method');
-        return {
-          success: true
-        };
-      } catch (fallbackErr) {
-        addDebugInfo(`Fallback delete failed: ${fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'}`);
-        throw new Error('User deletion failed. The user may have associated data that prevents deletion.');
-      }
-    }
-  };
-  const toggleUserStatusWithFallback = async (userId: string, active: boolean) => {
-    if (isDemoMode) {
-      throw new Error('Demo mode is read-only. Cannot change user status.');
-    }
-    addDebugInfo(`Toggling user ${userId} status to ${active ? 'active' : 'inactive'}...`);
-
-    // Try edge function first
-    try {
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('admin-user-status', {
-        body: {
-          userId,
-          active
-        }
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      addDebugInfo('User status toggled via edge function');
-      return data;
-    } catch (err) {
-      addDebugInfo(`Edge function status toggle failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      throw new Error('User status toggle failed. This requires admin authentication access.');
-    }
-  };
-
-  // Function to sort users by name
-  const sortUsersByName = (userList: AdminUser[], direction: 'asc' | 'desc'): AdminUser[] => {
-    return [...userList].sort((a, b) => {
-      const nameA = a.name.toLowerCase();
-      const nameB = b.name.toLowerCase();
-      if (direction === 'asc') {
-        return nameA.localeCompare(nameB);
-      } else {
-        return nameB.localeCompare(nameA);
-      }
-    });
-  };
+  // Admin mutations (create/update/delete/status) live in adminUserService
+  const adminUserService = createAdminUserService(isDemoMode, addDebugInfo);
+  const createUserWithFallback = (userData: Record<string, unknown>) => adminUserService.create(userData);
+  const updateUserWithFallback = (userId: string, updates: UserUpdates) => adminUserService.update(userId, updates);
+  const deleteUserWithFallback = (userId: string) => adminUserService.remove(userId);
+  const toggleUserStatusWithFallback = (userId: string, active: boolean) => adminUserService.setStatus(userId, active);
 
   // Toggle sort direction and re-sort users
   const toggleSortDirection = () => {
