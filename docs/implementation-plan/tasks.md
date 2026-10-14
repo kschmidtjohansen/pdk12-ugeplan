@@ -746,5 +746,5 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 ## Audit-sprint (2026-10-14)
 - [x] Fase 1: aria-labels, 44px touch-targets, min-h-dvh overalt, alt-tekster og overskriftsniveauer verificeret
 - [x] Fase 2: Fjern `any` i safeRpc/realtimeChannels + Vitest test-script
-- [ ] Fase 3: Opdel AuthContext og UserManagement
+- [~] Fase 3: Opdel AuthContext (del 1 [x]: permissions + impersonation udtrukket) og UserManagement ([ ] næste)
 - [ ] Fase 4: Database hardening (43 advarsler) + n8n webhooks
