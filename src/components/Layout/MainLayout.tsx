@@ -96,7 +96,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="min-h-screen bg-background" aria-label={loadingText}>
+        <div className="min-h-dvh bg-background" aria-label={loadingText}>
           <ListSkeleton />
         </div>
       </SecurityErrorBoundary>
@@ -109,7 +109,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
       <SecurityErrorBoundary>
         <SecurityHeaders />
-        <div className="min-h-screen bg-background" aria-label="Redirecting to login...">
+        <div className="min-h-dvh bg-background" aria-label="Redirecting to login...">
           <ListSkeleton />
         </div>
       </SecurityErrorBoundary>

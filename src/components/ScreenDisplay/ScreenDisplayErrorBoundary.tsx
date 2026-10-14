@@ -22,7 +22,7 @@ const ScreenDisplayFallback: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
+    <div className="min-h-dvh w-full bg-background flex items-center justify-center px-6">
       <div className="flex flex-col items-center text-center gap-6 max-w-md">
         <img
           src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"

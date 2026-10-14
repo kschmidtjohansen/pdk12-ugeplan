@@ -79,7 +79,7 @@ export class SecurityErrorBoundary extends Component<Props, State> {
       const isSecurityError = this.state.error && this.isSecurityRelatedError(this.state.error);
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
+        <div className="min-h-dvh flex items-center justify-center bg-muted/50 p-4">
           <div className="max-w-md w-full space-y-4">
             <Alert variant={isSecurityError ? "destructive" : "default"}>
               <AlertTriangle className="h-4 w-4" />
