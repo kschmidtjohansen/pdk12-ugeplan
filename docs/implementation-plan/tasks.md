@@ -747,4 +747,4 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Fase 1: aria-labels, 44px touch-targets, min-h-dvh overalt, alt-tekster og overskriftsniveauer verificeret
 - [x] Fase 2: Fjern `any` i safeRpc/realtimeChannels + Vitest test-script
 - [x] Fase 3: Opdel AuthContext (permissions + impersonation) og UserManagement (filtre + adminUserService)
-- [ ] Fase 4: Database hardening (43 advarsler) + n8n webhooks
+- [~] Fase 4: Database hardening [x] (2 reelle huller lukket, resten dokumenteret som nødvendige) + n8n webhooks [ ] (afventer n8n-URL)
