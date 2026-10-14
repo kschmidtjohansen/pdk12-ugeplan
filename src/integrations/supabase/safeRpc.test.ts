@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const rpc = vi.fn();
-const refreshSession = vi.fn().mockResolvedValue({});
+const { rpc, refreshSession } = vi.hoisted(() => ({ rpc: vi.fn(), refreshSession: vi.fn().mockResolvedValue({}) }));
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: { rpc: (...a: unknown[]) => rpc(...a), auth: { getSession: vi.fn().mockResolvedValue({}), refreshSession } },
 }));
