@@ -3,7 +3,7 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 
 const RouteLoadingFallback: React.FC = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <ListSkeleton />
     </div>
   );

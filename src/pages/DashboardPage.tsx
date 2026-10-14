@@ -76,7 +76,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-        <div className="min-h-screen w-full bg-background">
+        <div className="min-h-dvh w-full bg-background">
           <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 space-y-4 sm:space-y-5">
           {/* Demo Dashboard - Only in demo mode */}
           {isDemoMode && <DemoDashboard />}

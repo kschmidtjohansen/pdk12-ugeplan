@@ -30,7 +30,7 @@ const LoginPage = () => {
 
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-background flex items-center justify-center">
+    <div className="relative min-h-dvh w-full overflow-hidden bg-background flex items-center justify-center">
       {/* Baggrund: bløde brand-blå glow-felter + fint dot-grid (tokens i index.css) */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="login-ambient-glow absolute -top-[10%] -left-[10%] w-[45%] h-[45%] rounded-full opacity-30 blur-[120px]" />
