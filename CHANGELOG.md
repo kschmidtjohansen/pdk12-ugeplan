@@ -2180,3 +2180,8 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - `realtimeChannels.ts`: typet `RealtimePayload`, `catch (err: unknown)`.
 - Vitest 3 + `vitest.config.ts` + `src/test/setup.ts`; scripts `test` og `test:watch`.
 - Nye tests: bilkonflikter/samme hold (`assignmentConflicts.test.ts`), telefonvalidering, JWT-refresh. 5 testfiler, alle grønne.
+
+## 2026-10-14 – Fase 3 (del 1): AuthContext opdelt
+- Nye moduler i `src/context/auth/`: `types.ts`, `permissions.ts` (ren `derivePermissions`), `useImpersonation.ts` ("Ager som"-tilstand + cache-rydning).
+- `AuthContext.tsx` 1.064 → 989 linjer; offentligt API (`useAuth`, `usePermissions`, typer) uændret.
+- Nye tests: `permissions.test.ts` (8) — rolleadgang, IT-Support-impersonation, demo-tilstand. 36 tests i alt, alle grønne.
