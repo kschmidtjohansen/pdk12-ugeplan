@@ -8,8 +8,10 @@
  * ref-count hits zero.
  */
 import { supabase } from '@/integrations/supabase/client';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { RealtimeChannelRegistry } from '@/lib/realtimeChannelRegistry';
+
+export type RealtimePayload = RealtimePostgresChangesPayload<Record<string, unknown>>;
 
 type Event = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
