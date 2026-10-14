@@ -13,28 +13,14 @@ import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import BiometricRetryDialog from '@/components/Auth/BiometricRetryDialog';
 import PasskeyEnrollPrompt from '@/components/Auth/PasskeyEnrollPrompt';
 
-// Define user roles
-export type UserRole = 'super_admin' | 'administrator' | 'skadeleder' | 'servicemedarbejder' | 'fugttekniker' | 'vikar';
+import type { UserRole, AppUser, ImpersonationTarget } from './auth/types';
+import { derivePermissions } from './auth/permissions';
+import { useImpersonation } from './auth/useImpersonation';
+
+export type { UserRole, AppUser, ImpersonationTarget };
 
 // Export the User type from supabase for components that need it
 export type { User };
-
-// Define app user type that includes role
-export interface AppUser {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;        // Highest-privilege role (derived from roles[])
-  roles?: UserRole[];    // All assigned roles
-}
-
-export interface ImpersonationTarget {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  roles?: UserRole[];
-}
 
 interface AuthContextType {
   user: AppUser | null;
@@ -138,18 +124,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
 
-  // IT-Support impersonation ("ager som medarbejder"). The Supabase session is
-  // untouched — only the identity the UI renders for changes. Kept in
-  // sessionStorage so it survives navigation but never outlives the tab.
-  const IMPERSONATION_KEY = 'impersonated_user';
-  const [impersonatedUser, setImpersonatedUser] = useState<AppUser | null>(() => {
-    try {
-      const raw = sessionStorage.getItem(IMPERSONATION_KEY);
-      return raw ? (JSON.parse(raw) as AppUser) : null;
-    } catch {
-      return null;
-    }
-  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const manualLogoutRef = useRef(false);
@@ -637,64 +611,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const isAuthenticated = !!session;
 
   // Only IT-Support (super admin) may act as another employee.
-  const canImpersonate = user?.role === 'super_admin';
-  const isImpersonating = !!impersonatedUser && canImpersonate;
-  const effectiveUser: AppUser | null = isImpersonating ? impersonatedUser : user;
-
-  const startImpersonation = useCallback((target: ImpersonationTarget) => {
-    if (user?.role !== 'super_admin' || target.id === user.id) return;
-    const next: AppUser = {
-      id: target.id,
-      name: target.name,
-      email: target.email,
-      role: target.role,
-      roles: target.roles && target.roles.length > 0 ? target.roles : [target.role],
-    };
-    try {
-      sessionStorage.setItem(IMPERSONATION_KEY, JSON.stringify(next));
-    } catch {
-      // ignore storage errors
-    }
-    setImpersonatedUser(next);
-    queryClient.clear();
-    unifiedDataService.clearCache();
-    OptimizedAssignmentService.clearCache();
-    enhancedDataFetching.clearCache();
-  }, [user, queryClient]);
-
-  const stopImpersonation = useCallback(() => {
-    try {
-      sessionStorage.removeItem(IMPERSONATION_KEY);
-    } catch {
-      // ignore storage errors
-    }
-    setImpersonatedUser(null);
-    queryClient.clear();
-    unifiedDataService.clearCache();
-    OptimizedAssignmentService.clearCache();
-    enhancedDataFetching.clearCache();
-  }, [queryClient]);
+  const { canImpersonate, isImpersonating, effectiveUser, startImpersonation, stopImpersonation, resetImpersonation } = useImpersonation(user);
 
   // Permissions based on current user (with demo role override)
   const currentRole = isDemoMode && demoRole ? demoRole : effectiveUser?.role;
-  const isSuperAdmin = currentRole === 'super_admin';
-  const isAdmin = currentRole === 'administrator' || isSuperAdmin;
-  const isSkadeleder = currentRole === 'skadeleder';  
-  const isServicemedarbejder = currentRole === 'servicemedarbejder';
-
-  // Effective role permissions (considering demo mode) - super_admin has all admin rights
-  const isEffectiveAdmin = currentRole === 'administrator' || currentRole === 'super_admin';
-  const isEffectiveSkadeleder = currentRole === 'skadeleder';
-  const isEffectiveServicemedarbejder = currentRole === 'servicemedarbejder';
-
-  // IT-Support (real super_admin) keeps full rights even while impersonating.
-  const realIsSuperAdmin = !isDemoMode && user?.role === 'super_admin';
-  const canViewFuelCardCode = isAdmin || realIsSuperAdmin;
-  const canPublishTasks = isAdmin || isSkadeleder || realIsSuperAdmin;
-  const canApproveVacation = isAdmin || realIsSuperAdmin;
-  const canEdit = isAdmin || isSkadeleder || realIsSuperAdmin;
-  const canCreate = isAdmin || isSkadeleder || realIsSuperAdmin;
-  const canSeeUnpublishedTasks = isAdmin || isSkadeleder || realIsSuperAdmin;
+  const {
+    isAdmin, isSkadeleder, isServicemedarbejder,
+    isEffectiveAdmin, isEffectiveSkadeleder, isEffectiveServicemedarbejder,
+    canViewFuelCardCode, canPublishTasks, canApproveVacation, canEdit, canCreate, canSeeUnpublishedTasks,
+  } = derivePermissions(currentRole, user?.role, isDemoMode);
 
   // Validation methods
   const validateAdminAccess = (): boolean => {
@@ -825,7 +750,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await supabase.auth.signOut();
       setUser(null);
-      setImpersonatedUser(null);
+      resetImpersonation();
       setSession(null);
       setSessionExpired(false);
       
