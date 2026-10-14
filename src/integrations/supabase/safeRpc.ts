@@ -15,8 +15,8 @@ export const isJwtExpiredError = (error: RpcError | null | undefined): boolean =
   return msg.includes('jwt') && (msg.includes('expired') || msg.includes('invalid') || msg.includes('signature'));
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- legacy callers rely on loose default
 // Safe RPC helper that refreshes the JWT and retries once on token expiry
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- legacy callers rely on loose default
 export const rpcWithRefresh = async <T = any>(
   fnName: string,
   args?: Record<string, unknown>,
