@@ -2191,3 +2191,9 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - `adminUserService.ts`: opret/opdater/slet/status-mutationer samlet med fælles demo-guard og edge-function-fejlhåndtering.
 - `UserManagement.tsx` 1.017 → 809 linjer; adfærd uændret.
 - Nye tests: `userFilters.test.ts` (8). 44 tests i alt, alle grønne.
+
+## 2026-10-14 – Fase 4 (del 1): Gennemgang af databaseadvarsler
+- Gennemgået alle 43 linter-fund. 39+3 er SECURITY DEFINER-funktioner, som appen, edge functions eller RLS-politikker bruger; alle har `search_path` sat og intern rolle-/afdelingskontrol, eller de er bevidst offentlige (skærmvisning `list_screen_display_*`).
+- `swap_duty_employees`: manglede adgangskontrol — kræver nu login og `can_manage_duty_department` for begge vagter (eller super_admin).
+- `get_department_absences`: ubrugt og lækkede fravær på tværs af afdelinger — EXECUTE fjernet for anon/authenticated.
+- Automatiseringer: n8n-webhooks afventer brugerens n8n-URL og valg af hændelser.
