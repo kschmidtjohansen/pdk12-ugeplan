@@ -11,7 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { RealtimeChannelRegistry } from '@/lib/realtimeChannelRegistry';
 
-export type RealtimePayload = RealtimePostgresChangesPayload<Record<string, unknown>>;
+/** Postgres change payload; row shape is caller-specific, so rows are loosely typed. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Row = Record<string, any>;
+export type RealtimePayload = Omit<RealtimePostgresChangesPayload<Row>, "new" | "old"> & { new: Row; old: Row };
 
 type Event = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
@@ -87,8 +90,8 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
           table: opts.table,
           ...(opts.filter ? { filter: opts.filter } : {}),
         },
-        (payload: RealtimePayload) => {
-          registry.emit(channelKey, payload);
+        (payload: RealtimePostgresChangesPayload<Row>) => {
+          registry.emit(channelKey, payload as RealtimePayload);
         }
       );
 
