@@ -331,13 +331,13 @@ const ScreenDisplayPage: React.FC = () => {
   let content: React.ReactNode;
   if (loading) {
     content = (
-      <div className="min-h-screen w-full bg-background" aria-label="Loading assignments...">
+      <div className="min-h-dvh w-full bg-background" aria-label="Loading assignments...">
         <ListSkeleton />
       </div>
     );
   } else if (error) {
     content = (
-      <div className="min-h-screen w-full bg-background flex items-center justify-center">
+      <div className="min-h-dvh w-full bg-background flex items-center justify-center">
         <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-semibold text-destructive mb-2">{t('ui.couldNotFetchAssignments')}</h2>
@@ -357,7 +357,7 @@ const ScreenDisplayPage: React.FC = () => {
 
   } else {
     content = (
-      <div className="min-h-screen w-full bg-background">
+      <div className="min-h-dvh w-full bg-background">
         <div className="w-full px-6 py-4 space-y-6">
           {!showAllAssignments && (
             <ScreenDisplayHeader

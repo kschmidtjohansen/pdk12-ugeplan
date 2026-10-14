@@ -748,7 +748,7 @@ const PlannerPage: React.FC = () => {
   
   if (error) {
     return (
-      <div className="min-h-screen w-full bg-background flex items-center justify-center">
+      <div className="min-h-dvh w-full bg-background flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-destructive mb-2">{t('common.error')}</h2>
           <p className="text-muted-foreground">{typeof error === 'string' ? error : t('ui.unexpectedError')}</p>
@@ -759,7 +759,7 @@ const PlannerPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-screen w-full bg-background">
+    <div className="min-h-dvh w-full bg-background">
       <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5 space-y-3 sm:space-y-4">
         {/* Clean Header — Apple/Arc style */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

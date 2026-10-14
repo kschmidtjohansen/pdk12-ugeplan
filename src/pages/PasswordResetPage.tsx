@@ -290,7 +290,7 @@ const PasswordResetPage: React.FC = () => {
   // Show loading state
   if (processingToken) {
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-dvh bg-muted/30">
         <div className="max-w-7xl mx-auto p-6 space-y-6">
           <div className="bg-card rounded-xl border border-border p-8 shadow-sm">
             <div className="flex items-center justify-between">
@@ -331,7 +331,7 @@ const PasswordResetPage: React.FC = () => {
   // If we couldn't find a token, show email-based recovery form
   if (recoveryMode === 'email') {
     return (
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-dvh bg-muted/30">
         <div className="max-w-7xl mx-auto p-6 space-y-6">
           <div className="bg-card rounded-xl border border-border p-8 shadow-sm">
             <div className="flex items-center justify-between">
@@ -415,7 +415,7 @@ const PasswordResetPage: React.FC = () => {
 
   // Show password reset form for token-based flow
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-dvh bg-muted/30">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="bg-card rounded-xl border border-border p-8 shadow-sm">
           <div className="flex items-center justify-between">

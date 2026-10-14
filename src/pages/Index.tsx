@@ -50,7 +50,7 @@ const Index = () => {
   // Show debug info if we're in a redirect loop
   if (showDebugInfo || redirectAttempts >= 3) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-dvh flex items-center justify-center bg-background">
         <div className="max-w-md w-full bg-card rounded-xl border border-border shadow-sm p-6 text-center">
           <div className="text-destructive mb-4">
             <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +96,7 @@ const Index = () => {
   // Wait for auth to be ready before making any routing decisions
   if (!authReady || loading) {
     return (
-      <div className="min-h-screen bg-background" aria-label="Initialiserer godkendelse...">
+      <div className="min-h-dvh bg-background" aria-label="Initialiserer godkendelse...">
         <ListSkeleton />
       </div>
     );

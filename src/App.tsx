@@ -129,7 +129,7 @@ const AppContent = () => {
       : 'Loading application...';
     
     return (
-      <div className="min-h-screen bg-background" aria-label={loadingText}>
+      <div className="min-h-dvh bg-background" aria-label={loadingText}>
         <ListSkeleton />
       </div>
     );
