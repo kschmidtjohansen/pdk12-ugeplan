@@ -694,7 +694,7 @@ const VacationGridOverview: React.FC = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-11 w-11 sm:h-7 sm:w-7"
                   onClick={() => setWeekAnchor((w) => addDays(w, -7))}
                   aria-label={t('ui.previousWeek')}
                 >
@@ -710,7 +710,7 @@ const VacationGridOverview: React.FC = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-11 w-11 sm:h-7 sm:w-7"
                   onClick={() => setWeekAnchor((w) => addDays(w, 7))}
                   aria-label={t('ui.nextWeek')}
                 >
