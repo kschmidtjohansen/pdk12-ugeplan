@@ -8,8 +8,13 @@
  * ref-count hits zero.
  */
 import { supabase } from '@/integrations/supabase/client';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { RealtimeChannelRegistry } from '@/lib/realtimeChannelRegistry';
+
+/** Postgres change payload; row shape is caller-specific, so rows are loosely typed. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Row = Record<string, any>;
+export type RealtimePayload = Omit<RealtimePostgresChangesPayload<Row>, "new" | "old"> & { new: Row; old: Row };
 
 type Event = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
@@ -21,7 +26,7 @@ export interface SubscribeOptions {
   event?: Event;
   /** Optional postgres_changes filter (e.g. "user_id=eq.uuid"). */
   filter?: string;
-  callback: (payload: any) => void;
+  callback: (payload: RealtimePayload) => void;
 }
 
 interface SharedChannel {
@@ -37,7 +42,7 @@ interface SharedChannel {
 }
 
 const channels = new Map<string, SharedChannel>();
-const registry = new RealtimeChannelRegistry<any>();
+const registry = new RealtimeChannelRegistry<RealtimePayload>();
 
 const isDev = import.meta.env.DEV;
 
@@ -85,8 +90,8 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
           table: opts.table,
           ...(opts.filter ? { filter: opts.filter } : {}),
         },
-        (payload: any) => {
-          registry.emit(channelKey, payload);
+        (payload: RealtimePostgresChangesPayload<Row>) => {
+          registry.emit(channelKey, payload as RealtimePayload);
         }
       );
 
@@ -99,9 +104,9 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
           console.warn(`[realtimeChannels] ${status} → ${channelKey}`);
         }
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Never let a realtime subscription failure break rendering/data loading.
-      if (isDev) console.warn(`[realtimeChannels] subscribe failed → ${channelKey}: ${err?.message ?? err}`);
+      if (isDev) console.warn(`[realtimeChannels] subscribe failed → ${channelKey}: ${err instanceof Error ? err.message : String(err)}`);
       try {
         supabase.removeChannel(channel);
       } catch {
@@ -118,8 +123,8 @@ export function subscribeToTable(opts: SubscribeOptions): () => void {
   const registrationId = registry.add(channelKey, opts.key, (payload) => {
     try {
       opts.callback(payload);
-    } catch (err: any) {
-      if (isDev) console.error(`[realtimeChannels] listener error on ${channelKey}:`, err?.message ?? err);
+    } catch (err: unknown) {
+      if (isDev) console.error(`[realtimeChannels] listener error on ${channelKey}:`, err instanceof Error ? err.message : String(err));
     }
   });
 
@@ -143,8 +148,8 @@ function unsubscribeRegistration(key: string, expectedRegistrationId?: number): 
   if (removal.isEmpty) {
     try {
       supabase.removeChannel(shared.channel);
-    } catch (err: any) {
-      if (isDev) console.warn(`[realtimeChannels] removeChannel error: ${err?.message ?? err}`);
+    } catch (err: unknown) {
+      if (isDev) console.warn(`[realtimeChannels] removeChannel error: ${err instanceof Error ? err.message : String(err)}`);
     }
     channels.delete(removal.channelKey);
     if (isDev) console.log(`[realtimeChannels] channel torn down → ${removal.channelKey}`);
@@ -160,7 +165,7 @@ export function subscribeToTables(
     event?: Event;
     filter?: string;
   }>,
-  callback: (table: string, payload: any) => void
+  callback: (table: string, payload: RealtimePayload) => void
 ): () => void {
   const unsubs = tables.map((t) =>
     subscribeToTable({

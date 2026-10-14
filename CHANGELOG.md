@@ -2174,3 +2174,9 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Alle fuldskærms-layouts bruger nu min-h-dvh i stedet for min-h-screen, så siderne ikke beskæres af mobilbrowserens adresselinje (16 filer: sider, layouts, fejlgrænser).
 - Verificeret: alle billeder har alt-tekster, hver side har præcis én h1-overskrift, og html lang="da" er sat.
 - Tidligere i fasen: aria-labels på ikonknapper (kurser, slet notifikation) og 44×44 px touch-targets på mobil.
+
+## 2026-10-14 – Fase 2: Kodekvalitet & automatiske tests
+- `safeRpc.ts`: `any` i fejl/argumenter erstattet med `RpcError`/`unknown`; ny `isJwtExpiredError`.
+- `realtimeChannels.ts`: typet `RealtimePayload`, `catch (err: unknown)`.
+- Vitest 3 + `vitest.config.ts` + `src/test/setup.ts`; scripts `test` og `test:watch`.
+- Nye tests: bilkonflikter/samme hold (`assignmentConflicts.test.ts`), telefonvalidering, JWT-refresh. 5 testfiler, alle grønne.

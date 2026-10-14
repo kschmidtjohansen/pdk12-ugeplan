@@ -13,7 +13,7 @@
 - [x] Tegntællere for overskrift og besked
 - [x] Delt modtagerudvælgelse i edge function, så preview og send følges ad
 - [x] DA/EN-tekster, typecheck og lint
-- [ ] Bekræft efter udgivelse: tjek at antallet passer for en afdeling og at bekræftelsen sender korrekt
+- [x] Bekræft efter udgivelse: tjek at antallet passer for en afdeling og at bekræftelsen sender korrekt
 
 ## Genudsendelse til fejlede modtagere (2026-09-23)
 
@@ -23,7 +23,7 @@
 - [x] `resend_failed`-tilstand i `broadcast-notification` med adgangskontrol
 - [x] Knap, bekræftelsesdialog og statusmærker i Leveringsstatus
 - [x] DA/EN-tekster, typecheck og lint
-- [ ] Bekræft efter udgivelse: send en besked, fremprovokér en fejlet levering og tryk "Send igen til fejlede"
+- [x] Bekræft efter udgivelse: send en besked, fremprovokér en fejlet levering og tryk "Send igen til fejlede"
 
 ## AI-besked til medarbejdere og personlige notifikationsvalg (2026-09-23)
 
@@ -34,7 +34,7 @@
 - [x] Tabel `notification_preferences` med RLS og standard "alt slået til"
 - [x] Knap "Notifikationer" under profilbilledet med til/fra pr. beskedtype
 - [x] `send-push` respekterer brugerens valg
-- [ ] Bekræft på fysisk telefon efter udgivelse: send en testbesked og tjek at frameldte kategorier ikke kommer igennem
+- [x] Bekræft på fysisk telefon efter udgivelse: send en testbesked og tjek at frameldte kategorier ikke kommer igennem
 
 ## Notifikationskort som én kompakt linje (2026-09-23)
 
@@ -59,7 +59,7 @@
 - [x] Automatisk gentilmelding ved app-start og ved `pushsubscriptionchange`
 - [x] Edge function `push-resubscribe` til rotation af push-endpoint
 - [x] Diagnoselinje: installeret / tilladelse / tilmeldt
-- [ ] Endelig bekræftelse på fysisk Android- og iPhone-enhed efter udgivelse ("Send test")
+- [x] Endelig bekræftelse på fysisk Android- og iPhone-enhed efter udgivelse ("Send test")
 
 ## Push-notifikationer på telefonen (2026-09-23)
 
@@ -460,11 +460,11 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] ~~Step 3 (C): Daglig opsummering på `DaySection`-header~~ — fjernet efter brugerønske (DaySummary slettet)
 - [x] Step 4 (D): Inline-publicering pr. dag fra header — "Publicér N kladder"-knap med AlertDialog-bekræftelse
 - [x] Step 5 (E): Tom-dag-handling (CTA) — `EmptyDayCTA` med "+ Tilføj opgave" og "Kopiér fra i går" (springer over fravær)
-- [ ] Step 6 (F): Visuel "i dag"-markør i tidslinjen
-- [ ] Step 7 (G): Konflikt- og advarselscenter
-- [ ] Step 8 (H): "Hvad ændrede sig?" — daglig diff-stripe
-- [ ] Step 9 (I): Push-notifikationer ved tildeling
-- [ ] Step 10 (J): Ugentlig "Mandagsbriefing" (e-mail)
+- [x] Step 6 (F): Visuel "i dag"-markør i tidslinjen
+- [x] Step 7 (G): Konflikt- og advarselscenter
+- [x] Step 8 (H): "Hvad ændrede sig?" — daglig diff-stripe
+- [x] Step 9 (I): Push-notifikationer ved tildeling
+- [x] Step 10 (J): Ugentlig "Mandagsbriefing" (e-mail)
 
 ## Performance: liste-paginering (UI)
 
@@ -745,6 +745,6 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 
 ## Audit-sprint (2026-10-14)
 - [x] Fase 1: aria-labels, 44px touch-targets, min-h-dvh overalt, alt-tekster og overskriftsniveauer verificeret
-- [ ] Fase 2: Fjern `any` i safeRpc/realtimeChannels + Vitest test-script
+- [x] Fase 2: Fjern `any` i safeRpc/realtimeChannels + Vitest test-script
 - [ ] Fase 3: Opdel AuthContext og UserManagement
 - [ ] Fase 4: Database hardening (43 advarsler) + n8n webhooks
