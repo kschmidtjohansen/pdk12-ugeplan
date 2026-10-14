@@ -2185,3 +2185,9 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Nye moduler i `src/context/auth/`: `types.ts`, `permissions.ts` (ren `derivePermissions`), `useImpersonation.ts` ("Ager som"-tilstand + cache-rydning).
 - `AuthContext.tsx` 1.064 → 989 linjer; offentligt API (`useAuth`, `usePermissions`, typer) uændret.
 - Nye tests: `permissions.test.ts` (8) — rolleadgang, IT-Support-impersonation, demo-tilstand. 36 tests i alt, alle grønne.
+
+## 2026-10-14 – Fase 3 (del 2): UserManagement opdelt
+- `src/components/Admin/userManagement/userFilters.ts`: rene funktioner for afdelings-/søge-/rolle-/statusfiltre, sortering, rolletælling og profil-mapping (erstatter `any`-mapping).
+- `adminUserService.ts`: opret/opdater/slet/status-mutationer samlet med fælles demo-guard og edge-function-fejlhåndtering.
+- `UserManagement.tsx` 1.017 → 809 linjer; adfærd uændret.
+- Nye tests: `userFilters.test.ts` (8). 44 tests i alt, alle grønne.
