@@ -12,8 +12,6 @@ interface DataFetchResult<T> {
 
 class UnifiedDataService {
   async fetchEmployees(departmentId?: string, subDepartmentId?: string | null): Promise<DataFetchResult<Employee>> {
-    ;
-    }
 
     try {
       // If sub-department is selected, restrict to users linked via user_access.sub_department_id
@@ -99,8 +97,6 @@ class UnifiedDataService {
     subDepartmentId?: string | null,
     dateRange?: { fromDate?: string; toDate?: string }
   ): Promise<DataFetchResult<Assignment>> {
-        ;
-    }
 
     try {
       let query = supabase
@@ -204,8 +200,6 @@ class UnifiedDataService {
   }
 
   async fetchCars(departmentId?: string, subDepartmentId?: string | null): Promise<DataFetchResult<Car>> {
-    ;
-    }
 
     try {
       // If sub-department is selected, restrict to cars linked via car_sub_departments
