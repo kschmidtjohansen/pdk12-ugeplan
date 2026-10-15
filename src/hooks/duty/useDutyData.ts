@@ -9,6 +9,7 @@ import { useSharedDutyDepartments } from './useSharedDutyDepartments';
 import type { Duty } from '@/types/duty';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
+import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 
 export const useDutyData = (startDate?: Date, endDate?: Date) => {
   const { user, isDemoMode } = useAuth();
@@ -31,14 +32,25 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
         return [];
       }
 
-      const { data, error: fetchError } = await supabase.rpc('get_demo_duties_with_employee' as unknown as 'get_demo_duties_with_employee', {
+      interface DemoDutyRow {
+        id: string;
+        duty_date: string;
+        duty_type: string;
+        employee_id: string | null;
+        notes: string | null;
+        created_by: string | null;
+        created_at: string;
+        updated_at: string;
+        employee?: { id: string; name: string; email: string; avatar_url: string | null } | null;
+      }
+      const { data, error: fetchError } = await rpcWithRefresh<DemoDutyRow[]>('get_demo_duties_with_employee', {
         start_date_param: startDateStr || null,
         end_date_param: endDateStr || null
-      } as never) as unknown as { data: Record<string, unknown>[] | null; error: unknown };
+      });
 
       if (fetchError) throw fetchError;
 
-      return (data || []).map((duty: Record<string, any>) => ({
+      return (data || []).map((duty) => ({
         id: duty.id,
         duty_date: duty.duty_date,
         duty_type: duty.duty_type,
@@ -77,14 +89,14 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
 
-      let dutiesWithProfiles = (data || []).map((duty: any) => ({
+      let dutiesWithProfiles = (data || []).map((duty: Record<string, unknown>) => ({
         ...duty,
         employee: duty.employee || undefined
       }));
 
       if (!isDemoMode) {
-        dutiesWithProfiles = dutiesWithProfiles.filter((duty: any) =>
-          duty.employee_id !== '165cdbc9-6722-4c96-97d2-1a87185c8133'
+        dutiesWithProfiles = dutiesWithProfiles.filter((duty) =>
+          (duty as { employee_id?: string }).employee_id !== '165cdbc9-6722-4c96-97d2-1a87185c8133'
         );
       }
 
