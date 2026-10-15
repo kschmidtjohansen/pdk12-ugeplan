@@ -1,4 +1,10 @@
 ## 2026-10-15 – Sprint Arkitektur & Stabilitet P3: Strammere typer
+
+## 2026-10-15 – Punkt 3 færdig: typer strammet, regressionstests for ugeplanen
+- Eksplicitte `any` reduceret fra 134 til 48 (callback-parametre infereres, `catch` bruger `unknown`, præcise typer for opgaver/profiler/biler/vagter/notifikationsbruger).
+- Nye regressionstests `src/hooks/useOptimizedAssignments.test.tsx` (6): opret, valideringsafvisning, ret, forsinket slet (5 s), Fortryd, rollback ved fejl. I alt 50 tests.
+- Punkt 4: n8n erstattes af gratis Edge Functions + databasetriggere (afventer valg af hændelser).
+
 - Eksplicitte `any` reduceret fra 391 til 139 på tværs af 100 filer (services, hooks, kontekster, komponenter). Supabase-rækker typet via Tables/TablesInsert/TablesUpdate; fejl læses via `.message`.
 - Datagrænser (rå RPC-/join-rækker) castes eksplicit via `unknown` i stedet for `any`.
 - Ingen adfærdsændring. Typecheck OK, 44/44 tests grønne.
