@@ -35,7 +35,7 @@ const fetchPage = async (userId: string, pageIndex: number): Promise<Row[]> => {
     .order('created_at', { ascending: false })
     .range(from, to);
   if (error) throw error;
-  return (data ?? []).map((n: any) => ({
+  return (data ?? []).map((n) => ({
     id: n.id,
     type: n.type,
     title: n.title,

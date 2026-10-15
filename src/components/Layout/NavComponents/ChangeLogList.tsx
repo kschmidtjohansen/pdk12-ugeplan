@@ -116,7 +116,7 @@ const ChangeLogList: React.FC<ChangeLogListProps> = ({ onNavigate, hideHeader = 
     return format(new Date(timestamp), 'HH:mm');
   };
 
-  const handleLogClick = (log: any) => {
+  const handleLogClick = (log) => {
     if (log.assignment_id && log.operation !== 'DELETE') {
       go('/planner');
     }

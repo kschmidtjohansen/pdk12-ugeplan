@@ -7,7 +7,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 
 export const useVacationNotifications = (
   user: any | null,
-  addNotification: (notification: any) => Promise<string | null>
+  addNotification: (notification) => Promise<string | null>
 ) => {
   const { t, currentLanguage } = useTranslation();
   const { selectedDepartmentId } = useDepartment();

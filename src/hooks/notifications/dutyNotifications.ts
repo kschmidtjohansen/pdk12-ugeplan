@@ -5,7 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import type { DutyType } from '@/types/duty';
 
 export const useDutyNotifications = (
-  addNotification: (notification: any) => Promise<string | null>
+  addNotification: (notification) => Promise<string | null>
 ) => {
   const { t, currentLanguage } = useTranslation();
   const locale = currentLanguage === 'da' ? da : enUS;

@@ -24,8 +24,8 @@ export const useAssignmentConflicts = (
     if (!assignments || assignments.length === 0) {
       return new Map<string, AssignmentConflict[]>();
     }
-    const empList = (employees || []).map((e: any) => ({ id: e.id, name: e.name || e.email || '' }));
-    const carList = (cars || []).map((c: any) => ({ id: c.id, name: c.name || '' }));
+    const empList = (employees || []).map((e) => ({ id: e.id, name: e.name || e.email || '' }));
+    const carList = (cars || []).map((c) => ({ id: c.id, name: c.name || '' }));
     return computeConflicts(assignments, empList, carList).byAssignment;
   }, [assignments, employees, cars]);
 

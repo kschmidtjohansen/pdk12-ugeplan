@@ -86,7 +86,7 @@ export default function DutyPage() {
   const dutiesWithRoles = useMemo(() => {
     const normalize = (s: string) => s.toLowerCase().replace(/[^a-zæøå]/g, '');
     const byName = new Map<string, any>();
-    employees.forEach((e: any) => byName.set(normalize(e.name || ''), e));
+    employees.forEach((e) => byName.set(normalize(e.name || ''), e));
 
     return duties.map(duty => {
       let employee: any = duty.employee_id ? employees.find(emp => emp.id === duty.employee_id) : undefined;
@@ -120,7 +120,7 @@ export default function DutyPage() {
     duty => new Date(duty.duty_date) >= todayStart
   );
 
-  const employeesWithRoles = employees.map((emp: any) => ({
+  const employeesWithRoles = employees.map((emp) => ({
     id: emp.id,
     name: emp.name,
     role: emp.role,

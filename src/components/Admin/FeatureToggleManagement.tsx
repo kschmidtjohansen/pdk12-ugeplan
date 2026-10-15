@@ -48,7 +48,7 @@ const FeatureToggleManagement: React.FC = () => {
       if (!data?.setting_value) { setSharedDutyDeptIds([]); return; }
       try {
         const parsed = JSON.parse(data.setting_value);
-        setSharedDutyDeptIds(Array.isArray(parsed) ? parsed.filter((x: any) => typeof x === 'string') : []);
+        setSharedDutyDeptIds(Array.isArray(parsed) ? parsed.filter((x) => typeof x === 'string') : []);
       } catch {
         setSharedDutyDeptIds([]);
       }

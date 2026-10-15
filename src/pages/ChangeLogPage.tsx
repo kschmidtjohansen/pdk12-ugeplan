@@ -176,7 +176,7 @@ const ChangeLogPage: React.FC = () => {
     return true;
   });
 
-  const handleRowClick = (log: any) => {
+  const handleRowClick = (log) => {
     if (log.assignment_id) {
       navigate('/planner');
     }

@@ -76,7 +76,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   };
   
   // Handle approval action - allow admin and skadeleder
-  const handleApprove = (vacation: any) => {
+  const handleApprove = (vacation) => {
     if (!canManageVacations) return;
     
     setCurrentVacation(vacation);
@@ -85,7 +85,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   };
   
   // Handle rejection action - allow admin and skadeleder
-  const handleReject = (vacation: any) => {
+  const handleReject = (vacation) => {
     if (!canManageVacations) return;
     
     setCurrentVacation(vacation);
@@ -108,14 +108,14 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   };
   
   // Handle edit vacation - allow admin and skadeleder
-  const handleEdit = (vacation: any) => {
+  const handleEdit = (vacation) => {
     if (!canManageVacations) return;
     
     handleEditVacation(vacation);
   };
   
   // Handle delete vacation - allow admin and skadeleder
-  const handleDelete = (vacation: any) => {
+  const handleDelete = (vacation) => {
     if (!canManageVacations) return;
     
     handleDeleteVacation(vacation);

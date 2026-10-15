@@ -55,7 +55,7 @@ const WarehousePage = () => {
     { key: 'ikke_noedvendigt', label: t('warehouse.cleanedStatus.ikke_noedvendigt'), count: countFor('ikke_noedvendigt') },
   ];
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data) => {
     if (editingItem) await updateItem(editingItem.id, data);
     else await createItem(data);
   };

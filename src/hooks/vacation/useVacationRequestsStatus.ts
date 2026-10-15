@@ -23,7 +23,7 @@ export const useVacationRequestsStatus = () => {
         if (isDemoMode) {
           const { data, error } = await supabase.rpc('get_demo_vacations');
           if (error) throw error;
-          const count = (data || []).filter((v: any) => v.status === 'pending').length;
+          const count = (data || []).filter((v) => v.status === 'pending').length;
           setPendingCount(count);
           setHasPendingRequests(count > 0);
         } else {

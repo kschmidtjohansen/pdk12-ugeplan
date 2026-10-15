@@ -25,7 +25,7 @@ export interface WarehouseFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingItem: WarehouseItem | null;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data) => Promise<void>;
   loading: boolean;
 }
 

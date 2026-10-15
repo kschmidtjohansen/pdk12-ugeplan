@@ -69,7 +69,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
           .gte('assignment_date', startDate)
           .lte('assignment_date', endDate);
         const merged = [...(p || []), ...(m || [])];
-        const dedup = Array.from(new Map(merged.map((a: any) => [a.id, a])).values());
+        const dedup = Array.from(new Map(merged.map((a) => [a.id, a])).values());
         if (!cancelled) setConflicts(dedup);
       } catch {
         if (!cancelled) setConflicts([]);
@@ -125,7 +125,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
             : t('ui.carMarkedUnavailable', { car: car.name }),
       });
       onOpenChange(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({ title: t('common.error'), description: err?.message || t('ui.couldNotSave'), variant: 'destructive' });
     } finally {
       setSubmitting(false);
@@ -144,7 +144,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
       queryClient.invalidateQueries({ queryKey: ['car-unavailability'] });
       setExisting((prev) => prev.map((p) => (p.id === id ? { ...p, released_at: new Date().toISOString() } : p)));
       toast({ title: t('ui.released'), description: t('ui.carAvailableAgain', { car: car.name }) });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({ title: t('common.error'), description: err?.message || t('common.error'), variant: 'destructive' });
     }
   };

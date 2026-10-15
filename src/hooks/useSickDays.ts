@@ -42,7 +42,7 @@ function useSickForDate(dateStr: string) {
           .eq('sick_date', dateStr);
         if (error) throw error;
         return {
-          ids: new Set<string>((data || []).map((r: any) => r.user_id)),
+          ids: new Set<string>((data || []).map((r) => r.user_id)),
           canSeeReason: true,
         };
       }
@@ -53,7 +53,7 @@ function useSickForDate(dateStr: string) {
       });
       if (error) throw error;
       return {
-        ids: new Set<string>((data || []).map((r: any) => r.user_id)),
+        ids: new Set<string>((data || []).map((r) => r.user_id)),
         canSeeReason: false,
       };
     },

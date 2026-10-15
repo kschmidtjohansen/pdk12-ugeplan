@@ -72,7 +72,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
 
   // Derive most-privileged role across assigned employees for chip color
   const employeeRoles: UserRole[] = (assignment.assignedEmployees || [])
-    .map((emp: any) => {
+    .map((emp) => {
       const id = typeof emp === 'object' ? emp.id : undefined;
       const name = typeof emp === 'object' ? emp.name : emp;
       const full = employees.find(e => (id && e.id === id) || e.name === name);

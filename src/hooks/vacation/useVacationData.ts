@@ -44,13 +44,13 @@ export const useVacationData = () => {
     }
 
     const profileMap = new Map<string, any>();
-    (profileResult.data || []).forEach((p: any) => p?.id && profileMap.set(p.id, p));
+    (profileResult.data || []).forEach((p) => p?.id && profileMap.set(p.id, p));
 
     // Only hit the employees endpoint when some referenced user is missing a profile.
     const missingIds = userIds.filter(id => !profileMap.has(id));
     if (missingIds.length > 0) {
       const employeesResult = await enhancedDataFetching.fetchEmployeesEnhanced(user?.email);
-      (employeesResult.data || []).forEach((e: any) => {
+      (employeesResult.data || []).forEach((e) => {
         if (e?.id && !profileMap.has(e.id)) {
           profileMap.set(e.id, { id: e.id, name: e.name, email: e.email, status: e.status });
         }

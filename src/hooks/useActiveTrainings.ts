@@ -43,7 +43,7 @@ function useTrainingsForDate(dateStr: string) {
       const ids = new Set<string>();
       const info = new Map<string, ActiveTrainingInfo>();
       const rangesByUser = new Map<string, ActiveTrainingRange[]>();
-      (data || []).forEach((t: any) => {
+      (data || []).forEach((t) => {
         ids.add(t.user_id);
         info.set(t.user_id, { title: t.title, end_date: t.end_date });
         rangesByUser.set(t.user_id, [
@@ -112,7 +112,7 @@ export function useActiveTrainingsForRange(startStr: string, endStr: string) {
       const ids = new Set<string>();
       const info = new Map<string, ActiveTrainingInfo>();
       const rangesByUser = new Map<string, ActiveTrainingRange[]>();
-      (data || []).forEach((t: any) => {
+      (data || []).forEach((t) => {
         ids.add(t.user_id);
         info.set(t.user_id, { title: t.title, end_date: t.end_date });
         rangesByUser.set(t.user_id, [

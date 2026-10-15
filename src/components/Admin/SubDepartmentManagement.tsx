@@ -100,7 +100,7 @@ const SubDepartmentManagement: React.FC = () => {
         .select('sub_department_id, car_id')
         .in('sub_department_id', subs.map(s => s.id));
       const counts: Record<string, number> = {};
-      (links || []).forEach((l: any) => {
+      (links || []).forEach((l) => {
         counts[l.sub_department_id] = (counts[l.sub_department_id] || 0) + 1;
       });
       setSubCarCounts(counts);
@@ -173,7 +173,7 @@ const SubDepartmentManagement: React.FC = () => {
       .from('car_sub_departments')
       .select('car_id')
       .eq('sub_department_id', sub.id);
-    setFormCarIds((links || []).map((l: any) => l.car_id));
+    setFormCarIds((links || []).map((l) => l.car_id));
     setDialogOpen(true);
   };
 
