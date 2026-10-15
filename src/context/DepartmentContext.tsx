@@ -104,11 +104,11 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
           setDepartments((data || []).map(d => ({
             id: d.id,
             name: d.name,
-            warehouse_enabled: (d as any).warehouse_enabled ?? true,
-            duty_enabled: (d as any).duty_enabled ?? true,
-            substitute_enabled: (d as any).substitute_enabled ?? true,
-            chat_enabled: (d as any).chat_enabled ?? true,
-            files_enabled: (d as any).files_enabled ?? true,
+            warehouse_enabled: d.warehouse_enabled ?? true,
+            duty_enabled: d.duty_enabled ?? true,
+            substitute_enabled: d.substitute_enabled ?? true,
+            chat_enabled: d.chat_enabled ?? true,
+            files_enabled: d.files_enabled ?? true,
           })));
         }
       } catch (err) {
@@ -152,11 +152,11 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
             const mapped = data.map(d => ({
               id: d.id,
               name: d.name,
-              warehouse_enabled: (d as any).warehouse_enabled ?? true,
-              duty_enabled: (d as any).duty_enabled ?? true,
-              substitute_enabled: (d as any).substitute_enabled ?? true,
-              chat_enabled: (d as any).chat_enabled ?? true,
-              files_enabled: (d as any).files_enabled ?? true,
+              warehouse_enabled: d.warehouse_enabled ?? true,
+              duty_enabled: d.duty_enabled ?? true,
+              substitute_enabled: d.substitute_enabled ?? true,
+              chat_enabled: d.chat_enabled ?? true,
+              files_enabled: d.files_enabled ?? true,
             }));
             setUserDepartments(mapped);
             // Validate stored selection against actual allowed departments.
@@ -184,7 +184,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
             const depts: Department[] = [];
             const seen = new Set<string>();
             for (const row of data) {
-              const dept = row.departments as any;
+              const dept = row.departments as Department | null;
               if (dept && !seen.has(dept.id)) {
                 seen.add(dept.id);
                 depts.push({
