@@ -3,7 +3,7 @@ import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 // DemoUserService removed — demo writes now go to DB with is_demo=true
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 
 interface RawTeamMember {
   id: string;
@@ -37,7 +37,7 @@ interface RawAssignmentRecord {
   date?: string;
 }
 
-type AssignmentWritePayload = Partial<Tables<'assignments'>> & { employees?: string[] };
+type AssignmentWritePayload = { [K in keyof Tables<'assignments'>]?: Tables<'assignments'>[K] | null } & { employees?: string[]; [key: string]: unknown };
 
 export interface OptimizedAssignmentData {
   id: string;
@@ -102,7 +102,7 @@ export class OptimizedAssignmentService {
         id: assignment.responsible_user.id,
         name: assignment.responsible_user.name
       } : null,
-      assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: RawTeamMember) => ({
+      assignment_employees: Array.isArray(assignment.team) ? (assignment.team as unknown as RawTeamMember[]).map((member: RawTeamMember) => ({
         user_id: member.id,
         profiles: { id: member.id, name: member.name || '', email: member.email || '' }
       })) : [],
@@ -386,7 +386,7 @@ export class OptimizedAssignmentService {
                 id: (assignment.responsible_user as unknown as RawTeamMember).id || '',
                 name: (assignment.responsible_user as unknown as RawTeamMember).name || '',
               } : null,
-              assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: RawTeamMember) => ({
+              assignment_employees: Array.isArray(assignment.team) ? (assignment.team as unknown as RawTeamMember[]).map((member: RawTeamMember) => ({
                 user_id: member.id,
                 profiles: { id: member.id, name: member.name || '', email: member.email || '' }
               })) : [],
@@ -564,7 +564,7 @@ export class OptimizedAssignmentService {
           id: (assignment.responsible_user as unknown as RawTeamMember).id || '',
           name: (assignment.responsible_user as unknown as RawTeamMember).name || '',
         } : null,
-        assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: RawTeamMember) => ({
+        assignment_employees: Array.isArray(assignment.team) ? (assignment.team as unknown as RawTeamMember[]).map((member: RawTeamMember) => ({
           user_id: member.id,
           profiles: { id: member.id, name: member.name }
         })) : [],
@@ -592,7 +592,7 @@ export class OptimizedAssignmentService {
 
       const { data, error } = await supabase
         .from('assignments')
-        .insert({ ...demoInsert, is_demo: true })
+        .insert({ ...demoInsert, is_demo: true } as unknown as TablesInsert<'assignments'>)
         .select()
         .single();
 
@@ -624,7 +624,7 @@ export class OptimizedAssignmentService {
       if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Employee IDs:', employeeIds);
     }
 
-    const { data, error } = await supabase.from('assignments').insert(assignmentInsert).select().single();
+    const { data, error } = await supabase.from('assignments').insert(assignmentInsert as unknown as TablesInsert<'assignments'>).select().single();
     if (error) {
       if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error creating assignment:', error);
       throw error;
