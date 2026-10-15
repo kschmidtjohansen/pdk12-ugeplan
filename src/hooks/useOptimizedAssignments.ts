@@ -689,7 +689,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
           setOperationState(id, 'idle');
         }
-      }, t('planner.undo')) as React.ReactElement<typeof ToastAction>,
+      }, t('planner.undo')),
     });
   }, [toast, t, setOperationState, setAssignments, assignments, user]);
 
@@ -783,7 +783,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           clearTimeout(timeoutId);
           setAssignments(prev => [...prev, ...removedAssignments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
         }
-      }, t('planner.undo')) as React.ReactElement<typeof ToastAction>,
+      }, t('planner.undo')),
     });
   }, [toast, t, setAssignments, assignments]);
 

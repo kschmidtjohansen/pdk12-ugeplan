@@ -63,7 +63,7 @@ export const useAssignmentDataOptimized = () => {
         return;
       }
       
-      const transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
+      const transformedAssignments = assignmentsWithEmployees.map(assignment => {
         const teamData = assignment.team || [];
         const assignedEmployees = Array.isArray(teamData) ? teamData.map(member => ({
           id: member.id || '',
@@ -117,7 +117,7 @@ export const useAssignmentDataOptimized = () => {
       // RLS handles data isolation — no local merge needed
       
       if (import.meta.env.DEV) console.log(`[useAssignmentDataOptimized] ENHANCED - Successfully processed ${transformedAssignments.length} assignments`);
-      setAssignments(transformedAssignments);
+      setAssignments(transformedAssignments as unknown as Assignment[]);
       
     } catch (err) {
       if (import.meta.env.DEV) console.error('[useAssignmentDataOptimized] ENHANCED - Error:', err);

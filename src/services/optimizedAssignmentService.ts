@@ -3,7 +3,7 @@ import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 // DemoUserService removed — demo writes now go to DB with is_demo=true
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
-import type { Tables, TablesInsert } from '@/integrations/supabase/types';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 interface RawTeamMember {
   id: string;
@@ -37,7 +37,7 @@ interface RawAssignmentRecord {
   date?: string;
 }
 
-type AssignmentWritePayload = { [K in keyof Tables<'assignments'>]?: Tables<'assignments'>[K] | null } & { employees?: string[]; [key: string]: unknown };
+type AssignmentWritePayload = { employees?: string[]; [key: string]: unknown };
 
 export interface OptimizedAssignmentData {
   id: string;
@@ -698,7 +698,7 @@ export class OptimizedAssignmentService {
       if (import.meta.env.DEV) if (employeeIds !== null) console.log('[OptimizedAssignmentService] Employee IDs to relink:', employeeIds);
     }
 
-    const { data, error } = await supabase.from('assignments').update(updatePayload).eq('id', assignmentId).select().single();
+    const { data, error } = await supabase.from('assignments').update(updatePayload as unknown as TablesUpdate<'assignments'>).eq('id', assignmentId).select().single();
     if (error) {
       if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error updating assignment:', error);
       throw error;
