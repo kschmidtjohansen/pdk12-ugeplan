@@ -254,7 +254,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       .filter(emp => expiredIds.has(emp.id) && !onVacationIds.has(emp.id))
       .map(emp => ({
         ...emp,
-        availabilityInfo: { text: t('employees.lockedReasonExpired') } as ReturnType<typeof getEmployeeAvailabilityStatus>,
+        availabilityInfo: { status: 'onLeave', statusText: t('employees.lockedReasonExpired'), badgeColor: 'bg-destructive-soft text-destructive-soft-foreground border-transparent', badgeVariant: 'error', text: t('employees.lockedReasonExpired') } as ReturnType<typeof getEmployeeAvailabilityStatus>,
       }));
     const expiredOnlyIds = new Set(expiredOnly.map(e => e.id));
     const sickOnly = employees

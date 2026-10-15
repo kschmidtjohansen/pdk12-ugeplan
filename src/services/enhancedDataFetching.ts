@@ -10,6 +10,16 @@ interface DataFetchOptions {
   skipRetryFor?: string[];
 }
 
+export interface AssignmentFetchRow {
+  id: string;
+  [key: string]: unknown;
+}
+
+export interface CarFetchRow {
+  id: string;
+  [key: string]: unknown;
+}
+
 interface FetchResult<T> {
   data: T | null;
   error: unknown;
@@ -386,10 +396,10 @@ export class EnhancedDataFetching {
     const cached = this.getCache(cacheKey);
     
     if (cached) {
-      return { data: cached, error: null, fromCache: true };
+      return { data: cached as AssignmentFetchRow[], error: null, fromCache: true };
     }
 
-    const result = await this.fetchWithEnhancedErrorHandling(async () => {
+    const result = await this.fetchWithEnhancedErrorHandling<AssignmentFetchRow[]>(async () => {
       if (import.meta.env.DEV) console.log('[Enhanced Data Fetching] Starting assignments fetch...', isDemoMode ? 'DEMO MODE' : 'PRODUCTION');
       
       if (isDemoMode) {
@@ -439,7 +449,7 @@ export class EnhancedDataFetching {
           };
         });
         
-        return { data: transformedData, error: null };
+        return { data: transformedData as unknown as AssignmentFetchRow[], error: null };
       }
       
       // Production: use RPC
@@ -460,7 +470,7 @@ export class EnhancedDataFetching {
 
       if (import.meta.env.DEV) console.log('[Enhanced Data Fetching] Raw assignments data:', data?.length || 0);
       
-      return { data, error: null };
+      return { data: data as unknown as AssignmentFetchRow[], error: null };
     }, 'fetchAssignmentsEnhanced', {
       retries: 4,
       timeout: 15000,
@@ -541,10 +551,10 @@ export class EnhancedDataFetching {
     const cached = this.getCache(cacheKey);
     
     if (cached) {
-      return { data: cached, error: null, fromCache: true };
+      return { data: cached as CarFetchRow[], error: null, fromCache: true };
     }
 
-    const result = await this.fetchWithEnhancedErrorHandling(async () => {
+    const result = await this.fetchWithEnhancedErrorHandling<CarFetchRow[]>(async () => {
       if (isDemoMode) {
         // Use demo RPC for secure data access
         const { data, error } = await rpcWithRefresh('get_demo_cars_with_security');
@@ -558,7 +568,7 @@ export class EnhancedDataFetching {
 
         // Filter out cars hidden from planner to match UI expectations
         const filteredDemoCars = ((data || []) as { show_in_planner?: boolean }[]).filter((c) => c.show_in_planner !== false);
-        return { data: filteredDemoCars, error: null };
+        return { data: filteredDemoCars as unknown as CarFetchRow[], error: null };
       } else {
         // Production: Use direct table access
         const client = getSchemaClient(false);
@@ -577,7 +587,7 @@ export class EnhancedDataFetching {
           });
         }
         
-        return { data, error: null };
+        return { data: data as unknown as CarFetchRow[], error: null };
       }
     }, 'fetchCarsEnhanced', {
       retries: 3,

@@ -35,6 +35,7 @@ export interface EmployeeAvailabilityInfo {
   badgeVariant: EmployeeAvailabilityBadgeVariant;
   availableAt?: string;
   bookedMinutes?: number;
+  text?: string;
 }
 
 export interface EmployeeVacationInfo {
