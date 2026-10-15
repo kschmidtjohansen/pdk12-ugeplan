@@ -748,3 +748,9 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Fase 2: Fjern `any` i safeRpc/realtimeChannels + Vitest test-script
 - [x] Fase 3: Opdel AuthContext (permissions + impersonation) og UserManagement (filtre + adminUserService)
 - [~] Fase 4: Database hardening [x] (2 reelle huller lukket, resten dokumenteret som nødvendige) + n8n webhooks [ ] (afventer n8n-URL)
+
+## Sprint: Arkitektur & Stabilitet (2026-10-15)
+- [x] P1: Udfas dobbeltcaching i Ugeplanen (kun TanStack Query)
+- [ ] P2: Split PlannerPage.tsx og EmployeeFormDialog.tsx (<300 linjer pr. del)
+- [ ] P3: Reducer `any` fra 429 til under 50
+- [ ] P4: Webhook-dispatcher til n8n (afventer n8n-URL)
