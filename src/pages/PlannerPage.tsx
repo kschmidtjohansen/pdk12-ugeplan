@@ -1,7 +1,7 @@
-import React, { useCallback, useState, useEffect, useMemo, useRef, Suspense, lazy } from 'react';
+import React, { useCallback, useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '../context/TranslationContext';
-import { useOptimizedAssignments, fetchAssignmentsForQuery } from '../hooks/useOptimizedAssignments';
+import { useOptimizedAssignments } from '../hooks/useOptimizedAssignments';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { Assignment } from '../types/assignment';
@@ -12,15 +12,16 @@ import { useAuth } from '../context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import PlannerContent from '../components/Planner/PlannerContent';
+import PlannerHeader from '@/components/Planner/page/PlannerHeader';
+import PlannerBulkActions from '@/components/Planner/page/PlannerBulkActions';
+import { useAdjacentWeekPrefetch } from '@/hooks/planner/useAdjacentWeekPrefetch';
+import { useCopyDayFromYesterday } from '@/hooks/planner/useCopyDayFromYesterday';
 const PlannerDialogContainer = lazy(() => import('../components/Planner/PlannerDialogContainer'));
 const SeriesActionDialog = lazy(() => import('../components/Planner/SeriesActionDialog'));
-import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, CalendarDays } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { usePermissions } from '@/context/AuthContext';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import { getISOWeek, getISOWeekYear, addWeeks, format } from 'date-fns';
 import { getWeekDates, getAllWeekDays } from '@/utils/dates';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import SubDepartmentQuickSwitcher from '@/components/shared/SubDepartmentQuickSwitcher';
 import PlannerFilterBar from '@/components/Planner/PlannerFilterBar';
 import { PlannerActionsProvider } from '@/context/PlannerActionsContext';
@@ -28,19 +29,10 @@ import { toast as sonnerToast } from 'sonner';
 
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
-import BulkActionBar from '@/components/Planner/BulkActionBar';
 const BulkAssignEmployeeDialog = lazy(() => import('@/components/Planner/BulkAssignEmployeeDialog'));
 const BulkAssignCarDialog = lazy(() => import('@/components/Planner/BulkAssignCarDialog'));
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+
+
 
 const PlannerPage: React.FC = () => {
   const {
