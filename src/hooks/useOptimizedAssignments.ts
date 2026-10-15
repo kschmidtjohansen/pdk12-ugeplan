@@ -1,3 +1,4 @@
+import type { ToastActionElement } from '@/components/ui/toast';
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -689,7 +690,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
           setOperationState(id, 'idle');
         }
-      }, t('planner.undo')),
+      }, t('planner.undo')) as unknown as ToastActionElement,
     });
   }, [toast, t, setOperationState, setAssignments, assignments, user]);
 
@@ -783,7 +784,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           clearTimeout(timeoutId);
           setAssignments(prev => [...prev, ...removedAssignments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
         }
-      }, t('planner.undo')),
+      }, t('planner.undo')) as unknown as ToastActionElement,
     });
   }, [toast, t, setAssignments, assignments]);
 

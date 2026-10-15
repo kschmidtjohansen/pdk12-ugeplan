@@ -129,7 +129,7 @@ class EnhancedUnifiedDataService {
         };
       });
 
-      return { data: assignments, error: null, fromCache: result.fromCache || false, healthCheck: true };
+      return { data: assignments as unknown as Assignment[], error: null, fromCache: result.fromCache || false, healthCheck: true };
     } catch (error) {
       if (import.meta.env.DEV) console.error('[EnhancedUnifiedDataService] Assignment fetch error:', error);
       
