@@ -55,73 +55,14 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [phoneError, setPhoneError] = useState('');
-  const [creationMethod, setCreationMethod] = useState<'attempting' | 'edge-function' | 'direct-database' | 'failed'>('attempting');
-  const [convertToPermanent, setConvertToPermanent] = useState(false);
-  const [subDepartments, setSubDepartments] = useState<{ id: string; name: string }[]>([]);
+  const [creationMethod, setCreationMethod] = useState<CreationMethod>('attempting');
   const [showOnLeaveConfirm, setShowOnLeaveConfirm] = useState(false);
-  const [emailCheck, setEmailCheck] = useState<{
-    state: 'idle' | 'checking' | 'done' | 'error';
-    status?: 'available' | 'active' | 'inactive' | 'auth_only';
-    name?: string;
-    profileStatus?: string;
-  }>({ state: 'idle' });
-  const emailCacheRef = React.useRef<Map<string, any>>(new Map());
-
-  const emailStatusLabel = (profileStatus?: string) => {
-    switch (profileStatus) {
-      case 'on_leave': return t('employees.emailStatusOnLeave');
-      case 'terminated': return t('employees.emailStatusTerminated');
-      case 'inactive': return t('employees.emailStatusInactive');
-      default: return t('employees.emailStatusActive');
-    }
-  };
-
-  // Check the email address when the field is left (new employees only)
-  const runEmailCheck = async () => {
-    if (currentEmployee) return;
-    const email = (formData.email || '').trim().toLowerCase();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-      setEmailCheck({ state: 'idle' });
-      return;
-    }
-    const cached = emailCacheRef.current.get(email);
-    if (cached) {
-      setEmailCheck({ state: 'done', ...cached });
-      return;
-    }
-    setEmailCheck({ state: 'checking' });
-    try {
-      const { data, error } = await supabase.functions.invoke('check-user-email', {
-        body: { email },
-      });
-      if (error || !data?.status) {
-        setEmailCheck({ state: 'error' });
-        return;
-      }
-      const result = { status: data.status, name: data.name, profileStatus: data.profileStatus };
-      emailCacheRef.current.set(email, result);
-      setEmailCheck({ state: 'done', ...result });
-    } catch {
-      setEmailCheck({ state: 'error' });
-    }
-  };
-
+  const [convertToPermanent, setConvertToPermanent] = useState(false);
+  const { emailCheck, setEmailCheck, runEmailCheck, emailStatusLabel } = useEmailCheck(currentEmployee, formData.email);
 
   // Check if we're editing a temporary employee
   const isEditingVikar = creationType === 'edit' && currentEmployee?.is_temporary === true;
 
-  // Load sub-departments for current main department
-  useEffect(() => {
-    if (!selectedDepartmentId) { setSubDepartments([]); return; }
-    (async () => {
-      const { data } = await supabase
-        .from('sub_departments')
-        .select('id, name')
-        .eq('department_id', selectedDepartmentId)
-        .order('name');
-      setSubDepartments((data as any[]) || []);
-    })();
-  }, [selectedDepartmentId]);
 
   // Load existing sub_department_id for the employee being edited
   useEffect(() => {
@@ -256,41 +197,6 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
       setIsSubmitting(false);
     }
   };
-  const getConnectionStatus = () => {
-    if (!isSubmitting) return null;
-    switch (creationMethod) {
-      case 'attempting':
-        return <Alert className="mb-4">
-            <Wifi className="h-4 w-4" />
-            <AlertDescription>
-              {t('employees.creatingUserDescription')}
-            </AlertDescription>
-          </Alert>;
-      case 'edge-function':
-        return <Alert className="mb-4">
-            <Wifi className="h-4 w-4" />
-            <AlertDescription>
-              {t('employees.userCreatedSuccessfully')}
-            </AlertDescription>
-          </Alert>;
-      case 'direct-database':
-        return <Alert className="mb-4">
-            <WifiOff className="h-4 w-4" />
-            <AlertDescription>
-              {t('employees.userCreatedFallback')}
-            </AlertDescription>
-          </Alert>;
-      case 'failed':
-        return <Alert variant="destructive" className="mb-4">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              {t('employees.userCreationFailed')}
-            </AlertDescription>
-          </Alert>;
-      default:
-        return null;
-    }
-  };
   return <>
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
@@ -306,7 +212,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
       
       <form onSubmit={handleFormSubmit} className="space-y-4 pt-4">
         <div className="grid gap-4">
-          {getConnectionStatus()}
+          <ConnectionStatus isSubmitting={isSubmitting} creationMethod={creationMethod} />
           
           {errorMessage && <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
@@ -327,47 +233,7 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
             <Input id="name" name="name" value={formData.name} onChange={handleInputChange} required disabled={isSubmitting} />
           </div>
           
-          <div className="grid gap-2">
-            <Label htmlFor="email">
-              {formData.is_temporary && !convertToPermanent ? t('employees.emailOptional') : t("employees.email")}
-            </Label>
-            <Input 
-              id="email" 
-              name="email" 
-              type="email" 
-              value={formData.email} 
-              onChange={(e) => { handleInputChange(e); setEmailCheck({ state: 'idle' }); }} 
-              onBlur={runEmailCheck}
-              required={!formData.is_temporary || convertToPermanent} 
-              disabled={isSubmitting || (!!currentEmployee && !isEditingVikar)} 
-              placeholder={formData.is_temporary && !convertToPermanent ? "vikar@firma.dk (valgfri)" : "medarbejder@firma.dk"} 
-            />
-            {!currentEmployee && emailCheck.state === 'checking' && (
-              <p className="text-xs text-muted-foreground">{t('employees.emailChecking')}</p>
-            )}
-            {!currentEmployee && emailCheck.state === 'error' && (
-              <p className="text-xs text-muted-foreground">{t('employees.emailCheckFailed')}</p>
-            )}
-            {!currentEmployee && emailCheck.state === 'done' && emailCheck.status === 'available' && (
-              <p className="text-xs text-success-soft-foreground">{t('employees.emailAvailable')}</p>
-            )}
-            {!currentEmployee && emailCheck.state === 'done' && emailCheck.status === 'active' && (
-              <p className="text-xs text-destructive">
-                {t('employees.emailTakenActive', { name: emailCheck.name || formData.email })}
-              </p>
-            )}
-            {!currentEmployee && emailCheck.state === 'done' && emailCheck.status === 'inactive' && (
-              <p className="text-xs text-destructive">
-                {t('employees.emailTakenInactive', {
-                  name: emailCheck.name || formData.email,
-                  status: emailStatusLabel(emailCheck.profileStatus),
-                })}
-              </p>
-            )}
-            {!currentEmployee && emailCheck.state === 'done' && emailCheck.status === 'auth_only' && (
-              <p className="text-xs text-destructive">{t('employees.emailAuthOnly')}</p>
-            )}
-          </div>
+          <EmailField formData={formData} handleInputChange={handleInputChange} currentEmployee={currentEmployee} isEditingVikar={isEditingVikar} convertToPermanent={convertToPermanent} isSubmitting={isSubmitting} emailCheck={emailCheck} setEmailCheck={setEmailCheck} runEmailCheck={runEmailCheck} emailStatusLabel={emailStatusLabel} />
 
           
           {!currentEmployee && !formData.is_temporary && <div className="grid gap-2">
@@ -421,300 +287,20 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
           )}
 
           {/* Certificates Section */}
-          <div className="space-y-4 pt-4 border-t">
-            <Label className="text-sm font-semibold">
-              {t('employees.certificatesSection')}
-            </Label>
-            <div className="space-y-3 pl-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="has_asbestos_certificate" 
-                  checked={formData.has_asbestos_certificate} 
-                  onCheckedChange={checked => onCheckboxChange('has_asbestos_certificate', checked as boolean)} 
-                  disabled={isSubmitting} 
-                />
-                <Label htmlFor="has_asbestos_certificate" className="text-sm font-normal cursor-pointer">
-                  {t('employees.hasAsbestosCertificate')}
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="has_pcb_certificate" 
-                  checked={formData.has_pcb_certificate} 
-                  onCheckedChange={checked => onCheckboxChange('has_pcb_certificate', checked as boolean)} 
-                  disabled={isSubmitting} 
-                />
-                <Label htmlFor="has_pcb_certificate" className="text-sm font-normal cursor-pointer">
-                  {t('employees.hasPcbCertificate')}
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="has_trailer_license" 
-                  checked={formData.has_trailer_license} 
-                  onCheckedChange={checked => onCheckboxChange('has_trailer_license', checked as boolean)} 
-                  disabled={isSubmitting} 
-                />
-                <Label htmlFor="has_trailer_license" className="text-sm font-normal cursor-pointer">
-                  {t('employees.hasTrailerLicense')}
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="has_forklift_license" 
-                  checked={formData.has_forklift_license} 
-                  onCheckedChange={checked => onCheckboxChange('has_forklift_license', checked as boolean)} 
-                  disabled={isSubmitting} 
-                />
-                <Label htmlFor="has_forklift_license" className="text-sm font-normal cursor-pointer">
-                  {t('employees.hasForkliftLicense')}
-                </Label>
-              </div>
-            </div>
-          </div>
+          <CertificatesSection formData={formData} onCheckboxChange={onCheckboxChange} isSubmitting={isSubmitting} />
           
           {isAdmin && <>
               {/* Vikar conversion section - only show when editing a vikar */}
               {isEditingVikar && (
-                <div className="space-y-3 p-3 bg-warning-soft border border-warning/30 rounded-md">
-                  <div className="flex items-start space-x-2">
-                    <UserCheck className="h-4 w-4 mt-0.5 text-warning" />
-                    <div className="space-y-1 flex-1">
-                      <p className="text-sm font-medium text-warning-soft-foreground">
-                        {t('employees.currentlyVikar')}
-                      </p>
-                      {currentEmployee?.expires_at && !convertToPermanent && (
-                        <p className="text-xs text-warning">
-                          {t('employees.vikarExpiresInfo', { 
-                            date: format(new Date(currentEmployee.expires_at), 'd. MMMM yyyy', { locale: dateLocale })
-                          })}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {!convertToPermanent && (() => {
-                    // Extension always counts from the latest of: current expiry or today
-                    const currentExpiryDate = currentEmployee?.expires_at ? new Date(currentEmployee.expires_at) : null;
-                    const today = startOfToday();
-                    const baseDate = currentExpiryDate && currentExpiryDate > today ? currentExpiryDate : today;
-                    const minDate = format(baseDate, 'yyyy-MM-dd');
-                    return (
-                    <div className="pt-2 border-t border-warning/30 space-y-2">
-                      <Label htmlFor="edit_expires_at" className="text-sm font-medium text-warning-soft-foreground">
-                        {t('employees.newExpirationDate')}
-                      </Label>
-                      <Button
-                        type="button"
-                        variant="default"
-                        size="sm"
-                        className="w-full h-8 text-sm"
-                        disabled={isSubmitting}
-                        onClick={() => handleInputChange({
-                          target: { name: 'expires_at', value: format(addMonths(baseDate, 1), 'yyyy-MM-dd') }
-                        } as any)}
-                      >
-                        <CalendarPlus className="h-4 w-4 mr-1.5" />
-                        {t('employees.extendEmployment')}
-                      </Button>
-                      <Input
-                        id="edit_expires_at"
-                        name="expires_at"
-                        type="date"
-                        value={formData.expires_at}
-                        onChange={handleInputChange}
-                        min={minDate}
-                        disabled={isSubmitting}
-                      />
-                      <div className="flex flex-wrap gap-1.5">
-                        {[
-                          { label: t('employees.extend1Week'), date: addWeeks(baseDate, 1) },
-                          { label: t('employees.extend2Weeks'), date: addWeeks(baseDate, 2) },
-                          { label: t('employees.extend1Month'), date: addMonths(baseDate, 1) },
-                          { label: t('employees.extend3Months'), date: addMonths(baseDate, 3) },
-                        ].map(opt => (
-                          <Button
-                            key={opt.label}
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-7 px-2 text-xs"
-                            disabled={isSubmitting}
-                            onClick={() => handleInputChange({
-                              target: { name: 'expires_at', value: format(opt.date, 'yyyy-MM-dd') }
-                            } as any)}
-                          >
-                            {opt.label}
-                          </Button>
-                        ))}
-                      </div>
-                      {formData.expires_at && currentEmployee?.expires_at && formData.expires_at !== new Date(currentEmployee.expires_at).toISOString().split('T')[0] && (
-                        <p className="text-xs text-warning">
-                          {t('employees.newExpiryPreview', {
-                            date: format(new Date(formData.expires_at), 'd. MMMM yyyy', { locale: dateLocale })
-                          })}
-                        </p>
-                      )}
-                    </div>
-                    );
-                  })()}
-                  <div className="flex items-center space-x-2 pt-2 border-t border-warning/30">
-                    <Checkbox 
-                      id="convertToPermanent" 
-                      checked={convertToPermanent} 
-                      onCheckedChange={(checked) => setConvertToPermanent(checked as boolean)} 
-                      disabled={isSubmitting} 
-                    />
-                    <Label htmlFor="convertToPermanent" className="text-sm font-medium cursor-pointer">
-                      {t('employees.convertToPermanent')}
-                    </Label>
-                  </div>
-                  {convertToPermanent && (
-                    <p className="text-xs text-warning pl-6">
-                      {t('employees.convertToPermanentNote')}
-                    </p>
-                  )}
-                </div>
+                <VikarConversionSection currentEmployee={currentEmployee} formData={formData} handleInputChange={handleInputChange} convertToPermanent={convertToPermanent} setConvertToPermanent={setConvertToPermanent} isSubmitting={isSubmitting} />
               )}
 
               {/* Temporary user checkbox - only show when creating vikar, not when editing */}
-              {creationType === 'vikar' && <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="is_temporary" checked={formData.is_temporary} onCheckedChange={checked => {
-                onCheckboxChange('is_temporary', checked as boolean);
-                // Auto-set expiration date to 30 days from now for new temporary users
-                if (checked && !formData.expires_at) {
-                  const expirationDate = new Date();
-                  expirationDate.setDate(expirationDate.getDate() + 30);
-                  handleInputChange({
-                    target: {
-                      name: 'expires_at',
-                      value: expirationDate.toISOString().split('T')[0]
-                    }
-                  } as any);
-                }
-                // Auto-set role to vikar for temporary users
-                if (checked) {
-                  handleSelectChange('vikar');
-                }
-              }} disabled={isSubmitting} />
-                  <Label htmlFor="is_temporary" className="text-sm font-medium">
-                    {t('employees.isTemporary')}
-                  </Label>
-                </div>
-                
-                {formData.is_temporary && <div className="bg-muted p-3 rounded-md space-y-2">
-                    <div className="flex items-start space-x-2">
-                      <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                      <div className="space-y-2 flex-1">
-                        <Label htmlFor="expires_at">{t('employees.expirationDate')}</Label>
-                        <Input 
-                          id="expires_at" 
-                          name="expires_at" 
-                          type="date" 
-                          value={formData.expires_at} 
-                          onChange={(e) => {
-                            handleInputChange(e);
-                            // Validate expiration date
-                            const selectedDate = new Date(e.target.value);
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            const sixMonthsFromNow = new Date(today);
-                            sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-                            
-                            if (selectedDate < today) {
-                              setErrorMessage(t('employees.expirationMustBeFuture'));
-                            } else if (selectedDate > sixMonthsFromNow) {
-                              setErrorMessage('');
-                              // Just a warning, don't prevent submission
-                            } else {
-                              setErrorMessage('');
-                            }
-                          }}
-                          required={formData.is_temporary} 
-                          min={new Date().toISOString().split('T')[0]} 
-                          disabled={isSubmitting} 
-                        />
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t('employees.temporaryUserNote')}
-                    </p>
-                    {formData.expires_at && (() => {
-                      const selectedDate = new Date(formData.expires_at);
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      const sixMonthsFromNow = new Date(today);
-                      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-                      
-                      if (selectedDate > sixMonthsFromNow) {
-                        return (
-                          <Alert className="py-2">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertDescription className="text-xs">
-                              {t('employees.expirationFarFuture')}
-                            </AlertDescription>
-                          </Alert>
-                        );
-                      }
-                      return null;
-                    })()}
-                  </div>}
-              </div>}
+              {creationType === 'vikar' && (
+                <NewVikarSection formData={formData} handleInputChange={handleInputChange} handleSelectChange={handleSelectChange} onCheckboxChange={onCheckboxChange} setErrorMessage={setErrorMessage} isSubmitting={isSubmitting} />
+              )}
 
-              <div className="grid gap-2">
-                <Label>{t("employees.role")}</Label>
-                {formData.is_temporary && !convertToPermanent ? (
-                  <p className="text-xs text-muted-foreground">
-                    {t('employees.vikarAutoRole')}
-                  </p>
-                ) : (
-                  <div className="space-y-2 rounded-md border p-3">
-                    <p className="text-xs text-muted-foreground">
-                      Vælg én eller flere roller. Rollen med flest rettigheder bestemmer adgangen.
-                    </p>
-                    {(() => {
-                      const allRoles: { value: string; label: string }[] = [
-                        ...(isSuperAdmin ? [{ value: 'super_admin', label: t('employees.super_admin') }] : []),
-                        { value: 'administrator', label: t('employees.administrator') },
-                        { value: 'skadeleder', label: t('employees.skadeleder') },
-                        { value: 'fugttekniker', label: t('employees.fugttekniker') },
-                        { value: 'servicemedarbejder', label: t('employees.servicemedarbejder') },
-                        { value: 'vikar', label: t('employees.vikar') },
-                      ];
-                      const selectedRoles: string[] = Array.isArray(formData.roles) && formData.roles.length
-                        ? formData.roles
-                        : [formData.role];
-                      return allRoles.map(r => {
-                        const checked = selectedRoles.includes(r.value);
-                        return (
-                          <div key={r.value} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`role-${r.value}`}
-                              checked={checked}
-                              onCheckedChange={(c) => {
-                                const isChecked = c as boolean;
-                                if (handleRoleToggle) {
-                                  handleRoleToggle(r.value, isChecked);
-                                } else {
-                                  // Fallback: behave like single-select
-                                  if (isChecked) handleSelectChange(r.value);
-                                }
-                                if (isChecked && r.value === 'super_admin') {
-                                  onCheckboxChange('skip_department', true);
-                                }
-                              }}
-                              disabled={isSubmitting}
-                            />
-                            <Label htmlFor={`role-${r.value}`} className="text-sm font-normal cursor-pointer">
-                              {r.label}
-                            </Label>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                )}
-              </div>
+              <RoleSection formData={formData} convertToPermanent={convertToPermanent} isSuperAdmin={isSuperAdmin} handleRoleToggle={handleRoleToggle} handleSelectChange={handleSelectChange} onCheckboxChange={onCheckboxChange} isSubmitting={isSubmitting} />
 
               {/* Skip department checkbox - visible when role is super_admin */}
               {formData.role === 'super_admin' && !formData.is_temporary && (
@@ -750,32 +336,8 @@ const EmployeeFormDialog: React.FC<EmployeeFormDialogProps> = ({
                 </div>}
 
               {/* Sub-department assignment — strict isolation when set */}
-              {!formData.is_temporary && formData.role !== 'super_admin' && subDepartments.length > 0 && (
-                <div className="grid gap-2">
-                  <Label htmlFor="sub_department_id">Underafdeling</Label>
-                  <Select
-                    value={formData.sub_department_id || '__none__'}
-                    onValueChange={(value) => {
-                      handleInputChange({
-                        target: { name: 'sub_department_id', value: value === '__none__' ? '' : value }
-                      } as any);
-                    }}
-                    disabled={isSubmitting}
-                  >
-                    <SelectTrigger id="sub_department_id">
-                      <SelectValue placeholder={t('ui.selectSubDepartment')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">{t('ui.noneMainDeptOnly')}</SelectItem>
-                      {subDepartments.map(sd => (
-                        <SelectItem key={sd.id} value={sd.id}>{sd.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    {t('ui.subDepartmentHint')}
-                  </p>
-                </div>
+              {!formData.is_temporary && formData.role !== 'super_admin' && (
+                <SubDepartmentField departmentId={selectedDepartmentId} formData={formData} handleInputChange={handleInputChange} isSubmitting={isSubmitting} />
               )}
             </>}
           
