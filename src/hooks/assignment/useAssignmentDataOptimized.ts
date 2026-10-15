@@ -12,6 +12,14 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { resolveEmployeeDisplayName, filterDisplayNames } from '@/utils/people';
 import { format } from 'date-fns';
 
+interface RawPerson { id?: string; name?: string; email?: string; first_name?: string; last_name?: string }
+interface RawAssignmentRow {
+  id: string; title: string; description?: string | null; assignment_date?: string | Date | null;
+  from_time: string; to_time: string; location: string; car_ids?: string[] | null; car_id?: string | null;
+  published?: boolean | null; team?: RawPerson[] | null; responsible_user?: RawPerson | null;
+  [key: string]: unknown;
+}
+
 export const useAssignmentDataOptimized = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -46,7 +54,7 @@ export const useAssignmentDataOptimized = () => {
         throw assignmentResult.error || new Error('No assignment data received');
       }
 
-      const assignmentsWithEmployees = assignmentResult.data;
+      const assignmentsWithEmployees = assignmentResult.data as unknown as RawAssignmentRow[];
       if (import.meta.env.DEV) console.log(`[useAssignmentDataOptimized] ENHANCED - Fetched ${assignmentsWithEmployees.length} assignment records`);
       
       if (!assignmentsWithEmployees || assignmentsWithEmployees.length === 0) {
@@ -55,7 +63,7 @@ export const useAssignmentDataOptimized = () => {
         return;
       }
       
-      const transformedAssignments: Assignment[] = assignmentsWithEmployees.map(assignment => {
+      const transformedAssignments = assignmentsWithEmployees.map(assignment => {
         const teamData = assignment.team || [];
         const assignedEmployees = Array.isArray(teamData) ? teamData.map(member => ({
           id: member.id || '',
@@ -109,7 +117,7 @@ export const useAssignmentDataOptimized = () => {
       // RLS handles data isolation — no local merge needed
       
       if (import.meta.env.DEV) console.log(`[useAssignmentDataOptimized] ENHANCED - Successfully processed ${transformedAssignments.length} assignments`);
-      setAssignments(transformedAssignments);
+      setAssignments(transformedAssignments as unknown as Assignment[]);
       
     } catch (err) {
       if (import.meta.env.DEV) console.error('[useAssignmentDataOptimized] ENHANCED - Error:', err);

@@ -131,7 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Safe translation hook with fallback. Stored in a ref so the auth-init effect
   // does not re-subscribe every time TranslationContext re-renders.
   const translationContext = useContext(TranslationContext);
-  const t = (translationContext?.t || ((key: string) => key)) as (key: string, params?: Record<string, any>) => string;
+  const t = (translationContext?.t || ((key: string) => key)) as (key: string, params?: Record<string, unknown>) => string;
   const tRef = useRef(t);
   useEffect(() => { tRef.current = t; }, [t]);
   const toastRef = useRef(toast);
@@ -181,7 +181,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             throw new Error(`Demo profile fetch failed: ${demoError.message}`);
           }
           
-          const userProfile = demoProfiles?.find((p: any) => p.id === authUser.id);
+          const userProfile = demoProfiles?.find((p: { id: string }) => p.id === authUser.id);
           
           if (!userProfile) {
             return {
@@ -222,7 +222,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setTimeout(() => reject(new Error('User data fetch timeout')), 5000)
       );
 
-      const [profileResult, roleResult] = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      const [profileResult, roleResult] = await Promise.race([fetchPromise, timeoutPromise]) as Awaited<typeof fetchPromise>;
 
       if (import.meta.env.DEV) {
         console.log(`[AuthContext] Database queries completed in ${Date.now() - startTime}ms`);
@@ -249,7 +249,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const { getEffectiveRole } = await import('@/utils/roleHierarchy');
       const allRoles: UserRole[] = (roleResult.data || [])
-        .map((r: any) => r.role as UserRole)
+        .map((r: { role: string }) => r.role as UserRole)
         .filter(Boolean);
       const role: UserRole = allRoles.length > 0 ? getEffectiveRole(allRoles) : 'servicemedarbejder';
 
@@ -435,7 +435,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const { data: { session: currentSession }, error } = await Promise.race([
             sessionPromise, 
             timeoutPromise
-          ]) as any;
+          ]) as Awaited<typeof sessionPromise>;
 
           if (!mounted) return;
 
@@ -730,8 +730,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setOfferPasskey(true);
 
       return { error: null };
-    } catch (error: any) {
-      if (import.meta.env.DEV) console.error('[AuthProvider] Login exception:', error instanceof Error ? error.message : 'Unknown error');
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[AuthProvider] Login exception:', (error as { message?: string })?.message);
       return { error: 'An unexpected error occurred during login.' };
     }
   };
@@ -809,7 +809,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         redirectTo: `${window.location.origin}/password-reset`,
       });
       return { error: error ? error.message : null };
-    } catch (error: any) {
+    } catch (error) {
       return { error: 'An unexpected error occurred during password reset.' };
     }
   };

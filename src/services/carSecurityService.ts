@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { CarData } from '@/components/Cars/types';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export class CarSecurityService {
   static async fetchCars(canViewFuelCardCode: boolean, departmentId?: string, subDepartmentId?: string | null): Promise<CarData[]> {
@@ -19,7 +20,7 @@ export class CarSecurityService {
           .select('car_id')
           .eq('sub_department_id', subDepartmentId);
 
-        const carIds = (carSubDepts || []).map(r => (r as any).car_id);
+        const carIds = (carSubDepts || []).map(r => r.car_id);
         if (carIds.length === 0) {
           return [];
         }
@@ -66,7 +67,7 @@ export class CarSecurityService {
         throw new Error('Name, car number, and number plate are required');
       }
 
-      const insertData: any = {
+      const insertData: TablesInsert<'cars'> = {
         name: carData.name,
         car_number: carData.car_number,
         number_plate: carData.number_plate,
@@ -78,7 +79,7 @@ export class CarSecurityService {
         towing_capacity_with_brakes: carData.towing_capacity_with_brakes || null,
         towing_capacity_without_brakes: carData.towing_capacity_without_brakes || null,
         total_weight: carData.total_weight || null,
-        department_id: (carData as any).department_id || null,
+        department_id: (carData as unknown as { department_id?: string | null }).department_id || null,
         sub_department_id: carData.sub_department_id || null,
       };
 
@@ -121,7 +122,7 @@ export class CarSecurityService {
       // VIGTIGT: department_id medtages IKKE i updateData.
       // CarFormData indeholder ikke department_id, og vi må aldrig overskrive
       // den eksisterende værdi med NULL. department_id sættes kun ved oprettelse.
-      const updateData: any = {
+      const updateData: TablesUpdate<'cars'> = {
         name: carData.name,
         car_number: carData.car_number,
         number_plate: carData.number_plate,

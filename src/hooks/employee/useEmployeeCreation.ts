@@ -10,6 +10,37 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
 import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
+import { Employee } from '@/types/employee';
+
+interface EmployeeFormInput {
+  name: string;
+  email?: string;
+  password?: string;
+  phone?: string;
+  jobTitle?: string;
+  onLeave?: boolean;
+  notes?: string;
+  is_temporary?: boolean;
+  expires_at?: string | null;
+  has_asbestos_certificate?: boolean;
+  has_pcb_certificate?: boolean;
+  has_trailer_license?: boolean;
+  has_forklift_license?: boolean;
+  home_postcode?: string;
+  home_address?: string;
+  role?: string;
+  roles?: string[];
+  skip_department?: boolean;
+}
+
+interface EdgeFunctionError extends Error {
+  isFinal?: boolean;
+  context?: {
+    status?: number;
+    clone: () => { json: () => Promise<unknown>; text: () => Promise<string> };
+    json?: () => Promise<unknown>;
+  };
+}
 
 export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   const queryClient = useQueryClient();
@@ -22,7 +53,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
   // edge function — auth.admin.* APIs are not callable from the browser. The
   // direct path below is only used for temporary (vikar) users, who do not have
   // an auth record and therefore do not require the Admin API.
-  const createUserDirectly = async (userData: any) => {
+  const createUserDirectly = async (userData: EmployeeFormInput) => {
     if (!userData.is_temporary) {
       throw new Error(t('employees.edgeFunctionFailed'));
     }
@@ -82,7 +113,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
     }
   };
 
-  const createEmployee = async (formData: any) => {
+  const createEmployee = async (formData: EmployeeFormInput) => {
     notifyOwnAction();
     try {
       if (import.meta.env.DEV) console.log('[useEmployeeCreation] Form data received:', {
@@ -132,7 +163,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           if (coords) { lat = coords.lat; lng = coords.lng; }
         }
 
-        const requestBody: any = {
+        const requestBody: Record<string, unknown> = {
           name: formData.name,
           role: formData.is_temporary ? 'vikar' : (formData.role || 'servicemedarbejder'),
           userData: {
@@ -166,11 +197,11 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           // fejlsvar fra Response-objektet i error.context.
           let serverMessage: string | null = null;
           let status: number | null = null;
-          const ctx: any = (error as any)?.context;
+          const ctx = (error as EdgeFunctionError)?.context;
           if (ctx && typeof ctx.json === 'function') {
             status = typeof ctx.status === 'number' ? ctx.status : null;
             try {
-              const body = await ctx.clone().json();
+              const body = (await ctx.clone().json()) as { error?: unknown } | null;
               if (body?.error) serverMessage = String(body.error);
             } catch {
               try {
@@ -180,7 +211,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             }
           }
 
-          const finalError: any = new Error(
+          const finalError: EdgeFunctionError = new Error(
             serverMessage || `${t('employees.edgeFunctionFailed')}: ${error.message}`
           );
           // Reelle afvisninger skal ikke udløse fallback-oprettelse
@@ -190,7 +221,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
         
         if (data?.error) {
           if (import.meta.env.DEV) console.error('[useEmployeeCreation] Edge function returned error:', data.error);
-          const finalError: any = new Error(data.error);
+          const finalError: EdgeFunctionError = new Error(data.error);
           finalError.isFinal = true;
           throw finalError;
         }
@@ -207,11 +238,12 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           if (import.meta.env.DEV) console.error('[useEmployeeCreation] Edge function returned unexpected data');
           throw new Error(t('employees.edgeFunctionFailed'));
         }
-      } catch (edgeError: any) {
+      } catch (edgeError) {
+        const edgeErr = edgeError as EdgeFunctionError;
         // Endelige afvisninger (fx email findes allerede) vises direkte
-        if (edgeError?.isFinal) {
-          if (import.meta.env.DEV) console.error('[useEmployeeCreation] Final edge function rejection:', edgeError.message);
-          throw new Error(edgeError.message);
+        if (edgeErr?.isFinal) {
+          if (import.meta.env.DEV) console.error('[useEmployeeCreation] Final edge function rejection:', edgeErr.message);
+          throw new Error(edgeErr.message);
         }
 
         if (import.meta.env.DEV) console.log('[useEmployeeCreation] Edge function failed, trying direct method');
@@ -221,9 +253,10 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           const directFormData = { ...formData, email: finalEmail };
           result = await createUserDirectly(directFormData);
           method = 'direct-database';
-        } catch (directError: any) {
+        } catch (directError) {
+          const dirErr = directError as { message?: string };
           if (import.meta.env.DEV) console.error('[useEmployeeCreation] Direct creation also failed:', directError);
-          throw new Error(edgeError?.message || directError?.message || t('employees.allMethodsFailed'));
+          throw new Error(edgeErr?.message || dirErr?.message || t('employees.allMethodsFailed'));
         }
       }
 
@@ -277,7 +310,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
             if (targetRole && targetRole !== 'servicemedarbejder') {
               const { error: roleError } = await client
                 .from('user_roles')
-                .update({ role: targetRole as any })
+                .update({ role: targetRole as Employee['role'] })
                 .eq('user_id', userId);
 
               if (roleError) {
@@ -288,7 +321,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
 
           // Tilknyt medarbejder til aktiv afdeling (spring over hvis skip_department)
           if (selectedDepartmentId && !formData.skip_department) {
-            const accessRecord: any = {
+            const accessRecord: { user_id: string; department_id: string; sub_department_id?: string } = {
               user_id: userId,
               department_id: selectedDepartmentId,
             };

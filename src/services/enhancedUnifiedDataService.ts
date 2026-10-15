@@ -84,9 +84,10 @@ class EnhancedUnifiedDataService {
         return { data: [], error: null, fromCache: result.fromCache || false, healthCheck: true };
       }
 
-      const assignments: Assignment[] = result.data.map(assignment => {
+      const rows = result.data as unknown as Array<{ team?: Array<{ id?: string; name?: string; email?: string }>; car_ids?: string[] | null; car_id?: string | null; [key: string]: unknown }>;
+      const assignments = rows.map(assignment => {
         const team = Array.isArray(assignment.team) ? assignment.team : [];
-        const employees = team.map((emp: any) => emp.name || emp.email || 'Unknown User');
+        const employees = team.map((emp) => emp.name || emp.email || 'Unknown User');
         
         const rawDate = assignment.assignment_date;
         let dateStr: string;
@@ -110,7 +111,7 @@ class EnhancedUnifiedDataService {
           toTime: assignment.to_time,
           location: assignment.location,
           employees: employees,
-          assignedEmployees: team.map((emp: any) => ({
+          assignedEmployees: team.map((emp) => ({
             id: emp.id,
             name: emp.name || 'Unknown User',
             email: emp.email || ''
@@ -128,7 +129,7 @@ class EnhancedUnifiedDataService {
         };
       });
 
-      return { data: assignments, error: null, fromCache: result.fromCache || false, healthCheck: true };
+      return { data: assignments as unknown as Assignment[], error: null, fromCache: result.fromCache || false, healthCheck: true };
     } catch (error) {
       if (import.meta.env.DEV) console.error('[EnhancedUnifiedDataService] Assignment fetch error:', error);
       
@@ -153,7 +154,7 @@ class EnhancedUnifiedDataService {
 
       const cars = result.data || [];
 
-      return { data: cars, error: null, fromCache: result.fromCache || false, healthCheck: true };
+      return { data: cars as unknown as Car[], error: null, fromCache: result.fromCache || false, healthCheck: true };
     } catch (error) {
       if (import.meta.env.DEV) console.error('[EnhancedUnifiedDataService] Car fetch error:', error);
       

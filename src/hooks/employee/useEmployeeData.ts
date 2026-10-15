@@ -11,6 +11,31 @@ import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
 import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
+import type { Tables } from '@/integrations/supabase/types';
+
+interface DemoProfileRow {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  job_title?: string | null;
+  role?: string | null;
+  on_leave?: boolean | null;
+  status?: string | null;
+  notes?: string | null;
+  avatar_url?: string | null;
+  has_asbestos_certificate?: boolean | null;
+  has_pcb_certificate?: boolean | null;
+  has_trailer_license?: boolean | null;
+  has_drivers_license?: boolean | null;
+  has_forklift_license?: boolean | null;
+  home_postcode?: string | null;
+  home_address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+}
+type ProfileRow = Tables<'profiles'>;
+type UserRoleRow = Tables<'user_roles'>;
 
 export const useEmployeeData = () => {
   const { toast } = useToast();
@@ -48,7 +73,7 @@ export const useEmployeeData = () => {
       if (import.meta.env.DEV) console.log(`[useEmployeeData] Found ${data.length} demo profiles`);
 
       // RLS handles data isolation — no local merge needed
-      const transformedEmployees: Employee[] = data.map((profile: any) => ({
+      const transformedEmployees: Employee[] = (data as DemoProfileRow[]).map((profile) => ({
         id: profile.id,
         name: profile.name || 'Unknown',
         email: profile.email || '',
@@ -57,7 +82,7 @@ export const useEmployeeData = () => {
         role: (profile.role || 'servicemedarbejder') as Employee['role'],
         roles: [(profile.role || 'servicemedarbejder') as NonNullable<Employee['roles']>[number]],
         onLeave: profile.on_leave || false,
-        status: profile.status || 'active',
+        status: (profile.status || 'active') as Employee['status'],
         notes: profile.notes || '',
         avatar_url: profile.avatar_url,
         has_asbestos_certificate: !!profile.has_asbestos_certificate,
@@ -99,7 +124,7 @@ export const useEmployeeData = () => {
 
       const rolesMap = new Map<string, string[]>();
       if (userRoles && Array.isArray(userRoles)) {
-        userRoles.forEach((userRole: any) => {
+        userRoles.forEach((userRole: UserRoleRow) => {
           const arr = rolesMap.get(userRole.user_id) || [];
           if (!arr.includes(userRole.role)) arr.push(userRole.role);
           rolesMap.set(userRole.user_id, arr);
@@ -108,10 +133,10 @@ export const useEmployeeData = () => {
 
       const { getEffectiveRole } = await import('@/utils/roleHierarchy');
 
-      const transformedEmployees: Employee[] = profiles.map((profile: any) => {
+      const transformedEmployees: Employee[] = profiles.map((profile: ProfileRow) => {
         const roles = rolesMap.get(profile.id) || [];
         const effective = roles.length
-          ? getEffectiveRole(roles as any)
+          ? getEffectiveRole(roles as Parameters<typeof getEffectiveRole>[0])
           : 'servicemedarbejder';
         return {
           id: profile.id,
@@ -161,7 +186,7 @@ export const useEmployeeData = () => {
           if (!selectedSubDepartmentId) {
             const empRoles = rolesMap.get(emp.id) || [];
             if (empRoles.includes('super_admin')) {
-              const profile = profiles.find((p: any) => p.id === emp.id);
+              const profile = profiles.find((p: ProfileRow) => p.id === emp.id);
               return profile?.home_department_id === selectedDepartmentId;
             }
           }

@@ -21,6 +21,7 @@ import { useSickToday } from '@/hooks/useSickDays';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Employee } from '@/types/employee';
+import { Vacation } from '@/types/vacation';
 import { format } from 'date-fns';
 
 type EmployeeSegment = 'all' | 'active' | 'onleave' | 'vikarer';
@@ -67,9 +68,9 @@ const EmployeesPage: React.FC = () => {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const onLeaveTodayIds = useMemo(() => {
     const ids = new Set<string>();
-    vacations
-      .filter((v: any) => v.status === 'approved' && v.start_date <= todayStr && v.end_date >= todayStr)
-      .forEach((v: any) => ids.add(v.employee_id));
+    (vacations as Array<Vacation & { employee_id?: string }>)
+      .filter((v) => v.status === 'approved' && v.start_date <= todayStr && v.end_date >= todayStr)
+      .forEach((v) => { if (v.employee_id) ids.add(v.employee_id); });
     return ids;
   }, [vacations, todayStr]);
 
@@ -153,13 +154,13 @@ const EmployeesPage: React.FC = () => {
               reason: 'sick',
             },
           });
-        } catch (cleanupError: any) {
-          if (import.meta.env.DEV) console.warn('Sygemelding: oprydning af opgaver fejlede', cleanupError?.message);
+        } catch (cleanupError) {
+          if (import.meta.env.DEV) console.warn('Sygemelding: oprydning af opgaver fejlede', (cleanupError as { message?: string })?.message);
         }
       }
       refreshSick();
-    } catch (err: any) {
-      toast.error(err?.message || 'Kunne ikke opdatere sygemelding');
+    } catch (err) {
+      toast.error((err as { message?: string })?.message || 'Kunne ikke opdatere sygemelding');
     }
   };
 

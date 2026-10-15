@@ -81,7 +81,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error assigning duty:', err);
-      const errorMessage = (err as any)?.message || '';
+      const errorMessage = (err as { message?: string })?.message || '';
       
       if (errorMessage.includes('row-level security') || errorMessage.includes('skadeleder') || errorMessage.includes('administrator')) {
         toast.error(t('duty.assignFailed'));
@@ -119,7 +119,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error updating duty:', err);
-      const errorMessage = (err as any)?.message || '';
+      const errorMessage = (err as { message?: string })?.message || '';
       
       // Check for role validation error
       if (errorMessage.includes('row-level security') || errorMessage.includes('skadeleder') || errorMessage.includes('administrator')) {
@@ -286,7 +286,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (error) {
       if (import.meta.env.DEV) console.error('Error swapping duties:', error);
-      toast.error((error as any)?.message || t('duty.swapFailed'));
+      toast.error((error as { message?: string })?.message || t('duty.swapFailed'));
       return false;
     } finally {
       setLoading(false);
@@ -325,7 +325,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return true;
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error creating swap request:', err);
-      toast.error((err as any)?.message || t('duty.swapRequestFailed'));
+      toast.error((err as { message?: string })?.message || t('duty.swapRequestFailed'));
       return false;
     } finally {
       setLoading(false);
@@ -354,7 +354,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return { status };
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error accepting swap:', err);
-      toast.error((err as any)?.message || t('duty.swapAcceptFailed'));
+      toast.error((err as { message?: string })?.message || t('duty.swapAcceptFailed'));
       return { status: 'error' };
     } finally {
       setLoading(false);
@@ -381,7 +381,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return status === 'cancelled';
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error cancelling swap:', err);
-      toast.error((err as any)?.message || t('duty.swapRequestFailed'));
+      toast.error((err as { message?: string })?.message || t('duty.swapRequestFailed'));
       return false;
     } finally {
       setLoading(false);
@@ -412,7 +412,7 @@ export const useDutyActions = (onSuccess?: () => void) => {
       return { status };
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error declining swap:', err);
-      toast.error((err as any)?.message || t('duty.swapDeclineFailed'));
+      toast.error((err as { message?: string })?.message || t('duty.swapDeclineFailed'));
       return { status: 'error' };
     } finally {
       setLoading(false);

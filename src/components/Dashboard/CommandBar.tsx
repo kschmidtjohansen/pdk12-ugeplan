@@ -18,6 +18,7 @@ import StatusPill from './StatusPill';
 import StatusDetailSheet from './StatusDetailSheet';
 import { DutyDetailPanel, AvailableEmployeesPanel, AvailableCarsPanel, ExpiringTempsPanel } from './StatusPanels';
 import { useTranslation } from '@/context/TranslationContext';
+import { Assignment } from '@/types/assignment';
 
 const greetKey = (h: number) =>
   h >= 5 && h < 10 ? 'ui.goodMorning' : h < 12 && h >= 10 ? 'ui.goodForenoon' : h >= 12 && h < 17 ? 'ui.goodAfternoon' : 'ui.goodEvening';
@@ -64,25 +65,26 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
   const firstName = userName?.split(' ')[0] ?? '';
   const [panel, setPanel] = useState<null | 'duty' | 'emp' | 'car' | 'temp'>(null);
 
-  const todayAssignments = useMemo(() => (assignments ?? []).filter((a: any) => a.date === todayStr), [assignments, todayStr]);
-  const availEmpIds = new Set(metrics.availableEmployees.employees.map((e: any) => e.id));
+  const todayAssignments = useMemo(() => (assignments ?? []).filter((a: Assignment) => a.date === todayStr), [assignments, todayStr]);
+  const availEmpIds = new Set(metrics.availableEmployees.employees.map((e: { id: string }) => e.id));
   const busyEmployees = useMemo(() => {
     const out: { id: string; name: string; phone?: string | null; task: string }[] = [];
-    todayAssignments.forEach((a: any) => (a.assignedEmployees ?? []).forEach((e: any) => {
+    todayAssignments.forEach((a: Assignment) => (a.assignedEmployees ?? []).forEach((e) => {
       if (availEmpIds.has(e.id) || out.some(o => o.id === e.id)) return;
       const full = employees.find(x => x.id === e.id);
       out.push({ id: e.id, name: e.name, phone: full?.phone, task: `${a.fromTime?.slice(0, 5) ?? ''} ${a.title ?? ''}`.trim() });
     }));
     return out;
   }, [todayAssignments, employees, metrics.availableEmployees.employees]);
-  const availCarIds = new Set(metrics.availableCars.cars.map((c: any) => c.id));
+  const availCarIds = new Set(metrics.availableCars.cars.map((c: { id: string }) => c.id));
   const busyCars = useMemo(() => {
     const out: { id: string; name: string; by?: string }[] = [];
-    todayAssignments.forEach((a: any) => {
+    todayAssignments.forEach((a: Assignment) => {
       const ids: string[] = a.cars?.length ? a.cars : typeof a.car === 'string' ? [a.car] : a.car?.id ? [a.car.id] : [];
       ids.forEach(id => {
         if (availCarIds.has(id) || out.some(o => o.id === id)) return;
-        out.push({ id, name: a.car?.name ?? 'Bil', by: (a.assignedEmployees ?? []).map((e: any) => e.name.split(' ')[0]).join(', ') || a.title });
+        const carName = typeof a.car === 'object' ? a.car?.name : undefined;
+        out.push({ id, name: carName ?? 'Bil', by: (a.assignedEmployees ?? []).map((e) => e.name.split(' ')[0]).join(', ') || a.title });
       });
     });
     return out;
@@ -135,11 +137,11 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
         <DutyDetailPanel today={dutyPeople} upcoming={upcomingDuties} onOpenPlan={() => { setPanel(null); navigate('/duty'); }} />
       </StatusDetailSheet>
       <StatusDetailSheet open={panel === 'emp'} onOpenChange={o => !o && setPanel(null)} title={t('ui.employeesToday')}>
-        <AvailableEmployeesPanel available={metrics.availableEmployees.employees as any} busy={busyEmployees} onShowAll={() => { setPanel(null); setEmpOpen(true); }} />
+        <AvailableEmployeesPanel available={metrics.availableEmployees.employees} busy={busyEmployees} onShowAll={() => { setPanel(null); setEmpOpen(true); }} />
       </StatusDetailSheet>
       <StatusDetailSheet open={panel === 'car'} onOpenChange={o => !o && setPanel(null)} title={t('ui.carsToday')}>
         <AvailableCarsPanel
-          available={metrics.availableCars.cars.map((c: any) => ({ id: c.id, name: c.name, plate: c.number_plate }))}
+          available={metrics.availableCars.cars.map((c) => ({ id: c.id, name: c.name, plate: c.number_plate }))}
           busy={busyCars}
           onShowAll={() => { setPanel(null); setCarOpen(true); }}
         />

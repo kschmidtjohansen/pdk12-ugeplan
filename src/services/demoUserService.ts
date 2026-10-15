@@ -6,9 +6,16 @@ export interface DemoOperation {
   table: string;
   operation: 'create' | 'update' | 'delete';
   recordId: string;
-  originalData?: any;
+  originalData?: Record<string, unknown>;
   timestamp: string;
   sessionId: string;
+}
+
+export interface DemoRecord {
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
 }
 
 export interface DemoDataStats {
@@ -97,7 +104,7 @@ export class DemoUserService {
     table: string,
     operation: 'create' | 'update' | 'delete',
     recordId: string,
-    originalData?: any
+    originalData?: Record<string, unknown>
   ): Promise<void> {
     if (!this.demoSessionId) return;
     
@@ -118,7 +125,7 @@ export class DemoUserService {
   }
 
   // Employee storage helpers
-  storeDemoEmployee(employee: any): void {
+  storeDemoEmployee(employee: DemoRecord): void {
     const employees = this.getDemoEmployees();
     const record = {
       ...employee,
@@ -133,9 +140,9 @@ export class DemoUserService {
     if (import.meta.env.DEV) console.log('[DemoUserService] Stored demo employee:', record.id);
   }
 
-  updateDemoEmployee(id: string, updates: any): void {
+  updateDemoEmployee(id: string, updates: Record<string, unknown>): void {
     const employees = this.getDemoEmployees();
-    const idx = employees.findIndex((e: any) => e.id === id);
+    const idx = employees.findIndex((e: DemoRecord) => e.id === id);
     if (idx !== -1) {
       employees[idx] = { 
         ...employees[idx], 
@@ -149,12 +156,12 @@ export class DemoUserService {
 
   deleteDemoEmployee(id: string): void {
     const employees = this.getDemoEmployees();
-    const filtered = employees.filter((e: any) => e.id !== id);
+    const filtered = employees.filter((e: DemoRecord) => e.id !== id);
     sessionStorage.setItem('demo-employees', JSON.stringify(filtered));
     if (import.meta.env.DEV) console.log('[DemoUserService] Deleted demo employee:', id);
   }
 
-  getDemoEmployees(): any[] {
+  getDemoEmployees(): DemoRecord[] {
     const stored = sessionStorage.getItem('demo-employees');
     if (!stored) return [];
     try {
@@ -168,7 +175,7 @@ export class DemoUserService {
   }
 
   // Store demo assignment data in session storage with car names preserved
-  storeDemoAssignment(assignment: any): void {
+  storeDemoAssignment(assignment: DemoRecord): void {
     const demoAssignments = this.getDemoAssignments();
     const record = {
       ...assignment,
@@ -189,7 +196,7 @@ export class DemoUserService {
   }
 
   // Update demo assignment in session storage
-  updateDemoAssignment(id: string, updates: any): void {
+  updateDemoAssignment(id: string, updates: Record<string, unknown>): void {
     const demoAssignments = this.getDemoAssignments();
     const index = demoAssignments.findIndex(a => a.id === id);
     if (index !== -1) {
@@ -206,7 +213,7 @@ export class DemoUserService {
   }
 
   // Get demo assignments from session storage
-  getDemoAssignments(): any[] {
+  getDemoAssignments(): DemoRecord[] {
     const stored = sessionStorage.getItem('demo-assignments');
     if (!stored) {
       if (import.meta.env.DEV) console.log('[DemoUserService] No demo assignments in storage');
@@ -223,7 +230,7 @@ export class DemoUserService {
   }
   
   // Demo cars storage helpers
-  storeDemoCar(car: any): void {
+  storeDemoCar(car: DemoRecord): void {
     const cars = this.getDemoCars();
     const record = {
       ...car,
@@ -235,9 +242,9 @@ export class DemoUserService {
     sessionStorage.setItem('demo-cars', JSON.stringify(cars));
   }
   
-  updateDemoCar(id: string, updates: any): void {
+  updateDemoCar(id: string, updates: Record<string, unknown>): void {
     const cars = this.getDemoCars();
-    const idx = cars.findIndex((c: any) => c.id === id);
+    const idx = cars.findIndex((c: DemoRecord) => c.id === id);
     if (idx !== -1) {
       cars[idx] = { ...cars[idx], ...updates, updated_at: new Date().toISOString() };
       sessionStorage.setItem('demo-cars', JSON.stringify(cars));
@@ -246,11 +253,11 @@ export class DemoUserService {
   
   deleteDemoCar(id: string): void {
     const cars = this.getDemoCars();
-    const filtered = cars.filter((c: any) => c.id !== id);
+    const filtered = cars.filter((c: DemoRecord) => c.id !== id);
     sessionStorage.setItem('demo-cars', JSON.stringify(filtered));
   }
   
-  getDemoCars(): any[] {
+  getDemoCars(): DemoRecord[] {
     const stored = sessionStorage.getItem('demo-cars');
     if (!stored) return [];
     try {
@@ -287,7 +294,11 @@ export class DemoUserService {
     
     try {
       // Call database function to clean up only session data
-      const { data, error } = await supabase.rpc('cleanup_session_data' as any, {
+      const rpcFn = supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>
+      ) => Promise<{ data: unknown; error: { message: string } | null }>;
+      const { data, error } = await rpcFn('cleanup_session_data', {
         baseline_timestamp: '2024-01-01T00:00:00Z'
       });
       
@@ -298,7 +309,7 @@ export class DemoUserService {
       
       // Extract deletion counts from function result
       if (data && Array.isArray(data) && data.length > 0) {
-        const result = data[0] as any;
+        const result = data[0] as Record<string, number | undefined>;
         deletedCounts.assignments = result.deleted_assignments || 0;
         deletedCounts.notifications = result.deleted_notifications || 0;
         deletedCounts.vacations = result.deleted_vacations || 0;

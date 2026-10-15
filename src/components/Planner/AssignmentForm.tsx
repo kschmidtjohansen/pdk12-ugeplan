@@ -21,6 +21,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { unifiedDataService } from '@/services/data/unifiedDataService';
 import { useAuth } from '@/context/AuthContext';
 
+type FormDataWithDates = Partial<Assignment> & { dates?: string[] };
+
 export interface EmployeeConflict {
   employeeId: string;
   employeeName: string;
@@ -109,7 +111,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Fetch trainings for currently selected employees within the date range
   const selectedEmployeeIds = useMemo(() => normalizeEmployees(formData.employees), [formData.employees]);
   const selectedDatesForQuery: string[] = useMemo(() => {
-    const arr = (formData as any).dates?.length > 0 ? (formData as any).dates : (formData.date ? [formData.date] : []);
+    const arr = (formData as FormDataWithDates).dates?.length ? (formData as FormDataWithDates).dates! : (formData.date ? [formData.date] : []);
     return arr;
   }, [formData]);
   const dateRangeKey = useMemo(() => {
@@ -143,7 +145,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const checkEmployeeConflicts = useCallback((): EmployeeConflict[] => {
     const conflicts: EmployeeConflict[] = [];
     const selectedEmployeeIds = normalizeEmployees(formData.employees);
-    const dates: string[] = (formData as any).dates?.length > 0 ? (formData as any).dates : (formData.date ? [formData.date] : []);
+    const dates: string[] = (formData as FormDataWithDates).dates?.length ? (formData as FormDataWithDates).dates! : (formData.date ? [formData.date] : []);
     const fromTime = formData.fromTime || '08:00';
     const toTime = formData.toTime || '16:00';
 
@@ -268,7 +270,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     const validationErrors: string[] = [];
     if (!formData.title?.trim()) validationErrors.push(t('planner.validation.titleRequired'));
     if (!formData.location?.trim()) validationErrors.push(t('planner.validation.locationRequired'));
-    if (!formData.date && !((formData as any).dates?.length > 0)) validationErrors.push(t('planner.validation.dateRequired'));
+    if (!formData.date && !((formData as FormDataWithDates).dates?.length > 0)) validationErrors.push(t('planner.validation.dateRequired'));
     if (!formData.fromTime) validationErrors.push(t('planner.validation.fromTimeRequired'));
     if (!formData.toTime) validationErrors.push(t('planner.validation.toTimeRequired'));
     if (formData.fromTime && formData.toTime && formData.fromTime >= formData.toTime) {
@@ -346,11 +348,11 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     if (dates && dates.length > 0) {
       const dateStrings = dates.map(date => format(date, 'yyyy-MM-dd'));
       if (import.meta.env.DEV) console.log('[AssignmentForm] Dates changed:', dateStrings);
-      const updatedData = { ...formData, date: dateStrings[0] } as any;
+      const updatedData: FormDataWithDates = { ...formData, date: dateStrings[0] };
       updatedData.dates = dateStrings;
       setFormData(updatedData);
     } else {
-      const clearedData = { ...formData, date: '' } as any;
+      const clearedData: FormDataWithDates = { ...formData, date: '' };
       clearedData.dates = [];
       setFormData(clearedData);
     }
@@ -381,7 +383,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   };
   // "Book available days only" — remove dates where ANY employee has a conflict
   const handleBookAvailableOnly = async () => {
-    const allDates: string[] = (formData as any).dates?.length > 0 ? (formData as any).dates : (formData.date ? [formData.date] : []);
+    const allDates: string[] = (formData as FormDataWithDates).dates?.length ? (formData as FormDataWithDates).dates! : (formData.date ? [formData.date] : []);
     const conflictDates = new Set(conflictDetails.map(c => c.date));
     const safeDates = allDates.filter((d: string) => !conflictDates.has(d));
 
@@ -392,7 +394,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
     }
 
     // Update formData with only safe dates, then submit
-    const updatedData = { ...formData, date: safeDates[0], zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng } as any;
+    const updatedData: FormDataWithDates = { ...formData, date: safeDates[0], zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng };
     updatedData.dates = safeDates;
     setConflictDetails([]);
     setIsSubmitting(true);
@@ -446,7 +448,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
             if (import.meta.env.DEV) console.log('[AssignmentForm] Location updated:', value);
             setFormData({ ...formData, location: value });
           }}
-          selectedDates={(formData as any).dates?.map((d: string) => { const [y,m,day] = d.split('-').map(Number); return new Date(y, m-1, day); }) || (formData.date ? (() => { const [y,m,day] = formData.date!.split('-').map(Number); return [new Date(y, m-1, day)]; })() : [])}
+          selectedDates={(formData as FormDataWithDates).dates?.map((d: string) => { const [y,m,day] = d.split('-').map(Number); return new Date(y, m-1, day); }) || (formData.date ? (() => { const [y,m,day] = formData.date!.split('-').map(Number); return [new Date(y, m-1, day)]; })() : [])}
           setSelectedDates={handleDatesChange}
           isEditMode={!!currentAssignment}
           fromTime={formData.fromTime || '08:00'}
@@ -508,7 +510,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           if (submittingRef.current) return;
           const current = normalizeEmployees(formData.employees);
           const remaining = current.filter((id) => !blockedEmployeeIds.has(id));
-          const updated: any = { ...formData, employees: remaining, zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng };
+          const updated: FormDataWithDates = { ...formData, employees: remaining, zip_code: zipCode, city, lat: assignmentLat, lng: assignmentLng };
           setFormData(updated);
           setConflictDetails([]);
           submittingRef.current = true;

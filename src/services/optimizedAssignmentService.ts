@@ -3,6 +3,41 @@ import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 // DemoUserService removed — demo writes now go to DB with is_demo=true
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+
+interface RawTeamMember {
+  id: string;
+  name?: string;
+  email?: string;
+}
+
+interface RawAssignmentRecord {
+  id: string;
+  title?: string;
+  description?: string | null;
+  assignment_date?: string;
+  from_time?: string;
+  to_time?: string;
+  location?: string;
+  type?: string | null;
+  published?: boolean | null;
+  responsible_user_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  car_id?: string | null;
+  car_ids?: string[] | null;
+  case_number?: string | null;
+  group_id?: string | null;
+  sub_department_id?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  responsible_user?: { id: string; name: string } | null;
+  team?: RawTeamMember[];
+  employees?: string[];
+  date?: string;
+}
+
+type AssignmentWritePayload = { employees?: string[]; [key: string]: unknown };
 
 export interface OptimizedAssignmentData {
   id: string;
@@ -43,8 +78,8 @@ export interface OptimizedAssignmentData {
 
 export class OptimizedAssignmentService {
 
-  private static convertDemoAssignments(data: any[]): OptimizedAssignmentData[] {
-    return data.map((assignment: any) => ({
+  private static convertDemoAssignments(data: RawAssignmentRecord[]): OptimizedAssignmentData[] {
+    return data.map((assignment) => ({
       id: assignment.id,
       title: assignment.title,
       description: assignment.description,
@@ -67,7 +102,7 @@ export class OptimizedAssignmentService {
         id: assignment.responsible_user.id,
         name: assignment.responsible_user.name
       } : null,
-      assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: any) => ({
+      assignment_employees: Array.isArray(assignment.team) ? (assignment.team as unknown as RawTeamMember[]).map((member: RawTeamMember) => ({
         user_id: member.id,
         profiles: { id: member.id, name: member.name || '', email: member.email || '' }
       })) : [],
@@ -75,7 +110,7 @@ export class OptimizedAssignmentService {
     }));
   }
 
-  private static convertStoredDemoToOptimized(demo: any): OptimizedAssignmentData {
+  private static convertStoredDemoToOptimized(demo: RawAssignmentRecord): OptimizedAssignmentData {
     return {
       id: demo.id,
       title: demo.title,
@@ -135,7 +170,7 @@ export class OptimizedAssignmentService {
 
       const userIds = [...new Set(assignmentEmployeeData.map(emp => emp.user_id))];
       
-      let profilesData: any[] = [];
+      let profilesData: { id: string; name: string; email: string }[] = [];
       let retryCount = 0;
       const maxRetries = 3;
       
@@ -214,7 +249,7 @@ export class OptimizedAssignmentService {
     }
   }
 
-  private static async enrichAssignmentData(assignments: any[]): Promise<OptimizedAssignmentData[]> {
+  private static async enrichAssignmentData(assignments: RawAssignmentRecord[]): Promise<OptimizedAssignmentData[]> {
     const assignmentIds = assignments.map(a => a.id);
     
     const employeesData = await this.fetchAssignmentEmployees(assignmentIds);
@@ -240,7 +275,7 @@ export class OptimizedAssignmentService {
         assignmentCars = assignment.car_ids
           .map((carId: string) => carsData.find(car => car.id === carId))
           .filter(Boolean)
-          .map((car: any) => ({ id: car.id, name: car.name }));
+          .map((car) => ({ id: car.id, name: car.name }));
       } else if (assignment.car_id) {
         const car = carsData.find(car => car.id === assignment.car_id);
         if (car) assignmentCars = [{ id: car.id, name: car.name }];
@@ -314,7 +349,7 @@ export class OptimizedAssignmentService {
         if (!data) return [];
 
         if (import.meta.env.DEV) {
-          const withTeam = data.filter((a: any) => Array.isArray(a.team) && a.team.length > 0).length;
+          const withTeam = data.filter((a) => Array.isArray((a as unknown as RawAssignmentRecord).team) && (a as unknown as RawAssignmentRecord).team!.length > 0).length;
           console.log(`[OptimizedAssignmentService] Hovedvej (RPC): ${data.length} opgaver, ${withTeam} med hold`);
         }
         
@@ -343,15 +378,15 @@ export class OptimizedAssignmentService {
               car_id: assignment.car_id,
               car_ids: carIds,
               case_number: assignment.case_number || null,
-              group_id: (assignment as any).group_id || null,
-              sub_department_id: (assignment as any).sub_department_id ?? null,
+              group_id: (assignment as unknown as RawAssignmentRecord).group_id || null,
+              sub_department_id: (assignment as unknown as RawAssignmentRecord).sub_department_id ?? null,
               lat: assignment.lat ?? null,
               lng: assignment.lng ?? null,
               responsible_user: assignment.responsible_user ? {
-                id: (assignment.responsible_user as any).id || '',
-                name: (assignment.responsible_user as any).name || '',
+                id: (assignment.responsible_user as unknown as RawTeamMember).id || '',
+                name: (assignment.responsible_user as unknown as RawTeamMember).name || '',
               } : null,
-              assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: any) => ({
+              assignment_employees: Array.isArray(assignment.team) ? (assignment.team as unknown as RawTeamMember[]).map((member: RawTeamMember) => ({
                 user_id: member.id,
                 profiles: { id: member.id, name: member.name || '', email: member.email || '' }
               })) : [],
@@ -375,8 +410,8 @@ export class OptimizedAssignmentService {
               car_id: null,
               car_ids: [],
               case_number: assignment.case_number || null,
-              group_id: (assignment as any).group_id || null,
-              sub_department_id: (assignment as any).sub_department_id ?? null,
+              group_id: (assignment as unknown as RawAssignmentRecord).group_id || null,
+              sub_department_id: (assignment as unknown as RawAssignmentRecord).sub_department_id ?? null,
               lat: assignment.lat ?? null,
               lng: assignment.lng ?? null,
               responsible_user: null,
@@ -482,7 +517,7 @@ export class OptimizedAssignmentService {
         
         if (!data) return [];
         
-        const publishedData = data.filter((a: any) => a.published === true);
+        const publishedData = (data as RawAssignmentRecord[]).filter((a) => a.published === true);
         if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] Demo: ${publishedData.length} published assignments`);
         
         // RLS ensures demo user sees is_demo=true data — no local merge needed
@@ -521,15 +556,15 @@ export class OptimizedAssignmentService {
         car_id: assignment.car_id,
         car_ids: assignment.car_ids,
         case_number: assignment.case_number || null,
-        group_id: (assignment as any).group_id || null,
+        group_id: (assignment as unknown as RawAssignmentRecord).group_id || null,
         sub_department_id: assignment.sub_department_id ?? null,
         lat: assignment.lat ?? null,
         lng: assignment.lng ?? null,
         responsible_user: assignment.responsible_user ? {
-          id: (assignment.responsible_user as any).id || '',
-          name: (assignment.responsible_user as any).name || '',
+          id: (assignment.responsible_user as unknown as RawTeamMember).id || '',
+          name: (assignment.responsible_user as unknown as RawTeamMember).name || '',
         } : null,
-        assignment_employees: Array.isArray(assignment.team) ? assignment.team.map((member: any) => ({
+        assignment_employees: Array.isArray(assignment.team) ? (assignment.team as unknown as RawTeamMember[]).map((member: RawTeamMember) => ({
           user_id: member.id,
           profiles: { id: member.id, name: member.name }
         })) : [],
@@ -543,7 +578,7 @@ export class OptimizedAssignmentService {
     }
   }
 
-  static async createAssignment(assignmentData: any, userEmail?: string): Promise<OptimizedAssignmentData> {
+  static async createAssignment(assignmentData: AssignmentWritePayload, userEmail?: string): Promise<OptimizedAssignmentData> {
     
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
@@ -557,7 +592,7 @@ export class OptimizedAssignmentService {
 
       const { data, error } = await supabase
         .from('assignments')
-        .insert({ ...demoInsert, is_demo: true })
+        .insert({ ...demoInsert, is_demo: true } as unknown as TablesInsert<'assignments'>)
         .select()
         .single();
 
@@ -589,7 +624,7 @@ export class OptimizedAssignmentService {
       if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Employee IDs:', employeeIds);
     }
 
-    const { data, error } = await supabase.from('assignments').insert(assignmentInsert).select().single();
+    const { data, error } = await supabase.from('assignments').insert(assignmentInsert as unknown as TablesInsert<'assignments'>).select().single();
     if (error) {
       if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error creating assignment:', error);
       throw error;
@@ -619,7 +654,7 @@ export class OptimizedAssignmentService {
     return enriched[0];
   }
 
-  static async updateAssignment(assignmentId: string, updates: any, userEmail?: string): Promise<OptimizedAssignmentData> {
+  static async updateAssignment(assignmentId: string, updates: AssignmentWritePayload, userEmail?: string): Promise<OptimizedAssignmentData> {
     
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
@@ -663,7 +698,7 @@ export class OptimizedAssignmentService {
       if (import.meta.env.DEV) if (employeeIds !== null) console.log('[OptimizedAssignmentService] Employee IDs to relink:', employeeIds);
     }
 
-    const { data, error } = await supabase.from('assignments').update(updatePayload).eq('id', assignmentId).select().single();
+    const { data, error } = await supabase.from('assignments').update(updatePayload as unknown as TablesUpdate<'assignments'>).eq('id', assignmentId).select().single();
     if (error) {
       if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error updating assignment:', error);
       throw error;
@@ -751,7 +786,7 @@ export class OptimizedAssignmentService {
       const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
       if (error || !data) return [];
       
-      return this.convertDemoAssignments(data.filter((a: any) => !a.published));
+      return this.convertDemoAssignments((data as RawAssignmentRecord[]).filter((a) => !a.published));
     }
     
     const allAssignments = await this.fetchAllAssignments(userRole, userEmail, departmentId, subDepartmentId);
@@ -765,8 +800,8 @@ export class OptimizedAssignmentService {
       const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
       if (error || !data) return [];
       
-      const filtered = data.filter((a: any) => 
-        a.responsible_user_id === userId || a.team?.some((m: any) => m.id === userId)
+      const filtered = (data as RawAssignmentRecord[]).filter((a) => 
+        a.responsible_user_id === userId || a.team?.some((m) => m.id === userId)
       );
       return this.convertDemoAssignments(filtered);
     }
@@ -784,7 +819,7 @@ export class OptimizedAssignmentService {
       const { data, error } = await rpcWithRefresh('list_demo_assignments_with_team');
       if (error || !data) return [];
       
-      return this.convertDemoAssignments(data.filter((a: any) => a.published && a.assignment_date === date));
+      return this.convertDemoAssignments((data as RawAssignmentRecord[]).filter((a) => a.published && a.assignment_date === date));
     }
     
     const allPublished = await this.fetchAllPublishedAssignments(userEmail, departmentId, subDepartmentId);
