@@ -1,3 +1,9 @@
+## 2026-10-15 – Sprint Arkitektur & Stabilitet P1: Én cache i Ugeplanen
+- Fjernet død in-memory cache (Map + getFromCache/setCache/clearCache) i optimizedAssignmentService; ugeplanens opgaver caches nu kun af TanStack Query (5 min staleTime, invalidering ved realtime).
+- Fjernet 5-min memory-cache i unifiedDataService (medarbejdere/biler i AssignmentForm), som lå under TanStack Query og kunne vise forældede data efter ændringer.
+- Fjernet tilhørende clearCache-kald i AuthContext, DepartmentContext, useImpersonation og useOptimizedAssignments (queryClient.clear() dækker nu).
+- Typecheck OK, 44/44 tests grønne.
+
 ## 2026-10-14 – Fase 1: Tilgængelighed & touch-targets
 - Ikonknapper i kursusdialogen (rediger/slet) har nu aria-label.
 - Rettet aria-label i notifikationsskuffen, der blev læst op som rå tekst "{t('ui.deleteNotification')}".

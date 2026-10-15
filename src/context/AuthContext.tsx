@@ -8,7 +8,6 @@ import { circuitBreaker } from '@/services/circuitBreakerService';
 import { TranslationContext } from './TranslationContext';
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { unifiedDataService } from '@/services/data/unifiedDataService';
-import { OptimizedAssignmentService } from '@/services/optimizedAssignmentService';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import BiometricRetryDialog from '@/components/Auth/BiometricRetryDialog';
 import PasskeyEnrollPrompt from '@/components/Auth/PasskeyEnrollPrompt';
@@ -758,8 +757,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       queryClient.clear();
 
       // 2. Service-caches
-      unifiedDataService.clearCache();
-      OptimizedAssignmentService.clearCache();
       enhancedDataFetching.clearCache();
 
       // 3. SessionStorage -- ryd alt

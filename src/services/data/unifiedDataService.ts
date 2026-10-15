@@ -11,49 +11,7 @@ interface DataFetchResult<T> {
 }
 
 class UnifiedDataService {
-  private cache = new Map<string, { data: any[]; timestamp: number; ttl: number }>();
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-  private getCacheKey(
-    operation: string,
-    departmentId?: string,
-    subDepartmentId?: string | null,
-    suffix?: string
-  ): string {
-    const sub = subDepartmentId ? `_sub_${subDepartmentId}` : '';
-    const extra = suffix ? `_${suffix}` : '';
-    return departmentId
-      ? `unified_${operation}_${departmentId}${sub}${extra}`
-      : `unified_${operation}${sub}${extra}`;
-  }
-
-  private getFromCache<T>(key: string): T[] | null {
-    const entry = this.cache.get(key);
-    if (!entry) return null;
-    
-    if (Date.now() > entry.timestamp + entry.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-    
-    return entry.data;
-  }
-
-  private setCache<T>(key: string, data: T[]): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl: this.CACHE_TTL
-    });
-  }
-
   async fetchEmployees(departmentId?: string, subDepartmentId?: string | null): Promise<DataFetchResult<Employee>> {
-    const cacheKey = this.getCacheKey('employees', departmentId, subDepartmentId);
-    
-    const cachedData = this.getFromCache<Employee>(cacheKey);
-    if (cachedData) {
-      return { data: cachedData, error: null, fromCache: true };
-    }
 
     try {
       // If sub-department is selected, restrict to users linked via user_access.sub_department_id
@@ -72,7 +30,6 @@ class UnifiedDataService {
 
         if (allowedUserIds.length === 0) {
           const empty: Employee[] = [];
-          this.setCache(cacheKey, empty);
           return { data: empty, error: null, fromCache: false };
         }
       }
@@ -127,7 +84,6 @@ class UnifiedDataService {
         } as Employee;
       });
 
-      this.setCache(cacheKey, employees);
       return { data: employees, error: null, fromCache: false };
 
     } catch (error) {
@@ -141,15 +97,6 @@ class UnifiedDataService {
     subDepartmentId?: string | null,
     dateRange?: { fromDate?: string; toDate?: string }
   ): Promise<DataFetchResult<Assignment>> {
-    const rangeKey = dateRange?.fromDate || dateRange?.toDate
-      ? `range_${dateRange?.fromDate ?? 'any'}_${dateRange?.toDate ?? 'any'}`
-      : undefined;
-    const cacheKey = this.getCacheKey('assignments', departmentId, subDepartmentId, rangeKey);
-    
-    const cachedData = this.getFromCache<Assignment>(cacheKey);
-    if (cachedData) {
-      return { data: cachedData, error: null, fromCache: true };
-    }
 
     try {
       let query = supabase
@@ -244,7 +191,6 @@ class UnifiedDataService {
         };
       });
 
-      this.setCache(cacheKey, assignments);
       return { data: assignments, error: null, fromCache: false };
 
     } catch (error) {
@@ -254,12 +200,6 @@ class UnifiedDataService {
   }
 
   async fetchCars(departmentId?: string, subDepartmentId?: string | null): Promise<DataFetchResult<Car>> {
-    const cacheKey = this.getCacheKey('cars', departmentId, subDepartmentId);
-    
-    const cachedData = this.getFromCache<Car>(cacheKey);
-    if (cachedData) {
-      return { data: cachedData, error: null, fromCache: true };
-    }
 
     try {
       // If sub-department is selected, restrict to cars linked via car_sub_departments
@@ -278,7 +218,6 @@ class UnifiedDataService {
 
         if (allowedCarIds.length === 0) {
           const empty: Car[] = [];
-          this.setCache(cacheKey, empty);
           return { data: empty, error: null, fromCache: false };
         }
       }
@@ -304,7 +243,6 @@ class UnifiedDataService {
       }
 
       const cars = data || [];
-      this.setCache(cacheKey, cars);
       return { data: cars, error: null, fromCache: false };
 
     } catch (error) {
@@ -313,16 +251,6 @@ class UnifiedDataService {
     }
   }
 
-  clearCache(): void {
-    this.cache.clear();
-  }
-
-  getStatus() {
-    return {
-      cacheSize: this.cache.size,
-      cacheEntries: Array.from(this.cache.keys())
-    };
-  }
 }
 
 export const unifiedDataService = new UnifiedDataService();
