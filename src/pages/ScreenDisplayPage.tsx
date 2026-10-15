@@ -75,7 +75,7 @@ const ScreenDisplayPage: React.FC = () => {
         p_department_id: departmentId,
       });
       if (cancelled) return;
-      const list = ((data as any[]) || []).map((r) => ({ id: r.id, name: r.name })) as SubDept[];
+      const list = ((data as { id: string; name: string }[] | null) || []).map((r) => ({ id: r.id, name: r.name })) as SubDept[];
       setSubDeptList(list);
       if (initialSubDepartmentId) {
         const idx = list.findIndex((s) => s.id === initialSubDepartmentId);

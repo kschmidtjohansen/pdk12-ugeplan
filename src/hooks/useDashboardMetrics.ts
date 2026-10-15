@@ -105,7 +105,7 @@ export const useDashboardMetrics = (
       const assignedCarIds = new Set(
         safeAssignments
           .filter(assignment => {
-            const assignmentDate = (assignment as any).date || (assignment as any).assignment_date;
+            const assignmentDate = (assignment as { date?: string; assignment_date?: string }).date || (assignment as { date?: string; assignment_date?: string }).assignment_date;
             return assignmentDate === metricDateStr;
           })
           .flatMap(assignment => {
@@ -124,7 +124,7 @@ export const useDashboardMetrics = (
       );
 
       // Total cars: ekskludér hjælpekøretøjer (trailere, miljøvogne m.m.)
-      const nonAuxiliaryCars = safeCars.filter(car => (car as any).is_auxiliary !== true);
+      const nonAuxiliaryCars = safeCars.filter(car => (car as { is_auxiliary?: boolean }).is_auxiliary !== true);
       const totalCars = nonAuxiliaryCars.length;
       
       const availableCarsList = nonAuxiliaryCars.filter(car => 
@@ -182,7 +182,7 @@ export const useDashboardMetrics = (
         const servicemedarbejdere = countableEmployees;
         const carsInPlanner = safeCars.filter(c => c.show_in_planner !== false);
         const todaysAssignments = safeAssignments.filter(assignment => {
-          const assignmentDate = (assignment as any).date || (assignment as any).assignment_date;
+          const assignmentDate = (assignment as { date?: string; assignment_date?: string }).date || (assignment as { date?: string; assignment_date?: string }).assignment_date;
           return assignmentDate === metricDateStr;
         });
 

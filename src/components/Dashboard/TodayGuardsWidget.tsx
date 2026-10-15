@@ -42,7 +42,7 @@ const TodayGuardsWidget: React.FC = () => {
   const normalize = (s: string) =>
     s.toLowerCase().replace(/\[.*?\]/g, '').replace(/[-\s]+/g, ' ').trim();
 
-  const resolve = (d: any) => {
+  const resolve = (d) => {
     const emp = employees.find(e => e.id === d.employee_id);
     const external = d.notes?.startsWith('EKSTERN:')
       ? d.notes.split('\n')[0].replace('EKSTERN: ', '')

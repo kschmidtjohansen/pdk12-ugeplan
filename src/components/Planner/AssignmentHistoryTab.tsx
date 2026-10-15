@@ -122,7 +122,7 @@ const AssignmentHistoryTab: React.FC<AssignmentHistoryTabProps> = ({ assignment 
             .eq('group_id', assignment.groupId);
 
           if (siblings) {
-            assignmentIds = [...new Set([...assignmentIds, ...siblings.map((s: any) => s.id)])];
+            assignmentIds = [...new Set([...assignmentIds, ...siblings.map((s) => s.id)])];
           }
         }
 

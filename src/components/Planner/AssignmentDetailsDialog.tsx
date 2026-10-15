@@ -57,7 +57,7 @@ const AssignmentDetailsDialog: React.FC = () => {
       setRow(a);
       if (a?.responsible_user_id) {
         const { data: p } = await supabase.from('profiles').select('name').eq('id', a.responsible_user_id).maybeSingle();
-        if (!cancelled) setResponsible((p as any)?.name ?? null);
+        if (!cancelled) setResponsible((p as { name?: string } | null)?.name ?? null);
       } else {
         setResponsible(null);
       }
@@ -65,17 +65,17 @@ const AssignmentDetailsDialog: React.FC = () => {
         .from('assignments_employees')
         .select('user_id')
         .eq('assignment_id', id);
-      const userIds = ((ae as any[]) || []).map(e => e.user_id);
+      const userIds = ((ae as { user_id: string }[] | null) || []).map(e => e.user_id);
       if (userIds.length > 0) {
         const { data: profs } = await supabase.from('profiles').select('name').in('id', userIds);
-        if (!cancelled) setEmployees(((profs as any[]) || []).map(p => p.name));
+        if (!cancelled) setEmployees(((profs as { name: string }[] | null) || []).map(p => p.name));
       } else if (!cancelled) {
         setEmployees([]);
       }
       const carIds = a?.car_ids?.length ? a.car_ids : (a?.car_id ? [a.car_id] : []);
       if (carIds.length > 0) {
         const { data: cs } = await supabase.from('cars').select('name,car_number').in('id', carIds);
-        if (!cancelled) setCars(((cs as any[]) || []).map(c => c.car_number ? `${c.car_number} · ${c.name}` : c.name));
+        if (!cancelled) setCars(((cs as { name: string; car_number: string | null }[] | null) || []).map(c => c.car_number ? `${c.car_number} · ${c.name}` : c.name));
       } else if (!cancelled) {
         setCars([]);
       }

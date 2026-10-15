@@ -105,8 +105,8 @@ const DepartmentManagement: React.FC = () => {
         toast({ title: t('common.success'), description: t('admin.departments.deleted') });
         fetchDepartments();
       }
-    } catch (err: any) {
-      toast({ title: t('common.error'), description: err?.message || 'Unknown error', variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: t('common.error'), description: (err as { message?: string } | null)?.message || 'Unknown error', variant: 'destructive' });
     }
     setDeleteTarget(null);
     setDeleting(false);

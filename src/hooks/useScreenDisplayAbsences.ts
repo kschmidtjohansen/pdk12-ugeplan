@@ -45,7 +45,7 @@ export const useScreenDisplayAbsences = (
         setAbsences([]);
         return;
       }
-      setAbsences(((data as any[]) || []).map((r) => ({ id: r.id, name: r.name })));
+      setAbsences(((data as { id: string; name: string }[] | null) || []).map((r) => ({ id: r.id, name: r.name })));
     } catch (err) {
       if (import.meta.env.DEV) console.error('[useScreenDisplayAbsences] error:', err);
       if (isCurrent()) setAbsences([]);

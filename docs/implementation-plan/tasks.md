@@ -754,3 +754,7 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [~] P2: Split PlannerPage.tsx og EmployeeFormDialog.tsx — 13 nye delfiler (alle <150 l.). EmployeeFormDialog 820→~390 l., PlannerPage 985→703 l. Rest: formular-validering og serie-/dialoghåndtering i PlannerPage kan trækkes ud i næste runde.
 - [~] P3: any reduceret fra 391 til 139 (100 filer gennemgået). Rest primært i services/hooks med løse Supabase-rækker; mål <50 næste runde.
 - [ ] P4: Webhook-dispatcher til n8n (afventer n8n-URL)
+
+- [x] Punkt 3: any under 50 (48)
+- [x] Regressionstests: opret/ret/slet/fortryd i ugeplanen
+- [ ] Punkt 4: Automatisering via Edge Functions + triggere (afventer hændelsesvalg, n8n droppet)

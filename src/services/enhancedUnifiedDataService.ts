@@ -46,7 +46,7 @@ class EnhancedUnifiedDataService {
         email: profile.email || '',
         phone: profile.phone || '',
         jobTitle: profile.job_title || '',
-        role: (profile as any).user_roles?.role || 'servicemedarbejder',
+        role: (profile as { user_roles?: { role?: string } }).user_roles?.role || 'servicemedarbejder',
         onLeave: profile.on_leave || false,
         status: profile.status || 'active',
         notes: profile.notes || '',

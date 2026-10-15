@@ -154,16 +154,16 @@ const CarsTable: React.FC<CarsTableProps> = ({
                       <span className="text-foreground">{t('common.unavailable')}</span>
                     </div>
                   )}
-                  {(car as any)._scheduledActive && (
+                  {(car as CarScheduleExtras)._scheduledActive && (
                     <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-warning-soft text-warning-soft-foreground">
                       <Wrench className="h-3 w-3" />
-                      Værksted til {(car as any)._scheduledActive.end_date}
+                      Værksted til {(car as CarScheduleExtras)._scheduledActive.end_date}
                     </span>
                   )}
-                  {!(car as any)._scheduledActive && (car as any)._scheduledUpcoming && (
+                  {!(car as CarScheduleExtras)._scheduledActive && (car as CarScheduleExtras)._scheduledUpcoming && (
                     <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
                       <CalendarClock className="h-3 w-3" />
-                      Planlagt {(car as any)._scheduledUpcoming.start_date}
+                      Planlagt {(car as CarScheduleExtras)._scheduledUpcoming.start_date}
                     </span>
                   )}
                   {car.notes && car.notes.trim() !== '' && (
@@ -291,3 +291,5 @@ const CarsTable: React.FC<CarsTableProps> = ({
 };
 
 export default CarsTable;
+
+type CarScheduleExtras = { _scheduledActive?: { end_date: string } | null; _scheduledUpcoming?: { start_date: string } | null; is_auxiliary?: boolean };

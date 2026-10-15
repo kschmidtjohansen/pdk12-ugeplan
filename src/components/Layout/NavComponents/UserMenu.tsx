@@ -18,7 +18,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 interface UserMenuProps {
   user: any;
   currentLanguage: string;
-  setLanguage: (lang: any) => void;
+  setLanguage: (lang) => void;
   handleLogout: () => void;
 }
 

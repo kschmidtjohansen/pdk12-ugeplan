@@ -121,11 +121,11 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
 
       onAvatarUpdate(data.publicUrl);
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (import.meta.env.DEV) console.error('Error uploading avatar:', error);
       toast({
         title: t('common.error'),
-        description: error.message || t('profile.profilePictureError'),
+        description: (error as { message?: string })?.message || t('profile.profilePictureError'),
         variant: 'destructive'
       });
     } finally {
@@ -169,11 +169,11 @@ const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
 
       onAvatarUpdate(null);
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (import.meta.env.DEV) console.error('Error removing avatar:', error);
       toast({
         title: t('common.error'),
-        description: error.message || t('profile.profilePictureError'),
+        description: (error as { message?: string })?.message || t('profile.profilePictureError'),
         variant: 'destructive'
       });
     } finally {

@@ -187,7 +187,7 @@ export const useProximitySearch = ({
         .lte('sick_date', weekDates.endStr);
       if (error) return new Map<string, Set<string>>();
       const map = new Map<string, Set<string>>();
-      (data || []).forEach((row: any) => {
+      (data || []).forEach((row) => {
         if (!map.has(row.sick_date)) map.set(row.sick_date, new Set());
         map.get(row.sick_date)!.add(row.user_id);
       });
@@ -211,7 +211,7 @@ export const useProximitySearch = ({
 
     // Approved vacation dates per employee
     const vacationByEmployee = new Map<string, Array<{ start: string; end: string }>>();
-    (vacations || []).forEach((v: any) => {
+    (vacations || []).forEach((v) => {
       if (v.status !== 'approved') return;
       const list = vacationByEmployee.get(v.user_id) || [];
       list.push({ start: v.start_date, end: v.end_date });

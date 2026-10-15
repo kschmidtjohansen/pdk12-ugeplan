@@ -1,3 +1,4 @@
+import type { AppUser as User } from '@/context/auth/types';
 
 import { useEffect, useCallback } from 'react';
 import { format, startOfWeek, endOfWeek, addWeeks, getISOWeek } from 'date-fns';
@@ -6,8 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useDepartment } from '@/context/DepartmentContext';
 
 export const useVacationNotifications = (
-  user: any | null,
-  addNotification: (notification: any) => Promise<string | null>
+  user: User | null,
+  addNotification: (notification) => Promise<string | null>
 ) => {
   const { t, currentLanguage } = useTranslation();
   const { selectedDepartmentId } = useDepartment();

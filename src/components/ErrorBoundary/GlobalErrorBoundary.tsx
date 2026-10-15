@@ -15,7 +15,7 @@ interface State {
 }
 
 const getBrowserLanguage = () => {
-  const lang = navigator.language || (navigator as any).userLanguage || '';
+  const lang = navigator.language || (navigator as Navigator & { userLanguage?: string }).userLanguage || '';
   return lang.startsWith('da') ? 'da' : 'en';
 };
 

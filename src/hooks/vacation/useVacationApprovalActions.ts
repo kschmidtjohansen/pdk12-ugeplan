@@ -48,8 +48,8 @@ export const useVacationApprovalActions = (
         if (cleanupErr) {
           if (import.meta.env.DEV) console.warn('[approveVacation] cleanup error:', cleanupErr);
         } else if (cleanup) {
-          const removed = (cleanup as any).removedFromCount || 0;
-          const cleared = (cleanup as any).clearedResponsibleCount || 0;
+          const removed = (cleanup as { removedFromCount?: number; clearedResponsibleCount?: number }).removedFromCount || 0;
+          const cleared = (cleanup as { removedFromCount?: number; clearedResponsibleCount?: number }).clearedResponsibleCount || 0;
           if (removed > 0 || cleared > 0) {
             const parts: string[] = [];
             if (removed > 0) parts.push(t('vacation.autoUnassignSuccess', { count: String(removed) }));

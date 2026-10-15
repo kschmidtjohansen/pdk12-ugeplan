@@ -130,7 +130,7 @@ class RealtimeManager {
 
     const subscription = this.subscriptions.get(subscriptionId);
     if (subscription) {
-      (subscription as any).pollInterval = pollInterval;
+      (subscription as { pollInterval?: ReturnType<typeof setInterval> }).pollInterval = pollInterval;
     }
   }
 
@@ -148,8 +148,8 @@ class RealtimeManager {
         }
       });
 
-      if ((subscription as any).pollInterval) {
-        clearInterval((subscription as any).pollInterval);
+      if ((subscription as { pollInterval?: ReturnType<typeof setInterval> }).pollInterval) {
+        clearInterval((subscription as { pollInterval?: ReturnType<typeof setInterval> }).pollInterval);
       }
 
       supabase.removeChannel(subscription.channel);

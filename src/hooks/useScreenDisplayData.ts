@@ -84,13 +84,13 @@ export const useScreenDisplayData = (
             ? { id: a.responsible_user.id, name: a.responsible_user.name }
             : null,
           assignment_employees: Array.isArray(a.team)
-            ? a.team.map((m: any) => ({
+            ? a.team.map((m) => ({
                 user_id: m.id,
                 profiles: { id: m.id, name: m.name },
               }))
             : [],
           assignment_cars: Array.isArray(a.cars)
-            ? a.cars.map((c: any) => ({
+            ? a.cars.map((c) => ({
                 id: c.id,
                 name: c.car_number ? `${c.car_number} - ${c.name}` : c.name,
               }))

@@ -204,9 +204,9 @@ export const useAssignmentFiles = (
 
       await fetchFiles();
       toast.success(t('ui.fileUploaded', { name: file.name }));
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (import.meta.env.DEV) console.error('[useAssignmentFiles] Error uploading file:', error);
-      toast.error(`${t('ui.couldNotUploadFile')}: ${error?.message || t('ui.unknownError')}`, { duration: 8000 });
+      toast.error(`${t('ui.couldNotUploadFile')}: ${(error as { message?: string } | null)?.message || t('ui.unknownError')}`, { duration: 8000 });
     }
   }, [assignmentId, fetchFiles]);
 

@@ -59,8 +59,8 @@ export const convertOptimizedAssignmentToAssignment = (data: OptimizedAssignment
     type: data.type,
     published: data.published,
     responsibleUserId: data.responsible_user_id,
-    employees: data.assignment_employees?.map((emp: any) => emp.user_id) || [],
-  assignedEmployees: data.assignment_employees?.map((emp: any) => {
+    employees: data.assignment_employees?.map((emp) => emp.user_id) || [],
+  assignedEmployees: data.assignment_employees?.map((emp) => {
     const profileName = emp.profiles?.name;
     const profileEmail = emp.profiles?.email;
     
@@ -84,7 +84,7 @@ export const convertOptimizedAssignmentToAssignment = (data: OptimizedAssignment
       email: profileEmail || ''
     };
   }) || [],
-    cars: data.assignment_cars?.map((car: any) => car.name) || [],
+    cars: data.assignment_cars?.map((car) => car.name) || [],
     createdAt: data.created_at,
     updatedAt: data.updated_at,
     groupId: data.group_id || undefined,

@@ -37,8 +37,8 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
 
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
-  const scheduledActive = (car as any)._scheduledActive as { end_date: string } | null | undefined;
-  const scheduledUpcoming = (car as any)._scheduledUpcoming as { start_date: string } | null | undefined;
+  const scheduledActive = (car as CarScheduleExtras)._scheduledActive as { end_date: string } | null | undefined;
+  const scheduledUpcoming = (car as CarScheduleExtras)._scheduledUpcoming as { start_date: string } | null | undefined;
 
 
   const hasDetails = car.has_trailer_hitch && (car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) || (car.notes && car.notes.trim() !== '');
@@ -68,7 +68,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                   : t('cars.notBookedToday')}
               </p>
               <div className="flex flex-wrap gap-1 mt-1">
-                {(car as any).is_auxiliary && (
+                {(car as CarScheduleExtras).is_auxiliary && (
                   <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-warning-soft text-warning-soft-foreground">
                     {t('cars.auxiliaryBadge')}
                   </span>
@@ -273,3 +273,5 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
 };
 
 export default MobileCarCard;
+
+type CarScheduleExtras = { _scheduledActive?: { end_date: string } | null; _scheduledUpcoming?: { start_date: string } | null; is_auxiliary?: boolean };

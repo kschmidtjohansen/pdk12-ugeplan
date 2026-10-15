@@ -27,7 +27,7 @@ export const useWarehouseData = () => {
       const { data, error: fetchError } = await supabase.rpc('get_demo_warehouse_items');
       if (fetchError) throw fetchError;
 
-      return (data || []).filter((item: any) =>
+      return (data || []).filter((item) =>
         item.case_number?.startsWith('DEMO-') || item.address?.startsWith('Demo')
       ) as any;
     } else {
