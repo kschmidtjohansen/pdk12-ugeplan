@@ -33,7 +33,7 @@ export class PerformanceMonitor {
       // First Input Delay (FID)
       try {
         const fidObserver = new PerformanceObserver((list) => {
-          list.getEntries().forEach((entry) => {
+          list.getEntries().forEach((entry: any) => {
             this.recordMetric('FID', entry.processingStart - entry.startTime);
           });
         });
@@ -46,7 +46,7 @@ export class PerformanceMonitor {
       try {
         let clsValue = 0;
         const clsObserver = new PerformanceObserver((list) => {
-          list.getEntries().forEach((entry) => {
+          list.getEntries().forEach((entry: any) => {
             if (!entry.hadRecentInput) {
               clsValue += entry.value;
               this.recordMetric('CLS', clsValue);
