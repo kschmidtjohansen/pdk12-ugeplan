@@ -1,3 +1,8 @@
+## 2026-10-15 – Sprint Arkitektur & Stabilitet P3: Strammere typer
+- Eksplicitte `any` reduceret fra 391 til 139 på tværs af 100 filer (services, hooks, kontekster, komponenter). Supabase-rækker typet via Tables/TablesInsert/TablesUpdate; fejl læses via `.message`.
+- Datagrænser (rå RPC-/join-rækker) castes eksplicit via `unknown` i stedet for `any`.
+- Ingen adfærdsændring. Typecheck OK, 44/44 tests grønne.
+
 ## 2026-10-15 – Sprint Arkitektur & Stabilitet P2: Opdeling af store filer
 - EmployeeFormDialog (820→~390 l.): nye delkomponenter i src/components/Employees/form/ — EmailField, CertificatesSection, VikarConversionSection, NewVikarSection, RoleSection, SubDepartmentField (henter selv underafdelinger, med annullering), ConnectionStatus, hook useEmailCheck; formData typet med EmployeeFormData i stedet for any.
 - PlannerPage (985→703 l.): PlannerHeader og PlannerBulkActions (bulk-state, handlers og dialoger) i src/components/Planner/page/; hooks useAdjacentWeekPrefetch og useCopyDayFromYesterday i src/hooks/planner/.
