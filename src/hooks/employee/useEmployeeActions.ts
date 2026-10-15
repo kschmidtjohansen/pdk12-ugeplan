@@ -5,6 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { Employee } from '@/types/employee';
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { validateAndSanitizePhone } from '@/utils/phoneValidation';
 import { useAuth } from '@/context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
@@ -162,7 +163,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
 
       const { error: profileError } = await client
         .from('profiles')
-        .update(updatePayload)
+        .update(updatePayload as TablesUpdate<'profiles'>)
         .eq('id', employee.id);
       
       if (profileError) throw profileError;
@@ -291,7 +292,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
         const ctx = (error as EdgeFunctionError)?.context;
         if (ctx && typeof ctx.clone === 'function') {
           try {
-            const body = await ctx.clone().json();
+            const body = (await ctx.clone().json()) as { error?: unknown } | null;
             if (body?.error) serverMessage = String(body.error);
           } catch {
             try {

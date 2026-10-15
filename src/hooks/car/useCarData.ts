@@ -39,7 +39,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       let baseline = (data || []).filter((c: Record<string, unknown>) => 
         c.show_in_planner !== false && 
         new Date(c.created_at as string) >= new Date(DEMO_BASELINE_DATE)
-      ) as CarData[];
+      ) as unknown as CarData[];
 
       if (baseline.length === 0) {
         baseline = [

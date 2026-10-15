@@ -53,6 +53,7 @@ const fetchSwapRequests = async (userId: string): Promise<DutySwapRequestWithDut
 
   return (data as DutySwapRequestDbRow[]).map((r) => ({
     ...r,
+    status: r.status as DutySwapRequestWithDuty['status'],
     duty: dutyMap.get(r.duty_id) as unknown as Duty | undefined,
     requester: profileMap.get(r.requested_by) ?? null,
   }));

@@ -201,7 +201,7 @@ export const useEmployeeCreation = (refreshEmployees: () => Promise<void>) => {
           if (ctx && typeof ctx.json === 'function') {
             status = typeof ctx.status === 'number' ? ctx.status : null;
             try {
-              const body = await ctx.clone().json();
+              const body = (await ctx.clone().json()) as { error?: unknown } | null;
               if (body?.error) serverMessage = String(body.error);
             } catch {
               try {
