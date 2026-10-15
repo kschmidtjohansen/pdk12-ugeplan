@@ -4,6 +4,7 @@ import { subscribeToTable } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
+import type { Tables, Json } from '@/integrations/supabase/types';
 
 export type ChangeLogOperation =
   | 'CREATE' | 'UPDATE' | 'DELETE' | 'PUBLISH'
@@ -17,9 +18,23 @@ export interface ChangeLogEntry {
   changed_by: string;
   changed_by_name: string;
   changed_by_first_name: string | null;
-  change_details: any;
+  change_details: Json;
   created_at: string;
 }
+
+type VacationRow = Pick<Tables<'vacations'>,
+  'id' | 'user_id' | 'start_date' | 'end_date' | 'request_type' | 'status' | 'reason' | 'notes' | 'created_at' | 'updated_at' | 'reviewed_by' | 'reviewed_at'
+> & {
+  user?: { name: string | null } | null;
+  reviewer?: { name: string | null } | null;
+  profiles?: { name: string | null } | null;
+};
+
+type ProfileRow = Pick<Tables<'profiles'>, 'id' | 'name' | 'email' | 'created_at' | 'home_department_id'>;
+
+type PlannerLogRow = Pick<Tables<'planner_change_log'>,
+  'id' | 'assignment_id' | 'operation' | 'changed_by' | 'changed_by_name' | 'changed_by_first_name' | 'change_details' | 'created_at'
+>;
 
 interface ChangeLogContextType {
   changeLogs: ChangeLogEntry[];
@@ -54,7 +69,7 @@ const isInRange = (value: string | null | undefined, startDate: Date, endDate: D
 };
 
 // Map a vacations row to a virtual ChangeLogEntry
-const vacationRowToEntry = (row: any): ChangeLogEntry | null => {
+const vacationRowToEntry = (row: VacationRow): ChangeLogEntry | null => {
   if (!row) return null;
   const status = row.status as string;
   let operation: ChangeLogOperation;
@@ -101,7 +116,7 @@ const vacationRowToEntry = (row: any): ChangeLogEntry | null => {
   };
 };
 
-const profileRowToEmployeeCreatedEntry = (row: any): ChangeLogEntry | null => {
+const profileRowToEmployeeCreatedEntry = (row: ProfileRow): ChangeLogEntry | null => {
   if (!row?.id || !row?.created_at) return null;
   const employeeName = row.name || 'Medarbejder';
   return {
@@ -141,11 +156,11 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         supabase.from('profiles').select('id').eq('home_department_id', selectedDepartmentId),
       ]);
       const ids = new Set<string>();
-      (access || []).forEach((r: any) => r?.user_id && ids.add(r.user_id));
-      (homes || []).forEach((r: any) => r?.id && ids.add(r.id));
+      (access || []).forEach((r) => r?.user_id && ids.add(r.user_id));
+      (homes || []).forEach((r) => r?.id && ids.add(r.id));
       return Array.from(ids);
-    } catch (e) {
-      if (import.meta.env.DEV) console.warn('[ChangeLogContext] getDepartmentUserIds failed', e);
+    } catch (error) {
+      if (import.meta.env.DEV) console.warn('[ChangeLogContext] getDepartmentUserIds failed', (error as { message?: string })?.message);
       return null;
     }
   };
@@ -196,7 +211,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const PAGE_SIZE = 500;
       const MAX_PAGES = 8;
       const TARGET_ROWS = 300;
-      const filteredPlanner: any[] = [];
+      const filteredPlanner: PlannerLogRow[] = [];
 
       for (let page = 0; page < MAX_PAGES; page++) {
         const { data: pageData, error: pErr } = await client.from('planner_change_log')
@@ -214,20 +229,21 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const assignmentDeptMap = new Map<string, string | null>();
         const referencedIds = Array.from(new Set(
           rows
-            .map((l: any) => l.assignment_id)
-            .filter((id: any): id is string => !!id)
+            .map((l) => l.assignment_id)
+            .filter((id): id is string => !!id)
         ));
         if (scopeToDepartment && referencedIds.length > 0) {
           const { data: existing } = await client
             .from('assignments').select('id, department_id').in('id', referencedIds);
-          (existing || []).forEach((a: any) => assignmentDeptMap.set(a.id, a.department_id ?? null));
+          (existing || []).forEach((a) => assignmentDeptMap.set(a.id, a.department_id ?? null));
         }
 
-        rows.forEach((log: any) => {
+        rows.forEach((log) => {
           if (!scopeToDepartment) { filteredPlanner.push(log); return; } // no dept selected — show all
           if (log.operation?.startsWith?.('EMPLOYEE_')) {
-            const employeeDeptId = log.change_details?.department_id;
-            const employeeId = log.change_details?.employee_id;
+            const details = log.change_details as Record<string, unknown> | null;
+            const employeeDeptId = details?.department_id as string | undefined;
+            const employeeId = details?.employee_id as string | undefined;
             if (employeeDeptId === selectedDepartmentId || (employeeId && deptUserIdSet?.has(employeeId))) {
               filteredPlanner.push(log);
             }
@@ -249,8 +265,8 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       const loggedEmployeeCreateIds = new Set(
         filteredPlanner
-          .filter((log: any) => log.operation === 'EMPLOYEE_CREATED' && log.change_details?.employee_id)
-          .map((log: any) => log.change_details.employee_id)
+          .filter((log) => log.operation === 'EMPLOYEE_CREATED' && (log.change_details as Record<string, unknown> | null)?.employee_id)
+          .map((log) => (log.change_details as Record<string, unknown>).employee_id as string)
       );
 
       let employeeEntries: ChangeLogEntry[] = [];
@@ -268,7 +284,7 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           if (import.meta.env.DEV) console.warn('[ChangeLogContext] profiles fetch failed', profilesErr);
         } else {
           employeeEntries = (profiles || [])
-            .filter((profile: any) => !loggedEmployeeCreateIds.has(profile.id))
+            .filter((profile) => !loggedEmployeeCreateIds.has(profile.id))
             .map(profileRowToEmployeeCreatedEntry)
             .filter((e): e is ChangeLogEntry => e !== null);
         }
@@ -277,8 +293,8 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const vacationRows = vacResult.error ? [] : (vacResult.data || []);
       const vacationUserIds = Array.from(new Set(
         vacationRows
-          .flatMap((row: any) => [row.user_id, row.reviewed_by])
-          .filter((id: any): id is string => !!id)
+          .flatMap((row) => [row.user_id, row.reviewed_by])
+          .filter((id): id is string => !!id)
       ));
       const vacationNameMap = new Map<string, string>();
       if (vacationUserIds.length > 0) {
@@ -289,14 +305,14 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (vacationProfilesErr) {
           if (import.meta.env.DEV) console.warn('[ChangeLogContext] vacation profile names fetch failed', vacationProfilesErr);
         } else {
-          (vacationProfiles || []).forEach((profile: any) => {
+          (vacationProfiles || []).forEach((profile) => {
             vacationNameMap.set(profile.id, profile.name);
           });
         }
       }
 
       const vacEntries = vacationRows
-        .map((row: any) => vacationRowToEntry({
+        .map((row) => vacationRowToEntry({
           ...row,
           user: { name: vacationNameMap.get(row.user_id) || 'Medarbejder' },
           reviewer: row.reviewed_by ? { name: vacationNameMap.get(row.reviewed_by) || null } : null,
@@ -357,12 +373,13 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       schema,
       event: 'INSERT',
       table: 'planner_change_log',
-      callback: async (payload: any) => {
-          let newLog = payload.new as ChangeLogEntry;
+      callback: async (payload) => {
+          let newLog = payload.new as unknown as ChangeLogEntry;
           if (selectedDepartmentId && !isDemoMode) {
             if (newLog.operation?.startsWith?.('EMPLOYEE_')) {
-              const employeeDeptId = newLog.change_details?.department_id;
-              const employeeId = newLog.change_details?.employee_id;
+              const details = newLog.change_details as Record<string, unknown> | null;
+              const employeeDeptId = details?.department_id as string | undefined;
+              const employeeId = details?.employee_id as string | undefined;
               const deptUserIds = await getDepartmentUserIds();
               if (employeeDeptId !== selectedDepartmentId && (!employeeId || !deptUserIds?.includes(employeeId))) {
                 return;
@@ -374,21 +391,21 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 .select('department_id, case_number, title')
                 .eq('id', newLog.assignment_id)
                 .maybeSingle();
-              if (assignment && (assignment as any).department_id !== selectedDepartmentId) {
+              if (assignment && assignment.department_id !== selectedDepartmentId) {
                 return;
               }
-              if (assignment && !newLog.change_details?.case_number) {
+              if (assignment && !(newLog.change_details as Record<string, unknown> | null)?.case_number) {
                 newLog = {
                   ...newLog,
                   change_details: {
-                    ...newLog.change_details,
-                    case_number: (assignment as any).case_number || (assignment as any).title,
+                    ...(newLog.change_details as Record<string, unknown> | null),
+                    case_number: assignment.case_number || assignment.title,
                   },
                 };
               }
             }
           }
-          if (newLog.assignment_id && !newLog.change_details?.case_number) {
+          if (newLog.assignment_id && !(newLog.change_details as Record<string, unknown> | null)?.case_number) {
             const client = getSchemaClient(isDemoMode);
             const { data: assignment } = await client
               .from('assignments').select('case_number, title')
@@ -397,8 +414,8 @@ export const ChangeLogProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               newLog = {
                 ...newLog,
                 change_details: {
-                  ...newLog.change_details,
-                  case_number: (assignment as any).case_number || (assignment as any).title,
+                  ...(newLog.change_details as Record<string, unknown> | null),
+                  case_number: assignment.case_number || assignment.title,
                 },
               };
             }

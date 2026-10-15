@@ -18,6 +18,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { Duty } from '@/types/duty';
+
+type DutyWithSharedDept = Duty & { sharedDepartmentName?: string };
 import { 
   startOfMonth, 
   endOfMonth, 
@@ -334,9 +336,9 @@ export const DutyMonthCalendar = ({
                             <div className="text-[12px] font-semibold leading-tight truncate">
                               {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'} · {initials}
                             </div>
-                            {(duty as any).sharedDepartmentName && (
+                            {(duty as DutyWithSharedDept).sharedDepartmentName && (
                               <div className="text-[9px] font-medium opacity-70 truncate mt-0.5">
-                                {(duty as any).sharedDepartmentName}
+                                {(duty as DutyWithSharedDept).sharedDepartmentName}
                               </div>
                             )}
                           </button>
@@ -347,9 +349,9 @@ export const DutyMonthCalendar = ({
                             <p className="text-xs text-muted-foreground">
                               {getDutyTypeName(duty.duty_type)}
                             </p>
-                            {(duty as any).sharedDepartmentName && (
+                            {(duty as DutyWithSharedDept).sharedDepartmentName && (
                               <p className="text-xs text-muted-foreground">
-                                {(duty as any).sharedDepartmentName}
+                                {(duty as DutyWithSharedDept).sharedDepartmentName}
                               </p>
                             )}
                             <p className="text-xs text-muted-foreground">
@@ -386,7 +388,7 @@ export const DutyMonthCalendar = ({
                             canManage && colors.hover,
                             canManage ? "cursor-pointer" : "cursor-default"
                           )}
-                          title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}${(duty as any).sharedDepartmentName ? ' · ' + (duty as any).sharedDepartmentName : ''}`}
+                          title={`${employeeName} - ${getDutyTypeName(duty.duty_type)}${(duty as DutyWithSharedDept).sharedDepartmentName ? ' · ' + (duty as DutyWithSharedDept).sharedDepartmentName : ''}`}
                         >
                           <div className="font-semibold md:font-medium truncate text-[11px] md:text-xs">
                             {initials}
@@ -394,9 +396,9 @@ export const DutyMonthCalendar = ({
                           <div className="text-[9px] md:text-[10px] opacity-75 truncate font-medium">
                             {duty.duty_type === 'skadeleder_vagt' ? 'SL' : 'KV'}
                           </div>
-                          {(duty as any).sharedDepartmentName && (
+                          {(duty as DutyWithSharedDept).sharedDepartmentName && (
                             <div className="text-[9px] md:text-[10px] opacity-70 truncate italic">
-                              {(duty as any).sharedDepartmentName}
+                              {(duty as DutyWithSharedDept).sharedDepartmentName}
                             </div>
                           )}
                         </button>

@@ -4,6 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { subscribeToTable } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import type { Duty } from '@/types/duty';
+import type { Tables } from '@/integrations/supabase/types';
+
+type DutySwapRequestDbRow = Tables<'duty_swap_requests'>;
+type OnCallDutyRow = Tables<'on_call_duties'>;
+type ProfileLite = { id: string; name: string; avatar_url: string | null };
 
 export interface DutySwapRequestRow {
   id: string;
@@ -35,21 +40,21 @@ const fetchSwapRequests = async (userId: string): Promise<DutySwapRequestWithDut
   if (error) throw error;
   if (!data || data.length === 0) return [];
 
-  const dutyIds = Array.from(new Set(data.map((r: any) => r.duty_id)));
-  const requesterIds = Array.from(new Set(data.map((r: any) => r.requested_by)));
+  const dutyIds = Array.from(new Set(data.map((r: DutySwapRequestDbRow) => r.duty_id)));
+  const requesterIds = Array.from(new Set(data.map((r: DutySwapRequestDbRow) => r.requested_by)));
 
   const [dutiesRes, profilesRes] = await Promise.all([
     supabase.from('on_call_duties').select('*').in('id', dutyIds),
     supabase.from('profiles').select('id, name, avatar_url').in('id', requesterIds),
   ]);
 
-  const dutyMap = new Map((dutiesRes.data || []).map((d: any) => [d.id, d]));
-  const profileMap = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
+  const dutyMap = new Map((dutiesRes.data || []).map((d: OnCallDutyRow) => [d.id, d]));
+  const profileMap = new Map((profilesRes.data || []).map((p: ProfileLite) => [p.id, p]));
 
-  return (data as any[]).map((r) => ({
+  return (data as DutySwapRequestDbRow[]).map((r) => ({
     ...r,
-    duty: dutyMap.get(r.duty_id) as Duty | undefined,
-    requester: profileMap.get(r.requested_by) as any,
+    duty: dutyMap.get(r.duty_id) as unknown as Duty | undefined,
+    requester: profileMap.get(r.requested_by) ?? null,
   }));
 };
 

@@ -140,11 +140,11 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     };
     
     const categorized = {
-      available: [] as Array<Employee & { availabilityInfo?: any }>,
-      partiallyBooked: [] as Array<Employee & { availabilityInfo?: any }>,
-      fullyBooked: [] as Array<Employee & { availabilityInfo?: any }>,
-      onLeave: [] as Array<Employee & { availabilityInfo?: any }>,
-      onVacation: [] as Array<Employee & { availabilityInfo?: any }>
+      available: [] as Array<Employee & { availabilityInfo?: ReturnType<typeof getEmployeeAvailabilityStatus> }>,
+      partiallyBooked: [] as Array<Employee & { availabilityInfo?: ReturnType<typeof getEmployeeAvailabilityStatus> }>,
+      fullyBooked: [] as Array<Employee & { availabilityInfo?: ReturnType<typeof getEmployeeAvailabilityStatus> }>,
+      onLeave: [] as Array<Employee & { availabilityInfo?: ReturnType<typeof getEmployeeAvailabilityStatus> }>,
+      onVacation: [] as Array<Employee & { availabilityInfo?: ReturnType<typeof getEmployeeAvailabilityStatus> }>
     };
     
     employees.forEach(employee => {
@@ -194,7 +194,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       ...employeeAvailabilityData.available,
       ...employeeAvailabilityData.partiallyBooked,
     ].filter(emp => !crossBusyEmployeeIds.has(emp.id) && !trainingIds.has(emp.id) && !sickIds.has(emp.id) && !expiredIds.has(emp.id));
-    const rolesOf = (emp: any): string[] => {
+    const rolesOf = (emp: Employee): string[] => {
       const r = (emp.roles && emp.roles.length ? emp.roles : [emp.role]) as string[];
       return r || [];
     };
@@ -218,7 +218,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
     return cars.filter(car => {
       if (!car.is_available) return false;
       if (car.show_in_planner === false) return false;
-      if ((car as any).is_auxiliary === true) return false;
+      if ((car as CarType & { is_auxiliary?: boolean }).is_auxiliary === true) return false;
       if (assignedCarIds.has(car.id)) return false;
       if (crossBusyCarIds.has(car.id)) return false;
       return true;
@@ -254,12 +254,12 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       .filter(emp => expiredIds.has(emp.id) && !onVacationIds.has(emp.id))
       .map(emp => ({
         ...emp,
-        availabilityInfo: { text: t('employees.lockedReasonExpired') } as any,
+        availabilityInfo: { text: t('employees.lockedReasonExpired') } as ReturnType<typeof getEmployeeAvailabilityStatus>,
       }));
     const expiredOnlyIds = new Set(expiredOnly.map(e => e.id));
     const sickOnly = employees
       .filter(emp => sickIds.has(emp.id) && !onVacationIds.has(emp.id) && !expiredOnlyIds.has(emp.id))
-      .map(emp => ({ ...emp, availabilityInfo: undefined as any }));
+      .map(emp => ({ ...emp, availabilityInfo: undefined as ReturnType<typeof getEmployeeAvailabilityStatus> | undefined }));
     return [...onVacation, ...expiredOnly, ...sickOnly];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employeeAvailabilityData.onVacation, employees, sickIds, expiredIds, t]);

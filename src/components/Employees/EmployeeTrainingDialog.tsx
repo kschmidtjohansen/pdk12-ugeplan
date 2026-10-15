@@ -135,8 +135,9 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
               },
             }
           );
-          const removed = (cleanup as any)?.removedFromCount || 0;
-          const cleared = (cleanup as any)?.clearedResponsibleCount || 0;
+          const cleanupResult = cleanup as { removedFromCount?: number; clearedResponsibleCount?: number } | null;
+          const removed = cleanupResult?.removedFromCount || 0;
+          const cleared = cleanupResult?.clearedResponsibleCount || 0;
           if (removed > 0 || cleared > 0) {
             toast({
               title: tr('ui.assignmentsUpdated'),
@@ -145,10 +146,10 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
             qc.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
             qc.invalidateQueries({ queryKey: ['optimizedAssignments'], refetchType: 'active' });
           }
-        } catch (cleanupErr: any) {
+        } catch (cleanupErr) {
           toast({
             title: tr('ui.couldNotRemoveFromAssignments'),
-            description: cleanupErr?.message ?? tr('ui.unknownErrorCheckAssignments'),
+            description: (cleanupErr as { message?: string })?.message ?? tr('ui.unknownErrorCheckAssignments'),
             variant: 'destructive',
           });
         }
@@ -156,8 +157,8 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
 
       invalidateGrids();
       resetForm();
-    } catch (e: any) {
-      toast({ title: tr('ui.couldNotSaveCourse'), description: e?.message ?? tr('ui.unknownError'), variant: 'destructive' });
+    } catch (e) {
+      toast({ title: tr('ui.couldNotSaveCourse'), description: (e as { message?: string })?.message ?? tr('ui.unknownError'), variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -179,8 +180,8 @@ const EmployeeTrainingDialog: React.FC<Props> = ({ open, onOpenChange, employee 
       toast({ title: tr('ui.courseDeleted') });
       if (editingId === id) resetForm();
       invalidateGrids();
-    } catch (e: any) {
-      toast({ title: tr('ui.couldNotDelete'), description: e?.message ?? tr('ui.unknownError'), variant: 'destructive' });
+    } catch (e) {
+      toast({ title: tr('ui.couldNotDelete'), description: (e as { message?: string })?.message ?? tr('ui.unknownError'), variant: 'destructive' });
     }
   };
 

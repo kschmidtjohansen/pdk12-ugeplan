@@ -12,6 +12,32 @@ import { fetchPostnrCoords } from '@/hooks/useDawaPostnrLookup';
 import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
 import { useDepartment } from '@/context/DepartmentContext';
 
+interface EmployeeUpdateFormInput {
+  name: string;
+  email: string;
+  phone?: string;
+  jobTitle?: string;
+  onLeave?: boolean;
+  notes?: string;
+  has_asbestos_certificate?: boolean;
+  has_pcb_certificate?: boolean;
+  has_trailer_license?: boolean;
+  has_forklift_license?: boolean;
+  home_postcode?: string;
+  home_address?: string;
+  is_temporary?: boolean;
+  expires_at?: string | null;
+  role?: string;
+  roles?: string[];
+  sub_department_id?: string | null;
+}
+
+interface EdgeFunctionError extends Error {
+  context?: {
+    clone: () => { json: () => Promise<unknown>; text: () => Promise<string> };
+  };
+}
+
 export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -69,7 +95,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
   };
 
 
-  const updateEmployee = async (employee: Employee, formData: any) => {
+  const updateEmployee = async (employee: Employee, formData: EmployeeUpdateFormInput) => {
     notifyOwnAction();
     try {
       if (import.meta.env.DEV) console.log('[useEmployeeActions] Updating employee:', {
@@ -94,7 +120,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       });
       
       // Prepare update payload
-      const updatePayload: Record<string, any> = {
+      const updatePayload: Record<string, unknown> = {
         name: formData.name,
         email: formData.email,
         phone: phoneValidation.sanitized,
@@ -136,8 +162,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
 
       const { error: profileError } = await client
         .from('profiles')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .update(updatePayload as any)
+        .update(updatePayload)
         .eq('id', employee.id);
       
       if (profileError) throw profileError;
@@ -183,18 +208,18 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
                 .select('department_id')
                 .eq('id', formData.sub_department_id)
                 .maybeSingle();
-              targetDeptId = (subDept as any)?.department_id || null;
+              targetDeptId = (subDept as { department_id?: string } | null)?.department_id || null;
             }
 
             const rowsToUpdate = targetDeptId
-              ? accessRows.filter((r: any) => r.department_id === targetDeptId)
+              ? accessRows.filter((r: { department_id?: string }) => r.department_id === targetDeptId)
               : accessRows;
 
             for (const row of rowsToUpdate) {
               await supabase
                 .from('user_access')
                 .update({ sub_department_id: formData.sub_department_id || null })
-                .eq('id', (row as any).id);
+                .eq('id', (row as { id: string }).id);
             }
           }
         } catch (e) {
@@ -263,7 +288,7 @@ export const useEmployeeActions = (refreshEmployees: () => Promise<void>) => {
       if (error) {
         // Supabase-klienten skjuler serverens svar ved non-2xx — læs det rigtige svar
         let serverMessage: string | null = null;
-        const ctx: any = (error as any)?.context;
+        const ctx = (error as EdgeFunctionError)?.context;
         if (ctx && typeof ctx.clone === 'function') {
           try {
             const body = await ctx.clone().json();

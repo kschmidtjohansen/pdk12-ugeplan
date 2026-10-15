@@ -32,13 +32,13 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         return [];
       }
 
-      const { data, error: fetchError } = await rpcWithRefresh<any[]>('get_demo_cars_with_security');
+      const { data, error: fetchError } = await rpcWithRefresh<Record<string, unknown>[]>('get_demo_cars_with_security');
       if (fetchError) throw fetchError;
 
       const DEMO_BASELINE_DATE = '2025-10-23T00:00:00Z';
-      let baseline = (data || []).filter((c: any) => 
+      let baseline = (data || []).filter((c: Record<string, unknown>) => 
         c.show_in_planner !== false && 
-        new Date(c.created_at) >= new Date(DEMO_BASELINE_DATE)
+        new Date(c.created_at as string) >= new Date(DEMO_BASELINE_DATE)
       ) as CarData[];
 
       if (baseline.length === 0) {
@@ -46,7 +46,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
           { id: 'demo-01', name: 'DEMO Varebil 01', car_number: 'CAR-001', number_plate: 'DEMO 01', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 1', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
           { id: 'demo-02', name: 'DEMO Varebil 02', car_number: 'CAR-002', number_plate: 'DEMO 02', has_trailer_hitch: false, is_available: true, show_in_planner: true, notes: 'Demo vehicle 2', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
           { id: 'demo-03', name: 'DEMO Varebil 03', car_number: 'CAR-003', number_plate: 'DEMO 03', has_trailer_hitch: true, is_available: true, show_in_planner: true, notes: 'Demo vehicle 3', fuel_card_code: '***DEMO***', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        ] as any;
+        ] as CarData[];
       }
 
       // RLS ensures demo user sees is_demo=true data — no local merge needed
@@ -106,7 +106,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
           fuel_card_code: '***DEMO***',
           created_at: now,
           updated_at: now,
-        } as any;
+        };
 
         // Also persist to DB with is_demo flag
         const client = getSchemaClient(isDemoMode);
@@ -135,7 +135,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
         return true;
       }
 
-      const { sub_department_ids, ...carDataWithoutSubDeptIds } = carData as any;
+      const { sub_department_ids, ...carDataWithoutSubDeptIds } = carData as Partial<CarData> & { sub_department_ids?: string[] };
       const enrichedData = {
         ...carDataWithoutSubDeptIds,
         department_id: selectedDepartmentId || null,
@@ -145,7 +145,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       // Sync sub-department assignments via junction table (skip in demo mode)
       if (!isDemoMode) {
         try {
-          const subDeptIds = (carData as any).sub_department_ids || [];
+          const subDeptIds = (carData as Partial<CarData> & { sub_department_ids?: string[] }).sub_department_ids || [];
           if (subDeptIds.length > 0) {
             await supabase.from('car_sub_departments').insert(
               subDeptIds.map((sdId: string) => ({ car_id: data.id, sub_department_id: sdId }))

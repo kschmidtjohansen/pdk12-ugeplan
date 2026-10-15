@@ -6,6 +6,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useSharedDutyDepartments } from './useSharedDutyDepartments';
 import type { Employee } from '@/types/employee';
+import type { Tables } from '@/integrations/supabase/types';
+import { getEffectiveRole } from '@/utils/roleHierarchy';
+
+type ProfileRow = Tables<'profiles'>;
+type UserRoleRow = Tables<'user_roles'>;
 
 /**
  * Fetch employees for the duty module: includes employees from the selected
@@ -71,13 +76,12 @@ export const useDutyEmployees = () => {
         .select('user_id, role');
 
       const rolesMap = new Map<string, string[]>();
-      (userRoles || []).forEach((r: any) => {
+      (userRoles || []).forEach((r: UserRoleRow) => {
         const arr = rolesMap.get(r.user_id) || [];
         if (!arr.includes(r.role)) arr.push(r.role);
         rolesMap.set(r.user_id, arr);
       });
 
-      const { getEffectiveRole } = await import('@/utils/roleHierarchy');
 
       // Fetch department names for labels
       const { data: deptRows } = await supabase
@@ -87,7 +91,7 @@ export const useDutyEmployees = () => {
       const deptNameMap = new Map<string, string>();
       (deptRows || []).forEach((d) => deptNameMap.set(d.id, d.name));
 
-      const filtered = profiles.filter((p: any) => {
+      const filtered = profiles.filter((p: ProfileRow) => {
         if (p.email === 'test@polygongroup.com') return false;
         if (p.id === '165cdbc9-6722-4c96-97d2-1a87185c8133') return false;
         if (userIdToDept.has(p.id)) return true;
@@ -98,9 +102,9 @@ export const useDutyEmployees = () => {
         return false;
       });
 
-      return filtered.map((p: any) => {
+      return filtered.map((p: ProfileRow) => {
         const roles = rolesMap.get(p.id) || [];
-        const effective = roles.length ? getEffectiveRole(roles as any) : 'servicemedarbejder';
+        const effective = roles.length ? getEffectiveRole(roles as Parameters<typeof getEffectiveRole>[0]) : 'servicemedarbejder';
         // Prefer the employee's real home department when it is one of the target departments
         const deptId = (p.home_department_id && departmentIds.includes(p.home_department_id))
           ? p.home_department_id

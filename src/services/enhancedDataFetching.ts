@@ -12,20 +12,20 @@ interface DataFetchOptions {
 
 interface FetchResult<T> {
   data: T | null;
-  error: any;
+  error: unknown;
   fromCache?: boolean;
   retryCount?: number;
   timing?: number;
 }
 
 export class EnhancedDataFetching {
-  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  private cache = new Map<string, { data: unknown; timestamp: number; ttl: number }>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private circuitBreaker = new Map<string, { failures: number; lastFailure: number; isOpen: boolean }>();
   private readonly CIRCUIT_BREAKER_THRESHOLD = 5;
   private readonly CIRCUIT_BREAKER_TIMEOUT = 60000; // 1 minute
 
-  private getCacheKey(table: string, query: string, params?: any): string {
+  private getCacheKey(table: string, query: string, params?: Record<string, unknown>): string {
     return `${table}_${query}_${JSON.stringify(params || {})}`;
   }
 
@@ -33,7 +33,7 @@ export class EnhancedDataFetching {
     return Date.now() - cacheEntry.timestamp < cacheEntry.ttl;
   }
 
-  private setCache(key: string, data: any, ttl: number = this.CACHE_TTL) {
+  private setCache(key: string, data: unknown, ttl: number = this.CACHE_TTL) {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
@@ -41,7 +41,7 @@ export class EnhancedDataFetching {
     });
   }
 
-  private getCache(key: string): any | null {
+  private getCache(key: string): unknown | null {
     const entry = this.cache.get(key);
     if (entry && this.isValidCache(entry)) {
       return entry.data;
@@ -89,7 +89,7 @@ export class EnhancedDataFetching {
   }
 
   async fetchWithEnhancedErrorHandling<T>(
-    operation: () => Promise<{ data: T | null; error: any }>,
+    operation: () => Promise<{ data: T | null; error: unknown }>,
     operationName: string,
     options: DataFetchOptions = {}
   ): Promise<FetchResult<T>> {
@@ -119,7 +119,7 @@ export class EnhancedDataFetching {
         const result = await Promise.race([
           operation(),
           timeoutPromise
-        ]) as { data: T | null; error: any };
+        ]) as { data: T | null; error: unknown };
 
         if (result.error) {
           throw result.error;
@@ -307,8 +307,8 @@ export class EnhancedDataFetching {
 
         // Filter to requested user IDs and transform to match expected shape
         const filtered = (data || [])
-          .filter((profile: any) => userIds.includes(profile.id))
-          .map((profile: any) => ({
+          .filter((profile: { id: string; name: string; email: string; status: string; phone: string | null }) => userIds.includes(profile.id))
+          .map((profile: { id: string; name: string; email: string; status: string; phone: string | null }) => ({
             id: profile.id,
             name: profile.name,
             email: profile.email,
@@ -364,8 +364,8 @@ export class EnhancedDataFetching {
     }
   }
 
-  getCircuitBreakerStatus(): Record<string, any> {
-    const status: Record<string, any> = {};
+  getCircuitBreakerStatus(): Record<string, unknown> {
+    const status: Record<string, unknown> = {};
     for (const [operation, circuit] of this.circuitBreaker.entries()) {
       status[operation] = {
         failures: circuit.failures,
@@ -407,10 +407,20 @@ export class EnhancedDataFetching {
         if (import.meta.env.DEV) console.log('[Enhanced Data Fetching] Demo assignments:', data?.length || 0);
         
         // Transform demo data to match production shape for dashboard metrics
-        const transformedData = (data || []).map((assignment: any) => {
+        interface DemoAssignmentRow {
+          id: string;
+          date?: string;
+          assignment_date?: string;
+          from_time?: string;
+          to_time?: string;
+          assignment_cars?: { id: string }[];
+          team?: { id: string; name?: string; email?: string }[];
+          [key: string]: unknown;
+        }
+        const transformedData = ((data || []) as DemoAssignmentRow[]).map((assignment) => {
           const cars = Array.isArray(assignment.assignment_cars) ? assignment.assignment_cars : [];
-          const carIds = cars.map((c: any) => c.id);
-          const team = Array.isArray(assignment.team) ? assignment.team.map((m: any) => ({ 
+          const carIds = cars.map((c) => c.id);
+          const team = Array.isArray(assignment.team) ? assignment.team.map((m) => ({ 
             id: m.id, 
             name: m.name, 
             email: m.email 
@@ -547,7 +557,7 @@ export class EnhancedDataFetching {
         }
 
         // Filter out cars hidden from planner to match UI expectations
-        const filteredDemoCars = (data || []).filter((c: any) => c.show_in_planner !== false);
+        const filteredDemoCars = ((data || []) as { show_in_planner?: boolean }[]).filter((c) => c.show_in_planner !== false);
         return { data: filteredDemoCars, error: null };
       } else {
         // Production: Use direct table access
@@ -582,7 +592,7 @@ export class EnhancedDataFetching {
     return result;
   }
 
-  async checkDatabaseConnectionEnhanced(currentUserEmail?: string): Promise<{ connected: boolean; responseTime?: number; error?: any }> {
+  async checkDatabaseConnectionEnhanced(currentUserEmail?: string): Promise<{ connected: boolean; responseTime?: number; error?: unknown }> {
     const startTime = Date.now();
     try {
       const isDemoMode = DemoSchemaClient.isDemoMode(currentUserEmail);

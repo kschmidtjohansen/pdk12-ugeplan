@@ -6,7 +6,7 @@ export interface SerializedError {
   message: string;
   stack?: string;
   code?: string;
-  details?: any;
+  details?: unknown;
   timestamp: string;
   userId?: string;
 }
@@ -18,7 +18,7 @@ export interface ErrorContext {
   retryCount?: number;
   cacheHit?: boolean;
   timing?: number;
-  additionalData?: Record<string, any>;
+  additionalData?: Record<string, unknown>;
 }
 
 export class EnhancedErrorHandler {
@@ -34,28 +34,30 @@ export class EnhancedErrorHandler {
   /**
    * Properly serialize any error object for logging and analysis
    */
-  serializeError(error: any): SerializedError {
+  serializeError(error: unknown): SerializedError {
     const timestamp = new Date().toISOString();
     
     if (error instanceof Error) {
+      const extra = error as Error & { code?: string; details?: unknown; hint?: unknown };
       return {
         name: error.name,
         message: error.message,
         stack: error.stack,
         timestamp,
-        code: (error as any).code,
-        details: (error as any).details || (error as any).hint
+        code: extra.code,
+        details: extra.details || extra.hint
       };
     }
     
     if (typeof error === 'object' && error !== null) {
+      const obj = error as { name?: string; message?: string; code?: string; details?: unknown; hint?: unknown; stack?: string };
       return {
-        name: error.name || 'UnknownError',
-        message: error.message || JSON.stringify(error),
+        name: obj.name || 'UnknownError',
+        message: obj.message || JSON.stringify(error),
         timestamp,
-        code: error.code,
-        details: error.details || error.hint,
-        stack: error.stack
+        code: obj.code,
+        details: obj.details || obj.hint,
+        stack: obj.stack
       };
     }
     
@@ -109,7 +111,7 @@ export class EnhancedErrorHandler {
   /**
    * Enhanced error logging with proper context and categorization
    */
-  async logError(error: any, context: ErrorContext): Promise<void> {
+  async logError(error: unknown, context: ErrorContext): Promise<void> {
     try {
       const serializedError = this.serializeError(error);
       const category = this.categorizeError(serializedError);

@@ -12,7 +12,7 @@ import { useEmployeeData } from '@/hooks/employee/useEmployeeData';
 import { resolveEmployeeDisplayName } from '@/utils/people';
 import { PlannerChangeLogger } from '@/services/plannerChangeLogger';
 import { supabase } from '@/integrations/supabase/client';
-import { subscribeToTables } from '@/lib/realtimeChannels';
+import { subscribeToTables, RealtimePayload } from '@/lib/realtimeChannels';
 import { notifyOwnAction } from '@/lib/realtimeUtils';
 import React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -54,7 +54,7 @@ const convertToAssignment = (
   
   const assignedEmployees = data.assignment_employees?.map(emp => {
     const userId = emp.user_id;
-    const profile = emp.profiles as any;
+    const profile = emp.profiles as { name?: string; email?: string } | null;
     const fallback = userId ? profileFallback?.get(userId) : undefined;
     const profileName = profile?.name || fallback?.name || '';
     const profileEmail = profile?.email || fallback?.email || '';
@@ -165,7 +165,7 @@ export const fetchAssignmentsForQuery = async ({
   // Sikkerhedsnet: hvis en opgave har medarbejder-id'er uden navn, slås navnene op samlet.
   const missingNameIds = new Set<string>();
   result.forEach(data => {
-    data.assignment_employees?.forEach((emp: any) => {
+    data.assignment_employees?.forEach((emp: { user_id: string; profiles: { name?: string } | null }) => {
       const name = emp?.profiles?.name;
       if (emp?.user_id && (!name || !String(name).trim())) missingNameIds.add(emp.user_id);
     });
@@ -301,7 +301,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     let burstCount = 0;
 
     // Surgical in-memory patch so only the affected day(s) re-render instantly.
-    const patchCache = (table: string, payload: any) => {
+    const patchCache = (table: string, payload: RealtimePayload) => {
       if (table !== 'assignments') return;
       const oldRow = payload?.old;
       const newRow = payload?.new;
@@ -331,7 +331,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       });
     };
 
-    const handleRealtimeChange = (table: string, payload: any) => {
+    const handleRealtimeChange = (table: string, payload: RealtimePayload) => {
       if (!isMounted) return;
       try { patchCache(table, payload); } catch { /* fall back to full sync */ }
 
@@ -384,7 +384,9 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       if (!data.toTime) throw new Error(t('planner.validation.toTimeRequired'));
       if (!data.location?.trim()) throw new Error(t('planner.validation.locationRequired'));
 
-      const dates = (data as any).dates?.length ? (data as any).dates : [data.date!];
+      const dates = (data as Partial<Assignment> & { dates?: string[] }).dates?.length
+        ? (data as Partial<Assignment> & { dates?: string[] }).dates
+        : [data.date!];
       
       if (!dates || dates.length === 0 || !dates[0]) throw new Error(t('planner.validation.dateRequired'));
 
@@ -530,7 +532,9 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       if (!data.fromTime) throw new Error('Start time is required');
       if (!data.toTime) throw new Error('End time is required');
       
-      const dates = (data as any).dates?.length ? (data as any).dates : [data.date!];
+      const dates = (data as Partial<Assignment> & { dates?: string[] }).dates?.length
+        ? (data as Partial<Assignment> & { dates?: string[] }).dates
+        : [data.date!];
       if (!dates || dates.length === 0 || !dates[0]) throw new Error('Date is required');
       
       const originalAssignment = assignments.find(a => a.id === id);
@@ -545,8 +549,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           location: data.location?.trim(), case_number: data.case_number || null,
           published: data.published || false,
           responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
-          car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
-          car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
+          car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as { id: string } | undefined)?.id || null),
+          car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as { id: string } | undefined)?.id] : null),
           employees: data.employees || [],
           lat: data.lat ?? null,
           lng: data.lng ?? null,
@@ -598,7 +602,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           }
           
           if (data.car !== undefined) {
-            const carId = typeof data.car === 'string' ? data.car : (data.car as any)?.id || '';
+            const carId = typeof data.car === 'string' ? data.car : (data.car as { id: string } | undefined)?.id || '';
             updatedAssignment.car = carId;
             updatedAssignment.cars = carId ? [carId] : [];
           }
@@ -619,8 +623,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         location: data.location?.trim(), case_number: data.case_number || null,
         published: data.published || false,
         responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
-        car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
-        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
+        car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as { id: string } | undefined)?.id || null),
+        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as { id: string } | undefined)?.id] : null),
         employees: data.employees || [],
         lat: data.lat ?? null,
         lng: data.lng ?? null,
@@ -685,7 +689,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
           setOperationState(id, 'idle');
         }
-      }, t('planner.undo')) as any,
+      }, t('planner.undo')) as React.ReactElement<typeof ToastAction>,
     });
   }, [toast, t, setOperationState, setAssignments, assignments, user]);
 
@@ -779,7 +783,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           clearTimeout(timeoutId);
           setAssignments(prev => [...prev, ...removedAssignments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
         }
-      }, t('planner.undo')) as any,
+      }, t('planner.undo')) as React.ReactElement<typeof ToastAction>,
     });
   }, [toast, t, setAssignments, assignments]);
 
@@ -829,8 +833,8 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         case_number: data.case_number || null,
         published: data.published || false,
         responsible_user_id: sanitizeUUIDForDB(data.responsibleUserId),
-        car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as any)?.id || null),
-        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as any)?.id] : null),
+        car_id: sanitizeUUIDForDB(typeof data.car === 'string' ? data.car : (data.car as { id: string } | undefined)?.id || null),
+        car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as { id: string } | undefined)?.id] : null),
       };
 
       // Bulk update all siblings (keep each assignment's own date)

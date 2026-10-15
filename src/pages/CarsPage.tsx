@@ -22,6 +22,13 @@ import ListPageShell from '@/components/shared/ListPageShell';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import ErrorState from '@/components/shared/ErrorState';
 import SegmentedFilterBar, { FilterSegment } from '@/components/shared/SegmentedFilterBar';
+import type { Car } from '@/types/car';
+import type { CarUnavailability } from '@/services/carUnavailabilityService';
+
+interface EnrichedCar extends Car {
+  _scheduledActive?: CarUnavailability | null;
+  _scheduledUpcoming?: CarUnavailability | null;
+}
 
 type CarSegment = 'all' | 'available' | 'unavailable' | 'scheduled';
 
@@ -31,7 +38,7 @@ const CarsPage: React.FC = () => {
   const [segment, setSegment] = useState<CarSegment>('all');
   const [search, setSearch] = useState('');
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [noteCar, setNoteCar] = useState<any>(null);
+  const [noteCar, setNoteCar] = useState<Car | null>(null);
 
 
   const {
@@ -48,7 +55,7 @@ const CarsPage: React.FC = () => {
 
   // Merge scheduled unavailability info into car data (for badges/labels)
   const enrichedCars = useMemo(() => {
-    return cars.map((c: any) => {
+    return cars.map((c: Car): EnrichedCar => {
       const active = isCarScheduledUnavailableToday(periods, c.id);
       const upcoming = nextScheduledUnavailability(periods, c.id);
       return {
@@ -61,13 +68,13 @@ const CarsPage: React.FC = () => {
 
   const filteredCars = useMemo(() => {
     let list = enrichedCars;
-    if (segment === 'available') list = list.filter((c: any) => c.is_available !== false);
-    else if (segment === 'unavailable') list = list.filter((c: any) => c.is_available === false);
-    else if (segment === 'scheduled') list = list.filter((c: any) => c._scheduledActive || c._scheduledUpcoming);
+    if (segment === 'available') list = list.filter((c: EnrichedCar) => c.is_available !== false);
+    else if (segment === 'unavailable') list = list.filter((c: EnrichedCar) => c.is_available === false);
+    else if (segment === 'scheduled') list = list.filter((c: EnrichedCar) => c._scheduledActive || c._scheduledUpcoming);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(
-        (c: any) =>
+        (c: EnrichedCar) =>
           c.name?.toLowerCase().includes(q) ||
           c.car_number?.toLowerCase().includes(q) ||
           c.number_plate?.toLowerCase().includes(q)
@@ -77,9 +84,9 @@ const CarsPage: React.FC = () => {
   }, [enrichedCars, segment, search]);
 
   const segments: FilterSegment[] = useMemo(() => {
-    const available = enrichedCars.filter((c: any) => c.is_available !== false).length;
+    const available = enrichedCars.filter((c: EnrichedCar) => c.is_available !== false).length;
     const unavailable = enrichedCars.length - available;
-    const scheduled = enrichedCars.filter((c: any) => c._scheduledActive || c._scheduledUpcoming).length;
+    const scheduled = enrichedCars.filter((c: EnrichedCar) => c._scheduledActive || c._scheduledUpcoming).length;
     return [
       { key: 'all', label: t('common.all') || 'Alle', count: enrichedCars.length },
       { key: 'available', label: t('cars.available') || 'Tilgængelige', count: available },

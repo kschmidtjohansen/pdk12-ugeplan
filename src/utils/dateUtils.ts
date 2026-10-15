@@ -201,8 +201,8 @@ export const getAllWeekDays = ({ start, end }: { start: Date; end: Date }) => {
 };
 
 // Group assignments by day, used in usePlannerAssignments.ts
-export const groupAssignmentsByDay = (assignments: any[]) => {
-  return assignments.reduce((groups: Record<string, any[]>, assignment) => {
+export const groupAssignmentsByDay = <T extends { date: string }>(assignments: T[]): Record<string, T[]> => {
+  return assignments.reduce((groups: Record<string, T[]>, assignment) => {
     const date = assignment.date;
     if (!groups[date]) {
       groups[date] = [];

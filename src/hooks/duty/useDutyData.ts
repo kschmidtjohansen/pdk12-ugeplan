@@ -31,14 +31,14 @@ export const useDutyData = (startDate?: Date, endDate?: Date) => {
         return [];
       }
 
-      const { data, error: fetchError } = await supabase.rpc('get_demo_duties_with_employee' as any, {
+      const { data, error: fetchError } = await supabase.rpc('get_demo_duties_with_employee' as unknown as 'get_demo_duties_with_employee', {
         start_date_param: startDateStr || null,
         end_date_param: endDateStr || null
-      }) as { data: any[] | null; error: any };
+      } as never) as unknown as { data: Record<string, unknown>[] | null; error: unknown };
 
       if (fetchError) throw fetchError;
 
-      return (data || []).map((duty: any) => ({
+      return (data || []).map((duty: Record<string, any>) => ({
         id: duty.id,
         duty_date: duty.duty_date,
         duty_type: duty.duty_type,

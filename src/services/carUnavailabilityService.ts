@@ -25,7 +25,7 @@ const todayStr = () => {
 
 export const CarUnavailabilityService = {
   async listActive(departmentId?: string | null): Promise<CarUnavailability[]> {
-    let q = (supabase as any)
+    let q = supabase
       .from('car_unavailability')
       .select('*')
       .is('released_at', null)
@@ -38,7 +38,7 @@ export const CarUnavailabilityService = {
   },
 
   async listForCar(carId: string): Promise<CarUnavailability[]> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('car_unavailability')
       .select('*')
       .eq('car_id', carId)
@@ -65,7 +65,7 @@ export const CarUnavailabilityService = {
       department_id: row.department_id ?? null,
       created_by: userRes?.user?.id ?? null,
     };
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('car_unavailability')
       .insert(insert)
       .select()
@@ -76,7 +76,7 @@ export const CarUnavailabilityService = {
 
   async release(id: string): Promise<void> {
     const { data: userRes } = await supabase.auth.getUser();
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('car_unavailability')
       .update({
         released_at: new Date().toISOString(),
@@ -88,7 +88,7 @@ export const CarUnavailabilityService = {
 
   async releaseActiveForCar(carId: string): Promise<void> {
     const { data: userRes } = await supabase.auth.getUser();
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('car_unavailability')
       .update({
         released_at: new Date().toISOString(),
@@ -100,7 +100,7 @@ export const CarUnavailabilityService = {
   },
 
   async remove(id: string): Promise<void> {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('car_unavailability')
       .delete()
       .eq('id', id);
@@ -123,7 +123,7 @@ export const CarUnavailabilityService = {
       .lte('assignment_date', end);
     if (e1) throw e1;
     if (primary && primary.length > 0) {
-      const ids = primary.map((r: any) => r.id);
+      const ids = primary.map((r) => r.id);
       const { error: uErr } = await supabase
         .from('assignments')
         .update({ car_id: null })
@@ -141,7 +141,7 @@ export const CarUnavailabilityService = {
       .lte('assignment_date', end);
     if (e2) throw e2;
     if (multi && multi.length > 0) {
-      for (const a of multi as any[]) {
+      for (const a of multi) {
         const remaining = (a.car_ids || []).filter((id: string) => id !== carId);
         const { error: uErr } = await supabase
           .from('assignments')

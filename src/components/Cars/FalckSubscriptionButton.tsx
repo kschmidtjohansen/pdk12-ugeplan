@@ -28,13 +28,13 @@ const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdm
     queryFn: async () => {
       if (!selectedDepartmentId) return '';
       const { data, error } = await supabase
-        .from('department_settings' as any)
+        .from('department_settings')
         .select('setting_value')
         .eq('department_id', selectedDepartmentId)
         .eq('setting_key', 'falck_subscription_number')
         .maybeSingle();
       if (error) throw error;
-      return (data as any)?.setting_value || '';
+      return data?.setting_value || '';
     },
     enabled: !!selectedDepartmentId,
   });
@@ -43,14 +43,14 @@ const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdm
     mutationFn: async (value: string) => {
       if (!selectedDepartmentId) return;
       const { error } = await supabase
-        .from('department_settings' as any)
+        .from('department_settings')
         .upsert(
           {
             department_id: selectedDepartmentId,
             setting_key: 'falck_subscription_number',
             setting_value: value,
             updated_at: new Date().toISOString(),
-          } as any,
+          },
           { onConflict: 'department_id,setting_key' }
         );
       if (error) throw error;

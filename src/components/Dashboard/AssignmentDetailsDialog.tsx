@@ -119,11 +119,11 @@ import { useIsMobile } from '@/hooks/use-mobile';
  
    const carNames = getCarNames();
  
-   const Root: any = isMobile ? Drawer : Dialog;
-   const Content: any = isMobile ? DrawerContent : DialogContent;
-   const Header: any = isMobile ? DrawerHeader : DialogHeader;
-   const Title: any = isMobile ? DrawerTitle : DialogTitle;
-   const Desc: any = isMobile ? DrawerDescription : DialogDescription;
+   const Root = (isMobile ? Drawer : Dialog) as React.ComponentType<{ open: boolean; onOpenChange: (open: boolean) => void; children?: React.ReactNode }>;
+   const Content = (isMobile ? DrawerContent : DialogContent) as React.ComponentType<{ className?: string; children?: React.ReactNode }>;
+   const Header = (isMobile ? DrawerHeader : DialogHeader) as React.ComponentType<{ className?: string; children?: React.ReactNode }>;
+   const Title = (isMobile ? DrawerTitle : DialogTitle) as React.ComponentType<{ className?: string; children?: React.ReactNode }>;
+   const Desc = (isMobile ? DrawerDescription : DialogDescription) as React.ComponentType<{ className?: string; children?: React.ReactNode }>;
 
    return (
      <Root open={isOpen} onOpenChange={(o: boolean) => { if (!o) onClose(); }}>
