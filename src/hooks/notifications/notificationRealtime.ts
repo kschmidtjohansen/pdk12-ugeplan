@@ -1,3 +1,4 @@
+import type { User } from '@supabase/supabase-js';
 
 import { useEffect, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
@@ -60,7 +61,7 @@ const clearActiveChannel = (): void => {
 };
 
 export const useNotificationRealtime = (
-  user: any | null,
+  user: User | null,
   setNotifications: (updater: (prev: NotificationType[]) => NotificationType[]) => void,
   setUnreadCount: (updater: (prev: number) => number) => void
 ) => {

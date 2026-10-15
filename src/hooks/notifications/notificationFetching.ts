@@ -1,3 +1,4 @@
+import type { User } from '@supabase/supabase-js';
 
 import { useState, useCallback } from 'react';
 import { NotificationType } from '@/types/notification';
@@ -6,7 +7,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { supabase } from '@/integrations/supabase/client';
 import { sortNotifications } from '@/utils/notifications';
 
-export const useNotificationFetching = (user: any | null) => {
+export const useNotificationFetching = (user: User | null) => {
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);

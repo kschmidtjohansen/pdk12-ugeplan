@@ -1,10 +1,11 @@
+import type { User } from '@supabase/supabase-js';
 
 import { useCallback } from 'react';
 import { NotificationType } from '@/types/notification';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useNotificationActions = (
-  user: any | null,
+  user: User | null,
   notifications: NotificationType[],
   setNotifications: (notifications: NotificationType[] | ((prev: NotificationType[]) => NotificationType[])) => void,
   setUnreadCount: (count: number | ((prev: number) => number)) => void

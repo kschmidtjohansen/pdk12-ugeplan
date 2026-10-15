@@ -79,8 +79,8 @@ class UnifiedDataService {
           status: profile.status || 'active',
           notes: profile.notes || '',
           avatar_url: profile.avatar_url,
-          is_temporary: (profile as any).is_temporary || false,
-          expires_at: (profile as any).expires_at || undefined
+          is_temporary: (profile as { is_temporary?: boolean; expires_at?: string }).is_temporary || false,
+          expires_at: (profile as { is_temporary?: boolean; expires_at?: string }).expires_at || undefined
         } as Employee;
       });
 

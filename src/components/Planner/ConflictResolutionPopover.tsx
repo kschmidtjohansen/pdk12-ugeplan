@@ -80,7 +80,7 @@ const ConflictResolutionPopover: React.FC<Props> = ({
       await updateAssignment(assignment.id, { ...baseData, fromTime, toTime });
       handleResolved();
     } catch (err) {
-      toast.error((err as any)?.message || t('common.error'));
+      toast.error((err as { message?: string } | null)?.message || t('common.error'));
     } finally {
       setSaving(false);
     }
@@ -103,7 +103,7 @@ const ConflictResolutionPopover: React.FC<Props> = ({
       }
       handleResolved();
     } catch (err) {
-      toast.error((err as any)?.message || t('common.error'));
+      toast.error((err as { message?: string } | null)?.message || t('common.error'));
     } finally {
       setSaving(false);
     }

@@ -103,9 +103,9 @@ export const DutyList = ({ duties, onSuccess, canManage, onDutyClick }: DutyList
                   {duty.notes?.startsWith('EKSTERN:') && (
                     <Badge variant="outline" className="text-xs">Ekstern</Badge>
                   )}
-                  {(duty as any).sharedDepartmentName && (
+                  {(duty as { department_id?: string | null; sharedDepartmentName?: string }).sharedDepartmentName && (
                     <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
-                      {(duty as any).sharedDepartmentName}
+                      {(duty as { department_id?: string | null; sharedDepartmentName?: string }).sharedDepartmentName}
                     </Badge>
                   )}
                   <Badge

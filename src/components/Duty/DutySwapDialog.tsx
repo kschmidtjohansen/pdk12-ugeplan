@@ -72,7 +72,7 @@ export function DutySwapDialog({ duty, employees, open, onOpenChange, onSuccess 
         id: duty.id,
         duty_type: duty.duty_type,
         duty_date: duty.duty_date,
-        department_id: (duty as any).department_id ?? null,
+        department_id: (duty as { department_id?: string | null; sharedDepartmentName?: string }).department_id ?? null,
       },
       selectedIds,
     );
