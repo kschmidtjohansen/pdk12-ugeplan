@@ -149,10 +149,6 @@ const PlannerPage: React.FC = () => {
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkBusy, setBulkBusy] = useState(false);
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
-  const [bulkAssignCarOpen, setBulkAssignCarOpen] = useState(false);
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
@@ -223,49 +219,7 @@ const PlannerPage: React.FC = () => {
     setSelectedYear(getISOWeekYear(nextWeekStart));
   }, [weekDates]);
 
-  // Prefetch adjacent week assignments on hover for instant navigation.
-  // Debounced (150 ms) so hurtige musebevægelser hen over knapperne ikke trigger overflødige kald.
-  // Query key matches useOptimizedAssignments('all') exactly.
-  const prefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const HOVER_PREFETCH_DELAY_MS = 150;
-
-  const runPrefetchAssignments = useCallback(() => {
-    if (!user?.id || !user?.role) return;
-    queryClient.prefetchQuery({
-      queryKey: ['assignments', user.id, user.role, 'all', selectedDepartmentId, selectedSubDepartmentId],
-      queryFn: () => fetchAssignmentsForQuery({
-        userId: user.id,
-        userRole: user.role,
-        userEmail: user.email,
-        filter: 'all',
-        selectedDepartmentId,
-        selectedSubDepartmentId,
-        allEmployees,
-      }),
-      staleTime: 2 * 60 * 1000,
-    });
-  }, [queryClient, user?.id, user?.role, user?.email, selectedDepartmentId, selectedSubDepartmentId, allEmployees]);
-
-  const handlePrefetchAssignments = useCallback(() => {
-    if (prefetchTimerRef.current) clearTimeout(prefetchTimerRef.current);
-    prefetchTimerRef.current = setTimeout(() => {
-      prefetchTimerRef.current = null;
-      runPrefetchAssignments();
-    }, HOVER_PREFETCH_DELAY_MS);
-  }, [runPrefetchAssignments]);
-
-  const handleCancelPrefetch = useCallback(() => {
-    if (prefetchTimerRef.current) {
-      clearTimeout(prefetchTimerRef.current);
-      prefetchTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (prefetchTimerRef.current) clearTimeout(prefetchTimerRef.current);
-    };
-  }, []);
+  const { handlePrefetchAssignments, handleCancelPrefetch } = useAdjacentWeekPrefetch();
 
   const handleOpenCreateDialog = useCallback((date: string) => {
     setCurrentAssignment(null);
@@ -383,75 +337,7 @@ const PlannerPage: React.FC = () => {
 
   const { toast } = useToast();
 
-  // Step 5 (E): Copy all of yesterday's assignments to the given date as drafts.
-  // Skips assignments where any assigned employee has approved vacation that overlaps the new date.
-  const handleCopyDayFromYesterday = useCallback(async (date: string) => {
-    const target = new Date(date + 'T00:00:00');
-    const prev = new Date(target);
-    prev.setDate(prev.getDate() - 1);
-    const yesterdayKey = prev.toISOString().slice(0, 10);
-    const sourceAssignments = assignments.filter(a => a.date === yesterdayKey);
-
-    if (sourceAssignments.length === 0) {
-      toast({
-        title: currentLanguage === 'da' ? 'Ingen opgaver i går' : 'No tasks yesterday',
-        description: currentLanguage === 'da'
-          ? 'Der er ingen opgaver fra forrige dag at kopiere.'
-          : 'There are no tasks from the previous day to copy.',
-      });
-      return;
-    }
-
-    // Pre-compute employees on approved vacation for the target date
-    const absentEmployeeIds = new Set<string>(
-      (vacations || [])
-        .filter(v => v.status === 'approved' && date >= v.start_date && date <= v.end_date)
-        .map(v => v.user_id)
-    );
-
-    let copied = 0;
-    let skippedEmployees = 0;
-    for (const src of sourceAssignments) {
-      const employees = (src.employees || []).filter(eid => {
-        if (absentEmployeeIds.has(eid)) {
-          skippedEmployees++;
-          return false;
-        }
-        return true;
-      });
-
-      try {
-        await createAssignment({
-          title: src.title,
-          description: src.description,
-          date,
-          fromTime: src.fromTime,
-          toTime: src.toTime,
-          location: src.location,
-          type: src.type,
-          case_number: src.case_number,
-          responsibleUserId: src.responsibleUserId,
-          car: typeof src.car === 'string' ? src.car : src.car?.id,
-          employees,
-          published: false,
-        } as Partial<Assignment>);
-        copied++;
-      } catch (err) {
-        if (import.meta.env.DEV) console.error('[CopyDay] failed for', src.id, err);
-      }
-    }
-
-    toast({
-      title: currentLanguage === 'da'
-        ? `${copied} opgave${copied === 1 ? '' : 'r'} kopieret som kladde`
-        : `${copied} task${copied === 1 ? '' : 's'} copied as draft`,
-      description: skippedEmployees > 0
-        ? (currentLanguage === 'da'
-            ? `${skippedEmployees} medarbejder-tildeling${skippedEmployees === 1 ? '' : 'er'} blev udeladt pga. fravær.`
-            : `${skippedEmployees} employee assignment${skippedEmployees === 1 ? '' : 's'} were skipped due to absence.`)
-        : undefined,
-    });
-  }, [assignments, vacations, createAssignment, toast, currentLanguage]);
+  const handleCopyDayFromYesterday = useCopyDayFromYesterday(assignments, vacations, createAssignment);
 
   // Quick search index: employee id -> lowercase name (built once per employee list)
   const employeeNameById = useMemo(() => {
@@ -547,66 +433,6 @@ const PlannerPage: React.FC = () => {
   const plannerActions = useMemo(() => ({ quickMove: handleQuickMove }), [handleQuickMove]);
 
 
-  // ---- Bulk actions ----
-  const handleBulkAssignCar = useCallback(async (carId: string) => {
-    if (selectedIds.size === 0) return;
-    setBulkBusy(true);
-    try {
-      const ids = [...selectedIds];
-      const { error } = await supabase
-        .from('assignments')
-        .update({ car_id: carId })
-        .in('id', ids);
-      if (error) {
-        toast({ title: t('ui.carAssignFailed'), description: error.message, variant: 'destructive' });
-      } else {
-        toast({ title: ids.length === 1 ? t('ui.carAssignedOne') : t('ui.carAssignedMany', { count: ids.length }) });
-        await refetch();
-        clearSelection();
-      }
-    } finally {
-      setBulkBusy(false);
-    }
-  }, [selectedIds, toast, refetch, clearSelection]);
-
-  const handleBulkDeleteConfirm = useCallback(async () => {
-    if (selectedIds.size === 0) return;
-    setBulkBusy(true);
-    const ids = [...selectedIds];
-    let failed = 0;
-    try {
-      await Promise.all(ids.map(id => deleteAssignment(id).catch(() => { failed++; })));
-      toast({
-        title: failed === 0 ? `${ids.length} opgaver slettet` : `${ids.length - failed} slettet, ${failed} fejlede`,
-        variant: failed === 0 ? 'default' : 'destructive',
-      });
-      clearSelection();
-    } finally {
-      setBulkBusy(false);
-      setBulkDeleteOpen(false);
-    }
-  }, [selectedIds, deleteAssignment, toast, clearSelection]);
-
-  const handleBulkAssignEmployee = useCallback(async (userId: string) => {
-    if (selectedIds.size === 0) return;
-    setBulkBusy(true);
-    try {
-      const ids = [...selectedIds];
-      const rows = ids.map(assignment_id => ({ assignment_id, user_id: userId }));
-      const { error } = await supabase
-        .from('assignments_employees')
-        .upsert(rows, { onConflict: 'assignment_id,user_id', ignoreDuplicates: true });
-      if (error) {
-        toast({ title: t('ui.employeeAssignFailed'), description: error.message, variant: 'destructive' });
-      } else {
-        toast({ title: ids.length === 1 ? t('ui.employeeAssignedOne') : t('ui.employeeAssignedMany', { count: ids.length }) });
-        await refetch();
-        clearSelection();
-      }
-    } finally {
-      setBulkBusy(false);
-    }
-  }, [selectedIds, toast, refetch, clearSelection]);
 
   const handleDeleteAssignment = useCallback(async (id: string) => {
     const assignment = assignments.find(a => a.id === id);
@@ -762,76 +588,19 @@ const PlannerPage: React.FC = () => {
     <div className="min-h-dvh w-full bg-background">
       <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5 space-y-3 sm:space-y-4">
         {/* Clean Header — Apple/Arc style */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary flex-shrink-0">
-              <Clock className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
-                {t("navigation.planner")}
-              </h1>
-              <p className="text-sm text-muted-foreground truncate">
-                {t('planner.weekView', {
-                  week: selectedWeek,
-                  year: selectedYear,
-                  start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                  end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
-                })}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <div className="flex items-center justify-center sm:justify-start">
-              <ToggleGroup
-                type="single"
-                value={viewMode}
-                onValueChange={(v) => v && setViewMode(v as 'standard' | 'compact' | 'grid' | 'calendar')}
-                className="bg-muted/50 border border-border rounded-lg p-0.5"
-              >
-                <ToggleGroupItem value="standard" size="sm" aria-label={t('planner.viewModeStandard')} title={t('planner.viewModeStandard')} className="h-9 w-9 sm:h-7 sm:w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                  <List className="h-3.5 w-3.5" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="grid" size="sm" aria-label={currentLanguage === 'da' ? 'Gitter' : 'Grid'} title={currentLanguage === 'da' ? 'Gitter' : 'Grid'} className="h-9 w-9 sm:h-7 sm:w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="compact" size="sm" aria-label={t('planner.viewModeCompact')} title={t('planner.viewModeCompact')} className="h-9 w-9 sm:h-7 sm:w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                  <LayoutList className="h-3.5 w-3.5" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="calendar" size="sm" aria-label={currentLanguage === 'da' ? 'Kalender' : 'Calendar'} title={currentLanguage === 'da' ? 'Kalender (Outlook)' : 'Calendar'} className="h-9 w-9 sm:h-7 sm:w-7 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 py-1">
-                <Button variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-7 w-7 p-0">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="font-medium min-w-[80px] text-center text-sm text-foreground">
-                  {t('planner.week')} {selectedWeek}
-                </span>
-                <Button variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-7 w-7 p-0">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {canPublishTasks && (
-                <Button onClick={handleShowOnScreen} variant="outline" size="sm" aria-label={t('planner.showOnScreen')} title={t('planner.showOnScreen')} className="h-8 w-8 p-0">
-                  <Monitor className="h-4 w-4" />
-                </Button>
-              )}
-              {canCreate && (
-                <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm">
-                  <Plus className="h-4 w-4" />
-                  {t('planner.newAssignment')}
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
+        <PlannerHeader
+          selectedWeek={selectedWeek}
+          selectedYear={selectedYear}
+          weekDates={weekDates}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          handlePreviousWeek={handlePreviousWeek}
+          handleNextWeek={handleNextWeek}
+          handlePrefetchAssignments={handlePrefetchAssignments}
+          handleCancelPrefetch={handleCancelPrefetch}
+          handleShowOnScreen={handleShowOnScreen}
+          handleOpenCreateDialog={handleOpenCreateDialog}
+        />
 
         {/* Quick sub-department switch, so users don't have to go via the dashboard */}
         <SubDepartmentQuickSwitcher />
@@ -926,56 +695,13 @@ const PlannerPage: React.FC = () => {
           </Suspense>
         )}
 
-        {/* Bulk action bar */}
-        <BulkActionBar
-          count={selectedIds.size}
-          busy={bulkBusy}
-          onAssignEmployee={() => setBulkAssignOpen(true)}
-          onAssignCar={() => setBulkAssignCarOpen(true)}
-          onDelete={() => setBulkDeleteOpen(true)}
-          onClear={clearSelection}
+        <PlannerBulkActions
+          selectedIds={selectedIds}
+          clearSelection={clearSelection}
+          weekAssignments={weekAssignments}
+          refetch={refetch}
+          deleteAssignment={deleteAssignment}
         />
-
-        <Suspense fallback={null}>
-          {bulkAssignOpen && (
-            <BulkAssignEmployeeDialog
-              open={bulkAssignOpen}
-              count={selectedIds.size}
-              dates={weekAssignments
-                .filter(a => selectedIds.has(a.id))
-                .map(a => (a.date?.includes('T') ? a.date.split('T')[0] : a.date))
-                .filter(Boolean) as string[]}
-              onClose={() => setBulkAssignOpen(false)}
-              onConfirm={handleBulkAssignEmployee}
-            />
-          )}
-
-          {bulkAssignCarOpen && (
-            <BulkAssignCarDialog
-              open={bulkAssignCarOpen}
-              count={selectedIds.size}
-              onClose={() => setBulkAssignCarOpen(false)}
-              onConfirm={handleBulkAssignCar}
-            />
-          )}
-        </Suspense>
-
-        <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Slet {selectedIds.size} opgave{selectedIds.size === 1 ? '' : 'r'}?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Denne handling kan ikke fortrydes. Alle valgte opgaver slettes permanent.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={bulkBusy}>Annullér</AlertDialogCancel>
-              <AlertDialogAction onClick={handleBulkDeleteConfirm} disabled={bulkBusy}>
-                Slet
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
     </DataFetchErrorBoundary>
