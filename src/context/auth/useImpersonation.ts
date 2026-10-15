@@ -25,8 +25,6 @@ export function useImpersonation(user: AppUser | null) {
 
   const clearCaches = useCallback(() => {
     queryClient.clear();
-    unifiedDataService.clearCache();
-    OptimizedAssignmentService.clearCache();
     enhancedDataFetching.clearCache();
   }, [queryClient]);
 

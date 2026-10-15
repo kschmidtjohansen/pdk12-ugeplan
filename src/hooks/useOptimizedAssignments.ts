@@ -284,7 +284,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   }, [queryData]);
 
   const refetch = useCallback(async () => {
-    OptimizedAssignmentService.clearCache();
     setLocalAssignments(null);
     await queryRefetch();
   }, [queryRefetch]);
@@ -347,7 +346,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       realtimeThrottleRef.current = setTimeout(() => {
         burstCount = 0;
         if (isMounted) {
-          OptimizedAssignmentService.clearCache();
           queryClient.invalidateQueries({ queryKey: ['assignments'], refetchType: 'active' });
         }
       }, delay);
@@ -664,7 +662,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       if (cancelled) return;
       try {
         await OptimizedAssignmentService.deleteAssignment(id, user.email);
-        OptimizedAssignmentService.clearCache();
         setOperationState(id, 'success');
       } catch (error) {
         if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Delete failed:', error);
@@ -763,7 +760,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         }
         const { error } = await supabase.from('assignments').delete().eq('group_id', groupId);
         if (error) throw error;
-        OptimizedAssignmentService.clearCache();
       } catch (error) {
         if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Series delete failed:', error);
         setAssignments(prev => [...prev, ...removedAssignments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
@@ -802,7 +798,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
       // Update local state
       setAssignments(prev => prev.map(a => a.id === id ? { ...a, groupId: undefined } : a));
-      OptimizedAssignmentService.clearCache();
       return true;
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Detach failed:', error);

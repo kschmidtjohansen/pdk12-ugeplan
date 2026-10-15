@@ -41,38 +41,7 @@ export interface OptimizedAssignmentData {
   }[];
 }
 
-const cache = new Map<string, OptimizedAssignmentData[]>();
-
-const getCacheKey = (userId: string, role: string, filter: string): string => {
-  return `${userId}-${role}-${filter}`;
-};
-
-const isCacheValid = (cacheKey: string, duration: number = 30000): boolean => {
-  const cachedData = cache.get(cacheKey);
-  if (!cachedData) return false;
-  const { timestamp } = (cachedData as any).metadata || {};
-  if (!timestamp) return false;
-  return (Date.now() - timestamp) < duration;
-};
-
-const setCache = (cacheKey: string, data: OptimizedAssignmentData[]): void => {
-  cache.set(cacheKey, { data, metadata: { timestamp: Date.now() } } as any);
-};
-
-const getFromCache = (cacheKey: string): OptimizedAssignmentData[] | undefined => {
-  const cachedData = cache.get(cacheKey);
-  if (cachedData && isCacheValid(cacheKey)) {
-    if (import.meta.env.DEV) console.log(`[OptimizedAssignmentService] Cache hit: ${cacheKey}`);
-    return (cachedData as any).data;
-  }
-  return undefined;
-};
-
 export class OptimizedAssignmentService {
-  static clearCache(): void {
-    cache.clear();
-    if (import.meta.env.DEV) console.log('[OptimizedAssignmentService] Cache cleared');
-  }
 
   private static convertDemoAssignments(data: any[]): OptimizedAssignmentData[] {
     return data.map((assignment: any) => ({
@@ -575,7 +544,6 @@ export class OptimizedAssignmentService {
   }
 
   static async createAssignment(assignmentData: any, userEmail?: string): Promise<OptimizedAssignmentData> {
-    this.clearCache();
     
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
@@ -652,7 +620,6 @@ export class OptimizedAssignmentService {
   }
 
   static async updateAssignment(assignmentId: string, updates: any, userEmail?: string): Promise<OptimizedAssignmentData> {
-    this.clearCache();
     
     const isDemoMode = userEmail === 'test@polygongroup.com' || sessionStorage.getItem('demo-mode') === 'true';
     
@@ -754,7 +721,6 @@ export class OptimizedAssignmentService {
         return false;
       }
 
-      this.clearCache();
       return true;
     }
 
@@ -771,7 +737,6 @@ export class OptimizedAssignmentService {
         return false;
       }
       
-      this.clearCache();
       return true;
     } catch (error) {
       if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error deleting assignment:', error);
@@ -845,7 +810,6 @@ export class OptimizedAssignmentService {
         if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error publishing by ids:', error);
         return false;
       }
-      this.clearCache();
       return true;
     } catch (error) {
       if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error publishing by ids:', error);
@@ -868,7 +832,6 @@ export class OptimizedAssignmentService {
         return false;
       }
       
-      this.clearCache();
       return true;
     } catch (error) {
       if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error publishing assignments:', error);

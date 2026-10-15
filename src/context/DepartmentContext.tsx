@@ -326,7 +326,6 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
       localStorage.removeItem('selected_sub_department_id');
     }
     // Clear cache and force data refresh when sub-department changes
-    unifiedDataService.clearCache();
     enhancedDataFetching.clearCache();
     if (import.meta.env.DEV) console.log('[DepartmentContext] Sub-department switched to:', id, '- cache cleared');
   }, []);
@@ -338,7 +337,6 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     if (dept) {
       localStorage.setItem('selected_department_name', dept.name);
     }
-    unifiedDataService.clearCache();
     enhancedDataFetching.clearCache();
     if (import.meta.env.DEV) console.log('[DepartmentContext] Switched department to:', id);
   }, [userDepartments, departments]);

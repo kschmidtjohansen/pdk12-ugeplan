@@ -758,8 +758,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       queryClient.clear();
 
       // 2. Service-caches
-      unifiedDataService.clearCache();
-      OptimizedAssignmentService.clearCache();
       enhancedDataFetching.clearCache();
 
       // 3. SessionStorage -- ryd alt
