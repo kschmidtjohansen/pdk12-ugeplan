@@ -50,7 +50,7 @@ export const useDawaAutocomplete = (query: string) => {
         const data = await res.json();
         setSuggestions(data as DawaSuggestion[]);
       } catch (err: unknown) {
-        if (err?.name !== 'AbortError') {
+        if ((err as { name?: string } | null)?.name !== 'AbortError') {
           setSuggestions([]);
         }
       } finally {

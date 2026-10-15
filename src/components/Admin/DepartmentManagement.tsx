@@ -106,7 +106,7 @@ const DepartmentManagement: React.FC = () => {
         fetchDepartments();
       }
     } catch (err: unknown) {
-      toast({ title: t('common.error'), description: err?.message || 'Unknown error', variant: 'destructive' });
+      toast({ title: t('common.error'), description: (err as { message?: string } | null)?.message || 'Unknown error', variant: 'destructive' });
     }
     setDeleteTarget(null);
     setDeleting(false);

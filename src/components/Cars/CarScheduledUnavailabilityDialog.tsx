@@ -126,7 +126,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
       });
       onOpenChange(false);
     } catch (err: unknown) {
-      toast({ title: t('common.error'), description: err?.message || t('ui.couldNotSave'), variant: 'destructive' });
+      toast({ title: t('common.error'), description: (err as { message?: string } | null)?.message || t('ui.couldNotSave'), variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -145,7 +145,7 @@ const CarScheduledUnavailabilityDialog: React.FC<Props> = ({ open, onOpenChange,
       setExisting((prev) => prev.map((p) => (p.id === id ? { ...p, released_at: new Date().toISOString() } : p)));
       toast({ title: t('ui.released'), description: t('ui.carAvailableAgain', { car: car.name }) });
     } catch (err: unknown) {
-      toast({ title: t('common.error'), description: err?.message || t('common.error'), variant: 'destructive' });
+      toast({ title: t('common.error'), description: (err as { message?: string } | null)?.message || t('common.error'), variant: 'destructive' });
     }
   };
 

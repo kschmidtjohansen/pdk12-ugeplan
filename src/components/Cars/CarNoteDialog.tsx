@@ -46,7 +46,7 @@ const CarNoteDialog: React.FC<CarNoteDialogProps> = ({ open, onOpenChange, car, 
     } catch (err: unknown) {
       toast({
         title: 'Kunne ikke gemme noten',
-        description: err?.message || 'Ukendt fejl',
+        description: (err as { message?: string } | null)?.message || 'Ukendt fejl',
         variant: 'destructive',
       });
     } finally {
