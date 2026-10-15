@@ -1,4 +1,4 @@
-import type { User } from '@supabase/supabase-js';
+import type { AppUser as User } from '@/context/auth/types';
 
 import { useState, useCallback } from 'react';
 import { NotificationType } from '@/types/notification';
