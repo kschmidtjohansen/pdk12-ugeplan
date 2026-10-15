@@ -1,3 +1,8 @@
+## 2026-10-15 – Sprint Arkitektur & Stabilitet P2: Opdeling af store filer
+- EmployeeFormDialog (820→~390 l.): nye delkomponenter i src/components/Employees/form/ — EmailField, CertificatesSection, VikarConversionSection, NewVikarSection, RoleSection, SubDepartmentField (henter selv underafdelinger, med annullering), ConnectionStatus, hook useEmailCheck; formData typet med EmployeeFormData i stedet for any.
+- PlannerPage (985→703 l.): PlannerHeader og PlannerBulkActions (bulk-state, handlers og dialoger) i src/components/Planner/page/; hooks useAdjacentWeekPrefetch og useCopyDayFromYesterday i src/hooks/planner/.
+- Ren flytning uden adfærdsændring. Typecheck + lint OK, 44/44 tests grønne.
+
 ## 2026-10-15 – Sprint Arkitektur & Stabilitet P1: Én cache i Ugeplanen
 - Fjernet død in-memory cache (Map + getFromCache/setCache/clearCache) i optimizedAssignmentService; ugeplanens opgaver caches nu kun af TanStack Query (5 min staleTime, invalidering ved realtime).
 - Fjernet 5-min memory-cache i unifiedDataService (medarbejdere/biler i AssignmentForm), som lå under TanStack Query og kunne vise forældede data efter ændringer.
