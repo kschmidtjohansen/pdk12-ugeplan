@@ -294,11 +294,13 @@ export class DemoUserService {
     
     try {
       // Call database function to clean up only session data
-      const rpcFn = supabase.rpc as unknown as (
+      // Bind the method to the client — extracting supabase.rpc into a plain
+      // variable drops `this` and the call throws (same pattern as safeRpc.ts)
+      const rpc = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args: Record<string, unknown>
       ) => Promise<{ data: unknown; error: { message: string } | null }>;
-      const { data, error } = await rpcFn('cleanup_session_data', {
+      const { data, error } = await rpc('cleanup_session_data', {
         baseline_timestamp: '2024-01-01T00:00:00Z'
       });
       
