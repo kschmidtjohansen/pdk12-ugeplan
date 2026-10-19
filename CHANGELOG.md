@@ -1,3 +1,9 @@
+## 2026-10-19 – Fix: Demo-data ryddes igen ved log ud af demo
+
+- `DemoUserService.cleanupAllDemoUserData()` kaldte `supabase.rpc` via en udtrukket variabel uden `this`-binding → TypeError fanget af try/catch, så hverken DB-oprydning (`cleanup_session_data`) eller sessionStorage (demo-assignments/cars/employees/vacations/operations) blev ryddet ved log ud.
+- Rettet med `supabase.rpc.bind(supabase)` (samme mønster som safeRpc.ts). Ingen adfærdsændring ved succes.
+- Nye regressionstests `src/services/demoUserService.test.ts` (2): RPC kaldes med korrekt binding og lokalt demo-data ryddes; fejl rapporteres uden at kaste. I alt 52 tests grønne. Typecheck OK.
+
 ## 2026-10-15 – Sprint Arkitektur & Stabilitet P3: Strammere typer
 
 ## 2026-10-15 – Punkt 3 færdig: typer strammet, regressionstests for ugeplanen
