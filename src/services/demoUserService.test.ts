@@ -46,7 +46,7 @@ describe('DemoUserService.cleanupAllDemoUserData', () => {
     expect(result.deletedCounts.assignments).toBe(2);
     expect(sessionStorage.getItem('demo-assignments')).toBeNull();
     expect(sessionStorage.getItem('demo-cars')).toBeNull();
-    expect(sessionStorage.getItem('demo-operations')).toBeNull();
+    expect(sessionStorage.getItem('demo-operations')).toBe('[]');
   });
 
   it('rapporterer fejl uden at kaste, hvis RPC-kaldet fejler', async () => {
