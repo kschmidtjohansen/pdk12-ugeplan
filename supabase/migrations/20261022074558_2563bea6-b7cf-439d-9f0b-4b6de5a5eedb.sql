@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.can_access_department_data(uuid, uuid, uuid) TO authenticated;
