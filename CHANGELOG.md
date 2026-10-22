@@ -1,3 +1,9 @@
+## 2026-10-22 – Rettelse: eksisterende roller efter rolle-rettighedsændring
+- Migration giver `authenticated` EXECUTE på `public.can_access_department_data(uuid, uuid, uuid)`, som de nye RLS-politikker kræver. Ingen roller, tabelrettigheder eller RLS-predikater ændres; `anon` har fortsat ikke EXECUTE.
+- Live katalogkontrol bekræfter rettigheden og 265 bevarede rolleposter. Nye regressionstests bekræfter, at administrator, skadeleder og super_admin beholder planlægningsadgang uden ekstra grants.
+- Sikkerhedslinterens nye SECURITY DEFINER-advarsel er vurderet: EXECUTE er nødvendig for RLS-hjælpefunktionen, der kun returnerer en adgangsboolean; at fjerne den genindfører fejlen. 44 tidligere linterfund er uden for denne rettelse.
+- Autentificeret UI-verifikation er ikke tilgængelig på den eksterne Supabase-forbindelse; read-query-værktøjet kører som `supabase_read_only_user`, ikke som en app-bruger.
+
 ## 2026-10-22 – Rolle-rettigheder (IT-Support)
 - Ny tabel `role_permissions` (rolle × rettighed: plan_assignments, publish_assignments, view_all_vacations, approve_vacations); kun super_admin kan tildele/fjerne.
 - `has_role_permission()` (SECURITY DEFINER, search_path '') + additive RLS-politikker på assignments, assignments_employees og vacations, afgrænset af `can_access_department_data`.

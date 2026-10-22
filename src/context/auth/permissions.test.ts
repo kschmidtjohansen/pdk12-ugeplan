@@ -27,6 +27,12 @@ describe('derivePermissions (role access)', () => {
 });
 
 describe('role grants from IT-Support', () => {
+  it.each(['administrator', 'skadeleder', 'super_admin'] as const)('existing %s planning access survives an empty grants list', role => {
+    const p = derivePermissions(role, role, false, new Set());
+    expect(p.canCreate).toBe(true);
+    expect(p.canEdit).toBe(true);
+    expect(p.canPublishTasks).toBe(true);
+  });
   it('servicemedarbejder with plan + vacation grants can plan and see all vacations', () => {
     const p = derivePermissions('servicemedarbejder', 'servicemedarbejder', false, new Set(['plan_assignments', 'view_all_vacations']));
     expect(p.canCreate).toBe(true);

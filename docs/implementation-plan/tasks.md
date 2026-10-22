@@ -1,3 +1,9 @@
+## Eksisterende roller efter rolle-rettighedsændring (2026-10-22)
+
+- [x] Udrul nødvendig EXECUTE-rettighed til authenticated for afdelingskontrollen; bevar roller og RLS.
+- [x] Verificer live grants og regressionstest eksisterende rollers planlægningsadgang.
+- Autentificeret UI-kontrol kan ikke udføres her med den eksterne Supabase-forbindelse.
+
 ## Responsiv modtagerliste til notifikationer (2026-09-23)
 
 - [x] Kompakt foldbar overskriftsrække med antal og resumé af valgte personer
