@@ -1,3 +1,9 @@
+## 2026-10-22 – Rolle-rettigheder (IT-Support)
+- Ny tabel `role_permissions` (rolle × rettighed: plan_assignments, publish_assignments, view_all_vacations, approve_vacations); kun super_admin kan tildele/fjerne.
+- `has_role_permission()` (SECURITY DEFINER, search_path '') + additive RLS-politikker på assignments, assignments_employees og vacations, afgrænset af `can_access_department_data`.
+- `derivePermissions` tager grants; nye felter `canManageVacations`, `canViewAllVacations`. Grants gælder aldrig i demo.
+- Ny admin-fane "Rolle-rettigheder" (kun IT-Support). 3 nye tests (55 i alt).
+
 ## 2026-10-19 – Fix: Demo-data ryddes igen ved log ud af demo
 
 - `DemoUserService.cleanupAllDemoUserData()` kaldte `supabase.rpc` via en udtrukket variabel uden `this`-binding → TypeError fanget af try/catch, så hverken DB-oprydning (`cleanup_session_data`) eller sessionStorage (demo-assignments/cars/employees/vacations/operations) blev ryddet ved log ud.
