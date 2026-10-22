@@ -1200,6 +1200,27 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          created_at: string
+          permission: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          permission: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          permission?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       sick_days: {
         Row: {
           created_at: string
@@ -1978,6 +1999,7 @@ export type Database = {
         Args: { _user_id?: string }
         Returns: string[]
       }
+      has_role_permission: { Args: { _permission: string }; Returns: boolean }
       hmac_sha256: { Args: { data: string; key: string }; Returns: string }
       increment_broadcast_stats: {
         Args: {
