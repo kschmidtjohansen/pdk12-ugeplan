@@ -22,7 +22,7 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
 }) => {
   const { t } = useTranslation();
   const { isEffectiveAdmin, isEffectiveSkadeleder, effectiveRole } = useAuth();
-  const canManageVacations = isEffectiveAdmin || isEffectiveSkadeleder;
+  const { canViewAllVacations: canManageVacations } = useAuth();
   const canViewCalendar = isEffectiveAdmin || isEffectiveSkadeleder || effectiveRole === 'super_admin';
   const isCalendarTab = activeTab === 'calendar';
 

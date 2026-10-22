@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RealtimeDiagnostics from '@/components/Admin/RealtimeDiagnostics';
-import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock, Megaphone } from 'lucide-react';
+import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock, Megaphone, KeyRound } from 'lucide-react';
 import BroadcastNotification from '@/components/Admin/BroadcastNotification';
 import BroadcastDeliveryStatus from '@/components/Admin/BroadcastDeliveryStatus';
 
@@ -18,6 +18,7 @@ import FeatureToggleManagement from '@/components/Admin/FeatureToggleManagement'
 import WeatherAlertSettings from '@/components/Admin/WeatherAlertSettings';
 import LocationManagement from '@/components/Admin/LocationManagement';
 
+import RolePermissionsManagement from '@/components/Admin/RolePermissionsManagement';
 import WebVitalsOverview from '@/components/Admin/WebVitalsOverview';
 import AutoPublishLogWidget from '@/components/Dashboard/AutoPublishLogWidget';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
@@ -116,6 +117,12 @@ const AdminPage: React.FC = () => {
               </TabsTrigger>
             )}
             {isSuperAdmin && (
+              <TabsTrigger value="rolePermissions" className="gap-2">
+                <KeyRound className="h-4 w-4" />
+                Rolle-rettigheder
+              </TabsTrigger>
+            )}
+            {isSuperAdmin && (
               <TabsTrigger value="webVitals" className="gap-2">
                 <Activity className="h-4 w-4" />
                 Web Vitals
@@ -183,6 +190,22 @@ const AdminPage: React.FC = () => {
           {(isSuperAdmin || isAdmin) && (
             <TabsContent value="diagnostics" className="animate-fade-in">
               <RealtimeDiagnostics />
+            </TabsContent>
+          )}
+
+          {isSuperAdmin && (
+            <TabsContent value="rolePermissions" className="animate-fade-in">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Rolle-rettigheder</CardTitle>
+                  <CardDescription>
+                    Giv en rolle ekstra adgang ud over det normale. Rollen beholder altid sin standardadgang. Gælder i de afdelinger medarbejderen har adgang til.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RolePermissionsManagement />
+                </CardContent>
+              </Card>
             </TabsContent>
           )}
 

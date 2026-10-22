@@ -15,6 +15,7 @@ import PasskeyEnrollPrompt from '@/components/Auth/PasskeyEnrollPrompt';
 import type { UserRole, AppUser, ImpersonationTarget } from './auth/types';
 import { derivePermissions } from './auth/permissions';
 import { useImpersonation } from './auth/useImpersonation';
+import { useRoleGrants } from './auth/useRoleGrants';
 
 export type { UserRole, AppUser, ImpersonationTarget };
 
@@ -56,6 +57,8 @@ interface AuthContextType {
   canEdit: boolean;
   canCreate: boolean;
   canSeeUnpublishedTasks: boolean;
+  canManageVacations: boolean;
+  canViewAllVacations: boolean;
   validateAdminAccess: () => boolean;
   validateSkadelederAccess: () => boolean;
   hasRequiredRole: (requiredRoles: UserRole[]) => boolean;
@@ -100,6 +103,8 @@ const AuthContext = createContext<AuthContextType>({
   canEdit: false,
   canCreate: false,
   canSeeUnpublishedTasks: false,
+  canManageVacations: false,
+  canViewAllVacations: false,
   validateAdminAccess: () => false,
   validateSkadelederAccess: () => false,
   hasRequiredRole: () => false,
@@ -614,11 +619,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Permissions based on current user (with demo role override)
   const currentRole = isDemoMode && demoRole ? demoRole : effectiveUser?.role;
+  const roleGrants = useRoleGrants(currentRole, !!session && !isDemoMode);
   const {
     isAdmin, isSkadeleder, isServicemedarbejder,
     isEffectiveAdmin, isEffectiveSkadeleder, isEffectiveServicemedarbejder,
     canViewFuelCardCode, canPublishTasks, canApproveVacation, canEdit, canCreate, canSeeUnpublishedTasks,
-  } = derivePermissions(currentRole, user?.role, isDemoMode);
+    canManageVacations, canViewAllVacations,
+  } = derivePermissions(currentRole, user?.role, isDemoMode, roleGrants);
 
   // Validation methods
   const validateAdminAccess = (): boolean => {
@@ -920,6 +927,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     canEdit,
     canCreate,
     canSeeUnpublishedTasks,
+    canManageVacations,
+    canViewAllVacations,
     validateAdminAccess,
     validateSkadelederAccess,
     hasRequiredRole,

@@ -25,3 +25,23 @@ describe('derivePermissions (role access)', () => {
     expect(derivePermissions(null, null, false).canEdit).toBe(false);
   });
 });
+
+describe('role grants from IT-Support', () => {
+  it('servicemedarbejder with plan + vacation grants can plan and see all vacations', () => {
+    const p = derivePermissions('servicemedarbejder', 'servicemedarbejder', false, new Set(['plan_assignments', 'view_all_vacations']));
+    expect(p.canCreate).toBe(true);
+    expect(p.canEdit).toBe(true);
+    expect(p.canViewAllVacations).toBe(true);
+    expect(p.canManageVacations).toBe(false);
+    expect(p.canPublishTasks).toBe(false);
+  });
+  it('servicemedarbejder without grants keeps normal access only', () => {
+    const p = derivePermissions('servicemedarbejder', 'servicemedarbejder', false);
+    expect(p.canCreate).toBe(false);
+    expect(p.canViewAllVacations).toBe(false);
+  });
+  it('grants never apply in demo mode', () => {
+    const p = derivePermissions('servicemedarbejder', 'servicemedarbejder', true, new Set(['plan_assignments']));
+    expect(p.canCreate).toBe(false);
+  });
+});
