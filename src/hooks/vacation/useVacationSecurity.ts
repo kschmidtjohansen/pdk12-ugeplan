@@ -6,7 +6,7 @@ import { Vacation } from '@/types/vacation';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useVacationSecurity = () => {
-  const { user, isAdmin, isSkadeleder } = useAuth();
+  const { user, isAdmin, isSkadeleder, canManageVacations, canViewAllVacations } = useAuth();
   const [skadelederSubDeptUserIds, setSkadelederSubDeptUserIds] = useState<Set<string>>(new Set());
 
   // For skadeledere: fetch user_ids in their sub-departments
@@ -77,22 +77,25 @@ export const useVacationSecurity = () => {
     
     // Admin can view all
     if (isAdmin) return true;
+
+    // Roles granted the vacation overview by IT-Support (RLS scopes to department)
+    if (!isSkadeleder && canViewAllVacations) return true;
     
     // Skadeleder can view vacations for users in their sub-departments
     if (isSkadeleder && skadelederSubDeptUserIds.has(vacation.user_id)) return true;
     
     return false;
-  }, [user, isAdmin, isSkadeleder, skadelederSubDeptUserIds]);
+  }, [user, isAdmin, isSkadeleder, canViewAllVacations, skadelederSubDeptUserIds]);
 
   // Check if user can edit a specific vacation
   const canEditVacation = useCallback((vacation: Vacation): boolean => {
     if (!user) return false;
     
     const canEdit = (vacation.user_id === user.id && vacation.status === 'pending') || 
-                    isAdmin || isSkadeleder;
+                    isAdmin || isSkadeleder || canManageVacations;
     
     return canEdit;
-  }, [user, isAdmin, isSkadeleder]);
+  }, [user, isAdmin, isSkadeleder, canManageVacations]);
 
   // Check if user can delete a specific vacation
   const canDeleteVacation = useCallback((vacation: Vacation): boolean => {
@@ -106,8 +109,8 @@ export const useVacationSecurity = () => {
 
   // Check if user can approve/reject vacations
   const canManageVacationStatus = useCallback((): boolean => {
-    return isAdmin || isSkadeleder;
-  }, [isAdmin, isSkadeleder]);
+    return isAdmin || isSkadeleder || canManageVacations;
+  }, [isAdmin, isSkadeleder, canManageVacations]);
 
   return {
     canViewVacation,

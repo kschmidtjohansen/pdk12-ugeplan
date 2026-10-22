@@ -26,7 +26,7 @@ const ROUTE_TITLES: Record<string, string> = {
 
 const AppTopBar: React.FC = () => {
   const { t, currentLanguage, setLanguage } = useTranslation();
-  const { user, logout, isEffectiveAdmin, isSkadeleder } = useAuth();
+  const { user, logout, isEffectiveAdmin, isSkadeleder, canViewAllVacations } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const { toast } = useToast();
   const navigate = useNavigate();
