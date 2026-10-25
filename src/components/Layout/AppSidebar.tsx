@@ -20,6 +20,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { useVacationRequestsStatus } from '@/hooks/vacation/useVacationRequestsStatus';
 import { useUnreadMessagesContext } from '@/context/UnreadMessagesContext';
 import { cn } from '@/lib/utils';
+import { PRODUCT_NAME } from '@/config/product';
 import DepartmentSwitcherPill from './NavComponents/DepartmentSwitcherPill';
 
 interface NavItem {
@@ -87,9 +88,9 @@ const AppSidebar: React.FC = () => {
           isActive={isActive}
           tooltip={item.label}
           className={cn(
-            'h-10 font-medium cursor-pointer transition-[background-color,color,opacity] duration-150 ease-out',
+            'h-10 font-medium cursor-pointer rounded-md transition-[background-color,color,opacity] duration-150 ease-out',
             isActive
-              ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
+              ? 'list-row-selected text-primary hover:text-primary'
               : 'text-sidebar-foreground/80 hover:bg-accent/40'
           )}
         >
@@ -118,22 +119,22 @@ const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border h-12 flex items-center justify-center px-2">
+      <SidebarHeader className="border-b border-sidebar-border h-14 flex items-center justify-center px-2">
         <Link
           to="/dashboard"
           onClick={closeMobile}
           className="flex items-center justify-center w-full h-full overflow-hidden"
-          aria-label="Polygon"
+          aria-label={PRODUCT_NAME}
         >
           {collapsed ? (
             <img
               src={polygonMark}
-              alt="Polygon"
+              alt={PRODUCT_NAME}
               className="h-8 w-8 select-none object-contain"
               draggable={false}
             />
           ) : (
-            <div className="flex items-center justify-center gap-2.5 mx-auto">
+            <div className="flex items-center gap-2.5 mx-auto">
               <img
                 src={polygonMark}
                 alt=""
@@ -141,16 +142,21 @@ const AppSidebar: React.FC = () => {
                 className="h-7 w-7 select-none object-contain shrink-0"
                 draggable={false}
               />
-              <img
-                src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
-                alt="Polygon"
-                className="h-5 w-auto select-none"
-                width="110"
-                height="20"
-                loading="eager"
-                fetchPriority="high"
-                draggable={false}
-              />
+              <span className="flex flex-col items-start leading-none">
+                <span className="text-[15px] font-semibold tracking-tight text-sidebar-foreground">
+                  {PRODUCT_NAME}
+                </span>
+                <img
+                  src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
+                  alt="Polygon"
+                  className="mt-1 h-2.5 w-auto select-none opacity-70 dark:brightness-0 dark:invert dark:opacity-80"
+                  width="110"
+                  height="10"
+                  loading="eager"
+                  fetchPriority="high"
+                  draggable={false}
+                />
+              </span>
             </div>
           )}
         </Link>
@@ -172,7 +178,7 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col items-center gap-1 px-2 pt-1">
             <DepartmentSwitcherPill />
             <p className="text-[10px] text-sidebar-foreground/50 text-center leading-tight">
-              Polygon Ugeplan
+              {PRODUCT_NAME}
             </p>
           </div>
         )}
