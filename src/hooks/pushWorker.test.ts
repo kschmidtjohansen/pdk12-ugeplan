@@ -4,7 +4,7 @@ import { runInNewContext } from 'node:vm';
 import { expect, it, vi } from 'vitest';
 function worker(values: Map<string, unknown>, response = { ok: true, updated: true }) {
   const listeners = new Map<string, (event: Record<string, unknown>) => void>();
-  const fetch = vi.fn(async () => ({ ok: response.ok, json: async () => ({ updated: response.updated }) }));
+  const fetch = vi.fn(async (_url: string, _options: { body: string }) => ({ ok: response.ok, json: async () => ({ updated: response.updated }) }));
   const subscription = { endpoint: 'https://push.invalid/new', toJSON: () => ({ keys: { p256dh: 'fixture-key', auth: 'fixture-auth' } }) };
   const db = { close: vi.fn(), transaction: () => {
     const tx = { oncomplete: () => {}, onerror: () => {}, onabort: () => {}, objectStore: () => ({
