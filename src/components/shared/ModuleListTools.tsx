@@ -28,7 +28,7 @@ export default function ModuleListTools({ segments, active, onSelect, search, on
     </div>
     <div className="flex flex-wrap items-center gap-3 border-t border-border p-3">
       <div className="relative w-full sm:max-w-sm"><Search aria-hidden className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-        <Input type="search" aria-label={placeholder} placeholder={placeholder} value={search} onChange={e => onSearch(e.target.value)} className="h-11 pl-9" />
+        <Input type="search" aria-label={placeholder} placeholder={placeholder} value={search} onChange={e => onSearch(e.target.value)} className="h-11 min-h-11 pl-9" />
       </div>
       <p role="status" aria-live="polite" className="flex-1 text-xs text-muted-foreground tabular-nums">{da ? `Viser ${count} af ${total}` : `Showing ${count} of ${total}`}</p>
       <Button variant="ghost" disabled={!filtered} onClick={onReset} className="min-h-11 gap-2"><X aria-hidden className="h-4 w-4" />{da ? 'Ryd filtre' : 'Clear filters'}</Button>

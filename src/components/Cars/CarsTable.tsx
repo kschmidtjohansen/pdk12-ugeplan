@@ -183,7 +183,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEditNote(car)}
-                          className="h-11 w-11 p-0"
+                          className="h-11 min-h-11 w-11 p-0"
                         >
                           <span className="sr-only">Note</span>
                           <StickyNote className="h-4 w-4 text-primary" />
@@ -201,7 +201,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onToggleAvailability(car)}
-                          className="h-11 w-11 p-0"
+                          className="h-11 min-h-11 w-11 p-0"
                         >
                           <span className="sr-only">
                             {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
@@ -227,7 +227,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                             variant="ghost"
                             size="sm"
                             onClick={() => onSchedule(car)}
-                            className="h-11 w-11 p-0"
+                            className="h-11 min-h-11 w-11 p-0"
                           >
                             <span className="sr-only">{t('ui.scheduleWorkshopVisit')}</span>
                             <Wrench className="h-4 w-4 text-warning" />
@@ -246,7 +246,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEdit(car)}
-                          className="h-11 w-11 p-0"
+                          className="h-11 min-h-11 w-11 p-0"
                         >
                           <span className="sr-only">{t('common.edit')}</span>
                           <Edit className="h-4 w-4" />
@@ -263,7 +263,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onDelete(car)}
-                          className="h-11 w-11 p-0 text-destructive hover:text-destructive hover:bg-destructive-soft"
+                          className="h-11 min-h-11 w-11 p-0 text-destructive hover:text-destructive hover:bg-destructive-soft"
                         >
                           <span className="sr-only">{t('common.delete')}</span>
                           <Trash2 className="h-4 w-4" />

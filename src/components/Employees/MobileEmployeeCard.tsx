@@ -78,7 +78,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
           </div>
           {isAdmin && (
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={() => onEdit(employee)} className="h-11 w-11 p-0" aria-label={t('common.edit')}>
+              <Button variant="ghost" size="sm" onClick={() => onEdit(employee)} className="h-11 min-h-11 w-11 p-0" aria-label={t('common.edit')}>
                 <Edit className="h-4 w-4" />
               </Button>
               {onTraining && (
@@ -86,7 +86,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                   variant="ghost"
                   size="sm"
                   onClick={() => onTraining(employee)}
-                  className="h-11 w-11 p-0 text-warning"
+                  className="h-11 min-h-11 w-11 p-0 text-warning"
                   aria-label={currentLanguage === 'da' ? 'Kursus' : 'Training'}
                 >
                   <GraduationCap className="h-4 w-4" />
@@ -97,12 +97,12 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                   variant="ghost"
                   size="sm"
                   onClick={() => onToggleLeave(employee)}
-                  aria-label={t('employees.statusLabel')} className={`h-11 w-11 p-0 ${employee.onLeave ? 'text-success' : 'text-warning'}`}
+                  aria-label={t('employees.statusLabel')} className={`h-11 min-h-11 w-11 p-0 ${employee.onLeave ? 'text-success' : 'text-warning'}`}
                 >
                   {employee.onLeave ? <UserCheck className="h-4 w-4" /> : <UserMinus className="h-4 w-4" />}
                 </Button>
               )}
-              <Button variant="ghost" size="sm" onClick={() => onDelete(employee)} className="h-11 w-11 p-0 text-destructive" aria-label={t('common.delete')}>
+              <Button variant="ghost" size="sm" onClick={() => onDelete(employee)} className="h-11 min-h-11 w-11 p-0 text-destructive" aria-label={t('common.delete')}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>

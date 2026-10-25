@@ -53,7 +53,7 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
     <section id={`vacation-panel-${tabValue}`} aria-label={da ? 'Anmodninger' : 'Requests'} className="mt-4 min-w-0">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative w-full sm:max-w-sm"><Search aria-hidden className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-          <Input type="search" aria-label={da ? 'Søg navn, årsag eller dato' : 'Search name, reason or date'} placeholder={da ? 'Søg navn, årsag eller dato' : 'Search name, reason or date'} value={search} onChange={e => onSearch?.(e.target.value)} className="h-11 pl-9" />
+          <Input type="search" aria-label={da ? 'Søg navn, årsag eller dato' : 'Search name, reason or date'} placeholder={da ? 'Søg navn, årsag eller dato' : 'Search name, reason or date'} value={search} onChange={e => onSearch?.(e.target.value)} className="h-11 min-h-11 pl-9" />
         </div>
         <p role="status" className="flex-1 text-xs text-muted-foreground tabular-nums">{da ? `Viser ${filteredVacations.length} af ${visible.length}` : `Showing ${filteredVacations.length} of ${visible.length}`}</p>
         <Button variant="ghost" className="min-h-11 gap-2" disabled={tabValue === 'all' && !search.trim()} onClick={onReset}><X aria-hidden className="h-4 w-4" />{da ? 'Ryd filtre' : 'Clear filters'}</Button>
