@@ -35,7 +35,7 @@ export default function WeekOperationsStrip({ summary, active = 'all', onSelect,
             aria-pressed={attention ? undefined : active === key} aria-label={`${t(`planner.operationsOverview.${key}`)}: ${count}`}
             onClick={() => onSelect(key)} className="min-h-16 h-auto min-w-0 justify-start gap-3 whitespace-normal border border-border px-3 py-2 text-left">
             <Icon aria-hidden className={`h-4 w-4 shrink-0 ${key === 'conflicts' && count ? 'text-destructive' : 'text-muted-foreground'}`} />
-            <span className="min-w-0 flex-1"><span className="block text-xl font-semibold tabular-nums">{loading || error ? '—' : count}</span><span className="block text-xs font-normal">{t(`planner.operationsOverview.${key}`)}</span></span>
+            <span className="min-w-0 flex-1"><span className="block text-xl font-semibold tabular-nums">{loading || error ? '—' : count}</span><span className="block text-xs font-normal break-words">{t(`planner.operationsOverview.${key}`)}</span></span>
             {attention && <ArrowUpRight aria-hidden className="h-4 w-4 shrink-0" />}
           </Button>
         ))}
