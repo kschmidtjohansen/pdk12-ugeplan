@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook, waitFor, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { saveSubscription, usePushNotifications } from './usePushNotifications';

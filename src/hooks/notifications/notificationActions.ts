@@ -44,8 +44,7 @@ export const useNotificationActions = (
       // Recalculate unread count
       if (notifications.some(n => n.id === notificationId && !n.read)) setUnreadCount((prev: number) => Math.max(0, prev - 1));
       
-    } catch (err) {
-    }
+    } catch { /* Keep local rows unchanged on a failed server mutation. */ }
   }, [user, notifications, setNotifications, setUnreadCount, invalidate]);
   
   // Mark all notifications as read
@@ -74,8 +73,7 @@ export const useNotificationActions = (
       // Reset unread count
       setUnreadCount(0);
       
-    } catch (err) {
-    }
+    } catch { /* Keep local rows unchanged on a failed server mutation. */ }
   }, [user, setNotifications, setUnreadCount, invalidate]);
   
   // Delete a notification
@@ -106,8 +104,7 @@ export const useNotificationActions = (
         setUnreadCount((prev: number) => Math.max(0, prev - 1));
       }
       
-    } catch (err) {
-    }
+    } catch { /* Keep local rows unchanged on a failed server mutation. */ }
   }, [user, notifications, setNotifications, setUnreadCount, invalidate]);
 
   // Delete all notifications for the current user
@@ -133,8 +130,7 @@ export const useNotificationActions = (
       // Reset unread count
       setUnreadCount(0);
       
-    } catch (err) {
-    }
+    } catch { /* Keep local rows unchanged on a failed server mutation. */ }
   }, [user, setNotifications, setUnreadCount, invalidate]);
 
   return {
