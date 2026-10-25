@@ -7,34 +7,17 @@ import { useNotificationCreate } from './notifications/notificationCreate';
 import { useNotificationRealtime } from './notifications/notificationRealtime';
 import { useVacationNotifications } from './notifications/vacationNotifications';
 
-const NOTIFICATION_SYSTEM_READY_KEY = "polygon-notification-system-ready";
-
-const isNotificationSystemReady = (): boolean => {
-  try {
-    return localStorage.getItem(NOTIFICATION_SYSTEM_READY_KEY) === 'true';
-  } catch (err) {
-    return false;
-  }
-};
-
-const markNotificationSystemReady = (): void => {
-  try {
-    localStorage.setItem(NOTIFICATION_SYSTEM_READY_KEY, 'true');
-  } catch (err) {
-    if (import.meta.env.DEV) console.error("Error saving notification system status:", err);
-  }
-};
-
 export const useNotifications = () => {
   const { user } = useAuth();
-  const systemReadyRef = useRef<boolean>(isNotificationSystemReady());
+  const systemReadyRef = useRef<string | null>(null);
   
   const { 
     notifications, 
     setNotifications,
     unreadCount, 
     setUnreadCount,
-    loading, 
+    loading,
+    error,
     fetchNotifications 
   } = useNotificationFetching(user);
   
@@ -47,7 +30,7 @@ export const useNotifications = () => {
   
   const { addNotification } = useNotificationCreate(user, setNotifications, setUnreadCount);
   
-  useNotificationRealtime(user, setNotifications, setUnreadCount);
+  useNotificationRealtime(user, setNotifications, setUnreadCount, fetchNotifications);
   
   const { createNotificationsForPendingRequests } = useVacationNotifications(user, addNotification);
   
@@ -72,13 +55,12 @@ export const useNotifications = () => {
   }, [user, notifications, setNotifications, setUnreadCount]);
   
   useEffect(() => {
-    if ((user?.role === 'administrator' || user?.role === 'super_admin') && !loading && notifications.length >= 0 && !systemReadyRef.current) {
+    if ((user?.role === 'administrator' || user?.role === 'super_admin') && !loading && notifications.length >= 0 && systemReadyRef.current !== user?.id) {
       if (import.meta.env.DEV) {
         console.log('Checking for any missing admin notifications for pending vacations');
       }
       createNotificationsForPendingRequests();
-      systemReadyRef.current = true;
-      markNotificationSystemReady();
+      systemReadyRef.current = user.id;
     }
   }, [user, loading, notifications.length, createNotificationsForPendingRequests]);
   
@@ -86,6 +68,7 @@ export const useNotifications = () => {
     notifications,
     unreadCount,
     loading,
+    error,
     fetchNotifications,
     markAsRead,
     markAllAsRead,

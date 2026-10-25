@@ -1,159 +1,38 @@
 import type { AppUser as User } from '@/context/auth/types';
-
 import { useEffect, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useToast } from '@/hooks/use-toast';
-import { subscribeToTable, unsubscribeByKey } from '@/lib/realtimeChannels';
-import { sortNotifications } from '@/utils/notifications';
-
-// Key for localStorage to track notifications shown across browser sessions
-const NOTIFICATION_HISTORY_KEY = "polygon-notification-history";
-const NOTIFICATION_CHANNEL_KEY = "polygon-notification-channel";
-
-// Get previously shown notification IDs
-const getShownNotificationIds = (): Set<string> => {
-  try {
-    const stored = localStorage.getItem(NOTIFICATION_HISTORY_KEY);
-    return stored ? new Set(JSON.parse(stored)) : new Set();
-  } catch (err) {
-    if (import.meta.env.DEV) console.error("Error reading notification history from localStorage:", err);
-    return new Set();
-  }
-};
-
-// Save a notification ID to localStorage
-const saveShownNotificationId = (id: string): void => {
-  try {
-    const shownIds = getShownNotificationIds();
-    shownIds.add(id);
-    localStorage.setItem(NOTIFICATION_HISTORY_KEY, JSON.stringify(Array.from(shownIds)));
-  } catch (err) {
-    if (import.meta.env.DEV) console.error("Error saving notification history to localStorage:", err);
-  }
-};
-
-// Track if we already have an active subscription for this user
-const getActiveChannel = (): string | null => {
-  try {
-    return localStorage.getItem(NOTIFICATION_CHANNEL_KEY);
-  } catch (err) {
-    return null;
-  }
-};
-
-// Mark that we have an active subscription
-const setActiveChannel = (channelId: string): void => {
-  try {
-    localStorage.setItem(NOTIFICATION_CHANNEL_KEY, channelId);
-  } catch (err) {
-    if (import.meta.env.DEV) console.error("Error saving notification channel to localStorage:", err);
-  }
-};
-
-// Clear active channel marker
-const clearActiveChannel = (): void => {
-  try {
-    localStorage.removeItem(NOTIFICATION_CHANNEL_KEY);
-  } catch (err) {
-    if (import.meta.env.DEV) console.error("Error removing notification channel from localStorage:", err);
-  }
-};
+import { supabase } from '@/integrations/supabase/client';
 
 export const useNotificationRealtime = (
   user: User | null,
-  setNotifications: (updater: (prev: NotificationType[]) => NotificationType[]) => void,
-  setUnreadCount: (updater: (prev: number) => number) => void
+  _setNotifications: (updater: (prev: NotificationType[]) => NotificationType[]) => void,
+  _setUnreadCount: (updater: (prev: number) => number) => void,
+  catchUp: () => Promise<void>,
 ) => {
   const { toast } = useToast();
-  const shownNotificationsRef = useRef<Set<string>>(getShownNotificationIds());
-  const subscriberKeyRef = useRef<string | null>(null);
-  const previousUserIdRef = useRef<string | null>(null);
-
-  const cleanupChannel = () => {
-    if (subscriberKeyRef.current) {
-      if (import.meta.env.DEV) console.log('Cleaning up notification subscription');
-      unsubscribeByKey(subscriberKeyRef.current);
-      subscriberKeyRef.current = null;
-      clearActiveChannel();
-    }
-  };
-
+  const callback = useRef(catchUp);
+  callback.current = catchUp;
+  const userId = user?.id;
   useEffect(() => {
-    if (!user) {
-      if (import.meta.env.DEV) console.log('No user, skipping real-time subscription');
-      previousUserIdRef.current = null;
-      return cleanupChannel();
-    }
-
-    if (previousUserIdRef.current === user.id && subscriberKeyRef.current) {
-      if (import.meta.env.DEV) console.log('Already subscribed to notifications, skipping');
-      return;
-    }
-
-    previousUserIdRef.current = user.id;
-    cleanupChannel();
-
-    const subscriberKey = `useNotificationRealtime:${user.id}`;
-    if (import.meta.env.DEV) console.log('Setting up realtime subscription:', subscriberKey);
-
-    setActiveChannel(subscriberKey);
-
-    subscribeToTable({
-      key: subscriberKey,
-      table: 'notifications',
-      event: 'INSERT',
-      filter: `user_id=eq.${user.id}`,
-      callback: (payload) => {
-        if (import.meta.env.DEV) console.log('Received new notification via realtime');
-
-        if (payload?.new) {
-          const notificationId = payload.new.id;
-
-          if (shownNotificationsRef.current.has(notificationId)) {
-            if (import.meta.env.DEV) console.log('Notification already processed, skipping');
-            return;
-          }
-
-          const newNotification: NotificationType = {
-            id: notificationId,
-            type: payload.new.type,
-            title: payload.new.title,
-            message: payload.new.message,
-            link: payload.new.link || undefined,
-            read: payload.new.read,
-            date: new Date(payload.new.created_at),
-          };
-
-          setNotifications((prev: NotificationType[]) => {
-            if (prev.some((n) => n.id === newNotification.id)) {
-              if (import.meta.env.DEV) console.log('Notification already exists in state, skipping');
-              return prev;
-            }
-
-            const updated = [...prev, newNotification];
-            updated.sort(sortNotifications);
-            return updated;
-          });
-
-          if (!payload.new.read) {
-            setUnreadCount((prev: number) => prev + 1);
-
-            shownNotificationsRef.current.add(notificationId);
-            saveShownNotificationId(notificationId);
-
-            toast({
-              title: newNotification.title,
-              description: newNotification.message,
-            });
-
-            if (import.meta.env.DEV) console.log('Toast shown for notification:', notificationId);
-          }
-        }
-      },
-    });
-
-    subscriberKeyRef.current = subscriberKey;
-
-    return cleanupChannel;
-  }, [user, toast, setNotifications, setUnreadCount]);
+    if (!userId) return;
+    const seen = new Set<string>(); // current account/subscription only, no global history
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { if (active) void callback.current(); }, 100);
+    };
+    const channel = supabase.channel(`inbox:${userId}:${crypto.randomUUID()}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, payload => {
+        if (!active) return;
+        refresh(); // refetch is authoritative for INSERT/UPDATE/DELETE and both caches
+        const row = payload.new as { id?: string; user_id?: string; read?: boolean; title?: string; message?: string };
+        if (payload.eventType !== 'INSERT' || row.user_id !== userId || !row.id || row.read || seen.has(row.id)) return;
+        seen.add(row.id);
+        if (seen.size > 500) seen.delete(seen.values().next().value ?? '');
+        toast({ title: row.title ?? '', description: row.message ?? '' });
+      }).subscribe(status => { if (active && status === 'SUBSCRIBED') refresh(); });
+    return () => { active = false; clearTimeout(timer); void supabase.removeChannel(channel); };
+  }, [userId, toast]);
 };

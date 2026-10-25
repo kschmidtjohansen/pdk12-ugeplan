@@ -3,14 +3,11 @@ import React, { createContext, useContext } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useNotifications as useNotificationsHook } from '@/hooks/useNotifications';
 
-// Key for tracking initial fetch in localStorage
-const NOTIFICATION_FETCHED_KEY = "polygon-notifications-fetched";
-const NOTIFICATION_SESSION_KEY = "polygon-notification-session";
-
 interface NotificationContextType {
   notifications: NotificationType[];
   unreadCount: number;
   loading: boolean;
+  error: boolean;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
@@ -26,6 +23,7 @@ const defaultContext: NotificationContextType = {
   notifications: [],
   unreadCount: 0,
   loading: false,
+  error: false,
   markAsRead: async () => {},
   markAllAsRead: async () => {},
   deleteNotification: async () => {},

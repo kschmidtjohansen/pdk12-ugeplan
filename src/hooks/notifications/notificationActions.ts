@@ -1,7 +1,8 @@
 import type { AppUser as User } from '@/context/auth/types';
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useNotificationActions = (
@@ -10,6 +11,10 @@ export const useNotificationActions = (
   setNotifications: (notifications: NotificationType[] | ((prev: NotificationType[]) => NotificationType[])) => void,
   setUnreadCount: (count: number | ((prev: number) => number)) => void
 ) => {
+  const client = useQueryClient();
+  const activeUser = useRef(user?.id);
+  activeUser.current = user?.id;
+  const invalidate = useCallback(() => { if (user?.id) void client.invalidateQueries({ queryKey: ['notifications', 'infinite', user.id] }); }, [client, user?.id]);
   // Mark a notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
     if (!user) return;
@@ -20,13 +25,15 @@ export const useNotificationActions = (
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
-        .eq('id', notificationId);
+        .eq('id', notificationId).eq('user_id', user.id);
       
       if (error) {
         if (import.meta.env.DEV) console.error('Error marking notification as read:', error);
         throw error;
       }
       
+      if (activeUser.current !== user.id) return;
+      invalidate();
       // Update local state
       setNotifications((prev: NotificationType[]) => 
         prev.map(notification => 
@@ -42,7 +49,7 @@ export const useNotificationActions = (
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error marking notification as read:', err);
     }
-  }, [user, setNotifications, setUnreadCount]);
+  }, [user, setNotifications, setUnreadCount, invalidate]);
   
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
@@ -62,6 +69,8 @@ export const useNotificationActions = (
         throw error;
       }
       
+      if (activeUser.current !== user.id) return;
+      invalidate();
       // Update local state
       setNotifications((prev: NotificationType[]) => 
         prev.map(notification => ({ ...notification, read: true }))
@@ -73,7 +82,7 @@ export const useNotificationActions = (
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error marking all notifications as read:', err);
     }
-  }, [user, setNotifications, setUnreadCount]);
+  }, [user, setNotifications, setUnreadCount, invalidate]);
   
   // Delete a notification
   const deleteNotification = useCallback(async (notificationId: string) => {
@@ -85,13 +94,15 @@ export const useNotificationActions = (
       const { error } = await supabase
         .from('notifications')
         .delete()
-        .eq('id', notificationId);
+        .eq('id', notificationId).eq('user_id', user.id);
       
       if (error) {
         if (import.meta.env.DEV) console.error('Error deleting notification:', error);
         throw error;
       }
       
+      if (activeUser.current !== user.id) return;
+      invalidate();
       // Update local state
       const wasUnread = notifications.find(n => n.id === notificationId && !n.read);
       setNotifications((prev: NotificationType[]) => 
@@ -106,7 +117,7 @@ export const useNotificationActions = (
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error deleting notification:', err);
     }
-  }, [user, notifications, setNotifications, setUnreadCount]);
+  }, [user, notifications, setNotifications, setUnreadCount, invalidate]);
 
   // Delete all notifications for the current user
   const deleteAllNotifications = useCallback(async () => {
@@ -125,6 +136,8 @@ export const useNotificationActions = (
         throw error;
       }
       
+      if (activeUser.current !== user.id) return;
+      invalidate();
       // Update local state - clear all notifications
       setNotifications([]);
       
@@ -134,7 +147,7 @@ export const useNotificationActions = (
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error deleting all notifications:', err);
     }
-  }, [user, setNotifications, setUnreadCount]);
+  }, [user, setNotifications, setUnreadCount, invalidate]);
 
   return {
     markAsRead,
