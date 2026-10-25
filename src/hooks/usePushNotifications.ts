@@ -98,6 +98,16 @@ const writeDevice = async (endpoint: string, token: string, userId: string): Pro
     tx.onabort = tx.onerror = () => { db.close(); reject(tx.error); };
   });
 };
+const readDeviceOwner = async (): Promise<string | null> => {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get('latest');
+    req.onsuccess = () => resolve(typeof req.result?.userId === 'string' ? req.result.userId : null);
+    tx.oncomplete = () => db.close();
+    tx.onabort = tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+};
 const clearDevice = async () => {
   const db = await idbOpen();
   return new Promise<void>((resolve, reject) => {
@@ -135,13 +145,14 @@ export const saveSubscription = async (subscription: PushSubscription, expectedU
 let subscriptionWork: Promise<boolean> | null = null;
 let deviceOwner: string | null = null;
 const persistDevice = (expectedUserId: string): Promise<boolean> => {
-  if (subscriptionWork) return subscriptionWork;
+  if (subscriptionWork) return subscriptionWork.then(() => persistDevice(expectedUserId));
   subscriptionWork = (async () => {
     const registration = (await navigator.serviceWorker.getRegistration(PUSH_SW_URL)) ??
       await navigator.serviceWorker.register(PUSH_SW_URL, { scope: '/' });
     if (!registration.active) await navigator.serviceWorker.ready;
     let subscription = await registration.pushManager.getSubscription();
-    if (deviceOwner && deviceOwner !== expectedUserId) {
+    const storedOwner = deviceOwner || await readDeviceOwner();
+    if (storedOwner && storedOwner !== expectedUserId) {
       await clearDevice();
       if (subscription) await subscription.unsubscribe();
       subscription = null;
@@ -150,7 +161,11 @@ const persistDevice = (expectedUserId: string): Promise<boolean> => {
     if (!subscription) subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
     });
-    return saveSubscription(subscription, expectedUserId);
+    const saved = await saveSubscription(subscription, expectedUserId);
+    // Another account may have signed in while persistence was in flight.
+    const { data } = await supabase.auth.getUser();
+    if (data?.user?.id !== expectedUserId) return false;
+    return saved;
   })().catch(() => false).finally(() => { subscriptionWork = null; });
   return subscriptionWork;
 };
@@ -277,7 +292,8 @@ export const usePushNotifications = () => {
     const { data, error } = await supabase.functions.invoke('send-push', {
       body: { title: t('ui.testNotification'), body: t('ui.pushWorksOnDevice') },
     });
-    if (error) throw error;
+    if (error || data?.error) throw new Error('push-test-failed');
+    if (!data?.sent) throw new Error('push-not-accepted');
     return data as { sent?: number; removed?: number };
   }, [t]);
 

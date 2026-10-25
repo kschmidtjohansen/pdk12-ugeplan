@@ -1,6 +1,6 @@
 import type { AppUser as User } from '@/context/auth/types';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,26 +10,24 @@ import { sortNotifications } from '@/utils/notifications';
 const NOTIFICATION_CREATED_KEY = "polygon-notification-created";
 
 // Get previously created notification content hashes
-const getCreatedNotificationHashes = (): Set<string> => {
+const getCreatedNotificationHashes = (userId: string): Set<string> => {
   try {
-    const stored = localStorage.getItem(NOTIFICATION_CREATED_KEY);
+    const stored = localStorage.getItem(`${NOTIFICATION_CREATED_KEY}:${userId}`);
     return stored ? new Set(JSON.parse(stored)) : new Set();
   } catch (err) {
-    if (import.meta.env.DEV) console.error("Error reading created notification history from localStorage:", err);
     return new Set();
   }
 };
 
 // Save a notification content hash to localStorage
-const saveCreatedNotificationHash = (hash: string): void => {
+const saveCreatedNotificationHash = (userId: string, hash: string): void => {
   try {
-    const hashes = getCreatedNotificationHashes();
+    const hashes = getCreatedNotificationHashes(userId);
     hashes.add(hash);
     // Keep the list short so old entries never block new notifications
     const trimmed = Array.from(hashes).slice(-200);
-    localStorage.setItem(NOTIFICATION_CREATED_KEY, JSON.stringify(trimmed));
+    localStorage.setItem(`${NOTIFICATION_CREATED_KEY}:${userId}`, JSON.stringify(trimmed));
   } catch (err) {
-    if (import.meta.env.DEV) console.error("Error saving notification hash to localStorage:", err);
   }
 };
 
@@ -51,14 +49,15 @@ export const useNotificationCreate = (
 ) => {
   const { toast } = useToast();
   // Use localStorage-backed tracking to prevent duplicate creations
-  const createdNotificationsRef = useRef<Set<string>>(getCreatedNotificationHashes());
+  const createdNotificationsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => { createdNotificationsRef.current = user?.id ? getCreatedNotificationHashes(user.id) : new Set(); }, [user?.id]);
 
   // Add a new notification
   const addNotification = useCallback(async (
     notification: Omit<NotificationType, 'id' | 'read' | 'date'> & { targetUserId?: string }
   ) => {
     if (!user) {
-      if (import.meta.env.DEV) console.error('Cannot add notification: No authenticated user');
       return null;
     }
     
@@ -67,15 +66,13 @@ export const useNotificationCreate = (
       const userId = notification.targetUserId || user.id;
       
       // Generate a content hash to identify duplicates
-      const notificationHash = hashNotification(notification);
+      const notificationHash = hashNotification({ ...notification, targetUserId: userId });
       
       // Check if we've already created this notification
       if (createdNotificationsRef.current.has(notificationHash)) {
-        if (import.meta.env.DEV) console.log('Similar notification already created, skipping:', notification);
         return null;
       }
       
-      if (import.meta.env.DEV) console.log(`Creating notification for user ${userId}:`, notification);
       
       // Generate id client-side and skip RETURNING: SELECT-RLS only allows reading own
       // rows, so inserting for another user (or while IT-Support impersonates) would fail.
@@ -99,8 +96,6 @@ export const useNotificationCreate = (
       if (error) {
         // Specific handling for RLS policy violations
         if (error.message?.includes('violates row-level security policy')) {
-          if (import.meta.env.DEV) console.error('Permission denied: You do not have permission to create notifications for this user.');
-          if (import.meta.env.DEV) console.log('This is likely due to RLS policies. Please check that you have the correct permissions.');
           
           // Only show toast for user-facing operations, not background processes
           if (!notification.targetUserId || notification.targetUserId === user.id) {
@@ -112,16 +107,14 @@ export const useNotificationCreate = (
           }
           return null;
         } else {
-          if (import.meta.env.DEV) console.error('Error inserting notification:', error);
         }
         return null;
       }
       
-      if (import.meta.env.DEV) console.log('Notification created successfully:', data);
       
       // Track that we've created this notification
       createdNotificationsRef.current.add(notificationHash);
-      saveCreatedNotificationHash(notificationHash);
+      saveCreatedNotificationHash(user.id, notificationHash);
       
       // If notification is for the current user, update local state
       if (userId === user.id && data && data[0]) {
@@ -138,7 +131,7 @@ export const useNotificationCreate = (
         
         // Add to notifications and resort
         setNotifications((prev: NotificationType[]) => {
-          const updated = [...prev, newNotification];
+          const updated = prev.some(n => n.id === newNotification.id) ? prev : [...prev, newNotification];
           updated.sort(sortNotifications);
           return updated;
         });
@@ -151,7 +144,6 @@ export const useNotificationCreate = (
       
       return data?.[0]?.id;
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error adding notification:', err);
       return null;
     }
   }, [user, toast, setNotifications, setUnreadCount]);

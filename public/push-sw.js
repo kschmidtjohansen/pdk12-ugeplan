@@ -49,7 +49,7 @@ async function idbRotate(oldEndpoint, endpoint, token) {
 function internalLink(link) {
   if (typeof link !== 'string' || !link.startsWith('/') || link.startsWith('//') || /[\\\u0000-\u0020]/.test(link)) return '/dashboard';
   const url = new URL(link, self.location.origin);
-  return url.origin === self.location.origin ? url.href : new URL('/dashboard', self.location.origin).href;
+  return url.origin === self.location.origin ? url.pathname + url.search + url.hash : '/dashboard';
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -117,7 +117,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
           }),
         });
 
-        if (res.ok) {
+        if (res.ok && (await res.json()).updated === true) {
           await idbRotate(oldEndpoint, subscription.endpoint, token);
         }
       } catch (_err) {
@@ -130,7 +130,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const link = (event.notification.data && event.notification.data.link) || '/dashboard';
-  const targetUrl = internalLink(link);
+  const targetUrl = new URL(internalLink(link), self.location.origin).href;
 
   event.waitUntil(
     (async () => {
