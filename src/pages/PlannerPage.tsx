@@ -546,18 +546,8 @@ const PlannerPage: React.FC = () => {
     window.open(screenUrl, '_blank', 'fullscreen=yes');
   };
 
-  // Convert operationStates format to match PlannerContent expectations
-  const convertedOperationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null> = useMemo(() => {
-    const converted: Record<string, 'publishing' | 'deleting' | 'updating' | null> = {};
-    Object.entries(operationStates).forEach(([key, value]) => {
-      if (value === 'loading') {
-        converted[key] = 'updating';
-      } else {
-        converted[key] = null;
-      }
-    });
-    return converted;
-  }, [operationStates]);
+  // operationStates uses the shared AssignmentOperationState contract
+  // ('publishing' | 'deleting' | 'updating' | null) — no conversion needed.
 
   // NOTE: We intentionally do NOT return a full-page skeleton while loading.
   // Swapping the whole page caused large layout shifts (CLS ~0.7 on /planner).
@@ -622,7 +612,7 @@ const PlannerPage: React.FC = () => {
             <PlannerContent 
               weekAssignments={sortedWeekAssignments} 
               allAssignments={assignments}
-              operationStates={convertedOperationStates}
+              operationStates={operationStates}
               expandedDays={expandedDays}
               onToggleExpansion={handleToggleExpansion}
               onEditAssignment={handleOpenEditDialog} 
