@@ -21,7 +21,7 @@ vi.mock('@/context/TranslationContext', () => ({ useTranslation: () => ({ curren
 vi.mock('@/hooks/useVacations', () => ({ useVacations: () => ({ vacations: [] }) }));
 vi.mock('@/hooks/useCrossSubDeptBusy', () => ({ useCrossSubDeptBusy: () => ({ crossBusyByDate: {} }) }));
 vi.mock('./UnassignedResourcesSection', () => ({ default: ({ assignments }: { assignments: Assignment[] }) => <div data-testid="resources">{assignments.length}</div> }));
-const View = ({ groupedAssignments, assignments }: { groupedAssignments?: Record<string, Assignment[]>; assignments?: Assignment[] }) => <div data-testid="view">{(assignments || Object.values(groupedAssignments || {}).flat()).map(a => <span key={a.id}>{a.title}</span>)}</div>;
+function View({ groupedAssignments, assignments }: { groupedAssignments?: Record<string, Assignment[]>; assignments?: Assignment[] }) { return <div data-testid="view">{(assignments || Object.values(groupedAssignments || {}).flat()).map(a => <span key={a.id}>{a.title}</span>)}</div>; }
 vi.mock('./CurrentAndFutureDays', () => ({ default: View }));
 vi.mock('./PastAssignments', () => ({ default: View }));
 vi.mock('./CompactCurrentAndFutureDays', () => ({ default: View }));
