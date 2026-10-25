@@ -1,11 +1,12 @@
 # PolyPlan v1.4
-- [ ] Messaging worker: endpoint-bound ownership token and atomic rotation/recovery tests.
-- [ ] Subscription persistence/status, account lifecycle and recipient diagnostics.
-- [ ] Inbox initial fetch, catch-up, unread and drawer cache consistency.
-- [ ] Read-only server-chain audit and precise deployment/secret/physical-device checklist (no deployment).
-- [ ] Distinct dashboard sections and responsive fixture checks.
-- [ ] Full tests/lint, automatic build signal and documentation.
-- [ ] Module finish (C), after A+B; do not claim completion if deferred.
+- [x] Messaging worker: endpoint-bound ownership token and atomic rotation/recovery tests.
+- [x] Subscription persistence/status, account lifecycle and recipient diagnostics.
+- [x] Inbox initial fetch, catch-up, unread and drawer cache consistency.
+- [x] Read-only server-chain audit and precise deployment/secret/physical-device checklist (no deployment).
+- [x] Distinct dashboard sections and responsive fixture checks.
+- [x] Full tests, automatic build signal and documentation; final lint verification.
+- [ ] Server fixes and closed-app physical delivery — no-deploy constraint and authorized device/runtime access required.
+- [ ] Module finish (C) — deferred scope in favour of A+B, reported explicitly.
 
 ## Previous v1.3
 - [x] Shared week calculations, operation filters and URL round-trip.

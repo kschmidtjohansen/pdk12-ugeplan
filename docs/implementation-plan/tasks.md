@@ -1,3 +1,14 @@
+## PolyPlan v1.4 (2026-10-25)
+- [x] Endpoint-bound messaging-worker token, HTTP validation and transactional rotation with tests.
+- [x] Authenticated subscription persistence, opt-out/account lifecycle and truthful push diagnostics.
+- [x] Initial inbox fetch, account-scoped count/drawer state and realtime/refocus/reconnect catch-up tests.
+- [x] Read-only trigger/pg_net/publication audit and secret-name presence check; no testpush/deploy.
+- [x] Dashboard info/warning/success surfaces, accent borders, 16px gaps and four-width/two-theme fixture checks.
+- [x] 125 tests; automatic preview build OK; operations checklist documented.
+- [ ] Server preference-error handling, durable retry/idempotency and deployed gateway/VAPID verification — blocked by no-deploy constraint/external runtime access.
+- [ ] Physical iOS/Android closed-app delivery and authenticated E2E — requires authorized devices/test account and approval.
+- [ ] Priority C module finish — deferred to prioritize A+B; not implemented.
+
 ## PolyPlan v1.3 (2026-10-25)
 - [x] Fælles uge-/konfliktberegning og validerede ISO-uge deep links.
 - [x] Handlingsbar statusstrip og kombinerede filtre i alle fire planner views.
