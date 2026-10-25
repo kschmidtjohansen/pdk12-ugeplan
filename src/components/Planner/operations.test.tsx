@@ -53,7 +53,7 @@ describe('Handlingsbart ugeoverblik', () => {
   });
   it('dagvælger sender konkret lokal dato', () => {
     render(<PlannerContent {...props} />);
-    fireEvent.click(screen.getByRole('button', { name: 'man. 28' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Vælg dato 2026-12-28' }));
     expect(props.onDayFilter).toHaveBeenCalledWith('2026-12-28');
   });
   it('read-only har ingen mutation actions', () => {

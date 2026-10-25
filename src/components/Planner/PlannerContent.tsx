@@ -160,7 +160,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     <div className="space-y-4 pb-4" id="planner-results">
       {onDayFilter && <nav aria-label={t('planner.selectDate')} className="flex gap-2 overflow-x-auto pb-2">
         <Button variant={!dayFilter ? 'secondary' : 'outline'} className="min-h-11 shrink-0" aria-pressed={!dayFilter} onClick={() => onDayFilter('')}>{t('planner.operationsOverview.allDays')}</Button>
-        {getAllWeekDays(weekDates).map(day => <Button key={day} variant={dayFilter === day ? 'secondary' : 'outline'} aria-pressed={dayFilter === day} className="min-h-11 shrink-0 tabular-nums" onClick={() => onDayFilter(day)}>
+        {getAllWeekDays(weekDates).map(day => <Button key={day} aria-label={`${t('planner.selectDate')} ${day}`} variant={dayFilter === day ? 'secondary' : 'outline'} aria-pressed={dayFilter === day} className="min-h-11 shrink-0 tabular-nums" onClick={() => onDayFilter(day)}>
           {parseISO(day).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB', { weekday: 'short', day: 'numeric' })}
           {day === todayLocalYYYYMMDD() && <span className="text-xs">· {t('planner.today')}</span>}
         </Button>)}

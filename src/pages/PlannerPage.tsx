@@ -468,7 +468,7 @@ const PlannerPage: React.FC = () => {
       setEditMode('single');
       openEditDialogDirect({ ...assignment, groupId: undefined });
     }
-  }, [seriesAction, deleteAssignment, detachFromGroup]);
+  }, [seriesAction, deleteAssignment, detachFromGroup, openEditDialogDirect]);
 
   const handleSeriesEntireSeries = useCallback(async () => {
     if (!seriesAction) return;
@@ -489,7 +489,7 @@ const PlannerPage: React.FC = () => {
       setEditMode('series');
       openEditDialogDirect({ ...assignment, groupId: groupId || assignment.groupId });
     }
-  }, [seriesAction, deleteAssignmentsByGroupId, deleteAssignment, ensureGroupId]);
+  }, [seriesAction, deleteAssignmentsByGroupId, deleteAssignment, ensureGroupId, openEditDialogDirect]);
 
   const handlePublishAssignment = useCallback(async (id: string) => {
     await publishAssignment(id);
