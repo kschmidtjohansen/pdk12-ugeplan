@@ -33,7 +33,8 @@ vi.mock('@/services/plannerChangeLogger', () => ({
 }));
 vi.mock('@/lib/realtimeChannels', () => ({ subscribeToTables: () => () => {} }));
 vi.mock('@/lib/realtimeUtils', () => ({ notifyOwnAction: vi.fn() }));
-vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
+const rpcMock = vi.hoisted(() => vi.fn());
+vi.mock('@/integrations/supabase/client', () => ({ supabase: { rpc: rpcMock } }));
 
 import { useOptimizedAssignments } from './useOptimizedAssignments';
 
@@ -154,5 +155,122 @@ describe('Ugeplan: opret, ret, slet og fortryd', () => {
 
     expect(result.current.assignments.map(a => a.id)).toEqual(['a1']);
     expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ variant: 'destructive' }));
+  });
+});
+
+describe('operationStates – én typesikker kontrakt', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    svc.fetchAllAssignments.mockResolvedValue([row('a1')]);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('viser "deleting" under slette-graceperioden og null bagefter', async () => {
+    svc.deleteAssignment.mockResolvedValue(undefined);
+    const { result } = await renderPlanner();
+    vi.useFakeTimers();
+
+    act(() => { result.current.deleteAssignment('a1'); });
+    expect(result.current.operationStates['a1']).toBe('deleting');
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+    expect(result.current.operationStates['a1']).toBeNull();
+  });
+
+  it('viser "publishing" under publicering og null ved succes', async () => {
+    svc.fetchAllAssignments.mockResolvedValue([row('a1')]);
+    let resolvePublish: () => void = () => {};
+    const publishPromise = new Promise<void>((res) => { resolvePublish = res; });
+    const { OptimizedAssignmentService } = await import('@/services/optimizedAssignmentService');
+    (OptimizedAssignmentService as unknown as { publishAssignment: ReturnType<typeof vi.fn> }).publishAssignment =
+      vi.fn().mockReturnValue(publishPromise);
+
+    const { result } = await renderPlanner();
+    act(() => { void result.current.publishAssignment('a1'); });
+    await waitFor(() => expect(result.current.operationStates['a1']).toBe('publishing'));
+
+    await act(async () => { resolvePublish(); await publishPromise; });
+    await waitFor(() => expect(result.current.operationStates['a1']).toBeNull());
+  });
+
+  it('nulstiller tilstanden efter en opdatering', async () => {
+    svc.updateAssignment.mockResolvedValue(undefined);
+    const { result } = await renderPlanner();
+
+    await act(async () => {
+      await result.current.updateAssignment('a1', {
+        title: 'Sag a1', date: '2026-10-14', fromTime: '09:00', toTime: '13:00', location: 'Ribevej 1',
+      });
+    });
+
+    expect(result.current.operationStates['a1']).toBeNull();
+  });
+});
+
+describe('Serie-opgaver – alt-eller-intet via RPC', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    svc.fetchAllAssignments.mockResolvedValue([
+      row('s1', { group_id: 'grp-1' }),
+      row('s2', { group_id: 'grp-1', assignment_date: '2026-10-15' }),
+    ]);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('serie-sletning bruger én samlet RPC (ingen løkke af enkeltkald)', async () => {
+    rpcMock.mockResolvedValue({ data: 2, error: null });
+    const { result } = await renderPlanner();
+    vi.useFakeTimers();
+
+    act(() => { result.current.deleteAssignmentsByGroupId('grp-1'); });
+    expect(result.current.assignments).toHaveLength(0);
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+    expect(rpcMock).toHaveBeenCalledWith('delete_assignment_series', { p_group_id: 'grp-1' });
+  });
+
+  it('serie-sletning ruller UI tilbage hvis RPC fejler', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: { message: 'db nede' } });
+    const { result } = await renderPlanner();
+    vi.useFakeTimers();
+
+    act(() => { result.current.deleteAssignmentsByGroupId('grp-1'); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+
+    expect(result.current.assignments.map((a) => a.id).sort()).toEqual(['s1', 's2']);
+    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ variant: 'destructive' }));
+  });
+
+  it('serie-opdatering sender felter og medarbejdere til én RPC', async () => {
+    rpcMock.mockResolvedValue({ data: 2, error: null });
+    const { result } = await renderPlanner();
+
+    await act(async () => {
+      await result.current.updateSeriesAssignments('grp-1', {
+        title: 'Ny serietitel', fromTime: '08:00', toTime: '12:00', location: 'Ribevej 1',
+        employees: ['emp-1', 'emp-2'],
+      });
+    });
+
+    expect(rpcMock).toHaveBeenCalledWith('update_assignment_series', expect.objectContaining({
+      p_group_id: 'grp-1',
+      p_employee_ids: ['emp-1', 'emp-2'],
+      p_fields: expect.objectContaining({ title: 'Ny serietitel', from_time: '08:00' }),
+    }));
+    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ title: 'planner.assignmentUpdated' }));
+  });
+
+  it('serie-opdatering viser KUN fejl-toast når RPC fejler (aldrig success ved delvis opdatering)', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: { message: 'delvis fejl' } });
+    const { result } = await renderPlanner();
+
+    await act(async () => {
+      await result.current.updateSeriesAssignments('grp-1', {
+        title: 'Ny serietitel', fromTime: '08:00', toTime: '12:00', location: 'Ribevej 1',
+      });
+    });
+
+    expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ variant: 'destructive' }));
+    expect(toastMock).not.toHaveBeenCalledWith(expect.objectContaining({ title: 'planner.assignmentUpdated' }));
   });
 });
