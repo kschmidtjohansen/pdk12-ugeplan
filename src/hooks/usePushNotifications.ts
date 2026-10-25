@@ -72,6 +72,30 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer | null) => {
 
 export type PushStatus = 'unsupported' | 'needs-install' | 'blocked' | 'off' | 'on';
 
+// The resubscribe token proves this browser owns the subscription row when the
+// push service worker later needs to rotate the endpoint. It is stored in
+// IndexedDB so the service worker (which cannot read localStorage) can reach it.
+const IDB_NAME = 'polyplan-push';
+const IDB_STORE = 'kv';
+
+const idbOpen = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+
+const idbSet = async (key: string, value: unknown): Promise<void> => {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+};
+
 const saveSubscription = async (subscription: PushSubscription) => {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData?.user?.id;
@@ -80,6 +104,7 @@ const saveSubscription = async (subscription: PushSubscription) => {
   const json = subscription.toJSON() as { keys?: { p256dh?: string; auth?: string } };
   const p256dh = json.keys?.p256dh ?? arrayBufferToBase64(subscription.getKey('p256dh'));
   const auth = json.keys?.auth ?? arrayBufferToBase64(subscription.getKey('auth'));
+  const resubscribeToken = crypto.randomUUID();
 
   const { error } = await supabase.from('push_subscriptions').upsert(
     {
@@ -87,6 +112,7 @@ const saveSubscription = async (subscription: PushSubscription) => {
       endpoint: subscription.endpoint,
       p256dh,
       auth,
+      resubscribe_token: resubscribeToken,
       user_agent: navigator.userAgent.slice(0, 300),
       last_seen_at: new Date().toISOString(),
       last_error: null,
@@ -97,6 +123,14 @@ const saveSubscription = async (subscription: PushSubscription) => {
   if (error) {
     if (import.meta.env.DEV) console.error('Push subscription save failed', error);
     return false;
+  }
+
+  try {
+    await idbSet(`resubscribe:${subscription.endpoint}`, resubscribeToken);
+    await idbSet('latest', { endpoint: subscription.endpoint, token: resubscribeToken });
+  } catch {
+    // The service worker cannot rotate the endpoint without the token, but the
+    // app re-saves the subscription on next launch, so this is recoverable.
   }
   return true;
 };
