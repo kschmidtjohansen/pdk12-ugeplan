@@ -1,5 +1,9 @@
 
 const planner = {
+  operationsOverview: {
+    title: 'Ugens plan', attention: 'Kræver opmærksomhed', all: 'Opgaver i ugen', drafts: 'Kladder / upublicerede', unassigned: 'Uden medarbejdertilknytning', conflicts: 'Opgaver med overlap', information: 'Medarbejdertilknytning er et informationssignal; overlap tælles pr. opgave.', clearIssue: 'Ryd statusfilter', currentWeek: 'Denne uge', allDays: 'Alle dage', results: '{count} af {total} opgaver', noMatch: 'Ingen opgaver matcher filtrene', error: 'Ugens opgaver kunne ikke indlæses', retry: 'Prøv igen',
+  },
+
   title: 'Planner',
   description: 'Beskrivelse',
   
