@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -12,6 +12,8 @@ import VacationOverviewDropdown from './NavComponents/VacationOverviewDropdown';
 import GlobalAssignmentSearch from './NavComponents/GlobalAssignmentSearch';
 import { useToast } from '@/hooks/use-toast';
 import { usePlannerWeek } from '@/stores/plannerWeekStore';
+import { PRODUCT_NAME } from '@/config/product';
+import polygonMark from '@/assets/polygon-mark.png';
 
 const ROUTE_TITLES: Record<string, string> = {
   '/dashboard': 'navigation.dashboard',
@@ -62,12 +64,20 @@ const AppTopBar: React.FC = () => {
     <header role="banner" className="sticky top-0 z-40 h-11 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 border-b border-border/70">
       <div className="flex items-center h-full px-2 sm:px-3 gap-2">
         <SidebarTrigger className="text-muted-foreground hover:text-foreground h-8 w-8 hidden lg:inline-flex" />
+        <Link
+          to="/dashboard"
+          className="flex items-center gap-1.5 lg:hidden"
+          aria-label={PRODUCT_NAME}
+        >
+          <img src={polygonMark} alt="" aria-hidden className="h-5 w-5 select-none object-contain" draggable={false} />
+          <span className="text-[13px] font-semibold tracking-tight text-foreground">{PRODUCT_NAME}</span>
+        </Link>
         <div className="h-4 w-px bg-border hidden sm:block" />
         <h1 className="text-[13px] font-semibold text-foreground tracking-tight truncate">
           {title}
         </h1>
         {isPlanner && (
-          <span className="inline-flex items-center bg-primary/10 text-primary text-[12px] rounded-full px-2 py-0.5 font-medium">
+          <span className="inline-flex items-center border border-border bg-muted text-muted-foreground text-[12px] rounded-md px-2 py-0.5 font-medium tabular-nums">
             {t('planner.week') || 'Uge'} {week}
           </span>
         )}
