@@ -21,7 +21,7 @@ export default function ModuleListTools({ segments, active, onSelect, search, on
   const filtered = active !== 'all' || search.trim().length > 0;
   return <section aria-label={da ? 'Filtre og resultater' : 'Filters and results'} className="mb-4 border-y border-border bg-card">
     <div className="grid grid-cols-2 divide-x divide-y divide-border sm:flex sm:flex-wrap sm:divide-y-0" role="group" aria-label={da ? 'Status' : 'Status'}>
-      {segments.map(segment => <Button key={segment.key} variant="ghost" aria-pressed={active === segment.key} onClick={() => onSelect(segment.key)}
+      {segments.map(segment => <Button key={segment.key} variant="ghost" aria-label={`${segment.label}${segment.count === undefined ? '' : ` ${segment.count}`}`} aria-pressed={active === segment.key} onClick={() => onSelect(segment.key)}
         className={cn('h-auto min-h-14 min-w-0 flex-1 justify-between gap-3 rounded-none border-b-2 border-transparent px-3 py-3 text-left whitespace-normal', active === segment.key && 'border-b-primary bg-accent text-foreground')}>
         <span className="text-xs font-medium">{segment.label}</span><span className={cn('text-lg font-semibold tabular-nums', segment.highlight && 'text-warning-soft-foreground')}>{segment.count ?? '–'}</span>
       </Button>)}
