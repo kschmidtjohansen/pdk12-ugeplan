@@ -20,8 +20,15 @@ const json = (body: unknown, status = 200) =>
   });
 
 // Called by the push service worker when the browser rotates the push endpoint.
-// It can only move an existing subscription row to its new endpoint - it never
-// creates a subscription, so an unknown old endpoint is a no-op.
+//
+// Authorization model (fail-closed): every subscription row carries a random
+// `resubscribe_token` that is issued only to the signed-in owner's browser and
+// stored in IndexedDB, where the push service worker can read it. Rotating a
+// subscription requires knowing BOTH the old endpoint AND its token, so an
+// unauthenticated caller can no longer overwrite another device's keys.
+// Rows without a token (created before this change) cannot be rotated here;
+// the app re-saves the subscription on next launch, which issues a token.
+// Unknown endpoints remain a no-op, and the function never creates rows.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405);
@@ -32,6 +39,7 @@ Deno.serve(async (req) => {
     const endpoint = typeof body?.endpoint === 'string' ? body.endpoint : '';
     const p256dh = typeof body?.p256dh === 'string' ? body.p256dh : '';
     const auth = typeof body?.auth === 'string' ? body.auth : '';
+    const token = typeof body?.resubscribe_token === 'string' ? body.resubscribe_token : '';
 
     if (!oldEndpoint || !endpoint || !p256dh || !auth) {
       return json({ error: 'invalid payload' }, 400);
@@ -39,15 +47,22 @@ Deno.serve(async (req) => {
     if (!/^https:\/\//.test(endpoint) || endpoint.length > 1000) {
       return json({ error: 'invalid endpoint' }, 400);
     }
+    if (!token || token.length > 200) {
+      return json({ error: 'forbidden' }, 403);
+    }
 
     const { data: existing, error: lookupError } = await admin
       .from('push_subscriptions')
-      .select('id')
+      .select('id, resubscribe_token')
       .eq('endpoint', oldEndpoint)
       .maybeSingle();
 
     if (lookupError) throw lookupError;
     if (!existing) return json({ updated: false });
+
+    if (!existing.resubscribe_token || existing.resubscribe_token !== token) {
+      return json({ error: 'forbidden' }, 403);
+    }
 
     const { error: updateError } = await admin
       .from('push_subscriptions')

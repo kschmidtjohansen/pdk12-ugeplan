@@ -6,6 +6,40 @@ const VAPID_PUBLIC_KEY =
 const RESUBSCRIBE_URL =
   'https://cyuyrpwtkljfiqwgasmn.supabase.co/functions/v1/push-resubscribe';
 
+// The resubscribe token proves this browser owns the subscription row. The app
+// writes it to IndexedDB when it saves the subscription; the backend refuses
+// endpoint rotation without it (fail-closed).
+const IDB_NAME = 'polyplan-push';
+const IDB_STORE = 'kv';
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbGet(key) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbSet(key, value) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -41,7 +75,8 @@ self.addEventListener('push', (event) => {
 
 // The browser can rotate the push endpoint at any time. When that happens we
 // re-subscribe silently and hand the new endpoint to the backend, so the user
-// never has to enable notifications again.
+// never has to enable notifications again. Without a stored ownership token we
+// do nothing — the app re-checks and re-subscribes on next launch.
 self.addEventListener('pushsubscriptionchange', (event) => {
   event.waitUntil(
     (async () => {
@@ -54,8 +89,15 @@ self.addEventListener('pushsubscriptionchange', (event) => {
             applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
           }));
 
+        let token = oldEndpoint ? await idbGet(`resubscribe:${oldEndpoint}`) : null;
+        if (!token) {
+          const latest = await idbGet('latest');
+          if (latest && latest.token) token = latest.token;
+        }
+        if (!token) return; // fail-closed: app re-saves the subscription on next launch
+
         const json = subscription.toJSON();
-        await fetch(RESUBSCRIBE_URL, {
+        const res = await fetch(RESUBSCRIBE_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -63,8 +105,14 @@ self.addEventListener('pushsubscriptionchange', (event) => {
             endpoint: subscription.endpoint,
             p256dh: json.keys && json.keys.p256dh,
             auth: json.keys && json.keys.auth,
+            resubscribe_token: token,
           }),
         });
+
+        if (res.ok) {
+          await idbSet(`resubscribe:${subscription.endpoint}`, token);
+          await idbSet('latest', { endpoint: subscription.endpoint, token });
+        }
       } catch (_err) {
         /* the app re-checks and re-subscribes on next launch */
       }
