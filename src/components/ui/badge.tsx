@@ -4,26 +4,26 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
+  "inline-flex items-center rounded-sm border px-2 py-0.5 text-xs font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary/12 text-primary hover:bg-primary/18",
+          "border-border bg-muted text-foreground",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-destructive/12 text-destructive hover:bg-destructive/18",
+          "border-transparent bg-destructive-soft text-destructive-soft-foreground",
         outline:
           "text-foreground border-border hover:bg-accent",
         success:
-          "border-transparent bg-success/12 text-success hover:bg-success/18",
+          "border-transparent bg-success-soft text-success-soft-foreground",
         warning:
-          "border-transparent bg-warning/12 text-warning hover:bg-warning/18",
+          "border-transparent bg-warning-soft text-warning-soft-foreground",
         info:
-          "border-transparent bg-info/12 text-info hover:bg-info/18",
+          "border-transparent bg-info-soft text-info-soft-foreground",
         gradient:
-          "border-transparent bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(199_89%_52%))] text-primary-foreground shadow-sm shadow-primary/25",
+          "border-transparent bg-primary text-primary-foreground",
         solidPrimary:
           "border-transparent bg-primary text-primary-foreground",
         solidSuccess:
