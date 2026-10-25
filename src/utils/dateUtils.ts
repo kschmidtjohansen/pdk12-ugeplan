@@ -219,6 +219,7 @@ export const groupAssignmentsByDay = <T extends { date: string }>(assignments: T
 
 export default {
   formatDateToYYYYMMDD,
+  todayLocalYYYYMMDD,
   parseYYYYMMDD,
   formatDateForDisplay,
   daysBetween,

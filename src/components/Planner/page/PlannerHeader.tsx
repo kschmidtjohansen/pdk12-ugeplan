@@ -92,7 +92,7 @@ const PlannerHeader: React.FC<Props> = ({
                 </Button>
               )}
               {canCreate && (
-                <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm">
+                <Button onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())} size="sm">
                   <Plus className="h-4 w-4" />
                   {t('planner.newAssignment')}
                 </Button>
