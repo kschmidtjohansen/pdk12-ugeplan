@@ -10,6 +10,7 @@ const svc = vi.hoisted(() => ({
   createAssignment: vi.fn(),
   updateAssignment: vi.fn(),
   deleteAssignment: vi.fn(),
+  publishAssignment: vi.fn(),
 }));
 
 vi.mock('@/context/AuthContext', () => ({
@@ -178,12 +179,9 @@ describe('operationStates – én typesikker kontrakt', () => {
   });
 
   it('viser "publishing" under publicering og null ved succes', async () => {
-    svc.fetchAllAssignments.mockResolvedValue([row('a1')]);
     let resolvePublish: () => void = () => {};
     const publishPromise = new Promise<void>((res) => { resolvePublish = res; });
-    const { OptimizedAssignmentService } = await import('@/services/optimizedAssignmentService');
-    (OptimizedAssignmentService as unknown as { publishAssignment: ReturnType<typeof vi.fn> }).publishAssignment =
-      vi.fn().mockReturnValue(publishPromise);
+    svc.publishAssignment.mockReturnValue(publishPromise);
 
     const { result } = await renderPlanner();
     act(() => { void result.current.publishAssignment('a1'); });
