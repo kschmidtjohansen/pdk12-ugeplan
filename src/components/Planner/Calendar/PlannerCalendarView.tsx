@@ -81,7 +81,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   }, [employees, assignments, selected.size]);
   useEffect(() => { localStorage.setItem('plannerCalendarEmployees', JSON.stringify([...selected])); }, [selected]);
 
-  const toggle = (id: string) => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggle = (id: string) => setSelected(prev => { const n = new Set(prev); if (n.has(id)) { n.delete(id); } else { n.add(id); } return n; });
   const lanes = sorted.filter(e => selected.has(e.id));
   const dayAssignments = assignments.filter(a => a.date === day);
 
