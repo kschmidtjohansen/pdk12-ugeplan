@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useCallback, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { Users, Car, Clock, ArrowRight, UserCheck, Plus, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import {
@@ -221,17 +221,14 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
 
   return (
     <>
-      <Card>
-        <CardHeader className="brand-card-header">
+      <section className="min-w-0">
+        <header className="border-b border-border pb-4 mb-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 rounded-md bg-primary/12 text-primary">
-                <Clock className="h-4 w-4" />
-              </div>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-sm font-semibold truncate brand-dot">
+                <h2 className="text-sm font-semibold break-words">
                   {t('dashboard.myAssignments')}
-                </CardTitle>
+                </h2>
               </div>
               <div className="flex-shrink-0">
                 <WeekNavigation
@@ -243,38 +240,40 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
             </div>
 
             {/* Day-of-week filter */}
-            <div className="flex flex-wrap gap-1.5">
+            <div className="grid grid-cols-4 gap-1 sm:grid-cols-8">
               {DAY_KEYS.map((k) => {
                 const active = dayFilter === k;
                 const count = dayCounts[k];
                 const disabled = k !== 'all' && count === 0;
                 return (
-                  <button
+                  <Button
+                    variant="ghost"
+                    aria-pressed={active}
                     key={k}
                     onClick={() => !disabled && setDayFilter(k)}
                     disabled={disabled}
                     className={cn(
-                      'inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-xs font-medium transition-colors border',
+                      'inline-flex items-center justify-between gap-1 px-2 min-h-11 h-auto rounded-md text-xs font-medium transition-colors border',
                       active
-                        ? 'bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/25'
+                        ? 'bg-accent text-foreground border-primary'
                         : disabled
-                        ? 'bg-muted/50 text-muted-foreground/50 border-transparent cursor-not-allowed'
-                        : 'bg-background text-foreground border-border hover:bg-primary/8 hover:border-primary/30 hover:text-primary'
+                        ? 'bg-muted text-muted-foreground border-transparent cursor-not-allowed'
+                        : 'bg-card text-foreground border-border hover:bg-accent'
                     )}
                   >
                     <span>{t(`dashboard.dayFilter.${k}`)}</span>
                     <span className={cn(
                       'tabular-nums text-[10px] px-1 rounded',
-                      active ? 'bg-primary-foreground/20' : 'bg-muted text-muted-foreground'
+                      'text-muted-foreground'
                     )}>
                       {count}
                     </span>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               {isAdmin && (
                 <Button variant="brand" size="sm" onClick={openCreate}>
                   <Plus className="h-4 w-4" />
@@ -289,12 +288,12 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
               </Button>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
+        </header>
+        <div>
           {sortedAssignments.length === 0 ? (
             <div className="text-center py-10">
-              <div className="p-3 rounded-full bg-primary/8 w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                <Clock className="h-6 w-6 text-primary/70" />
+              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <Clock className="h-6 w-6 text-muted-foreground" />
               </div>
               <h3 className="text-sm font-medium text-foreground mb-1">
                 {t('dashboard.noAssignments')}
@@ -304,7 +303,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
               </p>
             </div>
           ) : (
-            <div className="grid gap-2">
+            <div className="divide-y divide-border border-y border-border">
               {sortedAssignments.map((assignment) => {
                 const employeeNames = getEmployeeNames(assignment);
                 const carNames = getCarNames(assignment);
@@ -312,24 +311,24 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                 return (
                   <div
                     key={assignment.id}
-                    className="border border-border rounded-lg p-3 bg-card hover:bg-primary/4 hover:border-primary/30 transition-colors group relative"
+                    className="py-4 pl-3 pr-14 border-l-2 border-l-transparent hover:border-l-primary hover:bg-accent transition-colors relative"
                   >
-                    <div
+                    <Button variant="ghost"
                       onClick={() => handleAssignmentClick(assignment)}
-                      className="cursor-pointer"
+                      className="block h-auto w-full p-0 rounded-none text-left whitespace-normal hover:bg-transparent"
                     >
                       <div className="flex flex-wrap justify-between items-start gap-2 mb-2 pr-6">
                         <div className="flex flex-col min-w-0">
-                          <h3 className="font-semibold text-sm text-foreground text-left truncate">
+                          <h3 className="font-semibold text-sm text-foreground text-left break-words">
                             {assignment.title || 'Untitled'}
                           </h3>
                           {assignment.location && (
-                            <p className="text-xs text-muted-foreground text-left truncate">
+                            <p className="text-xs text-muted-foreground text-left break-words">
                               {assignment.location}
                             </p>
                           )}
                         </div>
-                        <div className="px-2 py-0.5 bg-primary/10 text-primary rounded-md text-xs font-medium tabular-nums">
+                        <div className="text-xs text-muted-foreground tabular-nums">
                           {new Date(assignment.date).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB')}
                         </div>
                       </div>
@@ -343,41 +342,42 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {carNames.length > 0 && (
                           <div className="flex items-center gap-2 text-xs text-foreground">
-                            <Car className="h-3.5 w-3.5 text-primary/70 shrink-0" />
-                            <span className="truncate">{carNames.join(', ')}</span>
+                            <Car className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="break-words">{carNames.join(', ')}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-2 text-xs text-foreground">
-                          <Clock className="h-3.5 w-3.5 text-primary/70 shrink-0" />
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           <span className="tabular-nums">
                             {assignment.fromTime.substring(0, 5)} – {assignment.toTime.substring(0, 5)}
                           </span>
                         </div>
                         {employeeNames.length > 0 && (
                           <div className="flex items-center gap-2 text-xs text-foreground">
-                            <Users className="h-3.5 w-3.5 text-primary/70 shrink-0" />
-                            <span className="truncate">{employeeNames.join(', ')}</span>
+                            <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="break-words">{employeeNames.join(', ')}</span>
                           </div>
                         )}
                         {assignment.responsibleUser && (
                           <div className="flex items-center gap-2 text-xs text-foreground">
-                            <UserCheck className="h-3.5 w-3.5 text-primary/70 shrink-0" />
-                            <span className="truncate">
+                            <UserCheck className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="break-words">
                               {typeof assignment.responsibleUser === 'string' ? assignment.responsibleUser : assignment.responsibleUser.name}
                             </span>
                           </div>
                         )}
                       </div>
-                    </div>
+                    </Button>
 
                     {isAdmin && (
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-3 right-1">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              className="h-7 w-7"
+                              className="min-h-11 min-w-11"
+                              aria-label={`${t('planner.editAssignment')}: ${assignment.title}`}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <MoreVertical className="h-4 w-4" />
@@ -405,8 +405,8 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {isAssignmentDialogOpen && (
         <Suspense fallback={null}>
