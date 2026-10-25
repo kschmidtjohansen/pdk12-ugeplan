@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Monitor, LayoutGrid, LayoutList, List, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useTranslation } from '@/context/TranslationContext';
@@ -21,21 +21,21 @@ interface Props {
   handleCancelPrefetch: () => void;
   handleShowOnScreen: () => void;
   handleOpenCreateDialog: (date: string) => void;
+  onCurrentWeek: () => void;
 }
 
 /** Title, view-mode toggle, week navigation and primary actions for the weekly planner. */
 const PlannerHeader: React.FC<Props> = ({
   selectedWeek, selectedYear, weekDates, viewMode, setViewMode, handlePreviousWeek, handleNextWeek,
   handlePrefetchAssignments, handleCancelPrefetch, handleShowOnScreen, handleOpenCreateDialog,
+  onCurrentWeek,
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { canCreate, canPublishTasks } = usePermissions();
   return (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <header className="space-y-3 border-b border-border pb-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary flex-shrink-0">
-              <Clock className="h-4 w-4" />
-            </div>
             <div className="min-w-0">
               <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
                 {t("navigation.planner")}
@@ -50,8 +50,9 @@ const PlannerHeader: React.FC<Props> = ({
               </p>
             </div>
           </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          {canCreate && <Button className="min-h-11" onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())}><Plus className="h-4 w-4" />{t('planner.newAssignment')}</Button>}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center justify-center sm:justify-start">
               <ToggleGroup
                 type="single"
@@ -76,31 +77,26 @@ const PlannerHeader: React.FC<Props> = ({
 
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 py-1">
-                <Button variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-7 w-7 p-0">
+                <Button aria-label={t('planner.previousWeek')} variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-11 w-11 p-0">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="font-medium min-w-[80px] text-center text-sm text-foreground">
                   {t('planner.week')} {selectedWeek}
                 </span>
-                <Button variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-7 w-7 p-0">
+                <Button aria-label={t('planner.nextWeek')} variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-11 w-11 p-0">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
+              <Button variant="outline" className="min-h-11" onClick={onCurrentWeek}>{t('planner.operationsOverview.currentWeek')}</Button>
 
               {canPublishTasks && (
-                <Button onClick={handleShowOnScreen} variant="outline" size="sm" aria-label={t('planner.showOnScreen')} title={t('planner.showOnScreen')} className="h-8 w-8 p-0">
+                <Button onClick={handleShowOnScreen} variant="outline" size="sm" aria-label={t('planner.showOnScreen')} title={t('planner.showOnScreen')} className="h-11 w-11 p-0">
                   <Monitor className="h-4 w-4" />
-                </Button>
-              )}
-              {canCreate && (
-                <Button onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())} size="sm">
-                  <Plus className="h-4 w-4" />
-                  {t('planner.newAssignment')}
                 </Button>
               )}
             </div>
           </div>
-        </div>
+        </header>
   );
 };
 

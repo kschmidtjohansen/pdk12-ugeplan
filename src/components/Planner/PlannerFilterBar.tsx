@@ -25,6 +25,10 @@ interface PlannerFilterBarProps {
   /** Free-text quick search across case number, title, customer and employees. */
   query?: string;
   onQueryChange?: (value: string) => void;
+  onClearAll?: () => void;
+  additionalFiltersActive?: boolean;
+  resultCount?: number;
+  totalCount?: number;
 }
 
 /**
@@ -42,6 +46,10 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   showProximity = true,
   query = '',
   onQueryChange,
+  onClearAll,
+  additionalFiltersActive = false,
+  resultCount,
+  totalCount,
 }) => {
   const { t } = useTranslation();
   const { userSubDepartments, selectedSubDepartmentId } = useDepartment();
@@ -70,7 +78,7 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
 
 
   const selectedSet = useMemo(() => new Set(selectedEmployeeIds), [selectedEmployeeIds]);
-  const hasFilters = selectedEmployeeIds.length > 0 || !!postcode.trim();
+  const hasFilters = selectedEmployeeIds.length > 0 || !!postcode.trim() || !!query.trim() || additionalFiltersActive;
 
   const toggleEmployee = (id: string) => {
     onSelectedEmployeeIdsChange(
@@ -81,6 +89,8 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   const clearAll = () => {
     onSelectedEmployeeIdsChange([]);
     onPostcodeChange('');
+    onQueryChange?.('');
+    onClearAll?.();
   };
 
   // The panel is only visible while explicitly expanded. When a filter is
@@ -124,24 +134,26 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
               onKeyDown={(e) => { if (e.key === 'Escape') onQueryChange(''); }}
               placeholder={t('ui.searchPlannerPlaceholder')}
               aria-label={t('ui.searchPlannerAria')}
-              className="h-8 pl-9 pr-8"
+              className="h-11 pl-9 pr-12"
             />
             {query.trim() && (
-              <button
+              <Button variant="ghost" size="icon"
                 type="button"
                 aria-label={t('ui.clearSearch')}
                 onClick={() => onQueryChange('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:bg-muted"
+                className="absolute right-0 top-1/2 h-11 w-11 -translate-y-1/2 text-muted-foreground"
               >
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             )}
           </div>
         )}
         <Button
           variant="outline"
           size="sm"
-          className="h-8"
+          className="min-h-11"
+          aria-expanded={isOpen}
+          aria-controls="planner-resource-filters"
           onClick={() => setExpanded((v) => !v)}
         >
           <SlidersHorizontal className="h-3.5 w-3.5" />
@@ -182,21 +194,22 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
         )}
 
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-8 text-muted-foreground" onClick={clearAll}>
+          <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={clearAll}>
             {t('planner.filters.clearAll')}
           </Button>
         )}
       </div>
+      {resultCount !== undefined && <p role="status" aria-live="polite" className="text-xs text-muted-foreground tabular-nums">{t('planner.operationsOverview.results', { count: resultCount, total: totalCount ?? resultCount })}</p>}
 
       {isOpen && (
         /* Overlay instead of inline expansion — keeps the week list from being
            pushed down (layout shift) when the filter panel opens. The panel can
            always be closed with "Skjul", even while filters are active. */
-        <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-card p-3 space-y-3 shadow-lg">
+        <div id="planner-resource-filters" className="max-h-[70vh] overflow-y-auto border-y border-border bg-card p-3 space-y-3">
           <div className="flex flex-col sm:flex-row gap-2">
             <Popover open={open} onOpenChange={setOpen} modal>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9 justify-start sm:w-64">
+                <Button variant="outline" size="sm" className="min-h-11 justify-start sm:w-64">
                   <Users className="h-4 w-4" />
                   {selectedEmployeeIds.length > 0
                     ? t('planner.filters.employeesSelected', { count: selectedEmployeeIds.length })
@@ -246,7 +259,7 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
                   onChange={(e) => onPostcodeChange(e.target.value.replace(/\D/g, ''))}
                   placeholder={t('planner.filters.postcodePlaceholder')}
                   aria-label={t('planner.filters.postcode')}
-                  className={cn('pl-9 h-9')}
+                  className={cn('pl-9 h-11')}
                 />
               </div>
             )}
