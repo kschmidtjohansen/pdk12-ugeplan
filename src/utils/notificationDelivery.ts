@@ -1,3 +1,4 @@
+/* eslint-disable no-control-regex -- Reject ASCII control characters in untrusted URLs. */
 /** Never allow notification payloads to navigate outside the app's routes. */
 export function safeNotificationLink(link?: string | null): string | null {
   if (!link || !link.startsWith('/') || link.startsWith('//') || /[\\\u0000-\u0020]/.test(link)) return null;

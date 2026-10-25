@@ -44,12 +44,12 @@ export const useNotificationActions = (
       );
       
       // Recalculate unread count
-      setUnreadCount((prev: number) => Math.max(0, prev - 1));
+      if (notifications.some(n => n.id === notificationId && !n.read)) setUnreadCount((prev: number) => Math.max(0, prev - 1));
       
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error marking notification as read:', err);
     }
-  }, [user, setNotifications, setUnreadCount, invalidate]);
+  }, [user, notifications, setNotifications, setUnreadCount, invalidate]);
   
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {

@@ -27,8 +27,7 @@ const saveCreatedNotificationHash = (userId: string, hash: string): void => {
     // Keep the list short so old entries never block new notifications
     const trimmed = Array.from(hashes).slice(-200);
     localStorage.setItem(`${NOTIFICATION_CREATED_KEY}:${userId}`, JSON.stringify(trimmed));
-  } catch (err) {
-  }
+  } catch { /* Storage may be unavailable; in-session dedupe remains. */ }
 };
 
 // Generate a hash for notification content to identify duplicates.
@@ -106,7 +105,6 @@ export const useNotificationCreate = (
             });
           }
           return null;
-        } else {
         }
         return null;
       }

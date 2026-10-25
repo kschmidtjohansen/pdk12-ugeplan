@@ -39,7 +39,8 @@ async function idbRotate(oldEndpoint, endpoint, token) {
     const tx = db.transaction(IDB_STORE, 'readwrite');
     const store = tx.objectStore(IDB_STORE);
     store.put(token, `resubscribe:${endpoint}`);
-    store.put({ endpoint, token }, 'latest');
+    const latest = store.get('latest');
+    latest.onsuccess = () => store.put({ endpoint, token, userId: latest.result?.userId }, 'latest');
     if (oldEndpoint !== endpoint) store.delete(`resubscribe:${oldEndpoint}`);
     tx.oncomplete = () => { db.close(); resolve(); };
     tx.onabort = tx.onerror = () => { db.close(); reject(tx.error); };
@@ -49,7 +50,8 @@ async function idbRotate(oldEndpoint, endpoint, token) {
 function internalLink(link) {
   if (typeof link !== 'string' || !link.startsWith('/') || link.startsWith('//') || /[\\\u0000-\u0020]/.test(link)) return '/dashboard';
   const url = new URL(link, self.location.origin);
-  return url.origin === self.location.origin ? url.pathname + url.search + url.hash : '/dashboard';
+  const roots = ['dashboard', 'planner', 'employees', 'cars', 'vacation', 'duty', 'warehouse', 'admin', 'changelog'];
+  return url.origin === self.location.origin && roots.includes(url.pathname.split('/')[1]) ? url.pathname + url.search + url.hash : '/dashboard';
 }
 
 function urlBase64ToUint8Array(base64String) {
