@@ -143,8 +143,8 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, weekRan
           </h3>
         </div>
         <div>
-          {rows.map((r, i) => (
-            <KpiRow key={r.key} {...r} isLast={i === rows.length - 1} />
+          {rows.map(({ key, ...row }, i) => (
+            <KpiRow key={key} {...row} isLast={i === rows.length - 1} />
           ))}
         </div>
       </section>
