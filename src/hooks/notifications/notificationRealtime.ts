@@ -3,7 +3,6 @@ import type { AppUser as User } from '@/context/auth/types';
 import { useEffect, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { subscribeToTable, unsubscribeByKey } from '@/lib/realtimeChannels';
 import { sortNotifications } from '@/utils/notifications';
 

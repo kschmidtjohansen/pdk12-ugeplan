@@ -11,7 +11,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CarUnavailabilityService, CarUnavailability } from '@/services/carUnavailabilityService';
 import { useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, CalendarClock, Trash2 } from 'lucide-react';
+import { AlertTriangle, CalendarClock } from 'lucide-react';
 
 interface Props {
   open: boolean;

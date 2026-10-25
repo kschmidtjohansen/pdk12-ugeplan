@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { unifiedDataService } from '@/services/data/unifiedDataService';
 import { enhancedDataFetching } from '@/services/enhancedDataFetching';
 import type { AppUser, ImpersonationTarget } from './types';
 

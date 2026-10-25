@@ -56,13 +56,13 @@ const row = (id: string, overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const renderPlanner = async () => {
+const renderPlanner = async (expectedCount = 1) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
   const hook = renderHook(() => useOptimizedAssignments('all'), { wrapper });
-  await waitFor(() => expect(hook.result.current.assignments.length).toBe(1));
+  await waitFor(() => expect(hook.result.current.assignments.length).toBe(expectedCount));
   return hook;
 };
 

@@ -7,7 +7,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Users, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EmployeeTableRow from './EmployeeTableRow';

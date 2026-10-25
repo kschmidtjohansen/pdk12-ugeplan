@@ -3,7 +3,7 @@ import { sanitizeUUIDForDB } from '@/utils/uuidValidation';
 // DemoUserService removed — demo writes now go to DB with is_demo=true
 import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
-import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 interface RawTeamMember {
   id: string;
