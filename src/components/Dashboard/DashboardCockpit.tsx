@@ -10,7 +10,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WeeklyAssignments from './WeeklyAssignments';
 import ListSkeleton from '@/components/shared/ListSkeleton';
-import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useCars } from '@/hooks/car';
+import { assignmentsInWeek, summarizeWeek, plannerOperationsLink } from '@/utils/plannerOperations';
+import WeekOperationsStrip from '@/components/Planner/WeekOperationsStrip';
+import { useAuth, usePermissions } from '@/context/AuthContext';
 import { useVacations } from '@/hooks/useVacations';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useTranslation } from '@/context/TranslationContext';
@@ -36,22 +41,19 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
 }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { canSeeUnpublishedTasks } = usePermissions();
+  const { employees } = useEmployees();
+  const { cars } = useCars();
   const { vacations } = useVacations();
-  const { assignments, loading: assignmentsLoading } = useAssignments();
+  const { assignments, loading: assignmentsLoading, error: assignmentsError } = useAssignments();
   const [tab, setTab] = useState<string>(() => localStorage.getItem('dashboardTab') || 'today');
   const isMobile = useIsMobile();
   const [moreOpen, setMoreOpen] = useState(false);
   const changeTab = (v: string) => { setTab(v); localStorage.setItem('dashboardTab', v); };
 
-  // Filter assignments for the selected ISO week
-  const weekAssignments = useMemo(() => {
-    if (!assignments || assignments.length === 0) return [];
-    return assignments.filter((a) => {
-      const d = new Date(a.date);
-      return getISOWeek(d) === selectedWeek && getISOWeekYear(d) === selectedYear;
-    });
-  }, [assignments, selectedWeek, selectedYear]);
-
+  const weekAssignments = useMemo(() => assignmentsInWeek(assignments || [], selectedWeek, selectedYear), [assignments, selectedWeek, selectedYear]);
+  const weekSummary = useMemo(() => summarizeWeek(weekAssignments, employees, cars), [weekAssignments, employees, cars]);
   // Personal filter: only the user's own week (responsible OR assigned).
   // When showMyTasks is true (servicemedarbejder etc.), the top widget is
   // restricted to the current user — replacing the previous duplicate "Mine Opgaver".
@@ -87,7 +89,8 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
       {/* LEFT — main work surface (2/3) */}
-      <div className="min-w-0">
+      <div className="min-w-0 space-y-4">
+        {canSeeUnpublishedTasks && userRole !== 'servicemedarbejder' && <WeekOperationsStrip attention summary={weekSummary} week={selectedWeek} loading={assignmentsLoading} error={!!assignmentsError} onSelect={issue => navigate(plannerOperationsLink(selectedWeek, selectedYear, issue))} />}
         <Tabs value={tab} onValueChange={changeTab}>
           <TabsList className="mb-4 grid w-full grid-cols-2 sm:flex sm:w-auto">
             <TabsTrigger value="today" className="min-h-11 px-4">{t('ui.tabToday')}</TabsTrigger>

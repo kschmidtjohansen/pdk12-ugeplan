@@ -17,6 +17,7 @@ import { useVacations } from '@/hooks/useVacations';
 import { useCrossSubDeptBusy } from '@/hooks/useCrossSubDeptBusy';
 const AssignmentDetailsDialog = lazy(() => import('@/components/Dashboard/AssignmentDetailsDialog'));
 import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
+import { todayLocalYYYYMMDD } from '@/utils/dateUtils';
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 
 interface PlannerContentProps {
@@ -115,11 +116,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       if (import.meta.env.DEV) console.error("Missing week dates in PlannerContent");
       return [];
     }
-    return getAllWeekDays({
-      start: weekDates.start,
-      end: weekDates.end
-    });
-  }, [weekDates]);
+    const days = getAllWeekDays({ start: weekDates.start, end: weekDates.end });
+    return days.filter(day => (!dayFilter || day === dayFilter) && (!filtersActive || weekAssignments.some(a => a.date === day))); 
+  }, [weekDates, dayFilter, filtersActive, weekAssignments]);
 
   // Determine current date to split past and current/future days
   const today = useMemo(() => {
@@ -161,9 +160,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
     <div className="space-y-4 pb-4" id="planner-results">
       {onDayFilter && <nav aria-label={t('planner.selectDate')} className="flex gap-2 overflow-x-auto pb-2">
         <Button variant={!dayFilter ? 'secondary' : 'outline'} className="min-h-11 shrink-0" aria-pressed={!dayFilter} onClick={() => onDayFilter('')}>{t('planner.operationsOverview.allDays')}</Button>
-        {weekDateStrings.map(day => <Button key={day} variant={dayFilter === day ? 'secondary' : 'outline'} aria-pressed={dayFilter === day} className="min-h-11 shrink-0 tabular-nums" onClick={() => onDayFilter(day)}>
+        {getAllWeekDays(weekDates).map(day => <Button key={day} variant={dayFilter === day ? 'secondary' : 'outline'} aria-pressed={dayFilter === day} className="min-h-11 shrink-0 tabular-nums" onClick={() => onDayFilter(day)}>
           {parseISO(day).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB', { weekday: 'short', day: 'numeric' })}
-          {day === formatLocalToday() && <span className="text-xs">· {t('planner.today')}</span>}
+          {day === todayLocalYYYYMMDD() && <span className="text-xs">· {t('planner.today')}</span>}
         </Button>)}
       </nav>}
       {hasNoAssignments && filtersActive && <div role="status" className="border-y border-border py-6 text-center space-y-2"><p>{t('planner.operationsOverview.noMatch')}</p><Button variant="outline" className="min-h-11" onClick={onClearFilters}>{t('planner.filters.clearAll')}</Button></div>}
@@ -209,11 +208,14 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         </div>
       )}
       
+      {viewMode === 'calendar' && filtersActive && weekAssignments.length > 0 && <section className="divide-y divide-border" aria-label={t('planner.assignments')}>
+        {weekAssignments.map(a => <Button key={a.id} variant="ghost" className="flex min-h-11 h-auto w-full justify-start whitespace-normal text-left" onClick={() => setDetailsDialogAssignment(a)}><span className="tabular-nums text-xs text-muted-foreground">{a.date} · {a.fromTime.slice(0, 5)}</span><span>{a.title}</span></Button>)}
+      </section>}
       {/* Render view based on viewMode */}
       {viewMode === 'calendar' ? (
         <PlannerWidgetErrorBoundary label="Calendar">
           <PlannerCalendarView
-            dates={weekDateStrings}
+            dates={weekDateStrings.length ? weekDateStrings : getAllWeekDays(weekDates)}
             assignments={weekAssignments}
             employees={employees}
             vacations={vacations || []}

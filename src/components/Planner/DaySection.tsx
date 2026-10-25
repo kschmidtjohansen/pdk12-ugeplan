@@ -114,9 +114,9 @@ const DaySection: React.FC<DaySectionProps> = ({
         isToday && "border-primary/40 ring-1 ring-primary/20"
       )}
     >
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div 
-          className="flex items-center min-w-0 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors duration-200" 
+          className="flex min-h-11 flex-wrap gap-y-2 items-center min-w-0 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors duration-200" 
           onClick={() => onToggleExpansion(dateKey)}
           role="button"
           tabIndex={0}
@@ -127,7 +127,7 @@ const DaySection: React.FC<DaySectionProps> = ({
             }
           }}
           aria-expanded={isExpanded}
-          aria-label={`${isExpanded ? 'Collapse' : 'Expand'} assignments for ${formattedDate}`}
+          aria-label={`${t(isExpanded ? 'planner.operationsOverview.collapseDay' : 'planner.operationsOverview.expandDay')} ${formattedDate}`}
         >
           {isExpanded ? (
             <ChevronDown className="h-4 w-4 text-muted-foreground mr-2 shrink-0 transition-transform duration-200" />
@@ -156,7 +156,7 @@ const DaySection: React.FC<DaySectionProps> = ({
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="brand" size="sm">
+              <Button variant="brand" size="sm" className="min-h-11">
                 <Send className="mr-2 h-4 w-4" /> {publishLabel}
               </Button>
             </AlertDialogTrigger>
@@ -187,7 +187,7 @@ const DaySection: React.FC<DaySectionProps> = ({
       {isExpanded && <DayAbsenceRow dateKey={dateKey} />}
 
       {isExpanded && (
-        <div className={`w-full grid gap-3 items-stretch animate-in slide-in-from-top-2 duration-200 ${gridLayout ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+        <div className={`w-full grid gap-3 items-stretch  ${gridLayout ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
           {Array.isArray(dayAssignments) && dayAssignments.length > 0 ? (
             !gridLayout && dayAssignments.length > 12 ? (
               <VirtualizedAssignmentCards

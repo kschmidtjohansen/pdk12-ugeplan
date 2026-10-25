@@ -18,6 +18,9 @@ import ConflictBadge from './ConflictBadge';
 import CaseNumber from '@/components/shared/CaseNumber';
 import { getSeriesPosition } from '@/utils/assignmentSeries';
 import { usePlannerActions } from '@/context/PlannerActionsContext';
+import { usePlannerWeekData } from '@/context/PlannerWeekDataContext';
+import type { Employee } from '@/types/employee';
+import type { AssignmentConflict } from '@/utils/assignmentConflicts';
 import { cn } from '@/lib/utils';
 
 interface AssignmentCardProps {
@@ -36,7 +39,7 @@ interface AssignmentCardProps {
   onToggleSelect?: (id: string, ev: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
-const AssignmentCard: React.FC<AssignmentCardProps> = ({
+const AssignmentCardBody: React.FC<AssignmentCardProps & { employees: Employee[]; conflicts: AssignmentConflict[] }> = ({
   assignment,
   cars,
   assignments = [],
@@ -50,12 +53,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   selected = false,
   selectionActive = false,
   onToggleSelect,
+  employees, conflicts,
 }) => {
   const { t } = useTranslation();
-  const { employees } = useEmployees();
   const { data: warehouseIndicators } = useWarehouseIndicators();
-  const { getConflicts } = useAssignmentConflicts(assignments);
-  const conflicts = getConflicts(assignment.id);
   const hasConflict = conflicts.length > 0;
 
   const plannerActions = usePlannerActions();
@@ -163,6 +164,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
             selected && 'ring-2 ring-primary'
           )}
           onClick={handleCardClick}
+          tabIndex={onViewDetails ? 0 : undefined}
+          onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onViewDetails?.(); } }}
+          aria-busy={isLoading}
         >
           {canEdit && onToggleSelect && (
             <div
@@ -204,7 +208,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
               </span>
             )}
             {operationState && (
-              <span className="text-xs text-primary font-medium animate-pulse">
+              <span className="text-xs text-foreground font-medium">
                 {getOperationText(operationState)}
               </span>
             )}
@@ -221,7 +225,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
         <div className="flex items-center gap-2 flex-shrink-0">
           <AssignmentStatusBadge isPublished={isPublished} />
-          <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(pointer:coarse)]:opacity-100 transition-opacity">
+          <div className="flex flex-wrap">
             <AssignmentActionButtons
               assignment={assignment}
               onEdit={handleEditClick}
@@ -308,4 +312,13 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   );
 };
 
+function StandaloneAssignmentCard(props: AssignmentCardProps) {
+  const { employees } = useEmployees();
+  const { getConflicts } = useAssignmentConflicts(props.assignments);
+  return <AssignmentCardBody {...props} employees={employees} conflicts={getConflicts(props.assignment.id)} />;
+}
+function AssignmentCard(props: AssignmentCardProps) {
+  const shared = usePlannerWeekData();
+  return shared ? <AssignmentCardBody {...props} employees={shared.employees} conflicts={shared.summary.conflictMap.get(props.assignment.id) || []} /> : <StandaloneAssignmentCard {...props} />;
+}
 export default React.memo(AssignmentCard);

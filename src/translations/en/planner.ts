@@ -1,6 +1,7 @@
 
 const planner = {
   operationsOverview: {
+    expandDay: 'Expand tasks for', collapseDay: 'Collapse tasks for',
     title: 'Weekly plan', attention: 'Needs attention', all: 'Tasks this week', drafts: 'Drafts / unpublished', unassigned: 'Without assigned employees', conflicts: 'Tasks with overlaps', information: 'Employee assignment is informational; overlaps are counted per task.', clearIssue: 'Clear status filter', currentWeek: 'This week', allDays: 'All days', results: '{count} of {total} tasks', noMatch: 'No tasks match the filters', error: 'Unable to load tasks for this week', retry: 'Try again',
   },
 
