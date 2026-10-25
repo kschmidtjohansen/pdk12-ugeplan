@@ -56,7 +56,7 @@ export const useNotificationFetching = (user: User | null) => {
     window.addEventListener('online', wake);
     document.addEventListener('visibilitychange', wake);
     // Bounded visible-tab catch-up covers missed reconnect DELETE/UPDATE events too.
-    const timer = window.setInterval(wake, 60_000);
+    const timer = window.setInterval(wake, 300_000);
     return () => { ++generation.current; clearInterval(timer); window.removeEventListener('focus', wake);
       window.removeEventListener('online', wake); document.removeEventListener('visibilitychange', wake); };
   }, [fetchNotifications, setNotifications]);

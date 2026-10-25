@@ -185,8 +185,7 @@ export const usePushNotifications = () => {
     'Notification' in window &&
     !isPreviewContext();
 
-  // Installation is a hard requirement on every platform: notifications must
-  // belong to the installed app, not to a browser tab.
+  // iOS requires Home Screen installation; other browsers may support web push.
   const supported = hasPushApis && (!isIos || installed);
   const generation = useRef(0);
 
@@ -203,6 +202,7 @@ export const usePushNotifications = () => {
   }, []);
 
   const refresh = useCallback(async () => {
+    try {
     const version = ++generation.current;
     if (!hasPushApis) { setStatus('unsupported'); return; }
     if (isIos && !installed) { setStatus('needs-install'); return; }
@@ -214,6 +214,7 @@ export const usePushNotifications = () => {
     if (localStorage.getItem(`polyplan-push-off:${userId}`) === 'true') { setStatus('off'); return; }
     const saved = await persistDevice(userId);
     if (version === generation.current) setStatus(saved ? 'on' : 'error');
+    } catch { setStatus('error'); }
   }, [hasPushApis, installed, isIos]);
 
   const ensureSubscription = refresh;
@@ -230,6 +231,8 @@ export const usePushNotifications = () => {
       if (event === 'SIGNED_OUT') {
         void (async () => {
           if (subscriptionWork) await subscriptionWork;
+          const { data: current } = await supabase.auth.getUser();
+          if (current?.user) return; // Do not tear down a newly signed-in account.
           await clearDevice();
           const reg = await navigator.serviceWorker.getRegistration(PUSH_SW_URL);
           await (await reg?.pushManager.getSubscription())?.unsubscribe();
@@ -257,7 +260,9 @@ export const usePushNotifications = () => {
       if (error || !data?.user) { setStatus('error'); return 'error'; }
       const userId = data.user.id;
       localStorage.removeItem(`polyplan-push-off:${userId}`);
+      const version = ++generation.current;
       const saved = await persistDevice(userId);
+      if (version !== generation.current) return 'error';
       setStatus(saved ? 'on' : 'error');
       return saved ? 'enabled' : 'error';
     } catch { setStatus('error'); return 'error'; }

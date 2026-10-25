@@ -48,6 +48,8 @@ export const useNotificationCreate = (
 ) => {
   const { toast } = useToast();
   // Use localStorage-backed tracking to prevent duplicate creations
+  const activeUser = useRef(user?.id);
+  activeUser.current = user?.id;
   const createdNotificationsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => { createdNotificationsRef.current = user?.id ? getCreatedNotificationHashes(user.id) : new Set(); }, [user?.id]);
@@ -110,6 +112,7 @@ export const useNotificationCreate = (
       }
       
       
+      if (activeUser.current !== user.id) return data[0]?.id ?? null;
       // Track that we've created this notification
       createdNotificationsRef.current.add(notificationHash);
       saveCreatedNotificationHash(user.id, notificationHash);

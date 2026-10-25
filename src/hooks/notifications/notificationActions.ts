@@ -20,7 +20,6 @@ export const useNotificationActions = (
     if (!user) return;
     
     try {
-      if (import.meta.env.DEV) console.log('Marking notification as read:', notificationId);
       
       const { error } = await supabase
         .from('notifications')
@@ -28,7 +27,6 @@ export const useNotificationActions = (
         .eq('id', notificationId).eq('user_id', user.id);
       
       if (error) {
-        if (import.meta.env.DEV) console.error('Error marking notification as read:', error);
         throw error;
       }
       
@@ -47,7 +45,6 @@ export const useNotificationActions = (
       if (notifications.some(n => n.id === notificationId && !n.read)) setUnreadCount((prev: number) => Math.max(0, prev - 1));
       
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error marking notification as read:', err);
     }
   }, [user, notifications, setNotifications, setUnreadCount, invalidate]);
   
@@ -56,7 +53,6 @@ export const useNotificationActions = (
     if (!user) return;
     
     try {
-      if (import.meta.env.DEV) console.log('Marking all notifications as read');
       
       const { error } = await supabase
         .from('notifications')
@@ -65,7 +61,6 @@ export const useNotificationActions = (
         .eq('read', false);
       
       if (error) {
-        if (import.meta.env.DEV) console.error('Error marking all notifications as read:', error);
         throw error;
       }
       
@@ -80,7 +75,6 @@ export const useNotificationActions = (
       setUnreadCount(0);
       
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error marking all notifications as read:', err);
     }
   }, [user, setNotifications, setUnreadCount, invalidate]);
   
@@ -89,7 +83,6 @@ export const useNotificationActions = (
     if (!user) return;
     
     try {
-      if (import.meta.env.DEV) console.log('Deleting notification:', notificationId);
       
       const { error } = await supabase
         .from('notifications')
@@ -97,7 +90,6 @@ export const useNotificationActions = (
         .eq('id', notificationId).eq('user_id', user.id);
       
       if (error) {
-        if (import.meta.env.DEV) console.error('Error deleting notification:', error);
         throw error;
       }
       
@@ -115,7 +107,6 @@ export const useNotificationActions = (
       }
       
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error deleting notification:', err);
     }
   }, [user, notifications, setNotifications, setUnreadCount, invalidate]);
 
@@ -124,7 +115,6 @@ export const useNotificationActions = (
     if (!user) return;
     
     try {
-      if (import.meta.env.DEV) console.log('Deleting all notifications for user:', user.id);
       
       const { error } = await supabase
         .from('notifications')
@@ -132,7 +122,6 @@ export const useNotificationActions = (
         .eq('user_id', user.id);
       
       if (error) {
-        if (import.meta.env.DEV) console.error('Error deleting all notifications:', error);
         throw error;
       }
       
@@ -145,7 +134,6 @@ export const useNotificationActions = (
       setUnreadCount(0);
       
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error deleting all notifications:', err);
     }
   }, [user, setNotifications, setUnreadCount, invalidate]);
 

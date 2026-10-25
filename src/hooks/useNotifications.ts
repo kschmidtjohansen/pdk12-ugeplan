@@ -44,9 +44,6 @@ export const useNotifications = () => {
       });
       
       if (filteredNotifications.length !== notifications.length) {
-        if (import.meta.env.DEV) {
-          console.log(`Filtered out ${notifications.length - filteredNotifications.length} notifications for non-admin user`);
-        }
         setNotifications(filteredNotifications);
         const unreadFiltered = filteredNotifications.filter(n => !n.read).length;
         setUnreadCount(unreadFiltered);
@@ -56,9 +53,6 @@ export const useNotifications = () => {
   
   useEffect(() => {
     if ((user?.role === 'administrator' || user?.role === 'super_admin') && !loading && notifications.length >= 0 && systemReadyRef.current !== user?.id) {
-      if (import.meta.env.DEV) {
-        console.log('Checking for any missing admin notifications for pending vacations');
-      }
       createNotificationsForPendingRequests();
       systemReadyRef.current = user.id;
     }
