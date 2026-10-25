@@ -69,7 +69,6 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
         const start = toMin(a.fromTime);
         const end = toMin(a.toTime);
         const current = nowMin >= start && nowMin <= end;
-        const past = nowMin > end;
         const team = people(a);
         const carTxt = carNames(a);
         return (
@@ -81,12 +80,11 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
                 <span className="flex items-center gap-2 sm:flex-col sm:items-start text-xs tabular-nums">
                   <span className="font-semibold text-foreground">{a.fromTime?.slice(0, 5)}</span>
                   <span className="text-muted-foreground">– {a.toTime?.slice(0, 5)}</span>
-                  {current && <Badge variant="info" className="whitespace-normal">{t('ui.inProgressNow')}</Badge>}
-                  <span className="sr-only">{past ? t('ui.tabToday') : ''}</span>
                 </span>
                 <span className="min-w-0 space-y-2">
                   <span className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-sm font-semibold text-foreground break-words">{a.title}</span>
+                    {current && <Badge variant="info" className="whitespace-normal">{t('ui.inProgressNow')}</Badge>}
                     {a.case_number && <span className="text-xs text-muted-foreground tabular-nums">#{a.case_number}</span>}
                   </span>
                   {a.location && <span className="flex items-start gap-2 text-xs text-muted-foreground"><MapPin aria-hidden className="h-3.5 w-3.5 shrink-0" /><span className="break-words">{[a.location, a.city].filter(Boolean).join(', ')}</span></span>}
