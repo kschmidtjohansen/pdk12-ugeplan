@@ -3,6 +3,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { subscribeToTables } from '@/lib/realtimeChannels';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
