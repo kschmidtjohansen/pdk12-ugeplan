@@ -1,3 +1,24 @@
+## 2026-10-25 – PolyPlan v1.2: selvstændigt design-system og visuelt udtryk
+
+**1. Design tokens ("Nordic Operations")**
+- Nye tokens `--brand-ink`, `--brand-deep`, `--brand-deep-foreground`, `--brand-deep-muted` (lys+mørk) registreret i tailwind.config.ts som `brand-*` farver. `--brand-ink` giver AA-kontrast for tekst på brand-blå flader.
+- `login-ambient-glow` og `login-dot-pattern` fjernet. `brand-card-header` er nu flad (kun border-bottom, ingen gradient), `brand-dot` er en stille 3px brand-tick uden glød-ring, `brand-card-hover` uden hover-lift (kun border/skygge), `brand-surface` flad. `btn-premium-inset` udfaset.
+
+**2. App chrome**
+- Sidebar-header: PolyPlan-wordmark ved siden af det officielle Polygon-logo; aktiv side markeres med `list-row-selected` (indre brand-streg). Footer-tekst "Polygon Ugeplan" → "PolyPlan".
+- TopBar: PolyPlan brand-lockup på mobil (skjult på desktop), uge-chip er nu rolig `bg-muted` i stedet for brand-pill.
+
+**3. Loginoplevelse**
+- Glow, dot-grid, overlap-logo-chip, glas-kort og 2.5rem pill-radius erstattet af en flad 2-kolonne komposition: mørkt brand-panel (`bg-brand-deep`) med Polygon-logo, PolyPlan-wordmark og rolig funktionsliste + form-panel med standardkort. Mobil: simpel centreret udgave. Login-logik, sprog, PWA-knap og personalisering er uændret.
+
+**4. Dashboard-præsentation**
+- CommandBar og DashboardCockpit bruger nu flade `bg-card shadow-xs` flader — backdrop-blur og translucency fjernet. Samme data, metrics og handlers.
+
+**5. Produktidentitet**
+- `src/config/product.ts` er eneste kilde til produktnavn (PRODUCT_NAME="PolyPlan", ORG_NAME="Polygon Group") med regressionstest. manifest.webmanifest, index.html (application-name, apple-mobile-web-app-title) og llms.txt opdateret til PolyPlan. Routes og logo-assets uændrede.
+
+**Tests:** 78/78 grønne (3 nye). Typecheck, lint og production build OK. Ingen publicering.
+
 ## 2026-10-22 – PolyPlan v1.1: sikkerhed, dataintegritet og stabilitet
 
 **1. Push-resubscribe hærdet (høj sikkerhed)**

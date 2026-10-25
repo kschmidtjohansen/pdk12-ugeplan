@@ -1,9 +1,42 @@
 # Design System
 
-> **Stilretning (fase 1+2):** Apple/Arc-inspireret — premium, blød og dataorienteret.
-> Fladt look med subtile borders og diskrete skygger. **Ingen** gradients, glow,
-> shimmer, hover-lift (`-translate-y`) eller pulse-glow.
-> Brand-farver og logo bevares uændret.
+> **Stilretning (v1.2 — "Nordic Operations"):** Professionelt, nordisk
+> operationsværktøj. Fladt look med subtile borders, diskrete skygger,
+> redaktionelt informationshierarki og disciplineret 8px-spacing.
+> **Ingen** gradients, glow, shimmer, glas-effekter, hover-lift
+> (`-translate-y`) eller pulse-glow. Brand-farver (#00AEEF) og det
+> officielle Polygon-logo bevares uændret. Produktnavnet er **PolyPlan**;
+> Polygon er organisationen/afsenderen.
+
+## v1.2-ændringer (før/efter)
+
+| Før | Efter |
+|-----|-------|
+| `login-ambient-glow` + `login-dot-pattern` (glow/dot-grid) | **Fjernet.** Login er nu en flad 2-kolonne komposition: mørkt brand-panel (`bg-brand-deep`) + roligt form-panel |
+| `brand-card-header` med brand-gradient | Flad header med kun `border-bottom` — samme klasse, ingen gradient |
+| `brand-dot` med glød-ring (`box-shadow`) | Stille brand-tick: 3px lodret streg i `--primary` |
+| `brand-card-hover` med `translateY(-1px)`-lift | Kun border- og skygge-overgang (`shadow-sm`), ingen bevægelse |
+| `brand-surface` med gradient | Flad `bg-card` |
+| `btn-premium-inset` | Udfaset — brug ikke i ny kode |
+| `bg-card/70 backdrop-blur` på dashboard-flader | Flad `bg-card shadow-xs` |
+| "Polygon Ugeplan" i sidebar/manifest/metadata | "PolyPlan" (organisationsnavnet Polygon bevares) |
+
+### Nye tokens (v1.2)
+
+| Token | Tailwind | Anvendelse |
+|-------|----------|------------|
+| `--brand-ink` | `text-brand-ink` | Tekst/ikoner OVEN PÅ brand-blå flader (AA-kontrast, da hvid på #00AEEF er for svag) |
+| `--brand-deep` | `bg-brand-deep` | Mørk brand-flade (login brand-panel) |
+| `--brand-deep-foreground` | `text-brand-deep-foreground` | Tekst på `brand-deep` |
+| `--brand-deep-muted` | `text-brand-deep-muted` | Sekundær tekst på `brand-deep` |
+
+### Produktidentitet
+
+Brugerrettet produktnavn er altid **PolyPlan** — hent det fra
+`src/config/product.ts` (`PRODUCT_NAME`, `ORG_NAME`, `PRODUCT_TAGLINE_DA`)
+i stedet for at hardcode strenge. Det officielle Polygon-logo
+(`src/assets/polygon-mark.png` og polygon-logo.svg) bruges uændret;
+opfind eller hent aldrig alternative logoer.
 
 ---
 
