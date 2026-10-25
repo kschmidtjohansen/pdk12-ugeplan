@@ -27,11 +27,16 @@ export type AssignmentFilter = FilterType; // Export for compatibility
 // toasts and duplicate change-log entries. Shared across hook instances.
 const inFlightUpdates = new Set<string>();
 
+// Single, type-safe contract for per-assignment operation feedback, shared by
+// AssignmentCard, CompactAssignmentRow, DaySection and PlannerContent.
+// `null` means no operation in progress.
+export type AssignmentOperationState = 'publishing' | 'deleting' | 'updating' | null;
+
 interface UseOptimizedAssignmentsResult {
   assignments: Assignment[];
   loading: boolean;
   error: Error | null;
-  operationStates: Record<string, 'idle' | 'loading' | 'success' | 'error'>;
+  operationStates: Record<string, AssignmentOperationState>;
   refetch: () => Promise<void>;
   createAssignment: (data: Partial<Assignment>) => Promise<void>;
   updateAssignment: (id: string, data: Partial<Assignment>) => Promise<void>;
@@ -233,12 +238,12 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const { t } = useTranslation();
   const { employees: allEmployees } = useEmployeeData();
   const queryClient = useQueryClient();
-  const [operationStates, setOperationStates] = useState<Record<string, 'idle' | 'loading' | 'success' | 'error'>>({});
+  const [operationStates, setOperationStates] = useState<Record<string, AssignmentOperationState>>({});
   
   // Local override state for optimistic updates
   const [localAssignments, setLocalAssignments] = useState<Assignment[] | null>(null);
 
-  const setOperationState = useCallback((id: string, state: 'idle' | 'loading' | 'success' | 'error') => {
+  const setOperationState = useCallback((id: string, state: AssignmentOperationState) => {
     setOperationStates(prev => ({ ...prev, [id]: state }));
   }, []);
 
