@@ -5,6 +5,9 @@ import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginFo
 import { useTranslation } from '@/context/TranslationContext';
 import { PwaInstallButton } from '@/components/Pwa/PwaInstallButton';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { PRODUCT_NAME, ORG_NAME, PRODUCT_TAGLINE_DA } from '@/config/product';
+
+const POLYGON_LOGO_URL = 'https://www.polygongroup.com/UI/build/svg/polygon-logo.svg';
 
 const LoginPage = () => {
   const { isAuthenticated, authReady, session, userDataLoaded } = useAuth();
@@ -27,75 +30,104 @@ const LoginPage = () => {
     // Navigation handled by the useEffect when session is available
   };
 
-
+  const year = new Date().getFullYear();
 
   return (
-    <div className="relative min-h-dvh w-full overflow-hidden bg-background flex items-center justify-center">
-      {/* Baggrund: bløde brand-blå glow-felter + fint dot-grid (tokens i index.css) */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="login-ambient-glow absolute -top-[10%] -left-[10%] w-[45%] h-[45%] rounded-full opacity-30 blur-[120px]" />
-        <div className="login-ambient-glow absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full opacity-20 blur-[120px]" />
-        <div className="login-dot-pattern absolute inset-0" />
-      </div>
+    <div className="min-h-dvh w-full bg-background flex flex-col lg:flex-row">
+      {/* Brand-panel — kun bred skærm. Flad, mørk brand-flade uden glow/glas. */}
+      <aside
+        aria-hidden
+        className="hidden lg:flex lg:w-[44%] xl:w-[46%] flex-col justify-between bg-brand-deep text-brand-deep-foreground p-10 xl:p-14"
+      >
+        <div className="flex items-center gap-3">
+          <img
+            src={POLYGON_LOGO_URL}
+            alt=""
+            className="h-5 w-auto brightness-0 invert"
+            loading="eager"
+            draggable={false}
+          />
+        </div>
 
-      {/* Sprogvælger med flag – øverst til højre */}
-      <LanguageSwitcher className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 animate-fade-in-down" />
+        <div className="max-w-md">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-deep-muted">
+            {ORG_NAME}
+          </p>
+          <h1 className="mt-3 text-4xl xl:text-5xl font-semibold tracking-tight text-brand-deep-foreground">
+            {PRODUCT_NAME}
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-brand-deep-muted">
+            {PRODUCT_TAGLINE_DA} — ugeplan, vagter, ferie, biler og lager samlet i ét roligt arbejdsredskab.
+          </p>
 
-      <main className="relative z-10 w-full max-w-[480px] px-4 sm:px-6 py-12">
-        {/* Flydende logo-chip der overlapper kortet */}
-        <div className="flex justify-center -mb-7 relative z-20 animate-fade-in-down">
-          <div className="bg-card px-6 py-3.5 rounded-2xl shadow-xl border border-border/50 flex items-center justify-center transition-transform duration-500 hover:scale-105">
-            <div className="h-9 px-4 rounded-xl bg-polygon-blue flex items-center justify-center">
-              <img
-                src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
-                alt="Polygon"
-                className="h-5 w-auto brightness-0 invert"
-                loading="eager"
-              />
+          <ul className="mt-10 divide-y divide-brand-deep-foreground/10 border-y border-brand-deep-foreground/10 text-sm">
+            {[
+              t('navigation.planner'),
+              t('navigation.duty'),
+              t('navigation.vacation'),
+              t('navigation.cars'),
+            ].map((label) => (
+              <li key={label} className="flex items-center gap-3 py-3">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <span className="text-brand-deep-foreground/90">{label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="text-xs text-brand-deep-muted">© {year} {ORG_NAME}</p>
+      </aside>
+
+      {/* Form-panel */}
+      <main className="relative flex flex-1 items-center justify-center px-4 sm:px-6 py-10">
+        <LanguageSwitcher className="absolute top-4 right-4 sm:top-6 sm:right-6" />
+
+        <div className="w-full max-w-[400px]">
+          {/* Kompakt brand-lockup (mobil + form-panel) */}
+          <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-polygon-blue">
+                <img
+                  src={POLYGON_LOGO_URL}
+                  alt="Polygon"
+                  className="h-4 w-auto brightness-0 invert"
+                  loading="eager"
+                  draggable={false}
+                />
+              </span>
+              <span className="text-xl font-semibold tracking-tight text-foreground">
+                {PRODUCT_NAME}
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* Login-kort */}
-        <div
-          className="relative overflow-hidden bg-card/80 backdrop-blur-xl rounded-[2.5rem] border border-card shadow-[0_32px_64px_-16px_hsl(var(--primary)/0.15)] pt-14 pb-8 px-6 sm:px-10 animate-fade-in-up"
-          style={{ animationDelay: '80ms' }}
-        >
-          {/* Brand-blå accentlinje øverst i kortet */}
-          <div aria-hidden className="absolute top-0 left-0 right-0 h-1.5 bg-polygon-blue" />
-
-          {/* Overskrift */}
-          <div className="text-center mb-8 space-y-1.5">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              {t('login.welcomeMessage')}{firstName ? `, ${firstName}` : ''}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {t('login.loginSubtext')}
-            </p>
-            {departmentName && (
-              <p className="text-xs text-muted-foreground/70 pt-0.5">
-                {departmentName}
+          <div className="rounded-xl border border-border bg-card shadow-xs p-6 sm:p-8">
+            <div className="mb-6 space-y-1.5 text-center lg:text-left">
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                {t('login.welcomeMessage')}{firstName ? `, ${firstName}` : ''}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t('login.loginSubtext')}
               </p>
-            )}
+              {departmentName && (
+                <p className="text-xs text-muted-foreground/70 pt-0.5">
+                  {departmentName}
+                </p>
+              )}
+            </div>
+
+            <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
           </div>
 
-          {/* Login-formular */}
-          <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} />
+          {/* Installer som app - kun mobil/tablet */}
+          <div className="lg:hidden">
+            <PwaInstallButton />
+          </div>
 
+          <p className="mt-8 text-center text-xs text-muted-foreground/70 tracking-wide lg:hidden">
+            © {year} {ORG_NAME}
+          </p>
         </div>
-
-        {/* Installer som app - kun mobil/tablet */}
-        <div className="lg:hidden">
-          <PwaInstallButton />
-        </div>
-
-        {/* Footer-linje */}
-        <p
-          className="mt-8 text-center text-xs text-muted-foreground/70 tracking-wide animate-fade-in-up"
-          style={{ animationDelay: '200ms' }}
-        >
-          © {new Date().getFullYear()} Polygon Group
-        </p>
       </main>
     </div>
   );
