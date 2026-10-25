@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { useDateLocale } from '@/hooks/useDateLocale';
 import { Phone, Users, Car, Clock, Shield } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';

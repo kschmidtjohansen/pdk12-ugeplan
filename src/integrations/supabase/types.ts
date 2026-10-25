@@ -1170,6 +1170,7 @@ export type Database = {
           last_error: string | null
           last_seen_at: string
           p256dh: string
+          resubscribe_token: string | null
           updated_at: string
           user_agent: string | null
           user_id: string
@@ -1182,6 +1183,7 @@ export type Database = {
           last_error?: string | null
           last_seen_at?: string
           p256dh: string
+          resubscribe_token?: string | null
           updated_at?: string
           user_agent?: string | null
           user_id: string
@@ -1194,6 +1196,7 @@ export type Database = {
           last_error?: string | null
           last_seen_at?: string
           p256dh?: string
+          resubscribe_token?: string | null
           updated_at?: string
           user_agent?: string | null
           user_id?: string
@@ -1711,6 +1714,10 @@ export type Database = {
       create_logs_partition_for_month: { Args: never; Returns: undefined }
       debug_auth_info: { Args: never; Returns: Json }
       decline_duty_swap: { Args: { _request_id: string }; Returns: string }
+      delete_assignment_series: {
+        Args: { p_group_id: string }
+        Returns: number
+      }
       delete_expired_approved_vacations: { Args: never; Returns: undefined }
       delete_old_rejected_vacations: { Args: never; Returns: undefined }
       duty_type_label_da: {
@@ -2263,6 +2270,10 @@ export type Database = {
       }
       sync_user_roles_to_jwt: { Args: never; Returns: undefined }
       test_query_performance: { Args: never; Returns: Json }
+      update_assignment_series: {
+        Args: { p_employee_ids: string[]; p_fields: Json; p_group_id: string }
+        Returns: number
+      }
       update_car_note: {
         Args: { _car_id: string; _note: string }
         Returns: undefined

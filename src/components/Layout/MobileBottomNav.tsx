@@ -1,30 +1,24 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, CalendarDays, Phone, MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useTranslation } from '@/context/TranslationContext';
 import { useUnreadMessagesContext } from '@/context/UnreadMessagesContext';
-
-interface TabItem {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  badge?: number;
-}
+import { useDepartment } from '@/context/DepartmentContext';
+import { buildMobileTabs } from '@/components/Layout/mobileNavTabs';
 
 const MobileBottomNav: React.FC = () => {
   const { setOpenMobile } = useSidebar();
   const location = useLocation();
   const { currentLanguage } = useTranslation();
   const { totalUnread } = useUnreadMessagesContext();
+  const { isDutyEnabled } = useDepartment();
   const isDa = currentLanguage === 'da';
 
-  const TABS: TabItem[] = [
-    { to: '/dashboard', label: isDa ? 'Min Dag' : 'My Day', icon: Home },
-    { to: '/planner', label: isDa ? 'Ugeplan' : 'Planner', icon: CalendarDays, badge: totalUnread },
-    { to: '/duty', label: isDa ? 'Vagter' : 'Duties', icon: Phone },
-  ];
+  // Same feature flags as the desktop sidebar: /duty is hidden when the
+  // department has the duty module disabled.
+  const TABS = buildMobileTabs({ isDa, isDutyEnabled, totalUnread });
 
   // Routes that "Mere" surfaces in the drawer
   const moreRoutes = ['/warehouse', '/cars', '/employees', '/vacation', '/admin'];

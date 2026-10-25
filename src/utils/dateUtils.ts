@@ -9,6 +9,11 @@ export const formatDateToYYYYMMDD = (date: Date): string => {
   return format(date, 'yyyy-MM-dd');
 };
 
+// Today's date as a LOCAL YYYY-MM-DD string. Never use
+// `new Date().toISOString().split('T')[0]` for local assignment dates — the
+// UTC conversion shifts the date near midnight in the Danish timezone.
+export const todayLocalYYYYMMDD = (): string => formatDateToYYYYMMDD(new Date());
+
 // Parse a YYYY-MM-DD string to a Date
 export const parseYYYYMMDD = (dateStr: string): Date | null => {
   if (!dateStr) return null;
@@ -214,6 +219,7 @@ export const groupAssignmentsByDay = <T extends { date: string }>(assignments: T
 
 export default {
   formatDateToYYYYMMDD,
+  todayLocalYYYYMMDD,
   parseYYYYMMDD,
   formatDateForDisplay,
   daysBetween,

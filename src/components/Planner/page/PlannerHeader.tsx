@@ -5,6 +5,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import type { getWeekDates } from '@/utils/dates';
+import { todayLocalYYYYMMDD } from '@/utils/dateUtils';
 
 export type PlannerViewMode = 'standard' | 'compact' | 'grid' | 'calendar';
 
@@ -92,7 +93,7 @@ const PlannerHeader: React.FC<Props> = ({
                 </Button>
               )}
               {canCreate && (
-                <Button onClick={() => handleOpenCreateDialog(new Date().toISOString().split('T')[0])} size="sm">
+                <Button onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())} size="sm">
                   <Plus className="h-4 w-4" />
                   {t('planner.newAssignment')}
                 </Button>

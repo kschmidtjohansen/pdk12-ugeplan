@@ -103,7 +103,7 @@ const GlobalAssignmentSearch: React.FC = () => {
           <ul className="text-xs">
             {results.map((r, idx) => {
               let dateStr = '';
-              try { dateStr = format(parseISO(r.assignment_date), 'dd-MM-yyyy'); } catch {}
+              try { dateStr = format(parseISO(r.assignment_date), 'dd-MM-yyyy'); } catch { /* ugyldig dato – vis tom streng */ }
               return (
                 <li key={r.id}>
                   <button

@@ -21,7 +21,6 @@ import { useSickToday } from '@/hooks/useSickDays';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Employee } from '@/types/employee';
-import { Vacation } from '@/types/vacation';
 import { format } from 'date-fns';
 
 type EmployeeSegment = 'all' | 'active' | 'onleave' | 'vikarer';
@@ -64,13 +63,14 @@ const EmployeesPage: React.FC = () => {
   const { trainingIds } = useActiveTrainings();
   const { sickIds, canSeeSickReason, invalidate: refreshSick } = useSickToday();
 
-  // Compute today's vacation employee IDs for "På fridage" segment
+  // Compute today's vacation employee IDs for "På fridage" segment.
+  // Vacation rows key the employee as `user_id` (see src/types/vacation.ts).
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const onLeaveTodayIds = useMemo(() => {
     const ids = new Set<string>();
-    (vacations as Array<Vacation & { employee_id?: string }>)
+    vacations
       .filter((v) => v.status === 'approved' && v.start_date <= todayStr && v.end_date >= todayStr)
-      .forEach((v) => { if (v.employee_id) ids.add(v.employee_id); });
+      .forEach((v) => { if (v.user_id) ids.add(v.user_id); });
     return ids;
   }, [vacations, todayStr]);
 

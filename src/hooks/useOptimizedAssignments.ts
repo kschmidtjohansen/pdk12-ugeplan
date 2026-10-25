@@ -27,11 +27,16 @@ export type AssignmentFilter = FilterType; // Export for compatibility
 // toasts and duplicate change-log entries. Shared across hook instances.
 const inFlightUpdates = new Set<string>();
 
+// Single, type-safe contract for per-assignment operation feedback, shared by
+// AssignmentCard, CompactAssignmentRow, DaySection and PlannerContent.
+// `null` means no operation in progress.
+export type AssignmentOperationState = 'publishing' | 'deleting' | 'updating' | null;
+
 interface UseOptimizedAssignmentsResult {
   assignments: Assignment[];
   loading: boolean;
   error: Error | null;
-  operationStates: Record<string, 'idle' | 'loading' | 'success' | 'error'>;
+  operationStates: Record<string, AssignmentOperationState>;
   refetch: () => Promise<void>;
   createAssignment: (data: Partial<Assignment>) => Promise<void>;
   updateAssignment: (id: string, data: Partial<Assignment>) => Promise<void>;
@@ -233,12 +238,12 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
   const { t } = useTranslation();
   const { employees: allEmployees } = useEmployeeData();
   const queryClient = useQueryClient();
-  const [operationStates, setOperationStates] = useState<Record<string, 'idle' | 'loading' | 'success' | 'error'>>({});
+  const [operationStates, setOperationStates] = useState<Record<string, AssignmentOperationState>>({});
   
   // Local override state for optimistic updates
   const [localAssignments, setLocalAssignments] = useState<Assignment[] | null>(null);
 
-  const setOperationState = useCallback((id: string, state: 'idle' | 'loading' | 'success' | 'error') => {
+  const setOperationState = useCallback((id: string, state: AssignmentOperationState) => {
     setOperationStates(prev => ({ ...prev, [id]: state }));
   }, []);
 
@@ -373,7 +378,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     notifyOwnAction();
 
     try {
-      setOperationStates(prev => ({ ...prev, [operationId]: 'loading' }));
+      setOperationStates(prev => ({ ...prev, [operationId]: 'updating' }));
 
       // LAG 3: Guard mod oprettelse uden department_id (forhindrer cross-tenant lækage)
       if (!selectedDepartmentId && user?.email !== 'test@polygongroup.com') {
@@ -434,7 +439,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         }
         
         await refetch();
-        setOperationStates(prev => ({ ...prev, [operationId]: 'success' }));
+        setOperationStates(prev => ({ ...prev, [operationId]: null }));
         
         toast({
           title: t('planner.assignmentCreated'),
@@ -507,13 +512,13 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         prev.map(a => a.id === optimisticAssignment.id ? convertToAssignment(createdAssignment, allEmployees) : a)
       );
 
-      setOperationStates(prev => ({ ...prev, [operationId]: 'success' }));
+      setOperationStates(prev => ({ ...prev, [operationId]: null }));
       toast({ title: t('planner.assignmentCreated'), description: t('planner.assignmentCreatedMsg', { title: serviceData.title }) });
 
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Create error:', error);
       setAssignments(prev => prev.filter(a => !a.id.startsWith('temp-')));
-      setOperationStates(prev => ({ ...prev, [operationId]: 'error' }));
+      setOperationStates(prev => ({ ...prev, [operationId]: null }));
       toast({ variant: 'destructive', title: t('common.error'), description: error instanceof Error ? error.message : t('common.error') });
       throw error;
     }
@@ -526,7 +531,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     }
     inFlightUpdates.add(id);
     notifyOwnAction();
-    setOperationState(id, 'loading');
+    setOperationState(id, 'updating');
     try {
       if (!data.title?.trim()) throw new Error('Title is required');
       if (!data.location?.trim()) throw new Error('Location is required');
@@ -576,7 +581,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         }
         
         await refetch();
-        setOperationState(id, 'success');
+        setOperationState(id, null);
         toast({
           title: t('planner.assignmentUpdated'),
           description: errors.length === 0
@@ -640,11 +645,11 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       
       await refetch();
       toast({ title: t('planner.assignmentUpdated'), description: t('planner.assignmentUpdatedMsg', { title: data.title }) });
-      setOperationState(id, 'success');
+      setOperationState(id, null);
       
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Update error:', error);
-      setOperationState(id, 'error');
+      setOperationState(id, null);
       await refetch();
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorUpdatingAssignment'), variant: "destructive" });
       throw error;
@@ -659,7 +664,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
     // 1. Optimistic removal
     setAssignments(prev => prev.filter(a => a.id !== id));
-    setOperationState(id, 'loading');
+    setOperationState(id, 'deleting');
 
     // 2. Delayed database deletion (5s grace period)
     let cancelled = false;
@@ -667,10 +672,10 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       if (cancelled) return;
       try {
         await OptimizedAssignmentService.deleteAssignment(id, user.email);
-        setOperationState(id, 'success');
+        setOperationState(id, null);
       } catch (error) {
         if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Delete failed:', error);
-        setOperationState(id, 'error');
+        setOperationState(id, null);
         setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
         toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorDeletingAssignment'), variant: "destructive" });
       }
@@ -688,7 +693,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           cancelled = true;
           clearTimeout(timeoutId);
           setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-          setOperationState(id, 'idle');
+          setOperationState(id, null);
         }
       }, t('planner.undo')) as unknown as ToastActionElement,
     });
@@ -696,17 +701,17 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   const publishAssignment = useCallback(async (id: string) => {
     notifyOwnAction();
-    setOperationState(id, 'loading');
+    setOperationState(id, 'publishing');
     try {
       setAssignments(prev => prev.map(a => a.id === id ? { ...a, published: true } : a));
       await OptimizedAssignmentService.publishAssignment(id, user.email);
       await PlannerChangeLogger.logPublish([id]);
       toast({ title: t('planner.assignmentPublished'), description: t('planner.assignmentPublishedMsg') });
-      setOperationState(id, 'success');
+      setOperationState(id, null);
       await refetch();
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Publish failed:', error);
-      setOperationState(id, 'error');
+      setOperationState(id, null);
       await refetch();
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorPublishingAssignment'), variant: "destructive" });
     }
@@ -752,18 +757,16 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
     // 1. Optimistic: remove all matching assignments
     const removedAssignments = assignments.filter(a => a.groupId === groupId);
-    const idsToRemove = removedAssignments.map(a => a.id);
     setAssignments(prev => prev.filter(a => a.groupId !== groupId));
 
-    // 2. Delayed database deletion (5s grace period)
+    // 2. Delayed database deletion (5s grace period).
+    // The RPC deletes employee links and assignments in ONE transaction, so a
+    // series can never end up half-deleted.
     let cancelled = false;
     const timeoutId = setTimeout(async () => {
       if (cancelled) return;
       try {
-        for (const assignmentId of idsToRemove) {
-          await supabase.from('assignments_employees').delete().eq('assignment_id', assignmentId);
-        }
-        const { error } = await supabase.from('assignments').delete().eq('group_id', groupId);
+        const { error } = await supabase.rpc('delete_assignment_series', { p_group_id: groupId });
         if (error) throw error;
       } catch (error) {
         if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Series delete failed:', error);
@@ -816,15 +819,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     try {
       if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Updating series with group_id:', groupId);
 
-      // Fetch all sibling IDs
-      const { data: siblings, error: fetchError } = await supabase
-        .from('assignments')
-        .select('id')
-        .eq('group_id', groupId);
-
-      if (fetchError) throw fetchError;
-      if (!siblings || siblings.length === 0) throw new Error('No assignments found in series');
-
       const serviceData = {
         title: data.title?.trim(),
         description: data.description?.trim() || null,
@@ -838,41 +832,20 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as { id: string } | undefined)?.id] : null),
       };
 
-      // Bulk update all siblings (keep each assignment's own date)
-      const { error: updateError } = await supabase
-        .from('assignments')
-        .update({
-          ...serviceData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('group_id', groupId);
+      const employeeIds = (data.employees || []).filter(
+        (empId): empId is string => typeof empId === 'string' && !!empId
+      );
+
+      // All-or-nothing: the RPC updates every sibling and re-links employees in
+      // ONE transaction under the caller's own RLS permissions. A failure rolls
+      // everything back, so we never show success for a partial update.
+      const { error: updateError } = await supabase.rpc('update_assignment_series', {
+        p_group_id: groupId,
+        p_fields: serviceData,
+        p_employee_ids: employeeIds,
+      });
 
       if (updateError) throw updateError;
-
-      // Update employees for each sibling
-      const employees = data.employees || [];
-      for (const sibling of siblings) {
-        await supabase
-          .from('assignments_employees')
-          .delete()
-          .eq('assignment_id', sibling.id);
-
-        if (employees.length > 0) {
-          const inserts = employees
-            .filter(empId => typeof empId === 'string')
-            .map(empId => ({
-              assignment_id: sibling.id,
-              user_id: empId,
-            }))
-            .filter(ins => ins.user_id);
-
-          if (inserts.length > 0) {
-            await supabase
-              .from('assignments_employees')
-              .insert(inserts);
-          }
-        }
-      }
 
       await refetch();
       toast({
