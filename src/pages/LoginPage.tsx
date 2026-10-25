@@ -6,6 +6,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { PwaInstallButton } from '@/components/Pwa/PwaInstallButton';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { PRODUCT_NAME, ORG_NAME, PRODUCT_TAGLINE_DA } from '@/config/product';
+import polygonMark from '@/assets/polygon-mark.png';
 
 const POLYGON_LOGO_URL = 'https://www.polygongroup.com/UI/build/svg/polygon-logo.svg';
 
