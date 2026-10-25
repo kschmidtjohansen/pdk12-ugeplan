@@ -14,8 +14,9 @@
 @tailwind utilities;
 
 /* ----------------------------------------------------------------------------
-   Design tokens — Apple/Arc inspired, calm premium look.
-   Primary blue (#00aeef) and brand are intentionally preserved.
+   Design tokens — PolyPlan "Nordic Operations" (v1.2).
+   Calm, editorial operations tool. Primary blue (#00aeef) and the Polygon
+   brand are intentionally preserved. No gradients, glow or glass.
    ---------------------------------------------------------------------------- */
 
 @layer base {
@@ -33,6 +34,12 @@
     /* Brand */
     --primary: 197 100% 47%;
     --primary-foreground: 0 0% 100%;
+    /* Ink for text/icons placed ON brand-blue surfaces (AA contrast) */
+    --brand-ink: 200 100% 16%;
+    /* Deep brand surface — login brand panel, dark lockups */
+    --brand-deep: 222 47% 11%;
+    --brand-deep-foreground: 210 30% 96%;
+    --brand-deep-muted: 213 20% 72%;
 
     --secondary: 220 14% 96%;
     --secondary-foreground: 222 20% 14%;
