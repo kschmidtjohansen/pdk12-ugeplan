@@ -760,15 +760,14 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     const idsToRemove = removedAssignments.map(a => a.id);
     setAssignments(prev => prev.filter(a => a.groupId !== groupId));
 
-    // 2. Delayed database deletion (5s grace period)
+    // 2. Delayed database deletion (5s grace period).
+    // The RPC deletes employee links and assignments in ONE transaction, so a
+    // series can never end up half-deleted.
     let cancelled = false;
     const timeoutId = setTimeout(async () => {
       if (cancelled) return;
       try {
-        for (const assignmentId of idsToRemove) {
-          await supabase.from('assignments_employees').delete().eq('assignment_id', assignmentId);
-        }
-        const { error } = await supabase.from('assignments').delete().eq('group_id', groupId);
+        const { error } = await supabase.rpc('delete_assignment_series', { p_group_id: groupId });
         if (error) throw error;
       } catch (error) {
         if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Series delete failed:', error);
