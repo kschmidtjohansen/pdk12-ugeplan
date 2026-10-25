@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Users, Car, UserX, Package, LucideIcon } from 'lucide-react';
+import { Users, Car, UserX, Package, ArrowUpRight, LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
 import AbsentEmployeesModal from './AbsentEmployeesModal';
@@ -23,34 +23,23 @@ interface KpiRowProps {
 
 const KpiRow: React.FC<KpiRowProps> = ({ label, value, total, icon: Icon, onClick, accent = 'primary', isLast }) => {
   const accentMap = {
-    primary: 'text-primary bg-primary/10',
-    success: 'text-success bg-success/10',
-    warning: 'text-warning bg-warning/10',
-    destructive: 'text-destructive bg-destructive/10',
+    primary: 'text-info-soft-foreground', success: 'text-success-soft-foreground',
+    warning: 'text-warning-soft-foreground', destructive: 'text-destructive-soft-foreground',
   };
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'flex items-center gap-3 w-full px-4 py-3 text-left transition-colors hover:bg-accent/40 focus:outline-none focus-visible:bg-accent/60',
-        !isLast && 'border-b border-border'
-      )}
-    >
-      <div className={cn('h-8 w-8 rounded-md flex items-center justify-center shrink-0', accentMap[accent])}>
-        <Icon className="h-4 w-4" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">{label}</p>
-      </div>
-      <div className="text-right tabular-nums">
-        <span className={cn('text-xl font-semibold', accent === 'primary' ? 'text-primary' : 'text-foreground')}>
-          {value}
-        </span>
-        {total !== undefined && (
-          <span className="text-xs text-muted-foreground ml-0.5">/ {total}</span>
-        )}
-      </div>
-    </button>
+    <Button variant="ghost" onClick={onClick}
+      aria-label={`${label}: ${value}${total !== undefined ? ` / ${total}` : ''}`}
+      className={cn('grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 w-full h-auto min-h-20 rounded-none px-0 py-4 text-left whitespace-normal', !isLast && 'border-b border-border')}>
+      <span className="flex min-w-0 items-start gap-2">
+        <Icon aria-hidden className={cn('mt-0.5 h-4 w-4 shrink-0', accentMap[accent])} />
+        <span className="text-xs font-medium leading-snug text-foreground">{label}</span>
+      </span>
+      <ArrowUpRight aria-hidden className="h-3.5 w-3.5 text-muted-foreground" />
+      <span className="col-span-2 flex items-baseline gap-1 pl-6 tabular-nums">
+        <span className="text-3xl font-semibold leading-none text-foreground">{value}</span>
+        {total !== undefined && <span className="text-sm text-muted-foreground">/ {total}</span>}
+      </span>
+    </Button>
   );
 };
 
@@ -75,9 +64,9 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, weekRan
 
   if (loading) {
     return (
-      <Card className="p-0 overflow-hidden">
-        <div className="px-4 pt-3 brand-card-header">
-          <h3 className="text-sm font-semibold brand-dot">{t('dashboard.metrics.title') || 'Nøgletal'}</h3>
+      <section aria-busy={loading} className="border-b border-border pb-2">
+        <div className="pb-3 border-b border-border">
+          <h3 className="text-sm font-semibold">{t('dashboard.metrics.title') || 'Nøgletal'}</h3>
         </div>
         <div className="divide-y divide-border">
           {[0, 1, 2, 3].map((i) => (
@@ -88,20 +77,20 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, weekRan
             </div>
           ))}
         </div>
-      </Card>
+      </section>
     );
   }
 
   if (error) {
     return (
-      <Card className="p-0 overflow-hidden border-destructive/30 bg-destructive/5">
-        <div className="px-4 py-3 border-b border-destructive/30">
+      <section role="alert" className="border-b border-border pb-4">
+        <div className="py-3 border-b border-border">
           <h3 className="text-sm font-semibold text-destructive">{t('dashboard.metrics.title')}</h3>
         </div>
-        <div className="px-4 py-6 text-sm text-destructive">
+        <div className="py-6 text-sm text-destructive">
           {t('common.errorLoadingData')}
         </div>
-      </Card>
+      </section>
     );
   }
 
@@ -147,9 +136,9 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, weekRan
 
   return (
     <>
-      <Card className="p-0 overflow-hidden">
-        <div className="px-4 pt-3 brand-card-header">
-          <h3 className="text-sm font-semibold brand-dot text-foreground">
+      <section aria-busy={loading} className="border-b border-border pb-2">
+        <div className="pb-3 border-b border-border">
+          <h3 className="text-sm font-semibold text-foreground">
             {t('dashboard.metrics.title') || 'Nøgletal'}
           </h3>
         </div>
@@ -158,7 +147,7 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, weekRan
             <KpiRow key={r.key} {...r} isLast={i === rows.length - 1} />
           ))}
         </div>
-      </Card>
+      </section>
 
       <EmployeeAvailabilityDialog
         open={employeeModalOpen}
