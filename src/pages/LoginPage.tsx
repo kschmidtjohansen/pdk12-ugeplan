@@ -87,15 +87,13 @@ const LoginPage = () => {
           {/* Kompakt brand-lockup (mobil + form-panel) */}
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-polygon-blue">
-                <img
-                  src={POLYGON_LOGO_URL}
-                  alt="Polygon"
-                  className="h-4 w-auto brightness-0 invert"
-                  loading="eager"
-                  draggable={false}
-                />
-              </span>
+              <img
+                src={polygonMark}
+                alt="Polygon"
+                className="h-9 w-9 select-none object-contain"
+                loading="eager"
+                draggable={false}
+              />
               <span className="text-xl font-semibold tracking-tight text-foreground">
                 {PRODUCT_NAME}
               </span>
