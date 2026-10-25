@@ -57,6 +57,12 @@ export default {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
+				brand: {
+					ink: 'hsl(var(--brand-ink))',
+					deep: 'hsl(var(--brand-deep))',
+					'deep-foreground': 'hsl(var(--brand-deep-foreground))',
+					'deep-muted': 'hsl(var(--brand-deep-muted))',
+				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
 					foreground: 'hsl(var(--secondary-foreground))'
