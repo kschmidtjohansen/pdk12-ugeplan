@@ -1,6 +1,7 @@
-# PolyPlan v1.2.1
-- [x] Implement readable navigation and responsive workspace header.
-- [x] Recompose dashboard, KPI scorecard, timeline, weekly list and activity rail.
-- [x] Harmonize shared primitives without changing their public contracts.
-- [x] Run tests, inspect responsive rendering, update documentation and report limitations.
+# PolyPlan v1.3
+- [ ] Shared week calculations, operation filters and URL round-trip.
+- [ ] Actionable planner overview, all-view filtering, day navigation and active filter reset.
+- [ ] Permission-gated dashboard attention links using the same calculations.
+- [ ] Shared planner conflict/resources context with backward-compatible standalone cards.
+- [ ] Regression tests, responsive fixture verification, lint and documentation.
 - [ ] Authenticated full-screen verification — blocked by external unmanaged Supabase session.
