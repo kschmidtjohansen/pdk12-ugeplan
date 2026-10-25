@@ -89,11 +89,11 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {/* LEFT — main work surface (2/3) */}
       <div className="lg:col-span-2 min-w-0">
         <Tabs value={tab} onValueChange={changeTab}>
-          <TabsList className="sticky top-14 z-10 mb-3 grid h-11 w-full grid-cols-2 rounded-lg border border-border/60 bg-card/90 p-1 backdrop-blur sm:static sm:inline-flex sm:h-10 sm:w-auto">
+          <TabsList className="sticky top-14 z-10 mb-3 grid h-11 w-full grid-cols-2 rounded-lg border border-border/60 bg-card p-1 sm:static sm:inline-flex sm:h-10 sm:w-auto">
             <TabsTrigger value="today" className="h-9 px-4 sm:h-8 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{t('ui.tabToday')}</TabsTrigger>
             <TabsTrigger value="week" className="h-9 px-4 sm:h-8 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{t('ui.tabWeekOverview')}</TabsTrigger>
           </TabsList>
-          <TabsContent value="today" className="mt-0 rounded-xl border border-border/60 bg-card/70 p-3 backdrop-blur sm:p-4">
+          <TabsContent value="today" className="mt-0 rounded-xl border border-border/60 bg-card p-3 shadow-xs sm:p-4">
             <TodayTimeline active={tab === 'today'} />
           </TabsContent>
           <TabsContent value="week" className="mt-0">
@@ -115,7 +115,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {/* RIGHT — sticky cockpit panel (1/3) */}
       {isMobile ? (
         <Collapsible open={moreOpen} onOpenChange={setMoreOpen}>
-          <CollapsibleTrigger className="flex h-11 w-full items-center justify-between rounded-xl border border-border/60 bg-card/70 px-4 text-sm font-medium text-foreground">
+          <CollapsibleTrigger className="flex h-11 w-full items-center justify-between rounded-xl border border-border/60 bg-card px-4 text-sm font-medium text-foreground shadow-xs">
             {t('ui.moreKpisDutiesVacations')}
             <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
           </CollapsibleTrigger>

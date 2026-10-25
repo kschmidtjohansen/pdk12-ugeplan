@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Polygon Ugeplan",
-  "short_name": "Ugeplan",
+  "name": "PolyPlan",
+  "short_name": "PolyPlan",
   "description": "PolyPlan giver medarbejdere og skadeledere fuldt overblik over opgaver, vagter, ferie og afdelinger – ét værktøj til den daglige drift i skadeservice.",
   "theme_color": "#00aeef",
   "background_color": "#f8fafc",

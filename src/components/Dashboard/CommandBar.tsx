@@ -89,7 +89,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
   }, [todayAssignments, metrics.availableCars.cars]);
 
   return (
-    <section className="rounded-xl border border-border/60 bg-card/70 px-3 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/60 animate-fade-in sm:px-4">
+    <section className="rounded-xl border border-border/60 bg-card px-3 py-3 shadow-xs animate-fade-in sm:px-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center justify-between gap-3 min-w-0">
           <div className="min-w-0">
