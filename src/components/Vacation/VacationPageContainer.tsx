@@ -2,7 +2,11 @@
 import React from 'react';
 import { useVacations } from '@/hooks/useVacations';
 import { useAuth } from '@/context/AuthContext';
-import { useTranslation } from '@/context/TranslationContext';
+import { Vacation } from '@/types/vacation';
+import { visibleVacations } from '@/utils/moduleListFilters';
+import { ModuleContext } from '@/components/shared/ModuleListTools';
+import { useDepartment } from '@/context/DepartmentContext';
+import ErrorState from '@/components/shared/ErrorState';
 import VacationTabContent from './VacationTabContent';
 import VacationHeader from './VacationHeader';
 import VacationDialogs from './VacationDialogs';
@@ -12,15 +16,16 @@ interface VacationPageContainerProps {
 }
 
 const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
-  const { t } = useTranslation();
-  const { isEffectiveAdmin, isEffectiveSkadeleder, isEffectiveServicemedarbejder, effectiveRole } = useAuth();
+  const { user, isEffectiveAdmin, isEffectiveServicemedarbejder, effectiveRole } = useAuth();
   const { canViewAllVacations: canManageVacations } = useAuth();
   const viewAsServicemedarbejder = isEffectiveServicemedarbejder || effectiveRole === 'fugttekniker';
+  const { selectedDepartment } = useDepartment();
+  const [search, setSearch] = React.useState('');
   const [activeTab, setActiveTab] = React.useState("all");
   
   const {
     vacations,
-    loading,
+    loading, error, fetchVacations,
     date,
     setDate,
     // Add the missing state variables
@@ -60,10 +65,13 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     handleDeleteCurrentVacation
   } = useVacations();
   
+  const visible = React.useMemo(() => visibleVacations(vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder), [vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder]);
+  const counts = React.useMemo(() => ({ all: visible.length, pending: visible.filter(v => v.status === 'pending').length, approved: visible.filter(v => v.status === 'approved').length, rejected: visible.filter(v => v.status === 'rejected').length }), [visible]);
+  const resetFilters = () => { setActiveTab('all'); setSearch(''); };
   // State for approval/rejection dialog
   const [actionDialogOpen, setActionDialogOpen] = React.useState(false);
   const [actionType, setActionType] = React.useState<"approve" | "reject">("approve");
-  const [currentVacation, setCurrentVacation] = React.useState<any>(null);
+  const [currentVacation, setCurrentVacation] = React.useState<Vacation | null>(null);
   
   // Open the dialog for regular employees to request vacation
   const handleOpenDialog = () => {
@@ -76,7 +84,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   };
   
   // Handle approval action - allow admin and skadeleder
-  const handleApprove = (vacation) => {
+  const handleApprove = (vacation: Vacation) => {
     if (!canManageVacations) return;
     
     setCurrentVacation(vacation);
@@ -85,7 +93,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   };
   
   // Handle rejection action - allow admin and skadeleder
-  const handleReject = (vacation) => {
+  const handleReject = (vacation: Vacation) => {
     if (!canManageVacations) return;
     
     setCurrentVacation(vacation);
@@ -108,14 +116,14 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   };
   
   // Handle edit vacation - allow admin and skadeleder
-  const handleEdit = (vacation) => {
+  const handleEdit = (vacation: Vacation) => {
     if (!canManageVacations) return;
     
     handleEditVacation(vacation);
   };
   
   // Handle delete vacation - allow admin and skadeleder
-  const handleDelete = (vacation) => {
+  const handleDelete = (vacation: Vacation) => {
     if (!canManageVacations) return;
     
     handleDeleteVacation(vacation);
@@ -133,8 +141,10 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   return (
     <div>
       {headerComponent}
+      <ModuleContext department={selectedDepartment?.name} />
       
       <VacationHeader 
+        counts={counts}
         isServicemedarbejder={viewAsServicemedarbejder}
         activeTab={activeTab}
         onChangeTab={setActiveTab}
@@ -143,7 +153,8 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
       />
       
       {/* Vacation tab content with all vacation cards */}
-      <VacationTabContent
+      {error ? <ErrorState description={error} onRetry={fetchVacations} /> : <VacationTabContent
+        search={search} onSearch={setSearch} onReset={resetFilters}
         vacations={vacations}
         tabValue={activeTab}
         onApprove={handleApprove}
@@ -151,7 +162,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
         onEdit={handleEdit}
         onDelete={handleDelete}
         isLoading={loading}
-      />
+      />}
       
       <VacationDialogs
         date={date}
