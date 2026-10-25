@@ -217,7 +217,7 @@ describe('Serie-opgaver – alt-eller-intet via RPC', () => {
 
   it('serie-sletning bruger én samlet RPC (ingen løkke af enkeltkald)', async () => {
     rpcMock.mockResolvedValue({ data: 2, error: null });
-    const { result } = await renderPlanner();
+    const { result } = await renderPlanner(2);
     vi.useFakeTimers();
 
     act(() => { result.current.deleteAssignmentsByGroupId('grp-1'); });
@@ -229,7 +229,7 @@ describe('Serie-opgaver – alt-eller-intet via RPC', () => {
 
   it('serie-sletning ruller UI tilbage hvis RPC fejler', async () => {
     rpcMock.mockResolvedValue({ data: null, error: { message: 'db nede' } });
-    const { result } = await renderPlanner();
+    const { result } = await renderPlanner(2);
     vi.useFakeTimers();
 
     act(() => { result.current.deleteAssignmentsByGroupId('grp-1'); });
@@ -241,7 +241,7 @@ describe('Serie-opgaver – alt-eller-intet via RPC', () => {
 
   it('serie-opdatering sender felter og medarbejdere til én RPC', async () => {
     rpcMock.mockResolvedValue({ data: 2, error: null });
-    const { result } = await renderPlanner();
+    const { result } = await renderPlanner(2);
 
     await act(async () => {
       await result.current.updateSeriesAssignments('grp-1', {
@@ -260,7 +260,7 @@ describe('Serie-opgaver – alt-eller-intet via RPC', () => {
 
   it('serie-opdatering viser KUN fejl-toast når RPC fejler (aldrig success ved delvis opdatering)', async () => {
     rpcMock.mockResolvedValue({ data: null, error: { message: 'delvis fejl' } });
-    const { result } = await renderPlanner();
+    const { result } = await renderPlanner(2);
 
     await act(async () => {
       await result.current.updateSeriesAssignments('grp-1', {
