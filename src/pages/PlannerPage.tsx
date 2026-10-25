@@ -360,8 +360,12 @@ const PlannerPage: React.FC = () => {
     : expandedDays, [expandedDays, filtersActive, sortedWeekAssignments]);
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
-    await publishAssignmentsByDate(date);
-  }, [publishAssignmentsByDate]);
+    if (filtersActive) {
+      await publishAssignmentsByIds(sortedWeekAssignments.filter(a => a.date === date && !a.published).map(a => a.id));
+    } else {
+      await publishAssignmentsByDate(date);
+    }
+  }, [publishAssignmentsByDate, publishAssignmentsByIds, filtersActive, sortedWeekAssignments]);
 
   // Quick move: shift a single assignment N days with an undo toast
   const handleQuickMove = useCallback(async (assignment: Assignment, days: number) => {

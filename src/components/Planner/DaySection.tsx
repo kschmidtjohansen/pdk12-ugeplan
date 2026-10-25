@@ -167,8 +167,8 @@ const DaySection: React.FC<DaySectionProps> = ({
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   {currentLanguage === 'da'
-                    ? `Alle kladder for ${formattedDate} bliver publiceret og synlige for medarbejderne.`
-                    : `All drafts for ${formattedDate} will be published and visible to employees.`}
+                    ? `De ${draftCount} viste kladder for ${formattedDate} bliver publiceret og synlige for medarbejderne.`
+                    : `The ${draftCount} displayed drafts for ${formattedDate} will be published and visible to employees.`}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
