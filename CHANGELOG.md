@@ -1,3 +1,34 @@
+## 2026-10-22 – PolyPlan v1.1: sikkerhed, dataintegritet og stabilitet
+
+**1. Push-resubscribe hærdet (høj sikkerhed)**
+- `push-resubscribe` edge function kræver nu et tilfældigt `resubscribe_token` pr. abonnement (ny kolonne på `push_subscriptions`). Token udstedes kun til den indloggede ejers browser og gemmes i IndexedDB, hvor service workeren kan læse det. Rotation af et push-endpoint kræver nu BÅDE gammelt endpoint OG token — en uautentificeret anmodning kan ikke længere overskrive en anden enheds nøgler. Fail-closed: rækker uden token (fra før ændringen) kan ikke roteres; appen gemmer abonnementet igen ved næste åbning og udsteder et token.
+- `public/push-sw.js` læser token fra IndexedDB ved `pushsubscriptionchange` og sender det med; uden token gøres intet (appen re-subscriber ved næste launch).
+- `src/hooks/usePushNotifications.ts` genererer token ved gem og skriver det til IndexedDB.
+
+**2. Serie-opgaver: alt-eller-intet (høj integritet)**
+- Nye RLS-sikrede RPC'er `update_assignment_series` og `delete_assignment_series` (SECURITY INVOKER, `SET search_path = ''`, EXECUTE til `authenticated`). Hele serien — opgaver + medarbejdertilknytninger — opdateres/slettes i ÉN transaktion; en fejl ruller alt tilbage.
+- `useOptimizedAssignments.updateSeriesAssignments` og `deleteAssignmentsByGroupId` bruger RPC'erne og viser kun success ved fuld gennemførelse. Optimistisk UI, 5-sek. fortryd og rollback er bevaret.
+
+**3. Fravær- og datofejl**
+- `EmployeesPage`: "Fraværende"-segmentet læste `employee_id` på ferierækker — feltet hedder `user_id`. Ferieramt medarbejdere vises nu korrekt som fraværende.
+- `PlannerHeader`: "Ny opgave" bruger nu lokal dato (`todayLocalYYYYMMDD()`) i stedet for `toISOString()` der kan skifte dag omkring midnat i dansk tidszone.
+- `DutyPage`: `duty_date` parses som lokal dato (`parseYYYYMMDD`) i stedet for UTC-midnat.
+- Nye tests `src/utils/dateUtils.test.ts` (6) for lokal dato, dagsskifte og parsing.
+
+**4. operationStates: én typesikker kontrakt**
+- Hooken udsender nu direkte `'publishing' | 'deleting' | 'updating' | null` (ny type `AssignmentOperationState`), som AssignmentCard, CompactAssignmentRow, DaySection og PlannerContent forventer. Konverteringslaget i PlannerPage er fjernet. Kort viser korrekt "Sletter..."/"Publicerer..."/"Opdaterer..." og er låst under handlingen.
+
+**5. Mobil navigation følger feature-flags**
+- `MobileBottomNav` skjuler Vagter-fanen når afdelingen har vagtmodulet slået fra — samme regel som desktop-sidebaren. Fælles logik i `mobileNavTabs.ts` med 4 nye tests.
+
+**6. Stabilitet: ingen fulde genindlæsninger**
+- Realtime-bannerets "Opdater"-knap og pull-to-refresh genindlæser ikke længere hele siden (`window.location.reload()`); de invaliderer kun de aktive data-forespørgsler. Scroll-position, åbne dialoger og offline-/demo-tilstand bevares.
+
+**7. QA-gate**
+- Nyt npm-script `typecheck` (`tsc --noEmit -p tsconfig.app.json`). CI kører nu lint + typecheck + test + build. 21 gamle lint-fejl (ubrugte imports m.m.) ryddet, så CI kan være grøn uden at skjule nye fejl.
+
+**Tests:** 75/75 grønne (13 nye). Typecheck, lint og production build OK. Ingen publicering — ændringerne ligger kun i versionshistorikken.
+
 ## 2026-10-22 – Rettelse: eksisterende roller efter rolle-rettighedsændring
 - Migration giver `authenticated` EXECUTE på `public.can_access_department_data(uuid, uuid, uuid)`, som de nye RLS-politikker kræver. Ingen roller, tabelrettigheder eller RLS-predikater ændres; `anon` har fortsat ikke EXECUTE.
 - Live katalogkontrol bekræfter rettigheden og 265 bevarede rolleposter. Nye regressionstests bekræfter, at administrator, skadeleder og super_admin beholder planlægningsadgang uden ekstra grants.

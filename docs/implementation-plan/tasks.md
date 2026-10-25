@@ -764,3 +764,13 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] Punkt 3: any under 50 (48)
 - [x] Regressionstests: opret/ret/slet/fortryd i ugeplanen
 - [ ] Punkt 4: Automatisering via Edge Functions + triggere (afventer hændelsesvalg, n8n droppet)
+
+## PolyPlan v1.1 — Stabilitet, sikkerhed og datakorrekthed (2026-10-22)
+- [x] 1. Push-resubscribe hærdet: resubscribe_token-kolonne + fail-closed edge function + SW/frontend-token via IndexedDB
+- [x] 2. Serie-opgaver alt-eller-intet: RPC'erne update_assignment_series / delete_assignment_series (SECURITY INVOKER, search_path '')
+- [x] 3. Fravær/datoer: Vacation user_id i EmployeesPage, lokal dato i PlannerHeader, lokal parsing i DutyPage + dateUtils-tests
+- [x] 4. operationStates: én kontrakt ('publishing'|'deleting'|'updating'|null), konvertering i PlannerPage fjernet
+- [x] 5. MobileBottomNav følger isDutyEnabled som desktop (mobileNavTabs.ts + tests)
+- [x] 6. window.location.reload() fjernet fra realtime-banner og pull-to-refresh (scoped query-invalidering)
+- [x] 7. QA-gate: npm typecheck-script, CI kører lint+typecheck+test+build, 21 gamle lint-fejl ryddet
+- [x] 75/75 tests grønne, typecheck/lint/build OK. Ikke publiceret.
