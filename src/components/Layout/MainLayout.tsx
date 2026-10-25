@@ -23,9 +23,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t, isInitialized } = useTranslation();
+  // Pull-to-refresh refetches the active queries instead of reloading the whole
+  // page — keeps offline/demo state, scroll position and open dialogs intact.
   const handlePullRefresh = useCallback(async () => {
-    window.location.reload();
-  }, []);
+    await queryClient.invalidateQueries({ refetchType: 'active' });
+  }, [queryClient]);
 
   // Auto-refresh data on route changes so users always see fresh data without
   // needing to dismiss the realtime "Opdater"-banner. Only the datasets the new

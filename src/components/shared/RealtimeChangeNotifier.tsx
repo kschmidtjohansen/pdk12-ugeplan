@@ -13,6 +13,7 @@ export const RealtimeChangeNotifier: React.FC = () => {
   const { t } = useTranslation();
   const { isDemoMode, user } = useAuth();
   const { selectedDepartmentId } = useDepartment();
+  const queryClient = useQueryClient();
   const [hasChanges, setHasChanges] = useState(false);
   const lastOwnAction = useRef<number>(0);
   const deptRef = useRef<string | null>(selectedDepartmentId ?? null);
@@ -65,7 +66,14 @@ export const RealtimeChangeNotifier: React.FC = () => {
         <Button
           size="sm"
           variant="default"
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            // Scoped refresh instead of a full page reload: refetch the data
+            // the current view actually shows, keep scroll position and state.
+            ['assignments', 'employees', 'cars', 'vacations', 'duties', 'warehouse'].forEach((key) =>
+              queryClient.invalidateQueries({ queryKey: [key], refetchType: 'active' })
+            );
+            setHasChanges(false);
+          }}
           className="h-7 text-xs px-2"
         >
           {t('common.refresh')}
