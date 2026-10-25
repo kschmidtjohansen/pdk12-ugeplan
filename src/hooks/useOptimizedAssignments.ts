@@ -757,7 +757,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
     // 1. Optimistic: remove all matching assignments
     const removedAssignments = assignments.filter(a => a.groupId === groupId);
-    const idsToRemove = removedAssignments.map(a => a.id);
     setAssignments(prev => prev.filter(a => a.groupId !== groupId));
 
     // 2. Delayed database deletion (5s grace period).
@@ -820,15 +819,6 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     try {
       if (import.meta.env.DEV) console.log('[useOptimizedAssignments] Updating series with group_id:', groupId);
 
-      // Fetch all sibling IDs
-      const { data: siblings, error: fetchError } = await supabase
-        .from('assignments')
-        .select('id')
-        .eq('group_id', groupId);
-
-      if (fetchError) throw fetchError;
-      if (!siblings || siblings.length === 0) throw new Error('No assignments found in series');
-
       const serviceData = {
         title: data.title?.trim(),
         description: data.description?.trim() || null,
@@ -842,41 +832,20 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         car_ids: Array.isArray(data.cars) ? data.cars.filter(Boolean) : (data.car ? [typeof data.car === 'string' ? data.car : (data.car as { id: string } | undefined)?.id] : null),
       };
 
-      // Bulk update all siblings (keep each assignment's own date)
-      const { error: updateError } = await supabase
-        .from('assignments')
-        .update({
-          ...serviceData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('group_id', groupId);
+      const employeeIds = (data.employees || []).filter(
+        (empId): empId is string => typeof empId === 'string' && !!empId
+      );
+
+      // All-or-nothing: the RPC updates every sibling and re-links employees in
+      // ONE transaction under the caller's own RLS permissions. A failure rolls
+      // everything back, so we never show success for a partial update.
+      const { error: updateError } = await supabase.rpc('update_assignment_series', {
+        p_group_id: groupId,
+        p_fields: serviceData,
+        p_employee_ids: employeeIds,
+      });
 
       if (updateError) throw updateError;
-
-      // Update employees for each sibling
-      const employees = data.employees || [];
-      for (const sibling of siblings) {
-        await supabase
-          .from('assignments_employees')
-          .delete()
-          .eq('assignment_id', sibling.id);
-
-        if (employees.length > 0) {
-          const inserts = employees
-            .filter(empId => typeof empId === 'string')
-            .map(empId => ({
-              assignment_id: sibling.id,
-              user_id: empId,
-            }))
-            .filter(ins => ins.user_id);
-
-          if (inserts.length > 0) {
-            await supabase
-              .from('assignments_employees')
-              .insert(inserts);
-          }
-        }
-      }
 
       await refetch();
       toast({
