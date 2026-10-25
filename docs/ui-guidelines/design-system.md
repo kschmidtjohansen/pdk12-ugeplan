@@ -344,3 +344,31 @@ v1.2 ændrede hovedsageligt login; v1.2.1 ændrer den faktiske navigation og das
 - Komponenttests kontrollerer menu-open, duty-featureflag, dialogåbning og loading-knapper; eksisterende create/edit/delete/undo-tests bevares.
 - Browser på /dashboard redirecter til /login. Ekstern unmanaged Supabase giver ingen test-session; autentificeret fuld dashboard/navigation/planner og reelle data er derfor ikke visuelt eller end-to-end verificeret.
 - WCAG AA er et mål, ikke en certificering. Fokus/reduced-motion og konkrete kontrolmål er kontrolleret; komplet kontrastaudit af alle legacy views/portals er ikke udført.
+
+
+## v1.3 — operationelle ugehandlinger
+
+| Før | Efter |
+|---|---|
+| Ugevalg og søgning uden fælles statusindblik | Ugens plan: opgaver, kladder, uden medarbejdertilknytning, opgaver med overlap |
+| Indikatorer uden handoff | Dashboard-link vælger samme ISO-uge og statusfilter på /planner |
+| Filtreret tom liste kaldt tom uge | Resultattal, ingen-match og samlet ryd-handling |
+| Dage foldet sammen selv når et issue vælges | Matching dage udvides; dag-navigation og Denne uge |
+| Beregning/queries gentaget per kort | Parent-week context og fallback for standalone kort |
+
+### Kontrakter
+- `summarizeWeek` modtager den fulde allerede autoriserede uge; aldrig den tekst-/medarbejderfiltrerede liste. `computeConflicts` forbliver eneste overlapregel. Label er **opgaver med overlap**, ikke antal konflikter/par.
+- `filterPlannerAssignments` kombinerer status, tekst, employee og dag med AND; postnummer er fortsat nærhedsrangering, ikke et geografisk opgavefilter.
+- `WeekOperationsStrip` er read-only: `onSelect` filtrerer eller navigerer, ingen skjulte mutationer. Neutral medarbejdertilknytning, ingen påstand om universelt krav eller automatisk driftsklarhed.
+- Linkformat: `plannerOperationsLink(week, isoYear, issue)`; parseren afviser ugyldig uge 53. Eksisterende localStorage for view og uge bevares.
+- `PlannerWeekDataProvider` omkring planner-content deler fuld uge og overlap; cards uden provider beholder eksisterende fallback. Availability bruger den ufiltrerede uge og eksisterende ferie/kursus/crossBusy-kilder.
+- Kalenderens lane-valg bevares; aktivt filter suppleres med åbnbar resultatliste, så uden-medarbejder-opgaver ikke forsvinder.
+- Alle nye mobilkontroller mindst 44px; filtre inline frem for sticky/overlay. Status bruger både label, tal og pressed-state; konfliktstatus ikke kun farve.
+
+```tsx
+const summary = useMemo(() => summarizeWeek(weekAssignments, employees, cars), [weekAssignments, employees, cars]);
+<WeekOperationsStrip summary={summary} week={selectedWeek} active={issue} onSelect={selectIssue} />
+```
+
+### QA-begrænsning
+111 automatiske tests er bestået; responsive header/status/dag-navigation-fixtures kontrolleret ved 360/390/768/1280/1440 i light/dark uden page-overflow. Fokus-ring/reduced-motion kontrolleret. Listeviews i fixtures er mockede; ikke autentificerede skærme og ikke før/efter-screenshots med live data. Ekstern Supabase-session er unmanaged; fuld indlogget planner/dashboard/CRUD/PWA og samlet WCAG 2.2 AA-certificering er ikke verificeret. Ingen deploy udført.

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/context/TranslationContext';
-import { useAuth } from '@/context/AuthContext';
+import { usePermissions } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { Assignment } from '@/types/assignment';
 import { Edit3, Trash2, Eye, Copy, Monitor, Loader2 } from 'lucide-react';
@@ -25,11 +25,11 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
   operationState = null
 }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { canEdit, canPublishTasks } = usePermissions();
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
 
-  const canPerformActions = user?.role === 'administrator' || user?.role === 'skadeleder' || user?.role === 'super_admin';
-  const canShowOnScreen = user?.role === 'administrator' || user?.role === 'skadeleder' || user?.role === 'super_admin';
+  const canPerformActions = canEdit || canPublishTasks;
+  const canShowOnScreen = canPublishTasks;
 
   if (!canPerformActions) {
     return null;
@@ -102,7 +102,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
 
   return (
     <div className="flex gap-1">
-      <Button 
+      {canEdit && <Button 
         variant="ghost" 
         size="sm" 
         onClick={handleEditClick}
@@ -116,9 +116,9 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         ) : (
           <Edit3 className="h-3 w-3" />
         )}
-      </Button>
+      </Button>}
       
-      <Button 
+      {canEdit && <Button 
         variant="ghost" 
         size="sm" 
         onClick={handleCopyClick}
@@ -128,9 +128,9 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         aria-label={t('planner.copyAssignment')}
       >
         <Copy className="h-3 w-3" />
-      </Button>
+      </Button>}
       
-      {!assignment.published && (
+      {canPublishTasks && !assignment.published && (
         <Button 
           variant="ghost" 
           size="sm" 
@@ -162,7 +162,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         </Button>
       )}
       
-      <Button 
+      {canEdit && <Button 
         variant="ghost" 
         size="sm" 
         onClick={handleDeleteClick}
@@ -176,7 +176,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         ) : (
           <Trash2 className="h-3 w-3" />
         )}
-      </Button>
+      </Button>}
     </div>
   );
 };

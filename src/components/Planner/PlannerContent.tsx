@@ -17,12 +17,18 @@ import { useVacations } from '@/hooks/useVacations';
 import { useCrossSubDeptBusy } from '@/hooks/useCrossSubDeptBusy';
 const AssignmentDetailsDialog = lazy(() => import('@/components/Dashboard/AssignmentDetailsDialog'));
 import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
+import { todayLocalYYYYMMDD } from '@/utils/dateUtils';
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
   /** All assignments already loaded by PlannerPage — used for case series lookups. */
   allAssignments?: Assignment[];
+  resourceAssignments?: Assignment[];
+  filtersActive?: boolean;
+  onClearFilters?: () => void;
+  dayFilter?: string;
+  onDayFilter?: (day: string) => void;
   operationStates: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
@@ -52,6 +58,11 @@ interface PlannerContentProps {
 const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
   allAssignments = [],
+  resourceAssignments,
+  filtersActive = false,
+  onClearFilters,
+  dayFilter = '',
+  onDayFilter,
   operationStates = {},
   expandedDays,
   onToggleExpansion,
@@ -105,11 +116,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       if (import.meta.env.DEV) console.error("Missing week dates in PlannerContent");
       return [];
     }
-    return getAllWeekDays({
-      start: weekDates.start,
-      end: weekDates.end
-    });
-  }, [weekDates]);
+    const days = getAllWeekDays({ start: weekDates.start, end: weekDates.end });
+    return days.filter(day => (!dayFilter || day === dayFilter) && (!filtersActive || weekAssignments.some(a => a.date === day))); 
+  }, [weekDates, dayFilter, filtersActive, weekAssignments]);
 
   // Determine current date to split past and current/future days
   const today = useMemo(() => {
@@ -148,7 +157,15 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   const hasNoAssignments = Array.isArray(weekAssignments) && weekAssignments.length === 0;
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-4 pb-4" id="planner-results">
+      {onDayFilter && <nav aria-label={t('planner.selectDate')} className="flex gap-2 overflow-x-auto pb-2">
+        <Button variant={!dayFilter ? 'secondary' : 'outline'} className="min-h-11 shrink-0" aria-pressed={!dayFilter} onClick={() => onDayFilter('')}>{t('planner.operationsOverview.allDays')}</Button>
+        {getAllWeekDays(weekDates).map(day => <Button key={day} aria-label={`${t('planner.selectDate')} ${day}`} variant={dayFilter === day ? 'secondary' : 'outline'} aria-pressed={dayFilter === day} className="min-h-11 shrink-0 tabular-nums" onClick={() => onDayFilter(day)}>
+          {parseISO(day).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB', { weekday: 'short', day: 'numeric' })}
+          {day === todayLocalYYYYMMDD() && <span className="text-xs">· {t('planner.today')}</span>}
+        </Button>)}
+      </nav>}
+      {hasNoAssignments && filtersActive && <div role="status" className="border-y border-border py-6 text-center space-y-2"><p>{t('planner.operationsOverview.noMatch')}</p><Button variant="outline" className="min-h-11" onClick={onClearFilters}>{t('planner.filters.clearAll')}</Button></div>}
       {/* Unassigned Resources */}
       {(canEdit || canPublishTasks) && (
         /* min-height reserves the collapsed card's space so the week list below
@@ -156,7 +173,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         <div className="min-h-[72px]">
           <PlannerWidgetErrorBoundary label="Unassigned Resources">
             <UnassignedResourcesSection
-              assignments={weekAssignments}
+              assignments={resourceAssignments ?? weekAssignments}
               employees={employees}
               cars={cars}
               vacations={vacations}
@@ -174,7 +191,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             variant="outline"
             size="sm"
             onClick={onToggleAllExpanded}
-            className="h-7 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+            className="min-h-11 px-3 text-xs"
           >
             <ChevronsUpDown className="h-3.5 w-3.5 mr-1.5" />
             {allExpanded
@@ -185,17 +202,20 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
       )}
 
       {/* Show empty state message if no assignments, but still render the days */}
-      {hasNoAssignments && viewMode !== 'calendar' && (
+      {hasNoAssignments && !filtersActive && viewMode !== 'calendar' && (
         <div className="text-center py-8 text-muted-foreground">
           {t("planner.noAssignmentsWeek")}
         </div>
       )}
       
+      {viewMode === 'calendar' && filtersActive && weekAssignments.length > 0 && <section className="divide-y divide-border" aria-label={t('planner.assignments')}>
+        {weekAssignments.map(a => <Button key={a.id} variant="ghost" className="flex min-h-11 h-auto w-full justify-start whitespace-normal text-left" onClick={() => setDetailsDialogAssignment(a)}><span className="tabular-nums text-xs text-muted-foreground">{a.date} · {a.fromTime.slice(0, 5)}</span><span>{a.title}</span></Button>)}
+      </section>}
       {/* Render view based on viewMode */}
       {viewMode === 'calendar' ? (
         <PlannerWidgetErrorBoundary label="Calendar">
           <PlannerCalendarView
-            dates={weekDateStrings}
+            dates={weekDateStrings.length ? weekDateStrings : getAllWeekDays(weekDates)}
             assignments={weekAssignments}
             employees={employees}
             vacations={vacations || []}
@@ -219,8 +239,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
               onPublishDay={onPublishDay}
               onEditAssignment={onEditAssignment}
               onDeleteAssignment={onDeleteAssignment}
-              onPublishAssignment={onPublishAssignment}
-              onCopyAssignment={onCopyAssignment}
+              onPublishAssignment={canPublishTasks ? onPublishAssignment : undefined}
+              onCopyAssignment={canEdit ? onCopyAssignment : undefined}
               onViewAssignmentDetails={setDetailsDialogAssignment}
               canEdit={canEdit}
               canPublishTasks={canPublishTasks}
@@ -238,8 +258,8 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
               onPublishDay={onPublishDay}
               onEditAssignment={onEditAssignment}
               onDeleteAssignment={onDeleteAssignment}
-              onPublishAssignment={onPublishAssignment}
-              onCopyAssignment={onCopyAssignment}
+              onPublishAssignment={canPublishTasks ? onPublishAssignment : undefined}
+              onCopyAssignment={canEdit ? onCopyAssignment : undefined}
               onViewAssignmentDetails={setDetailsDialogAssignment}
               canEdit={canEdit}
               canPublishTasks={canPublishTasks}
@@ -253,15 +273,15 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             <CurrentAndFutureDays 
               dates={currentAndFutureDates || []}
               groupedAssignments={groupedAssignments || {}}
-              allAssignments={weekAssignments}
+              allAssignments={resourceAssignments ?? weekAssignments}
               operationStates={operationStates}
               expandedDays={expandedDays}
               onToggleExpansion={onToggleExpansion}
               onPublishDay={onPublishDay}
               onEditAssignment={onEditAssignment}
               onDeleteAssignment={onDeleteAssignment}
-              onPublishAssignment={onPublishAssignment}
-              onCopyAssignment={onCopyAssignment}
+              onPublishAssignment={canPublishTasks ? onPublishAssignment : undefined}
+              onCopyAssignment={canEdit ? onCopyAssignment : undefined}
               onViewDetails={setDetailsDialogAssignment}
               onCreateAssignment={onCreateAssignment}
               onCopyDayFromYesterday={onCopyDayFromYesterday}
@@ -279,15 +299,15 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             <PastAssignments 
               pastDates={pastDates || []}
               groupedAssignments={groupedAssignments || {}}
-              allAssignments={weekAssignments}
+              allAssignments={resourceAssignments ?? weekAssignments}
               operationStates={operationStates}
               expandedDays={expandedDays}
               onToggleExpansion={onToggleExpansion}
               onPublishDay={onPublishDay}
               onEditAssignment={onEditAssignment}
               onDeleteAssignment={onDeleteAssignment}
-              onPublishAssignment={onPublishAssignment}
-              onCopyAssignment={onCopyAssignment}
+              onPublishAssignment={canPublishTasks ? onPublishAssignment : undefined}
+              onCopyAssignment={canEdit ? onCopyAssignment : undefined}
               onViewDetails={setDetailsDialogAssignment}
               canEdit={canEdit}
               canPublishTasks={canPublishTasks}

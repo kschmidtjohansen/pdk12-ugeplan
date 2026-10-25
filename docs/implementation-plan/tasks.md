@@ -1,3 +1,13 @@
+## PolyPlan v1.3 (2026-10-25)
+- [x] Fælles uge-/konfliktberegning og validerede ISO-uge deep links.
+- [x] Handlingsbar statusstrip og kombinerede filtre i alle fire planner views.
+- [x] Denne uge, dag-navigation, aktive filtre/resultattal og tydeligt ingen-match.
+- [x] Rollebetingede dashboard-links med samme uge/filter; personligt servicemedarbejder-dashboard bevaret.
+- [x] Genbrug af ugekonflikter/medarbejdere i kort med standalone fallback.
+- [x] 111 tests bestået, lint 0 fejl, automatisk preview typecheck/build OK.
+- [x] Fixtures på 360/390/768/1280/1440 i begge temaer; ingen deploy eller backendændringer.
+- [ ] Fuld indlogget E2E/visuel kontrol og komplet a11y-audit — ekstern unmanaged session giver ikke autentificeret testadgang.
+
 ## PolyPlan v1.2.1 (2026-10-25)
 - [x] Expanded navigation, afdeling, arbejdsheader og bottom-nav.
 - [x] Reelt omkomponeret velkomst, cockpit, KPI, tidslinje, ugeoversigt og aktivitetsrail.

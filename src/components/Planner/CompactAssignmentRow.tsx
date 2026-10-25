@@ -11,6 +11,9 @@ import ConflictBadge from './ConflictBadge';
 import { useAssignmentConflicts } from '@/hooks/useAssignmentConflicts';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useEmployees } from '@/hooks/useEmployees';
+import { usePlannerWeekData } from '@/context/PlannerWeekDataContext';
+import type { Employee } from '@/types/employee';
+import type { AssignmentConflict } from '@/utils/assignmentConflicts';
 import { cn } from '@/lib/utils';
 import { getRoleBadgeClass } from '@/utils/roleColors';
 import { getEffectiveRole } from '@/utils/roleHierarchy';
@@ -29,7 +32,7 @@ interface CompactAssignmentRowProps {
   operationState?: 'publishing' | 'deleting' | 'updating' | null;
 }
 
-const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
+const CompactAssignmentRowBody: React.FC<CompactAssignmentRowProps & { allAssignments: Assignment[]; employees: Employee[]; conflicts: AssignmentConflict[] }> = ({
   assignment,
   cars,
   canEdit,
@@ -38,13 +41,9 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   onPublish,
   onCopy,
   onViewDetails,
-  operationState
+  operationState, allAssignments, employees, conflicts
 }) => {
   const { t } = useTranslation();
-  const { assignments: allAssignments } = useAssignments();
-  const { employees } = useEmployees();
-  const { getConflicts } = useAssignmentConflicts(allAssignments);
-  const conflicts = getConflicts(assignment.id);
   const hasConflict = conflicts.length > 0;
   
   // Get car names
@@ -104,6 +103,9 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
             isLoading && 'opacity-60'
           )}
           onClick={onViewDetails}
+          tabIndex={0}
+          aria-busy={isLoading}
+          onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onViewDetails(); } }}
         >
       {/* Time + status dot */}
       <td className="py-2.5 px-3 text-sm font-medium whitespace-nowrap text-foreground">
@@ -209,7 +211,7 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
       {/* Actions - visible on hover */}
       <td className="py-2.5 px-3 text-right">
         <div 
-          className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(pointer:coarse)]:opacity-100 transition-opacity flex items-center justify-end gap-0.5"
+          className="flex items-center justify-end gap-0.5"
           onClick={(e) => e.stopPropagation()}
         >
           {canEdit && (
@@ -267,14 +269,14 @@ const CompactAssignmentRow: React.FC<CompactAssignmentRowProps> = ({
   );
 };
 
-/**
- * Row-level memoization. Parent sections create fresh inline callbacks on every
- * render, so we compare the data props only — the callbacks always close over
- * the same assignment id.
- */
-export default React.memo(CompactAssignmentRow, (prev, next) => (
-  prev.assignment === next.assignment &&
-  prev.cars === next.cars &&
-  prev.canEdit === next.canEdit &&
-  prev.operationState === next.operationState
-));
+function StandaloneCompactRow(props: CompactAssignmentRowProps) {
+  const { assignments } = useAssignments();
+  const { employees } = useEmployees();
+  const { getConflicts } = useAssignmentConflicts(assignments);
+  return <CompactAssignmentRowBody {...props} allAssignments={assignments} employees={employees} conflicts={getConflicts(props.assignment.id)} />;
+}
+function CompactAssignmentRow(props: CompactAssignmentRowProps) {
+  const shared = usePlannerWeekData();
+  return shared ? <CompactAssignmentRowBody {...props} allAssignments={shared.assignments} employees={shared.employees} conflicts={shared.summary.conflictMap.get(props.assignment.id) || []} /> : <StandaloneCompactRow {...props} />;
+}
+export default React.memo(CompactAssignmentRow);

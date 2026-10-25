@@ -25,8 +25,14 @@ import { getWeekDates, getAllWeekDays } from '@/utils/dates';
 import SubDepartmentQuickSwitcher from '@/components/shared/SubDepartmentQuickSwitcher';
 import PlannerFilterBar from '@/components/Planner/PlannerFilterBar';
 import { PlannerActionsProvider } from '@/context/PlannerActionsContext';
+import { useSearchParams } from 'react-router-dom';
+import WeekOperationsStrip from '@/components/Planner/WeekOperationsStrip';
+import { assignmentsInWeek, summarizeWeek, filterPlannerAssignments, readPlannerLocation, type OperationFilter } from '@/utils/plannerOperations';
+import { PlannerWeekDataProvider } from '@/context/PlannerWeekDataContext';
+import { todayLocalYYYYMMDD } from '@/utils/dateUtils';
 import { toast as sonnerToast } from 'sonner';
 
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { setPlannerWeek } from '@/stores/plannerWeekStore';
 const BulkAssignEmployeeDialog = lazy(() => import('@/components/Planner/BulkAssignEmployeeDialog'));
@@ -60,6 +66,10 @@ const PlannerPage: React.FC = () => {
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
 
+  const [urlParams, setUrlParams] = useSearchParams();
+  const [issueFilter, setIssueFilter] = useState<OperationFilter>(() => readPlannerLocation(urlParams).issue);
+  const [dayFilter, setDayFilter] = useState('');
+
   // Planner filters: employee multi-select + postcode proximity lookup
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
   const [filterPostcode, setFilterPostcode] = useState('');
@@ -89,11 +99,11 @@ const PlannerPage: React.FC = () => {
   // Simplified planner state management using ISO week numbers with localStorage persistence
   const [selectedWeek, setSelectedWeek] = useState(() => {
     const saved = localStorage.getItem('plannerSelectedWeek');
-    return saved ? parseInt(saved, 10) : getISOWeek(new Date());
+    return readPlannerLocation(urlParams).week ?? (saved ? parseInt(saved, 10) : getISOWeek(new Date()));
   });
   const [selectedYear, setSelectedYear] = useState(() => {
     const saved = localStorage.getItem('plannerSelectedYear');
-    return saved ? parseInt(saved, 10) : getISOWeekYear(new Date());
+    return readPlannerLocation(urlParams).year ?? (saved ? parseInt(saved, 10) : getISOWeekYear(new Date()));
   });
   
   // View mode state with localStorage persistence
@@ -159,13 +169,13 @@ const PlannerPage: React.FC = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState<Assignment | null>(null);
-  const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDay, setSelectedDay] = useState(todayLocalYYYYMMDD());
   const [seriesAction, setSeriesAction] = useState<{ assignment: Assignment; mode: 'edit' | 'delete' } | null>(null);
   const [editMode, setEditMode] = useState<'single' | 'series' | null>(null);
   const [formData, setFormData] = useState<Partial<Assignment>>({
     title: '',
     description: '',
-    date: new Date().toISOString().split('T')[0],
+    date: todayLocalYYYYMMDD(),
     fromTime: '08:00',
     toTime: '16:00',
     location: '',
@@ -186,30 +196,40 @@ const PlannerPage: React.FC = () => {
     }
   }, [allExpanded, weekDates]);
 
-  // Filter assignments by week using cheap YYYY-MM-DD lexicographic compare.
-  // Avoids per-row Date allocation + getISOWeek/getISOWeekYear computation.
-  const weekAssignments = useMemo(() => {
-    if (!assignments || assignments.length === 0) return [];
-    const { startStr, endStr } = weekDates;
-    return assignments.filter(assignment => {
-      const d = assignment.date;
-      return typeof d === 'string' && d >= startStr && d <= endStr;
-    });
-  }, [assignments, weekDates]);
+  const weekAssignments = useMemo(() => assignmentsInWeek(assignments || [], selectedWeek, selectedYear), [assignments, selectedWeek, selectedYear]);
+  const weekSummary = useMemo(() => summarizeWeek(weekAssignments, employees, cars), [weekAssignments, employees, cars]);
+  const sharedWeekData = useMemo(() => ({ assignments: weekAssignments, employees, summary: weekSummary }), [weekAssignments, employees, weekSummary]);
 
+  useEffect(() => {
+    const location = readPlannerLocation(urlParams);
+    if (location.week && location.year) { setSelectedWeek(location.week); setSelectedYear(location.year); }
+    setIssueFilter(location.issue);
+    setDayFilter('');
+  }, [urlParams]);
+
+  const selectIssue = useCallback((issue: OperationFilter) => {
+    setIssueFilter(issue);
+    setDayFilter('');
+    setUrlParams(prev => { const next = new URLSearchParams(prev); next.set('week', String(selectedWeek)); next.set('year', String(selectedYear)); next.set('issue', issue); return next; }, { replace: true });
+  }, [setUrlParams, selectedWeek, selectedYear]);
+  const clearFilters = () => { selectIssue('all'); setSearchQuery(''); setSelectedEmployeeIds([]); setFilterPostcode(''); setDayFilter(''); };
+  const filtersActive = issueFilter !== 'all' || !!searchQuery.trim() || selectedEmployeeIds.length > 0 || !!dayFilter;
+  const navigateWeek = useCallback((date: Date) => {
+    const week = getISOWeek(date), year = getISOWeekYear(date);
+    setSelectedWeek(week); setSelectedYear(year); setDayFilter('');
+    setUrlParams(prev => { const next = new URLSearchParams(prev); next.set('week', String(week)); next.set('year', String(year)); return next; }, { replace: true });
+  }, [setUrlParams]);
   // Filter assignments by search query
   // Handlers — reuse memoized weekDates
   const handlePreviousWeek = useCallback(() => {
     const prevWeekStart = addWeeks(weekDates.start, -1);
-    setSelectedWeek(getISOWeek(prevWeekStart));
-    setSelectedYear(getISOWeekYear(prevWeekStart));
-  }, [weekDates]);
+    navigateWeek(prevWeekStart);
+  }, [weekDates, navigateWeek]);
 
   const handleNextWeek = useCallback(() => {
     const nextWeekStart = addWeeks(weekDates.start, 1);
-    setSelectedWeek(getISOWeek(nextWeekStart));
-    setSelectedYear(getISOWeekYear(nextWeekStart));
-  }, [weekDates]);
+    navigateWeek(nextWeekStart);
+  }, [weekDates, navigateWeek]);
 
   const { handlePrefetchAssignments, handleCancelPrefetch } = useAdjacentWeekPrefetch();
 
@@ -280,7 +300,7 @@ const PlannerPage: React.FC = () => {
         setFormData({
           title: '',
           description: '',
-          date: new Date().toISOString().split('T')[0],
+          date: todayLocalYYYYMMDD(),
           fromTime: '08:00',
           toTime: '16:00',
           location: '',
@@ -296,7 +316,7 @@ const PlannerPage: React.FC = () => {
         setFormData({
           title: '',
           description: '',
-          date: new Date().toISOString().split('T')[0],
+          date: todayLocalYYYYMMDD(),
           fromTime: '08:00',
           toTime: '16:00',
           location: '',
@@ -313,7 +333,7 @@ const PlannerPage: React.FC = () => {
 
   const handleCopyAssignment = useCallback((assignment: Assignment) => {
     setCurrentAssignment(null);
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayLocalYYYYMMDD();
     setSelectedDay(today);
     setFormData({
       ...assignment,
@@ -331,47 +351,21 @@ const PlannerPage: React.FC = () => {
 
   const handleCopyDayFromYesterday = useCopyDayFromYesterday(assignments, vacations, createAssignment);
 
-  // Quick search index: employee id -> lowercase name (built once per employee list)
-  const employeeNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    (employees || []).forEach(e => map.set(e.id, (e.name || '').toLowerCase()));
-    return map;
-  }, [employees]);
-
-  const sortedWeekAssignments = useMemo(() => {
-    if (!weekAssignments) return [];
-    // Employee filter: only keep assignments where at least one selected employee is assigned
-    let base = selectedEmployeeIds.length > 0
-      ? weekAssignments.filter(a => (a.employees || []).some(id => selectedEmployeeIds.includes(id)))
-      : weekAssignments;
-
-    // Quick search across case number, title, address, city, description and employee names
-    const q = searchQuery.trim().toLowerCase();
-    if (q) {
-      base = base.filter(a => {
-        if ((a.case_number || '').toLowerCase().includes(q)) return true;
-        if ((a.title || '').toLowerCase().includes(q)) return true;
-        if ((a.location || '').toLowerCase().includes(q)) return true;
-        if ((a.city || '').toLowerCase().includes(q)) return true;
-        if ((a.zip_code || '').toLowerCase().includes(q)) return true;
-        if ((a.description || '').toLowerCase().includes(q)) return true;
-        return (a.employees || []).some(id => (employeeNameById.get(id) || '').includes(q));
-      });
-    }
-
-    return [...base].sort((a, b) => {
-      if (a.date !== b.date) {
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      }
-      return a.fromTime.localeCompare(b.fromTime);
-    });
-  }, [weekAssignments, selectedEmployeeIds, searchQuery, employeeNameById]);
-
-
+  const sortedWeekAssignments = useMemo(() => filterPlannerAssignments(weekAssignments, weekSummary,
+    { issue: issueFilter, query: searchQuery, employeeIds: selectedEmployeeIds, day: dayFilter }, employees),
+    [weekAssignments, weekSummary, issueFilter, searchQuery, selectedEmployeeIds, dayFilter, employees]);
+  // A selected issue reveals its matching days in every view, including past days.
+  const visibleExpandedDays = useMemo(() => filtersActive
+    ? { ...expandedDays, ...Object.fromEntries(sortedWeekAssignments.map(a => [a.date, true])) }
+    : expandedDays, [expandedDays, filtersActive, sortedWeekAssignments]);
   // Define handlers that use the optimized hooks
   const handlePublishDay = useCallback(async (date: string) => {
-    await publishAssignmentsByDate(date);
-  }, [publishAssignmentsByDate]);
+    if (filtersActive) {
+      await publishAssignmentsByIds(sortedWeekAssignments.filter(a => a.date === date && !a.published).map(a => a.id));
+    } else {
+      await publishAssignmentsByDate(date);
+    }
+  }, [publishAssignmentsByDate, publishAssignmentsByIds, filtersActive, sortedWeekAssignments]);
 
   // Quick move: shift a single assignment N days with an undo toast
   const handleQuickMove = useCallback(async (assignment: Assignment, days: number) => {
@@ -474,7 +468,7 @@ const PlannerPage: React.FC = () => {
       setEditMode('single');
       openEditDialogDirect({ ...assignment, groupId: undefined });
     }
-  }, [seriesAction, deleteAssignment, detachFromGroup]);
+  }, [seriesAction, deleteAssignment, detachFromGroup, openEditDialogDirect]);
 
   const handleSeriesEntireSeries = useCallback(async () => {
     if (!seriesAction) return;
@@ -495,7 +489,7 @@ const PlannerPage: React.FC = () => {
       setEditMode('series');
       openEditDialogDirect({ ...assignment, groupId: groupId || assignment.groupId });
     }
-  }, [seriesAction, deleteAssignmentsByGroupId, deleteAssignment, ensureGroupId]);
+  }, [seriesAction, deleteAssignmentsByGroupId, deleteAssignment, ensureGroupId, openEditDialogDirect]);
 
   const handlePublishAssignment = useCallback(async (id: string) => {
     await publishAssignment(id);
@@ -534,7 +528,7 @@ const PlannerPage: React.FC = () => {
 
 
   const handleShowOnScreen = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayLocalYYYYMMDD();
     const params = new URLSearchParams({
       date: today,
       t: String(Date.now()),
@@ -554,17 +548,6 @@ const PlannerPage: React.FC = () => {
   // The header renders immediately and only the content area shows the skeleton.
 
   
-  if (error) {
-    return (
-      <div className="min-h-dvh w-full bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-destructive mb-2">{t('common.error')}</h2>
-          <p className="text-muted-foreground">{typeof error === 'string' ? error : t('ui.unexpectedError')}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <DataFetchErrorBoundary>
     <div className="min-h-dvh w-full bg-background">
@@ -578,6 +561,7 @@ const PlannerPage: React.FC = () => {
           setViewMode={setViewMode}
           handlePreviousWeek={handlePreviousWeek}
           handleNextWeek={handleNextWeek}
+          onCurrentWeek={() => navigateWeek(new Date())}
           handlePrefetchAssignments={handlePrefetchAssignments}
           handleCancelPrefetch={handleCancelPrefetch}
           handleShowOnScreen={handleShowOnScreen}
@@ -586,6 +570,8 @@ const PlannerPage: React.FC = () => {
 
         {/* Quick sub-department switch, so users don't have to go via the dashboard */}
         <SubDepartmentQuickSwitcher />
+
+        <WeekOperationsStrip summary={weekSummary} week={selectedWeek} active={issueFilter} onSelect={selectIssue} loading={loading} error={!!error} />
 
         {/* Filters: quick search + employee multi-select + postcode proximity lookup */}
         <PlannerFilterBar
@@ -599,21 +585,30 @@ const PlannerPage: React.FC = () => {
           showProximity={canCreate || canPublishTasks}
           query={searchQuery}
           onQueryChange={setSearchQuery}
+          onClearAll={clearFilters}
+          additionalFiltersActive={issueFilter !== 'all' || !!dayFilter}
+          resultCount={sortedWeekAssignments.length}
+          totalCount={weekAssignments.length}
         />
 
         {/* Main Content — skeleton reserves the same vertical space as the week list */}
 
-        {loading ? (
+        {error ? (<div role="alert" className="border border-destructive p-4"><p>{t('planner.operationsOverview.error')}</p><Button variant="outline" onClick={() => refetch()}>{t('planner.operationsOverview.retry')}</Button></div>) : loading ? (
           <div aria-label={`${t('common.loading')}...`}>
             <ListSkeleton rowCount={5} rowHeight={168} variant="card" className="p-0 sm:p-0" />
           </div>
         ) : (
-          <PlannerActionsProvider value={plannerActions}>
+          <PlannerWeekDataProvider value={sharedWeekData}><PlannerActionsProvider value={plannerActions}>
             <PlannerContent 
               weekAssignments={sortedWeekAssignments} 
               allAssignments={assignments}
               operationStates={operationStates}
-              expandedDays={expandedDays}
+              expandedDays={visibleExpandedDays}
+              resourceAssignments={weekAssignments}
+              filtersActive={filtersActive}
+              onClearFilters={clearFilters}
+              dayFilter={dayFilter}
+              onDayFilter={setDayFilter}
               onToggleExpansion={handleToggleExpansion}
               onEditAssignment={handleOpenEditDialog} 
               onDeleteAssignment={handleDeleteAssignment} 
@@ -636,7 +631,7 @@ const PlannerPage: React.FC = () => {
               employees={employees || []}
               cars={cars || []}
             />
-          </PlannerActionsProvider>
+          </PlannerActionsProvider></PlannerWeekDataProvider>
         )}
 
 
