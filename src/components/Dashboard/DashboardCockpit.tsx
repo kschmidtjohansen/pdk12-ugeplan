@@ -118,18 +118,18 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
       {/* RIGHT — sticky cockpit panel (1/3) */}
       {isMobile ? (
         <Collapsible open={moreOpen} onOpenChange={setMoreOpen}>
-          <CollapsibleTrigger className="flex min-h-11 w-full items-center justify-between border-y border-border py-3 text-sm font-semibold text-foreground">
+          <CollapsibleTrigger className="flex min-h-11 w-full items-center justify-between rounded-lg border border-border bg-muted px-3 py-3 text-sm font-semibold text-foreground">
             {t('ui.moreKpisDutiesVacations')}
             <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-3 space-y-4">
+          <CollapsibleContent className="mt-4 space-y-4">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
         <UpcomingVacationsWidget vacations={vacations} />
         <TodayGuardsWidget />
           </CollapsibleContent>
         </Collapsible>
       ) : (
-      <aside className="space-y-6 border-t border-border pt-4 xl:border-t-0 xl:border-l xl:pl-5 xl:pt-0 xl:sticky xl:top-36 xl:self-start">
+      <aside className="space-y-4 pt-4 xl:pt-0 xl:sticky xl:top-36 xl:self-start">
         {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
         <UpcomingVacationsWidget vacations={vacations} />
         <TodayGuardsWidget />

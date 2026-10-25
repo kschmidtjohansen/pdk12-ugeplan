@@ -1,83 +1,64 @@
 import type { AppUser as User } from '@/context/auth/types';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
-import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from '@/context/TranslationContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { sortNotifications } from '@/utils/notifications';
 
 export const useNotificationFetching = (user: User | null) => {
-  const [notifications, setNotifications] = useState<NotificationType[]>([]);
-  const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
-  const { toast } = useToast();
-  
-  // Safely get translation context, return null if not available
-  let t: ((key: string) => string) | null = null;
-  try {
-    const translation = useTranslation();
-    t = translation.t;
-  } catch (error) {
-    // Translation provider not ready yet, this is fine
-    t = null;
-  }
-
-  // Fetch notifications from Supabase
+  const userId = user?.id;
+  const client = useQueryClient();
+  const [accountRows, setAccountRows] = useState<{ userId?: string; rows: NotificationType[] }>({ rows: [] });
+  const currentUser = useRef(userId);
+  currentUser.current = userId;
+  const generation = useRef(0);
+  const [loading, setLoading] = useState(!!userId);
+  const [error, setError] = useState(false);
+  const notifications = accountRows.userId === userId ? accountRows.rows : [];
+  const setNotifications = useCallback((value: NotificationType[] | ((prev: NotificationType[]) => NotificationType[])) => {
+    if (currentUser.current !== userId) return;
+    setAccountRows(prev => ({ userId, rows: typeof value === 'function' ? value(prev.userId === userId ? prev.rows : []) : value }));
+  }, [userId]);
+  // Count is derived from the same rows, never incremented separately by duplicate events.
+  const unreadCount = notifications.filter(n => !n.read).length;
+  const setUnreadCount = useCallback((_value: number | ((prev: number) => number)) => {}, []);
   const fetchNotifications = useCallback(async () => {
-    if (!user) {
-      if (import.meta.env.DEV) console.log('No user found, skipping notification fetch');
-      setLoading(false);
-      return;
-    }
-    
+    const version = ++generation.current;
+    if (!userId) { setNotifications([]); setLoading(false); return; }
+    setLoading(true);
     try {
-      setLoading(true);
-      if (import.meta.env.DEV) console.log(`Fetching notifications for user ${user.id}`);
-      
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        if (import.meta.env.DEV) console.error('Error fetching notifications:', error);
-        throw error;
+      const rows: NotificationType[] = [];
+      for (let offset = 0; ; offset += 500) {
+        const { data, error } = await supabase.from('notifications').select('*')
+          .eq('user_id', userId).order('created_at', { ascending: false }).order('id', { ascending: false }).range(offset, offset + 499);
+        if (error) throw error;
+        rows.push(...(data ?? []).map(item => ({ id: item.id, type: item.type, title: item.title,
+          message: item.message, link: item.link || undefined, read: item.read, date: new Date(item.created_at), targetUserId: userId })));
+        if ((data?.length ?? 0) < 500) break;
+        if (currentUser.current !== userId || version !== generation.current) return;
       }
-      
-      if (data) {
-        if (import.meta.env.DEV) console.log(`Fetched ${data.length} notifications`);
-        
-        const formattedNotifications: NotificationType[] = data.map(item => ({
-          id: item.id,
-          type: item.type,
-          title: item.title,
-          message: item.message,
-          link: item.link || undefined,
-          read: item.read,
-          date: new Date(item.created_at)
-        }));
-        
-        // Sort notifications with unread first, then by date
-        formattedNotifications.sort(sortNotifications);
-        
-        setNotifications(formattedNotifications);
-        setUnreadCount(formattedNotifications.filter(n => !n.read).length);
-      }
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Error fetching notifications:', err);
+      if (currentUser.current !== userId || version !== generation.current) return;
+      setNotifications(rows.sort(sortNotifications));
+      setError(false);
+      void client.invalidateQueries({ queryKey: ['notifications', 'infinite', userId] });
+    } catch {
+      if (currentUser.current === userId && version === generation.current) setError(true);
     } finally {
-      setLoading(false);
+      if (currentUser.current === userId && version === generation.current) setLoading(false);
     }
-  }, [user, toast, t]);
-
-  return {
-    notifications,
-    setNotifications,
-    unreadCount,
-    setUnreadCount,
-    loading,
-    fetchNotifications
-  };
+  }, [userId, setNotifications, client]);
+  useEffect(() => {
+    setNotifications([]);
+    void fetchNotifications();
+    const wake = () => { if (document.visibilityState === 'visible') void fetchNotifications(); };
+    window.addEventListener('focus', wake);
+    window.addEventListener('online', wake);
+    document.addEventListener('visibilitychange', wake);
+    // Bounded visible-tab catch-up covers missed reconnect DELETE/UPDATE events too.
+    const timer = window.setInterval(wake, 300_000);
+    return () => { ++generation.current; clearInterval(timer); window.removeEventListener('focus', wake);
+      window.removeEventListener('online', wake); document.removeEventListener('visibilitychange', wake); };
+  }, [fetchNotifications, setNotifications]);
+  return { notifications, setNotifications, unreadCount, setUnreadCount, loading, error, fetchNotifications };
 };

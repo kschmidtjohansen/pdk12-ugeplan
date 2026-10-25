@@ -1,3 +1,14 @@
+## 2026-10-25 – PolyPlan v1.4: notifikationer og dashboardopdeling (client implementation; server follow-up outstanding)
+
+- public/push-sw.js: exact old-endpoint token only, HTTP/updated validation, transactional IndexedDB rotation retaining user owner and safe internal notification links. Existing source already sent a token, but unsafe latest-token fallback was removed.
+- src/hooks/usePushNotifications.ts: status on only after authenticated persistence and IDB write; recovery on focus/online/auth, per-account opt-out, serialized device work and account-switch/sign-out guards. Test response must contain accepted pushes, not merely no transport error.
+- src/hooks/notifications/{notificationFetching,notificationRealtime,notificationActions,notificationCreate}.ts and useNotifications/NotificationContext: initial account-scoped fetch, paginated exact unread count, catch-up and dedupe, own-user mutation filters, stale-account response guards and drawer invalidation.
+- NotificationsDrawer + notificationDelivery: validated internal links, paginated dedupe, retry on load errors and accessible row actions. PushNotificationCard/NotificationPreferencesDialog provide recipient diagnostics; BroadcastNotification/DeliveryStatus and da/en admin translations distinguish inbox creation from provider acceptance; testpush restricted to existing admin/super_admin permissions and not demo.
+- DashboardCockpit, CompactKpiStack, UpcomingVacationsWidget and TodayGuardsWidget: quiet info/warning/success surfaces, accent borders and 16px spacing; preserved handlers and data. Light/dark fixtures at 360/390/768/1280 without overflow; keyboard KPI focus verified.
+- QA: npm test 125/125 passed (14 new); affected hook tests rerun 7/7 passed after final cleanup. npm run lint: 0 errors, 172 warnings. Automated preview typecheck/build latest entry build OK; manual typecheck/build not run (platform-managed).
+- Read-only external DB audit confirms notification INSERT trigger, pg_net, Realtime and configured URL/trigger credential; project VAPID and trigger secret names present. Deployed gateway settings, key pairing and phone display remain unverified. No real push, data changes, migrations, Edge edits/deployment or publishing.
+- Remaining: send-push preference lookup fail-open on query error, durable retry/idempotency, gateway verification and physical/authenticated E2E; docs/operations/push-delivery.md contains exact checks. Priority C module finish not performed, A+B prioritized.
+
 ## 2026-10-25 – PolyPlan v1.3: operationelt overblik og ugeplanlægning
 
 - Baseline verificeret: d875cceb0150c5a084c5117b132dc6aea62390f3. Frontend-only; ingen deploy, DB-, RLS-, migration-, Edge Function- eller loginændringer.

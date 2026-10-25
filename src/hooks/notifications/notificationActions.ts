@@ -1,7 +1,8 @@
 import type { AppUser as User } from '@/context/auth/types';
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { NotificationType } from '@/types/notification';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useNotificationActions = (
@@ -10,23 +11,27 @@ export const useNotificationActions = (
   setNotifications: (notifications: NotificationType[] | ((prev: NotificationType[]) => NotificationType[])) => void,
   setUnreadCount: (count: number | ((prev: number) => number)) => void
 ) => {
+  const client = useQueryClient();
+  const activeUser = useRef(user?.id);
+  activeUser.current = user?.id;
+  const invalidate = useCallback(() => { if (user?.id) void client.invalidateQueries({ queryKey: ['notifications', 'infinite', user.id] }); }, [client, user?.id]);
   // Mark a notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
     if (!user) return;
     
     try {
-      if (import.meta.env.DEV) console.log('Marking notification as read:', notificationId);
       
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
-        .eq('id', notificationId);
+        .eq('id', notificationId).eq('user_id', user.id);
       
       if (error) {
-        if (import.meta.env.DEV) console.error('Error marking notification as read:', error);
         throw error;
       }
       
+      if (activeUser.current !== user.id) return;
+      invalidate();
       // Update local state
       setNotifications((prev: NotificationType[]) => 
         prev.map(notification => 
@@ -37,19 +42,16 @@ export const useNotificationActions = (
       );
       
       // Recalculate unread count
-      setUnreadCount((prev: number) => Math.max(0, prev - 1));
+      if (notifications.some(n => n.id === notificationId && !n.read)) setUnreadCount((prev: number) => Math.max(0, prev - 1));
       
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Error marking notification as read:', err);
-    }
-  }, [user, setNotifications, setUnreadCount]);
+    } catch { /* Keep local rows unchanged on a failed server mutation. */ }
+  }, [user, notifications, setNotifications, setUnreadCount, invalidate]);
   
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
     if (!user) return;
     
     try {
-      if (import.meta.env.DEV) console.log('Marking all notifications as read');
       
       const { error } = await supabase
         .from('notifications')
@@ -58,10 +60,11 @@ export const useNotificationActions = (
         .eq('read', false);
       
       if (error) {
-        if (import.meta.env.DEV) console.error('Error marking all notifications as read:', error);
         throw error;
       }
       
+      if (activeUser.current !== user.id) return;
+      invalidate();
       // Update local state
       setNotifications((prev: NotificationType[]) => 
         prev.map(notification => ({ ...notification, read: true }))
@@ -70,28 +73,26 @@ export const useNotificationActions = (
       // Reset unread count
       setUnreadCount(0);
       
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Error marking all notifications as read:', err);
-    }
-  }, [user, setNotifications, setUnreadCount]);
+    } catch { /* Keep local rows unchanged on a failed server mutation. */ }
+  }, [user, setNotifications, setUnreadCount, invalidate]);
   
   // Delete a notification
   const deleteNotification = useCallback(async (notificationId: string) => {
     if (!user) return;
     
     try {
-      if (import.meta.env.DEV) console.log('Deleting notification:', notificationId);
       
       const { error } = await supabase
         .from('notifications')
         .delete()
-        .eq('id', notificationId);
+        .eq('id', notificationId).eq('user_id', user.id);
       
       if (error) {
-        if (import.meta.env.DEV) console.error('Error deleting notification:', error);
         throw error;
       }
       
+      if (activeUser.current !== user.id) return;
+      invalidate();
       // Update local state
       const wasUnread = notifications.find(n => n.id === notificationId && !n.read);
       setNotifications((prev: NotificationType[]) => 
@@ -103,17 +104,14 @@ export const useNotificationActions = (
         setUnreadCount((prev: number) => Math.max(0, prev - 1));
       }
       
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Error deleting notification:', err);
-    }
-  }, [user, notifications, setNotifications, setUnreadCount]);
+    } catch { /* Keep local rows unchanged on a failed server mutation. */ }
+  }, [user, notifications, setNotifications, setUnreadCount, invalidate]);
 
   // Delete all notifications for the current user
   const deleteAllNotifications = useCallback(async () => {
     if (!user) return;
     
     try {
-      if (import.meta.env.DEV) console.log('Deleting all notifications for user:', user.id);
       
       const { error } = await supabase
         .from('notifications')
@@ -121,20 +119,19 @@ export const useNotificationActions = (
         .eq('user_id', user.id);
       
       if (error) {
-        if (import.meta.env.DEV) console.error('Error deleting all notifications:', error);
         throw error;
       }
       
+      if (activeUser.current !== user.id) return;
+      invalidate();
       // Update local state - clear all notifications
       setNotifications([]);
       
       // Reset unread count
       setUnreadCount(0);
       
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Error deleting all notifications:', err);
-    }
-  }, [user, setNotifications, setUnreadCount]);
+    } catch { /* Keep local rows unchanged on a failed server mutation. */ }
+  }, [user, setNotifications, setUnreadCount, invalidate]);
 
   return {
     markAsRead,

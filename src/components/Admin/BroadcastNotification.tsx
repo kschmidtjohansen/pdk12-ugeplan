@@ -53,6 +53,7 @@ const BroadcastNotification: React.FC = () => {
 
   const effectiveRole = isDemoMode && demoRole ? demoRole : user?.role;
   const isSuperAdmin = effectiveRole === 'super_admin';
+  const canTestPush = !isDemoMode && ['super_admin', 'administrator'].includes(effectiveRole ?? '');
 
   const [rawText, setRawText] = useState('');
   const [departmentId, setDepartmentId] = useState<string>(selectedDepartmentId ?? '');
@@ -233,7 +234,7 @@ const BroadcastNotification: React.FC = () => {
 
 
   const handleSend = async () => {
-    if (!title.trim() || !message.trim()) return;
+    if (isDemoMode || !title.trim() || !message.trim()) return;
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke('broadcast-notification', {
@@ -345,7 +346,7 @@ const BroadcastNotification: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
-            {pushStatus === 'on' && (
+            {canTestPush && pushStatus === 'on' && (
             <Button
               type="button"
               variant="outline"
@@ -575,7 +576,7 @@ const BroadcastNotification: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 onClick={() => setConfirmOpen(true)}
-                disabled={sending || !title.trim() || !message.trim()}
+                disabled={isDemoMode || sending || !title.trim() || !message.trim()}
                 className="touch-target"
               >
                 {sending ? (

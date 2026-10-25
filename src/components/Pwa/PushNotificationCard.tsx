@@ -22,8 +22,8 @@ export const PushNotificationCard = () => {
       toast({
         title: isDa ? 'Notifikationer slået til' : 'Notifications enabled',
         description: isDa
-          ? 'Du får nu besked på denne enhed.'
-          : 'You will now get alerts on this device.',
+          ? 'Denne enhed er tilmeldt. Telefonens indstillinger kan påvirke visningen.'
+          : 'This device is subscribed. Device settings can affect display.',
       });
     } else if (result === 'denied') {
       toast({
@@ -64,6 +64,8 @@ export const PushNotificationCard = () => {
       ? isDa
         ? 'Aktiv på denne enhed'
         : 'Active on this device'
+      : status === 'error'
+        ? isDa ? 'Tilmeldingen kunne ikke bekræftes. Prøv igen.' : 'Subscription could not be verified. Try again.'
       : status === 'blocked'
         ? isDa
           ? 'Blokeret i telefonens indstillinger'
@@ -83,7 +85,7 @@ export const PushNotificationCard = () => {
   return (
     <div
       title={diagnostics}
-      className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-2.5"
+      className="flex flex-wrap items-start gap-3 rounded-lg border border-border/60 bg-card px-4 py-2.5"
     >
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
         {status === 'on' ? (
@@ -97,9 +99,10 @@ export const PushNotificationCard = () => {
         <p className="truncate text-sm font-semibold text-foreground">
           {isDa ? 'Beskeder på telefonen' : 'Alerts on your phone'}
         </p>
-        <p className="truncate text-xs text-muted-foreground" title={hint}>
+        <p className="text-xs text-muted-foreground break-words" title={hint}>
           {hint}
         </p>
+        <p className="mt-1 text-xs text-muted-foreground">{diagnostics}</p>
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">

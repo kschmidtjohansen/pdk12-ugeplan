@@ -14,6 +14,7 @@ import {
   useNotificationPreferences,
   type NotificationPreferenceKey,
 } from '@/hooks/useNotificationPreferences';
+import PushNotificationCard from '@/components/Pwa/PushNotificationCard';
 import { useAuth } from '@/context/AuthContext';
 
 interface Props {
@@ -23,7 +24,7 @@ interface Props {
 
 const NotificationPreferencesDialog: React.FC<Props> = ({ open, onOpenChange }) => {
   const { t } = useTranslation();
-  const { isAdmin, isSkadeleder } = useAuth();
+  const { isAdmin } = useAuth();
   const { preferences, loading, saving, updatePreference } = useNotificationPreferences();
 
   const items: { key: NotificationPreferenceKey; label: string; hint: string; show: boolean }[] = [
@@ -70,7 +71,8 @@ const NotificationPreferencesDialog: React.FC<Props> = ({ open, onOpenChange }) 
           <DialogDescription>{t('profile.notifications.description')}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <PushNotificationCard />
+        <div className="space-y-3 max-h-[50vh] overflow-y-auto">
           {items
             .filter((item) => item.show)
             .map((item) => (

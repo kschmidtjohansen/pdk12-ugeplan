@@ -55,7 +55,7 @@ const Stat: React.FC<StatProps> = ({ icon, label, value, className }) => (
   >
     {icon}
     <span className="tabular-nums">{value}</span>
-    <span className="hidden sm:inline font-normal">{label}</span>
+    <span className="font-normal">{label}</span>
   </span>
 );
 
@@ -72,7 +72,7 @@ const RecipientsDialog: React.FC<{
   campaign: BroadcastCampaign | null;
   onClose: () => void;
 }> = ({ campaign, onClose }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { data: recipients, isLoading, error } = useBroadcastRecipients(campaign?.id ?? null);
 
   return (
@@ -139,7 +139,7 @@ const RecipientsDialog: React.FC<{
 };
 
 const BroadcastDeliveryStatus: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { userDepartments } = useDepartment();
   const { data: campaigns, isLoading, error, refetch, isFetching } = useBroadcastCampaigns();
   const [selected, setSelected] = useState<BroadcastCampaign | null>(null);
@@ -196,6 +196,7 @@ const BroadcastDeliveryStatus: React.FC = () => {
             {t('admin.broadcast.delivery.title')}
           </CardTitle>
           <CardDescription>{t('admin.broadcast.delivery.description')}</CardDescription>
+          <p className="mt-2 text-xs text-muted-foreground">{currentLanguage === 'da' ? 'Push accepteret betyder accepteret af push-tjenesten — ikke bekræftet visning på telefonen. Afventer kan også betyde, at serveropsætningen skal kontrolleres.' : 'Push accepted means accepted by the push provider — not confirmed display on the phone. Pending may also indicate server configuration needs checking.'}</p>
         </div>
         <Button
           variant="ghost"
