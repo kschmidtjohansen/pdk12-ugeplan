@@ -75,16 +75,17 @@ const GlobalAssignmentSearch: React.FC = () => {
   return (
     <Popover open={showDropdown} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
-        <div className="relative hidden md:block w-64">
+        <div className="relative w-full max-w-md">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
             type="text"
             value={query}
             placeholder={placeholder}
+            aria-label={placeholder}
             onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
             onFocus={() => setOpen(true)}
             onKeyDown={handleKey}
-            className="h-8 pl-8 pr-7 text-[12px] bg-background/80"
+            className="min-h-11 pl-8 pr-7 text-sm bg-card"
           />
           {loading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
         </div>
@@ -92,7 +93,7 @@ const GlobalAssignmentSearch: React.FC = () => {
       <PopoverContent
         align="start"
         sideOffset={4}
-        className="w-[22rem] p-1 max-h-80 overflow-auto"
+        className="w-[min(22rem,calc(100vw-2rem))] p-1 max-h-80 overflow-auto"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {results.length === 0 ? (
