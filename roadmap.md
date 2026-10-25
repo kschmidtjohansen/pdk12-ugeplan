@@ -1,4 +1,10 @@
-# PolyPlan v1.4
+# PolyPlan v1.4.1
+- [ ] Employees core page/table/mobile: explicit filters, result counts, empty states and preserved actions.
+- [ ] Cars core page/table/mobile: separate availability and scheduled periods, accessible details.
+- [ ] Vacation core page/tabs/content: privacy-scoped counts, search, rejected state and preserved actions.
+- [ ] Tests, responsive bilingual fixtures, lint, preview build and documentation.
+
+## Previous v1.4
 - [x] Messaging worker: endpoint-bound ownership token and atomic rotation/recovery tests.
 - [x] Subscription persistence/status, account lifecycle and recipient diagnostics.
 - [x] Inbox initial fetch, catch-up, unread and drawer cache consistency.
