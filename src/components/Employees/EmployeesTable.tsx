@@ -7,15 +7,17 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Users } from 'lucide-react';
 import EmployeeTableRow from './EmployeeTableRow';
 import MobileEmployeeCard from './MobileEmployeeCard';
 import EmployeeLoadingError from '@/components/ErrorBoundary/EmployeeLoadingError';
+import EmptyState from '@/components/shared/EmptyState';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 
 interface EmployeesTableProps {
   employees: Employee[];
+  isFiltered?: boolean;
+  onResetFilters?: () => void;
   vacations: Vacation[];
   trainingIds?: Set<string>;
   sickIds?: Set<string>;
@@ -38,6 +40,8 @@ const ROW_HEIGHT = 56;
 
 const EmployeesTable: React.FC<EmployeesTableProps> = ({
   employees,
+  isFiltered = false,
+  onResetFilters,
   vacations,
   trainingIds,
   sickIds,
@@ -52,7 +56,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   onRetry
 }) => {
   const { isAdmin } = usePermissions();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const isMobile = useIsMobile();
 
   const [page, setPage] = useState(1);
@@ -67,7 +71,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
     [employees, page]
   );
 
-  const shouldVirtualize = !isMobile && employees.length > VIRTUALIZE_THRESHOLD;
+  const shouldVirtualize = !isMobile && employees.length >= VIRTUALIZE_THRESHOLD;
 
   const scrollParentRef = useRef<HTMLDivElement | null>(null);
   const virtualizer = useVirtualizer({
@@ -89,25 +93,16 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
 
   // Show empty state
   if (employees.length === 0) {
-    return <div className="text-center py-8">
-        <Users className="h-12 w-12 text-muted-foreground/60 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-foreground mb-2">
-          {t('employees.noEmployees') || 'No employees found'}
-        </h3>
-        <p className="text-muted-foreground mb-4">
-          {t('employees.noEmployeesDescription') || 'No employee records were found in the system.'}
-        </p>
-        <Button onClick={onRetry} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          {t('common.retry') || 'Retry'}
-        </Button>
-      </div>;
+    return <EmptyState icon={<Users className="h-8 w-8 text-muted-foreground" />}
+      title={isFiltered ? (currentLanguage === 'da' ? 'Ingen medarbejdere matcher' : 'No matching employees') : t('employees.noEmployees')}
+      description={isFiltered ? (currentLanguage === 'da' ? 'Prøv en anden status eller søgning.' : 'Try another status or search.') : t('employees.noEmployeesDescription')}
+      action={isFiltered && onResetFilters ? { label: currentLanguage === 'da' ? 'Ryd filtre' : 'Clear filters', onClick: onResetFilters } : undefined} />;
   }
 
   // Mobile: card layout (unchanged)
   if (isMobile) {
     return (
-      <div className="space-y-3 p-4">
+      <div className="space-y-3 py-4">
         {pagedEmployees.map(employee => (
           <MobileEmployeeCard
             key={`${employee.id}-${employee.onLeave}-${employee.status}`}
@@ -136,7 +131,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
 
   // Desktop table header — shared between paginated and virtualised paths
   const tableHeader = (
-    <TableHeader>
+    <TableHeader className="bg-muted/40">
       <TableRow>
         <TableHead>{t('employees.name') || 'Name'}</TableHead>
         <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
@@ -161,14 +156,13 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
 
     return (
       <div className="space-y-4">
-        <div className="border rounded-md flex items-start gap-3 p-3">
-          <Users className="h-5 w-5 text-primary mt-3 shrink-0" />
-          <div className="flex-1">
+        <div className="min-w-0">
+          <div className="min-w-0">
             <div
               ref={scrollParentRef}
               className="max-h-[calc(100vh-260px)] overflow-auto"
             >
-              <Table aria-rowcount={ariaRowCount}>
+              <Table aria-label={t('navigation.employees')} aria-rowcount={ariaRowCount}>
                 {tableHeader}
                 <TableBody>
                   {paddingTop > 0 && (
@@ -212,10 +206,9 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
   // Desktop paginated path — ≤ 50 filtered rows (unchanged behaviour)
   return (
     <div className="space-y-4">
-      <div className="border rounded-md flex items-start gap-3 p-3">
-        <Users className="h-5 w-5 text-primary mt-3 shrink-0" />
-        <div className="flex-1">
-          <Table aria-rowcount={ariaRowCount}>
+      <div className="min-w-0">
+        <div className="min-w-0 overflow-x-auto">
+          <Table aria-label={t('navigation.employees')} aria-rowcount={ariaRowCount}>
             {tableHeader}
             <TableBody>
               {pagedEmployees.map(employee => (

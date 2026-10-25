@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import VacationTabs from './VacationTabs';
 
 interface VacationHeaderProps {
+  counts?: Record<string, number>;
   isServicemedarbejder: boolean;
   activeTab: string;
   onChangeTab: (value: string) => void;
@@ -14,6 +15,7 @@ interface VacationHeaderProps {
 }
 
 const VacationHeader: React.FC<VacationHeaderProps> = ({
+  counts,
   isServicemedarbejder,
   activeTab,
   onChangeTab,
@@ -27,9 +29,10 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
   const isCalendarTab = activeTab === 'calendar';
 
   return (
-    <div className="py-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div className="border-b border-border pb-4">
+      <div className="flex flex-col gap-4">
         <VacationTabs 
+          counts={counts}
           isServicemedarbejder={isServicemedarbejder}
           activeTab={activeTab} 
           onChange={onChangeTab}
@@ -37,10 +40,10 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
         />
         
         {!isCalendarTab && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={onOpenRequestDialog}
-              className="flex-1 md:flex-none"
+              className="min-h-11 flex-1 whitespace-normal sm:flex-none"
             >
               <Plus className="mr-2 h-4 w-4" />
               {t("vacation.applyForVacation")}
@@ -50,7 +53,7 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({
               <Button
                 onClick={onOpenAdminDialog}
                 variant="outline"
-                className="flex-1 md:flex-none"
+                className="min-h-11 flex-1 whitespace-normal sm:flex-none"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 {t("vacation.requestForEmployee")}

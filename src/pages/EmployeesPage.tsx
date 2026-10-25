@@ -11,7 +11,7 @@ import EmployeeTrainingDialog from '@/components/Employees/EmployeeTrainingDialo
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
 import ListPageShell from '@/components/shared/ListPageShell';
-import SegmentedFilterBar, { FilterSegment } from '@/components/shared/SegmentedFilterBar';
+import { FilterSegment } from '@/components/shared/SegmentedFilterBar';
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -21,14 +21,16 @@ import { useSickToday } from '@/hooks/useSickDays';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Employee } from '@/types/employee';
+import ModuleListTools, { ModuleContext } from '@/components/shared/ModuleListTools';
+import { filterEmployees, vacationEmployeeIds } from '@/utils/moduleListFilters';
 import { format } from 'date-fns';
 
 type EmployeeSegment = 'all' | 'active' | 'onleave' | 'vikarer';
 
 const EmployeesPage: React.FC = () => {
   const { isAdmin } = usePermissions();
-  const { t } = useTranslation();
-  const { isSubstituteEnabled, selectedDepartmentId } = useDepartment();
+  const { t, currentLanguage } = useTranslation();
+  const { isSubstituteEnabled, selectedDepartmentId, selectedDepartment } = useDepartment();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [trainingDialogOpen, setTrainingDialogOpen] = useState(false);
@@ -66,31 +68,10 @@ const EmployeesPage: React.FC = () => {
   // Compute today's vacation employee IDs for "På fridage" segment.
   // Vacation rows key the employee as `user_id` (see src/types/vacation.ts).
   const todayStr = format(new Date(), 'yyyy-MM-dd');
-  const onLeaveTodayIds = useMemo(() => {
-    const ids = new Set<string>();
-    vacations
-      .filter((v) => v.status === 'approved' && v.start_date <= todayStr && v.end_date >= todayStr)
-      .forEach((v) => { if (v.user_id) ids.add(v.user_id); });
-    return ids;
-  }, [vacations, todayStr]);
-
-  const filteredEmployees = useMemo(() => {
-    let list: Employee[] = employees;
-    if (segment === 'active') list = regularEmployees.filter((e) => !e.onLeave && !onLeaveTodayIds.has(e.id) && !trainingIds.has(e.id) && !sickIds.has(e.id));
-    else if (segment === 'onleave') list = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id) || sickIds.has(e.id));
-    else if (segment === 'vikarer') list = vikarer;
-
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter(
-        (e) =>
-          e.name?.toLowerCase().includes(q) ||
-          e.email?.toLowerCase().includes(q) ||
-          e.jobTitle?.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [employees, regularEmployees, vikarer, segment, search, onLeaveTodayIds, trainingIds, sickIds]);
+  const onLeaveTodayIds = useMemo(() => vacationEmployeeIds(vacations, todayStr), [vacations, todayStr]);
+  const absentIds = useMemo(() => new Set(employees.filter(e => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id) || sickIds.has(e.id)).map(e => e.id)), [employees, onLeaveTodayIds, trainingIds, sickIds]);
+  const filteredEmployees = useMemo(() => filterEmployees(employees, regularEmployees, vikarer, segment, search, absentIds), [employees, regularEmployees, vikarer, segment, search, absentIds]);
+  const resetFilters = () => { setSegment('all'); setSearch(''); };
 
   const segments: FilterSegment[] = useMemo(() => {
     const onLeaveCount = employees.filter((e) => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id) || sickIds.has(e.id)).length;
@@ -172,19 +153,19 @@ const EmployeesPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-      <ListPageShell
+      <ListPageShell workspace
         title={t('navigation.employees')}
         description={t('employees.description')}
         actions={
           isAdmin && (
             <>
-              <Button onClick={handleCreateNew} size="sm">
+              <Button onClick={handleCreateNew} size="sm" className="min-h-11">
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">{t('employees.addEmployee')}</span>
-                <span className="sm:hidden">Tilføj</span>
+                <span className="sm:hidden">{currentLanguage === 'da' ? 'Tilføj' : 'Add'}</span>
               </Button>
               {isSubstituteEnabled && (
-                <Button onClick={handleCreateVikar} variant="outline" size="sm">
+                <Button onClick={handleCreateVikar} variant="outline" size="sm" className="min-h-11">
                   <UserPlus className="h-4 w-4" />
                   <span className="hidden sm:inline">{t('employees.addVikar')}</span>
                   <span className="sm:hidden">Vikar</span>
@@ -194,18 +175,18 @@ const EmployeesPage: React.FC = () => {
           )
         }
         filterBar={
-          <SegmentedFilterBar
-            segments={segments}
-            activeKey={segment}
-            onSegmentChange={(k) => setSegment(k as EmployeeSegment)}
-            searchValue={search}
-            onSearchChange={setSearch}
-            searchPlaceholder={t('common.searchPlaceholder') || 'Søg navn, email, titel…'}
-          />
+          <>
+            <ModuleContext department={selectedDepartment?.name} role={isAdmin ? t('employees.administrator') : undefined} />
+            <ModuleListTools segments={segments} active={segment} onSelect={k => setSegment(k as EmployeeSegment)}
+              search={search} onSearch={setSearch} placeholder={t('common.searchPlaceholder')}
+              count={filteredEmployees.length} total={employees.length} onReset={resetFilters} />
+          </>
         }
       >
         <EmployeesTable
           employees={filteredEmployees}
+          isFiltered={segment !== 'all' || !!search.trim()}
+          onResetFilters={resetFilters}
           vacations={vacations}
           trainingIds={trainingIds}
           sickIds={sickIds}

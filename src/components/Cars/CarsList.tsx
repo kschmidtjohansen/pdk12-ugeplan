@@ -67,7 +67,7 @@ const CarsList: React.FC<CarsListProps> = ({
     <TooltipProvider>
       <div>
         {/* Mobile view - card based display */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden grid grid-cols-1 gap-3">
           {pagedCars.map((car) => (
             <MobileCarCard 
               key={car.id}
@@ -86,7 +86,7 @@ const CarsList: React.FC<CarsListProps> = ({
         </div>
 
         {/* Desktop view - table based display */}
-        <div className="hidden md:block">
+        <div className="hidden md:block border-y border-border">
           <CarsTable
             cars={pagedCars}
             todayDrivers={todayDrivers}

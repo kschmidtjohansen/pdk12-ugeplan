@@ -21,7 +21,11 @@ import VWAssistanceButton from '@/components/Cars/VWAssistanceButton';
 import ListPageShell from '@/components/shared/ListPageShell';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import ErrorState from '@/components/shared/ErrorState';
-import SegmentedFilterBar, { FilterSegment } from '@/components/shared/SegmentedFilterBar';
+import { FilterSegment } from '@/components/shared/SegmentedFilterBar';
+import ModuleListTools, { ModuleContext } from '@/components/shared/ModuleListTools';
+import EmptyState from '@/components/shared/EmptyState';
+import { useDepartment } from '@/context/DepartmentContext';
+import { filterCars } from '@/utils/moduleListFilters';
 import type { Car } from '@/types/car';
 import type { CarUnavailability } from '@/services/carUnavailabilityService';
 
@@ -34,7 +38,10 @@ type CarSegment = 'all' | 'available' | 'unavailable' | 'scheduled';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const { selectedDepartment } = useDepartment();
+  const da = currentLanguage === 'da';
+  const resetFilters = () => { setSegment('all'); setSearch(''); };
   const [segment, setSegment] = useState<CarSegment>('all');
   const [search, setSearch] = useState('');
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
@@ -66,22 +73,7 @@ const CarsPage: React.FC = () => {
     });
   }, [cars, periods]);
 
-  const filteredCars = useMemo(() => {
-    let list = enrichedCars;
-    if (segment === 'available') list = list.filter((c: EnrichedCar) => c.is_available !== false);
-    else if (segment === 'unavailable') list = list.filter((c: EnrichedCar) => c.is_available === false);
-    else if (segment === 'scheduled') list = list.filter((c: EnrichedCar) => c._scheduledActive || c._scheduledUpcoming);
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter(
-        (c: EnrichedCar) =>
-          c.name?.toLowerCase().includes(q) ||
-          c.car_number?.toLowerCase().includes(q) ||
-          c.number_plate?.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [enrichedCars, segment, search]);
+  const filteredCars = useMemo(() => filterCars(enrichedCars, segment, search), [enrichedCars, segment, search]);
 
   const segments: FilterSegment[] = useMemo(() => {
     const available = enrichedCars.filter((c: EnrichedCar) => c.is_available !== false).length;
@@ -89,16 +81,16 @@ const CarsPage: React.FC = () => {
     const scheduled = enrichedCars.filter((c: EnrichedCar) => c._scheduledActive || c._scheduledUpcoming).length;
     return [
       { key: 'all', label: t('common.all') || 'Alle', count: enrichedCars.length },
-      { key: 'available', label: t('cars.available') || 'Tilgængelige', count: available },
-      { key: 'unavailable', label: t('cars.unavailable') || 'Optaget', count: unavailable, highlight: unavailable > 0 },
-      { key: 'scheduled', label: t('ui.scheduledWorkshop'), count: scheduled },
+      { key: 'available', label: da ? 'Ledig status' : 'Available status', count: available },
+      { key: 'unavailable', label: da ? 'Ikke-ledig status' : 'Unavailable status', count: unavailable, highlight: unavailable > 0 },
+      { key: 'scheduled', label: da ? 'Planlagte perioder' : 'Scheduled periods', count: scheduled },
     ];
-  }, [enrichedCars, t]);
+  }, [enrichedCars, t, da]);
 
   return (
     <DataFetchErrorBoundary>
       <TooltipProvider>
-          <ListPageShell
+          <ListPageShell workspace
             title={t('navigation.cars')}
             description={t('cars.pageDescription')}
             actions={
@@ -106,7 +98,7 @@ const CarsPage: React.FC = () => {
                 <FalckSubscriptionButton isAdmin={isAdmin} />
                 <VWAssistanceButton />
                 {isAdmin && (
-                  <Button onClick={handleCreateNew} size="sm">
+                  <Button onClick={handleCreateNew} size="sm" className="min-h-11">
                     <Plus className="h-4 w-4" />
                     {t('cars.addNewCar')}
                   </Button>
@@ -114,28 +106,29 @@ const CarsPage: React.FC = () => {
               </>
             }
             filterBar={
-              <SegmentedFilterBar
-                segments={segments}
-                activeKey={segment}
-                onSegmentChange={(k) => setSegment(k as CarSegment)}
-                searchValue={search}
-                onSearchChange={setSearch}
-                searchPlaceholder={t('cars.searchPlaceholder') || 'Søg bilnr, navn, nummerplade…'}
-              />
+              <>
+                <ModuleContext department={selectedDepartment?.name} />
+                <ModuleListTools segments={segments} active={segment} onSelect={k => setSegment(k as CarSegment)} search={search} onSearch={setSearch}
+                  placeholder={t('cars.searchPlaceholder')} count={filteredCars.length} total={cars.length} onReset={resetFilters} />
+                <div className="mb-4 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
+                  <span>{da ? 'Utilgængelig i planlagt periode i dag' : 'Scheduled unavailable today'} <strong className="text-warning-soft-foreground tabular-nums">{enrichedCars.filter(c => c._scheduledActive).length}</strong></span>
+                  <span>{da ? 'Kommende perioder' : 'Upcoming periods'} <strong className="text-foreground tabular-nums">{enrichedCars.filter(c => c._scheduledUpcoming).length}</strong></span>
+                </div>
+              </>
             }
           >
             {loading ? (
               <ListSkeleton />
             ) : error ? (
-              <div className="p-3 sm:p-6">
+              <div className="py-4">
                 <ErrorState description={error} onRetry={fetchCars} />
               </div>
             ) : (
-              <div className="p-3 sm:p-6">
+              <div className="py-4">
                 {filteredCars.length === 0 ? (
-                  <div className="py-12 text-center text-sm text-muted-foreground">
-                    {t('cars.noResults')}
-                  </div>
+                  <EmptyState title={cars.length ? (da ? 'Ingen biler matcher' : 'No matching vehicles') : (da ? 'Ingen biler i afdelingen' : 'No vehicles in this department')}
+                    description={cars.length ? (da ? 'Prøv en anden status eller søgning.' : 'Try another status or search.') : undefined}
+                    action={cars.length ? { label: da ? 'Ryd filtre' : 'Clear filters', onClick: resetFilters } : undefined} />
                 ) : (
                   <CarsList
                     cars={filteredCars}

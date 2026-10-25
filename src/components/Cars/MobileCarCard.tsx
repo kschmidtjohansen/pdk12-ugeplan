@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Truck, Recycle, ChevronDown, ChevronUp, Wrench, CalendarClock, StickyNote } from 'lucide-react';
+import { Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Truck, Recycle, ChevronDown, ChevronUp, Wrench, CalendarClock, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CarData } from './types';
@@ -35,7 +35,8 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
   onEditNote,
 }) => {
 
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const da = currentLanguage === 'da';
   const [expanded, setExpanded] = useState(false);
   const scheduledActive = (car as CarScheduleExtras)._scheduledActive as { end_date: string } | null | undefined;
   const scheduledUpcoming = (car as CarScheduleExtras)._scheduledUpcoming as { start_date: string } | null | undefined;
@@ -44,24 +45,18 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
   const hasDetails = car.has_trailer_hitch && (car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) || (car.notes && car.notes.trim() !== '');
   
   return (
-    <Card className="overflow-hidden border-border hover:shadow-md transition-all">
+    <Card className="overflow-hidden border-border border-l-2 border-l-info-soft-foreground">
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div 
-            className={`flex items-center flex-1 ${hasDetails ? 'cursor-pointer' : ''}`}
-            onClick={() => hasDetails && setExpanded(!expanded)}
-          >
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 mr-3">
-              <Car className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1">
+        <div className="flex flex-col gap-3 mb-3">
+          <div className="min-w-0">
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-foreground">{car.car_number}</h3>
+                <h3 className="font-mono text-lg font-semibold text-foreground">{car.car_number}</h3>
                 {hasDetails && (
                   expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">{car.name}</p>
+              <p className="text-sm font-semibold text-foreground break-words">{car.name}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {todayDrivers && todayDrivers.length > 0
                   ? `${t('cars.todayDriver')}: ${todayDrivers.join(', ')}`
@@ -75,24 +70,24 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 )}
                 {scheduledActive && (
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-warning-soft text-warning-soft-foreground">
-                    <Wrench className="h-3 w-3" />Værksted til {scheduledActive.end_date}
+                    <Wrench className="h-3 w-3" />{da ? 'Planlagt utilgængelig til' : 'Scheduled unavailable until'} {scheduledActive.end_date}
                   </span>
                 )}
                 {!scheduledActive && scheduledUpcoming && (
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground">
-                    <CalendarClock className="h-3 w-3" />Planlagt {scheduledUpcoming.start_date}
+                    <CalendarClock className="h-3 w-3" />{da ? 'Kommende periode fra' : 'Upcoming period from'} {scheduledUpcoming.start_date}
                   </span>
                 )}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1 border-y border-border py-1">
             {onEditNote && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onEditNote(car)}
-                className="h-8 w-8 p-0"
+                className="h-11 min-h-11 w-11 p-0"
               >
                 <span className="sr-only">Note</span>
                 <StickyNote className="h-4 w-4 text-primary" />
@@ -107,7 +102,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onToggleAvailability(car)}
-                    className="h-8 w-8 p-0"
+                    className="h-11 min-h-11 w-11 p-0"
                   >
                     <span className="sr-only">
                       {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
@@ -129,7 +124,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
               {onSchedule && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={() => onSchedule(car)} className="h-8 w-8 p-0">
+                    <Button variant="ghost" size="sm" onClick={() => onSchedule(car)} className="h-11 min-h-11 w-11 p-0">
                       <span className="sr-only">{t('ui.scheduleWorkshopVisit')}</span>
                       <Wrench className="h-4 w-4 text-warning" />
                     </Button>
@@ -145,7 +140,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(car)}
-                    className="h-8 w-8 p-0"
+                    className="h-11 min-h-11 w-11 p-0"
                   >
                     <span className="sr-only">{t('common.edit')}</span>
                     <Edit className="h-4 w-4" />
@@ -162,7 +157,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(car)}
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive-soft"
+                    className="h-11 min-h-11 w-11 p-0 text-destructive hover:text-destructive hover:bg-destructive-soft"
                   >
                     <span className="sr-only">{t('common.delete')}</span>
                     <Trash2 className="h-4 w-4" />
@@ -219,7 +214,7 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
 
           {/* Expandable details section */}
           {expanded && hasDetails && (
-            <div className="border-t border-border pt-3 space-y-2 animate-fade-in">
+            <div id={`car-details-${car.id}`} className="border-t border-border pt-3 space-y-2">
               {car.has_trailer_hitch && (car.towing_capacity_with_brakes || car.towing_capacity_without_brakes || car.total_weight) && (
                 <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
                   <p className="font-medium text-foreground">{t('cars.hasTrailerHitch')}</p>
@@ -257,13 +252,11 @@ const MobileCarCard: React.FC<MobileCarCardProps> = ({
                 </>
               )}
             </div>
-            {hasDetails && !expanded && (
-              <button 
-                onClick={() => setExpanded(true)}
-                className="text-xs text-primary hover:text-primary/80"
-              >
-                {t('common.showMore') || 'Vis detaljer'}
-              </button>
+            {hasDetails && (
+              <Button variant="ghost" aria-expanded={expanded} aria-controls={`car-details-${car.id}`} onClick={() => setExpanded(value => !value)} className="min-h-11 gap-2">
+                {da ? (expanded ? 'Skjul detaljer' : 'Vis detaljer') : (expanded ? 'Hide details' : 'Show details')}
+                {expanded ? <ChevronUp aria-hidden className="h-4 w-4" /> : <ChevronDown aria-hidden className="h-4 w-4" />}
+              </Button>
             )}
           </div>
         </div>

@@ -1,3 +1,12 @@
+## PolyPlan v1.4.1 (2026-10-25)
+- [x] Medarbejdere: afdeling/rolle, kontrollerede filtre, resultater/nulstil, tomtilstande og tabel/mobilhierarki; user_id/lokal dato og virtualisering >=50 testet.
+- [x] Biler: ledighed adskilt fra aktive/kommende perioder, filtre/resultater og skannbare liste-/kortvisninger med bevarede handlinger.
+- [x] Ferie: privatlivsafgrænsede tællere, afventende/godkendte/afviste tabs, søg/nulstil, tomtilstande og lokale datovisninger.
+- [x] 135 tests bestået; lint 0 fejl/171 warnings; automatisk preview build OK. Manuelle typecheck/build ikke kørt (platformstyring).
+- [x] Kontrollerede komponentfixtures DA/EN, light/dark, 360/390/768/1280 uden overflow; fokus og 44px-fixturekontroller verificeret.
+- [x] CHANGELOG og arkitekturregel opdateret; ingen publicering/backend-/produktionsdataændringer; v1.4 dashboard/push urørt.
+- [ ] Indlogget CRUD/E2E, fulde desktop-tabeller og komplet a11y-audit — ekstern unmanaged session/testkonto ikke tilgængelig; fixtures erstatter ikke disse checks.
+
 ## PolyPlan v1.4 (2026-10-25)
 - [x] Endpoint-bound messaging-worker token, HTTP validation and transactional rotation with tests.
 - [x] Authenticated subscription persistence, opt-out/account lifecycle and truthful push diagnostics.
@@ -7,7 +16,7 @@
 - [x] 125 tests; automatic preview build OK; operations checklist documented.
 - [ ] Server preference-error handling, durable retry/idempotency and deployed gateway/VAPID verification — blocked by no-deploy constraint/external runtime access.
 - [ ] Physical iOS/Android closed-app delivery and authenticated E2E — requires authorized devices/test account and approval.
-- [ ] Priority C module finish — deferred to prioritize A+B; not implemented.
+- [x] Priority C module finish — completed in v1.4.1 (see above).
 
 ## PolyPlan v1.3 (2026-10-25)
 - [x] Fælles uge-/konfliktberegning og validerede ISO-uge deep links.

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car, Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle, CalendarClock, Wrench, StickyNote } from 'lucide-react';
+import { Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle, CalendarClock, Wrench, StickyNote } from 'lucide-react';
 import { 
   Table,
   TableBody,
@@ -43,12 +43,13 @@ const CarsTable: React.FC<CarsTableProps> = ({
   onEditNote,
 }) => {
 
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const da = currentLanguage === 'da';
   
   return (
     <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
+      <Table aria-label={t('navigation.cars')}>
+        <TableHeader className="bg-muted/40">
           <TableRow className="border-border">
             <TableHead className="text-muted-foreground font-medium">{t('cars.carNumber')}</TableHead>
             <TableHead className="text-muted-foreground font-medium">{t('cars.vehicleName')}</TableHead>
@@ -56,25 +57,20 @@ const CarsTable: React.FC<CarsTableProps> = ({
             {canViewFuelCardCode && <TableHead className="text-muted-foreground font-medium">{t('cars.fuelCardCode')}</TableHead>}
             <TableHead className="text-muted-foreground font-medium">{t('cars.hasTrailerHitch')}</TableHead>
             <TableHead className="text-muted-foreground font-medium">{t('cars.isAvailable')}</TableHead>
-            <TableHead className="w-[190px] text-muted-foreground font-medium">{t('common.actions')}</TableHead>
+            <TableHead className="w-[240px] text-muted-foreground font-medium">{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {cars.map((car) => (
             <TableRow key={car.id} className="border-border hover:bg-muted/50">
               <TableCell>
-                <div className="flex items-center">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 mr-3">
-                    <Car className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="font-medium text-foreground">{car.car_number}</span>
-                </div>
+                <span className="font-mono text-sm font-semibold text-foreground">{car.car_number}</span>
               </TableCell>
               <TableCell>
-                <div className="text-foreground">{car.name}</div>
+                <div className="font-semibold text-foreground">{car.name}</div>
                 <div className="text-xs text-muted-foreground">
                   {todayDrivers?.get(car.id)?.length
-                    ? `${t('cars.todayDriver')}: ${todayDrivers.get(car.id)!.join(', ')}`
+                    ? `${t('cars.todayDriver')}: ${todayDrivers.get(car.id)?.join(', ')}`
                     : t('cars.notBookedToday')}
                 </div>
               </TableCell>
@@ -142,7 +138,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                 )}
               </TableCell>
               <TableCell>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col items-start gap-2">
                   {car.is_available ? (
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-success rounded-full mr-2"></div>
@@ -157,13 +153,13 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   {(car as CarScheduleExtras)._scheduledActive && (
                     <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-warning-soft text-warning-soft-foreground">
                       <Wrench className="h-3 w-3" />
-                      Værksted til {(car as CarScheduleExtras)._scheduledActive.end_date}
+                      {da ? 'Planlagt utilgængelig til' : 'Scheduled unavailable until'} {(car as CarScheduleExtras)._scheduledActive?.end_date}
                     </span>
                   )}
                   {!(car as CarScheduleExtras)._scheduledActive && (car as CarScheduleExtras)._scheduledUpcoming && (
                     <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
                       <CalendarClock className="h-3 w-3" />
-                      Planlagt {(car as CarScheduleExtras)._scheduledUpcoming.start_date}
+                      {da ? 'Kommende periode fra' : 'Upcoming period from'} {(car as CarScheduleExtras)._scheduledUpcoming?.start_date}
                     </span>
                   )}
                   {car.notes && car.notes.trim() !== '' && (
@@ -187,7 +183,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEditNote(car)}
-                          className="h-8 w-8 p-0"
+                          className="h-11 min-h-11 w-11 p-0"
                         >
                           <span className="sr-only">Note</span>
                           <StickyNote className="h-4 w-4 text-primary" />
@@ -205,7 +201,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onToggleAvailability(car)}
-                          className="h-8 w-8 p-0"
+                          className="h-11 min-h-11 w-11 p-0"
                         >
                           <span className="sr-only">
                             {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
@@ -231,7 +227,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                             variant="ghost"
                             size="sm"
                             onClick={() => onSchedule(car)}
-                            className="h-8 w-8 p-0"
+                            className="h-11 min-h-11 w-11 p-0"
                           >
                             <span className="sr-only">{t('ui.scheduleWorkshopVisit')}</span>
                             <Wrench className="h-4 w-4 text-warning" />
@@ -250,7 +246,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEdit(car)}
-                          className="h-8 w-8 p-0"
+                          className="h-11 min-h-11 w-11 p-0"
                         >
                           <span className="sr-only">{t('common.edit')}</span>
                           <Edit className="h-4 w-4" />
@@ -267,7 +263,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => onDelete(car)}
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive-soft"
+                          className="h-11 min-h-11 w-11 p-0 text-destructive hover:text-destructive hover:bg-destructive-soft"
                         >
                           <span className="sr-only">{t('common.delete')}</span>
                           <Trash2 className="h-4 w-4" />

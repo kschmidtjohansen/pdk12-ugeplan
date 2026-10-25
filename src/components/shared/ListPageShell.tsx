@@ -9,6 +9,7 @@ interface ListPageShellProps {
   filterBar?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  workspace?: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ const ListPageShell: React.FC<ListPageShellProps> = ({
   filterBar,
   children,
   className,
+  workspace = false,
 }) => {
   return (
     <div className="min-h-dvh w-full bg-background">
@@ -32,7 +34,7 @@ const ListPageShell: React.FC<ListPageShellProps> = ({
         {filterBar}
         <div
           className={cn(
-            'rounded-xl border border-border bg-card shadow-xs overflow-hidden',
+            workspace ? 'min-w-0 border-t border-border bg-card' : 'rounded-xl border border-border bg-card shadow-xs overflow-hidden',
             className
           )}
         >

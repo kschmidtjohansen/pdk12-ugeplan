@@ -26,7 +26,7 @@ interface MobileEmployeeCardProps {
 
 const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isOnTraining, isSick, canSeeSickReason, onToggleSick }) => {
   const { isAdmin } = usePermissions();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   const getInitials = (name: string): string => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
@@ -58,18 +58,18 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
   const availabilityInfo = getEmployeeAvailabilityStatus(employee, new Date(), [], vacations, t);
 
   return (
-    <Card className="overflow-hidden border-border/50 hover:shadow-md transition-all">
+    <Card className="overflow-hidden border-border border-l-2 border-l-info-soft-foreground">
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 mb-3">
+          <div className="flex items-center gap-3 min-w-0">
             <Avatar className="h-10 w-10">
               <AvatarImage src={employee.avatar_url || undefined} />
-              <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+              <AvatarFallback className="text-xs bg-muted text-foreground">
                 {getInitials(employee.name)}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h3 className="font-semibold text-foreground">{employee.name}</h3>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-foreground break-words">{employee.name}</h3>
               <TempExpiryBadge employee={employee} />
               {employee.jobTitle && (
                 <p className="text-sm text-muted-foreground">{employee.jobTitle}</p>
@@ -78,7 +78,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
           </div>
           {isAdmin && (
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={() => onEdit(employee)} className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" onClick={() => onEdit(employee)} className="h-11 min-h-11 w-11 p-0" aria-label={t('common.edit')}>
                 <Edit className="h-4 w-4" />
               </Button>
               {onTraining && (
@@ -86,8 +86,8 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                   variant="ghost"
                   size="sm"
                   onClick={() => onTraining(employee)}
-                  className="h-8 w-8 p-0 text-warning"
-                  aria-label="Kursus"
+                  className="h-11 min-h-11 w-11 p-0 text-warning"
+                  aria-label={currentLanguage === 'da' ? 'Kursus' : 'Training'}
                 >
                   <GraduationCap className="h-4 w-4" />
                 </Button>
@@ -97,12 +97,12 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                   variant="ghost"
                   size="sm"
                   onClick={() => onToggleLeave(employee)}
-                  className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-success' : 'text-warning'}`}
+                  aria-label={t('employees.statusLabel')} className={`h-11 min-h-11 w-11 p-0 ${employee.onLeave ? 'text-success' : 'text-warning'}`}
                 >
                   {employee.onLeave ? <UserCheck className="h-4 w-4" /> : <UserMinus className="h-4 w-4" />}
                 </Button>
               )}
-              <Button variant="ghost" size="sm" onClick={() => onDelete(employee)} className="h-8 w-8 p-0 text-destructive">
+              <Button variant="ghost" size="sm" onClick={() => onDelete(employee)} className="h-11 min-h-11 w-11 p-0 text-destructive" aria-label={t('common.delete')}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -110,18 +110,18 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
         </div>
 
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 gap-3 text-sm">
             <div>
               <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('employees.contact')}</p>
               <div className="space-y-1 mt-1">
                 <div className="flex items-center text-sm">
                   <Mail className="h-3 w-3 mr-1.5 text-muted-foreground" />
-                  <span className="text-foreground truncate">{employee.email}</span>
+                  <a href={`mailto:${employee.email}`} className="min-h-11 flex items-center break-all text-foreground underline underline-offset-4">{employee.email}</a>
                 </div>
                 {employee.phone && (
                   <div className="flex items-center text-sm">
                     <Phone className="h-3 w-3 mr-1.5 text-muted-foreground" />
-                    <span className="text-foreground">{employee.phone}</span>
+                    <a href={`tel:${employee.phone}`} className="min-h-11 flex items-center text-foreground underline underline-offset-4">{employee.phone}</a>
                   </div>
                 )}
               </div>
@@ -141,7 +141,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
 
           {/* Certificates */}
           {(employee.has_asbestos_certificate || employee.has_pcb_certificate || employee.has_trailer_license || employee.has_forklift_license) && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {employee.has_asbestos_certificate && (
                 <div className="flex items-center gap-1 text-xs text-primary">
                   <HardHat className="h-3.5 w-3.5" />
@@ -173,7 +173,7 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                 {canSeeSickReason ? t('ui.sick') : t('ui.absent')}
               </StatusBadge>
             ) : isOnTraining ? (
-              <StatusBadge variant="warning">Kursus</StatusBadge>
+              <StatusBadge variant="warning">{currentLanguage === 'da' ? 'Kursus' : 'Training'}</StatusBadge>
             ) : (
               <StatusBadge variant={availabilityInfo.badgeVariant}>
                 {availabilityInfo.statusText}
@@ -184,10 +184,10 @@ const MobileEmployeeCard: React.FC<MobileEmployeeCardProps> = ({ employee, vacat
                 variant="ghost"
                 size="sm"
                 onClick={() => onToggleSick(employee)}
-                className={`h-8 px-2 ${isSick ? 'text-success' : 'text-destructive'}`}
+                className={`h-11 px-2 ${isSick ? 'text-success' : 'text-destructive'}`}
               >
                 {isSick ? <HeartPulse className="h-4 w-4" /> : <Thermometer className="h-4 w-4" />}
-                <span className="ml-1 text-xs">{isSick ? 'Rask' : 'Syg'}</span>
+                <span className="ml-1 text-xs">{currentLanguage === 'da' ? (isSick ? 'Rask' : 'Syg') : (isSick ? 'Well' : 'Sick')}</span>
               </Button>
             )}
           </div>

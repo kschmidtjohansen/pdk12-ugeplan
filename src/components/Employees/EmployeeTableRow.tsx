@@ -29,7 +29,7 @@ interface EmployeeTableRowProps {
 
 const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vacations, onEdit, onDelete, onToggleLeave, onTraining, isOnTraining, isSick, canSeeSickReason, onToggleSick }) => {
   const { isAdmin, isSkadeleder } = usePermissions();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   // Get role variant for status badge
   const getRoleVariant = (role: string) => {
@@ -94,11 +94,11 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
             <AvatarImage src={employee.avatar_url || undefined} />
-            <AvatarFallback className="text-xs bg-polygon-blue text-primary-foreground">
+            <AvatarFallback className="text-xs bg-muted text-foreground">
               {getInitials(employee.name)}
             </AvatarFallback>
           </Avatar>
-          <span>{employee.name}</span>
+          <span className="font-semibold">{employee.name}</span>
           <TempExpiryBadge employee={employee} />
         </div>
         {(isAdmin || isSkadeleder) && employee.notes && (
@@ -207,7 +207,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
             {canSeeSickReason ? t('ui.sick') : t('ui.absent')}
           </StatusBadge>
         ) : isOnTraining ? (
-          <StatusBadge variant="warning">Kursus</StatusBadge>
+          <StatusBadge variant="warning">{currentLanguage === 'da' ? 'Kursus' : 'Training'}</StatusBadge>
         ) : (
           <StatusBadge variant={availabilityInfo.badgeVariant}>
             {availabilityInfo.statusText}
@@ -224,7 +224,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                     variant="ghost" 
                     size="sm" 
                     onClick={() => onEdit(employee)} 
-                    className="h-8 w-8 p-0"
+                    className="h-11 min-h-11 w-11 p-0"
                   >
                     <span className="sr-only">{t("common.edit")}</span>
                     <Edit className="h-4 w-4" />
@@ -244,14 +244,14 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                       variant="ghost"
                       size="sm"
                       onClick={() => onTraining(employee)}
-                      className="h-8 w-8 p-0 text-warning"
+                      className="h-11 min-h-11 w-11 p-0 text-warning"
                     >
-                      <span className="sr-only">Kursus</span>
+                      <span className="sr-only">{currentLanguage === 'da' ? 'Kursus' : 'Training'}</span>
                       <GraduationCap className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Meld på kursus</p>
+                    <p>{currentLanguage === 'da' ? 'Meld på kursus' : 'Register training'}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -265,14 +265,14 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                       variant="ghost"
                       size="sm"
                       onClick={() => onToggleSick(employee)}
-                      className={`h-8 w-8 p-0 ${isSick ? 'text-success' : 'text-destructive'}`}
+                      className={`h-11 min-h-11 w-11 p-0 ${isSick ? 'text-success' : 'text-destructive'}`}
                     >
-                      <span className="sr-only">{isSick ? 'Fjern sygemelding' : 'Meld syg i dag'}</span>
+                      <span className="sr-only">{isSick ? (currentLanguage === 'da' ? 'Fjern sygemelding' : 'Remove sick leave') : (currentLanguage === 'da' ? 'Meld syg i dag' : 'Report sick today')}</span>
                       {isSick ? <HeartPulse className="h-4 w-4" /> : <Thermometer className="h-4 w-4" />}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{isSick ? 'Fjern sygemelding' : 'Meld syg i dag'}</p>
+                    <p>{isSick ? (currentLanguage === 'da' ? 'Fjern sygemelding' : 'Remove sick leave') : (currentLanguage === 'da' ? 'Meld syg i dag' : 'Report sick today')}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -286,7 +286,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                       variant="ghost" 
                       size="sm" 
                       onClick={() => onToggleLeave(employee)}
-                      className={`h-8 w-8 p-0 ${employee.onLeave ? 'text-success' : 'text-warning'}`}
+                      className={`h-11 min-h-11 w-11 p-0 ${employee.onLeave ? 'text-success' : 'text-warning'}`}
                     >
                       <span className="sr-only">
                         {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
@@ -312,7 +312,7 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
                     variant="ghost" 
                     size="sm" 
                     onClick={() => onDelete(employee)} 
-                    className="h-8 w-8 p-0 text-destructive"
+                    className="h-11 min-h-11 w-11 p-0 text-destructive"
                   >
                     <span className="sr-only">{t("common.delete")}</span>
                     <Trash2 className="h-4 w-4" />
