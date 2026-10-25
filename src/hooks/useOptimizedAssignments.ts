@@ -378,7 +378,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     notifyOwnAction();
 
     try {
-      setOperationStates(prev => ({ ...prev, [operationId]: 'loading' }));
+      setOperationStates(prev => ({ ...prev, [operationId]: 'updating' }));
 
       // LAG 3: Guard mod oprettelse uden department_id (forhindrer cross-tenant lækage)
       if (!selectedDepartmentId && user?.email !== 'test@polygongroup.com') {
@@ -439,7 +439,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         }
         
         await refetch();
-        setOperationStates(prev => ({ ...prev, [operationId]: 'success' }));
+        setOperationStates(prev => ({ ...prev, [operationId]: null }));
         
         toast({
           title: t('planner.assignmentCreated'),
@@ -512,13 +512,13 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         prev.map(a => a.id === optimisticAssignment.id ? convertToAssignment(createdAssignment, allEmployees) : a)
       );
 
-      setOperationStates(prev => ({ ...prev, [operationId]: 'success' }));
+      setOperationStates(prev => ({ ...prev, [operationId]: null }));
       toast({ title: t('planner.assignmentCreated'), description: t('planner.assignmentCreatedMsg', { title: serviceData.title }) });
 
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Create error:', error);
       setAssignments(prev => prev.filter(a => !a.id.startsWith('temp-')));
-      setOperationStates(prev => ({ ...prev, [operationId]: 'error' }));
+      setOperationStates(prev => ({ ...prev, [operationId]: null }));
       toast({ variant: 'destructive', title: t('common.error'), description: error instanceof Error ? error.message : t('common.error') });
       throw error;
     }
