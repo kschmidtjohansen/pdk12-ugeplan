@@ -24,20 +24,32 @@ function idbOpen() {
 async function idbGet(key) {
   const db = await idbOpen();
   return new Promise((resolve, reject) => {
-    const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key);
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(key);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
+    tx.oncomplete = () => db.close();
+    tx.onabort = () => { db.close(); reject(tx.error); };
   });
 }
 
-async function idbSet(key, value) {
+async function idbRotate(oldEndpoint, endpoint, token) {
   const db = await idbOpen();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(IDB_STORE, 'readwrite');
-    tx.objectStore(IDB_STORE).put(value, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
+    const store = tx.objectStore(IDB_STORE);
+    store.put(token, `resubscribe:${endpoint}`);
+    store.put({ endpoint, token }, 'latest');
+    if (oldEndpoint !== endpoint) store.delete(`resubscribe:${oldEndpoint}`);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onabort = tx.onerror = () => { db.close(); reject(tx.error); };
   });
+}
+
+function internalLink(link) {
+  if (typeof link !== 'string' || !link.startsWith('/') || link.startsWith('//') || /[\\\u0000-\u0020]/.test(link)) return '/dashboard';
+  const url = new URL(link, self.location.origin);
+  return url.origin === self.location.origin ? url.href : new URL('/dashboard', self.location.origin).href;
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -57,17 +69,17 @@ self.addEventListener('push', (event) => {
   try {
     payload = event.data ? event.data.json() : {};
   } catch (_err) {
-    payload = { title: 'Polygon Ugeplan', body: event.data ? event.data.text() : '' };
+    payload = { title: 'PolyPlan', body: event.data ? event.data.text() : '' };
   }
 
-  const title = payload.title || 'Polygon Ugeplan';
+  const title = payload.title || 'PolyPlan';
   const options = {
     body: payload.body || '',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
     tag: payload.tag || 'polygon-notification',
     renotify: true,
-    data: { link: payload.link || '/dashboard' },
+    data: { link: internalLink(payload.link) },
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -82,19 +94,15 @@ self.addEventListener('pushsubscriptionchange', (event) => {
     (async () => {
       const oldEndpoint = event.oldSubscription?.endpoint || null;
       try {
+        if (!oldEndpoint) return;
+        const token = await idbGet(`resubscribe:${oldEndpoint}`);
+        if (typeof token !== 'string' || !token) return;
         const subscription =
           event.newSubscription ||
           (await self.registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
           }));
-
-        let token = oldEndpoint ? await idbGet(`resubscribe:${oldEndpoint}`) : null;
-        if (!token) {
-          const latest = await idbGet('latest');
-          if (latest && latest.token) token = latest.token;
-        }
-        if (!token) return; // fail-closed: app re-saves the subscription on next launch
 
         const json = subscription.toJSON();
         const res = await fetch(RESUBSCRIBE_URL, {
@@ -110,8 +118,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
         });
 
         if (res.ok) {
-          await idbSet(`resubscribe:${subscription.endpoint}`, token);
-          await idbSet('latest', { endpoint: subscription.endpoint, token });
+          await idbRotate(oldEndpoint, subscription.endpoint, token);
         }
       } catch (_err) {
         /* the app re-checks and re-subscribes on next launch */
@@ -123,7 +130,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const link = (event.notification.data && event.notification.data.link) || '/dashboard';
-  const targetUrl = new URL(link, self.location.origin).href;
+  const targetUrl = internalLink(link);
 
   event.waitUntil(
     (async () => {
