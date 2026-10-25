@@ -22,6 +22,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, RefreshCw, Shield } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+import { parseYYYYMMDD } from '@/utils/dateUtils';
 import type { Duty } from '@/types/duty';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import ErrorState from '@/components/shared/ErrorState';
@@ -116,9 +117,12 @@ export default function DutyPage() {
     });
   }, [duties, employees, selectedDepartmentId, departmentNameMap]);
 
-  const upcomingDuties = dutiesWithRoles.filter(
-    duty => new Date(duty.duty_date) >= todayStart
-  );
+  const upcomingDuties = dutiesWithRoles.filter((duty) => {
+    // duty_date is a date-only string; parse it as a LOCAL date. `new Date(str)`
+    // would parse it as UTC midnight and shift the day in the Danish timezone.
+    const dutyDate = parseYYYYMMDD(duty.duty_date);
+    return dutyDate !== null && dutyDate >= todayStart;
+  });
 
   const employeesWithRoles = employees.map((emp) => ({
     id: emp.id,

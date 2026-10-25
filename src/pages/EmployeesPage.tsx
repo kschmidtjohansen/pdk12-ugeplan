@@ -21,7 +21,6 @@ import { useSickToday } from '@/hooks/useSickDays';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Employee } from '@/types/employee';
-import { Vacation } from '@/types/vacation';
 import { format } from 'date-fns';
 
 type EmployeeSegment = 'all' | 'active' | 'onleave' | 'vikarer';

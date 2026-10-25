@@ -5,6 +5,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import type { getWeekDates } from '@/utils/dates';
+import { todayLocalYYYYMMDD } from '@/utils/dateUtils';
 
 export type PlannerViewMode = 'standard' | 'compact' | 'grid' | 'calendar';
 
