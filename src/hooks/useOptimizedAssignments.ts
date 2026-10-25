@@ -664,7 +664,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
     // 1. Optimistic removal
     setAssignments(prev => prev.filter(a => a.id !== id));
-    setOperationState(id, 'loading');
+    setOperationState(id, 'deleting');
 
     // 2. Delayed database deletion (5s grace period)
     let cancelled = false;
@@ -672,10 +672,10 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       if (cancelled) return;
       try {
         await OptimizedAssignmentService.deleteAssignment(id, user.email);
-        setOperationState(id, 'success');
+        setOperationState(id, null);
       } catch (error) {
         if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Delete failed:', error);
-        setOperationState(id, 'error');
+        setOperationState(id, null);
         setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
         toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorDeletingAssignment'), variant: "destructive" });
       }
@@ -693,7 +693,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
           cancelled = true;
           clearTimeout(timeoutId);
           setAssignments(prev => [...prev, originalAssignment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-          setOperationState(id, 'idle');
+          setOperationState(id, null);
         }
       }, t('planner.undo')) as unknown as ToastActionElement,
     });
@@ -701,17 +701,17 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
   const publishAssignment = useCallback(async (id: string) => {
     notifyOwnAction();
-    setOperationState(id, 'loading');
+    setOperationState(id, 'publishing');
     try {
       setAssignments(prev => prev.map(a => a.id === id ? { ...a, published: true } : a));
       await OptimizedAssignmentService.publishAssignment(id, user.email);
       await PlannerChangeLogger.logPublish([id]);
       toast({ title: t('planner.assignmentPublished'), description: t('planner.assignmentPublishedMsg') });
-      setOperationState(id, 'success');
+      setOperationState(id, null);
       await refetch();
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Publish failed:', error);
-      setOperationState(id, 'error');
+      setOperationState(id, null);
       await refetch();
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorPublishingAssignment'), variant: "destructive" });
     }
