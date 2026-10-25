@@ -64,7 +64,7 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, weekRan
 
   if (loading) {
     return (
-      <section aria-busy={loading} className="border-b border-border pb-2">
+      <section aria-busy={loading} className="rounded-lg border border-border border-l-[3px] border-l-info-soft-foreground bg-info-soft/40 p-4">
         <div className="pb-3 border-b border-border">
           <h3 className="text-sm font-semibold">{t('dashboard.metrics.title') || 'Nøgletal'}</h3>
         </div>
@@ -83,7 +83,7 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, weekRan
 
   if (error) {
     return (
-      <section role="alert" className="border-b border-border pb-4">
+      <section role="alert" className="rounded-lg border border-border border-l-[3px] border-l-info-soft-foreground bg-info-soft/40 p-4">
         <div className="py-3 border-b border-border">
           <h3 className="text-sm font-semibold text-destructive">{t('dashboard.metrics.title')}</h3>
         </div>
@@ -136,7 +136,7 @@ const CompactKpiStack: React.FC<CompactKpiStackProps> = ({ selectedDate, weekRan
 
   return (
     <>
-      <section aria-busy={loading} className="border-b border-border pb-2">
+      <section aria-busy={loading} className="rounded-lg border border-border border-l-[3px] border-l-info-soft-foreground bg-info-soft/40 p-4">
         <div className="pb-3 border-b border-border">
           <h3 className="text-sm font-semibold text-foreground">
             {t('dashboard.metrics.title') || 'Nøgletal'}

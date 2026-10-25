@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
 import { NotificationType } from '@/types/notification';
+import { safeNotificationLink } from '@/utils/notificationDelivery';
 import { useTranslation } from '@/context/TranslationContext';
 
 const PAGE_SIZE = 20;
@@ -62,7 +63,8 @@ const NotificationsDrawer: React.FC = () => {
   const { user } = useAuth();
   const { unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const da = currentLanguage === 'da';
   const dateLocale = useDateLocale();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -78,11 +80,12 @@ const NotificationsDrawer: React.FC = () => {
     isFetchingNextPage,
     isLoading,
     refetch,
+    isError,
   } = useInfiniteQuery({
     queryKey,
     enabled: !!userId && open,
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => fetchPage(userId!, pageParam as number),
+    queryFn: ({ pageParam }) => { if (!userId) return Promise.resolve([]); return fetchPage(userId, pageParam as number); },
     getNextPageParam: (lastPage, allPages) =>
       lastPage.length === PAGE_SIZE ? allPages.length : undefined,
   });
@@ -103,7 +106,7 @@ const NotificationsDrawer: React.FC = () => {
     return () => obs.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, data]);
 
-  const rows: Row[] = data?.pages.flat() ?? [];
+  const rows: Row[] = Array.from(new Map((data?.pages.flat() ?? []).map(n => [n.id, n])).values());
   const groups = groupNotifications(rows);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey });
@@ -113,9 +116,10 @@ const NotificationsDrawer: React.FC = () => {
       await markAsRead(n.id);
       invalidate();
     }
-    if (n.link) {
+    const link = safeNotificationLink(n.link);
+    if (link) {
       setOpen(false);
-      navigate(n.link);
+      navigate(link);
     }
   };
 
@@ -131,9 +135,8 @@ const NotificationsDrawer: React.FC = () => {
   };
 
   const renderRow = (n: Row) => (
-    <button
+    <div
       key={n.id}
-      onClick={() => handleRowClick(n)}
       className="w-full text-left flex items-start gap-3 p-3 rounded-lg hover:bg-muted/60 transition-colors group"
     >
       <span
@@ -143,7 +146,7 @@ const NotificationsDrawer: React.FC = () => {
         )}
         aria-label={n.read ? t('ui.read') : t('ui.unread')}
       />
-      <div className="flex-1 min-w-0">
+      <Button variant="ghost" onClick={() => void handleRowClick(n)} className="flex-1 min-w-0 h-auto min-h-11 whitespace-normal text-left block px-0">
         <div className={cn('text-sm', !n.read && 'font-semibold')}>{n.title}</div>
         {n.message && (
           <div className="text-sm text-muted-foreground line-clamp-2">{n.message}</div>
@@ -151,17 +154,17 @@ const NotificationsDrawer: React.FC = () => {
         <div className="text-xs text-muted-foreground mt-0.5">
           {formatDistanceToNow(n.date, { addSuffix: true, locale: dateLocale })}
         </div>
-      </div>
+      </Button>
       <Button
         variant="ghost"
         size="icon"
-        className="h-11 w-11 sm:h-7 sm:w-7 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 shrink-0"
+        className="h-11 w-11 shrink-0"
         onClick={(e) => handleDelete(e, n.id)}
         aria-label={t('ui.deleteNotification')}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
-    </button>
+    </div>
   );
 
   const renderGroup = (label: string, items: Row[]) => {
@@ -182,12 +185,12 @@ const NotificationsDrawer: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-8 w-8 overflow-visible"
-          aria-label="Notifikationer"
+          className="relative h-11 w-11 overflow-visible"
+          aria-label={t('notifications.title')}
         >
           <Bell className="h-[15px] w-[15px]" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-destructive text-primary-foreground text-[10px] font-bold min-w-[16px] h-[16px] rounded-full flex items-center justify-center leading-none z-[100]">
+            <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold min-w-[16px] h-[16px] rounded-full flex items-center justify-center leading-none z-[100]">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -195,15 +198,15 @@ const NotificationsDrawer: React.FC = () => {
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
         <SheetHeader className="px-4 py-3 border-b flex-row items-center justify-between space-y-0">
-          <SheetTitle className="text-base">Notifikationer</SheetTitle>
+          <SheetTitle className="text-base">{t('notifications.title')}</SheetTitle>
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs h-7 px-[12px] mx-[40px]"
+            className="text-xs min-h-11 px-2 mr-7 whitespace-normal"
             onClick={handleMarkAll}
             disabled={unreadCount === 0}
           >
-            Marker alle som læst
+            {t('notifications.markAllAsRead')}
           </Button>
         </SheetHeader>
 
@@ -220,15 +223,17 @@ const NotificationsDrawer: React.FC = () => {
                 </div>
               ))}
             </div>
+          ) : isError ? (
+            <div role="alert" className="p-4 text-sm"><p>{t('common.errorLoadingData')}</p><Button variant="outline" onClick={() => void refetch()}>{da ? 'Prøv igen' : 'Retry'}</Button></div>
           ) : rows.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              Ingen notifikationer
+              {t('notifications.noNotifications')}
             </div>
           ) : (
             <>
               {renderGroup(t('common.today'), groups.today)}
-              {renderGroup('Denne uge', groups.week)}
-              {renderGroup('Tidligere', groups.older)}
+              {renderGroup(da ? 'Denne uge' : 'This week', groups.week)}
+              {renderGroup(da ? 'Tidligere' : 'Earlier', groups.older)}
               <div ref={sentinelRef} className="h-8 flex items-center justify-center">
                 {isFetchingNextPage && (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />

@@ -83,8 +83,8 @@ const TodayGuardsWidget: React.FC = () => {
   }, [duties, employees, contacts, todayStr, t]);
 
   return (
-    <section className="border-b border-border pb-4">
-      <header className="flex items-center justify-between border-b border-border pb-3 mb-1">
+    <section className="rounded-lg border border-border border-l-[3px] border-l-success-soft-foreground bg-success-soft/40 p-4">
+      <header className="flex items-center justify-between border-b border-success-soft-foreground/20 pb-3 mb-2">
         <h3 className="text-sm font-semibold">{t('ui.dutiesToday')}</h3>
         <Shield className="h-4 w-4 text-muted-foreground" />
       </header>
