@@ -165,31 +165,31 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
             const emp = employees.find((e) => e.id === id);
             if (!emp) return null;
             return (
-              <Badge key={id} variant="secondary" className="h-7 gap-1 pl-2 pr-1">
+              <Badge key={id} variant="secondary" className="min-h-11 gap-1 pl-2 pr-0">
                 {emp.name}
-                <button
+                <Button variant="ghost" size="icon"
                   type="button"
                   aria-label={emp.name}
                   onClick={() => toggleEmployee(id)}
-                  className="rounded p-0.5 hover:bg-background/60"
+                  className="h-11 w-11"
                 >
                   <X className="h-3 w-3" />
-                </button>
+                </Button>
               </Badge>
             );
           })}
 
         {postcode.trim() && (
-          <Badge variant="secondary" className="h-7 gap-1 pl-2 pr-1">
+          <Badge variant="secondary" className="min-h-11 gap-1 pl-2 pr-0">
             {t('planner.filters.postcode')} {postcode.trim()}
-            <button
+            <Button variant="ghost" size="icon"
               type="button"
               aria-label={t('planner.filters.postcode')}
               onClick={() => onPostcodeChange('')}
-              className="rounded p-0.5 hover:bg-background/60"
+              className="h-11 w-11"
             >
               <X className="h-3 w-3" />
-            </button>
+            </Button>
           </Badge>
         )}
 
@@ -232,15 +232,15 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
                     <ul className="p-1">
                       {filteredEmployees.map((emp) => (
                         <li key={emp.id}>
-                          <button
+                          <Button variant="ghost"
                             type="button"
                             onClick={() => toggleEmployee(emp.id)}
-                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left"
+                            className="flex min-h-11 h-auto w-full justify-start gap-2 px-2 py-1.5 text-sm text-left"
                           >
                             <Checkbox checked={selectedSet.has(emp.id)} className="pointer-events-none" />
                             <span className="truncate">{emp.name}</span>
                             {selectedSet.has(emp.id) && <Check className="ml-auto h-3.5 w-3.5 text-primary" />}
-                          </button>
+                          </Button>
                         </li>
                       ))}
                     </ul>

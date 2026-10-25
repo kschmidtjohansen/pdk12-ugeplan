@@ -1,0 +1,21 @@
+import React from 'react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { afterEach, expect, it, vi } from 'vitest';
+import CompactAssignmentRow from './CompactAssignmentRow';
+import { PlannerWeekDataProvider } from '@/context/PlannerWeekDataContext';
+import { summarizeWeek } from '@/utils/plannerOperations';
+import type { Assignment } from '@/types/assignment';
+vi.mock('@/hooks/useAssignments', () => ({ useAssignments: () => { throw new Error('Per-row assignments query'); } }));
+vi.mock('@/hooks/useEmployees', () => ({ useEmployees: () => { throw new Error('Per-row employee query'); } }));
+vi.mock('@/hooks/useAssignmentConflicts', () => ({ useAssignmentConflicts: () => { throw new Error('Per-row conflict calculation'); } }));
+vi.mock('@/context/TranslationContext', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+vi.mock('./ConflictBadge', () => ({ default: () => null }));
+afterEach(cleanup);
+it('context genbruger uge-data uden per-row queries og bevarer tastaturåbning', () => {
+  const task: Assignment = { id: 'fixture', title: 'Test', date: '2026-10-26', fromTime: '08:00', toTime: '16:00', location: 'Test', published: true };
+  const open = vi.fn();
+  render(<PlannerWeekDataProvider value={{ assignments: [task], employees: [], summary: summarizeWeek([task], [], []) }}><table><tbody><CompactAssignmentRow assignment={task} cars={[]} canEdit={false} onEdit={vi.fn()} onDelete={vi.fn()} onViewDetails={open} /></tbody></table></PlannerWeekDataProvider>);
+  fireEvent.keyDown(screen.getByRole('row'), { key: 'Enter' });
+  expect(open).toHaveBeenCalledOnce();
+  expect(screen.queryByRole('button', { name: 'planner.deleteAssignment' })).not.toBeInTheDocument();
+});
