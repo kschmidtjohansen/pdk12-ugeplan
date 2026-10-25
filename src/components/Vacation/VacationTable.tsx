@@ -5,6 +5,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Vacation } from '@/types/vacation';
+import { parseYYYYMMDD } from '@/utils/dateUtils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Check, X, Edit } from 'lucide-react';
@@ -123,9 +124,9 @@ const VacationTable: React.FC<VacationTableProps> = ({
   
   // Desktop: Table layout
   return (
-    <div className="border rounded-lg overflow-x-auto">
-      <Table>
-        <TableHeader>
+    <div className="border-y border-border overflow-x-auto">
+      <Table aria-label={t('navigation.vacation')}>
+        <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead>{t("employees.name")}</TableHead>
             <TableHead>{t("vacation.dateRange")}</TableHead>
@@ -146,7 +147,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                 </span>
               </TableCell>
               <TableCell>
-                {formatDateRange(new Date(vacation.start_date), new Date(vacation.end_date))}
+                {formatDateRange(parseYYYYMMDD(vacation.start_date) ?? new Date(`${vacation.start_date}T00:00:00`), parseYYYYMMDD(vacation.end_date) ?? new Date(`${vacation.end_date}T00:00:00`))}
               </TableCell>
               <TableCell>
                 <span className="text-sm text-muted-foreground">
@@ -162,9 +163,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                 {getStatusBadge(vacation.status)}
               </TableCell>
               <TableCell>
-                {new Date(vacation.created_at).toLocaleDateString(
-                  currentLanguage === 'da' ? 'da-DK' : 'en-GB'
-                )}
+                {vacation.created_at ? new Date(vacation.created_at).toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '–'}
               </TableCell>
               {canApprove && (
                 <TableCell className="text-right">
@@ -175,7 +174,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                           size="sm"
                           variant="outline"
                           onClick={() => onApprove(vacation)}
-                          className="text-success hover:text-success hover:bg-success-soft"
+                          aria-label={t('vacation.approve')} className="min-h-11 min-w-11 text-success hover:text-success hover:bg-success-soft"
                         >
                           <Check className="h-4 w-4" />
                         </Button>
@@ -183,7 +182,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                           size="sm"
                           variant="outline"
                           onClick={() => onReject(vacation)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive-soft"
+                          aria-label={t('vacation.reject')} className="min-h-11 min-w-11 text-destructive hover:text-destructive hover:bg-destructive-soft"
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -194,7 +193,7 @@ const VacationTable: React.FC<VacationTableProps> = ({
                         size="sm"
                         variant="outline"
                         onClick={() => onEdit(vacation)}
-                        className="text-primary hover:text-primary hover:bg-primary/10"
+                        aria-label={t('common.edit')} className="min-h-11 min-w-11 text-primary hover:text-primary hover:bg-primary/10"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>

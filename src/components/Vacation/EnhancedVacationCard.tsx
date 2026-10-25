@@ -4,6 +4,7 @@ import { format, getISOWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Vacation } from '@/types/vacation';
 import { useTranslation } from '@/context/TranslationContext';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Clock, Calendar, User } from 'lucide-react';
@@ -66,12 +67,12 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
   const isSameDay = vacation.start_date === vacation.end_date;
 
   return (
-    <Card className="w-full rounded-xl border-border/60 shadow-none">
+    <Card className="w-full rounded-lg border-border border-l-2 border-l-info-soft-foreground shadow-none">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start gap-3">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">
+            <span className="font-medium break-words">
               {isSameDay 
                 ? formatDate(vacation.start_date)
                 : `${formatDate(vacation.start_date)} - ${formatDate(vacation.end_date)}`
@@ -142,44 +143,44 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
 
         {/* Action buttons */}
         {showActions && (
-          <div className="flex gap-2 pt-2">
+          <div className="flex flex-wrap gap-2 border-t border-border pt-3">
             {vacation.status === 'pending' && (
               <>
                 {onApprove && (
-                  <button
+                  <Button variant="outline"
                     onClick={() => onApprove(vacation)}
-                    className="px-3 py-1 text-xs bg-success text-success-foreground rounded hover:bg-success/90"
+                    className="min-h-11 px-3 text-xs text-success-soft-foreground hover:bg-success-soft"
                   >
                     {t('vacation.approve')}
-                  </button>
+                  </Button>
                 )}
                 {onReject && (
-                  <button
+                  <Button variant="outline"
                     onClick={() => onReject(vacation)}
-                    className="px-3 py-1 text-xs bg-destructive text-destructive-foreground rounded hover:bg-destructive/90"
+                    className="min-h-11 px-3 text-xs text-destructive-soft-foreground hover:bg-destructive-soft"
                   >
                     {t('vacation.reject')}
-                  </button>
+                  </Button>
                 )}
               </>
             )}
             
             {onEdit && vacation.status === 'pending' && (
-              <button
+              <Button variant="outline"
                 onClick={() => onEdit(vacation)}
-                className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90"
+                className="min-h-11 px-3 text-xs text-foreground hover:bg-accent"
               >
                 {t('common.edit')}
-              </button>
+              </Button>
             )}
             
             {onDelete && (
-              <button
+              <Button variant="outline"
                 onClick={() => onDelete(vacation)}
-                className="px-3 py-1 text-xs bg-muted-foreground text-primary-foreground rounded hover:bg-muted-foreground/80"
+                className="min-h-11 px-3 text-xs text-destructive-soft-foreground hover:bg-destructive-soft"
               >
                 {t('common.delete')}
-              </button>
+              </Button>
             )}
           </div>
         )}

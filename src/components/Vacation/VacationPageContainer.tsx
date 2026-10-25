@@ -6,6 +6,7 @@ import { Vacation } from '@/types/vacation';
 import { visibleVacations } from '@/utils/moduleListFilters';
 import { ModuleContext } from '@/components/shared/ModuleListTools';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useQueryClient } from '@tanstack/react-query';
 import ErrorState from '@/components/shared/ErrorState';
 import VacationTabContent from './VacationTabContent';
 import VacationHeader from './VacationHeader';
@@ -19,13 +20,14 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   const { user, isEffectiveAdmin, isEffectiveServicemedarbejder, effectiveRole } = useAuth();
   const { canViewAllVacations: canManageVacations } = useAuth();
   const viewAsServicemedarbejder = isEffectiveServicemedarbejder || effectiveRole === 'fugttekniker';
+  const queryClient = useQueryClient();
   const { selectedDepartment } = useDepartment();
   const [search, setSearch] = React.useState('');
   const [activeTab, setActiveTab] = React.useState("all");
   
   const {
     vacations,
-    loading, error, fetchVacations,
+    loading, error,
     date,
     setDate,
     // Add the missing state variables
@@ -153,7 +155,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
       />
       
       {/* Vacation tab content with all vacation cards */}
-      {error ? <ErrorState description={error} onRetry={fetchVacations} /> : <VacationTabContent
+      {error ? <ErrorState description={error} onRetry={() => { void queryClient.invalidateQueries({ queryKey: ['vacations'] }); }} /> : <VacationTabContent
         search={search} onSearch={setSearch} onReset={resetFilters}
         vacations={vacations}
         tabValue={activeTab}
