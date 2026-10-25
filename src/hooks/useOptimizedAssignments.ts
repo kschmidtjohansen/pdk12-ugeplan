@@ -531,7 +531,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     }
     inFlightUpdates.add(id);
     notifyOwnAction();
-    setOperationState(id, 'loading');
+    setOperationState(id, 'updating');
     try {
       if (!data.title?.trim()) throw new Error('Title is required');
       if (!data.location?.trim()) throw new Error('Location is required');
@@ -581,7 +581,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         }
         
         await refetch();
-        setOperationState(id, 'success');
+        setOperationState(id, null);
         toast({
           title: t('planner.assignmentUpdated'),
           description: errors.length === 0
@@ -645,11 +645,11 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       
       await refetch();
       toast({ title: t('planner.assignmentUpdated'), description: t('planner.assignmentUpdatedMsg', { title: data.title }) });
-      setOperationState(id, 'success');
+      setOperationState(id, null);
       
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Update error:', error);
-      setOperationState(id, 'error');
+      setOperationState(id, null);
       await refetch();
       toast({ title: t('common.error'), description: error instanceof Error ? error.message : t('planner.errorUpdatingAssignment'), variant: "destructive" });
       throw error;
