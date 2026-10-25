@@ -1,3 +1,17 @@
+## 2026-10-25 – PolyPlan v1.3: operationelt overblik og ugeplanlægning
+
+- Baseline verificeret: d875cceb0150c5a084c5117b132dc6aea62390f3. Frontend-only; ingen deploy, DB-, RLS-, migration-, Edge Function- eller loginændringer.
+- Ny WeekOperationsStrip med antal opgaver, kladder, uden medarbejdertilknytning og opgaver med overlap. Signaler er afledt af den valgte, autoriserede uge; medarbejdertilknytning er ikke en universel valideringsfejl. Konflikter bruger uændret computeConflicts/sameCrew og tæller berørte opgaver.
+- plannerOperations er fælles beregnings-/filter-/URL-modul. /planner?week=53&year=2026&issue=drafts fungerer også ved ISO-årsskifte; URL-navigation og eksisterende lokal view-/ugepersistens bevares.
+- PlannerPage/Header/FilterBar/Content: status + tekst + medarbejder + dag kombineres med AND i standard/compact/grid/calendar. Matching dage udvides; resultattal, ryd og særskilt ingen-match vises. Denne uge og 44px dag-/viewkontroller tilføjet; mobilfiltre åbner inline uden overlay over resultater.
+- Kalenderens eksisterende lane-selector bevares. Når filtre er aktive vises også en direkte åbnbar resultatliste, så opgaver uden medarbejdere eller i skjulte lanes stadig kan åbnes. Ingen kalender-workflow omskrevet.
+- Ressourceoversigten får fortsat hele ugens opgaver; ferie/kursus og cross-subdepartment busy-logik er ikke ændret. Publicering fra en filtreret dag omfatter kun de viste kladder, ikke usynlige opgaver.
+- DashboardCockpit viser Kræver opmærksomhed efter eksisterende canSeeUnpublishedTasks; hver indikator åbner ugeplanen i samme uge/ISO-år/filter. Servicemedarbejder-dashboardet er urørt/personligt.
+- PlannerWeekDataContext genbruger memoized overlap-/medarbejderdata i standard/compact kort. Standalone callers har fallback; nye test kontrollerer ingen per-row assignment/employee/conflict-hooks i context-path.
+- AssignmentActionButtons bruger eksisterende canEdit/canPublishTasks i stedet for hårdkodet rolleliste. Read-only har ingen mutationknapper; publish-only har kun publicering. Atomare serie-RPCs, quickMove, undo, bulk og formularvalidering er ikke omskrevet.
+- QA: npm test 111/111 bestået (26 nye); npm run lint 0 fejl / 171 advarsler. Automatisk preview typecheck/build: build OK. npm run typecheck/build ikke kørt manuelt (platformen kører kontrollen automatisk).
+- Visuel fixture-kontrol af ny header/status/dag-navigation ved 360/390/768/1280/1440 i light/dark: ingen page-overflow, mobile controls mindst 44px; fokus-ring kontrolleret med reduced motion. Fixtures indeholder mockede listevisninger, ikke live opgaver eller autentificerede skærme. Komponenttests kontrollerer interaktioner, men fuld indlogget CRUD, dialogs, PWA/offline og komplet WCAG-audit er ikke E2E-verificeret (external_unmanaged; /planner redirect til login).
+
 ## 2026-10-25 – PolyPlan v1.2.1: indlogget Nordic Operations arbejdsflade
 
 - AppShell/AppSidebar: expanded desktop-default, 224px navigation, læsbare links, afdeling og bevaret collapse-toggle.
