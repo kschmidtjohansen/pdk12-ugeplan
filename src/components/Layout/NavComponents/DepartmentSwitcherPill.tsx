@@ -14,6 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { getDepartmentColorClasses } from '@/utils/departmentColor';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const DepartmentSwitcherPill: React.FC = () => {
   const { t } = useTranslation();
@@ -41,11 +42,12 @@ const DepartmentSwitcherPill: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
+        <Button
+          variant="ghost"
           type="button"
           title={titleText}
           className={cn(
-            'inline-flex items-center gap-1.5 max-w-[180px] px-2 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer',
+            'inline-flex min-h-11 h-auto items-center gap-1.5 max-w-full px-2 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer',
             colors.pill
           )}
         >
@@ -56,7 +58,7 @@ const DepartmentSwitcherPill: React.FC = () => {
               {currentSub.name}
             </span>
           )}
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" side="top" className="w-56">
         {canSwitchDept && (

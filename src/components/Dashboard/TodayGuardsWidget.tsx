@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { useDateLocale } from '@/hooks/useDateLocale';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Shield, ChevronDown } from 'lucide-react';
 import { useDutyData } from '@/hooks/duty/useDutyData';
@@ -83,20 +83,20 @@ const TodayGuardsWidget: React.FC = () => {
   }, [duties, employees, contacts, todayStr, t]);
 
   return (
-    <Card>
-      <CardHeader className="brand-card-header flex flex-row items-center justify-between py-2">
-        <CardTitle className="text-sm font-semibold brand-dot">{t('ui.dutiesToday')}</CardTitle>
+    <section className="border-b border-border pb-4">
+      <header className="flex items-center justify-between border-b border-border pb-3 mb-1">
+        <h3 className="text-sm font-semibold">{t('ui.dutiesToday')}</h3>
         <Shield className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent className="space-y-1 py-2">
+      </header>
+      <div className="divide-y divide-border">
         {todayDuties.length === 0 ? (
           <p className="py-1 text-xs text-muted-foreground">{t('ui.noDutiesToday')}</p>
         ) : (
           todayDuties.map(d => (
-            <div key={d.id} className="flex items-center justify-between gap-2 py-0.5">
+            <div key={d.id} className="flex items-start justify-between gap-2 py-3">
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium leading-tight text-foreground">{d.name}</p>
-                <p className="truncate text-[11px] leading-tight text-muted-foreground">{d.type}</p>
+                <p className="break-words text-sm font-semibold leading-snug text-foreground">{d.name}</p>
+                <p className="text-xs leading-snug text-muted-foreground">{d.type}</p>
               </div>
               <EmployeeContactActions phone={d.phone} name={d.name} size="sm" />
             </div>
@@ -114,7 +114,7 @@ const TodayGuardsWidget: React.FC = () => {
                     {format(new Date(group.date + 'T00:00:00'), 'EEE d/M', { locale: dateLocale })}
                   </p>
                   {group.items.map(i => (
-                    <div key={i.id} className="flex items-center justify-between gap-2">
+                    <div key={i.id} className="flex items-center justify-between gap-2 py-2">
                       <p className="min-w-0 truncate text-xs">
                         <span className="font-medium text-foreground">{i.name}</span>
                         <span className="text-muted-foreground"> · {i.type}</span>
@@ -129,24 +129,27 @@ const TodayGuardsWidget: React.FC = () => {
         </Collapsible>
 
         <div className="flex items-center justify-between border-t border-border/40 pt-1">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             onClick={() => setOpen(!open)}
-            className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            aria-expanded={open}
+            className="flex min-h-11 h-auto items-center gap-1 px-0 text-xs font-medium whitespace-normal text-muted-foreground hover:text-foreground"
           >
             {open ? t('ui.hideWeek') : t('ui.showWholeWeek')}
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             type="button"
             onClick={() => navigate('/duty')}
-            className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="min-h-11 h-auto px-0 text-xs font-medium whitespace-normal text-muted-foreground hover:text-foreground"
           >
             {t('ui.openDutyPlan')}
-          </button>
+          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 };
 

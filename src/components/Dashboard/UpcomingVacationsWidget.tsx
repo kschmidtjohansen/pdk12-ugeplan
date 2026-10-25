@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { useTranslation } from '@/context/TranslationContext';
 import { Vacation } from '@/types/vacation';
-import { CalendarClock, User } from 'lucide-react';
+import { CalendarClock } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
-import { da, enGB } from 'date-fns/locale';
+
 import { Badge } from '@/components/ui/badge';
 import { formatDateRangeWithWeeks } from '@/utils/dateUtils';
 
@@ -21,7 +21,7 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
   today.setHours(0, 0, 0, 0);
 
   // Determine locale object based on current language
-  const dateLocale = currentLanguage === 'da' ? da : enGB;
+
 
   // Get approved vacations that are current or upcoming
   const relevantVacations = vacations.filter(vacation => 
@@ -41,30 +41,27 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader className="brand-card-header flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-semibold brand-dot">
+    <section className="border-b border-border pb-4">
+      <header className="flex items-start justify-between gap-3 border-b border-border pb-3 mb-1">
+        <h3 className="text-sm font-semibold">
           {t('dashboard.upcomingVacations')}
-        </CardTitle>
-        <CalendarClock className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
+        </h3>
+        <CalendarClock className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </header>
+      <div>
         {relevantVacations.length === 0 ? (
           <p className="text-sm text-muted-foreground text-left py-2">
             {t('dashboard.noUpcomingVacations')}
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="divide-y divide-border">
             {relevantVacations.map(vacation => {
               const isOngoing = hasVacationStarted(new Date(vacation.start_date));
               return (
-                <div key={vacation.id} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="h-9 w-9 rounded-full bg-polygon-light flex items-center justify-center mr-3">
-                      <User className="h-4 w-4 text-polygon-blue" />
-                    </div>
+                <div key={vacation.id} className="flex flex-col items-start gap-2 py-3">
+                  <div className="min-w-0 w-full">
                     <div className="text-left">
-                      <p className="text-sm font-medium text-left">{vacation.user?.name || 'Unknown'}</p>
+                      <p className="text-sm font-semibold break-words">{vacation.user?.name || 'Unknown'}</p>
                       <p className="text-xs text-muted-foreground text-left">
                         {formatDateRangeWithWeeks(
                           new Date(vacation.start_date),
@@ -76,7 +73,7 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
                     </div>
                   </div>
                   {isOngoing && (
-                    <Badge variant="outline" className="bg-success-soft whitespace-nowrap">
+                    <Badge variant="outline" className="border-transparent bg-success-soft text-success-soft-foreground whitespace-normal">
                       {calculateDaysRemaining(new Date(vacation.end_date))} {t("vacation.days")}
                     </Badge>
                   )}
@@ -85,8 +82,8 @@ const UpcomingVacationsWidget: React.FC<UpcomingVacationsWidgetProps> = ({
             })}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 };
 

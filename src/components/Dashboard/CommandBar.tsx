@@ -89,11 +89,11 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
   }, [todayAssignments, metrics.availableCars.cars]);
 
   return (
-    <section className="rounded-xl border border-border/60 bg-card px-3 py-3 shadow-xs animate-fade-in sm:px-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <section className="border-b border-border pb-4">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(240px,360px)] xl:items-center">
         <div className="flex items-center justify-between gap-3 min-w-0">
           <div className="min-w-0">
-            <h1 className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg">
+            <h1 className="truncate text-xl font-semibold tracking-normal text-foreground">
               {t(greetKey(now.getHours()))}{firstName && `, ${firstName}`}
             </h1>
             <p className="text-xs capitalize text-muted-foreground">
@@ -101,18 +101,18 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
               <span className="hidden sm:inline">{format(now, "EEEE d. MMMM · 'uge' I", { locale: dateLocale })}</span>
             </p>
           </div>
-          <div className="flex items-center gap-1 lg:hidden">{actions}</div>
+          <div className="flex flex-wrap items-center gap-1 xl:hidden">{actions}</div>
         </div>
-        <div className="flex items-center gap-2 lg:w-[420px]">
+        <div className="flex min-w-0 items-center gap-2">
           <GlobalSearch />
-          <div className="hidden items-center gap-1 lg:flex">{actions}</div>
+          <div className="hidden items-center gap-1 xl:flex">{actions}</div>
         </div>
       </div>
 
-      <DailyQuoteCard quote={getDailyQuote()} compact className="mt-3" />
+      <div className="mt-3 border-l-2 border-border pl-3"><DailyQuoteCard quote={getDailyQuote()} compact /></div>
 
-      <div className="relative mt-3">
-        <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-0.5 pr-6 [scrollbar-width:none] sm:pr-1">
+      <div className="mt-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {leaderDuties.length === 0 && driveDuties.length === 0 && (
             <StatusPill className="snap-start" icon={Phone} tone="primary" label={t('ui.noDutyToday')} onClick={() => setPanel('duty')} />
           )}
@@ -128,7 +128,6 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
             <StatusPill className="snap-start" icon={Clock} tone="warning" label={`${expiring.length} ${expiring.length === 1 ? t('ui.tempExpiringOne') : t('ui.tempExpiringMany')}`} onClick={() => setPanel('temp')} />
           )}
         </div>
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent sm:hidden" />
       </div>
 
       <StatusDetailSheet open={panel === 'duty'} onOpenChange={o => !o && setPanel(null)} title={t('ui.duty')} description={t('ui.todaysOnCall')}>

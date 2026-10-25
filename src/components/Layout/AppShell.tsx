@@ -25,16 +25,16 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         Gå til indhold
       </a>
       <UnreadMessagesProvider>
-        <SidebarProvider defaultOpen={false}>
+        <SidebarProvider defaultOpen={true} className="operations-shell">
           <div className="flex min-h-dvh w-full bg-background">
             <AppSidebar />
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 border-l border-border">
               <AppTopBar />
               <main
                 id="main-content"
                 role="main"
                 tabIndex={-1}
-                className="flex-1 w-full pt-2 md:pt-4 pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0"
+                className="flex-1 w-full pt-4 pb-[calc(72px+env(safe-area-inset-bottom))] lg:pb-4"
               >
                 {children}
               </main>

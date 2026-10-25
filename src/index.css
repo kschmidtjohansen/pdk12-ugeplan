@@ -471,3 +471,40 @@
 @media print {
   .no-print { display: none !important; }
 }
+
+/* v1.2.1 — workspace-only contract. Login retains its v1.2 tokens. */
+.operations-shell {
+  --primary: 196.31799163179917 100% 46.86274509803922%; /* exact #00AEEF */
+  --primary-foreground: 200 100% 16%;
+  --ring: 199 100% 28%;
+  --input: 220 10% 64%;
+  --muted-foreground: 220 9% 40%;
+  --sidebar-width: 14rem !important;
+  --sidebar-width-icon: 3.5rem !important;
+  --success-foreground: 142 70% 10%;
+  --warning-foreground: 30 80% 12%;
+  --info-foreground: 200 100% 16%;
+}
+.dark .operations-shell {
+  --primary: 196.31799163179917 100% 46.86274509803922%;
+  --primary-foreground: 200 100% 12%;
+  --ring: 199 95% 78%;
+  --input: 222 10% 44%;
+  --muted-foreground: 220 10% 72%;
+}
+.operations-shell h1, .operations-shell h2, .operations-shell h3,
+.operations-shell h4, .operations-shell .kpi-number {
+  letter-spacing: 0;
+}
+.operations-shell button, .operations-shell input { letter-spacing: 0; }
+.workspace-tools button { min-width: 44px; min-height: 44px; }
+@media (min-width: 1280px) {
+  .workspace-tools { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .operations-shell *, .operations-shell *::before, .operations-shell *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -5,6 +5,8 @@ import { useAssignments } from '@/hooks/useAssignments';
 import { useCars } from '@/hooks/car';
 import { Assignment } from '@/types/assignment';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/TranslationContext';
 
@@ -33,7 +35,7 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
   const itemsReady = !loading;
   useEffect(() => {
     if (active && itemsReady && window.innerWidth < 640) {
-      currentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      currentRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
     }
   }, [active, itemsReady]);
   const items = useMemo(
@@ -51,8 +53,8 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border/60 px-4 py-10 text-center">
-        <CalendarCheck className="mx-auto mb-2 h-7 w-7 text-muted-foreground/60" />
+      <div className="border-y border-border px-4 py-12 text-center">
+        <CalendarCheck className="mx-auto mb-2 h-7 w-7 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">{t('ui.noCasesToday')}</p>
       </div>
     );
@@ -62,42 +64,36 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
   const nowIdx = items.findIndex(a => toMin(a.fromTime) > nowMin);
 
   return (
-    <ol className="relative ml-2 border-l border-border/60">
+    <ol className="relative divide-y divide-border border-y border-border">
       {items.map((a, i) => {
         const start = toMin(a.fromTime);
         const end = toMin(a.toTime);
         const current = nowMin >= start && nowMin <= end;
-        const past = nowMin > end;
         const team = people(a);
         const carTxt = carNames(a);
         return (
           <React.Fragment key={a.id}>
             {i === nowIdx && !items.some(x => nowMin >= toMin(x.fromTime) && nowMin <= toMin(x.toTime)) && <NowMarker />}
-            <li ref={current ? currentRef : undefined} className={cn('relative pb-3 pl-4 last:pb-0 sm:pb-4 sm:pl-5', past && 'opacity-55')}>
-              <span className="absolute -left-[5px] top-2 flex h-2.5 w-2.5">
-                {current && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60 motion-reduce:hidden" />}
-                <span className={cn('relative inline-flex h-2.5 w-2.5 rounded-full', current ? 'bg-primary' : past ? 'bg-muted-foreground/40' : 'bg-border')} />
-              </span>
-              <button
-                type="button"
-                onClick={() => setSelected(a)}
-                className={cn(
-                  'min-h-[44px] w-full rounded-lg px-2.5 py-2 text-left sm:px-3 transition-colors hover:bg-accent/50',
-                  current && 'bg-primary/5 ring-1 ring-primary/25'
-                )}
-              >
-                <div className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
-                  <span className="font-semibold text-foreground">{a.fromTime?.slice(0, 5)}–{a.toTime?.slice(0, 5)}</span>
-                  {a.case_number && <span>#{a.case_number}</span>}
-                  {current && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">{t('ui.inProgressNow')}</span>}
-                </div>
-                <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{a.title}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  {a.location && <span className="flex w-full min-w-0 items-center gap-1 truncate sm:inline-flex sm:w-auto"><MapPin className="h-3 w-3" />{[a.location, a.city].filter(Boolean).join(', ')}</span>}
-                  {team && <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 sm:bg-transparent sm:p-0"><Users className="h-3 w-3" />{team}</span>}
-                  {carTxt && <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 sm:bg-transparent sm:p-0"><CarIcon className="h-3 w-3" />{carTxt}</span>}
-                </div>
-              </button>
+            <li ref={current ? currentRef : undefined} className="relative">
+              <Button variant="ghost" type="button" onClick={() => setSelected(a)}
+                className={cn('grid h-auto min-h-24 w-full grid-cols-[minmax(0,1fr)] gap-3 rounded-none border-l-2 border-transparent px-3 py-4 text-left whitespace-normal sm:grid-cols-[88px_minmax(0,1fr)] sm:px-4', current && 'border-primary bg-accent')}>
+                <span className="flex items-center gap-2 sm:flex-col sm:items-start text-xs tabular-nums">
+                  <span className="font-semibold text-foreground">{a.fromTime?.slice(0, 5)}</span>
+                  <span className="text-muted-foreground">– {a.toTime?.slice(0, 5)}</span>
+                </span>
+                <span className="min-w-0 space-y-2">
+                  <span className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-sm font-semibold text-foreground break-words">{a.title}</span>
+                    {current && <Badge variant="info" className="whitespace-normal">{t('ui.inProgressNow')}</Badge>}
+                    {a.case_number && <span className="text-xs text-muted-foreground tabular-nums">#{a.case_number}</span>}
+                  </span>
+                  {a.location && <span className="flex items-start gap-2 text-xs text-muted-foreground"><MapPin aria-hidden className="h-3.5 w-3.5 shrink-0" /><span className="break-words">{[a.location, a.city].filter(Boolean).join(', ')}</span></span>}
+                  <span className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+                    {team && <span className="flex items-start gap-2"><Users aria-hidden className="h-3.5 w-3.5 shrink-0" /><span className="break-words">{team}</span></span>}
+                    {carTxt && <span className="flex items-start gap-2"><CarIcon aria-hidden className="h-3.5 w-3.5 shrink-0" /><span className="break-words">{carTxt}</span></span>}
+                  </span>
+                </span>
+              </Button>
             </li>
           </React.Fragment>
         );
@@ -114,10 +110,9 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
 };
 
 const NowMarker: React.FC = () => (
-  <li className="relative pb-4 pl-5" aria-label="Nu">
-    <span className="absolute -left-[4px] top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-primary" />
+  <li className="relative py-3 px-3 sm:px-4" aria-label="Nu">
     <div className="flex items-center gap-2">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-primary">Nu {format(new Date(), 'HH:mm')}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-info-soft-foreground">Nu {format(new Date(), 'HH:mm')}</span>
       <span className="h-px flex-1 bg-primary/30" />
     </div>
   </li>

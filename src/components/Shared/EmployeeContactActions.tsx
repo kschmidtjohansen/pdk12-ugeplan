@@ -24,7 +24,7 @@ const EmployeeContactActions: React.FC<EmployeeContactActionsProps> = ({
   if (!phone) return null;
   const tel = normalizePhone(phone);
   const label = name ? ` til ${name}` : '';
-  const btnSize = size === 'sm' ? 'h-8 w-8 min-h-8 min-w-8' : 'h-11 w-11 min-h-11 min-w-11';
+  const btnSize = 'h-11 w-11 min-h-11 min-w-11';
   const iconSize = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
 
   return (

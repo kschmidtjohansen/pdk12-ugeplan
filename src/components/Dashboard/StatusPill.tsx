@@ -1,5 +1,6 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface StatusPillProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -10,25 +11,26 @@ interface StatusPillProps extends React.ButtonHTMLAttributes<HTMLButtonElement> 
 
 const toneMap = {
   default: 'border-border/60 bg-background/60 text-foreground hover:bg-accent/60',
-  primary: 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/15',
+  primary: 'border-border bg-card text-info-soft-foreground hover:bg-accent',
   warning: 'border-warning/40 bg-warning-soft text-warning-soft-foreground hover:bg-warning-soft/80',
 };
 
 const StatusPill = React.forwardRef<HTMLButtonElement, StatusPillProps>(
   ({ icon: Icon, label, tone = 'default', className, ...rest }, ref) => (
-    <button
+    <Button
+      variant="ghost"
       ref={ref}
       type="button"
       className={cn(
-        'inline-flex h-11 sm:h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'inline-flex min-h-11 h-auto items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         toneMap[tone],
         className
       )}
       {...rest}
     >
       <Icon className="h-3.5 w-3.5 shrink-0" />
-      <span className="whitespace-nowrap">{label}</span>
-    </button>
+      <span className="whitespace-normal text-left break-words">{label}</span>
+    </Button>
   )
 );
 StatusPill.displayName = 'StatusPill';

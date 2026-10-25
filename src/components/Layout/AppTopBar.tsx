@@ -61,38 +61,34 @@ const AppTopBar: React.FC = () => {
   };
 
   return (
-    <header role="banner" className="sticky top-0 z-40 h-11 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 border-b border-border/70">
-      <div className="flex items-center h-full px-2 sm:px-3 gap-2">
-        <SidebarTrigger className="text-muted-foreground hover:text-foreground h-8 w-8 hidden lg:inline-flex" />
-        <Link
-          to="/dashboard"
-          className="flex items-center gap-1.5 lg:hidden"
-          aria-label={PRODUCT_NAME}
-        >
-          <img src={polygonMark} alt="" aria-hidden className="h-5 w-5 select-none object-contain" draggable={false} />
-          <span className="text-[13px] font-semibold tracking-tight text-foreground">{PRODUCT_NAME}</span>
-        </Link>
-        <div className="h-4 w-px bg-border hidden sm:block" />
-        <h1 className="text-[13px] font-semibold text-foreground tracking-tight truncate">
-          {title}
-        </h1>
-        {isPlanner && (
-          <span className="inline-flex items-center border border-border bg-muted text-muted-foreground text-[12px] rounded-md px-2 py-0.5 font-medium tabular-nums">
-            {t('planner.week') || 'Uge'} {week}
-          </span>
-        )}
-
-        <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
-          <GlobalAssignmentSearch />
+    <header role="banner" className="sticky top-0 z-40 border-b border-border bg-card">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-3 py-2 sm:px-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <SidebarTrigger className="text-muted-foreground hover:text-foreground min-h-11 min-w-11 hidden md:inline-flex" />
+          <Link to="/dashboard" className="shrink-0 md:hidden" aria-label={PRODUCT_NAME}>
+            <img src={polygonMark} alt="" aria-hidden className="h-7 w-7 object-contain" draggable={false} />
+          </Link>
+          <div className="min-w-0">
+            <p className="hidden md:block text-[10px] font-semibold text-muted-foreground">{PRODUCT_NAME}</p>
+            <h1 className="text-sm font-semibold text-foreground break-words">{title}</h1>
+          </div>
+          {isPlanner && <span className="hidden sm:block border-l border-border pl-3 text-xs text-muted-foreground tabular-nums">{t('planner.week')} {week}</span>}
+        </div>
+        <div className="flex items-center gap-1">
           <NotificationsDrawer />
-          {canSeeVacationOverview && <VacationOverviewDropdown />}
-          <ChangeLogDropdown />
           <UserMenu
             user={user}
             currentLanguage={currentLanguage}
             setLanguage={setLanguage}
             handleLogout={handleLogout}
           />
+        </div>
+        <div className="col-span-2 flex min-w-0 items-center gap-2 border-t border-border pt-2 workspace-tools">
+          <div className="min-w-0 flex-1"><GlobalAssignmentSearch /></div>
+          <div className="flex shrink-0 items-center gap-1 border-l border-border pl-2">
+            {canSeeVacationOverview && <VacationOverviewDropdown />}
+            <ChangeLogDropdown />
+          </div>
         </div>
       </div>
     </header>

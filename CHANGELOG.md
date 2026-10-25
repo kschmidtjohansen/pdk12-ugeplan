@@ -1,3 +1,18 @@
+## 2026-10-25 – PolyPlan v1.2.1: indlogget Nordic Operations arbejdsflade
+
+- AppShell/AppSidebar: expanded desktop-default, 224px navigation, læsbare links, afdeling og bevaret collapse-toggle.
+- AppTopBar/MobileBottomNav: todelt arbejdsheader, tilgængelig søgning også på mobil, klare aktiv-states og safe-area.
+- CommandBar/DashboardCockpit: ny responsiv velkomst/statuskomposition, åben hovedarbejdsflade og disciplineret 280px rail frem for nested cards.
+- CompactKpiStack/TodayTimeline: typografisk scorecard, store tabular tal, ny tids-/ressourcekomposition, ingen pulser eller hover-only actions.
+- WeeklyAssignments: 44px dagskontroller, divider-liste, tastaturåbning af sag og altid synlige admin-actions; eksisterende handlers, filtre og undo-hook bevaret.
+- TodayGuardsWidget/UpcomingVacationsWidget: fælles rail-sektionering; kontaktknapper og kollaps bevaret.
+- Shared button/card/input/tabs/badge samt StatusPill: flat variants, focus/pressed feedback, loading aria-busy, ingen gradient eller inset-glitter. Variantnavne/props bevaret.
+- DepartmentSwitcherPill/EmployeeContactActions: mindst 44px kontroller; ingen permissionændringer.
+- Workspace-scopede kontrasttokens bevarer præcis #00AEEF i begge temaer; login er ikke redigeret.
+- QA: 85/85 tests bestod ved første fulde gennemløb (7 nye). Lint: 0 fejl, 172 eksisterende advarsler. Preview-harness rapporterer build OK; manuel build/typecheck køres ikke, da platformen håndterer dem.
+- Visuelt: kontrollerede tidslinje/KPI/ferie-fixtures på 360/390/768/1280 i light/dark uden overflow. Ikke autentificerede screenshots. /dashboard redirecter til /login; fuld indlogget E2E/visuel QA og fuld WCAG-kontrastaudit forbliver uverificeret.
+- Ingen database-, migration-, RLS-, backend-, login-, data- eller deployændringer.
+
 ## 2026-10-25 – PolyPlan v1.2: selvstændigt design-system og visuelt udtryk
 
 **1. Design tokens ("Nordic Operations")**

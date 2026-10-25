@@ -36,12 +36,13 @@ interface NavItem {
 const AppSidebar: React.FC = () => {
   const { t } = useTranslation();
   const { isEffectiveAdmin } = useAuth();
-  const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
+  const { isDutyEnabled, isWarehouseEnabled, userDepartments, selectedDepartmentId } = useDepartment();
+  const department = userDepartments.find(d => d.id === selectedDepartmentId);
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
   const { totalUnread } = useUnreadMessagesContext();
   const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
-  const collapsed = state === 'collapsed';
+  const collapsed = state === 'collapsed' && !isMobile;
 
   const closeMobile = () => { if (isMobile) setOpenMobile(false); };
 
@@ -88,10 +89,10 @@ const AppSidebar: React.FC = () => {
           isActive={isActive}
           tooltip={item.label}
           className={cn(
-            'h-10 font-medium cursor-pointer rounded-md transition-[background-color,color,opacity] duration-150 ease-out',
+            'h-11 text-sm font-medium cursor-pointer rounded-md transition-[background-color,color,opacity] duration-150 ease-out',
             isActive
-              ? 'list-row-selected text-primary hover:text-primary'
-              : 'text-sidebar-foreground/80 hover:bg-accent/40'
+              ? 'list-row-selected text-sidebar-accent-foreground hover:text-sidebar-accent-foreground'
+              : 'text-sidebar-foreground hover:bg-sidebar-accent'
           )}
         >
           <NavLink to={item.path} end onClick={closeMobile}>
@@ -119,7 +120,7 @@ const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border h-14 flex items-center justify-center px-2">
+      <SidebarHeader className="border-b border-sidebar-border min-h-20 flex items-center justify-center px-3">
         <Link
           to="/dashboard"
           onClick={closeMobile}
@@ -134,7 +135,7 @@ const AppSidebar: React.FC = () => {
               draggable={false}
             />
           ) : (
-            <div className="flex items-center gap-2.5 mx-auto">
+            <div className="flex items-center gap-3 mr-auto">
               <img
                 src={polygonMark}
                 alt=""
@@ -143,7 +144,7 @@ const AppSidebar: React.FC = () => {
                 draggable={false}
               />
               <span className="flex flex-col items-start leading-none">
-                <span className="text-[15px] font-semibold tracking-tight text-sidebar-foreground">
+                <span className="text-[15px] font-semibold tracking-normal text-sidebar-foreground">
                   {PRODUCT_NAME}
                 </span>
                 <img
@@ -162,7 +163,14 @@ const AppSidebar: React.FC = () => {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="py-2" role="navigation" aria-label={t('ui.primaryNavigation')}>
+      {!collapsed && (
+        <div className="px-4 py-4 border-b border-sidebar-border">
+          <p className="text-xs text-muted-foreground mb-1">{t('common.department')}</p>
+          <p className="text-sm font-semibold break-words">{department?.name || '—'}</p>
+          <div className="mt-2"><DepartmentSwitcherPill /></div>
+        </div>
+      )}
+      <SidebarContent className="py-3" role="navigation" aria-label={t('ui.primaryNavigation')}>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>{items.map(renderItem)}</SidebarMenu>
@@ -171,13 +179,12 @@ const AppSidebar: React.FC = () => {
       </SidebarContent>
 
       <SidebarFooter role="contentinfo" className="border-t border-sidebar-border p-2 space-y-1">
-        {showAdmin && (
-          <SidebarMenu>{renderItem(adminItem!)}</SidebarMenu>
+        {showAdmin && adminItem && (
+          <SidebarMenu>{renderItem(adminItem)}</SidebarMenu>
         )}
         {!collapsed && (
           <div className="flex flex-col items-center gap-1 px-2 pt-1">
-            <DepartmentSwitcherPill />
-            <p className="text-[10px] text-sidebar-foreground/50 text-center leading-tight">
+            <p className="text-[10px] text-muted-foreground text-center leading-tight">
               {PRODUCT_NAME}
             </p>
           </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -9,7 +10,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { buildMobileTabs } from '@/components/Layout/mobileNavTabs';
 
 const MobileBottomNav: React.FC = () => {
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, openMobile } = useSidebar();
   const location = useLocation();
   const { currentLanguage } = useTranslation();
   const { totalUnread } = useUnreadMessagesContext();
@@ -28,24 +29,23 @@ const MobileBottomNav: React.FC = () => {
     <nav
       role="navigation"
       className={cn(
-        'lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background',
+        'lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card',
         'border-t border-border/70',
         'pb-[env(safe-area-inset-bottom)]'
       )}
-      style={{ borderTopWidth: '0.5px' }}
       aria-label="Mobil navigation"
     >
-      <ul className="flex items-stretch justify-around min-h-[56px]">
+      <ul className="flex items-stretch justify-around min-h-[64px] px-2 gap-1">
         {TABS.map(({ to, label, icon: Icon, badge }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'relative flex flex-col items-center justify-center gap-0.5 h-full w-full min-h-[44px] text-[10px] font-medium',
+                  'relative flex flex-col items-center justify-center gap-1 h-full w-full min-h-[64px] text-[11px] font-medium',
                   'transition-colors active:opacity-80',
                   isActive
-                    ? 'text-primary after:absolute after:top-0 after:h-0.5 after:w-8 after:rounded-full after:bg-primary'
+                    ? 'text-foreground bg-accent after:absolute after:top-0 after:h-0.5 after:inset-x-3 after:bg-primary'
                     : 'text-muted-foreground hover:text-foreground'
                 )
               }
@@ -53,7 +53,7 @@ const MobileBottomNav: React.FC = () => {
               {({ isActive }) => (
                 <>
                   <span className="relative">
-                    <Icon className={cn('h-5 w-5', isActive && 'stroke-[2.25]')} />
+                    <Icon className={cn('h-[22px] w-[22px]', isActive && 'stroke-[2.25]')} />
                     {!!badge && badge > 0 && (
                       <span
                         aria-label={isDa ? `${badge} nye beskeder` : `${badge} new messages`}
@@ -70,21 +70,23 @@ const MobileBottomNav: React.FC = () => {
           </li>
         ))}
         <li className="flex-1">
-          <button
+          <Button
+            variant="ghost"
             type="button"
+            aria-expanded={openMobile}
             onClick={() => setOpenMobile(true)}
             className={cn(
-              'relative flex flex-col items-center justify-center gap-0.5 h-full w-full min-h-[44px] text-[10px] font-medium',
+              'relative flex flex-col items-center justify-center gap-1 h-full w-full min-h-[64px] text-[11px] font-medium',
               'transition-colors active:opacity-80',
               moreActive
-                ? 'text-primary after:absolute after:top-0 after:h-0.5 after:w-8 after:rounded-full after:bg-primary'
+                ? 'text-foreground bg-accent after:absolute after:top-0 after:h-0.5 after:inset-x-3 after:bg-primary'
                 : 'text-muted-foreground hover:text-foreground'
             )}
             aria-label={isDa ? 'Mere' : 'More'}
           >
-            <MoreHorizontal className="h-5 w-5" />
+            <MoreHorizontal className="h-[22px] w-[22px]" />
             <span className="leading-none">{isDa ? 'Mere' : 'More'}</span>
-          </button>
+          </Button>
         </li>
       </ul>
     </nav>

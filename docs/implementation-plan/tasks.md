@@ -1,3 +1,11 @@
+## PolyPlan v1.2.1 (2026-10-25)
+- [x] Expanded navigation, afdeling, arbejdsheader og bottom-nav.
+- [x] Reelt omkomponeret velkomst, cockpit, KPI, tidslinje, ugeoversigt og aktivitetsrail.
+- [x] Fælles button/card/input/tabs/badge-kontrakter harmoniseret uden backendændringer.
+- [x] Målrettede handlingstests og fixture-kontrol på fire bredder i begge temaer.
+- [ ] Autentificeret visuel og end-to-end gennemgang: blokeret af ekstern unmanaged Supabase-session.
+- [x] Login og produktion urørt; ingen deploy.
+
 ## Eksisterende roller efter rolle-rettighedsændring (2026-10-22)
 
 - [x] Udrul nødvendig EXECUTE-rettighed til authenticated for afdelingskontrollen; bevar roller og RLS.

@@ -58,9 +58,9 @@ Alle tokens er HSL-værdier i `src/index.css`. Brug aldrig hardcoded Tailwind-fa
 
 | Token | Værdi | Anvendelse |
 |-------|-------|------------|
-| `--radius` | `0.625rem` (10px) | Base. `rounded-lg` = 10px, `rounded-xl` = 12px, `rounded-md` = 8px |
+| `--radius` | `0.625rem` (10px) | Legacy base preserved; shared controls use `rounded-md` (8px), shared Card uses `rounded-lg` |
 
-Apple/Arc-look: `rounded-xl` på kort og dialoger, `rounded-lg` på toolbars og inputs, `rounded-md` på badges og små pills.
+Legacy radius mapping: `rounded-xl` på kort og dialoger, `rounded-lg` på toolbars og inputs, `rounded-md` på badges og små pills.
 
 ### 2.2 Skygger
 
@@ -91,12 +91,12 @@ Apple/Arc-look: `rounded-xl` på kort og dialoger, `rounded-lg` på toolbars og 
 
 ### 2.4 Funktionelle status-farver (undtagelse)
 
-Bruges direkte fra Tailwind, da de er semantisk universelle:
+Statusfarver skal også bruge semantiske tokens:
 
 | Farve | Anvendelse |
 |-------|------------|
-| `border-l-emerald-500` | Publiceret opgave (venstrekant på AssignmentCard) |
-| `border-l-amber-400` / `bg-amber-500` | Ikke-publiceret, lager-indikator |
+| `border-l-success` | Publiceret opgave (venstrekant på AssignmentCard) |
+| `border-l-warning` / `bg-warning` | Ikke-publiceret, lager-indikator |
 | `text-destructive` | Fejl (brug token, ikke `text-red-500`) |
 
 Undgå generelt `text-blue-600`, `bg-purple-50`, `text-yellow-600` — brug `text-primary` eller `text-muted-foreground`.
@@ -300,3 +300,47 @@ Brug disse filer som kanoniske eksempler på det nye look:
 ## Farveregel og sagshierarki (2026-09-26)
 - Brug kun semantiske tokens (success, warning, destructive, info, muted, primary, foreground/background). Ingen `text-red-500`, `bg-white` o.l. og ingen `dark:`-farveoverrides. Undtagelser: kioskvisning, billedbeskærer.
 - Sagshierarki: `CaseNumber` (sagsnummer, lille/mono/dæmpet) → titel (fed, foreground) → beskrivelse/adresse (muted, højst 2 linjer).
+
+
+## v1.2.1 — den indloggede arbejdsflade
+
+v1.2 ændrede hovedsageligt login; v1.2.1 ændrer den faktiske navigation og dashboard-komposition. Login, hooks, rettigheder, filtre og handlers er ikke ombygget.
+
+| Før | Efter |
+|---|---|
+| Icon-only desktop som standard | Expanded 224px navigation; collapse-toggle bevaret; afdeling med tekst og eksisterende selector |
+| 44px kompakt topbar med tætpakkede actions | Todelt arbejdsheader: sidetitel/profil/notifikationer, separat søge-/værktøjsrække uden skjulte actions |
+| Mobil ikoner med tynd topmarkering | 64px bottom-nav, aktiv flade og brandstreg, Mere med aria-expanded |
+| Velkomstkort med vandret pill-scroll | Åben velkomstsektion, separat søgning/actions og responsivt status-grid |
+| 2/3 + 1/3 ens kort | Primær arbejdsflade og 280px operationelt rail ved xl; på smal laptop stables rail |
+| KPI med farvet ikonboks og små tal | Label, stort tabular tal/total og tilgængeligt navngivet action-scorecard |
+| Prikket tidslinje og pulserende status | Tidskolonne, titel/status, adresse og ressourcekolonner; ingen pulse eller nedsat tekstkontrast |
+| Ugekort i kort med hover-only menu | Åben kontrolsektion, 44px dagsfiltre og divider-liste; altid synlig redigér/slet-menu |
+| Ens ferie-/vagtkort med avatar-dekoration | Konsistente rail-sektioner med dividers og læsbare person-/datorækker |
+| Gradient/inset brandknap | Flade default/brand-varianter, neutral outline, border-faner og semantiske statusbadges |
+
+### Kontrakt og brug
+
+- `.operations-shell` scoper kontrast og exact #00AEEF til den indloggede app; login beholder sine tokens. Portals beholder globalt tema og skal kontrolleres separat.
+- Spacing: 4px interne detaljer, 8px kontrolgap, 16px række-/sektionspadding, 24px mellem hovedflade og rail.
+- Primære controls: 44px på mobil; tætte desktop-knapper kan bruge eksisterende sm-variant. Header, mobilmenu, dagsfiltre og kontaktknapper bruger mindst 44px.
+- Tabs bruger Radix state og keyboard navigation; visuel aktiv tilstand er underline + foreground + neutral surface, aldrig kun farve.
+- Badge `gradient` er et bagudkompatibelt variantnavn, men tegnes fladt. Alle props/variantnavne bevares.
+- `Button loading` blokerer klik og eksponerer aria-busy. Icon-only actions skal have aria-label.
+- Brug ikke Card rundt om rail-sektioner eller arbejdsflader; Card er til individuelle indrammede elementer.
+
+```tsx
+<section className="border-b border-border pb-4">
+  <header className="border-b border-border pb-3 mb-4">
+    <h3 className="text-sm font-semibold">...</h3>
+  </header>
+  <Button variant="ghost" className="min-h-11 whitespace-normal" onClick={existingHandler}>...</Button>
+</section>
+```
+
+### QA og dokumenterede begrænsninger
+
+- Kontrollerede komponentfixtures: tidslinje, KPI og ferie-rail ved 360/390/768/1280px i light/dark; ingen horisontal page-overflow. Screenshots er testdata, **ikke autentificerede skærme**.
+- Komponenttests kontrollerer menu-open, duty-featureflag, dialogåbning og loading-knapper; eksisterende create/edit/delete/undo-tests bevares.
+- Browser på /dashboard redirecter til /login. Ekstern unmanaged Supabase giver ingen test-session; autentificeret fuld dashboard/navigation/planner og reelle data er derfor ikke visuelt eller end-to-end verificeret.
+- WCAG AA er et mål, ikke en certificering. Fokus/reduced-motion og konkrete kontrolmål er kontrolleret; komplet kontrastaudit af alle legacy views/portals er ikke udført.
