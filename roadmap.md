@@ -1,8 +1,8 @@
 # PolyPlan v1.4.1
-- [ ] Employees core page/table/mobile: explicit filters, result counts, empty states and preserved actions.
-- [ ] Cars core page/table/mobile: separate availability and scheduled periods, accessible details.
-- [ ] Vacation core page/tabs/content: privacy-scoped counts, search, rejected state and preserved actions.
-- [ ] Tests, responsive bilingual fixtures, lint, preview build and documentation.
+- [x] Employees core page/table/mobile: explicit filters, result counts, empty states and preserved actions.
+- [x] Cars core page/table/mobile: separate availability and scheduled periods, accessible details.
+- [x] Vacation core page/tabs/content: privacy-scoped counts, search, rejected state and preserved actions.
+- [x] Tests, responsive bilingual fixtures, lint, preview build and documentation.
 
 ## Previous v1.4
 - [x] Messaging worker: endpoint-bound ownership token and atomic rotation/recovery tests.
@@ -12,7 +12,7 @@
 - [x] Distinct dashboard sections and responsive fixture checks.
 - [x] Full tests, automatic build signal and documentation; final lint verification.
 - [ ] Server fixes and closed-app physical delivery — no-deploy constraint and authorized device/runtime access required.
-- [ ] Module finish (C) — deferred scope in favour of A+B, reported explicitly.
+- [x] Module finish (C) — completed in v1.4.1.
 
 ## Previous v1.3
 - [x] Shared week calculations, operation filters and URL round-trip.
