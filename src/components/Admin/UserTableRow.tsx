@@ -19,7 +19,8 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: UserRole;      // Highest-privilege role (derived from roles[])
+  roles?: UserRole[];  // All assigned roles
   phone?: string;
   jobTitle?: string;
   banned_until?: string | null;
@@ -173,7 +174,11 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
         </div>
       </td>
       <td className="px-3 py-4 text-sm text-gray-600 hidden md:table-cell">
-        {getRoleLabel(user.role)}
+        {sortRolesByRank(user.roles && user.roles.length > 0 ? user.roles : [user.role]).map((r, i) => (
+          <span key={r} className={i > 0 ? 'text-gray-400' : undefined}>
+            {i > 0 ? ' · ' : ''}{getRoleLabel(r)}
+          </span>
+        ))}
       </td>
       <td className="relative py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 whitespace-nowrap">
         {isMobile ? <MobileActions /> : <DesktopActions />}
