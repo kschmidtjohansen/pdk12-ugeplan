@@ -37,9 +37,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
 }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { canSeeUnpublishedTasks } = usePermissions();
-  const { vacations } = useVacations();
-  const { assignments, loading: assignmentsLoading, error: assignmentsError } = useAssignments();
+  const { assignments, loading: assignmentsLoading } = useAssignments();
   const [tab, setTab] = useState<string>(() => localStorage.getItem('dashboardTab') || 'today');
   const isMobile = useIsMobile();
   const [moreOpen, setMoreOpen] = useState(false);
