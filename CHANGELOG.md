@@ -1,3 +1,9 @@
+## 2026-10-26 – Kalender/Outlook-visning: hele døgnet 00:00–23:59
+- **Ændring:** Ugeplanens kalendervisning viste kun tidsaksen 06:00–19:00, så opgaver før/efter normal arbejdstid blev klemt eller lagt uden for gitteret. Nu dækker dagsgitteret hele døgnet fra 00:00 til 23:59.
+- **Implementation:** Ny ren helper `src/utils/calendarTimeGrid.ts` med `DAY_START_HOUR = 0`, `DAY_END_HOUR = 24`, `HOUR_PX = 40` samt `toMinutes`, `hourSlots`, `gridHeightPx`, `minuteToPx`, `slotTopPx`, `slotHeightPx`, `hourLabel` og `isWithinDay`. `PlannerCalendarView.tsx` bruger helpersne i stedet for de lokale `START_HOUR`/`END_HOUR`/`toMin`-konstanter; tidsetiketten 00:00 vises nu, og der står "23:59" for neden. Da et fuldt døgn ikke kan vises på én skærm, scrolles der automatisk til "nu", når dagens dato åbnes (én gang pr. åbnet dag).
+- **Tests:** 6 nye tests i `src/utils/calendarTimeGrid.test.ts` (dækningsinterval, tidsforskydning, klamning ved dagens start/slut, etiketter) og 2 integrationstests i `src/components/Planner/Calendar/calendarViewRange.test.tsx` (24 tidslotte fra 00:00 til 23:00, sen aftenopgave bliver i gitteret). Begrebet verificeret med mutant-kontrol:测试ne fejler på den gamle 06:00–19:00-række. 157/157 tests grønne, typecheck grøn (tsgo), lint 0 fejl, preview-build OK.
+- Ingen DB-/RLS-/backend-ændringer, ingen publicering.
+
 ## 2026-10-26 – Kalender/Outlook-visning: egen kalender står først
 - **Ændring:** I Ugeplanens kalendervisning sorteredes medarbejderkolonnerne rent alfabetisk. Nu står den indloggede brugers egen kolonne altid først, derefter de øvrige alfabetisk (dansk sortering). Gælder både medarbejderlisten i filterkolonnen og selve kalenderkolonnerne.
 - **Implementation:** Ny ren helper `src/utils/employeeSort.ts` (`sortEmployeesOwnFirst`) — egen medarbejder matches via `employee.id === user.id` (samme kobling som ResponsibleUserSelector). Brugt i `PlannerCalendarView.tsx` via `useAuth()`.
