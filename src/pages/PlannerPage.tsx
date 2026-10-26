@@ -68,7 +68,6 @@ const PlannerPage: React.FC = () => {
 
   const [urlParams, setUrlParams] = useSearchParams();
   const [issueFilter, setIssueFilter] = useState<OperationFilter>(() => readPlannerLocation(urlParams).issue);
-  const [dayFilter, setDayFilter] = useState('');
 
   // Planner filters: employee multi-select + postcode proximity lookup
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
@@ -204,19 +203,17 @@ const PlannerPage: React.FC = () => {
     const location = readPlannerLocation(urlParams);
     if (location.week && location.year) { setSelectedWeek(location.week); setSelectedYear(location.year); }
     setIssueFilter(location.issue);
-    setDayFilter('');
   }, [urlParams]);
 
   const selectIssue = useCallback((issue: OperationFilter) => {
     setIssueFilter(issue);
-    setDayFilter('');
     setUrlParams(prev => { const next = new URLSearchParams(prev); next.set('week', String(selectedWeek)); next.set('year', String(selectedYear)); next.set('issue', issue); return next; }, { replace: true });
   }, [setUrlParams, selectedWeek, selectedYear]);
-  const clearFilters = () => { selectIssue('all'); setSearchQuery(''); setSelectedEmployeeIds([]); setFilterPostcode(''); setDayFilter(''); };
-  const filtersActive = issueFilter !== 'all' || !!searchQuery.trim() || selectedEmployeeIds.length > 0 || !!dayFilter;
+  const clearFilters = () => { selectIssue('all'); setSearchQuery(''); setSelectedEmployeeIds([]); setFilterPostcode(''); };
+  const filtersActive = issueFilter !== 'all' || !!searchQuery.trim() || selectedEmployeeIds.length > 0;
   const navigateWeek = useCallback((date: Date) => {
     const week = getISOWeek(date), year = getISOWeekYear(date);
-    setSelectedWeek(week); setSelectedYear(year); setDayFilter('');
+    setSelectedWeek(week); setSelectedYear(year);
     setUrlParams(prev => { const next = new URLSearchParams(prev); next.set('week', String(week)); next.set('year', String(year)); return next; }, { replace: true });
   }, [setUrlParams]);
   // Filter assignments by search query
@@ -352,8 +349,8 @@ const PlannerPage: React.FC = () => {
   const handleCopyDayFromYesterday = useCopyDayFromYesterday(assignments, vacations, createAssignment);
 
   const sortedWeekAssignments = useMemo(() => filterPlannerAssignments(weekAssignments, weekSummary,
-    { issue: issueFilter, query: searchQuery, employeeIds: selectedEmployeeIds, day: dayFilter }, employees),
-    [weekAssignments, weekSummary, issueFilter, searchQuery, selectedEmployeeIds, dayFilter, employees]);
+    { issue: issueFilter, query: searchQuery, employeeIds: selectedEmployeeIds }, employees),
+    [weekAssignments, weekSummary, issueFilter, searchQuery, selectedEmployeeIds, employees]);
   // A selected issue reveals its matching days in every view, including past days.
   const visibleExpandedDays = useMemo(() => filtersActive
     ? { ...expandedDays, ...Object.fromEntries(sortedWeekAssignments.map(a => [a.date, true])) }
@@ -587,7 +584,7 @@ const PlannerPage: React.FC = () => {
           query={searchQuery}
           onQueryChange={setSearchQuery}
           onClearAll={clearFilters}
-          additionalFiltersActive={issueFilter !== 'all' || !!dayFilter}
+          additionalFiltersActive={issueFilter !== 'all'}
           resultCount={sortedWeekAssignments.length}
           totalCount={weekAssignments.length}
         />
@@ -608,8 +605,6 @@ const PlannerPage: React.FC = () => {
               resourceAssignments={weekAssignments}
               filtersActive={filtersActive}
               onClearFilters={clearFilters}
-              dayFilter={dayFilter}
-              onDayFilter={setDayFilter}
               onToggleExpansion={handleToggleExpansion}
               onEditAssignment={handleOpenEditDialog} 
               onDeleteAssignment={handleDeleteAssignment} 
