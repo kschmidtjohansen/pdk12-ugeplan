@@ -84,7 +84,7 @@ const AppTopBar: React.FC = () => {
             handleLogout={handleLogout}
           />
         </div>
-        <div className="order-3 flex min-w-0 basis-full items-center border-t border-border pt-1.5 md:order-2 md:basis-auto md:flex-1 md:border-t-0 md:pt-0">
+        <div className="order-3 flex min-w-0 basis-full items-center justify-center border-t border-border pt-1.5 md:order-2 md:basis-auto md:flex-1 md:border-t-0 md:pt-0">
           <GlobalAssignmentSearch />
         </div>
       </div>
