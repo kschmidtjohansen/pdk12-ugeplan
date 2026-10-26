@@ -1,3 +1,6 @@
+## 2026-10-26 – UI: Ugenavigation flyttet ned i "Ugens plan"
+- PlannerWeekNav (‹ Uge › + Denne uge) vises nu i WeekOperationsStrip; PlannerHeader beholder titel, visninger, Ny Opgave og skærmknap.
+
 ## 2026-10-26 – UI: Afdelingsknap i sidebaren gjort mindre
 
 - DepartmentSwitcherPill (dropdown-trigger): min-h-11 → min-h-7, py-2 → py-0.5, px-2 → px-1.5, gap-1.5 → gap-1, text-xs → text-[11px]. Knappen er nu ca. 32px høj mod tidligere 44px.

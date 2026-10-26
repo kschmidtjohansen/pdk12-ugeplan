@@ -3,7 +3,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { writeFileSync } from 'node:fs';
 import WeekOperationsStrip from './WeekOperationsStrip';
-import PlannerHeader from './page/PlannerHeader';
+import PlannerHeader, { PlannerWeekNav } from './page/PlannerHeader';
 import PlannerContent from './PlannerContent';
 import AssignmentActionButtons from './AssignmentActionButtons';
 import { summarizeWeek } from '@/utils/plannerOperations';
@@ -82,7 +82,7 @@ describe('Handlingsbart ugeoverblik', () => {
   it('header bevarer navigation og read-only uden opret; fixture er ikke live data', () => {
     const current = vi.fn();
     const headerProps = { selectedWeek: 53, selectedYear: 2026, weekDates: getWeekDates(53, 2026), viewMode: 'standard' as const, setViewMode: vi.fn(), handlePreviousWeek: vi.fn(), handleNextWeek: vi.fn(), handlePrefetchAssignments: vi.fn(), handleCancelPrefetch: vi.fn(), handleShowOnScreen: vi.fn(), handleOpenCreateDialog: vi.fn(), onCurrentWeek: current };
-    const view = render(<div className="operations-shell bg-background text-foreground p-4"><PlannerHeader {...headerProps} /><WeekOperationsStrip summary={summarizeWeek([task], [], [])} week={53} active="drafts" onSelect={vi.fn()} /><PlannerContent {...props} /></div>);
+    const view = render(<div className="operations-shell bg-background text-foreground p-4"><PlannerHeader {...headerProps} /><WeekOperationsStrip summary={summarizeWeek([task], [], [])} week={53} active="drafts" onSelect={vi.fn()} navigation={<PlannerWeekNav {...headerProps} />} /><PlannerContent {...props} /></div>);
     fireEvent.click(screen.getByRole('button', { name: 'Denne uge' })); expect(current).toHaveBeenCalledOnce();
     expect(screen.queryByRole('button', { name: 'Ny Opgave' })).not.toBeInTheDocument();
     if (process.env.POLYPLAN_CAPTURE_FIXTURE === '1') writeFileSync('/tmp/browser/v13-fixture.html', view.container.innerHTML);
