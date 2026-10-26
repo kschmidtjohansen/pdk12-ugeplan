@@ -76,7 +76,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
 
   // Sub-department state
   const [selectedSubDepartmentId, setSelectedSubDepartmentIdState] = useState<string | null>(() => {
-    return localStorage.getItem('selected_sub_department_id');
+    const v = localStorage.getItem('selected_sub_department_id');
+    return v === ALL_SUB_DEPARTMENTS ? null : v;
   });
   const [userSubDepartments, setUserSubDepartments] = useState<SubDepartmentItem[]>([]);
 
