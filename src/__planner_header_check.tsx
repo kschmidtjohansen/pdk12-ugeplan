@@ -75,7 +75,7 @@ const Before = () => (
 
 const After = () => (
   <header data-variant="after" className="space-y-2 border-b border-border pb-3">
-    <div className="flex flex-wrap items-center justify-between gap-3"><Title /></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><TitleInline /></div>
     <div className="flex flex-wrap items-start gap-3">
       <Toggles />
       <div className="min-w-0 flex-1"><Filters /></div>
