@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { getEffectiveRole } from '@/utils/roleHierarchy';
 import { Employee } from '@/types/employee';
 import { Assignment } from '@/types/assignment';
 import { Car } from '@/types/car';
@@ -65,7 +66,8 @@ class UnifiedDataService {
 
       const employees: Employee[] = profilesData.map(profile => {
         const userRoles = rolesData?.filter(r => r.user_id === profile.id) || [];
-        const primaryRole = userRoles[0]?.role || 'servicemedarbejder';
+        // Highest-privilege role wins when a user holds multiple roles.
+        const primaryRole = getEffectiveRole(userRoles.map(r => r.role));
 
         return {
           id: profile.id,

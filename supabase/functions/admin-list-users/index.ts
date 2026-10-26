@@ -232,11 +232,23 @@ serve(async (req) => {
       );
     }
 
-    // Create role lookup map for better performance
-    const roleMap = new Map();
-    userRoles?.forEach(role => {
-      roleMap.set(role.user_id, role.role);
+    // Create role lookup map — users can hold MULTIPLE roles, so collect them
+    // all instead of overwriting (which silently dropped e.g. Skadeleder when
+    // the user was also Fugttekniker).
+    const rolesByUser = new Map<string, string[]>();
+    userRoles?.forEach(row => {
+      const arr = rolesByUser.get(row.user_id) || [];
+      if (!arr.includes(row.role)) arr.push(row.role);
+      rolesByUser.set(row.user_id, arr);
     });
+
+    // Higher number = more privileged; the effective role is the highest one.
+    const ROLE_RANK: Record<string, number> = {
+      super_admin: 60, administrator: 50, skadeleder: 40,
+      fugttekniker: 30, servicemedarbejder: 20, vikar: 10,
+    };
+    const effectiveRoleOf = (roles: string[]): string =>
+      roles.reduce((best, r) => (ROLE_RANK[r] ?? 0) > (ROLE_RANK[best] ?? 0) ? r : best, roles[0]);
 
     // Get auth users data for additional info
     const { data: authUsers, error: authError2 } = await supabaseAdmin.auth.admin.listUsers();
@@ -253,9 +265,10 @@ serve(async (req) => {
     const combinedUsers = profiles.map(profile => {
       const authUser = authUsers?.users?.find(au => au.id === profile.id);
       
-      // Get role from the role map, default to servicemedarbejder
-      const userRole = roleMap.get(profile.id) || 'servicemedarbejder';
-      
+      // Get ALL roles from the map; the effective role is the highest-privilege one
+      const assignedRoles = rolesByUser.get(profile.id) || [];
+      const userRole = assignedRoles.length > 0 ? effectiveRoleOf(assignedRoles) : 'servicemedarbejder';
+
       return {
         id: profile.id,
         email: profile.email || authUser?.email || '',
@@ -263,6 +276,7 @@ serve(async (req) => {
         phone: profile.phone || authUser?.user_metadata?.phone || null,
         jobTitle: profile.job_title || null,
         role: userRole,
+        roles: assignedRoles.length > 0 ? assignedRoles : [userRole],
         created_at: authUser?.created_at || profile.created_at,
         updated_at: authUser?.updated_at || profile.updated_at,
         last_sign_in_at: authUser?.last_sign_in_at || null,

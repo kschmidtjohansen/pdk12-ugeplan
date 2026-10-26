@@ -80,7 +80,7 @@ const UserManagement: React.FC = () => {
   const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
 
   const availableRoles = useMemo(() => {
-    const roles = new Set<UserRole>(filteredUsers.map(u => u.role));
+    const roles = new Set<UserRole>(filteredUsers.flatMap(u => u.roles && u.roles.length > 0 ? u.roles : [u.role]));
     roleFilter.forEach(r => roles.add(r));
     return Array.from(roles).sort();
   }, [filteredUsers, roleFilter]);
@@ -229,9 +229,14 @@ const UserManagement: React.FC = () => {
       }
       addDebugInfo(`FALLBACK: Got ${profiles?.length || 0} profiles and ${userRoles?.length || 0} role assignments`);
 
-      // FIXED: Proper data combination with role mapping
-      const roleByUser = new Map((userRoles || []).map(r => [r.user_id, r.role]));
-      const combinedUsers = profiles.map(profile => mapProfileToAdminUser(profile as ProfileRow, roleByUser.get(profile.id)));
+      // FIXED: Proper data combination — collect ALL roles per user (multi-role support)
+      const rolesByUser = new Map<string, UserRole[]>();
+      (userRoles || []).forEach(r => {
+        const arr = rolesByUser.get(r.user_id) || [];
+        if (!arr.includes(r.role as UserRole)) arr.push(r.role as UserRole);
+        rolesByUser.set(r.user_id, arr);
+      });
+      const combinedUsers = profiles.map(profile => mapProfileToAdminUser(profile as ProfileRow, rolesByUser.get(profile.id)));
 
       // FIXED: Accurate statistics calculation
       const roleStatistics = countRoles(combinedUsers);
