@@ -147,16 +147,6 @@ const AppSidebar: React.FC = () => {
                 <span className="text-[15px] font-semibold tracking-normal text-sidebar-foreground">
                   {PRODUCT_NAME}
                 </span>
-                <img
-                  src="https://www.polygongroup.com/UI/build/svg/polygon-logo.svg"
-                  alt="Polygon"
-                  className="mt-1 h-2.5 w-auto select-none opacity-70 dark:brightness-0 dark:invert dark:opacity-80"
-                  width="110"
-                  height="10"
-                  loading="eager"
-                  fetchPriority="high"
-                  draggable={false}
-                />
               </span>
             </div>
           )}
