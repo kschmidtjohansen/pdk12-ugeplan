@@ -107,7 +107,6 @@ const DashboardPage: React.FC = () => {
             <DashboardCockpit
               showMetrics={shouldShowMetrics}
               showMyTasks={isUserInSelectedDepartment}
-              userRole={effectiveRole}
               selectedWeek={selectedWeek}
               selectedYear={selectedYear}
               onPreviousWeek={handlePreviousWeek}
