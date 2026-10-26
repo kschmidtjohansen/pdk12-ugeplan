@@ -30,6 +30,13 @@ const Title = () => (
   </div>
 );
 
+const TitleInline = () => (
+  <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+    <h1 className="text-xl font-semibold tracking-tight text-foreground">Ugeplan</h1>
+    <p className="min-w-0 max-w-full truncate text-sm text-muted-foreground">Uge 44 · 2026 — man 26 okt – søn 1 nov</p>
+  </div>
+);
+
 const Toggles = () => (
   <div className="flex items-center justify-center sm:justify-start pt-1.5">
     <ToggleGroup type="single" value="standard" className="bg-muted/50 border border-border rounded-lg p-0.5">
