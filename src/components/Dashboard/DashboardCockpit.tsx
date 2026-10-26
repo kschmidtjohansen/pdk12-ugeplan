@@ -38,8 +38,6 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   const { user } = useAuth();
   const { t } = useTranslation();
   const { canSeeUnpublishedTasks } = usePermissions();
-  const { canSeeUnpublishedTasks } = usePermissions();
-  const { vacations } = useVacations();
   const { vacations } = useVacations();
   const { assignments, loading: assignmentsLoading, error: assignmentsError } = useAssignments();
   const [tab, setTab] = useState<string>(() => localStorage.getItem('dashboardTab') || 'today');
@@ -48,7 +46,6 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   const changeTab = (v: string) => { setTab(v); localStorage.setItem('dashboardTab', v); };
 
   const weekAssignments = useMemo(() => assignmentsInWeek(assignments || [], selectedWeek, selectedYear), [assignments, selectedWeek, selectedYear]);
-  const weekSummary = useMemo(() => summarizeWeek(weekAssignments, employees, cars), [weekAssignments, employees, cars]);
   // Personal filter: only the user's own week (responsible OR assigned).
   // When showMyTasks is true (servicemedarbejder etc.), the top widget is
   // restricted to the current user — replacing the previous duplicate "Mine Opgaver".
