@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import PlannerContent from '../components/Planner/PlannerContent';
-import PlannerHeader from '@/components/Planner/page/PlannerHeader';
+import PlannerHeader, { PlannerWeekNav } from '@/components/Planner/page/PlannerHeader';
 import PlannerBulkActions from '@/components/Planner/page/PlannerBulkActions';
 import { useAdjacentWeekPrefetch } from '@/hooks/planner/useAdjacentWeekPrefetch';
 import { useCopyDayFromYesterday } from '@/hooks/planner/useCopyDayFromYesterday';
@@ -571,7 +571,8 @@ const PlannerPage: React.FC = () => {
         {/* Quick sub-department switch, so users don't have to go via the dashboard */}
         <SubDepartmentQuickSwitcher />
 
-        <WeekOperationsStrip summary={weekSummary} week={selectedWeek} active={issueFilter} onSelect={selectIssue} loading={loading} error={!!error} />
+        <WeekOperationsStrip summary={weekSummary} week={selectedWeek} active={issueFilter} onSelect={selectIssue} loading={loading} error={!!error}
+          navigation={<PlannerWeekNav selectedWeek={selectedWeek} handlePreviousWeek={handlePreviousWeek} handleNextWeek={handleNextWeek} handlePrefetchAssignments={handlePrefetchAssignments} handleCancelPrefetch={handleCancelPrefetch} onCurrentWeek={() => navigateWeek(new Date())} />} />
 
         {/* Filters: quick search + employee multi-select + postcode proximity lookup */}
         <PlannerFilterBar
