@@ -1,0 +1,2 @@
+ALTER TABLE public.user_permissions DROP CONSTRAINT user_permissions_permission_chk;
+ALTER TABLE public.user_permissions ADD CONSTRAINT user_permissions_permission_chk CHECK (permission IN ('plan_assignments','publish_assignments','view_unpublished','view_all_vacations','approve_vacations','view_fuel_codes','view_warehouse','manage_warehouse','view_duty','manage_duty'));
