@@ -14,10 +14,18 @@ import { getEmployeeColor } from './employeeColors';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { sortEmployeesOwnFirst } from '@/utils/employeeSort';
-
-const START_HOUR = 6;
-const END_HOUR = 19;
-const HOUR_PX = 56;
+import {
+  DAY_START_HOUR,
+  HOUR_PX,
+  toMinutes,
+  hourSlots,
+  gridHeightPx,
+  minuteToPx,
+  slotTopPx,
+  slotHeightPx,
+  hourLabel,
+  isWithinDay,
+} from '@/utils/calendarTimeGrid';
 
 interface Props {
   dates: string[];
@@ -32,11 +40,6 @@ interface Props {
   onNextWeek?: () => void;
 }
 
-const toMin = (t?: string) => {
-  if (!t) return null;
-  const [h, m] = t.split(':').map(Number);
-  return Number.isFinite(h) ? h * 60 + (m || 0) : null;
-};
 
 const dateLabel = (d: string | undefined, dateLocale: Locale) => {
   if (!d) return '';
@@ -101,9 +104,19 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   const [now, setNow] = useState(new Date());
   useEffect(() => { const i = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(i); }, []);
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const showNow = day === todayStr && nowMin >= START_HOUR * 60 && nowMin <= END_HOUR * 60;
-  const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
-  const gridHeight = (END_HOUR - START_HOUR) * HOUR_PX;
+  const showNow = day === todayStr && isWithinDay(nowMin);
+  const hours = hourSlots();
+  const gridHeight = gridHeightPx();
+  const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  const autoScrolledDay = React.useRef<string | null>(null);
+  // A full day does not fit on screen — jump to the current time once when today is opened.
+  useEffect(() => {
+    if (day !== todayStr || autoScrolledDay.current === day) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    autoScrolledDay.current = day;
+    el.scrollTop = Math.max(0, minuteToPx(nowMin) - el.clientHeight / 2);
+  }, [day, todayStr, nowMin, lanes.length]);
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -161,7 +174,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
         {lanes.length === 0 ? (
           <div className="p-8 text-center text-sm text-muted-foreground">{tr('ui.selectEmployeesForCalendar')}</div>
         ) : (
-          <div className="overflow-auto max-h-[75vh]">
+          <div ref={scrollRef} className="overflow-auto max-h-[75vh]">
             <div className="min-w-full w-max">
               {/* Header + heldagsrække */}
               <div className="flex sticky top-0 z-20 bg-card border-b border-border">
@@ -187,10 +200,11 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                 {/* Tidsakse */}
                 <div className="w-14 shrink-0 sticky left-0 bg-card z-10 relative">
                   {hours.map(h => (
-                    <div key={h} className="absolute right-1.5 text-[10px] text-muted-foreground -translate-y-1/2" style={{ top: (h - START_HOUR) * HOUR_PX }}>
-                      {h > START_HOUR && `${String(h).padStart(2, '0')}:00`}
+                    <div key={h} className={cn('absolute right-1.5 text-[10px] text-muted-foreground', h === DAY_START_HOUR ? 'translate-y-0.5' : '-translate-y-1/2')} style={{ top: (h - DAY_START_HOUR) * HOUR_PX }}>
+                      {hourLabel(h)}
                     </div>
                   ))}
+                  <div className="absolute right-1.5 text-[10px] text-muted-foreground -translate-y-full" style={{ top: gridHeight }}>23:59</div>
                 </div>
                 {lanes.map((e, li) => {
                   const items = dayAssignments.filter(a => a.assignedEmployees?.some(x => x.id === e.id) || a.employees?.includes(e.id));
@@ -201,14 +215,14 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                         <button key={h} type="button" disabled={!canEdit || !onCreateAssignment}
                           onClick={() => onCreateAssignment?.(day)}
                           className="absolute inset-x-0 border-t border-border/60 hover:bg-primary/5 disabled:hover:bg-transparent"
-                          style={{ top: (h - START_HOUR) * HOUR_PX, height: HOUR_PX }}
-                          aria-label={`Opret opgave ${String(h).padStart(2, '0')}:00`} />
+                          style={{ top: (h - DAY_START_HOUR) * HOUR_PX, height: HOUR_PX }}
+                          aria-label={`Opret opgave ${hourLabel(h)}`} />
                       ))}
                       {items.map(a => {
-                        const s = toMin(a.fromTime) ?? 8 * 60;
-                        const en = Math.max(toMin(a.toTime) ?? s + 60, s + 20);
-                        const top = Math.max(0, ((s - START_HOUR * 60) / 60) * HOUR_PX);
-                        const height = Math.max(22, ((Math.min(en, END_HOUR * 60) - Math.max(s, START_HOUR * 60)) / 60) * HOUR_PX - 2);
+                        const s = toMinutes(a.fromTime) ?? 8 * 60;
+                        const en = Math.max(toMinutes(a.toTime) ?? s + 60, s + 20);
+                        const top = slotTopPx(s);
+                        const height = slotHeightPx(s, en);
                         const timeLabel = `${a.fromTime?.slice(0, 5) ?? ''}–${a.toTime?.slice(0, 5) ?? ''}`;
                         return (
                           <Tooltip key={a.id} delayDuration={300}>
@@ -231,7 +245,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                           </Tooltip>
                         );
                       })}
-                      {showNow && li >= 0 && <div className="absolute inset-x-0 z-[6] h-0.5 bg-destructive pointer-events-none" style={{ top: ((nowMin - START_HOUR * 60) / 60) * HOUR_PX }} />}
+                      {showNow && li >= 0 && <div className="absolute inset-x-0 z-[6] h-0.5 bg-destructive pointer-events-none" style={{ top: minuteToPx(nowMin) }} />}
                     </div>
                   );
                 })}
