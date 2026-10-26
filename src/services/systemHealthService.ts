@@ -1,4 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getEffectiveRole } from '@/utils/roleHierarchy';
+import type { UserRole } from '@/context/AuthContext';
 
 interface SystemHealthReport {
   authentication: {
