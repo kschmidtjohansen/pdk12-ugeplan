@@ -1,3 +1,6 @@
+## 2026-10-26 – UI: Filtre flyttet op ved visningsknapper i Ugeplan
+- PlannerFilterBar renderes nu i PlannerHeader (ny `filters`-prop) i samme række som visningstilstandene.
+
 ## 2026-10-26 – UI: Dagbaren fjernet fra Ugeplanen
 - PlannerContent: `<nav>` med "Alle dage" + de syv dagsknapper (man./tirs./ons. … · i dag) er slettet; ugerække og opgaveliste er urørte.
 - Død filtrekode fjernet: `dayFilter`/`onDayFilter`-props og `todayLocalYYYYMMDD`-import i PlannerContent, samt `dayFilter`-state, `setDayFilter`-kald (useEffect/selectIssue/clearFilters/navigateWeek), `day`-filter i `filterPlannerAssignments`-kaldet, `!!dayFilter` i `filtersActive`/`additionalFiltersActive` og de to props til PlannerContent i PlannerPage.
