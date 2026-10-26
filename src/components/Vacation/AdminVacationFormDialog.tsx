@@ -239,16 +239,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
             </div>
           )}
           
-          <div className="space-y-2">
-            <Label htmlFor="reason">{t("vacation.reason")}</Label>
-            <Textarea 
-              id="reason" 
-              value={reason} 
-              onChange={e => setReason(e.target.value)} 
-              placeholder={t("vacation.reasonPlaceholder")} 
-              required 
-            />
-          </div>
+          <LeaveTypeReasonField reason={reason} setReason={setReason} />
           
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

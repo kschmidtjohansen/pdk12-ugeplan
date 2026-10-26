@@ -226,16 +226,7 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
             </div>
           )}
           
-          <div className="space-y-2">
-            <Label htmlFor="reason">{t("vacation.reason")}</Label>
-            <Textarea 
-              id="reason" 
-              value={reason} 
-              onChange={e => setReason(e.target.value)} 
-              placeholder={t("vacation.reasonPlaceholder")} 
-              required 
-            />
-          </div>
+          <LeaveTypeReasonField reason={reason} setReason={setReason} />
           
           <DialogFooter className={isEditing ? "flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-between" : ""}>
             {isEditing && onDelete && (
