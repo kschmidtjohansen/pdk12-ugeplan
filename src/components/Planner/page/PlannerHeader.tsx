@@ -34,7 +34,7 @@ const PlannerHeader: React.FC<Props> = ({
   const { t, currentLanguage } = useTranslation();
   const { canCreate, canPublishTasks } = usePermissions();
   return (
-        <header className="space-y-3 border-b border-border pb-4">
+        <header className="space-y-2 border-b border-border pb-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
