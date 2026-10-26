@@ -22,13 +22,14 @@ interface Props {
   handleShowOnScreen: () => void;
   handleOpenCreateDialog: (date: string) => void;
   onCurrentWeek: () => void;
+  filters?: React.ReactNode;
 }
 
 /** Title, view-mode toggle, week navigation and primary actions for the weekly planner. */
 const PlannerHeader: React.FC<Props> = ({
   selectedWeek, selectedYear, weekDates, viewMode, setViewMode, handlePreviousWeek, handleNextWeek,
   handlePrefetchAssignments, handleCancelPrefetch, handleShowOnScreen, handleOpenCreateDialog,
-  onCurrentWeek,
+  onCurrentWeek, filters,
 }) => {
   const { t, currentLanguage } = useTranslation();
   const { canCreate, canPublishTasks } = usePermissions();
@@ -52,8 +53,8 @@ const PlannerHeader: React.FC<Props> = ({
           </div>
           {canCreate && <Button className="min-h-11" onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())}><Plus className="h-4 w-4" />{t('planner.newAssignment')}</Button>}
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center justify-center sm:justify-start">
+          <div className="flex flex-wrap items-start gap-3">
+            <div className="flex items-center justify-center sm:justify-start pt-1.5">
               <ToggleGroup
                 type="single"
                 value={viewMode}
@@ -74,6 +75,7 @@ const PlannerHeader: React.FC<Props> = ({
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
+            {filters && <div className="min-w-0 flex-1">{filters}</div>}
           </div>
         </header>
   );
