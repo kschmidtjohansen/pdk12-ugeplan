@@ -41,4 +41,10 @@ describe('module UI filters preserve existing visibility and semantics', () => {
     expect(filterVacations(rows, 'approved', 'other')).toEqual([rows[2]]);
     expect(filterVacations([], 'pending', '')).toEqual([]);
   });
+  it('view_all_vacations grant lets a servicemedarbejder see every request', () => {
+    const rows = [vacation('1', 'self', 'pending'), vacation('2', 'other', 'pending'), vacation('3', 'other', 'approved'), vacation('4', 'other', 'rejected')];
+    expect(visibleVacations(rows, 'self', false, true, true)).toHaveLength(4);
+    expect(visibleVacations(rows, 'self', false, false, true)).toHaveLength(4);
+    expect(visibleVacations(rows, 'self', false, true, false)).toHaveLength(1);
+  });
 });
