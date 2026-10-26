@@ -2449,3 +2449,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - DashboardCockpit renderede ikke længere WeekOperationsStrip (attention-variant); dashboard-navigations-links og weekSummary-afledning fjernet sammen med døde hooks/imports og userRole-prop.
 - Obsolet dashboard-operations-test slettet; PlannerPage beholder stadig sin issue-filter-strip.
 - QA: 158/158 tests, typecheck grøn, lint 0 fejl.
+## 2026-10-26 – fix: "Alle" tilgængelig ved én underafdeling i planneren
+- SubDepartmentQuickSwitcher viser nu "Alle"-pillen også når brugeren kun har én underafdeling (fx Fugt), så den kan toggles on/off og hele afdelingen kan ses igen.
+- DepartmentContext husker nu brugerens eksplisitte "Alle"-valg også ved én underafdeling.
+- Nye tests: 4 i SubDepartmentQuickSwitcher.test.tsx. QA: 162/162 tests, typecheck grøn, lint 0 fejl.
