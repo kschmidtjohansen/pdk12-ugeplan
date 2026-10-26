@@ -85,7 +85,7 @@ const GlobalAssignmentSearch: React.FC = () => {
             onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
             onFocus={() => setOpen(true)}
             onKeyDown={handleKey}
-            className="min-h-11 pl-8 pr-7 text-sm bg-card"
+            className="min-h-11 md:min-h-9 pl-8 pr-7 text-sm bg-card"
           />
           {loading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
         </div>

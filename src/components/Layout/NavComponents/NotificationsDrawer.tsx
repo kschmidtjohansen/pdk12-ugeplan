@@ -185,7 +185,7 @@ const NotificationsDrawer: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-11 w-11 overflow-visible"
+          className="relative h-11 w-11 overflow-visible md:h-9 md:w-9"
           aria-label={t('notifications.title')}
         >
           <Bell className="h-[15px] w-[15px]" />
