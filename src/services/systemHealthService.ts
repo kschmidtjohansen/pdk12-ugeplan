@@ -75,8 +75,9 @@ class SystemHealthService {
       const { data: profile, error: profileError } = await supabase.from('profiles').select('id, name').eq('id', session.user.id).single();
       if (profileError) { report.errors.push(`Profile lookup error: ${profileError.message}`); } else if (profile) { report.authentication.userExists = true; }
       
-      const { data: roleData, error: roleError } = await supabase.from('user_roles').select('role').eq('user_id', session.user.id).single();
-      if (roleError) { report.errors.push(`Role lookup error: ${roleError.message}`); } else if (roleData) { report.authentication.hasRole = true; report.authentication.role = roleData.role; }
+      // Fetch ALL roles — .single() would error for users holding multiple roles.
+      const { data: roleRows, error: roleError } = await supabase.from('user_roles').select('role').eq('user_id', session.user.id);
+      if (roleError) { report.errors.push(`Role lookup error: ${roleError.message}`); } else if (roleRows && roleRows.length > 0) { report.authentication.hasRole = true; report.authentication.role = getEffectiveRole(roleRows.map(r => r.role as UserRole)); }
     } catch (error) {
       report.errors.push(`Authentication check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
