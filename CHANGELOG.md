@@ -1,3 +1,9 @@
+## 2026-10-26 – UI: Dagbaren fjernet fra Ugeplanen
+- PlannerContent: `<nav>` med "Alle dage" + de syv dagsknapper (man./tirs./ons. … · i dag) er slettet; ugerække og opgaveliste er urørte.
+- Død filtrekode fjernet: `dayFilter`/`onDayFilter`-props og `todayLocalYYYYMMDD`-import i PlannerContent, samt `dayFilter`-state, `setDayFilter`-kald (useEffect/selectIssue/clearFilters/navigateWeek), `day`-filter i `filterPlannerAssignments`-kaldet, `!!dayFilter` i `filtersActive`/`additionalFiltersActive` og de to props til PlannerContent i PlannerPage.
+- Test: "dagvælger sender konkret lokal dato" slettet i operations.test.tsx (kan ikke længere udføres); øvrige planner-tests (ugeoverblik, viewmodes, read-only, operation state) er urørte.
+- QA: npm test 138/138 grønne (26 filer), eslint uden fejl/advorsels på de tre ændrede filer, automatiseret preview-build OK. Ingen DB-/RLS-/backend-ændringer, ingen publicering.
+
 ## 2026-10-26 – Ugeplan afdelingsskift, opgavescroll og fraværstype
 - Ugeplan: afdelingsrække (pills) i SubDepartmentQuickSwitcher via `showDepartments` når brugeren har >1 afdeling; skift bliver på /planner.
 - AssignmentDetailsDialog: én samlet scroll-container (data-vaul-no-drag, max-h) så udvidet filsektion/upload kan nås; chat sticky på desktop.
