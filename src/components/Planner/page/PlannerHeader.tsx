@@ -36,19 +36,18 @@ const PlannerHeader: React.FC<Props> = ({
   return (
         <header className="space-y-2 border-b border-border pb-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
               {t("navigation.planner")}
             </h1>
-            <p className="text-sm text-muted-foreground truncate">
+            <p className="min-w-0 max-w-full truncate text-sm text-muted-foreground">
               {t('planner.weekView', {
                 week: selectedWeek,
                 year: selectedYear,
                 start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
                 end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
                 })}
-              </p>
-            </div>
+            </p>
           </div>
           <div className="flex flex-wrap items-start gap-3">
             <div className="flex items-center justify-center sm:justify-start pt-1.5">
