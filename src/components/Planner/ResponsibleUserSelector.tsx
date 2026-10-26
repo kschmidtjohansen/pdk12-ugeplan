@@ -8,6 +8,11 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from 
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDepartment } from '@/context/DepartmentContext';
+import { useQuery } from '@tanstack/react-query';
+import { unifiedDataService } from '@/services/data/unifiedDataService';
+import type { Employee } from '@/types/employee';
+import { isEligibleResponsibleUser } from '@/utils/responsibleUsers';
 
 interface ResponsibleUserSelectorProps {
   selectedUserId: string;
@@ -19,22 +24,31 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   onUserSelect
 }) => {
   const { t } = useTranslation();
-  const { employees } = useEmployees();
+  const { employees: scopedEmployees } = useEmployees();
   const { user, isDemoMode } = useAuth();
+  const { selectedDepartmentId } = useDepartment();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
-  if (import.meta.env.DEV) {
-    console.log('[ResponsibleUserSelector] Debug:', {
-      totalEmployees: employees.length,
-      selectedUserId,
-      roles: employees.map(e => ({ name: e.name, role: e.role }))
-    });
-  }
+  // Case managers are chosen from the whole department, regardless of the sub-department filter.
+  const { data: departmentEmployees } = useQuery({
+    queryKey: ['responsible-user-candidates', selectedDepartmentId],
+    enabled: !isDemoMode && !!selectedDepartmentId,
+    queryFn: async () => {
+      const res = await unifiedDataService.fetchEmployees(selectedDepartmentId!, null);
+      if (res.error) throw new Error(res.error);
+      return res.data as Employee[];
+    },
+    staleTime: 60_000,
+  });
 
-  const eligibleUsers = employees.filter(emp => 
-    emp.role === 'super_admin' || emp.role === 'administrator' || emp.role === 'skadeleder'
-  );
+  const employees: Employee[] = React.useMemo(() => {
+    const map = new Map<string, Employee>();
+    [...(departmentEmployees || []), ...scopedEmployees].forEach(e => { if (!map.has(e.id)) map.set(e.id, e); });
+    return Array.from(map.values());
+  }, [departmentEmployees, scopedEmployees]);
+
+  const eligibleUsers = employees.filter(isEligibleResponsibleUser);
   
   if (isDemoMode && user && !eligibleUsers.find(emp => emp.id === user.id)) {
     const currentUserEmployee = employees.find(emp => emp.id === user.id);

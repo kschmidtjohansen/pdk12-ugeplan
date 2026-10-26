@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Assignment, normalizeEmployees } from '@/types/assignment';
 import { Car } from '@/types/car';
 import { Employee } from '@/types/employee';
@@ -68,6 +68,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const { canEdit, canPublishTasks } = usePermissions();
   const { userSubDepartments, selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const { isDemoMode } = useAuth();
+  const queryClient = useQueryClient();
 
   // Resources must follow the sub-department chosen IN the form, not the planner page filter.
   const formSubDeptId = formData.subDepartmentId === undefined ? (selectedSubDepartmentId || null) : formData.subDepartmentId;
@@ -323,7 +324,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   const setResponsibleUserById = (userId: string) => {
     if (userId) {
-      const user = effectiveEmployees.find(emp => emp.id === userId);
+      const candidates = queryClient.getQueryData<Employee[]>(['responsible-user-candidates', selectedDepartmentId]) || [];
+      const user = effectiveEmployees.find(emp => emp.id === userId)
+        || employees.find(emp => emp.id === userId)
+        || candidates.find(emp => emp.id === userId);
       const userName = user ? user.name : '';
       setFormData({ ...formData, responsibleUser: { id: userId, name: userName }, responsibleUserId: userId });
     } else {

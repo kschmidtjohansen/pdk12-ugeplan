@@ -274,7 +274,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
           localStorage.setItem('selected_sub_department_id', newSubId);
         };
 
-        if (isSuperAdmin) {
+        // Admin-like roles (incl. skadeleder) see and may plan in every sub-department of the department.
+        if (isAdminLike) {
           const { data } = await supabase
             .from('sub_departments')
             .select('id, name')
