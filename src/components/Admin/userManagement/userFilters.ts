@@ -50,7 +50,9 @@ export function searchUsers(
 ): AdminUser[] {
   return users.filter(u => {
     if (searchTerm && !`${u.name || ''} ${u.email || ''}`.toLowerCase().includes(searchTerm)) return false;
-    if (roleFilter.length > 0 && !roleFilter.includes(u.role)) return false;
+    // A user with multiple roles matches the filter on ANY of their roles.
+    const userRoles = u.roles && u.roles.length > 0 ? u.roles : [u.role];
+    if (roleFilter.length > 0 && !roleFilter.some(r => userRoles.includes(r))) return false;
     if (statusFilter === 'active' && !isUserActive(u)) return false;
     if (statusFilter === 'inactive' && isUserActive(u)) return false;
     return true;
@@ -76,17 +78,29 @@ export interface ProfileRow {
   role?: string | null;
 }
 
-export const mapProfileToAdminUser = (p: ProfileRow, role?: string | null): AdminUser => ({
-  id: p.id,
-  email: p.email,
-  name: p.name,
-  phone: p.phone,
-  jobTitle: p.job_title,
-  role: (role || p.role || 'servicemedarbejder') as UserRole,
-  created_at: p.created_at,
-  updated_at: p.updated_at,
-  last_sign_in_at: null,
-  banned_until: null,
-  onLeave: p.on_leave || false,
-  notes: p.notes,
-} as AdminUser);
+/**
+ * Maps a profile row to an AdminUser. `roles` is the FULL list of assigned
+ * roles — the displayed `role` is the highest-privilege one, so a user with
+ * e.g. Skadeleder + Fugttekniker is treated (and shown) as Skadeleder.
+ */
+export const mapProfileToAdminUser = (p: ProfileRow, roles?: (string | null)[] | null): AdminUser => {
+  const assigned = sortRolesByRank(
+    (roles && roles.length > 0 ? roles : p.role ? [p.role] : []).filter(Boolean) as UserRole[],
+  );
+  const effective = getEffectiveRole(assigned);
+  return {
+    id: p.id,
+    email: p.email,
+    name: p.name,
+    phone: p.phone,
+    jobTitle: p.job_title,
+    role: effective,
+    roles: assigned.length > 0 ? assigned : [effective],
+    created_at: p.created_at,
+    updated_at: p.updated_at,
+    last_sign_in_at: null,
+    banned_until: null,
+    onLeave: p.on_leave || false,
+    notes: p.notes,
+  } as AdminUser;
+};
