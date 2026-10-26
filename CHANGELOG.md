@@ -1,3 +1,9 @@
+## 2026-10-26 – Kalender/Outlook-visning: egen kalender står først
+- **Ændring:** I Ugeplanens kalendervisning sorteredes medarbejderkolonnerne rent alfabetisk. Nu står den indloggede brugers egen kolonne altid først, derefter de øvrige alfabetisk (dansk sortering). Gælder både medarbejderlisten i filterkolonnen og selve kalenderkolonnerne.
+- **Implementation:** Ny ren helper `src/utils/employeeSort.ts` (`sortEmployeesOwnFirst`) — egen medarbejder matches via `employee.id === user.id` (samme kobling som ResponsibleUserSelector). Brugt i `PlannerCalendarView.tsx` via `useAuth()`.
+- **Tests:** 4 nye tests (egen først, alfabetisk uden bruger, ukendt bruger, ingen mutation af input). 149/149 tests grønne, typecheck grøn.
+- Ingen DB-/RLS-/backend-ændringer, ingen publicering.
+
 ## 2026-10-26 – Fix: Brugere med flere roller får nu de højeste rettigheder
 - **Problem:** En bruger med flere roller (fx Martin Hanskov: Skadeleder + Fugttekniker) fik kun rettigheder for én tilfældig rolle, fordi flere steder i koden kun læste én rolle pr. bruger. Ca. 30 brugere i databasen har flere roller.
 - **Database:** `get_user_role()` og `get_user_role_safe()` brugte `LIMIT 1` uden sortering (vilkårlig rolle). Begge returnerer nu altid den højestprioriterede rolle (super_admin > administrator > skadeleder > fugttekniker > servicemedarbejder > vikar), samme logik som `get_current_user_role()`. Verificeret live: Martin Hanskov får nu `skadeleder`. Ingen RLS-politikker eller tabeller ændret.
