@@ -497,9 +497,8 @@
   letter-spacing: 0;
 }
 .operations-shell button, .operations-shell input { letter-spacing: 0; }
-.workspace-tools button { min-width: 44px; min-height: 44px; }
-@media (min-width: 1280px) {
-  .workspace-tools { grid-column: 1 / -1; }
+@media (max-width: 767px) {
+  .workspace-tools button { min-width: 44px; min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .operations-shell *, .operations-shell *::before, .operations-shell *::after {

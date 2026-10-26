@@ -62,8 +62,8 @@ const AppTopBar: React.FC = () => {
 
   return (
     <header role="banner" className="sticky top-0 z-40 border-b border-border bg-card">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 px-3 py-1.5 sm:px-4">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-1.5 sm:px-4">
+        <div className="order-1 flex min-w-0 items-center gap-3">
           <SidebarTrigger className="text-muted-foreground hover:text-foreground min-h-9 min-w-9 hidden md:inline-flex" />
           <Link to="/dashboard" className="shrink-0 md:hidden" aria-label={PRODUCT_NAME}>
             <img src={polygonMark} alt="" aria-hidden className="h-7 w-7 object-contain" draggable={false} />
@@ -73,7 +73,9 @@ const AppTopBar: React.FC = () => {
           </div>
           {isPlanner && <span className="hidden sm:block border-l border-border pl-3 text-xs text-muted-foreground tabular-nums">{t('planner.week')} {week}</span>}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="order-2 flex shrink-0 items-center gap-1 workspace-tools md:order-3">
+          {canSeeVacationOverview && <VacationOverviewDropdown />}
+          <ChangeLogDropdown />
           <NotificationsDrawer />
           <UserMenu
             user={user}
@@ -82,12 +84,8 @@ const AppTopBar: React.FC = () => {
             handleLogout={handleLogout}
           />
         </div>
-        <div className="col-span-2 flex min-w-0 items-center gap-2 border-t border-border pt-1.5 workspace-tools">
-          <div className="min-w-0 flex-1"><GlobalAssignmentSearch /></div>
-          <div className="flex shrink-0 items-center gap-1 border-l border-border pl-2">
-            {canSeeVacationOverview && <VacationOverviewDropdown />}
-            <ChangeLogDropdown />
-          </div>
+        <div className="order-3 flex min-w-0 basis-full items-center border-t border-border pt-1.5 md:order-2 md:basis-auto md:flex-1 md:border-t-0 md:pt-0">
+          <GlobalAssignmentSearch />
         </div>
       </div>
     </header>
