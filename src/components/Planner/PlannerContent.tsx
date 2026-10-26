@@ -179,9 +179,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             variant="outline"
             size="sm"
             onClick={onToggleAllExpanded}
-            className="h-8 min-h-8 px-2.5 text-xs"
+            className="h-7 min-h-7 px-2 text-[11px]"
           >
-            <ChevronsUpDown className="h-3 w-3 mr-1" />
+            <ChevronsUpDown className="h-3 w-3 mr-0.5" />
             {allExpanded
               ? (currentLanguage === 'da' ? 'Fold sammen' : 'Collapse all')
               : (currentLanguage === 'da' ? 'Udvid alle' : 'Expand all')}
