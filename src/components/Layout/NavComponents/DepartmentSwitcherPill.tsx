@@ -47,7 +47,7 @@ const DepartmentSwitcherPill: React.FC = () => {
           type="button"
           title={titleText}
           className={cn(
-            'inline-flex min-h-11 h-auto items-center gap-1.5 max-w-full px-2 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer',
+            'inline-flex min-h-7 h-auto items-center gap-1 max-w-full px-1.5 py-0.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer',
             colors.pill
           )}
         >
