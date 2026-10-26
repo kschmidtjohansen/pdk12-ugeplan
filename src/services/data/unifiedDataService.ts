@@ -65,7 +65,8 @@ class UnifiedDataService {
 
       const employees: Employee[] = profilesData.map(profile => {
         const userRoles = rolesData?.filter(r => r.user_id === profile.id) || [];
-        const primaryRole = userRoles[0]?.role || 'servicemedarbejder';
+        // Highest-privilege role wins when a user holds multiple roles.
+        const primaryRole = getEffectiveRole(userRoles.map(r => r.role));
 
         return {
           id: profile.id,

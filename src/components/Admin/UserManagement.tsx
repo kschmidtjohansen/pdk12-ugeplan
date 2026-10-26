@@ -80,7 +80,7 @@ const UserManagement: React.FC = () => {
   const eligibleUsers = (roleCounts.administrator || 0) + (roleCounts.skadeleder || 0);
 
   const availableRoles = useMemo(() => {
-    const roles = new Set<UserRole>(filteredUsers.map(u => u.role));
+    const roles = new Set<UserRole>(filteredUsers.flatMap(u => u.roles && u.roles.length > 0 ? u.roles : [u.role]));
     roleFilter.forEach(r => roles.add(r));
     return Array.from(roles).sort();
   }, [filteredUsers, roleFilter]);
