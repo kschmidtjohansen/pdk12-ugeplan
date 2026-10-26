@@ -1,3 +1,8 @@
+## 2026-10-26 – Ugeplan afdelingsskift, opgavescroll og fraværstype
+- Ugeplan: afdelingsrække (pills) i SubDepartmentQuickSwitcher via `showDepartments` når brugeren har >1 afdeling; skift bliver på /planner.
+- AssignmentDetailsDialog: én samlet scroll-container (data-vaul-no-drag, max-h) så udvidet filsektion/upload kan nås; chat sticky på desktop.
+- Fri/ferie: obligatorisk valg Ferie/Feriefridag/Afspadsering + valgfri bemærkning, gemt i `reason` som "<Type> – <note>" (ingen schemaændring). Test: leaveType.test.ts.
+
 ## 2026-10-26 – UI: Afdelingsbetegnelse fjernet fra sidebaren
 - Afdelingsnavnet (fx "12 - Fredericia") under "Afdeling" i sidebaren er slettet; "Afdeling"-overskriften og afdelingsknappen (dropdown) er urørte.
 - Ubegrænsede variabler fjernet fra AppSidebar: userDepartments/selectedDepartmentId-destructuring og department-opslaget.
