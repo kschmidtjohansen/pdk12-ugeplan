@@ -569,7 +569,7 @@ const PlannerPage: React.FC = () => {
         />
 
         {/* Quick sub-department switch, so users don't have to go via the dashboard */}
-        <SubDepartmentQuickSwitcher />
+        <SubDepartmentQuickSwitcher showDepartments />
 
         <WeekOperationsStrip summary={weekSummary} week={selectedWeek} active={issueFilter} onSelect={selectIssue} loading={loading} error={!!error}
           navigation={<PlannerWeekNav selectedWeek={selectedWeek} handlePreviousWeek={handlePreviousWeek} handleNextWeek={handleNextWeek} handlePrefetchAssignments={handlePrefetchAssignments} handleCancelPrefetch={handleCancelPrefetch} onCurrentWeek={() => navigateWeek(new Date())} onShowOnScreen={handleShowOnScreen} />} />
