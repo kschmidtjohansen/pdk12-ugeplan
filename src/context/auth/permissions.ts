@@ -41,6 +41,7 @@ export function derivePermissions(
   realRole: UserRole | null | undefined,
   isDemoMode: boolean,
   grants: ReadonlySet<string> = new Set(),
+  overrides: ReadonlyMap<string, boolean> = new Map(),
 ): DerivedPermissions {
   const isSuperAdmin = currentRole === 'super_admin';
   const isAdmin = currentRole === 'administrator' || isSuperAdmin;
@@ -53,6 +54,15 @@ export function derivePermissions(
   const editor = isAdmin || isSkadeleder || realIsSuperAdmin;
   const planner = editor || has('plan_assignments');
   const manageVacations = editor || has('approve_vacations');
+  // Personal on/off choices per employee win over role defaults.
+  // IT-Support (real super_admin, not impersonating someone else) is never restricted.
+  const ov = (p: PersonalPermission, base: boolean) => {
+    if (isDemoMode || (realIsSuperAdmin && isSuperAdmin)) return base;
+    const v = overrides.get(p);
+    return v === undefined ? base : v;
+  };
+  const canPlan = ov('plan_assignments', planner);
+  const canManage = ov('approve_vacations', manageVacations);
   return {
     isSuperAdmin,
     isAdmin,
@@ -61,13 +71,24 @@ export function derivePermissions(
     isEffectiveAdmin: isAdmin,
     isEffectiveSkadeleder: isSkadeleder,
     isEffectiveServicemedarbejder: isServicemedarbejder,
-    canViewFuelCardCode: isAdmin || realIsSuperAdmin,
-    canPublishTasks: editor || has('publish_assignments'),
-    canApproveVacation: isAdmin || realIsSuperAdmin || has('approve_vacations'),
-    canEdit: planner,
-    canCreate: planner,
-    canSeeUnpublishedTasks: planner,
-    canManageVacations: manageVacations,
-    canViewAllVacations: manageVacations || has('view_all_vacations'),
+    canViewFuelCardCode: ov('view_fuel_codes', isAdmin || realIsSuperAdmin),
+    canPublishTasks: ov('publish_assignments', editor || has('publish_assignments')),
+    canApproveVacation: ov('approve_vacations', isAdmin || realIsSuperAdmin || has('approve_vacations')),
+    canEdit: canPlan,
+    canCreate: canPlan,
+    canSeeUnpublishedTasks: ov('view_unpublished', planner),
+    canManageVacations: canManage,
+    canViewAllVacations: ov('view_all_vacations', manageVacations || has('view_all_vacations')),
   };
 }
+
+/** Capabilities that can be switched on/off for one specific employee. */
+export const PERSONAL_PERMISSIONS = [
+  'plan_assignments',
+  'publish_assignments',
+  'view_unpublished',
+  'view_all_vacations',
+  'approve_vacations',
+  'view_fuel_codes',
+] as const;
+export type PersonalPermission = typeof PERSONAL_PERMISSIONS[number];

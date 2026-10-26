@@ -15,6 +15,7 @@ import type { UserRole, AppUser, ImpersonationTarget } from './auth/types';
 import { derivePermissions } from './auth/permissions';
 import { useImpersonation } from './auth/useImpersonation';
 import { useRoleGrants } from './auth/useRoleGrants';
+import { useUserPermissionOverrides } from './auth/useUserPermissionOverrides';
 
 export type { UserRole, AppUser, ImpersonationTarget };
 
@@ -626,12 +627,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         ? effectiveUser.roles
         : currentRole ? [currentRole] : null);
   const roleGrants = useRoleGrants(currentRoles, !!session && !isDemoMode);
+  const personalOverrides = useUserPermissionOverrides(effectiveUser?.id, !!session && !isDemoMode);
   const {
     isAdmin, isSkadeleder, isServicemedarbejder,
     isEffectiveAdmin, isEffectiveSkadeleder, isEffectiveServicemedarbejder,
     canViewFuelCardCode, canPublishTasks, canApproveVacation, canEdit, canCreate, canSeeUnpublishedTasks,
     canManageVacations, canViewAllVacations,
-  } = derivePermissions(currentRole, user?.role, isDemoMode, roleGrants);
+  } = derivePermissions(currentRole, user?.role, isDemoMode, roleGrants, personalOverrides);
 
   // Validation methods
   const validateAdminAccess = (): boolean => {

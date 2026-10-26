@@ -1,3 +1,8 @@
+## 2026-10-26 – feat: Rettigheder pr. medarbejder
+- Ny tabel `user_permissions` (RLS: kun super_admin skriver); `has_role_permission` medtager personlige "Til"-valg.
+- `derivePermissions` tager personlige til/fra-valg (Standard/Til/Fra) for planlægning, udgivelse, kladder, fri/ferie og brændstofkoder.
+- Admin → Rolle-rettigheder: nyt panel "Pr. medarbejder" med underafdelingsadgang.
+
 ## 2026-10-26 – feat: Påmindelse 15 min før opgave, "Alle" underafdelinger, ledighed ved hover
 
 - Ny `send_assignment_reminders()` (SECURITY DEFINER, search_path '', kun postgres) + pg_cron hvert minut: notifikation til tildelte på publicerede opgaver der starter inden for 15 min (Europe/Copenhagen); idempotent via `assignment_reminders_sent`.

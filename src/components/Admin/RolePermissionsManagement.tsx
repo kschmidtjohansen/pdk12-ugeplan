@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { GRANTABLE_PERMISSIONS, type GrantablePermission } from '@/context/auth/permissions';
+import UserPermissionsPanel from './UserPermissionsPanel';
 import type { Database } from '@/integrations/supabase/types';
 
 type Role = Database['public']['Enums']['user_role'];
@@ -62,6 +63,13 @@ const RolePermissionsManagement: React.FC = () => {
   if (loading) return <p className="text-sm text-muted-foreground">Henter…</p>;
 
   return (
+    <div className="space-y-6">
+    <section className="space-y-2">
+      <h3 className="text-base font-semibold">Pr. medarbejder</h3>
+      <UserPermissionsPanel />
+    </section>
+    <section className="space-y-2">
+    <h3 className="text-base font-semibold">Pr. rolle</h3>
     <div className="overflow-x-auto rounded-xl border border-border">
       <table className="w-full text-sm">
         <caption className="sr-only">Ekstra rettigheder pr. rolle</caption>
@@ -97,6 +105,8 @@ const RolePermissionsManagement: React.FC = () => {
           ))}
         </tbody>
       </table>
+    </div>
+    </section>
     </div>
   );
 };
