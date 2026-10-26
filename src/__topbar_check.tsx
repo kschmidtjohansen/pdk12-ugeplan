@@ -14,7 +14,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <TranslationProvider>
         <SidebarProvider>
-          <AppTopBar />
+          <div className="flex min-h-svh w-full flex-col">
+            <AppTopBar />
+          </div>
         </SidebarProvider>
       </TranslationProvider>
     </QueryClientProvider>

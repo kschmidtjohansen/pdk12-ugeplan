@@ -73,7 +73,7 @@ const AppTopBar: React.FC = () => {
           </div>
           {isPlanner && <span className="hidden sm:block border-l border-border pl-3 text-xs text-muted-foreground tabular-nums">{t('planner.week')} {week}</span>}
         </div>
-        <div className="order-2 flex shrink-0 items-center gap-1 workspace-tools">
+        <div className="order-2 flex shrink-0 items-center gap-1 workspace-tools md:order-3">
           {canSeeVacationOverview && <VacationOverviewDropdown />}
           <ChangeLogDropdown />
           <NotificationsDrawer />
