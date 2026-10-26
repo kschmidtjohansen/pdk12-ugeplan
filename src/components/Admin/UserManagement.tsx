@@ -229,9 +229,14 @@ const UserManagement: React.FC = () => {
       }
       addDebugInfo(`FALLBACK: Got ${profiles?.length || 0} profiles and ${userRoles?.length || 0} role assignments`);
 
-      // FIXED: Proper data combination with role mapping
-      const roleByUser = new Map((userRoles || []).map(r => [r.user_id, r.role]));
-      const combinedUsers = profiles.map(profile => mapProfileToAdminUser(profile as ProfileRow, roleByUser.get(profile.id)));
+      // FIXED: Proper data combination — collect ALL roles per user (multi-role support)
+      const rolesByUser = new Map<string, UserRole[]>();
+      (userRoles || []).forEach(r => {
+        const arr = rolesByUser.get(r.user_id) || [];
+        if (!arr.includes(r.role as UserRole)) arr.push(r.role as UserRole);
+        rolesByUser.set(r.user_id, arr);
+      });
+      const combinedUsers = profiles.map(profile => mapProfileToAdminUser(profile as ProfileRow, rolesByUser.get(profile.id)));
 
       // FIXED: Accurate statistics calculation
       const roleStatistics = countRoles(combinedUsers);

@@ -10,6 +10,7 @@ import {
   AvatarImage,
 } from '@/components/ui/avatar';
 import { UserRole, useAuth } from '@/context/AuthContext';
+import { sortRolesByRank } from '@/utils/roleHierarchy';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
