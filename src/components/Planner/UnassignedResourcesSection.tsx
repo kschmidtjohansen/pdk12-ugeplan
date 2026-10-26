@@ -9,7 +9,7 @@ import { Assignment } from '@/types/assignment';
 import { Employee } from '@/types/employee';
 import { Car as CarType } from '@/types/car';
 import { Vacation } from '@/types/vacation';
-import { getEmployeeAvailabilityStatus, isTemporaryExpiredOn } from '@/utils/employeeAvailability';
+import { getEmployeeAvailabilityStatus, isTemporaryExpiredOn, getEmployeeDaySchedule } from '@/utils/employeeAvailability';
 import { useActiveTrainingsForDate } from '@/hooks/useActiveTrainings';
 import { useSickForDateValue } from '@/hooks/useSickDays';
 import { format, parseISO, addDays, isWithinInterval } from 'date-fns';
@@ -17,6 +17,21 @@ import { da } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { buildFirstNameResolver } from '@/utils/people';
 import EmployeeContactActions from '@/components/Shared/EmployeeContactActions';
+
+const AvailabilityDetails: React.FC<{ emp: Employee & { availabilityInfo?: { status: string; statusText?: string } }; date: string; assignments: Assignment[]; da: boolean }> = ({ emp, date, assignments, da }) => {
+  if (emp.availabilityInfo?.status !== 'partiallyBooked') {
+    return emp.availabilityInfo?.statusText ? <p className="text-xs text-muted-foreground">{emp.availabilityInfo.statusText}</p> : null;
+  }
+  const { booked, free } = getEmployeeDaySchedule(emp, date, assignments);
+  const freeLabel = (f: { from: string | null; to: string | null }) =>
+    f.from === null ? `${da ? 'før' : 'before'} ${f.to}` : f.to === null ? `${da ? 'efter' : 'after'} ${f.from}` : `${f.from}–${f.to}`;
+  return (
+    <div className="mt-1 space-y-0.5 text-xs">
+      <p><span className="font-medium">{da ? 'Booket' : 'Booked'}:</span> {booked.map(b => `${b.from}–${b.to}`).join(', ')}</p>
+      <p className="text-success-soft-foreground"><span className="font-medium">{da ? 'Ledig' : 'Available'}:</span> {free.map(freeLabel).join(', ')}</p>
+    </div>
+  );
+};
 
 interface UnassignedResourcesSectionProps {
   assignments: Assignment[];
@@ -415,9 +430,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                             </TooltipTrigger>
                             <TooltipContent>
                               <p className="font-medium">{emp.name}</p>
-                              {emp.availabilityInfo?.text && (
-                                <p className="text-xs text-muted-foreground">{emp.availabilityInfo.text}</p>
-                              )}
+                              <AvailabilityDetails emp={emp} date={targetDate} assignments={assignments} da={currentLanguage === 'da'} />
                               <EmployeeContactActions phone={emp.phone} name={emp.name} size="sm" className="mt-1" />
                             </TooltipContent>
                           </Tooltip>
@@ -457,9 +470,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                             </TooltipTrigger>
                             <TooltipContent>
                               <p className="font-medium">{emp.name}</p>
-                              {emp.availabilityInfo?.text && (
-                                <p className="text-xs text-muted-foreground">{emp.availabilityInfo.text}</p>
-                              )}
+                              <AvailabilityDetails emp={emp} date={targetDate} assignments={assignments} da={currentLanguage === 'da'} />
                               <EmployeeContactActions phone={emp.phone} name={emp.name} size="sm" className="mt-1" />
                             </TooltipContent>
                           </Tooltip>
@@ -502,9 +513,7 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                             </TooltipTrigger>
                             <TooltipContent>
                               <p className="font-medium">{emp.name}</p>
-                              {emp.availabilityInfo?.text && (
-                                <p className="text-xs text-muted-foreground">{emp.availabilityInfo.text}</p>
-                              )}
+                              <AvailabilityDetails emp={emp} date={targetDate} assignments={assignments} da={currentLanguage === 'da'} />
                               <EmployeeContactActions phone={emp.phone} name={emp.name} size="sm" className="mt-1" />
                             </TooltipContent>
                           </Tooltip>

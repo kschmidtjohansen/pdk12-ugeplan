@@ -138,6 +138,35 @@ export type Database = {
           },
         ]
       }
+      assignment_reminders_sent: {
+        Row: {
+          assignment_id: string
+          sent_at: string
+          start_at: string
+          user_id: string
+        }
+        Insert: {
+          assignment_id: string
+          sent_at?: string
+          start_at: string
+          user_id: string
+        }
+        Update: {
+          assignment_id?: string
+          sent_at?: string
+          start_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_reminders_sent_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignments: {
         Row: {
           assignment_date: string
@@ -2259,6 +2288,7 @@ export type Database = {
         }
       }
       security_health_check: { Args: never; Returns: Json }
+      send_assignment_reminders: { Args: never; Returns: number }
       swap_duty_employees: {
         Args: {
           p_duty1_id: string

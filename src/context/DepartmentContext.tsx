@@ -39,6 +39,8 @@ interface DepartmentContextType {
   userSubDepartments: SubDepartmentItem[];
 }
 
+const ALL_SUB_DEPARTMENTS = '__all__';
+
 const DepartmentContext = createContext<DepartmentContextType>({
   departments: [],
   userDepartments: [],
@@ -74,7 +76,8 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
 
   // Sub-department state
   const [selectedSubDepartmentId, setSelectedSubDepartmentIdState] = useState<string | null>(() => {
-    return localStorage.getItem('selected_sub_department_id');
+    const v = localStorage.getItem('selected_sub_department_id');
+    return v === ALL_SUB_DEPARTMENTS ? null : v;
   });
   const [userSubDepartments, setUserSubDepartments] = useState<SubDepartmentItem[]>([]);
 
@@ -260,7 +263,11 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
             }
             return;
           }
-          // Non-admins: auto-select stored or first sub-department.
+          // Non-admins: explicit "Alle" choice is remembered; else stored or first sub-department.
+          if (storedSubId === ALL_SUB_DEPARTMENTS && subs.length > 1) {
+            setSelectedSubDepartmentIdState(null);
+            return;
+          }
           const validStored = subs.find(s => s.id === storedSubId);
           const newSubId = validStored ? validStored.id : subs[0].id;
           setSelectedSubDepartmentIdState(newSubId);
@@ -322,7 +329,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
     if (id) {
       localStorage.setItem('selected_sub_department_id', id);
     } else {
-      localStorage.removeItem('selected_sub_department_id');
+      localStorage.setItem('selected_sub_department_id', ALL_SUB_DEPARTMENTS);
     }
     // Clear cache and force data refresh when sub-department changes
     enhancedDataFetching.clearCache();
