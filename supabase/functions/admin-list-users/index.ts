@@ -265,9 +265,10 @@ serve(async (req) => {
     const combinedUsers = profiles.map(profile => {
       const authUser = authUsers?.users?.find(au => au.id === profile.id);
       
-      // Get role from the role map, default to servicemedarbejder
-      const userRole = roleMap.get(profile.id) || 'servicemedarbejder';
-      
+      // Get ALL roles from the map; the effective role is the highest-privilege one
+      const assignedRoles = rolesByUser.get(profile.id) || [];
+      const userRole = assignedRoles.length > 0 ? effectiveRoleOf(assignedRoles) : 'servicemedarbejder';
+
       return {
         id: profile.id,
         email: profile.email || authUser?.email || '',
@@ -275,6 +276,7 @@ serve(async (req) => {
         phone: profile.phone || authUser?.user_metadata?.phone || null,
         jobTitle: profile.job_title || null,
         role: userRole,
+        roles: assignedRoles.length > 0 ? assignedRoles : [userRole],
         created_at: authUser?.created_at || profile.created_at,
         updated_at: authUser?.updated_at || profile.updated_at,
         last_sign_in_at: authUser?.last_sign_in_at || null,
