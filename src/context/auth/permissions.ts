@@ -27,6 +27,10 @@ export interface DerivedPermissions {
   canManageVacations: boolean;
   /** May see every vacation request in the department (overview). */
   canViewAllVacations: boolean;
+  canViewWarehouse: boolean;
+  canManageWarehouse: boolean;
+  canViewDuty: boolean;
+  canManageDuty: boolean;
 }
 
 /**
@@ -79,6 +83,10 @@ export function derivePermissions(
     canSeeUnpublishedTasks: ov('view_unpublished', planner),
     canManageVacations: canManage,
     canViewAllVacations: ov('view_all_vacations', manageVacations || has('view_all_vacations')),
+    canViewWarehouse: ov('view_warehouse', true),
+    canManageWarehouse: ov('manage_warehouse', editor),
+    canViewDuty: ov('view_duty', true),
+    canManageDuty: ov('manage_duty', editor),
   };
 }
 
@@ -90,5 +98,9 @@ export const PERSONAL_PERMISSIONS = [
   'view_all_vacations',
   'approve_vacations',
   'view_fuel_codes',
+  'view_warehouse',
+  'manage_warehouse',
+  'view_duty',
+  'manage_duty',
 ] as const;
 export type PersonalPermission = typeof PERSONAL_PERMISSIONS[number];

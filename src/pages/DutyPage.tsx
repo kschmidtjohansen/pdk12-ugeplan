@@ -29,10 +29,10 @@ import ErrorState from '@/components/shared/ErrorState';
 
 export default function DutyPage() {
   const { t } = useTranslation();
-  const { isAdmin, isSkadeleder } = usePermissions();
+  const { canManageDuty } = usePermissions();
   const { user } = useAuth();
   const { isDutyEnabled, selectedDepartmentId, departments } = useDepartment();
-  const canManage = isAdmin || isSkadeleder;
+  const canManage = canManageDuty;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);

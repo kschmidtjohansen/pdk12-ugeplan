@@ -14,6 +14,10 @@ const LABELS: Record<PersonalPermission, { group: string; title: string; hint: s
   view_all_vacations: { group: 'Fri/ferie', title: 'Se alle fri/ferie', hint: 'Se alle anmodninger i afdelingen' },
   approve_vacations: { group: 'Fri/ferie', title: 'Godkende fri/ferie', hint: 'Godkende, afvise og anmode for andre' },
   view_fuel_codes: { group: 'Biler', title: 'Se brændstofkort-koder', hint: 'Vise koder på bilernes brændstofkort' },
+  view_warehouse: { group: 'Lager', title: 'Se lager', hint: 'Se lagersiden og dens varer' },
+  manage_warehouse: { group: 'Lager', title: 'Administrere lager', hint: 'Oprette, rette og slette varer på lageret' },
+  view_duty: { group: 'Vagtplan', title: 'Se vagtplan', hint: 'Se vagtplansiden' },
+  manage_duty: { group: 'Vagtplan', title: 'Administrere vagtplan', hint: 'Tildele, rette og slette vagter' },
 };
 
 type Choice = 'default' | 'on' | 'off';
