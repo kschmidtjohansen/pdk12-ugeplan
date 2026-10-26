@@ -1,3 +1,6 @@
+## [Unreleased] – Personlige lager- og vagtplansrettigheder
+- user_permissions: view_warehouse, manage_warehouse, view_duty, manage_duty. permissions.ts, AuthContext, UserPermissionsPanel, WarehousePage, DutyPage, AppSidebar, MobileBottomNav opdateret; 2 nye tests.
+
 ## 2026-10-26 – feat: Rettigheder pr. medarbejder
 - Ny tabel `user_permissions` (RLS: kun super_admin skriver); `has_role_permission` medtager personlige "Til"-valg.
 - `derivePermissions` tager personlige til/fra-valg (Standard/Til/Fra) for planlægning, udgivelse, kladder, fri/ferie og brændstofkoder.
