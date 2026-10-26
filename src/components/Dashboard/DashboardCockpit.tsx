@@ -82,7 +82,6 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
       {/* LEFT — main work surface (2/3) */}
       <div className="min-w-0 space-y-4">
-        {canSeeUnpublishedTasks && userRole !== 'servicemedarbejder' && <WeekOperationsStrip attention summary={weekSummary} week={selectedWeek} loading={assignmentsLoading} error={!!assignmentsError} onSelect={issue => navigate(plannerOperationsLink(selectedWeek, selectedYear, issue))} />}
         <Tabs value={tab} onValueChange={changeTab}>
           <TabsList className="mb-4 grid w-full grid-cols-2 sm:flex sm:w-auto">
             <TabsTrigger value="today" className="min-h-11 px-4">{t('ui.tabToday')}</TabsTrigger>
