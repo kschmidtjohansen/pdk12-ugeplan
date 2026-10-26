@@ -323,7 +323,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   const setResponsibleUserById = (userId: string) => {
     if (userId) {
-      const user = effectiveEmployees.find(emp => emp.id === userId);
+      const candidates = queryClient.getQueryData<Employee[]>(['responsible-user-candidates', selectedDepartmentId]) || [];
+      const user = effectiveEmployees.find(emp => emp.id === userId)
+        || employees.find(emp => emp.id === userId)
+        || candidates.find(emp => emp.id === userId);
       const userName = user ? user.name : '';
       setFormData({ ...formData, responsibleUser: { id: userId, name: userName }, responsibleUserId: userId });
     } else {
