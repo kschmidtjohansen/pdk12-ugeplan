@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WeeklyAssignments from './WeeklyAssignments';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import { assignmentsInWeek } from '@/utils/plannerOperations';
-import { useAuth, usePermissions } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useVacations } from '@/hooks/useVacations';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useTranslation } from '@/context/TranslationContext';
@@ -19,7 +19,6 @@ import { useTranslation } from '@/context/TranslationContext';
 interface DashboardCockpitProps {
   showMetrics: boolean;
   showMyTasks: boolean;
-  userRole?: string;
   selectedWeek: number;
   selectedYear: number;
   onPreviousWeek: () => void;
