@@ -1,3 +1,5 @@
+## 2026-10-26 – UI: Afdelingsbetegnelse fjernet fra sidebaren
+
 ## 2026-10-26 – UI: Strammere og lavere topbjælke
 
 ## 2026-10-26 – UI: Skærm-knap flyttet ved siden af ugeskifteren
