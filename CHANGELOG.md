@@ -1,3 +1,5 @@
+## 2026-10-26 – UI: Polygon-tekstlogo fjernet under PolyPlan i sidemenuen
+
 ## 2026-10-26 – UI: Ugenavigation flyttet ned i "Ugens plan"
 - PlannerWeekNav (‹ Uge › + Denne uge) vises nu i WeekOperationsStrip; PlannerHeader beholder titel, visninger, Ny Opgave og skærmknap.
 
