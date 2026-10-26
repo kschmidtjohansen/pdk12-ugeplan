@@ -1,3 +1,8 @@
+## 2026-10-26 – UI: Søgning centreret i topbjælken
+- AppTopBar: søgerækken (`md:flex-1`) får `md:justify-center`, så søgefeltet (max-w-md) står visuelt i midten af topbjælken, mens handler-knapperne (ferieoversigt, changelog, klokke, profilmenu) bliver liggende yderst til højre.
+- Mobil (< md) er uændret: søgefeltet fylder fortsat hele bredden på sin egen række under knapperne.
+- QA: Playwright-fixture – 1583/1280/1024/768: 1 række, header-højde 49px, søgefeltets centrum 27px fra vinduets midte (afvigelse skyldes asymmetriske sidegrupper), knapgruppen slutter ved højre kant (1567/1583), ingen horisontal overflow; 390: søgning centreret på række 2. npm test 138/138 grønne. Ingen DB-/RLS-/backend-ændringer, ingen publicering.
+
 ## 2026-10-26 – UI: Topbjælken samlet i én række
 - AppTopBar: grid med to rækker (titel/rubrik + søgerække) er erstattet af én flex-række – titel og uge nr. til venstre, søgning i midten (flex-1, max-w-md via GlobalAssignmentSearch), ferieoversigt/changelog/klokke/profilmenu til højre.
 - DOM-rækkefølge er bevaret (titel → søgning → handlinger) med `order`-klasser; på skærme < md (768px) lægger søgefeltet sig under som egen række (`basis-full` + `border-t`-divider), så touch-mål forbliver ≥44px.
