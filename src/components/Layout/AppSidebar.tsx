@@ -35,7 +35,7 @@ interface NavItem {
 
 const AppSidebar: React.FC = () => {
   const { t } = useTranslation();
-  const { isEffectiveAdmin } = useAuth();
+  const { isEffectiveAdmin, canViewDuty, canViewWarehouse } = useAuth();
   const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
   const { totalUnread } = useUnreadMessagesContext();
@@ -70,8 +70,8 @@ const AppSidebar: React.FC = () => {
 
   const items = allItems.filter((i) => {
     if (i.adminOnly) return false; // Admin rendered separately in footer
-    if (i.featureFlag === 'duty' && !isDutyEnabled) return false;
-    if (i.featureFlag === 'warehouse' && !isWarehouseEnabled) return false;
+    if (i.featureFlag === 'duty' && (!isDutyEnabled || !canViewDuty)) return false;
+    if (i.featureFlag === 'warehouse' && (!isWarehouseEnabled || !canViewWarehouse)) return false;
     return true;
   });
 

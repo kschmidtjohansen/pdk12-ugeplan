@@ -4,7 +4,7 @@ import { Package, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from '@/context/TranslationContext';
-import { useAuth } from '@/context/AuthContext';
+import { usePermissions } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useWarehouse } from '@/hooks/warehouse';
 import { useLocations } from '@/hooks/warehouse/useLocations';
@@ -20,7 +20,7 @@ import SegmentedFilterBar from '@/components/shared/SegmentedFilterBar';
 
 const WarehousePage = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { canManageWarehouse, canViewWarehouse } = usePermissions();
   const { isWarehouseEnabled, selectedDepartmentId } = useDepartment();
   const { locations } = useLocations(selectedDepartmentId);
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,7 +32,7 @@ const WarehousePage = () => {
     createItem, updateItem, deleteItem, loading: actionLoading,
   } = useWarehouse();
 
-  const canEdit = user?.role === 'super_admin' || user?.role === 'administrator' || user?.role === 'skadeleder';
+  const canEdit = canManageWarehouse;
 
   const filteredItems = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -64,7 +64,7 @@ const WarehousePage = () => {
     if (deletingItem) await deleteItem(deletingItem.id);
   };
 
-  if (!isWarehouseEnabled) {
+  if (!isWarehouseEnabled || !canViewWarehouse) {
     return (
       <div className="container mx-auto py-16 text-center">
         <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
