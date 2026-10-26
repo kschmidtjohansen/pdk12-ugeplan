@@ -34,24 +34,19 @@ const PlannerHeader: React.FC<Props> = ({
   const { t, currentLanguage } = useTranslation();
   const { canCreate, canPublishTasks } = usePermissions();
   return (
-        <header className="space-y-3 border-b border-border pb-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="min-w-0">
-              <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
-                {t("navigation.planner")}
-              </h1>
-              <p className="text-sm text-muted-foreground truncate">
-                {t('planner.weekView', {
-                  week: selectedWeek,
-                  year: selectedYear,
-                  start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                  end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+        <header className="space-y-2 border-b border-border pb-3">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+              {t("navigation.planner")}
+            </h1>
+            <p className="min-w-0 max-w-full truncate text-sm text-muted-foreground">
+              {t('planner.weekView', {
+                week: selectedWeek,
+                year: selectedYear,
+                start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
                 })}
-              </p>
-            </div>
-          </div>
-          {canCreate && <Button className="min-h-11" onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())}><Plus className="h-4 w-4" />{t('planner.newAssignment')}</Button>}
+            </p>
           </div>
           <div className="flex flex-wrap items-start gap-3">
             <div className="flex items-center justify-center sm:justify-start pt-1.5">
@@ -75,7 +70,18 @@ const PlannerHeader: React.FC<Props> = ({
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
-            {filters && <div className="min-w-0 flex-1">{filters}</div>}
+            {filters && <div className="min-w-[240px] flex-1">{filters}</div>}
+            {canCreate && (
+              <Button
+                className="ml-auto min-h-11 min-w-11 shrink-0 self-start px-3 sm:px-4"
+                aria-label={t('planner.newAssignment')}
+                title={t('planner.newAssignment')}
+                onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())}
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('planner.newAssignment')}</span>
+              </Button>
+            )}
           </div>
         </header>
   );
