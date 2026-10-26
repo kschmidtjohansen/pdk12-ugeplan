@@ -36,8 +36,7 @@ interface NavItem {
 const AppSidebar: React.FC = () => {
   const { t } = useTranslation();
   const { isEffectiveAdmin } = useAuth();
-  const { isDutyEnabled, isWarehouseEnabled, userDepartments, selectedDepartmentId } = useDepartment();
-  const department = userDepartments.find(d => d.id === selectedDepartmentId);
+  const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
   const { totalUnread } = useUnreadMessagesContext();
   const { state, isMobile, setOpenMobile } = useSidebar();
@@ -156,7 +155,6 @@ const AppSidebar: React.FC = () => {
       {!collapsed && (
         <div className="px-4 py-4 border-b border-sidebar-border">
           <p className="text-xs text-muted-foreground mb-1">{t('common.department')}</p>
-          <p className="text-sm font-semibold break-words">{department?.name || '—'}</p>
           <div className="mt-2"><DepartmentSwitcherPill /></div>
         </div>
       )}
