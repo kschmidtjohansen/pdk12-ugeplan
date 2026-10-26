@@ -25,6 +25,8 @@ import { Employee } from '@/types/employee';
 import { VacationRequestType } from '@/types/vacation';
 import VacationDateSelector from './VacationDateSelector';
 import SeparateVacationDateFields from './SeparateVacationDateFields';
+import LeaveTypeReasonField from './LeaveTypeReasonField';
+import { parseLeaveReason } from './leaveType';
 import { Textarea } from '@/components/ui/textarea';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
@@ -248,7 +250,7 @@ const AdminVacationFormDialog: React.FC<AdminVacationFormDialogProps> = ({
             <Button 
               type="submit" 
               className="bg-polygon-purple hover:bg-polygon-darkpurple"
-              disabled={isSubmitting || (requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime))}
+              disabled={isSubmitting || !parseLeaveReason(reason).type || (requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime))}
             >
               {isSubmitting ? t("common.saving") : t("vacation.submitRequest")}
             </Button>
