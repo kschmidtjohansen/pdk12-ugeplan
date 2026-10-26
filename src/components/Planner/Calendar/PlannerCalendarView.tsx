@@ -8,7 +8,8 @@ import { Vacation } from '@/types/vacation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ChevronDown, Users } from 'lucide-react';
+import { ChevronDown, Users, Send, Trash2 } from 'lucide-react';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import { getEmployeeColor } from './employeeColors';
 import { useTranslation } from '@/context/TranslationContext';
@@ -25,6 +26,7 @@ import {
   slotHeightPx,
   hourLabel,
   isWithinDay,
+  layoutOverlaps,
 } from '@/utils/calendarTimeGrid';
 
 interface Props {
@@ -38,6 +40,9 @@ interface Props {
   onEditAssignment?: (a: Assignment) => void;
   onPreviousWeek?: () => void;
   onNextWeek?: () => void;
+  onPublishAssignment?: (id: string) => void;
+  onDeleteAssignment?: (id: string) => void;
+  operationStates?: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
 }
 
 
@@ -46,7 +51,7 @@ const dateLabel = (d: string | undefined, dateLocale: Locale) => {
   try { return format(parseISO(d), 'EEE d. MMM yyyy', { locale: dateLocale }); } catch { return d; }
 };
 
-const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek }) => {
+const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek, onPublishAssignment, onDeleteAssignment, operationStates = {} }) => {
   const { t: tr } = useTranslation();
   const { user } = useAuth();
   const dateLocale = useDateLocale();
@@ -218,23 +223,30 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                           style={{ top: (h - DAY_START_HOUR) * HOUR_PX, height: HOUR_PX }}
                           aria-label={`Opret opgave ${hourLabel(h)}`} />
                       ))}
-                      {items.map(a => {
-                        const s = toMinutes(a.fromTime) ?? 8 * 60;
-                        const en = Math.max(toMinutes(a.toTime) ?? s + 60, s + 20);
+                      {(() => {
+                        const range = (a: Assignment): [number, number] => { const s0 = toMinutes(a.fromTime) ?? 8 * 60; return [s0, Math.max(toMinutes(a.toTime) ?? s0 + 60, s0 + 20)]; };
+                        const slots = layoutOverlaps(items, range);
+                        return items.map(a => {
+                        const [s, en] = range(a);
+                        const slot = slots.get(a) ?? { column: 0, columns: 1 };
+                        const busy = !!operationStates[a.id];
                         const top = slotTopPx(s);
                         const height = slotHeightPx(s, en);
                         const timeLabel = `${a.fromTime?.slice(0, 5) ?? ''}–${a.toTime?.slice(0, 5) ?? ''}`;
                         return (
-                          <Tooltip key={a.id} delayDuration={300}>
+                          <ContextMenu key={a.id}>
+                          <Tooltip delayDuration={300}>
+                            <ContextMenuTrigger asChild>
                             <TooltipTrigger asChild>
                               <button type="button" onClick={() => (isTouch ? setTapped(a) : onViewDetails(a))}
-                                className={cn('absolute left-1 right-1 z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', !a.published && 'border-dashed opacity-80')}
-                                style={{ top, height, backgroundColor: c.background, borderColor: c.border, color: c.text }}>
+                                className={cn('absolute z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', !a.published && 'border-dashed opacity-80')}
+                                style={{ top, height, left: `calc(${(slot.column / slot.columns) * 100}% + 2px)`, width: `calc(${100 / slot.columns}% - 4px)`, backgroundColor: c.background, borderColor: c.border, color: c.text }}>
                                 <div className="text-[10px] font-medium opacity-80">{timeLabel}</div>
                                 <div className="text-xs font-semibold leading-tight line-clamp-2">{a.title}</div>
                                 {height > 60 && <div className="text-[10px] opacity-80 truncate">{a.location}</div>}
                               </button>
                             </TooltipTrigger>
+                            </ContextMenuTrigger>
                             <TooltipContent side="right" className="max-w-64 p-2.5">
                               <div className="text-xs font-semibold leading-tight">{a.title}</div>
                               {a.case_number && <div className="mt-1 text-[11px] opacity-90">{tr('ui.caseNumberLabel')}: {a.case_number}</div>}
@@ -243,8 +255,20 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                               {a.location && <div className="text-[11px] opacity-90">{tr('ui.addressLabel')}: {a.location}</div>}
                             </TooltipContent>
                           </Tooltip>
+                          {(onPublishAssignment && !a.published) || onDeleteAssignment ? (
+                            <ContextMenuContent>
+                              {onPublishAssignment && !a.published && (
+                                <ContextMenuItem disabled={busy} onClick={() => onPublishAssignment(a.id)} className="gap-2"><Send className="h-4 w-4" />{tr('planner.publish')}</ContextMenuItem>
+                              )}
+                              {onDeleteAssignment && (
+                                <ContextMenuItem disabled={busy} onClick={() => onDeleteAssignment(a.id)} className="gap-2 text-destructive"><Trash2 className="h-4 w-4" />{tr('planner.deleteAssignment')}</ContextMenuItem>
+                              )}
+                            </ContextMenuContent>
+                          ) : null}
+                          </ContextMenu>
                         );
-                      })}
+                      });
+                      })()}
                       {showNow && li >= 0 && <div className="absolute inset-x-0 z-[6] h-0.5 bg-destructive pointer-events-none" style={{ top: minuteToPx(nowMin) }} />}
                     </div>
                   );
@@ -264,10 +288,16 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
             <div className="text-xs text-muted-foreground">{tr('ui.dateLabel')}: {dateLabel(tapped.date, dateLocale)}</div>
             <div className="text-xs text-muted-foreground">{tr('ui.timeLabel')}: {tapped.fromTime?.slice(0, 5) ?? ''}–{tapped.toTime?.slice(0, 5) ?? ''}</div>
             {tapped.location && <div className="text-xs text-muted-foreground">{tr('ui.addressLabel')}: {tapped.location}</div>}
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               <Button size="sm" onClick={() => { setTapped(null); onViewDetails(tapped); }}>{tr('ui.openDetails')}</Button>
               {canEdit && onEditAssignment && (
                 <Button size="sm" variant="outline" onClick={() => { setTapped(null); onEditAssignment(tapped); }}>{tr('common.edit')}</Button>
+              )}
+              {onPublishAssignment && !tapped.published && (
+                <Button size="sm" variant="outline" disabled={!!operationStates[tapped.id]} onClick={() => { const id = tapped.id; setTapped(null); onPublishAssignment(id); }}>{tr('planner.publish')}</Button>
+              )}
+              {onDeleteAssignment && (
+                <Button size="sm" variant="destructive" disabled={!!operationStates[tapped.id]} onClick={() => { const id = tapped.id; setTapped(null); onDeleteAssignment(id); }}>{tr('planner.deleteAssignment')}</Button>
               )}
               <Button size="sm" variant="ghost" onClick={() => setTapped(null)}>{tr('common.close')}</Button>
             </div>

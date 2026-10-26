@@ -62,3 +62,19 @@ describe('calendarTimeGrid – full day 00:00–23:59', () => {
     expect(isWithinDay(1441)).toBe(false);
   });
 });
+
+import { layoutOverlaps } from './calendarTimeGrid';
+describe('layoutOverlaps', () => {
+  it('places overlapping events side by side and keeps separate ones full width', () => {
+    const a: [number, number] = [480, 600], b: [number, number] = [540, 660], c: [number, number] = [700, 760];
+    const m = layoutOverlaps([a, b, c], r => r);
+    expect(m.get(a)).toEqual({ column: 0, columns: 2 });
+    expect(m.get(b)).toEqual({ column: 1, columns: 2 });
+    expect(m.get(c)).toEqual({ column: 0, columns: 1 });
+  });
+  it('touching events do not overlap', () => {
+    const a: [number, number] = [480, 540], b: [number, number] = [540, 600];
+    const m = layoutOverlaps([a, b], r => r);
+    expect(m.get(b)).toEqual({ column: 0, columns: 1 });
+  });
+});
