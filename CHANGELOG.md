@@ -1,3 +1,8 @@
+## 2026-10-26 – UI: Resultattal fjernet fra filtre-rækken i Ugeplan
+- PlannerFilterBar: linjen "X af Y opgaver" (`role="status"` live-region) er fjernet fra rækken med søgning og filtre.
+- De tilhørende, nu ubrugte props `resultCount`/`totalCount` er fjernet fra PlannerFilterBar og fra kaldet i PlannerPage. Øvrige filtre (medarbejder, postnummer, nærhed, statusfilter, "Ryd filtre") er uændrede.
+- QA: npm test 138/138 grønne, build/typecheck grønt. Ingen DB-/RLS-/backend-ændringer, ingen publicering.
+
 ## 2026-10-26 – UI: "Ny Opgave" flyttet ned i filtre-rækken i Ugeplan
 - PlannerHeader: "Ny Opgave"-knappen er flyttet fra titelrækken ned i rækken med visningsknapper og filtre (`ml-auto self-start`, højre kant), så den ikke længere er med til at gøre headerens første række høj.
 - Titelrækken er sat på én linje: `h1` ("Ugeplan") og ugebeskrivelsen ligger nu ved siden af hinanden (`flex flex-wrap items-baseline`) i stedet for stablet; tekster og indhold er uændrede.

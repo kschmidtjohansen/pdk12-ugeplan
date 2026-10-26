@@ -576,8 +576,6 @@ const PlannerPage: React.FC = () => {
           onQueryChange={setSearchQuery}
           onClearAll={clearFilters}
           additionalFiltersActive={issueFilter !== 'all'}
-          resultCount={sortedWeekAssignments.length}
-          totalCount={weekAssignments.length}
         />}
         />
 

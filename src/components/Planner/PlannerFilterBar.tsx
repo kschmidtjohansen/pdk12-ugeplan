@@ -27,8 +27,6 @@ interface PlannerFilterBarProps {
   onQueryChange?: (value: string) => void;
   onClearAll?: () => void;
   additionalFiltersActive?: boolean;
-  resultCount?: number;
-  totalCount?: number;
 }
 
 /**
@@ -48,8 +46,6 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
   onQueryChange,
   onClearAll,
   additionalFiltersActive = false,
-  resultCount,
-  totalCount,
 }) => {
   const { t } = useTranslation();
   const { userSubDepartments, selectedSubDepartmentId } = useDepartment();
@@ -199,7 +195,6 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
           </Button>
         )}
       </div>
-      {resultCount !== undefined && <p role="status" aria-live="polite" className="text-xs text-muted-foreground tabular-nums">{t('planner.operationsOverview.results', { count: resultCount, total: totalCount ?? resultCount })}</p>}
 
       {isOpen && (
         /* Overlay instead of inline expansion — keeps the week list from being
