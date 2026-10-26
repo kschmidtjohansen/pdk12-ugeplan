@@ -1,4 +1,5 @@
 import type { UserRole } from '@/context/AuthContext';
+import { getEffectiveRole, sortRolesByRank } from '@/utils/roleHierarchy';
 import type { AdminUser } from '../UserTableRow';
 import type { UserStatusFilter } from '../UserListToolbar';
 

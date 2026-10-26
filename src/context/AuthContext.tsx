@@ -618,7 +618,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Permissions based on current user (with demo role override)
   const currentRole = isDemoMode && demoRole ? demoRole : effectiveUser?.role;
-  const roleGrants = useRoleGrants(currentRole, !!session && !isDemoMode);
+  // Grants are loaded for ALL of the user's roles — a user with e.g. both
+  // Skadeleder and Fugttekniker gets the combined grants of both roles.
+  const currentRoles: UserRole[] | null = isDemoMode && demoRole
+    ? [demoRole]
+    : (effectiveUser?.roles && effectiveUser.roles.length > 0
+        ? effectiveUser.roles
+        : currentRole ? [currentRole] : null);
+  const roleGrants = useRoleGrants(currentRoles, !!session && !isDemoMode);
   const {
     isAdmin, isSkadeleder, isServicemedarbejder,
     isEffectiveAdmin, isEffectiveSkadeleder, isEffectiveServicemedarbejder,
