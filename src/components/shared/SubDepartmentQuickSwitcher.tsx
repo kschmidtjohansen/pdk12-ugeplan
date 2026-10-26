@@ -3,7 +3,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { cn } from '@/lib/utils';
-import { Layers } from 'lucide-react';
+import { Building2, Layers } from 'lucide-react';
 
 /**
  * Compact pill bar shown on the dashboard so users can quickly switch
