@@ -1,3 +1,9 @@
+## 2026-10-26 – UI: Topbjælken samlet i én række
+- AppTopBar: grid med to rækker (titel/rubrik + søgerække) er erstattet af én flex-række – titel og uge nr. til venstre, søgning i midten (flex-1, max-w-md via GlobalAssignmentSearch), ferieoversigt/changelog/klokke/profilmenu til højre.
+- DOM-rækkefølge er bevaret (titel → søgning → handlinger) med `order`-klasser; på skærme < md (768px) lægger søgefeltet sig under som egen række (`basis-full` + `border-t`-divider), så touch-mål forbliver ≥44px.
+- GlobalAssignmentSearch: `md:min-h-9` på input; NotificationsDrawer-klokke `md:h-9 md:w-9`; `.workspace-tools button`-minstørrelse (44px) er scopen til `@media (max-width: 767px)` og den forældede `grid-column`-regel er fjernet.
+- QA: målt i Playwright-fixture (AppTopBar + TranslationProvider/SidebarProvider/QueryClient, /planner) – 1280/1024/768: 1 række, header-højde 49px, ingen horisontal overflow; 390/360: søgning på række 2, ingen overlap/klip. npm test 138/138 grønne, typecheck grøn. Ingen DB-/RLS-/backend-ændringer, ingen publicering.
+
 ## 2026-10-26 – UI: Filtre flyttet op ved visningsknapper i Ugeplan
 - PlannerFilterBar renderes nu i PlannerHeader (ny `filters`-prop) i samme række som visningstilstandene.
 
