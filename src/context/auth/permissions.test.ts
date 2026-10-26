@@ -68,3 +68,18 @@ describe('personal permission overrides', () => {
     expect(p.canEdit).toBe(false);
   });
 });
+
+describe('personal warehouse/duty overrides', () => {
+  it('lets a servicemedarbejder manage warehouse and duty when switched on', () => {
+    const p = derivePermissions('servicemedarbejder', 'servicemedarbejder', false, new Set(), new Map([['manage_warehouse', true], ['manage_duty', true]]));
+    expect(p.canManageWarehouse).toBe(true);
+    expect(p.canManageDuty).toBe(true);
+  });
+  it('hides warehouse and duty for a skadeleder when switched off', () => {
+    const p = derivePermissions('skadeleder', 'skadeleder', false, new Set(), new Map([['view_warehouse', false], ['view_duty', false], ['manage_duty', false]]));
+    expect(p.canViewWarehouse).toBe(false);
+    expect(p.canViewDuty).toBe(false);
+    expect(p.canManageDuty).toBe(false);
+    expect(p.canManageWarehouse).toBe(true);
+  });
+});

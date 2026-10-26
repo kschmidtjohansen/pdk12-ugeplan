@@ -991,12 +991,20 @@ export const usePermissions = () => {
     canEdit, 
     canCreate, 
     canSeeUnpublishedTasks,
+    canViewWarehouse,
+    canManageWarehouse,
+    canViewDuty,
+    canManageDuty,
     validateAdminAccess,
     validateSkadelederAccess,
     hasRequiredRole
   } = useContext(AuthContext);
   
   return {
+    canViewWarehouse,
+    canManageWarehouse,
+    canViewDuty,
+    canManageDuty,
     isAdmin,
     isSkadeleder,
     isServicemedarbejder,
