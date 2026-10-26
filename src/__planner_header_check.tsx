@@ -75,11 +75,11 @@ const Before = () => (
 
 const After = () => (
   <header data-variant="after" className="space-y-2 border-b border-border pb-3">
-    <div className="flex flex-wrap items-center justify-between gap-3"><TitleInline /></div>
+    <TitleInline />
     <div className="flex flex-wrap items-start gap-3">
       <Toggles />
-      <div className="min-w-0 flex-1"><Filters /></div>
-      <Button className="min-h-11 shrink-0 self-end"><Plus className="h-4 w-4" />Ny Opgave</Button>
+      <div className="min-w-[240px] flex-1"><Filters /></div>
+      <Button className="ml-auto min-h-11 shrink-0 self-start"><Plus className="h-4 w-4" />Ny Opgave</Button>
     </div>
   </header>
 );
