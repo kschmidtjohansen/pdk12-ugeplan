@@ -27,7 +27,6 @@ import VacationDateSelector from './VacationDateSelector';
 import SeparateVacationDateFields from './SeparateVacationDateFields';
 import LeaveTypeReasonField from './LeaveTypeReasonField';
 import { parseLeaveReason } from './leaveType';
-import { Textarea } from '@/components/ui/textarea';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
