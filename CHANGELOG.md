@@ -2445,3 +2445,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - `swap_duty_employees`: manglede adgangskontrol — kræver nu login og `can_manage_duty_department` for begge vagter (eller super_admin).
 - `get_department_absences`: ubrugt og lækkede fravær på tværs af afdelinger — EXECUTE fjernet for anon/authenticated.
 - Automatiseringer: n8n-webhooks afventer brugerens n8n-URL og valg af hændelser.
+## 2026-10-26 – fix: Fjern "Kræver opmærksomhed"-sektionen fra dashboardet
+- DashboardCockpit renderede ikke længere WeekOperationsStrip (attention-variant); dashboard-navigations-links og weekSummary-afledning fjernet sammen med døde hooks/imports og userRole-prop.
+- Obsolet dashboard-operations-test slettet; PlannerPage beholder stadig sin issue-filter-strip.
+- QA: 158/158 tests, typecheck grøn, lint 0 fejl.
