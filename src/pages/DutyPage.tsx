@@ -29,7 +29,7 @@ import ErrorState from '@/components/shared/ErrorState';
 
 export default function DutyPage() {
   const { t } = useTranslation();
-  const { canManageDuty } = usePermissions();
+  const { canManageDuty, canViewDuty } = usePermissions();
   const { user } = useAuth();
   const { isDutyEnabled, selectedDepartmentId, departments } = useDepartment();
   const canManage = canManageDuty;
@@ -149,7 +149,7 @@ export default function DutyPage() {
 
   // legacy reassign handler removed — swap now uses request flow
 
-  if (!isDutyEnabled) {
+  if (!isDutyEnabled || !canViewDuty) {
     return (
       <div className="container mx-auto py-16 text-center">
         <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

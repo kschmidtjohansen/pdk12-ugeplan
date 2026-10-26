@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/AuthContext';
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
