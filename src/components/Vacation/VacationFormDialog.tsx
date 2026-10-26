@@ -18,6 +18,8 @@ import { useTranslation } from '../../context/TranslationContext';
 import { VacationRequestType } from '@/types/vacation';
 import VacationDateSelector from './VacationDateSelector';
 import SeparateVacationDateFields from './SeparateVacationDateFields';
+import LeaveTypeReasonField from './LeaveTypeReasonField';
+import { parseLeaveReason } from './leaveType';
 import { Trash2 } from 'lucide-react';
 
 interface VacationFormDialogProps {
@@ -226,16 +228,7 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
             </div>
           )}
           
-          <div className="space-y-2">
-            <Label htmlFor="reason">{t("vacation.reason")}</Label>
-            <Textarea 
-              id="reason" 
-              value={reason} 
-              onChange={e => setReason(e.target.value)} 
-              placeholder={t("vacation.reasonPlaceholder")} 
-              required 
-            />
-          </div>
+          <LeaveTypeReasonField reason={reason} setReason={setReason} />
           
           <DialogFooter className={isEditing ? "flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-between" : ""}>
             {isEditing && onDelete && (
@@ -256,7 +249,7 @@ const VacationFormDialog: React.FC<VacationFormDialogProps> = ({
               <Button 
                 type="submit" 
                 className="bg-polygon-purple hover:bg-polygon-darkpurple w-full sm:w-auto"
-                disabled={isSubmitting || (requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime))}
+                disabled={isSubmitting || !parseLeaveReason(reason).type || (requestType === 'partial_day' && (!startTime || !endTime || startTime >= endTime))}
               >
                 {isSubmitting
                   ? t("common.saving")

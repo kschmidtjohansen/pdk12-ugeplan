@@ -160,10 +160,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
          </Header>
  
         {/* Main content: 2-column layout */}
-         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col lg:flex-row lg:overflow-hidden">
-          {/* Left column: Details */}
-           <div className={`h-auto flex-shrink-0 lg:flex-1 lg:flex-shrink ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col lg:min-h-0`}>
-             <div className="lg:flex-1 lg:overflow-y-auto">
+         <div data-vaul-no-drag className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y flex flex-col max-h-[calc(92dvh-7rem)] lg:flex-row lg:items-start lg:max-h-[calc(95dvh-8rem)]">
+          {/* Left column: Details — scrolls together with the dialog body so the expanded files section is always reachable */}
+           <div className={`h-auto flex-shrink-0 lg:flex-1 lg:flex-shrink ${isChatEnabled ? 'lg:w-3/5 lg:border-r' : ''} flex flex-col`}>
+             <div>
                 <div className="p-4 sm:p-8 space-y-6">
                 {/* Title */}
                  <div className="space-y-1">
@@ -344,7 +344,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
           {/* Right column: Messages sidebar */}
           {isChatEnabled && (
-           <div className="lg:w-2/5 flex flex-col relative min-h-[300px] max-h-[50dvh] lg:h-auto lg:max-h-none lg:min-h-0 overflow-hidden border-t lg:border-t-0 bg-muted/20">
+           <div className="lg:w-2/5 flex flex-col relative min-h-[300px] max-h-[50dvh] lg:sticky lg:top-0 lg:h-[calc(95dvh-8rem)] lg:max-h-none overflow-hidden border-t lg:border-t-0 bg-muted/20">
              <div className="px-3 sm:px-5 py-4 border-b bg-card">
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-2.5 text-sm font-semibold">
