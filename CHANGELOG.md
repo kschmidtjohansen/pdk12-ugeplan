@@ -1,3 +1,16 @@
+## 2026-10-26 – Fix: Brugere med flere roller får nu de højeste rettigheder
+- **Problem:** En bruger med flere roller (fx Martin Hanskov: Skadeleder + Fugttekniker) fik kun rettigheder for én tilfældig rolle, fordi flere steder i koden kun læste én rolle pr. bruger. Ca. 30 brugere i databasen har flere roller.
+- **Database:** `get_user_role()` og `get_user_role_safe()` brugte `LIMIT 1` uden sortering (vilkårlig rolle). Begge returnerer nu altid den højestprioriterede rolle (super_admin > administrator > skadeleder > fugttekniker > servicemedarbejder > vikar), samme logik som `get_current_user_role()`. Verificeret live: Martin Hanskov får nu `skadeleder`. Ingen RLS-politikker eller tabeller ændret.
+- **admin-list-users (edge function):** rolle-Map overskrev roller ved flere roller (`roleMap.set` pr. bruger). Nu samles ALLE roller pr. bruger; svaret indeholder både `roles` (alle roller) og `role` (højeste rolle). Gen-deployet.
+- **UserManagement (fallback):** samme Map-fejl rettet — samler alle roller pr. bruger og udleder den effektive rolle via `getEffectiveRole`.
+- **useRoleGrants:** ekstra rettigheder (grants fra IT-Support) hentes nu for ALLE brugerens roller og slås sammen, ikke kun for den højeste rolle. AuthContext sender hele rollelisten.
+- **userFilters:** `searchUsers` rollefilter matcher nu på enhver af brugerens roller; `mapProfileToAdminUser` tager hele rollelisten og udleder højeste rolle. Rollefilter-valgmuligheder i brugerlisten samles fra alle roller.
+- **UserTableRow:** brugerlisten viser nu alle tildelte roller (højeste først, efterfølgende dæmpet), fx "Skadeleder · Fugttekniker".
+- **unifiedDataService:** primær rolle var `userRoles[0]` (vilkårlig) — bruger nu `getEffectiveRole`.
+- **systemHealthService:** `.single()` på user_roles fejlede for multi-rolle-brugere — henter nu alle roller og viser den effektive.
+- **Tests:** 7 nye tests (roleHierarchy.test.ts: rangorden, effektiv rolle, sortering; userFilters.test.ts: multi-rolle filtermatch, højeste rolle ved mapping). 145/145 tests grønne, typecheck grøn, lint 0 fejl (12 eksisterende warnings).
+- Ingen publicering, ingen produktionsdataændringer, ingen RLS-/sikkerhedslempelser.
+
 ## 2026-10-26 – UI: Resultattal fjernet fra filtre-rækken i Ugeplan
 - PlannerFilterBar: linjen "X af Y opgaver" (`role="status"` live-region) er fjernet fra rækken med søgning og filtre.
 - De tilhørende, nu ubrugte props `resultCount`/`totalCount` er fjernet fra PlannerFilterBar og fra kaldet i PlannerPage. Øvrige filtre (medarbejder, postnummer, nærhed, statusfilter, "Ryd filtre") er uændrede.
