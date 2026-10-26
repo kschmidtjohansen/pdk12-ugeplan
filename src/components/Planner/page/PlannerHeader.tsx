@@ -72,8 +72,14 @@ const PlannerHeader: React.FC<Props> = ({
             </div>
             {filters && <div className="min-w-[240px] flex-1">{filters}</div>}
             {canCreate && (
-              <Button className="ml-auto min-h-11 shrink-0 self-start" onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())}>
-                <Plus className="h-4 w-4" />{t('planner.newAssignment')}
+              <Button
+                className="ml-auto min-h-11 min-w-11 shrink-0 self-start px-3 sm:px-4"
+                aria-label={t('planner.newAssignment')}
+                title={t('planner.newAssignment')}
+                onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())}
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('planner.newAssignment')}</span>
               </Button>
             )}
           </div>

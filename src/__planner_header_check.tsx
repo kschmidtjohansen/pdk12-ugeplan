@@ -79,7 +79,7 @@ const After = () => (
     <div className="flex flex-wrap items-start gap-3">
       <Toggles />
       <div className="min-w-[240px] flex-1"><Filters /></div>
-      <Button className="ml-auto min-h-11 shrink-0 self-start"><Plus className="h-4 w-4" />Ny Opgave</Button>
+      <Button className="ml-auto min-h-11 min-w-11 shrink-0 self-start px-3 sm:px-4" aria-label="Ny Opgave"><Plus className="h-4 w-4" /><span className="hidden sm:inline">Ny Opgave</span></Button>
     </div>
   </header>
 );
