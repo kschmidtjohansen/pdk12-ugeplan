@@ -1,6 +1,5 @@
 import React from 'react';
 import { useDepartment } from '@/context/DepartmentContext';
-import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { cn } from '@/lib/utils';
 import { Building2, Layers } from 'lucide-react';
@@ -9,11 +8,10 @@ import { Building2, Layers } from 'lucide-react';
  * Compact pill bar shown on the dashboard so users can quickly switch
  * between sub-departments without opening the user menu.
  * - Only renders when the user has more than one accessible sub-department.
- * - "Alle" pill is only available to Administrator / Super Admin.
+ * - "Alle" pill is available whenever there is more than one sub-department.
  */
 const SubDepartmentQuickSwitcher: React.FC<{ showDepartments?: boolean }> = ({ showDepartments = false }) => {
   const { t } = useTranslation();
-  const { isAdmin } = useAuth();
   const {
     userDepartments,
     selectedDepartmentId,
@@ -67,7 +65,7 @@ const SubDepartmentQuickSwitcher: React.FC<{ showDepartments?: boolean }> = ({ s
             <Layers className="h-3.5 w-3.5" />
             <span>{t('common.subDepartment') || 'Underafdeling'}</span>
           </div>
-          {isAdmin && renderPill(null, t('common.all') || 'Alle')}
+          {userSubDepartments.length > 1 && renderPill(null, t('common.all') || 'Alle')}
           {userSubDepartments.map((sub) => renderPill(sub.id, sub.name))}
         </div>
       )}
