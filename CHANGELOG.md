@@ -1,3 +1,12 @@
+## 2026-10-26 – Fix: Ekstra ferie-rettigheder virker på Fri/Ferie-siden
+
+- QA-finding 3d63be69: rolle-grants "Se alle fri/ferie" og "Godkende fri/ferie" blev ignoreret af ferie-sidens liste og handlinger.
+- moduleListFilters.visibleVacations: nyt canViewAll-parameter; VacationTabContent og VacationPageContainer sender canViewAllVacations, så tildelte roller ser alle anmodninger i afdelingen (RLS scoper stadig).
+- useVacationActions: submit (admin-anmodning), approveVacation og rejectVacation accepterer nu canManageVacations udover isAdmin/isSkadeleder; klient-side blokering af tildelte roller fjernet.
+- VacationPageContainer/VacationHeader: forkert alias canViewAllVacations→canManageVacations rettet, så "Anmod for medarbejder"-knappen kun vises ved reel godkendelsesret (ikke view-only grant).
+- VacationList/VacationTable: rediger- og godkend/afvis-knapper vises ved isEffectiveAdmin || canManageVacations.
+- Tests: 2 nye regressionstests for view_all_vacations-synlighed; npm test 136/136 grønne, typecheck grøn, lint 0 fejl / 171 warnings (eksisterende). Ingen DB-/RLS-/backend-ændringer, ingen publicering.
+
 ## 2026-10-25 – PolyPlan v1.4.1: Medarbejdere, biler og ferie UX polish
 
 - EmployeesPage/EmployeesTable/MobileEmployeeCard/EmployeeTableRow: explicit department/role context, count-bearing filter controls, search/results/reset, distinct no-data/no-match, flat tables and readable mobile contact/status hierarchy. Vacation identification uses user_id and local yyyy-MM-dd. Desktop virtualization begins at 50 employees; pagination and all action callbacks retained.

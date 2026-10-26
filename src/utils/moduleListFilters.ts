@@ -17,10 +17,11 @@ export function filterCars<T extends { name?: string; car_number?: string; numbe
     && (!q || [c.name, c.car_number, c.number_plate].some(value => value?.toLowerCase().includes(q))));
 }
 
-/** Same visibility rules as the existing VacationTabContent, applied before counts. */
-export function visibleVacations(rows: Vacation[], userId: string | undefined, isAdmin: boolean, isService: boolean) {
+/** Same visibility rules as the existing VacationTabContent, applied before counts. Roles granted "view_all_vacations" by IT-Support see every row. */
+export function visibleVacations(rows: Vacation[], userId: string | undefined, isAdmin: boolean, isService: boolean, canViewAll = false) {
   if (!userId) return [];
-  return rows.filter(v => isAdmin || (isService ? v.user_id === userId : v.user_id === userId || v.status === 'approved'));
+  if (isAdmin || canViewAll) return rows;
+  return rows.filter(v => isService ? v.user_id === userId : v.user_id === userId || v.status === 'approved');
 }
 export function filterVacations(rows: Vacation[], tab: string, search: string, userId?: string) {
   const q = search.trim().toLowerCase();
