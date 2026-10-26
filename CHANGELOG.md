@@ -1,3 +1,5 @@
+## 2026-10-26 – UI: Lille "PolyPlan"-tekst fjernet fra topbjælken
+
 ## 2026-10-26 – UI: Mindre visningsknapper i Ugeplan (32 px)
 
 ## 2026-10-26 – UI: Polygon-tekstlogo fjernet under PolyPlan i sidemenuen

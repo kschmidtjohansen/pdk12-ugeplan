@@ -69,7 +69,6 @@ const AppTopBar: React.FC = () => {
             <img src={polygonMark} alt="" aria-hidden className="h-7 w-7 object-contain" draggable={false} />
           </Link>
           <div className="min-w-0">
-            <p className="hidden md:block text-[10px] font-semibold text-muted-foreground">{PRODUCT_NAME}</p>
             <h1 className="text-sm font-semibold text-foreground break-words">{title}</h1>
           </div>
           {isPlanner && <span className="hidden sm:block border-l border-border pl-3 text-xs text-muted-foreground tabular-nums">{t('planner.week')} {week}</span>}
