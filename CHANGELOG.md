@@ -1,3 +1,9 @@
+## 2026-10-26 – UI: Afdelingsknap i sidebaren gjort mindre
+
+- DepartmentSwitcherPill (dropdown-trigger): min-h-11 → min-h-7, py-2 → py-0.5, px-2 → px-1.5, gap-1.5 → gap-1, text-xs → text-[11px]. Knappen er nu ca. 32px høj mod tidligere 44px.
+- Adskilt fra "Afdeling"-overskriften og den fede afdelingsbetegnelse over; dropdown-indhold, farvetilstande (colors.pill/dot), underafdelingsvisning, title-tekst og switchDepartment/setSelectedSubDepartmentId-handlinger er urørte.
+- QA: npm test 136/136 grønne (25 filer), automatiseret preview-build OK. Ingen DB-/RLS-/backend-ændringer, ingen publicering.
+
 ## 2026-10-26 – Fix: Ekstra ferie-rettigheder virker på Fri/Ferie-siden
 
 - QA-finding 3d63be69: rolle-grants "Se alle fri/ferie" og "Godkende fri/ferie" blev ignoreret af ferie-sidens liste og handlinger.
