@@ -1,4 +1,7 @@
 ## 2026-10-26 – UI: Afdelingsbetegnelse fjernet fra sidebaren
+- Afdelingsnavnet (fx "12 - Fredericia") under "Afdeling" i sidebaren er slettet; "Afdeling"-overskriften og afdelingsknappen (dropdown) er urørte.
+- Ubegrænsede variabler fjernet fra AppSidebar: userDepartments/selectedDepartmentId-destructuring og department-opslaget.
+- QA: npm test 136/136 grønne (25 filer), automatiseret preview-build OK. Ingen DB-/RLS-/backend-ændringer, ingen publicering.
 
 ## 2026-10-26 – UI: Strammere og lavere topbjælke
 
