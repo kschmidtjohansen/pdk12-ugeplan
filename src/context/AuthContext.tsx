@@ -59,6 +59,10 @@ interface AuthContextType {
   canSeeUnpublishedTasks: boolean;
   canManageVacations: boolean;
   canViewAllVacations: boolean;
+  canViewWarehouse: boolean;
+  canManageWarehouse: boolean;
+  canViewDuty: boolean;
+  canManageDuty: boolean;
   validateAdminAccess: () => boolean;
   validateSkadelederAccess: () => boolean;
   hasRequiredRole: (requiredRoles: UserRole[]) => boolean;
@@ -105,6 +109,10 @@ const AuthContext = createContext<AuthContextType>({
   canSeeUnpublishedTasks: false,
   canManageVacations: false,
   canViewAllVacations: false,
+  canViewWarehouse: false,
+  canManageWarehouse: false,
+  canViewDuty: false,
+  canManageDuty: false,
   validateAdminAccess: () => false,
   validateSkadelederAccess: () => false,
   hasRequiredRole: () => false,
@@ -633,6 +641,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isEffectiveAdmin, isEffectiveSkadeleder, isEffectiveServicemedarbejder,
     canViewFuelCardCode, canPublishTasks, canApproveVacation, canEdit, canCreate, canSeeUnpublishedTasks,
     canManageVacations, canViewAllVacations,
+    canViewWarehouse, canManageWarehouse, canViewDuty, canManageDuty,
   } = derivePermissions(currentRole, user?.role, isDemoMode, roleGrants, personalOverrides);
 
   // Validation methods
@@ -937,6 +946,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     canSeeUnpublishedTasks,
     canManageVacations,
     canViewAllVacations,
+    canViewWarehouse,
+    canManageWarehouse,
+    canViewDuty,
+    canManageDuty,
     validateAdminAccess,
     validateSkadelederAccess,
     hasRequiredRole,

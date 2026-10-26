@@ -15,11 +15,12 @@ const MobileBottomNav: React.FC = () => {
   const { currentLanguage } = useTranslation();
   const { totalUnread } = useUnreadMessagesContext();
   const { isDutyEnabled } = useDepartment();
+  const { canViewDuty } = useAuth();
   const isDa = currentLanguage === 'da';
 
   // Same feature flags as the desktop sidebar: /duty is hidden when the
   // department has the duty module disabled.
-  const TABS = buildMobileTabs({ isDa, isDutyEnabled, totalUnread });
+  const TABS = buildMobileTabs({ isDa, isDutyEnabled: isDutyEnabled && canViewDuty, totalUnread });
 
   // Routes that "Mere" surfaces in the drawer
   const moreRoutes = ['/warehouse', '/cars', '/employees', '/vacation', '/admin'];

@@ -20,7 +20,7 @@ import SegmentedFilterBar from '@/components/shared/SegmentedFilterBar';
 
 const WarehousePage = () => {
   const { t } = useTranslation();
-  const { canManageWarehouse } = usePermissions();
+  const { canManageWarehouse, canViewWarehouse } = usePermissions();
   const { isWarehouseEnabled, selectedDepartmentId } = useDepartment();
   const { locations } = useLocations(selectedDepartmentId);
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,7 +64,7 @@ const WarehousePage = () => {
     if (deletingItem) await deleteItem(deletingItem.id);
   };
 
-  if (!isWarehouseEnabled) {
+  if (!isWarehouseEnabled || !canViewWarehouse) {
     return (
       <div className="container mx-auto py-16 text-center">
         <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
