@@ -12,6 +12,8 @@ import { ChevronDown, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEmployeeColor } from './employeeColors';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
+import { sortEmployeesOwnFirst } from '@/utils/employeeSort';
 
 const START_HOUR = 6;
 const END_HOUR = 19;
@@ -43,6 +45,7 @@ const dateLabel = (d: string | undefined, dateLocale: Locale) => {
 
 const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek }) => {
   const { t: tr } = useTranslation();
+  const { user } = useAuth();
   const dateLocale = useDateLocale();
   const swipeRef = React.useRef<{ x: number; y: number; scroller: Element | null; scrollLeft: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
@@ -64,7 +67,8 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   const [day, setDay] = useState<string>(() => (dates.includes(todayStr) ? todayStr : dates[0]));
   useEffect(() => { if (!dates.includes(day)) setDay(dates.includes(todayStr) ? todayStr : dates[0]); }, [dates, day, todayStr]);
 
-  const sorted = useMemo(() => [...employees].sort((a, b) => a.name.localeCompare(b.name, 'da')), [employees]);
+  // Egen kalender først, derefter de andres alfabetisk
+  const sorted = useMemo(() => sortEmployeesOwnFirst(employees, user?.id), [employees, user?.id]);
   const [selected, setSelected] = useState<Set<string>>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('plannerCalendarEmployees') || '[]');
