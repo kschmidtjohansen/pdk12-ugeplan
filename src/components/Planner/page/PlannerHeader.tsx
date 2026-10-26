@@ -60,16 +60,16 @@ const PlannerHeader: React.FC<Props> = ({
                 onValueChange={(v) => v && setViewMode(v as PlannerViewMode)}
                 className="bg-muted/50 border border-border rounded-lg p-0.5"
               >
-                <ToggleGroupItem value="standard" size="sm" aria-label={t('planner.viewModeStandard')} title={t('planner.viewModeStandard')} className="h-11 w-11 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                <ToggleGroupItem value="standard" size="sm" aria-label={t('planner.viewModeStandard')} title={t('planner.viewModeStandard')} className="h-8 w-8 min-h-0 min-w-0 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
                   <List className="h-3.5 w-3.5" />
                 </ToggleGroupItem>
-                <ToggleGroupItem value="grid" size="sm" aria-label={currentLanguage === 'da' ? 'Gitter' : 'Grid'} title={currentLanguage === 'da' ? 'Gitter' : 'Grid'} className="h-11 w-11 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                <ToggleGroupItem value="grid" size="sm" aria-label={currentLanguage === 'da' ? 'Gitter' : 'Grid'} title={currentLanguage === 'da' ? 'Gitter' : 'Grid'} className="h-8 w-8 min-h-0 min-w-0 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
                   <LayoutGrid className="h-3.5 w-3.5" />
                 </ToggleGroupItem>
-                <ToggleGroupItem value="compact" size="sm" aria-label={t('planner.viewModeCompact')} title={t('planner.viewModeCompact')} className="h-11 w-11 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                <ToggleGroupItem value="compact" size="sm" aria-label={t('planner.viewModeCompact')} title={t('planner.viewModeCompact')} className="h-8 w-8 min-h-0 min-w-0 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
                   <LayoutList className="h-3.5 w-3.5" />
                 </ToggleGroupItem>
-                <ToggleGroupItem value="calendar" size="sm" aria-label={currentLanguage === 'da' ? 'Kalender' : 'Calendar'} title={currentLanguage === 'da' ? 'Kalender (Outlook)' : 'Calendar'} className="h-11 w-11 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
+                <ToggleGroupItem value="calendar" size="sm" aria-label={currentLanguage === 'da' ? 'Kalender' : 'Calendar'} title={currentLanguage === 'da' ? 'Kalender (Outlook)' : 'Calendar'} className="h-8 w-8 min-h-0 min-w-0 p-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:shadow-sm">
                   <CalendarDays className="h-3.5 w-3.5" />
                 </ToggleGroupItem>
               </ToggleGroup>
