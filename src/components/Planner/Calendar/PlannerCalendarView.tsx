@@ -67,7 +67,8 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   const [day, setDay] = useState<string>(() => (dates.includes(todayStr) ? todayStr : dates[0]));
   useEffect(() => { if (!dates.includes(day)) setDay(dates.includes(todayStr) ? todayStr : dates[0]); }, [dates, day, todayStr]);
 
-  const sorted = useMemo(() => [...employees].sort((a, b) => a.name.localeCompare(b.name, 'da')), [employees]);
+  // Egen kalender først, derefter de andres alfabetisk
+  const sorted = useMemo(() => sortEmployeesOwnFirst(employees, user?.id), [employees, user?.id]);
   const [selected, setSelected] = useState<Set<string>>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('plannerCalendarEmployees') || '[]');
