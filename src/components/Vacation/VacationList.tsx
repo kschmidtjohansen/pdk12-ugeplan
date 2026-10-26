@@ -22,7 +22,7 @@ const VacationList: React.FC<VacationListProps> = ({
   onDelete,
   isLoading = false 
 }) => {
-  const { isEffectiveAdmin } = useAuth();
+  const { isEffectiveAdmin, canManageVacations } = useAuth();
   const { t } = useTranslation();
   
   return (
@@ -30,7 +30,7 @@ const VacationList: React.FC<VacationListProps> = ({
       vacations={vacations}
       onApprove={onApprove}
       onReject={onReject}
-      onEdit={isEffectiveAdmin ? onEdit : undefined}
+      onEdit={isEffectiveAdmin || canManageVacations ? onEdit : undefined}
       isLoading={isLoading}
     />
   );

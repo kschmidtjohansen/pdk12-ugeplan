@@ -34,11 +34,11 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   onDelete,
   isLoading = false
 }) => {
-  const { user, isEffectiveAdmin, isEffectiveServicemedarbejder } = useAuth();
+  const { user, isEffectiveAdmin, isEffectiveServicemedarbejder, canViewAllVacations } = useAuth();
   
   const { currentLanguage } = useTranslation();
   const da = currentLanguage === 'da';
-  const visible = React.useMemo(() => visibleVacations(vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder), [vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder]);
+  const visible = React.useMemo(() => visibleVacations(vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder, canViewAllVacations), [vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder, canViewAllVacations]);
   const filteredVacations = React.useMemo(() => filterVacations(visible, tabValue, search, user?.id), [visible, tabValue, search, user?.id]);
 
   if (tabValue === 'calendar') {

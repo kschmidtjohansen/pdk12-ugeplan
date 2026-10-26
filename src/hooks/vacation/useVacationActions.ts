@@ -14,7 +14,7 @@ import { useVacationSecurity } from './useVacationSecurity';
 import { useQueryClient } from '@tanstack/react-query';
 
 export const useVacationActions = (refreshVacations: () => Promise<void>) => {
-  const { user, isAdmin, isSkadeleder, isDemoMode } = useAuth();
+  const { user, isAdmin, isSkadeleder, isDemoMode, canManageVacations } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { addNotification } = useNotifications();
@@ -43,7 +43,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
       setIsSubmitting(true);
 
       // Security check for admin requests
-      if (isAdminRequest && !isAdmin && !isSkadeleder) {
+      if (isAdminRequest && !isAdmin && !isSkadeleder && !canManageVacations) {
         await logSecurityEvent(
           'vacation_unauthorized_admin_request',
           'User attempted to create vacation request as admin without proper role',
@@ -342,7 +342,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
   // Approve vacation with security checks
   const approveVacation = async (vacation: Vacation, notes?: string) => {
     notifyOwnAction();
-    if (!isAdmin && !isSkadeleder) {
+    if (!isAdmin && !isSkadeleder && !canManageVacations) {
       await logSecurityEvent(
         'vacation_unauthorized_approval',
         'User attempted to approve vacation without proper role',
@@ -470,7 +470,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
   // Reject vacation with security checks
   const rejectVacation = async (vacation: Vacation, reason?: string) => {
     notifyOwnAction();
-    if (!isAdmin && !isSkadeleder) {
+    if (!isAdmin && !isSkadeleder && !canManageVacations) {
       await logSecurityEvent(
         'vacation_unauthorized_rejection',
         'User attempted to reject vacation without proper role',

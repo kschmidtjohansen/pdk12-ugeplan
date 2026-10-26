@@ -17,8 +17,7 @@ interface VacationPageContainerProps {
 }
 
 const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
-  const { user, isEffectiveAdmin, isEffectiveServicemedarbejder, effectiveRole } = useAuth();
-  const { canViewAllVacations: canManageVacations } = useAuth();
+  const { user, isEffectiveAdmin, isEffectiveServicemedarbejder, effectiveRole, canViewAllVacations, canManageVacations } = useAuth();
   const viewAsServicemedarbejder = isEffectiveServicemedarbejder || effectiveRole === 'fugttekniker';
   const queryClient = useQueryClient();
   const { selectedDepartment } = useDepartment();
@@ -67,7 +66,7 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
     handleDeleteCurrentVacation
   } = useVacations();
   
-  const visible = React.useMemo(() => visibleVacations(vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder), [vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder]);
+  const visible = React.useMemo(() => visibleVacations(vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder, canViewAllVacations), [vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder, canViewAllVacations]);
   const counts = React.useMemo(() => ({ all: visible.length, pending: visible.filter(v => v.status === 'pending').length, approved: visible.filter(v => v.status === 'approved').length, rejected: visible.filter(v => v.status === 'rejected').length }), [visible]);
   const resetFilters = () => { setActiveTab('all'); setSearch(''); };
   // State for approval/rejection dialog
