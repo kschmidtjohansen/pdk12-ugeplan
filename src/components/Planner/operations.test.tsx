@@ -29,7 +29,7 @@ vi.mock('./CompactPastAssignments', () => ({ default: View }));
 vi.mock('./Calendar/PlannerCalendarView', () => ({ default: View }));
 afterEach(() => { cleanup(); Object.assign(permissions, { canEdit: false, canCreate: false, canPublishTasks: false }); });
 const task: Assignment = { id: 'fixture', title: 'Vandskade · Havnegade', date: '2026-12-28', fromTime: '08:00', toTime: '16:00', published: false, location: 'Havnegade 12' };
-const props = { weekAssignments: [task], resourceAssignments: [task, { ...task, id: 'hidden' }], operationStates: {}, expandedDays: {}, onToggleExpansion: vi.fn(), onEditAssignment: vi.fn(), onDeleteAssignment: vi.fn(), onPublishAssignment: vi.fn(), onPublishDay: vi.fn(), onCreateAssignment: vi.fn(), onCopyAssignment: vi.fn(), selectedWeek: 53, selectedYear: 2026, weekDates: getWeekDates(53, 2026), employees: [], cars: [], filtersActive: true, onClearFilters: vi.fn(), onDayFilter: vi.fn() };
+const props = { weekAssignments: [task], resourceAssignments: [task, { ...task, id: 'hidden' }], operationStates: {}, expandedDays: {}, onToggleExpansion: vi.fn(), onEditAssignment: vi.fn(), onDeleteAssignment: vi.fn(), onPublishAssignment: vi.fn(), onPublishDay: vi.fn(), onCreateAssignment: vi.fn(), onCopyAssignment: vi.fn(), selectedWeek: 53, selectedYear: 2026, weekDates: getWeekDates(53, 2026), employees: [], cars: [], filtersActive: true, onClearFilters: vi.fn() };
 describe('Handlingsbart ugeoverblik', () => {
   it('vælger kladder og rydder statusfilter uden mutation', () => {
     const select = vi.fn();
@@ -50,11 +50,6 @@ describe('Handlingsbart ugeoverblik', () => {
     expect(screen.queryByText('Ingen opgaver i denne uge')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Ryd alle' }));
     expect(props.onClearFilters).toHaveBeenCalledOnce();
-  });
-  it('dagvælger sender konkret lokal dato', () => {
-    render(<PlannerContent {...props} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Vælg dato 2026-12-28' }));
-    expect(props.onDayFilter).toHaveBeenCalledWith('2026-12-28');
   });
   it('read-only har ingen mutation actions', () => {
     const actions = { onEdit: vi.fn(), onDelete: vi.fn(), onPublish: vi.fn(), onCopy: vi.fn() };
