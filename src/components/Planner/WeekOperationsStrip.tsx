@@ -12,10 +12,11 @@ interface Props {
   error?: boolean;
   attention?: boolean;
   week: number;
+  navigation?: React.ReactNode;
 }
 
 /** Read-only indicators: selecting one navigates/filters; it never mutates data. */
-export default function WeekOperationsStrip({ summary, active = 'all', onSelect, loading, error, attention, week }: Props) {
+export default function WeekOperationsStrip({ summary, active = 'all', onSelect, loading, error, attention, week, navigation }: Props) {
   const { t } = useTranslation();
   const indicators = [
     { key: 'all' as const, icon: ClipboardList, count: summary.total },
@@ -23,11 +24,15 @@ export default function WeekOperationsStrip({ summary, active = 'all', onSelect,
     { key: 'unassigned' as const, icon: Users, count: summary.unassigned },
     { key: 'conflicts' as const, icon: TriangleAlert, count: summary.conflicts },
   ];
+  const status = <p role="status" className="text-xs text-muted-foreground">{t(error ? 'planner.operationsOverview.error' : loading ? 'common.loading' : summary.total === 0 ? 'planner.noAssignmentsWeek' : 'planner.operationsOverview.information')}</p>;
   return (
     <section aria-label={t(attention ? 'planner.operationsOverview.attention' : 'planner.operationsOverview.title')} className="border-y border-border py-3 space-y-3">
-      <header className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold">{t(attention ? 'planner.operationsOverview.attention' : 'planner.operationsOverview.title')} <span className="text-muted-foreground font-normal">· {t('planner.week')} {week}</span></h2>
-        <p role="status" className="text-xs text-muted-foreground">{t(error ? 'planner.operationsOverview.error' : loading ? 'common.loading' : summary.total === 0 ? 'planner.noAssignmentsWeek' : 'planner.operationsOverview.information')}</p>
+      <header className={`flex flex-wrap justify-between gap-2 ${navigation ? 'items-center' : 'items-baseline'}`}>
+        <div className="min-w-0 space-y-0.5">
+          <h2 className="text-sm font-semibold">{t(attention ? 'planner.operationsOverview.attention' : 'planner.operationsOverview.title')} <span className="text-muted-foreground font-normal">· {t('planner.week')} {week}</span></h2>
+          {navigation && status}
+        </div>
+        {navigation ?? status}
       </header>
       <div className={`grid grid-cols-2 gap-2 ${attention ? 'sm:grid-cols-3' : 'sm:grid-cols-4'}`}>
         {indicators.filter(item => !attention || item.key !== 'all').map(({ key, icon: Icon, count }) => (

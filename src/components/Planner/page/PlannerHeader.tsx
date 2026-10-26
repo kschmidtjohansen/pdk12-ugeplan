@@ -75,28 +75,43 @@ const PlannerHeader: React.FC<Props> = ({
               </ToggleGroup>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 py-1">
-                <Button aria-label={t('planner.previousWeek')} variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-11 w-11 p-0">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="font-medium min-w-[80px] text-center text-sm text-foreground">
-                  {t('planner.week')} {selectedWeek}
-                </span>
-                <Button aria-label={t('planner.nextWeek')} variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-11 w-11 p-0">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-              <Button variant="outline" className="min-h-11" onClick={onCurrentWeek}>{t('planner.operationsOverview.currentWeek')}</Button>
-
-              {canPublishTasks && (
-                <Button onClick={handleShowOnScreen} variant="outline" size="sm" aria-label={t('planner.showOnScreen')} title={t('planner.showOnScreen')} className="h-11 w-11 p-0">
-                  <Monitor className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+            {canPublishTasks && (
+              <Button onClick={handleShowOnScreen} variant="outline" size="sm" aria-label={t('planner.showOnScreen')} title={t('planner.showOnScreen')} className="h-11 w-11 p-0">
+                <Monitor className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </header>
+  );
+};
+
+interface NavProps {
+  selectedWeek: number;
+  handlePreviousWeek: () => void;
+  handleNextWeek: () => void;
+  handlePrefetchAssignments: () => void;
+  handleCancelPrefetch: () => void;
+  onCurrentWeek: () => void;
+}
+
+/** Week stepper + "this week" shortcut, rendered inside the "Ugens plan" strip. */
+export const PlannerWeekNav: React.FC<NavProps> = ({ selectedWeek, handlePreviousWeek, handleNextWeek, handlePrefetchAssignments, handleCancelPrefetch, onCurrentWeek }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 py-1">
+        <Button aria-label={t('planner.previousWeek')} variant="ghost" size="sm" onClick={handlePreviousWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-11 w-11 p-0">
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="font-medium min-w-[80px] text-center text-sm text-foreground">
+          {t('planner.week')} {selectedWeek}
+        </span>
+        <Button aria-label={t('planner.nextWeek')} variant="ghost" size="sm" onClick={handleNextWeek} onMouseEnter={handlePrefetchAssignments} onMouseLeave={handleCancelPrefetch} className="h-11 w-11 p-0">
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      <Button variant="outline" className="min-h-11" onClick={onCurrentWeek}>{t('planner.operationsOverview.currentWeek')}</Button>
+    </div>
   );
 };
 
