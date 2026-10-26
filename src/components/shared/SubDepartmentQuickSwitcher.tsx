@@ -8,7 +8,8 @@ import { Building2, Layers } from 'lucide-react';
  * Compact pill bar shown on the dashboard so users can quickly switch
  * between sub-departments without opening the user menu.
  * - Only renders when the user has more than one accessible sub-department.
- * - "Alle" pill is available whenever there is more than one sub-department.
+ * - "Alle" pill is available whenever there is at least one sub-department,
+ *   so a single sub-department (e.g. Fugt) can also be toggled off.
  */
 const SubDepartmentQuickSwitcher: React.FC<{ showDepartments?: boolean }> = ({ showDepartments = false }) => {
   const { t } = useTranslation();
