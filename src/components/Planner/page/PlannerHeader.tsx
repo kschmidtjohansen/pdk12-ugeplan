@@ -74,12 +74,6 @@ const PlannerHeader: React.FC<Props> = ({
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
-
-            {canPublishTasks && (
-              <Button onClick={handleShowOnScreen} variant="outline" size="sm" aria-label={t('planner.showOnScreen')} title={t('planner.showOnScreen')} className="h-11 w-11 p-0">
-                <Monitor className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         </header>
   );
@@ -92,11 +86,13 @@ interface NavProps {
   handlePrefetchAssignments: () => void;
   handleCancelPrefetch: () => void;
   onCurrentWeek: () => void;
+  onShowOnScreen?: () => void;
 }
 
 /** Week stepper + "this week" shortcut, rendered inside the "Ugens plan" strip. */
-export const PlannerWeekNav: React.FC<NavProps> = ({ selectedWeek, handlePreviousWeek, handleNextWeek, handlePrefetchAssignments, handleCancelPrefetch, onCurrentWeek }) => {
+export const PlannerWeekNav: React.FC<NavProps> = ({ selectedWeek, handlePreviousWeek, handleNextWeek, handlePrefetchAssignments, handleCancelPrefetch, onCurrentWeek, onShowOnScreen }) => {
   const { t } = useTranslation();
+  const { canPublishTasks } = usePermissions();
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div className="flex items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 py-1">
@@ -111,6 +107,11 @@ export const PlannerWeekNav: React.FC<NavProps> = ({ selectedWeek, handlePreviou
         </Button>
       </div>
       <Button variant="outline" className="min-h-11" onClick={onCurrentWeek}>{t('planner.operationsOverview.currentWeek')}</Button>
+      {canPublishTasks && onShowOnScreen && (
+        <Button onClick={onShowOnScreen} variant="outline" size="sm" aria-label={t('planner.showOnScreen')} title={t('planner.showOnScreen')} className="h-11 w-11 p-0">
+          <Monitor className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 };

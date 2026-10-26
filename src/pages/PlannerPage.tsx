@@ -572,7 +572,7 @@ const PlannerPage: React.FC = () => {
         <SubDepartmentQuickSwitcher />
 
         <WeekOperationsStrip summary={weekSummary} week={selectedWeek} active={issueFilter} onSelect={selectIssue} loading={loading} error={!!error}
-          navigation={<PlannerWeekNav selectedWeek={selectedWeek} handlePreviousWeek={handlePreviousWeek} handleNextWeek={handleNextWeek} handlePrefetchAssignments={handlePrefetchAssignments} handleCancelPrefetch={handleCancelPrefetch} onCurrentWeek={() => navigateWeek(new Date())} />} />
+          navigation={<PlannerWeekNav selectedWeek={selectedWeek} handlePreviousWeek={handlePreviousWeek} handleNextWeek={handleNextWeek} handlePrefetchAssignments={handlePrefetchAssignments} handleCancelPrefetch={handleCancelPrefetch} onCurrentWeek={() => navigateWeek(new Date())} onShowOnScreen={handleShowOnScreen} />} />
 
         {/* Filters: quick search + employee multi-select + postcode proximity lookup */}
         <PlannerFilterBar
