@@ -35,23 +35,20 @@ const PlannerHeader: React.FC<Props> = ({
   const { canCreate, canPublishTasks } = usePermissions();
   return (
         <header className="space-y-3 border-b border-border pb-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="min-w-0">
-              <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
-                {t("navigation.planner")}
-              </h1>
-              <p className="text-sm text-muted-foreground truncate">
-                {t('planner.weekView', {
-                  week: selectedWeek,
-                  year: selectedYear,
-                  start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
-                  end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
+          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">
+              {t("navigation.planner")}
+            </h1>
+            <p className="text-sm text-muted-foreground truncate">
+              {t('planner.weekView', {
+                week: selectedWeek,
+                year: selectedYear,
+                start: weekDates?.start ? weekDates.start.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : '',
+                end: weekDates?.end ? weekDates.end.toLocaleDateString(currentLanguage === 'da' ? 'da-DK' : 'en-GB') : ''
                 })}
               </p>
             </div>
-          </div>
-          {canCreate && <Button className="min-h-11" onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())}><Plus className="h-4 w-4" />{t('planner.newAssignment')}</Button>}
           </div>
           <div className="flex flex-wrap items-start gap-3">
             <div className="flex items-center justify-center sm:justify-start pt-1.5">
