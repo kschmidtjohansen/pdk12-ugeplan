@@ -51,3 +51,20 @@ describe('role grants from IT-Support', () => {
     expect(p.canCreate).toBe(false);
   });
 });
+
+describe('personal permission overrides', () => {
+  it('turns planning ON for a servicemedarbejder', () => {
+    const p = derivePermissions('servicemedarbejder', 'servicemedarbejder', false, new Set(), new Map([['plan_assignments', true]]));
+    expect(p.canEdit).toBe(true);
+    expect(p.canCreate).toBe(true);
+  });
+  it('turns publishing OFF for a skadeleder', () => {
+    const p = derivePermissions('skadeleder', 'skadeleder', false, new Set(), new Map([['publish_assignments', false]]));
+    expect(p.canPublishTasks).toBe(false);
+    expect(p.canEdit).toBe(true);
+  });
+  it('ignores overrides in demo mode', () => {
+    const p = derivePermissions('servicemedarbejder', 'servicemedarbejder', true, new Set(), new Map([['plan_assignments', true]]));
+    expect(p.canEdit).toBe(false);
+  });
+});
