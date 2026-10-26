@@ -266,3 +266,49 @@ export const getEmployeeAvailabilityStatus = (
     availableAt: latestEndTime
   };
 };
+
+export interface DaySchedule {
+  /** Merged booked intervals, HH:MM–HH:MM */
+  booked: Array<{ from: string; to: string }>;
+  /** Free windows between/around bookings; from=null means "before", to=null means "after" */
+  free: Array<{ from: string | null; to: string | null }>;
+}
+
+const hhmmToMin = (t?: string | null): number | null => {
+  if (!t) return null;
+  const [h, m] = t.split(':').map(Number);
+  return Number.isFinite(h) ? h * 60 + (Number.isFinite(m) ? m : 0) : null;
+};
+const minToHhmm = (n: number) => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`;
+
+/** Booked and free time windows for one employee on one date (local yyyy-MM-dd). */
+export const getEmployeeDaySchedule = (
+  employee: Pick<Employee, 'id' | 'name'>,
+  dateStr: string,
+  assignments: Assignment[],
+): DaySchedule => {
+  const ranges: Array<[number, number]> = [];
+  for (const a of assignments) {
+    const d = a.date?.includes('T') ? a.date.split('T')[0] : a.date;
+    if (d !== dateStr) continue;
+    const emps = normalizeEmployees(a.employees) || [];
+    if (!emps.includes(employee.id) && !emps.includes(employee.name)) continue;
+    const s = hhmmToMin(a.fromTime); const e = hhmmToMin(a.toTime);
+    if (s === null || e === null || e <= s) continue;
+    ranges.push([s, e]);
+  }
+  ranges.sort((x, y) => x[0] - y[0]);
+  const merged: Array<[number, number]> = [];
+  for (const r of ranges) {
+    const last = merged[merged.length - 1];
+    if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]); else merged.push([...r]);
+  }
+  const booked = merged.map(([s, e]) => ({ from: minToHhmm(s), to: minToHhmm(e) }));
+  const free: DaySchedule['free'] = [];
+  if (merged.length) {
+    if (merged[0][0] > 0) free.push({ from: null, to: minToHhmm(merged[0][0]) });
+    for (let i = 1; i < merged.length; i++) free.push({ from: minToHhmm(merged[i - 1][1]), to: minToHhmm(merged[i][0]) });
+    if (merged[merged.length - 1][1] < 24 * 60) free.push({ from: minToHhmm(merged[merged.length - 1][1]), to: null });
+  }
+  return { booked, free };
+};
