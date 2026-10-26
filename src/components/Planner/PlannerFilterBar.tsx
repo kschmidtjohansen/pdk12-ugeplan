@@ -147,7 +147,7 @@ const PlannerFilterBar: React.FC<PlannerFilterBarProps> = ({
         <Button
           variant="outline"
           size="sm"
-          className="min-h-11"
+          className="h-8 px-2.5 text-xs"
           aria-expanded={isOpen}
           aria-controls="planner-resource-filters"
           onClick={() => setExpanded((v) => !v)}
