@@ -73,6 +73,11 @@ const PlannerHeader: React.FC<Props> = ({
               </ToggleGroup>
             </div>
             {filters && <div className="min-w-0 flex-1">{filters}</div>}
+            {canCreate && (
+              <Button className="min-h-11 shrink-0 self-end" onClick={() => handleOpenCreateDialog(todayLocalYYYYMMDD())}>
+                <Plus className="h-4 w-4" />{t('planner.newAssignment')}
+              </Button>
+            )}
           </div>
         </header>
   );
