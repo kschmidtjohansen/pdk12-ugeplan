@@ -211,6 +211,9 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             onCreateAssignment={onCreateAssignment}
             canEdit={canEdit}
             onEditAssignment={onEditAssignment}
+            onPublishAssignment={canPublishTasks ? onPublishAssignment : undefined}
+            onDeleteAssignment={canEdit ? onDeleteAssignment : undefined}
+            operationStates={operationStates}
             onPreviousWeek={onPreviousWeek}
             onNextWeek={onNextWeek}
           />
