@@ -36,8 +36,7 @@ interface NavItem {
 const AppSidebar: React.FC = () => {
   const { t } = useTranslation();
   const { isEffectiveAdmin } = useAuth();
-  const { isDutyEnabled, isWarehouseEnabled, userDepartments, selectedDepartmentId } = useDepartment();
-  const department = userDepartments.find(d => d.id === selectedDepartmentId);
+  const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
   const { totalUnread } = useUnreadMessagesContext();
   const { state, isMobile, setOpenMobile } = useSidebar();
