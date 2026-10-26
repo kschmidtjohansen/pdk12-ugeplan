@@ -563,16 +563,7 @@ const PlannerPage: React.FC = () => {
           handleCancelPrefetch={handleCancelPrefetch}
           handleShowOnScreen={handleShowOnScreen}
           handleOpenCreateDialog={handleOpenCreateDialog}
-        />
-
-        {/* Quick sub-department switch, so users don't have to go via the dashboard */}
-        <SubDepartmentQuickSwitcher showDepartments />
-
-        <WeekOperationsStrip summary={weekSummary} week={selectedWeek} active={issueFilter} onSelect={selectIssue} loading={loading} error={!!error}
-          navigation={<PlannerWeekNav selectedWeek={selectedWeek} handlePreviousWeek={handlePreviousWeek} handleNextWeek={handleNextWeek} handlePrefetchAssignments={handlePrefetchAssignments} handleCancelPrefetch={handleCancelPrefetch} onCurrentWeek={() => navigateWeek(new Date())} onShowOnScreen={handleShowOnScreen} />} />
-
-        {/* Filters: quick search + employee multi-select + postcode proximity lookup */}
-        <PlannerFilterBar
+          filters={<PlannerFilterBar
           employees={employees}
           selectedEmployeeIds={selectedEmployeeIds}
           onSelectedEmployeeIdsChange={setSelectedEmployeeIds}
@@ -587,7 +578,15 @@ const PlannerPage: React.FC = () => {
           additionalFiltersActive={issueFilter !== 'all'}
           resultCount={sortedWeekAssignments.length}
           totalCount={weekAssignments.length}
+        />}
         />
+
+        {/* Quick sub-department switch, so users don't have to go via the dashboard */}
+        <SubDepartmentQuickSwitcher showDepartments />
+
+        <WeekOperationsStrip summary={weekSummary} week={selectedWeek} active={issueFilter} onSelect={selectIssue} loading={loading} error={!!error}
+          navigation={<PlannerWeekNav selectedWeek={selectedWeek} handlePreviousWeek={handlePreviousWeek} handleNextWeek={handleNextWeek} handlePrefetchAssignments={handlePrefetchAssignments} handleCancelPrefetch={handleCancelPrefetch} onCurrentWeek={() => navigateWeek(new Date())} onShowOnScreen={handleShowOnScreen} />} />
+
 
         {/* Main Content — skeleton reserves the same vertical space as the week list */}
 
