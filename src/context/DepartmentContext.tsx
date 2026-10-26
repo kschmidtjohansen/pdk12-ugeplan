@@ -264,7 +264,7 @@ export const DepartmentProvider: React.FC<{ children: ReactNode }> = ({ children
             return;
           }
           // Non-admins: explicit "Alle" choice is remembered; else stored or first sub-department.
-          if (storedSubId === ALL_SUB_DEPARTMENTS && subs.length > 1) {
+          if (storedSubId === ALL_SUB_DEPARTMENTS && subs.length >= 1) {
             setSelectedSubDepartmentIdState(null);
             return;
           }

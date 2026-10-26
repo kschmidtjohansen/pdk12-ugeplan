@@ -65,7 +65,7 @@ const SubDepartmentQuickSwitcher: React.FC<{ showDepartments?: boolean }> = ({ s
             <Layers className="h-3.5 w-3.5" />
             <span>{t('common.subDepartment') || 'Underafdeling'}</span>
           </div>
-          {userSubDepartments.length > 1 && renderPill(null, t('common.all') || 'Alle')}
+          {userSubDepartments.length > 0 && renderPill(null, t('common.all') || 'Alle')}
           {userSubDepartments.map((sub) => renderPill(sub.id, sub.name))}
         </div>
       )}
