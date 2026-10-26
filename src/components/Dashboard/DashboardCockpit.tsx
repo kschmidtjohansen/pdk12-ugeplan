@@ -28,7 +28,6 @@ interface DashboardCockpitProps {
 const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
   showMetrics,
   showMyTasks,
-  userRole,
   selectedWeek,
   selectedYear,
   onPreviousWeek,
