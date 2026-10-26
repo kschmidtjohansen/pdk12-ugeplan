@@ -47,3 +47,33 @@ export const hourLabel = (h: number): string => `${String(h).padStart(2, '0')}:0
 
 /** True when a time-of-day in minutes falls inside the visible day. */
 export const isWithinDay = (min: number): boolean => min >= DAY_START_MIN && min <= DAY_END_MIN;
+
+export interface OverlapSlot { column: number; columns: number }
+
+/**
+ * Side-by-side layout for overlapping events (Outlook style).
+ * Events in the same overlap cluster share the width; each gets its own column.
+ */
+export function layoutOverlaps<T>(items: T[], getRange: (item: T) => [number, number]): Map<T, OverlapSlot> {
+  const result = new Map<T, OverlapSlot>();
+  const sorted = items
+    .map(item => ({ item, range: getRange(item) }))
+    .sort((a, b) => a.range[0] - b.range[0] || b.range[1] - a.range[1]);
+  let cluster: { item: T; col: number }[] = [];
+  let colEnds: number[] = [];
+  let clusterEnd = -Infinity;
+  const flush = () => {
+    const columns = Math.max(1, colEnds.length);
+    cluster.forEach(c => result.set(c.item, { column: c.col, columns }));
+    cluster = []; colEnds = [];
+  };
+  for (const { item, range: [s, e] } of sorted) {
+    if (s >= clusterEnd) { flush(); clusterEnd = -Infinity; }
+    let col = colEnds.findIndex(end => end <= s);
+    if (col === -1) { col = colEnds.length; colEnds.push(e); } else colEnds[col] = e;
+    cluster.push({ item, col });
+    clusterEnd = Math.max(clusterEnd, e);
+  }
+  flush();
+  return result;
+}
