@@ -7,6 +7,10 @@ export interface CrossBusyRange {
   from_time: string | null;
   to_time: string | null;
   sub_department_id: string | null;
+  title?: string | null;
+  location?: string | null;
+  case_number?: string | null;
+  department_name?: string | null;
 }
 
 export interface CrossBusyForDate {
@@ -71,6 +75,10 @@ export function useCrossSubDeptBusy({ weekDates }: UseCrossSubDeptBusyArgs) {
           from_time: row.from_time ?? null,
           to_time: row.to_time ?? null,
           sub_department_id: row.sub_department_id ?? null,
+          title: row.title ?? null,
+          location: row.location ?? null,
+          case_number: row.case_number ?? null,
+          department_name: row.department_name ?? null,
         };
         for (const eid of (row.employee_ids || []) as string[]) {
           if (!eid) continue;
