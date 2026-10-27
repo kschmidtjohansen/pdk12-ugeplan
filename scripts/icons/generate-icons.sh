@@ -20,11 +20,11 @@ r public/favicon.svg 192 public/favicon.png
 r public/favicon.svg 192 public/icon-192.png
 r public/favicon.svg 512 public/icon-512.png
 r $T/apple.svg 180 public/apple-touch-icon.png
-magick public/apple-touch-icon.png -alpha off public/apple-touch-icon.png
+magick public/apple-touch-icon.png -alpha off PNG24:public/apple-touch-icon.png
 r $T/mask.svg 192 public/icon-maskable-192.png
 r $T/mask.svg 512 public/icon-maskable-512.png
-magick public/icon-maskable-192.png -alpha off public/icon-maskable-192.png
-magick public/icon-maskable-512.png -alpha off public/icon-maskable-512.png
+magick public/icon-maskable-192.png -alpha off PNG24:public/icon-maskable-192.png
+magick public/icon-maskable-512.png -alpha off PNG24:public/icon-maskable-512.png
 magick public/favicon-16x16.png public/favicon-32x32.png public/favicon-48x48.png public/favicon.ico
 rm -rf $T
 echo done
