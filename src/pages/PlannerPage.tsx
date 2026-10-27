@@ -440,9 +440,9 @@ const PlannerPage: React.FC = () => {
     const proposal = calendarPayload(original, change);
     const sourceDepartmentId = original.departmentId ?? selectedDepartmentId;
     // Check destination employee eligibility in the original department, not the viewing department.
-    const eligibility = await supabase.rpc('get_department_absences', { p_department_id: sourceDepartmentId, p_date: original.date });
+    const eligibility = await supabase.rpc('list_department_absent_user_ids', { _department_id: sourceDepartmentId, _date: original.date });
     if (eligibility.error || !sameScope()) { sonnerToast.error(t('planner.calendarDrag.availabilityFailed')); return; }
-    if (eligibility.data?.some(e => e.id === employee.id)) { sonnerToast.warning(t('planner.conflicts.absenceBlockDescription')); return; }
+    if (eligibility.data?.some(e => e.user_id === employee.id)) { sonnerToast.warning(t('planner.conflicts.absenceBlockDescription')); return; }
     const membership = await supabase.from('user_access').select('user_id').eq('department_id', sourceDepartmentId).eq('user_id', employee.id);
     if (membership.error || !sameScope()) { sonnerToast.error(t('planner.calendarDrag.availabilityFailed')); return; }
     if (change.employeeId !== calendarEmployeeIds(original)[0] && !membership.data?.length) {

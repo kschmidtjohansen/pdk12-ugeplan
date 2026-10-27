@@ -265,8 +265,12 @@ export const useOptimizedAssignments = (filter: FilterType = 'all', calendarDepa
     if (!selectedDepartmentId || user?.email === 'test@polygongroup.com') return local;
     const external = await Promise.all(sourceDepartmentsKey.split(',').filter(id => id && id !== selectedDepartmentId).map(async departmentId => {
       // Existing source-department RPC enforces the caller's access; no busy RPC is promoted to editable data.
-      return fetchAssignmentsForQuery({ userId: user?.id, userRole: user?.role, userEmail: user?.email,
-        filter, selectedDepartmentId: departmentId, selectedSubDepartmentId: null, allEmployees });
+      const { data: subDepartments, error } = await supabase.from('sub_departments').select('id').eq('department_id', departmentId);
+      if (error) throw error;
+      const scopes: (string | null)[] = [null, ...(subDepartments ?? []).map(sd => sd.id)];
+      const tasks = await Promise.all(scopes.map(subDepartmentId => fetchAssignmentsForQuery({ userId: user?.id, userRole: user?.role, userEmail: user?.email,
+        filter, selectedDepartmentId: departmentId, selectedSubDepartmentId: subDepartmentId, allEmployees })));
+      return tasks.flat();
     }));
     return [...new Map([...local, ...external.flat()].map(task => [task.id, task])).values()];
   };

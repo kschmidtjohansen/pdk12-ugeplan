@@ -35,7 +35,7 @@ vi.mock('@/services/plannerChangeLogger', () => ({
 vi.mock('@/lib/realtimeChannels', () => ({ subscribeToTables: () => () => {} }));
 vi.mock('@/lib/realtimeUtils', () => ({ notifyOwnAction: vi.fn() }));
 const rpcMock = vi.hoisted(() => vi.fn());
-vi.mock('@/integrations/supabase/client', () => ({ supabase: { rpc: rpcMock } }));
+vi.mock('@/integrations/supabase/client', () => ({ supabase: { rpc: rpcMock, from: () => ({ select: () => ({ eq: () => Promise.resolve({ data: [{ id: 'fugt' }], error: null }) }) }) } }));
 
 import { useOptimizedAssignments } from './useOptimizedAssignments';
 
@@ -164,7 +164,7 @@ describe('Original tasks from another authorized department', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     svc.deleteAssignment.mockResolvedValue(true);
-    svc.fetchAllAssignments.mockImplementation((_role, _email, departmentId) => Promise.resolve(departmentId === '03' ? [row('external')] : [row('local')]));
+    svc.fetchAllAssignments.mockImplementation((_role, _email, departmentId, subDepartmentId) => Promise.resolve(departmentId === '03' ? (subDepartmentId === 'fugt' ? [row('external', { sub_department_id: 'fugt' })] : []) : [row('local')]));
   });
   afterEach(() => vi.useRealTimers());
   const setupShared = async () => {
@@ -178,6 +178,7 @@ describe('Original tasks from another authorized department', () => {
     const hook = await setupShared();
     const external = hook.result.current.assignments.find(a => a.id === 'external');
     expect(external?.departmentId).toBe('03');
+    expect(external?.subDepartmentId).toBe('fugt');
     await act(async () => { if (external) await hook.result.current.updateAssignment(external.id, { ...external, fromTime: '10:00', toTime: '12:00' }); });
     expect(svc.updateAssignment).toHaveBeenCalledWith('external', expect.objectContaining({ from_time: '10:00', to_time: '12:00' }), 'leder@pdk12.dk');
     expect(svc.updateAssignment.mock.calls[0][1]).not.toHaveProperty('department_id');
