@@ -163,7 +163,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   }, [day, todayStr, nowMin, lanes.length]);
 
   return (
-    <DndContext sensors={sensors} collisionDetection={args => { const hits = pointerWithin(args); return hits.length ? hits : closestCenter(args); }} onDragStart={startDrag} onDragMove={moveDrag} onDragEnd={finishDrag} onDragCancel={() => { dragging.current = false; setDrag(null); setTimeout(() => { suppressClick.current = false; }, 100); }}>
+    <DndContext sensors={sensors} autoScroll={drag?.mode === 'move'} collisionDetection={args => { const hits = pointerWithin(args); return hits.length ? hits : closestCenter(args); }} onDragStart={startDrag} onDragMove={moveDrag} onDragEnd={finishDrag} onDragCancel={() => { dragging.current = false; setDrag(null); setTimeout(() => { suppressClick.current = false; }, 100); }}>
     <TooltipProvider delayDuration={300}>
     <div className="flex flex-col lg:flex-row gap-3 lg:gap-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Filterkolonne — sammenklappelig på mobil */}
