@@ -36,6 +36,24 @@ describe('Calendar gesture integration', () => {
     const save = setup(); start(task, 'end'); await end({ id: 'two' });
     expect(save).toHaveBeenCalledExactlyOnceWith(task, { fromTime: '08:00', toTime: '12:00', employeeId: 'one' });
   });
+  it('keeps an active move through an equivalent employee query refresh', async () => {
+    const save = vi.fn().mockResolvedValue(undefined);
+    const props = { dates: [task.date], assignments: [task], vacations: [], canEdit: true, onViewDetails: vi.fn(), onCalendarChange: save };
+    const view = render(<PlannerCalendarView {...props} employees={employees} />);
+    start();
+    view.rerender(<PlannerCalendarView {...props} employees={employees.map(e => ({ ...e }))} />);
+    await end({ id: 'two' });
+    expect(save).toHaveBeenCalledExactlyOnceWith(task, { fromTime: '10:00', toTime: '12:00', employeeId: 'two' });
+  });
+  it('still cancels an active move when available employees change', async () => {
+    const save = vi.fn().mockResolvedValue(undefined);
+    const props = { dates: [task.date], assignments: [task], vacations: [], canEdit: true, onViewDetails: vi.fn(), onCalendarChange: save };
+    const view = render(<PlannerCalendarView {...props} employees={employees} />);
+    start();
+    view.rerender(<PlannerCalendarView {...props} employees={employees.slice(0, 1)} />);
+    await end({ id: 'one' });
+    expect(save).not.toHaveBeenCalled();
+  });
   it('does not save without edit permission', async () => {
     const save = setup(false); start(); await end({ id: 'two' }); expect(save).not.toHaveBeenCalled();
   });

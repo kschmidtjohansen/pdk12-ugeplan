@@ -111,7 +111,10 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   };
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const [day, setDay] = useState<string>(() => (dates.includes(todayStr) ? todayStr : dates[0]));
-  useEffect(() => { setDrag(null); dragging.current = false; }, [day, canEdit, employees]);
+  // Query refreshes can replace the array without changing the available lanes.
+  // Cancel only when the actual calendar identity/access changes, not its array reference.
+  const employeeIdsKey = JSON.stringify(employees.map(e => e.id).sort());
+  useEffect(() => { setDrag(null); dragging.current = false; }, [day, canEdit, employeeIdsKey, user?.id]);
   useEffect(() => { if (!dates.includes(day)) setDay(dates.includes(todayStr) ? todayStr : dates[0]); }, [dates, day, todayStr]);
 
   // Egen kalender først, derefter de andres alfabetisk
