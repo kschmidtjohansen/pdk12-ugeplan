@@ -13,7 +13,7 @@ import GlobalAssignmentSearch from './NavComponents/GlobalAssignmentSearch';
 import { useToast } from '@/hooks/use-toast';
 import { usePlannerWeek } from '@/stores/plannerWeekStore';
 import { PRODUCT_NAME } from '@/config/product';
-import polygonMark from '@/assets/polygon-mark.png';
+import PolyPlanMark from '@/components/branding/PolyPlanMark';
 
 const ROUTE_TITLES: Record<string, string> = {
   '/dashboard': 'navigation.dashboard',
@@ -66,7 +66,7 @@ const AppTopBar: React.FC = () => {
         <div className="order-1 flex min-w-0 items-center gap-3">
           <SidebarTrigger className="text-muted-foreground hover:text-foreground min-h-9 min-w-9 hidden md:inline-flex" />
           <Link to="/dashboard" className="shrink-0 md:hidden" aria-label={PRODUCT_NAME}>
-            <img src={polygonMark} alt="" aria-hidden className="h-7 w-7 object-contain" draggable={false} />
+            <PolyPlanMark size={28} decorative />
           </Link>
           <div className="min-w-0">
             <h1 className="text-sm font-semibold text-foreground break-words">{title}</h1>

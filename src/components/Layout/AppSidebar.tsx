@@ -13,7 +13,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { LayoutDashboard, Clock, Users, Car, Calendar, Shield, Package, Settings } from 'lucide-react';
-import polygonMark from '@/assets/polygon-mark.png';
+import PolyPlanBrand from '@/components/branding/PolyPlanBrand';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
@@ -127,27 +127,9 @@ const AppSidebar: React.FC = () => {
           aria-label={PRODUCT_NAME}
         >
           {collapsed ? (
-            <img
-              src={polygonMark}
-              alt={PRODUCT_NAME}
-              className="h-8 w-8 select-none object-contain"
-              draggable={false}
-            />
+            <PolyPlanBrand size={32} markOnly />
           ) : (
-            <div className="flex items-center gap-3 mr-auto">
-              <img
-                src={polygonMark}
-                alt=""
-                aria-hidden
-                className="h-7 w-7 select-none object-contain shrink-0"
-                draggable={false}
-              />
-              <span className="flex flex-col items-start leading-none">
-                <span className="text-[15px] font-semibold tracking-normal text-sidebar-foreground">
-                  {PRODUCT_NAME}
-                </span>
-              </span>
-            </div>
+            <PolyPlanBrand size={28} className="mr-auto" wordmarkClassName="text-[15px] text-sidebar-foreground" />
           )}
         </Link>
       </SidebarHeader>

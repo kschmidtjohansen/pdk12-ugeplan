@@ -5,10 +5,9 @@ import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginFo
 import { useTranslation } from '@/context/TranslationContext';
 import { PwaInstallButton } from '@/components/Pwa/PwaInstallButton';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
-import { PRODUCT_NAME, ORG_NAME, PRODUCT_TAGLINE_DA } from '@/config/product';
-import polygonMark from '@/assets/polygon-mark.png';
-
-const POLYGON_LOGO_URL = 'https://www.polygongroup.com/UI/build/svg/polygon-logo.svg';
+import { PRODUCT_NAME, ORG_NAME, PRODUCT_TAGLINE_DA, ORG_LOGO_URL } from '@/config/product';
+import PolyPlanBrand from '@/components/branding/PolyPlanBrand';
+import PolyPlanMark from '@/components/branding/PolyPlanMark';
 
 const LoginPage = () => {
   const { isAuthenticated, authReady, session, userDataLoaded } = useAuth();
@@ -42,7 +41,8 @@ const LoginPage = () => {
       >
         <div className="flex items-center gap-3">
           <img
-            src={POLYGON_LOGO_URL}
+            src={ORG_LOGO_URL}
+            data-brand="polygon-group-logo"
             alt=""
             className="h-5 w-auto brightness-0 invert"
             loading="eager"
@@ -54,9 +54,12 @@ const LoginPage = () => {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-deep-muted">
             {ORG_NAME}
           </p>
-          <h1 className="mt-3 text-4xl xl:text-5xl font-semibold tracking-tight text-brand-deep-foreground">
-            {PRODUCT_NAME}
-          </h1>
+          <div className="mt-3 flex items-center gap-4">
+            <PolyPlanMark size={40} decorative />
+            <h1 className="text-4xl xl:text-5xl font-semibold tracking-tight text-brand-deep-foreground">
+              {PRODUCT_NAME}
+            </h1>
+          </div>
           <p className="mt-4 text-base leading-relaxed text-brand-deep-muted">
             {PRODUCT_TAGLINE_DA} — ugeplan, vagter, ferie, biler og lager samlet i ét roligt arbejdsredskab.
           </p>
@@ -86,18 +89,8 @@ const LoginPage = () => {
         <div className="w-full max-w-[400px]">
           {/* Kompakt brand-lockup (mobil + form-panel) */}
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
-            <div className="flex items-center gap-2.5">
-              <img
-                src={polygonMark}
-                alt="Polygon"
-                className="h-9 w-9 select-none object-contain"
-                loading="eager"
-                draggable={false}
-              />
-              <span className="text-xl font-semibold tracking-tight text-foreground">
-                {PRODUCT_NAME}
-              </span>
-            </div>
+            <PolyPlanBrand size={36} wordmarkClassName="text-xl" />
+            <p className="mt-1.5 text-xs text-muted-foreground">{PRODUCT_NAME} · {ORG_NAME}</p>
           </div>
 
           <div className="rounded-xl border border-border bg-card shadow-xs p-6 sm:p-8">
