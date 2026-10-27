@@ -19,9 +19,9 @@ import ListPageShell from '@/components/shared/ListPageShell';
 import SegmentedFilterBar from '@/components/shared/SegmentedFilterBar';
 
 const WarehousePage = () => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { canManageWarehouse, canViewWarehouse } = usePermissions();
-  const { isWarehouseEnabled, selectedDepartmentId } = useDepartment();
+  const { isWarehouseEnabled, selectedDepartmentId, selectedDepartment } = useDepartment();
   const { locations } = useLocations(selectedDepartmentId);
   const [searchQuery, setSearchQuery] = useState('');
   const [cleanedFilter, setCleanedFilter] = useState<string>('all');
