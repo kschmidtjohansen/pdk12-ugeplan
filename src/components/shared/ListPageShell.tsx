@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 interface ListPageShellProps {
   title: string;
   description?: string;
+  eyebrow?: React.ReactNode;
+  meta?: React.ReactNode;
   actions?: React.ReactNode;
   filterBar?: React.ReactNode;
   children: React.ReactNode;
@@ -19,6 +21,8 @@ interface ListPageShellProps {
 const ListPageShell: React.FC<ListPageShellProps> = ({
   title,
   description,
+  eyebrow,
+  meta,
   actions,
   filterBar,
   children,
@@ -28,7 +32,7 @@ const ListPageShell: React.FC<ListPageShellProps> = ({
   return (
     <div className="min-h-dvh w-full bg-background">
       <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5">
-        <PageHeader title={title} description={description}>
+        <PageHeader title={title} description={description} eyebrow={eyebrow} meta={meta}>
           {actions}
         </PageHeader>
         {filterBar}

@@ -372,3 +372,20 @@ const summary = useMemo(() => summarizeWeek(weekAssignments, employees, cars), [
 
 ### QA-begrænsning
 111 automatiske tests er bestået; responsive header/status/dag-navigation-fixtures kontrolleret ved 360/390/768/1280/1440 i light/dark uden page-overflow. Fokus-ring/reduced-motion kontrolleret. Listeviews i fixtures er mockede; ikke autentificerede skærme og ikke før/efter-screenshots med live data. Ekstern Supabase-session er unmanaged; fuld indlogget planner/dashboard/CRUD/PWA og samlet WCAG 2.2 AA-certificering er ikke verificeret. Ingen deploy udført.
+
+## Design System 2.0 (punkt 4.5)
+
+Gentagelige mønstre — brug disse frem for egen markup:
+
+| Mønster | Komponent | Regel |
+|---|---|---|
+| Sidehoved | `Layout/PageHeader` (`eyebrow`, `meta`, actions som children) | Afdeling som eyebrow, resultattal som `meta` med tabular-nums; handlinger wrapper på 360px; knapper `min-h-11`. |
+| Listeside | `shared/ListPageShell` (videregiver `eyebrow`/`meta`) | Ét filterBar-slot, ét indholdsområde. |
+| Filtre | `shared/ModuleListTools` / `SegmentedFilterBar` | Aktive filtre kan altid nulstilles; "Viser X af Y". |
+| Arbejdsflade | `shared/WorkspaceSection` (ny) | Flad sektion: titel + meta + actions over en divider, `aria-labelledby`. Ingen indlejrede kort. |
+| Tom | `shared/EmptyState` (`variant: empty \| filtered`, `compact`) | `filtered` = data findes men skjules → outline "Ryd filtre". `role="status"`. |
+| Fejl | `shared/ErrorState` | Altid adskilt fra tom/loading; retry-knap når muligt. |
+| Loading | `shared/ListSkeleton` | Aldrig tom-tekst mens data hentes. |
+| Status | `ui/status-badge` (`dot`) | Farve suppleres altid af tekst; `data-status` til tests. Ukendt = `default`, aldrig `success`. |
+
+Anvendt i: Admin → Driftscenter, Vagtplan (PageHeader med afdeling/antal, EmptyState), Lager (antal i header, filtreret tom-tilstand med Ryd filtre / Tilføj), Biler (antal i header, filtreret tom-tilstand).

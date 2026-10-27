@@ -1,3 +1,10 @@
+## [Unreleased] – Punkt 4.4 Driftscenter + 4.5 Design System 2.0
+- Ny Admin-fane "Driftscenter" (kun super_admin): push-KPI fra seneste 50 udsendelser med 7/30-dages periode og eksplicit nævner, auto-publicering, realtime (kun denne browser), cron "Ikke overvåget", Outlook "Ikke konfigureret", link til Leveringsstatus og Web Vitals. Rene beregninger i `src/utils/operationsCenter.ts`.
+- Admin-faner styres nu (link mellem faner); brugerantal hentes via cachet React Query i stedet for useEffect ved hver visning.
+- Design System 2.0: ny `WorkspaceSection`; `PageHeader`/`ListPageShell` med `eyebrow`/`meta`; `EmptyState` med `filtered`/`compact` og semantiske tokens; `StatusBadge` med `dot` + `data-status`.
+- Moduler: Vagtplan (fælles header m. afdeling/antal, EmptyState), Lager (antal, Ryd filtre/Tilføj i tom-tilstand), Biler (antal, filtreret tom-tilstand).
+- Tests: `operationsCenter.test.ts`, `OperationsCenter.test.tsx`. Docs: `docs/operations/driftscenter.md`, design-system.md.
+
 ## [Unreleased] – Punkt 3: PolyPlan favicon/icon refresh
 - Nyt original P-monogram (#00AEEF på #003E5C) som vektor-master `public/favicon.svg`; alle PNG/ICO genereret fra vektor via `scripts/icons/generate-icons.sh`.
 - Nye: favicon-16/32/48, favicon.ico (16/32/48), icon-maskable-192/512; erstattet: favicon.png (192), apple-touch-icon (180, opaque), icon-192/512.

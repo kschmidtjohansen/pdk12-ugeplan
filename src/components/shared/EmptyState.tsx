@@ -1,7 +1,7 @@
-
 import React from 'react';
-import { AlertCircle } from 'lucide-react';
+import { Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
   title: string;
@@ -11,29 +11,42 @@ interface EmptyStateProps {
     label: string;
     onClick: () => void;
   };
+  /** 'filtered' = data exists but filters hide it; shows an outline reset action. */
+  variant?: 'empty' | 'filtered';
+  compact?: boolean;
+  className?: string;
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({ 
-  title, 
-  description, 
-  icon = <AlertCircle className="h-12 w-12 text-muted-foreground" />,
-  action 
+/**
+ * Shared empty state. Distinct from ErrorState (load failed) and ListSkeleton (loading).
+ */
+const EmptyState: React.FC<EmptyStateProps> = ({
+  title,
+  description,
+  icon,
+  action,
+  variant = 'empty',
+  compact = false,
+  className,
 }) => {
   return (
-    <div className="text-center py-12 space-y-4">
-      <div className="flex justify-center">
-        {icon}
+    <div
+      role="status"
+      data-variant={variant}
+      className={cn('flex flex-col items-center text-center gap-3', compact ? 'py-6' : 'py-12', className)}
+    >
+      <div className="flex justify-center text-muted-foreground [&_svg]:h-10 [&_svg]:w-10" aria-hidden="true">
+        {icon ?? <Inbox />}
       </div>
-      <div>
-        <h3 className="text-lg font-medium text-foreground">{title}</h3>
-        {description && (
-          <p className="text-muted-foreground mt-2">{description}</p>
-        )}
+      <div className="max-w-sm">
+        <h3 className="text-base font-medium text-foreground">{title}</h3>
+        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </div>
       {action && (
-        <Button 
+        <Button
           onClick={action.onClick}
-          className="bg-polygon-blue hover:bg-polygon-darkblue"
+          variant={variant === 'filtered' ? 'outline' : 'default'}
+          className="min-h-11"
         >
           {action.label}
         </Button>
