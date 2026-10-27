@@ -1,3 +1,4 @@
+import { sortCarsByNumber } from "@/utils/sortCars";
 
 import { supabase } from '@/integrations/supabase/client';
 import { getEffectiveRole } from '@/utils/roleHierarchy';
