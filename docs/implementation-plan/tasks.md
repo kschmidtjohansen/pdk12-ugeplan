@@ -1,4 +1,5 @@
 ## Kalender træk-og-slip (2026-10-27)
+- [x] Rettet afbrudt drag ved identisk medarbejderliste-refresh; browserreproduktion før/efter med mus/touch, 261 tests og lint:ci OK.
 - [x] Mus/touch-flytning, medarbejderskift, start/slut-resize, flermedarbejderadvarsel og forhåndsvisning.
 - [x] Eksisterende permissions, fuldt payload, fravær/kursus/overlap, serievalg og Fortryd; ingen nye backend writes/deploy.
 - [x] 259 tests, lint:ci og automatisk preview-build; desktop/touch browserfixtures for flytning og resize.

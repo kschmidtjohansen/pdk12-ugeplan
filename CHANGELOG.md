@@ -1,3 +1,8 @@
+## [Unreleased] – Kalender: træk overlever listeopdateringer
+- PlannerCalendarView nulstillede aktivt drag ved ny employees-arrayreference, også når medarbejderne var de samme. Annullering følger nu stabile medarbejder-ID'er, dato, bruger og redigeringsadgang; reelle skift af medarbejderscope annullerer stadig.
+- Reproduceret med rigtig dnd-kit/mus og touch i browserfixture med 100ms listeopdateringer: før rettelsen ingen ændring; efter rettelsen 08–10 → 10–12 hos anden medarbejder og resize til 13:00 på 1280px og 390px uden runtimefejl.
+- To regressionstests for identisk listeopdatering og reelt medarbejderskift. 261/261 tests bestået; lint:ci og automatisk preview-build OK. Indlogget databasegemning kan ikke verificeres i ekstern unmanaged Supabase; ingen backendændringer eller publicering.
+
 ## [Unreleased] – Installation: gamle npm-cacheadresser
 - Build-diagnose br_77ccca8c-a289-4d80-9642-e7e1c8c34515 viste DNSResolveFailed ved tarball-download, før kompilering.
 - bun.lock: 474 gamle http://npm-cache.lovable.net/-adresser erstattet af https://registry.npmjs.org/; versionsvalg, afhængighedsmetadata og integritetshashes uændret. Andre registry-adresser urørte.

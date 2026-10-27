@@ -1,6 +1,7 @@
 # Design System
 
 ## Kalender: træk og tidsjustering (2026-10-27)
+- Aktive træk bevares gennem identiske medarbejderliste-opdateringer; kun ændrede medarbejder-ID'er, dato, bruger eller redigeringsadgang annullerer. Browserfixture med 100ms refresh verificeret med mus og touch (1280/390px); indlogget gemning ikke verificeret.
 - Opgaveknap og separate start-/sluthåndtag (ingen indlejrede knapper); transient forhåndsvisning med tid og destinationsmedarbejder i semantiske card/primary-tokens.
 - Mus/pointer aktiveres efter 5px; mobil touch efter 500ms med 8px scroll-tolerance. Almindelige tryk bevarer detaljer/handlinger. Resize slår auto-scroll fra for at undgå utilsigtet tidsforlængelse nær skærmkanten.
 - 15-minutters trin, samme lokale dato, positive intervaller og dagsgrænser 00:00–23:59. Flere medarbejdere giver advarsel; ingen ændring. Overlap/serier bruger eksisterende formularvalg før gemning.
