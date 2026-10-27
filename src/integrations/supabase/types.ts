@@ -2133,9 +2133,13 @@ export type Database = {
         Returns: {
           assignment_date: string
           car_ids: string[]
+          case_number: string
+          department_name: string
           employee_ids: string[]
           from_time: string
+          location: string
           sub_department_id: string
+          title: string
           to_time: string
         }[]
       }
