@@ -1,3 +1,9 @@
+## [Unreleased] – Ensartet PolyPlan-logo + Design System 2.0 i Medarbejdere og Ferie
+- Branding: nye `PolyPlanMark`/`PolyPlanBrand` (src/components/branding) med `PRODUCT_MARK_SRC='/favicon.svg'`; erstatter `polygon-mark.png` som produktikon i login (lockup + brandpanel), sidemenu (udvidet/sammenfoldet) og mobil topbjælke. Polygon Group-logoet (`ORG_LOGO_URL`) bevares uændret på login-brandpanelet. Favicon, PNG/ICO, manifest og maskable-ikoner er ikke ændret.
+- Medarbejdere: `WorkspaceSection` "Medarbejderliste" med resultatantal; sticky tabelhoved; tydelige tom/filtreret/indlæsning-tilstande; mobilkort omskrevet til opdelt liste med status-tekst øverst og ombrydende handlinger (44 px). Virtualisering ≥50 og pagination uændret.
+- Ferie: samlet "Ferie og fravær"-sektion, statusfaner med antal, separat Liste/Kalender-skift, dæmpet søg/antal/ryd-række, adskilt tom afdeling vs. intet match, Godkend/Afvis/Ret med ikon + tekst. Ingen ændring i dataadgang, `visibleVacations()`, Supabase-kald eller rettigheder.
+- Tests: `branding.test.tsx`, `employeesVacationDs2.test.tsx`; opdateret tekst i `moduleWorkspace.test.tsx`. 238/238 tests.
+
 ## [Unreleased] – Punkt 4.4 Driftscenter + 4.5 Design System 2.0
 - Ny Admin-fane "Driftscenter" (kun super_admin): push-KPI fra seneste 50 udsendelser med 7/30-dages periode og eksplicit nævner, auto-publicering, realtime (kun denne browser), cron "Ikke overvåget", Outlook "Ikke konfigureret", link til Leveringsstatus og Web Vitals. Rene beregninger i `src/utils/operationsCenter.ts`.
 - Admin-faner styres nu (link mellem faner); brugerantal hentes via cachet React Query i stedet for useEffect ved hver visning.

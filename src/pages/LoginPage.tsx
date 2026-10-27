@@ -90,7 +90,7 @@ const LoginPage = () => {
           {/* Kompakt brand-lockup (mobil + form-panel) */}
           <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
             <PolyPlanBrand size={36} wordmarkClassName="text-xl" />
-            <p className="mt-1.5 text-xs text-muted-foreground">{PRODUCT_NAME} · {ORG_NAME}</p>
+            <p className="mt-1.5 text-xs text-muted-foreground">{ORG_NAME}</p>
           </div>
 
           <div className="rounded-xl border border-border bg-card shadow-xs p-6 sm:p-8">
