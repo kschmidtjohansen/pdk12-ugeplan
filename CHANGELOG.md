@@ -1,3 +1,6 @@
+## [Unreleased] – Kalender: hele opgavefladen kan gribes
+- CalendarDragElements registrerer flytning på hele den farvede opgavecontainer, inklusive kanter og tom plads. Detaljeknappen fylder fladen også ved desktop-breakpoint; start-/sluthåndtag stopper event-bobling til flytning og bevarer særskilt resize.
+
 ## [Unreleased] – Kalender: træk overlever listeopdateringer
 - PlannerCalendarView nulstillede aktivt drag ved ny employees-arrayreference, også når medarbejderne var de samme. Annullering følger nu stabile medarbejder-ID'er, dato, bruger og redigeringsadgang; reelle skift af medarbejderscope annullerer stadig.
 - Reproduceret med rigtig dnd-kit/mus og touch i browserfixture med 100ms listeopdateringer: før rettelsen ingen ændring; efter rettelsen 08–10 → 10–12 hos anden medarbejder og resize til 13:00 på 1280px og 390px uden runtimefejl.
