@@ -6,3 +6,5 @@
 - Inbox state and drawer query keys are scoped to authenticated user IDs; authoritative catch-up reconciles mutations and missed realtime events without duplicate unread increments.
 - Messaging worker ownership state uses endpoint-keyed IndexedDB tokens and a transactional latest pointer retaining account ownership; this prevents cross-endpoint token fallback and supports recovery.
 - Module list toolbars are opt-in controlled UI; employee/car filters and vacation visibility-before-counting use shared pure helpers to retain the existing data hooks and action handlers.
+
+- Edge authorization decisions live in src/security/backend/policies.ts with a byte-identical copy in supabase/staged/functions/_shared (test-enforced); unreviewed server changes are staged under supabase/staged/ so they are never auto-deployed.
