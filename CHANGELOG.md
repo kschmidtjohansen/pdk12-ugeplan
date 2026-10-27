@@ -2509,3 +2509,5 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - SubDepartmentQuickSwitcher viser nu "Alle"-pillen også når brugeren kun har én underafdeling (fx Fugt), så den kan toggles on/off og hele afdelingen kan ses igen.
 - DepartmentContext husker nu brugerens eksplisitte "Alle"-valg også ved én underafdeling.
 - Nye tests: 4 i SubDepartmentQuickSwitcher.test.tsx. QA: 162/162 tests, typecheck grøn, lint 0 fejl.
+
+- Ugeplan: optaget-markering medtager nu publicerede bookinger i andre afdelinger for medarbejdere med adgang til den valgte afdeling (kun tider, ingen opgavedetaljer).
