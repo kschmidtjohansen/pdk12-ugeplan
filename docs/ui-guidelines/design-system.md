@@ -389,3 +389,11 @@ Gentagelige mønstre — brug disse frem for egen markup:
 | Status | `ui/status-badge` (`dot`) | Farve suppleres altid af tekst; `data-status` til tests. Ukendt = `default`, aldrig `success`. |
 
 Anvendt i: Admin → Driftscenter, Vagtplan (PageHeader med afdeling/antal, EmptyState), Lager (antal i header, filtreret tom-tilstand med Ryd filtre / Tilføj), Biler (antal i header, filtreret tom-tilstand).
+
+## Produktlogo og DS 2.0 i Medarbejdere/Ferie (2026-10-27)
+
+**Produktlogo (én kilde):** PolyPlans produktikon er den godkendte `public/favicon.svg` (`PRODUCT_MARK_SRC` i `src/config/product.ts`). Brug altid `PolyPlanMark` (kun ikon) eller `PolyPlanBrand` (ikon + ordet "PolyPlan") fra `src/components/branding/` — aldrig inline SVG'er eller andre P-tegninger. Størrelser: 28 px (topbjælke, udvidet sidemenu), 32 px (sammenfoldet sidemenu), 36 px (login-lockup), 40 px (login brandpanel). Ved siden af synligt ordmærke er ikonet dekorativt (`alt=""`); står ikonet alene bærer det navnet "PolyPlan".
+**Polygon Group-logo:** Organisationens originale logo (`ORG_LOGO_URL`) bruges uændret som kreditering på login-brandpanelet. P-ikonet er ikke Polygon Groups logo.
+
+**Medarbejdere:** Filtre (ModuleListTools) over én `WorkspaceSection` "Medarbejderliste" med resultatantal ("X af Y" ved filter, ellers "N i alt"). Desktop-tabel med sticky, dæmpet kolonnehoved og højrestillede handlinger; virtualisering fra 50 rækker og pagination (25) er uændret. Mobil: opdelt liste (ingen kort-i-kort) med navn + statusbadge med tekst øverst, kontakt/rolle/certifikater som metadata og en handlingsrække der ombrydes (44 px).
+**Ferie:** Én `WorkspaceSection` "Ferie og fravær" med antal og "afventer"; ansøgningsknapper i sektionens header. Værktøjsrække: statusfaner med tal + separat Liste/Kalender-skift (kun for roller med kalenderadgang). Søg/"Viser X af Y"/"Ryd filtre" i en dæmpet række over listen. Tom afdeling ("Ingen anmodninger i afdelingen endnu") adskilles fra filter uden match. Godkend/Afvis/Ret har ikon + tekst. `visibleVacations()` og alle rettigheder er uændrede.

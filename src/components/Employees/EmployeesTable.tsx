@@ -88,24 +88,25 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
 
   // Show loading state
   if (loading) {
-    return <ListSkeleton />;
+    return <div className="p-3" role="status" aria-live="polite" aria-label={currentLanguage === 'da' ? 'Indlæser medarbejdere' : 'Loading employees'}><ListSkeleton /></div>;
   }
 
   // Show empty state
   if (employees.length === 0) {
-    return <EmptyState icon={<Users className="h-8 w-8 text-muted-foreground" />}
+    return <div className="p-4" data-testid={isFiltered ? 'employees-empty-filtered' : 'employees-empty'}><EmptyState variant={isFiltered ? 'filtered' : 'empty'} icon={<Users className="h-8 w-8 text-muted-foreground" />}
       title={isFiltered ? (currentLanguage === 'da' ? 'Ingen medarbejdere matcher' : 'No matching employees') : t('employees.noEmployees')}
       description={isFiltered ? (currentLanguage === 'da' ? 'Prøv en anden status eller søgning.' : 'Try another status or search.') : t('employees.noEmployeesDescription')}
-      action={isFiltered && onResetFilters ? { label: currentLanguage === 'da' ? 'Ryd filtre' : 'Clear filters', onClick: onResetFilters } : undefined} />;
+      action={isFiltered && onResetFilters ? { label: currentLanguage === 'da' ? 'Ryd filtre' : 'Clear filters', onClick: onResetFilters } : undefined} /></div>;
   }
 
-  // Mobile: card layout (unchanged)
+  // Mobile: divided card list inside the workspace (no card-in-card)
   if (isMobile) {
     return (
-      <div className="space-y-3 py-4">
+      <div className="min-w-0">
+        <ul className="divide-y divide-border" aria-label={t('navigation.employees')}>
         {pagedEmployees.map(employee => (
+          <li key={`${employee.id}-${employee.onLeave}-${employee.status}`}>
           <MobileEmployeeCard
-            key={`${employee.id}-${employee.onLeave}-${employee.status}`}
             employee={employee}
             vacations={vacations}
             onEdit={onEdit}
@@ -117,7 +118,10 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                 canSeeSickReason={canSeeSickReason}
                 onToggleSick={onToggleSick}
           />
+          </li>
         ))}
+        </ul>
+        <div className="px-3 pb-3">
         <SimplePagination
           page={page}
           totalPages={totalPages}
@@ -125,21 +129,22 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
         />
+        </div>
       </div>
     );
   }
 
   // Desktop table header — shared between paginated and virtualised paths
   const tableHeader = (
-    <TableHeader className="bg-muted/40">
-      <TableRow>
+    <TableHeader className="sticky top-0 z-10 bg-muted/60 [&_th]:h-9 [&_th]:text-xs [&_th]:font-medium [&_th]:uppercase [&_th]:tracking-wide [&_th]:text-muted-foreground">
+      <TableRow className="hover:bg-transparent">
         <TableHead>{t('employees.name') || 'Name'}</TableHead>
         <TableHead>{t('employees.contact') || 'Contact'}</TableHead>
         <TableHead>{t('employees.jobTitle') || 'Job Title'}</TableHead>
         <TableHead>{t('employees.certificates') || 'Certificates'}</TableHead>
         {isAdmin && <TableHead>{t('employees.role') || 'Role'}</TableHead>}
         <TableHead>{t('employees.statusLabel') || 'Status'}</TableHead>
-        {isAdmin && <TableHead>{t('common.actions') || 'Actions'}</TableHead>}
+        {isAdmin && <TableHead className="text-right">{t('common.actions') || 'Actions'}</TableHead>}
       </TableRow>
     </TableHeader>
   );
@@ -194,7 +199,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
                 </TableBody>
               </Table>
             </div>
-            <p className="text-xs text-muted-foreground pt-2">
+            <p className="border-t border-border px-4 py-2 text-xs text-muted-foreground tabular-nums">
               {t('employees.showingAll') || 'Viser alle'} {employees.length}
             </p>
           </div>
@@ -228,14 +233,18 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
               ))}
             </TableBody>
           </Table>
-          <SimplePagination
-            page={page}
-            totalPages={totalPages}
-            totalItems={employees.length}
-            pageSize={PAGE_SIZE}
-            onPageChange={setPage}
-          />
         </div>
+        {totalPages > 1 && (
+          <div className="px-2">
+            <SimplePagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={employees.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setPage}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
