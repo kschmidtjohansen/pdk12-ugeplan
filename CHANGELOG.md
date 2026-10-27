@@ -1,3 +1,8 @@
+## [Unreleased] – Punkt 3: PolyPlan favicon/icon refresh
+- Nyt original P-monogram (#00AEEF på #003E5C) som vektor-master `public/favicon.svg`; alle PNG/ICO genereret fra vektor via `scripts/icons/generate-icons.sh`.
+- Nye: favicon-16/32/48, favicon.ico (16/32/48), icon-maskable-192/512; erstattet: favicon.png (192), apple-touch-icon (180, opaque), icon-192/512.
+- Manifest: separate any/maskable-ikoner. index.html: SVG-favicon først, PNG/ICO fallback, `?v=3` cache-busting, canonical/og:url → https://www.pdk12.dk/. Test `src/test/icons.test.ts`.
+
 ## [Unreleased] – security(staged): backend-autorisation P0/P1 (IKKE deployet)
 - Nye rene politikker `src/security/backend/policies.ts` + 32 tests (ferieoprydning, rolleskift, brugeroprettelse, deny-forrang, push-præference, secret-sammenligning).
 - Staged (ikke live) Edge-kode i `supabase/staged/functions/` for vacation-cleanup-assignments, admin-user-role, admin-create-user, swap-duties + send-push patch.
