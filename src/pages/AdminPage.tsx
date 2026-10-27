@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RealtimeDiagnostics from '@/components/Admin/RealtimeDiagnostics';
-import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock, Megaphone, KeyRound } from 'lucide-react';
+import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock, Megaphone, KeyRound, Gauge } from 'lucide-react';
 import BroadcastNotification from '@/components/Admin/BroadcastNotification';
 import BroadcastDeliveryStatus from '@/components/Admin/BroadcastDeliveryStatus';
 
@@ -19,6 +19,9 @@ import WeatherAlertSettings from '@/components/Admin/WeatherAlertSettings';
 import LocationManagement from '@/components/Admin/LocationManagement';
 
 import RolePermissionsManagement from '@/components/Admin/RolePermissionsManagement';
+import OperationsCenter from '@/components/Admin/OperationsCenter';
+import { canOpenOperationsCenter } from '@/utils/operationsCenter';
+import { useQuery } from '@tanstack/react-query';
 import WebVitalsOverview from '@/components/Admin/WebVitalsOverview';
 import AutoPublishLogWidget from '@/components/Dashboard/AutoPublishLogWidget';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
@@ -29,21 +32,24 @@ const AdminPage: React.FC = () => {
   const { user, loading, isDemoMode, demoRole } = useAuth();
   const { t } = useTranslation();
   const { isWarehouseEnabled } = useDepartment();
-  const [userCount, setUserCount] = useState<number | null>(null);
+  const [tab, setTab] = useState('users');
 
   const effectiveRole = isDemoMode && demoRole ? demoRole : user?.role;
   const isSuperAdmin = effectiveRole === 'super_admin';
   const isAdmin = effectiveRole === 'administrator' || isSuperAdmin;
+  const showOperations = canOpenOperationsCenter(effectiveRole);
 
-  useEffect(() => {
-    const fetchUserCount = async () => {
-      const { count, error } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-      if (!error && count !== null) setUserCount(count);
-    };
-    fetchUserCount();
-  }, []);
+  // Cached head-count instead of a fetch on every mount.
+  const { data: userCount = null } = useQuery({
+    queryKey: ['admin', 'profiles-count', user?.id],
+    enabled: !!user && isAdmin,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { count, error } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
+      if (error) throw new Error(error.message);
+      return count ?? null;
+    },
+  });
 
   if (loading) {
     return <ListSkeleton />;
@@ -71,7 +77,7 @@ const AdminPage: React.FC = () => {
           <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
         </div>
 
-        <Tabs defaultValue="users" className="w-full">
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="w-full justify-start flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
@@ -128,7 +134,19 @@ const AdminPage: React.FC = () => {
                 Web Vitals
               </TabsTrigger>
             )}
+            {showOperations && (
+              <TabsTrigger value="operations" className="gap-2">
+                <Gauge className="h-4 w-4" />
+                Driftscenter
+              </TabsTrigger>
+            )}
           </TabsList>
+
+          {showOperations && (
+            <TabsContent value="operations" className="animate-fade-in">
+              <OperationsCenter onOpenBroadcast={() => setTab('broadcast')} onOpenWebVitals={() => setTab('webVitals')} />
+            </TabsContent>
+          )}
 
           <TabsContent value="users" className="animate-fade-in">
             <Card>
