@@ -14,14 +14,14 @@ import { rpcWithRefresh } from '@/integrations/supabase/safeRpc';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { isDemoNonHomeDepartment } from '@/constants/demo';
 
-export const useCarData = (canViewFuelCardCode: boolean = false) => {
+export const useCarData = (canViewFuelCardCode: boolean = false, plannerScope: boolean = false) => {
   const { isDemoMode, userDataLoaded, user } = useAuth();
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const queryKey = ['cars', isDemoMode, selectedDepartmentId, selectedSubDepartmentId, canViewFuelCardCode] as const;
+  const queryKey = ['cars', isDemoMode, selectedDepartmentId, selectedSubDepartmentId, canViewFuelCardCode, plannerScope] as const;
 
   const fetchCarsFn = async (): Promise<CarData[]> => {
     if (import.meta.env.DEV) console.log('[useCarData] Fetching cars with enhanced security...');
@@ -53,7 +53,7 @@ export const useCarData = (canViewFuelCardCode: boolean = false) => {
       if (import.meta.env.DEV) console.log('[useCarData] Successfully fetched', baseline.length, 'demo cars');
       return baseline;
     } else {
-      const data = await CarSecurityService.fetchCars(canViewFuelCardCode, selectedDepartmentId, selectedSubDepartmentId);
+      const data = await CarSecurityService.fetchCars(canViewFuelCardCode, selectedDepartmentId, selectedSubDepartmentId, plannerScope);
       if (import.meta.env.DEV) console.log('[useCarData] Successfully fetched', data?.length || 0, 'cars (filtered by department)');
       return data || [];
     }

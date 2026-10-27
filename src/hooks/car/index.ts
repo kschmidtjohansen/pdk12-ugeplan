@@ -6,9 +6,9 @@ import { useCarFormState } from './useCarFormState';
 import { CarData } from '@/components/Cars/types';
 import { usePermissions } from '@/context/AuthContext';
 
-export const useCars = () => {
+export const useCars = (options: { plannerScope?: boolean } = {}) => {
   const { canViewFuelCardCode } = usePermissions();
-  const { cars, setCars, loading, error, fetchCars, createCar } = useCarData(canViewFuelCardCode);
+  const { cars, setCars, loading, error, fetchCars, createCar } = useCarData(canViewFuelCardCode, options.plannerScope ?? false);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   
   const {

@@ -1,4 +1,5 @@
 import { sortCarsByNumber } from "@/utils/sortCars";
+import { carIdsForSubDepartment, carIdsLinkedInDepartment } from "@/services/data/carScope";
 
 import { supabase } from '@/integrations/supabase/client';
 import { getEffectiveRole } from '@/utils/roleHierarchy';
@@ -205,20 +206,10 @@ class UnifiedDataService {
   async fetchCars(departmentId?: string, subDepartmentId?: string | null): Promise<DataFetchResult<Car>> {
 
     try {
-      // If sub-department is selected, restrict to cars linked via car_sub_departments
+      // Sub-department selected: cars linked to it, regardless of owning department.
       let allowedCarIds: string[] | null = null;
       if (subDepartmentId) {
-        const { data: linkRows, error: linkError } = await supabase
-          .from('car_sub_departments')
-          .select('car_id')
-          .eq('sub_department_id', subDepartmentId);
-
-        if (linkError) {
-          throw new Error(`Car sub-department fetch failed: ${linkError.message}`);
-        }
-
-        allowedCarIds = (linkRows || []).map(r => r.car_id).filter(Boolean);
-
+        allowedCarIds = await carIdsForSubDepartment(subDepartmentId);
         if (allowedCarIds.length === 0) {
           const empty: Car[] = [];
           return { data: empty, error: null, fromCache: false };
@@ -228,15 +219,12 @@ class UnifiedDataService {
       let query = supabase
         .from('cars')
         .select('*')
-        .eq('is_demo', false)
-        .order('name', { ascending: true });
-
-      if (departmentId) {
-        query = query.eq('department_id', departmentId);
-      }
+        .eq('is_demo', false);
 
       if (allowedCarIds) {
         query = query.in('id', allowedCarIds);
+      } else if (departmentId) {
+        query = query.eq('department_id', departmentId);
       }
 
       const { data, error } = await query;
@@ -247,14 +235,9 @@ class UnifiedDataService {
 
       let cars = data || [];
 
-      // "Alle": cars assigned to a sub-department belong only there.
-      if (!subDepartmentId && cars.length > 0) {
-        const { data: linked, error: linkedError } = await supabase
-          .from('car_sub_departments')
-          .select('car_id')
-          .in('car_id', cars.map(c => c.id));
-        if (linkedError) throw new Error(`Car sub-department fetch failed: ${linkedError.message}`);
-        const linkedIds = new Set((linked || []).map(r => r.car_id));
+      // "Alle": cars assigned to a sub-department of this department belong only there.
+      if (!subDepartmentId && departmentId && cars.length > 0) {
+        const linkedIds = await carIdsLinkedInDepartment(departmentId, cars.map(c => c.id));
         cars = cars.filter(c => !linkedIds.has(c.id));
       }
 

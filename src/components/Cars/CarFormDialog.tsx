@@ -16,6 +16,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { CarFormData } from './types';
 import { useTranslation } from '@/context/TranslationContext';
 import { useDepartment } from '@/context/DepartmentContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CarFormDialogProps {
   open: boolean;
@@ -41,7 +43,26 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
   setFormData,
 }) => {
   const { t } = useTranslation();
-  const { userSubDepartments } = useDepartment();
+  const { userDepartments, departments } = useDepartment();
+  const scopeDepts = (userDepartments.length > 0 ? userDepartments : departments) || [];
+  const deptIds = scopeDepts.map(d => d.id).sort();
+  const { data: subDeptGroups = [] } = useQuery({
+    queryKey: ['car-form-sub-departments', deptIds],
+    enabled: open && deptIds.length > 0,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sub_departments')
+        .select('id, name, department_id')
+        .in('department_id', deptIds)
+        .order('name');
+      if (error) throw new Error(error.message);
+      return [...scopeDepts]
+        .sort((a, b) => a.name.localeCompare(b.name, 'da', { numeric: true }))
+        .map(d => ({ id: d.id, name: d.name, subs: (data || []).filter(s => s.department_id === d.id) }))
+        .filter(g => g.subs.length > 0);
+    },
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,28 +140,33 @@ const CarFormDialog: React.FC<CarFormDialogProps> = ({
             </div>
           )}
 
-          {userSubDepartments.length > 0 && (
+          {subDeptGroups.length > 0 && (
             <div className="space-y-2">
-              <Label>{t('common.subDepartment') || 'Underafdeling'}</Label>
-              <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                {userSubDepartments.map((sub) => (
-                  <div key={sub.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`sub-dept-${sub.id}`}
-                      checked={(formData.sub_department_ids || []).includes(sub.id)}
-                      onCheckedChange={(checked) => {
-                        setFormData?.((prev) => {
-                          const current = prev.sub_department_ids || [];
-                          const updated = checked
-                            ? [...current, sub.id]
-                            : current.filter(id => id !== sub.id);
-                          return { ...prev, sub_department_ids: updated };
-                        });
-                      }}
-                    />
-                    <Label htmlFor={`sub-dept-${sub.id}`} className="cursor-pointer text-sm">
-                      {sub.name}
-                    </Label>
+              <Label>{t('cars.visibleInSubDepartments')}</Label>
+              <div className="space-y-3 max-h-48 overflow-y-auto border rounded-md p-2">
+                {subDeptGroups.map((group) => (
+                  <div key={group.id} className="space-y-1.5">
+                    <p className="text-xs font-medium text-muted-foreground">{group.name}</p>
+                    {group.subs.map((sub) => (
+                      <div key={sub.id} className="flex items-center space-x-2 pl-1">
+                        <Checkbox
+                          id={`sub-dept-${sub.id}`}
+                          checked={(formData.sub_department_ids || []).includes(sub.id)}
+                          onCheckedChange={(checked) => {
+                            setFormData?.((prev) => {
+                              const current = prev.sub_department_ids || [];
+                              const updated = checked
+                                ? [...current, sub.id]
+                                : current.filter(id => id !== sub.id);
+                              return { ...prev, sub_department_ids: updated };
+                            });
+                          }}
+                        />
+                        <Label htmlFor={`sub-dept-${sub.id}`} className="cursor-pointer text-sm">
+                          {sub.name}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>

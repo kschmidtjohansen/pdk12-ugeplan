@@ -2,29 +2,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { CarData } from '@/components/Cars/types';
 import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { carIdsForSubDepartment, carIdsLinkedInDepartment } from '@/services/data/carScope';
+import { sortCarsByNumber } from '@/utils/sortCars';
 
 export class CarSecurityService {
-  static async fetchCars(canViewFuelCardCode: boolean, departmentId?: string, subDepartmentId?: string | null): Promise<CarData[]> {
+  static async fetchCars(canViewFuelCardCode: boolean, departmentId?: string, subDepartmentId?: string | null, excludeSubDepartmentCars = false): Promise<CarData[]> {
     try {
       const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
       const client = getSchemaClient(isDemoMode);
-      let query = client.from('cars').select('*').order('name');
+      let query = client.from('cars').select('*');
       
-      if (!isDemoMode && departmentId) {
-        query = query.eq('department_id', departmentId);
-      }
       if (!isDemoMode && subDepartmentId) {
-        // Strikt isolation: vis kun biler eksplicit tilknyttet denne underafdeling
-        const { data: carSubDepts } = await supabase
-          .from('car_sub_departments')
-          .select('car_id')
-          .eq('sub_department_id', subDepartmentId);
-
-        const carIds = (carSubDepts || []).map(r => r.car_id);
+        // Biler tilknyttet denne underafdeling — uanset hvilken afdeling bilen ejes af
+        const carIds = await carIdsForSubDepartment(subDepartmentId);
         if (carIds.length === 0) {
           return [];
         }
         query = query.in('id', carIds);
+      } else if (!isDemoMode && departmentId) {
+        query = query.eq('department_id', departmentId);
       }
       
       const { data, error } = await query;
@@ -35,8 +31,14 @@ export class CarSecurityService {
         }
         throw error;
       }
-      
-      return data || [];
+
+      let cars = (data || []) as CarData[];
+      // "Alle" i planlægning: biler tilknyttet en underafdeling hører kun til dér
+      if (!isDemoMode && excludeSubDepartmentCars && departmentId && !subDepartmentId && cars.length > 0) {
+        const linked = await carIdsLinkedInDepartment(departmentId, cars.map(c => c.id));
+        cars = cars.filter(c => !linked.has(c.id));
+      }
+      return sortCarsByNumber(cars);
     } catch (error) {
       if (import.meta.env.DEV) console.error('[CarSecurityService] Error fetching cars:', error);
       

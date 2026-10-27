@@ -84,7 +84,8 @@ const cars = {
   todayDriver: 'I dag',
   notBookedToday: 'Ikke booket i dag',
   selectAtLeastOneSubDepartment: 'Vælg mindst én underafdeling',
-  subDepartmentOptionalHint: 'Hvis ingen vælges, vises bilen kun, når der ikke er filtreret på en underafdeling.',
+  subDepartmentOptionalHint: 'Valgte underafdelinger: bilen vises kun dér i Ugeplanen (også i andre afdelinger) og ikke under "Alle". Ingen valgt: bilen vises under "Alle" i sin egen afdeling.',
+  visibleInSubDepartments: 'Vises i afdelinger / underafdelinger',
   
   // Falck
   falckSubscription: 'Falck',
