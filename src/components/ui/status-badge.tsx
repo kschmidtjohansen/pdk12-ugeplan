@@ -17,6 +17,8 @@ export type StatusVariant =
 
 interface StatusBadgeProps extends Omit<BadgeProps, 'variant'> {
   variant?: StatusVariant;
+  /** Adds a small leading dot; the text label must still carry the meaning. */
+  dot?: boolean;
 }
 
 /** Shared sizing so every status label across the app looks identical. */
@@ -36,6 +38,11 @@ const statusStyles: Record<StatusVariant, string> = {
   purple: 'bg-accent-soft text-accent-soft-foreground hover:bg-accent-soft',
 };
 
-export function StatusBadge({ variant = 'default', className, ...props }: StatusBadgeProps) {
-  return <Badge className={cn(base, statusStyles[variant], className)} {...props} />;
+export function StatusBadge({ variant = 'default', className, dot = false, children, ...props }: StatusBadgeProps) {
+  return (
+    <Badge data-status={variant} className={cn(base, dot && 'gap-1.5', statusStyles[variant], className)} {...props}>
+      {dot && <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />}
+      {children}
+    </Badge>
+  );
 }
