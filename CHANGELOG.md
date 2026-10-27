@@ -2513,3 +2513,5 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Ugeplan: optaget-markering medtager nu publicerede bookinger i andre afdelinger for medarbejdere med adgang til den valgte afdeling (kun tider, ingen opgavedetaljer).
 
 - Ugeplan: biler sorteres efter bilnummer; biler tilknyttet en underafdeling vises ikke under "Alle"; biler på opgaver i anden afdeling vises som optaget.
+
+- Biler: kan tilknyttes underafdelinger på tværs af afdelinger i bilredigering; Ugeplan "Alle" skjuler biler tilknyttet egen afdelings underafdelinger; numerisk sortering (1, 2, 3 …) i Ugeplan og bilside.
