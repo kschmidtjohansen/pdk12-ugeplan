@@ -2,6 +2,9 @@
 - CalendarDragElements registrerer flytning på hele den farvede opgavecontainer, inklusive kanter og tom plads. Detaljeknappen fylder fladen også ved desktop-breakpoint; start-/sluthåndtag stopper event-bobling til flytning og bevarer særskilt resize.
 - Verificeret i browserfixture fra tom farvet plads på 1280px/mus og 390px/touch: flytning 08–10 til 10–12 og resize til 13:00. 12 relevante tests, lint:ci og automatisk preview-build OK. Ingen backendændringer/publicering; indlogget gemning og fysisk mobil ikke verificeret.
 
+## 2026-10-27 — Kalender: optaget i anden afdeling
+- PlannerCalendarView viser nu grå "Optaget andetsteds"-blokke (kun tider) fra list_cross_subdept_busy_resources, så fx bookinger i afd. 03 ses i afd. 14's kalender.
+
 ## [Unreleased] – Kalender: træk overlever listeopdateringer
 - PlannerCalendarView nulstillede aktivt drag ved ny employees-arrayreference, også når medarbejderne var de samme. Annullering følger nu stabile medarbejder-ID'er, dato, bruger og redigeringsadgang; reelle skift af medarbejderscope annullerer stadig.
 - Reproduceret med rigtig dnd-kit/mus og touch i browserfixture med 100ms listeopdateringer: før rettelsen ingen ændring; efter rettelsen 08–10 → 10–12 hos anden medarbejder og resize til 13:00 på 1280px og 390px uden runtimefejl.
