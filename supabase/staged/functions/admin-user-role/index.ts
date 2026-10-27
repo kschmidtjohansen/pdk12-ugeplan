@@ -45,7 +45,6 @@ Deno.serve(async (req) => {
       console.error(`[admin-user-role ${requestId}] replace failed`, rpcErr.code);
       return json(500, { error: 'role_update_failed' });
     }
-    await admin.from('planner_change_log').select('id').limit(0); // no-op keep-alive; audit via security log below
     await admin.rpc('log_security_event', {
       event_type: 'user_roles_replaced',
       event_message: 'Roles replaced via admin-user-role',
