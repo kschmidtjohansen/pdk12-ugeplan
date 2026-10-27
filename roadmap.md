@@ -1,4 +1,8 @@
 # PolyPlan v1.4.1
+## Cross-department calendar actions
+- [ ] Load shared employees' authorized original tasks and preserve source scope.
+- [ ] Enable original-task details/edit/delete/publish/drag with existing permissions and series/undo flows.
+- [ ] Regression tests and documentation; authenticated verification limited by external session.
 ## Calendar drag and resize
 - [x] Desktop/mobile movement, employee reassignment and start/end resizing with multi-employee warning.
 - [x] Existing validation/series/permissions, undo, regression tests and documentation.
