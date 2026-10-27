@@ -218,6 +218,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             onPublishAssignment={canPublishTasks ? onPublishAssignment : undefined}
             onDeleteAssignment={canEdit ? onDeleteAssignment : undefined}
             operationStates={operationStates}
+            crossBusyByDate={crossBusyByDate}
             onPreviousWeek={onPreviousWeek}
             onNextWeek={onNextWeek}
           />

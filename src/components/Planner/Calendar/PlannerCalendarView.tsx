@@ -8,6 +8,7 @@ import { format, parseISO, isSameDay } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { useDateLocale } from '@/hooks/useDateLocale';
 import { Assignment } from '@/types/assignment';
+import type { CrossBusyForDate } from '@/hooks/useCrossSubDeptBusy';
 import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -49,6 +50,8 @@ interface Props {
   onPublishAssignment?: (id: string) => void;
   onDeleteAssignment?: (id: string) => void;
   operationStates?: Record<string, 'publishing' | 'deleting' | 'updating' | null>;
+  /** Busy times from other (sub-)departments — times only, no task details. */
+  crossBusyByDate?: Record<string, CrossBusyForDate>;
 }
 
 
@@ -57,7 +60,7 @@ const dateLabel = (d: string | undefined, dateLocale: Locale) => {
   try { return format(parseISO(d), 'EEE d. MMM yyyy', { locale: dateLocale }); } catch { return d; }
 };
 
-const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onCalendarChange, onPreviousWeek, onNextWeek, onPublishAssignment, onDeleteAssignment, operationStates = {} }) => {
+const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onCalendarChange, onPreviousWeek, onNextWeek, onPublishAssignment, onDeleteAssignment, operationStates = {}, crossBusyByDate }) => {
   const { t: tr } = useTranslation();
   const sensors = useSensors(useSensor(CalendarMouseSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 8 } }), useSensor(KeyboardSensor));
   const [drag, setDrag] = useState<{ task: Assignment; employeeId: string; mode: CalendarDragMode; change: CalendarChange | null } | null>(null);
@@ -266,6 +269,20 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                           style={{ top: (h - DAY_START_HOUR) * HOUR_PX, height: HOUR_PX }}
                           aria-label={`Opret opgave ${hourLabel(h)}`} />
                       ))}
+                      {(crossBusyByDate?.[day]?.ranges.employees.get(e.id) || []).map((r, ri) => {
+                        const s = toMinutes(r.from_time ?? '') ?? 8 * 60;
+                        const en = Math.max(toMinutes(r.to_time ?? '') ?? s + 60, s + 20);
+                        const label = `${r.from_time?.slice(0, 5) ?? ''}–${r.to_time?.slice(0, 5) ?? ''}`;
+                        return (
+                          <div key={`busy-${ri}`} data-testid="calendar-external-busy"
+                            className="absolute inset-x-0.5 z-[4] rounded-md border border-dashed border-border bg-muted/80 text-muted-foreground px-1.5 py-0.5 overflow-hidden pointer-events-none"
+                            style={{ top: slotTopPx(s), height: slotHeightPx(s, en) }}
+                            title={`Optaget andetsteds ${label}`}>
+                            <div className="text-[10px] font-medium">{label}</div>
+                            <div className="text-[10px] leading-tight">Optaget andetsteds</div>
+                          </div>
+                        );
+                      })}
                       {(() => {
                         const range = (a: Assignment): [number, number] => { const s0 = toMinutes(a.fromTime) ?? 8 * 60; return [s0, Math.max(toMinutes(a.toTime) ?? s0 + 60, s0 + 20)]; };
                         const slots = layoutOverlaps(items, range);
