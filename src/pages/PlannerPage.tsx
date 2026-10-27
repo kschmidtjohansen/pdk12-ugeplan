@@ -62,7 +62,7 @@ const PlannerPage: React.FC = () => {
   } = useEmployees();
   const {
     cars
-  } = useCars();
+  } = useCars({ plannerScope: true });
   const {
     vacations
   } = useVacations();
