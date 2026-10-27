@@ -235,7 +235,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
           </Table>
         </div>
         {totalPages > 1 && (
-          <div className="border-t border-border px-4 py-2">
+          <div className="px-2">
             <SimplePagination
               page={page}
               totalPages={totalPages}
