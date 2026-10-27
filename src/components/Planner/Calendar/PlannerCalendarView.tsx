@@ -110,6 +110,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   };
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const [day, setDay] = useState<string>(() => (dates.includes(todayStr) ? todayStr : dates[0]));
+  useEffect(() => { setDrag(null); dragging.current = false; }, [day, canEdit, employees]);
   useEffect(() => { if (!dates.includes(day)) setDay(dates.includes(todayStr) ? todayStr : dates[0]); }, [dates, day, todayStr]);
 
   // Egen kalender først, derefter de andres alfabetisk
@@ -278,7 +279,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                             <TooltipTrigger asChild>
                               <div>
                               <CalendarTask task={a} employeeId={e.id} disabled={!canEdit || !onCalendarChange || busy || saving}
-                                onClick={() => { if (!suppressClick.current) (isTouch ? setTapped(a) : onViewDetails(a)); }}
+                                onClick={() => { if (suppressClick.current) return; if (isTouch) setTapped(a); else onViewDetails(a); }}
                                 startLabel={tr('planner.calendarDrag.resizeStart')} endLabel={tr('planner.calendarDrag.resizeEnd')}
                                 className={cn('absolute z-[5] rounded-md border-l-4 text-left overflow-hidden shadow-sm', !a.published && 'border-dashed opacity-80')}
                                 style={{ top, height, left: `calc(${(slot.column / slot.columns) * 100}% + 2px)`, width: `calc(${100 / slot.columns}% - 4px)`, backgroundColor: c.background, borderColor: c.border, color: c.text }}>

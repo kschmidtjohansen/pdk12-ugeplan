@@ -23,7 +23,7 @@ export function CalendarTask({ task, employeeId, disabled, style, className, chi
 }) {
   const mode: CalendarDragMode = 'move';
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: `${task.id}:${employeeId}:move`, data: { task, employeeId, mode }, disabled });
-  return <div style={style} className={cn(className, isDragging && 'opacity-40')}>
+  return <div data-calendar-task={task.id} style={style} className={cn(className, isDragging && 'opacity-40')} onContextMenu={event => { if (isDragging) event.preventDefault(); }}>
     <Button ref={setNodeRef} variant="ghost" {...attributes} {...listeners} onClick={onClick}
       className={cn('h-full min-h-0 w-full block whitespace-normal rounded-none px-1.5 py-2 text-left text-inherit hover:bg-transparent touch-pan-x touch-pan-y', !disabled && 'cursor-grab active:cursor-grabbing')}>
       {children}

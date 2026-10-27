@@ -74,9 +74,10 @@ describe('Kalendervisningens dagsinterval', () => {
 
   it('placering af en sen aften opgave bliver i dagsgitteret', () => {
     renderView();
-    const slot = screen.getByText('Vagt').closest('button');
+    const slot = screen.getByText('Vagt').closest<HTMLElement>('[data-calendar-task]');
     expect(slot).not.toBeNull();
-    const top = Number.parseFloat(slot!.style.top);
+    if (!slot) throw new Error('Missing calendar task');
+    const top = Number.parseFloat(slot.style.top);
     expect(top).toBeGreaterThan(0);
     expect(top).toBeLessThan(24 * 40);
   });
