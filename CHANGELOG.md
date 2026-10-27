@@ -1,3 +1,9 @@
+## [Unreleased] – security(staged): backend-autorisation P0/P1 (IKKE deployet)
+- Nye rene politikker `src/security/backend/policies.ts` + 32 tests (ferieoprydning, rolleskift, brugeroprettelse, deny-forrang, push-præference, secret-sammenligning).
+- Staged (ikke live) Edge-kode i `supabase/staged/functions/` for vacation-cleanup-assignments, admin-user-role, admin-create-user, swap-duties + send-push patch.
+- Staged SQL `supabase/staged/sql/001_backend_security.sql` (+ rollback): replace_user_roles, apply_absence_cleanup, swap_or_transfer_duty, security_effective_permission_for, strammere user_permissions-RLS.
+- Rollout, validering og rollback: `docs/operations/backend-security-rollout.md`. Live-funktioner og database uændret.
+
 ## [Unreleased] – Personlige lager- og vagtplansrettigheder
 - user_permissions: view_warehouse, manage_warehouse, view_duty, manage_duty. permissions.ts, AuthContext, UserPermissionsPanel, WarehousePage, DutyPage, AppSidebar, MobileBottomNav opdateret; 2 nye tests.
 
