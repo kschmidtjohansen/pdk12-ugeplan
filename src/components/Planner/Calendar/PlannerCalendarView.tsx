@@ -275,11 +275,12 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                         const label = `${r.from_time?.slice(0, 5) ?? ''}–${r.to_time?.slice(0, 5) ?? ''}`;
                         return (
                           <div key={`busy-${ri}`} data-testid="calendar-external-busy"
-                            className="absolute inset-x-0.5 z-[4] rounded-md border border-dashed border-border bg-muted/80 text-muted-foreground px-1.5 py-0.5 overflow-hidden pointer-events-none"
+                            className="absolute inset-x-0.5 z-[4] rounded-md border border-dashed border-border bg-muted/80 text-muted-foreground px-1.5 py-0.5 overflow-hidden "
                             style={{ top: slotTopPx(s), height: slotHeightPx(s, en) }}
-                            title={`Optaget andetsteds ${label}`}>
-                            <div className="text-[10px] font-medium">{label}</div>
-                            <div className="text-[10px] leading-tight">Optaget andetsteds</div>
+                            title={[label, r.title, r.case_number && `Sag: ${r.case_number}`, r.location, r.department_name && `Afd. ${r.department_name}`].filter(Boolean).join('\n')}>
+                            <div className="text-[10px] font-medium">{label}{r.department_name ? ` · ${r.department_name}` : ''}</div>
+                            <div className="text-xs font-semibold leading-tight line-clamp-2">{r.title || 'Optaget andetsteds'}</div>
+                            {slotHeightPx(s, en) > 60 && r.location && <div className="text-[10px] truncate">{r.location}</div>}
                           </div>
                         );
                       })}
