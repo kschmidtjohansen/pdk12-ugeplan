@@ -84,7 +84,8 @@ const cars = {
   todayDriver: 'Today',
   notBookedToday: 'Not booked today',
   selectAtLeastOneSubDepartment: 'Select at least one sub-department',
-  subDepartmentOptionalHint: 'If none are selected, the vehicle is only visible when no sub-department filter is applied.',
+  subDepartmentOptionalHint: 'Selected sub-departments: the vehicle only appears there in the planner (also in other departments) and not under "All". None selected: it appears under "All" in its own department.',
+  visibleInSubDepartments: 'Visible in departments / sub-departments',
   
   // Falck
   falckSubscription: 'Falck',
