@@ -5,6 +5,9 @@
 - Moduler: Vagtplan (fælles header m. afdeling/antal, EmptyState), Lager (antal, Ryd filtre/Tilføj i tom-tilstand), Biler (antal, filtreret tom-tilstand).
 - Tests: `operationsCenter.test.ts`, `OperationsCenter.test.tsx`. Docs: `docs/operations/driftscenter.md`, design-system.md.
 
+## [Unreleased] – Admin: Driftscenter samler drift-faner
+- `AdminPage.tsx`: Web Vitals, Realtime-forbindelser, Auto-publicering og Rolle-rettigheder flyttet som underfaner i Driftscenter. Samme adgang som før (Overblik/Web Vitals/Rolle-rettigheder kun super_admin; administratorer ser Realtime og Auto-publicering).
+
 ## [Unreleased] – Punkt 3: PolyPlan favicon/icon refresh
 - Nyt original P-monogram (#00AEEF på #003E5C) som vektor-master `public/favicon.svg`; alle PNG/ICO genereret fra vektor via `scripts/icons/generate-icons.sh`.
 - Nye: favicon-16/32/48, favicon.ico (16/32/48), icon-maskable-192/512; erstattet: favicon.png (192), apple-touch-icon (180, opaque), icon-192/512.
