@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { DndContext, DragOverlay, MouseSensor, TouchSensor, KeyboardSensor, useSensor, useSensors, pointerWithin, closestCenter, type DragStartEvent, type DragEndEvent, type DragMoveEvent } from '@dnd-kit/core';
+import { DndContext, DragOverlay, TouchSensor, KeyboardSensor, useSensor, useSensors, pointerWithin, closestCenter, type DragStartEvent, type DragEndEvent, type DragMoveEvent } from '@dnd-kit/core';
+import { CalendarMouseSensor } from './CalendarDragElements';
 import { toast } from 'sonner';
 import { CalendarLane, CalendarTask } from './CalendarDragElements';
 import { calendarChange, calendarEmployeeIds, type CalendarChange, type CalendarDragMode } from '@/utils/calendarDrag';
@@ -58,7 +59,7 @@ const dateLabel = (d: string | undefined, dateLocale: Locale) => {
 
 const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onCalendarChange, onPreviousWeek, onNextWeek, onPublishAssignment, onDeleteAssignment, operationStates = {} }) => {
   const { t: tr } = useTranslation();
-  const sensors = useSensors(useSensor(MouseSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 8 } }), useSensor(KeyboardSensor));
+  const sensors = useSensors(useSensor(CalendarMouseSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 8 } }), useSensor(KeyboardSensor));
   const [drag, setDrag] = useState<{ task: Assignment; employeeId: string; mode: CalendarDragMode; change: CalendarChange | null } | null>(null);
   const dragging = React.useRef(false);
   const suppressClick = React.useRef(false);

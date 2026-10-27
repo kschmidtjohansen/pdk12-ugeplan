@@ -1,9 +1,14 @@
 import React from 'react';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { PointerSensor, useDraggable, useDroppable } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Assignment } from '@/types/assignment';
 import type { CalendarDragMode } from '@/utils/calendarDrag';
+
+// Pointer-up remains reliable when Radix prevents synthetic mouse-up; touch uses its own delayed sensor.
+export class CalendarMouseSensor extends PointerSensor {
+  static activators = [{ eventName: 'onPointerDown' as const, handler: ({ nativeEvent }: React.PointerEvent) => nativeEvent.pointerType !== 'touch' && nativeEvent.isPrimary && nativeEvent.button === 0 }];
+}
 
 export function CalendarLane({ id, children, className }: { id: string; children: React.ReactNode; className: string }) {
   const { setNodeRef, isOver } = useDroppable({ id });
