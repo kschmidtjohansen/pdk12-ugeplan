@@ -93,7 +93,7 @@ const EmployeesTable: React.FC<EmployeesTableProps> = ({
 
   // Show empty state
   if (employees.length === 0) {
-    return <div className="p-4" data-testid={isFiltered ? 'employees-empty-filtered' : 'employees-empty'}><EmptyState icon={<Users className="h-8 w-8 text-muted-foreground" />}
+    return <div className="p-4" data-testid={isFiltered ? 'employees-empty-filtered' : 'employees-empty'}><EmptyState variant={isFiltered ? 'filtered' : 'empty'} icon={<Users className="h-8 w-8 text-muted-foreground" />}
       title={isFiltered ? (currentLanguage === 'da' ? 'Ingen medarbejdere matcher' : 'No matching employees') : t('employees.noEmployees')}
       description={isFiltered ? (currentLanguage === 'da' ? 'Prøv en anden status eller søgning.' : 'Try another status or search.') : t('employees.noEmployeesDescription')}
       action={isFiltered && onResetFilters ? { label: currentLanguage === 'da' ? 'Ryd filtre' : 'Clear filters', onClick: onResetFilters } : undefined} /></div>;
