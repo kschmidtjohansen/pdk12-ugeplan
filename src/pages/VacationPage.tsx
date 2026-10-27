@@ -9,11 +9,11 @@ const VacationPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-      <ListPageShell workspace
+      <ListPageShell workspace className="border-t-0 bg-transparent"
         title={t('navigation.vacation')}
         description={t('vacation.pageDescription')}
       >
-        <div className="min-w-0 py-4">
+        <div className="min-w-0 pt-3">
           <VacationPageContainer headerComponent={null} />
         </div>
       </ListPageShell>

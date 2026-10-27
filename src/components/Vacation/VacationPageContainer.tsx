@@ -8,6 +8,10 @@ import { ModuleContext } from '@/components/shared/ModuleListTools';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useQueryClient } from '@tanstack/react-query';
 import ErrorState from '@/components/shared/ErrorState';
+import WorkspaceSection from '@/components/shared/WorkspaceSection';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { useTranslation } from '@/context/TranslationContext';
 import VacationTabContent from './VacationTabContent';
 import VacationHeader from './VacationHeader';
 import VacationDialogs from './VacationDialogs';
@@ -20,6 +24,8 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   const { user, isEffectiveAdmin, isEffectiveServicemedarbejder, effectiveRole, canViewAllVacations, canManageVacations } = useAuth();
   const viewAsServicemedarbejder = isEffectiveServicemedarbejder || effectiveRole === 'fugttekniker';
   const queryClient = useQueryClient();
+  const { t, currentLanguage } = useTranslation();
+  const da = currentLanguage === 'da';
   const { selectedDepartment } = useDepartment();
   const [search, setSearch] = React.useState('');
   const [activeTab, setActiveTab] = React.useState("all");
@@ -144,27 +150,50 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
       {headerComponent}
       <ModuleContext department={selectedDepartment?.name} />
       
-      <VacationHeader 
-        counts={counts}
-        isServicemedarbejder={viewAsServicemedarbejder}
-        activeTab={activeTab}
-        onChangeTab={setActiveTab}
-        onOpenRequestDialog={handleOpenDialog}
-        onOpenAdminDialog={handleOpenAdminDialog}
-      />
-      
-      {/* Vacation tab content with all vacation cards */}
-      {error ? <ErrorState description={error} onRetry={() => { void queryClient.invalidateQueries({ queryKey: ['vacations'] }); }} /> : <VacationTabContent
-        search={search} onSearch={setSearch} onReset={resetFilters}
-        vacations={vacations}
-        tabValue={activeTab}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        isLoading={loading}
-      />}
-      
+      <WorkspaceSection
+        className="mt-2"
+        flush
+        title={da ? 'Ferie og fravær' : 'Time off and absence'}
+        meta={<span data-testid="vacation-total-count">{da ? `${counts.all} anmodninger` : `${counts.all} requests`}{counts.pending > 0 && (da ? ` · ${counts.pending} afventer` : ` · ${counts.pending} pending`)}</span>}
+        actions={activeTab !== 'calendar' && (
+          <>
+            <Button onClick={handleOpenDialog} size="sm" className="min-h-11 flex-1 whitespace-normal sm:flex-none">
+              <Plus className="h-4 w-4" aria-hidden />
+              {t('vacation.applyForVacation')}
+            </Button>
+            {canManageVacations && (
+              <Button onClick={handleOpenAdminDialog} size="sm" variant="outline" className="min-h-11 flex-1 whitespace-normal sm:flex-none">
+                <Plus className="h-4 w-4" aria-hidden />
+                {t('vacation.requestForEmployee')}
+              </Button>
+            )}
+          </>
+        )}
+      >
+        <VacationHeader
+          counts={counts}
+          isServicemedarbejder={viewAsServicemedarbejder}
+          activeTab={activeTab}
+          onChangeTab={setActiveTab}
+        />
+        {error ? (
+          <div className="p-3 sm:p-4">
+            <ErrorState description={error} onRetry={() => { void queryClient.invalidateQueries({ queryKey: ['vacations'] }); }} />
+          </div>
+        ) : (
+          <VacationTabContent
+            search={search} onSearch={setSearch} onReset={resetFilters}
+            vacations={vacations}
+            tabValue={activeTab}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            isLoading={loading}
+          />
+        )}
+      </WorkspaceSection>
+
       <VacationDialogs
         date={date}
         setDate={setDate}
