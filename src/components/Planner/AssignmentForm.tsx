@@ -203,7 +203,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         }
 
         // 2. Check vacations
-        const vacStatus = getEmployeeVacationStatus(empId, dateObj, vacations);
+        const vacStatus = getEmployeeVacationStatus(empId, dateObj, effectiveVacations);
         if (vacStatus.isOnVacation) {
           if (vacStatus.vacationType === 'full_day') {
             conflicts.push({
@@ -254,7 +254,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       }
     }
     return conflicts;
-  }, [formData, effectiveEmployees, vacations, assignments, currentAssignment, trainingRows, t]);
+  }, [formData, effectiveEmployees, effectiveVacations, assignments, currentAssignment, trainingRows, t]);
 
   // Absence reasons that block saving entirely (no "proceed anyway")
   const hasBlockingConflicts = (c: EmployeeConflict[]) =>
@@ -279,6 +279,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Handle form submission with validation + conflict check
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (crossDepartmentEdit && (sourceVacationsLoading || sourceVacationsError)) {
+      toast({ title: t('common.error'), description: t('planner.calendarDrag.availabilityFailed'), variant: 'destructive' });
+      return;
+    }
     if (submittingRef.current) return; // Bloker dobbeltklik/gentaget submit
     if (import.meta.env.DEV) console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
 
@@ -494,7 +498,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           cars={effectiveCars}
           employees={effectiveEmployees}
           employeesLoading={effectiveEmployeesLoading}
-          vacations={vacations}
+          vacations={effectiveVacations}
           assignmentId={currentAssignment?.id}
           departmentId={formDepartmentId}
           assignments={assignments}
@@ -604,7 +608,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
 
       <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-3 flex flex-col sm:flex-row gap-3 z-10">
-        <Button type="submit" disabled={isSubmitting || conflictDetails.length > 0} className="flex-1">
+        <Button type="submit" disabled={isSubmitting || conflictDetails.length > 0 || (crossDepartmentEdit && (sourceVacationsLoading || !!sourceVacationsError))} className="flex-1">
           <Edit3 className="mr-2 h-4 w-4" />
           {isSubmitting ? t('planner.operations.saving') : currentAssignment ? t('common.update') : t('common.create')}
         </Button>

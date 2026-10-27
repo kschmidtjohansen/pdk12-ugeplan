@@ -250,6 +250,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all', calendarDepa
 
   const sourceDepartmentsKey = [...new Set(calendarDepartmentIds)].sort().join(',');
   const queryKey = ['assignments', user?.id, user?.role, filter, selectedDepartmentId, selectedSubDepartmentId, sourceDepartmentsKey];
+  useEffect(() => { setLocalAssignments(null); }, [selectedDepartmentId, selectedSubDepartmentId, sourceDepartmentsKey, user?.id]);
 
   const fetchAssignmentsFn = async (): Promise<Assignment[]> => {
     const local = await fetchAssignmentsForQuery({

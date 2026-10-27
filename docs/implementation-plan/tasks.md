@@ -1,3 +1,9 @@
+## Originale kryds-afdelingskalendere (2026-10-27)
+- [x] Autoriserede originalopgaver med kildeafdeling og samlet overlaplayout i medarbejderkalendere.
+- [x] Eksisterende edit/publish/delete/drag/resize og Fortryd; formularressourcer og serier følger original afdeling.
+- [x] Automatiske regressionstests, lint og previewkontrol; ingen RLS-lempelse eller publicering.
+- [ ] Indlogget kontrol med Dennis' faktiske opgaver — ekstern Supabase-session kan ikke tilgås her.
+
 ## Kalender træk-og-slip (2026-10-27)
 - [x] Hele den farvede opgaveflade som gribeområde, med særskilte resize-håndtag og bevaret detaljeklik.
 - [x] Rettet afbrudt drag ved identisk medarbejderliste-refresh; browserreproduktion før/efter med mus/touch, 261 tests og lint:ci OK.
