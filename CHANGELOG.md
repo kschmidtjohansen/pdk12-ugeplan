@@ -2511,3 +2511,5 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Nye tests: 4 i SubDepartmentQuickSwitcher.test.tsx. QA: 162/162 tests, typecheck grøn, lint 0 fejl.
 
 - Ugeplan: optaget-markering medtager nu publicerede bookinger i andre afdelinger for medarbejdere med adgang til den valgte afdeling (kun tider, ingen opgavedetaljer).
+
+- Ugeplan: biler sorteres efter bilnummer; biler tilknyttet en underafdeling vises ikke under "Alle"; biler på opgaver i anden afdeling vises som optaget.
