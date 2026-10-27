@@ -244,8 +244,20 @@ class UnifiedDataService {
         throw new Error(`Cars fetch failed: ${error.message}`);
       }
 
-      const cars = data || [];
-      return { data: cars, error: null, fromCache: false };
+      let cars = data || [];
+
+      // "Alle": cars assigned to a sub-department belong only there.
+      if (!subDepartmentId && cars.length > 0) {
+        const { data: linked, error: linkedError } = await supabase
+          .from('car_sub_departments')
+          .select('car_id')
+          .in('car_id', cars.map(c => c.id));
+        if (linkedError) throw new Error(`Car sub-department fetch failed: ${linkedError.message}`);
+        const linkedIds = new Set((linked || []).map(r => r.car_id));
+        cars = cars.filter(c => !linkedIds.has(c.id));
+      }
+
+      return { data: sortCarsByNumber(cars), error: null, fromCache: false };
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
