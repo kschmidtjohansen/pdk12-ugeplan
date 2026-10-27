@@ -2,7 +2,7 @@
 - Kalenderen henter originale opgaver via eksisterende autoriserede afdelingslæsninger for brugerens tilgængelige afdelinger, og viser kun andre afdelingers opgaver for kalenderens medarbejdere. Ingen ny RPC, RLS eller kopiering af opgaver.
 - Samme originale opgave-ID bruges til detaljer, højreklik Redigér/Publicér/Slet, mobilhandlinger og drag/resize. Kildeafdeling bevares ved gemning og ved fler-datooprettelse; serier afgrænses efter kildeafdeling. 5 sekunders slette-Fortryd bevaret, afvist sletning gendanner opgaven.
 - Formularens medarbejdere/biler/sagsansvarlige/fravær følger kildeafdelingen; underafdeling fra den viste afdeling kan ikke overføres. Kalenderdrag kontrollerer kildeafdelingens fravær og destinationsmedarbejderens tilknytning.
-- Automatiske regressionstests for originale opgaver, ejerskabsbeskyttelse, publicering, Fortryd, flytning og serieafgrænsning. Indlogget kontrol med Dennis' reelle bookinger ikke tilgængelig (external_unmanaged). Ingen publicering eller manuel ændring af produktionsdata.
+- 272/272 tests bestået, lint:ci og automatisk preview-build OK. Regressioner dækker originale Fugt-opgaver, ejerskabsbeskyttelse, publicering, Fortryd, flytning og serieafgrænsning. Browserkontrol af /planner ender på /login uden runtimefejl; indlogget kontrol med Dennis' reelle bookinger ikke tilgængelig (external_unmanaged). Ingen publicering eller manuel ændring af produktionsdata.
 
 ## [Unreleased] – Kalender: hele opgavefladen kan gribes
 - CalendarDragElements registrerer flytning på hele den farvede opgavecontainer, inklusive kanter og tom plads. Detaljeknappen fylder fladen også ved desktop-breakpoint; start-/sluthåndtag stopper event-bobling til flytning og bevarer særskilt resize.
