@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, cleanup, act } from '@testing-library/react';
+import { render, screen, cleanup, act, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Assignment } from '@/types/assignment';
 import PlannerCalendarView from './PlannerCalendarView';
@@ -52,5 +52,10 @@ describe('Calendar gesture integration', () => {
   it('cancels without saving', async () => {
     const save = setup(); start(); act(() => { captured.props.onDragCancel({}); }); await end({ id: 'two' }); expect(save).not.toHaveBeenCalled();
   });
-  it('still opens existing task details', () => { setup(); expect(screen.getByText('Task')).toBeInTheDocument(); });
+  it('still opens existing task details on a normal click', () => {
+    const open = vi.fn();
+    render(<PlannerCalendarView dates={[task.date]} assignments={[task]} employees={employees} vacations={[]} canEdit onViewDetails={open} />);
+    fireEvent.click(screen.getByText('Task'));
+    expect(open).toHaveBeenCalledExactlyOnceWith(task);
+  });
 });
