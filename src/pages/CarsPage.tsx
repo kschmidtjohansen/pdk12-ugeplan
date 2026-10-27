@@ -93,6 +93,7 @@ const CarsPage: React.FC = () => {
           <ListPageShell workspace
             title={t('navigation.cars')}
             description={t('cars.pageDescription')}
+            meta={loading ? undefined : `${filteredCars.length} / ${cars.length}`}
             actions={
               <>
                 <FalckSubscriptionButton isAdmin={isAdmin} />
@@ -128,7 +129,7 @@ const CarsPage: React.FC = () => {
                 {filteredCars.length === 0 ? (
                   <EmptyState title={cars.length ? (da ? 'Ingen biler matcher' : 'No matching vehicles') : (da ? 'Ingen biler i afdelingen' : 'No vehicles in this department')}
                     description={cars.length ? (da ? 'Prøv en anden status eller søgning.' : 'Try another status or search.') : undefined}
-                    action={cars.length ? { label: da ? 'Ryd filtre' : 'Clear filters', onClick: resetFilters } : undefined} />
+                    variant={cars.length ? 'filtered' : 'empty'} action={cars.length ? { label: da ? 'Ryd filtre' : 'Clear filters', onClick: resetFilters } : undefined} />
                 ) : (
                   <CarsList
                     cars={filteredCars}

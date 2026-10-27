@@ -29,10 +29,10 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 import ErrorState from '@/components/shared/ErrorState';
 
 export default function DutyPage() {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { canManageDuty, canViewDuty } = usePermissions();
   const { user } = useAuth();
-  const { isDutyEnabled, selectedDepartmentId, departments } = useDepartment();
+  const { isDutyEnabled, selectedDepartmentId, departments, selectedDepartment } = useDepartment();
   const canManage = canManageDuty;
 
   const [dialogOpen, setDialogOpen] = useState(false);

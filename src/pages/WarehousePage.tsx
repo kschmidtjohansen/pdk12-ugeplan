@@ -78,6 +78,8 @@ const WarehousePage = () => {
       <ListPageShell
         title={t('warehouse.title')}
         description={t('warehouse.description') || ''}
+        eyebrow={selectedDepartment?.name}
+        meta={loading ? undefined : `${filteredItems.length} / ${items.length}`}
         actions={
           canEdit && (
             <Button onClick={openAddDialog} size="sm">
@@ -123,7 +125,11 @@ const WarehousePage = () => {
             <EmptyState
               title={items.length === 0 ? t('warehouse.empty.title') : t('warehouse.noResults.title')}
               description={items.length === 0 ? t('warehouse.empty.description') : t('warehouse.noResults.description')}
-              icon={items.length === 0 ? <Package className="h-12 w-12" /> : <Search className="h-12 w-12" />}
+              icon={items.length === 0 ? <Package /> : <Search />}
+              variant={items.length === 0 ? 'empty' : 'filtered'}
+              action={items.length === 0
+                ? (canEdit ? { label: t('warehouse.addNew'), onClick: openAddDialog } : undefined)
+                : { label: currentLanguage === 'en' ? 'Clear filters' : 'Ryd filtre', onClick: () => { setSearchQuery(''); setCleanedFilter('all'); setHallFilter('all'); } }}
             />
           </div>
         ) : (
