@@ -149,17 +149,17 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
                 {onApprove && (
                   <Button variant="outline"
                     onClick={() => onApprove(vacation)}
-                    className="min-h-11 px-3 text-xs text-success-soft-foreground hover:bg-success-soft"
+                    className="min-h-11 gap-1.5 border-success-soft-foreground/40 bg-success-soft px-3 text-xs font-semibold text-success-soft-foreground hover:bg-success-soft/80"
                   >
-                    {t('vacation.approve')}
+                    <Check className="h-4 w-4" aria-hidden />{t('vacation.approve')}
                   </Button>
                 )}
                 {onReject && (
                   <Button variant="outline"
                     onClick={() => onReject(vacation)}
-                    className="min-h-11 px-3 text-xs text-destructive-soft-foreground hover:bg-destructive-soft"
+                    className="min-h-11 gap-1.5 border-destructive-soft-foreground/40 px-3 text-xs font-semibold text-destructive-soft-foreground hover:bg-destructive-soft"
                   >
-                    {t('vacation.reject')}
+                    <X className="h-4 w-4" aria-hidden />{t('vacation.reject')}
                   </Button>
                 )}
               </>
@@ -168,9 +168,9 @@ export const EnhancedVacationCard: React.FC<EnhancedVacationCardProps> = ({
             {onEdit && vacation.status === 'pending' && (
               <Button variant="outline"
                 onClick={() => onEdit(vacation)}
-                className="min-h-11 px-3 text-xs text-foreground hover:bg-accent"
+                className="min-h-11 gap-1.5 px-3 text-xs text-foreground hover:bg-accent"
               >
-                {t('common.edit')}
+                <Pencil className="h-4 w-4" aria-hidden />{t('common.edit')}
               </Button>
             )}
             
