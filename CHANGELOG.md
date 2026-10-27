@@ -1,3 +1,8 @@
+## [Unreleased] – Installation: gamle npm-cacheadresser
+- Build-diagnose br_77ccca8c-a289-4d80-9642-e7e1c8c34515 viste DNSResolveFailed ved tarball-download, før kompilering.
+- bun.lock: 474 gamle http://npm-cache.lovable.net/-adresser erstattet af https://registry.npmjs.org/; versionsvalg, afhængighedsmetadata og integritetshashes uændret. Andre registry-adresser urørte.
+- Verifikation: bun install --ignore-scripts --frozen-lockfile med separat tom cache/node_modules i /tmp lykkedes (518 pakker). Kalenderkode, backend og produktionsdata urørte; ingen publicering.
+
 ## [Unreleased] – Kalender: træk, medarbejderskift og tidsjustering
 - Kalenderopgaver kan flyttes i 15-minutters trin, til en anden udførende medarbejder, og justeres via start-/sluthåndtag. dnd-kit med pointer-mus, touch (500 ms hold, scroll-tolerance) og keyboard; forhåndsvisning og Escape/annullering, ingen gemning uden ændring eller ved slip udenfor kolonner.
 - Flere medarbejdere: deduplikerede ID'er fra begge eksisterende felter; aktivering viser advarsel og hverken flytning eller resize gemmes. Samme canEdit og operationStates, øvrige kalenderhandlinger bevaret.
