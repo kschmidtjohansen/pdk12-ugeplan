@@ -22,6 +22,8 @@ export interface Assignment {
   createdAt?: string;
   updatedAt?: string;
   groupId?: string;
+  departmentId?: string | null;
+  departmentName?: string;
   subDepartmentId?: string | null;
   responsibleUser?: {
     id: string;

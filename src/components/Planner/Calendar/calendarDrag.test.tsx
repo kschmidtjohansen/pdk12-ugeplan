@@ -28,6 +28,11 @@ const setup = (canEdit = true, source = task) => {
 const start = (source = task, mode = 'move') => act(() => { captured.props.onDragStart({ active: { data: { current: { task: source, employeeId: 'one', mode } } } }); });
 const end = (over: { id: string } | null, y = 80) => act(async () => { await captured.props.onDragEnd({ delta: { x: 0, y }, over }); });
 describe('Calendar gesture integration', () => {
+  it('moves the original 03 task from the 14 calendar without changing its ownership', async () => {
+    const external = { ...task, departmentId: '03', departmentName: '03' };
+    const save = setup(true, external); start(external); await end({ id: 'two' });
+    expect(save).toHaveBeenCalledExactlyOnceWith(external, { fromTime: '10:00', toTime: '12:00', employeeId: 'two' });
+  });
   it('commits time movement and another employee exactly once', async () => {
     const save = setup(); start(); await end({ id: 'two' });
     expect(save).toHaveBeenCalledExactlyOnceWith(task, { fromTime: '10:00', toTime: '12:00', employeeId: 'two' });

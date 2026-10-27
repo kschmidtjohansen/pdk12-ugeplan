@@ -113,6 +113,7 @@ const convertToAssignment = (
     responsibleUser: data.responsible_user,
     case_number: data.case_number,
     groupId: data.group_id || undefined,
+    departmentId: data.department_id ?? null,
     subDepartmentId: data.sub_department_id ?? null,
     lat: data.lat ?? undefined,
     lng: data.lng ?? undefined
@@ -205,7 +206,7 @@ export const fetchAssignmentsForQuery = async ({
 
   return result.map(data => {
     try {
-      return convertToAssignment(data, allEmployees, profileFallback);
+      return { ...convertToAssignment(data, allEmployees, profileFallback), departmentId: selectedDepartmentId ?? null };
     } catch (conversionError) {
       if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Error converting assignment:', conversionError);
       return {
@@ -231,7 +232,7 @@ export const fetchAssignmentsForQuery = async ({
   });
 };
 
-export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimizedAssignmentsResult => {
+export const useOptimizedAssignments = (filter: FilterType = 'all', calendarDepartmentIds: string[] = []): UseOptimizedAssignmentsResult => {
   const { user, isAuthenticated, authReady } = useAuth();
   const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
   const { toast } = useToast();
@@ -247,10 +248,12 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     setOperationStates(prev => ({ ...prev, [id]: state }));
   }, []);
 
-  const queryKey = ['assignments', user?.id, user?.role, filter, selectedDepartmentId, selectedSubDepartmentId];
+  const sourceDepartmentsKey = [...new Set(calendarDepartmentIds)].sort().join(',');
+  const queryKey = ['assignments', user?.id, user?.role, filter, selectedDepartmentId, selectedSubDepartmentId, sourceDepartmentsKey];
+  useEffect(() => { setLocalAssignments(null); }, [selectedDepartmentId, selectedSubDepartmentId, sourceDepartmentsKey, user?.id]);
 
   const fetchAssignmentsFn = async (): Promise<Assignment[]> => {
-    return fetchAssignmentsForQuery({
+    const local = await fetchAssignmentsForQuery({
       userId: user?.id,
       userRole: user?.role,
       userEmail: user?.email,
@@ -259,6 +262,17 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       selectedSubDepartmentId,
       allEmployees,
     });
+    if (!selectedDepartmentId || user?.email === 'test@polygongroup.com') return local;
+    const external = await Promise.all(sourceDepartmentsKey.split(',').filter(id => id && id !== selectedDepartmentId).map(async departmentId => {
+      // Existing source-department RPC enforces the caller's access; no busy RPC is promoted to editable data.
+      const { data: subDepartments, error } = await supabase.from('sub_departments').select('id').eq('department_id', departmentId);
+      if (error) throw error;
+      const scopes: (string | null)[] = [null, ...(subDepartments ?? []).map(sd => sd.id)];
+      const tasks = await Promise.all(scopes.map(subDepartmentId => fetchAssignmentsForQuery({ userId: user?.id, userRole: user?.role, userEmail: user?.email,
+        filter, selectedDepartmentId: departmentId, selectedSubDepartmentId: subDepartmentId, allEmployees })));
+      return tasks.flat();
+    }));
+    return [...new Map([...local, ...external.flat()].map(task => [task.id, task])).values()];
   };
 
   const { data: queryData, isLoading, error: queryError, refetch: queryRefetch } = useQuery({
@@ -392,7 +406,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
 
       const dates = (data as Partial<Assignment> & { dates?: string[] }).dates?.length
         ? (data as Partial<Assignment> & { dates?: string[] }).dates
-        : [data.date!];
+        : [data.date];
       
       if (!dates || dates.length === 0 || !dates[0]) throw new Error(t('planner.validation.dateRequired'));
 
@@ -544,6 +558,9 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
       if (!dates || dates.length === 0 || !dates[0]) throw new Error('Date is required');
       
       const originalAssignment = assignments.find(a => a.id === id);
+      if (originalAssignment?.departmentId && data.departmentId && originalAssignment.departmentId !== data.departmentId) {
+        throw new Error('Opgavens afdeling kan ikke ændres her.');
+      }
       
       // MULTI-DATE UPDATE
       if (dates.length > 1) {
@@ -572,6 +589,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         for (let i = 1; i < dates.length; i++) {
           try {
             const newData = { ...firstDateServiceData, assignment_date: dates[i], type: data.type || null };
+            Object.assign(newData, { department_id: originalAssignment?.departmentId ?? selectedDepartmentId });
             const created = await OptimizedAssignmentService.createAssignment(newData, user.email);
             await PlannerChangeLogger.logCreate(created.id, { title: newData.title, date: dates[i], location: newData.location, fromTime: newData.from_time, toTime: newData.to_time, case_number: newData.case_number, employees: newData.employees, cars: newData.car_ids });
           } catch (err) {
@@ -671,8 +689,10 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
     const timeoutId = setTimeout(async () => {
       if (cancelled) return;
       try {
-        await OptimizedAssignmentService.deleteAssignment(id, user.email);
+        const deleted = await OptimizedAssignmentService.deleteAssignment(id, user.email);
+        if (!deleted) throw new Error(t('planner.errorDeletingAssignment'));
         setOperationState(id, null);
+        await refetch();
       } catch (error) {
         if (import.meta.env.DEV) console.error('[useOptimizedAssignments] Delete failed:', error);
         setOperationState(id, null);
@@ -697,7 +717,7 @@ export const useOptimizedAssignments = (filter: FilterType = 'all'): UseOptimize
         }
       }, t('planner.undo')) as unknown as ToastActionElement,
     });
-  }, [toast, t, setOperationState, setAssignments, assignments, user]);
+  }, [toast, t, setOperationState, setAssignments, assignments, user, refetch]);
 
   const publishAssignment = useCallback(async (id: string) => {
     notifyOwnAction();

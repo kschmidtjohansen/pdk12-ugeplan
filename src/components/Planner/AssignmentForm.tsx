@@ -67,27 +67,31 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   const { userSubDepartments, selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
+  const formDepartmentId = currentAssignment?.departmentId ?? selectedDepartmentId;
+  const crossDepartmentEdit = formDepartmentId !== selectedDepartmentId;
   const { isDemoMode } = useAuth();
   const queryClient = useQueryClient();
 
   // Resources must follow the sub-department chosen IN the form, not the planner page filter.
   const formSubDeptId = formData.subDepartmentId === undefined ? (selectedSubDepartmentId || null) : formData.subDepartmentId;
-  const needsOwnResources = !isDemoMode && !!selectedDepartmentId && formSubDeptId !== (selectedSubDepartmentId || null);
+  const needsOwnResources = !isDemoMode && !!formDepartmentId && (crossDepartmentEdit || formSubDeptId !== (selectedSubDepartmentId || null));
   const { data: formEmployees, isLoading: formEmployeesLoading } = useQuery({
-    queryKey: ['assignment-form-employees', selectedDepartmentId, formSubDeptId],
+    queryKey: ['assignment-form-employees', formDepartmentId, formSubDeptId],
     enabled: needsOwnResources,
     queryFn: async () => {
-      const res = await unifiedDataService.fetchEmployees(selectedDepartmentId!, formSubDeptId);
+      if (!formDepartmentId) throw new Error('Afdeling mangler');
+      const res = await unifiedDataService.fetchEmployees(formDepartmentId, formSubDeptId);
       if (res.error) throw new Error(res.error);
       return res.data as Employee[];
     },
     staleTime: 60_000,
   });
   const { data: formCars } = useQuery({
-    queryKey: ['assignment-form-cars', selectedDepartmentId, formSubDeptId],
+    queryKey: ['assignment-form-cars', formDepartmentId, formSubDeptId],
     enabled: needsOwnResources,
     queryFn: async () => {
-      const res = await unifiedDataService.fetchCars(selectedDepartmentId!, formSubDeptId);
+      if (!formDepartmentId) throw new Error('Afdeling mangler');
+      const res = await unifiedDataService.fetchCars(formDepartmentId, formSubDeptId);
       if (res.error) throw new Error(res.error);
       return res.data as Car[];
     },
@@ -96,6 +100,17 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const effectiveEmployees = needsOwnResources ? (formEmployees || []) : employees;
   const effectiveCars = needsOwnResources ? (formCars || []) : cars;
   const effectiveEmployeesLoading = needsOwnResources ? formEmployeesLoading : employeesLoading;
+  const { data: sourceVacations = [], isLoading: sourceVacationsLoading, error: sourceVacationsError } = useQuery({
+    queryKey: ['assignment-form-vacations', formDepartmentId],
+    enabled: crossDepartmentEdit && !!formDepartmentId,
+    queryFn: async () => {
+      if (!formDepartmentId) throw new Error('Afdeling mangler');
+      const { data, error } = await supabase.from('vacations').select('*').eq('department_id', formDepartmentId).eq('status', 'approved');
+      if (error) throw error;
+      return data as Vacation[];
+    },
+  });
+  const effectiveVacations = crossDepartmentEdit ? sourceVacations : vacations;
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = React.useRef(false);
@@ -188,7 +203,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
         }
 
         // 2. Check vacations
-        const vacStatus = getEmployeeVacationStatus(empId, dateObj, vacations);
+        const vacStatus = getEmployeeVacationStatus(empId, dateObj, effectiveVacations);
         if (vacStatus.isOnVacation) {
           if (vacStatus.vacationType === 'full_day') {
             conflicts.push({
@@ -239,7 +254,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
       }
     }
     return conflicts;
-  }, [formData, effectiveEmployees, vacations, assignments, currentAssignment, trainingRows, t]);
+  }, [formData, effectiveEmployees, effectiveVacations, assignments, currentAssignment, trainingRows, t]);
 
   // Absence reasons that block saving entirely (no "proceed anyway")
   const hasBlockingConflicts = (c: EmployeeConflict[]) =>
@@ -264,6 +279,10 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   // Handle form submission with validation + conflict check
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (crossDepartmentEdit && (sourceVacationsLoading || sourceVacationsError)) {
+      toast({ title: t('common.error'), description: t('planner.calendarDrag.availabilityFailed'), variant: 'destructive' });
+      return;
+    }
     if (submittingRef.current) return; // Bloker dobbeltklik/gentaget submit
     if (import.meta.env.DEV) console.log('[AssignmentForm] === FORM SUBMISSION DEBUG ===');
 
@@ -324,7 +343,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   const setResponsibleUserById = (userId: string) => {
     if (userId) {
-      const candidates = queryClient.getQueryData<Employee[]>(['responsible-user-candidates', selectedDepartmentId]) || [];
+      const candidates = queryClient.getQueryData<Employee[]>(['responsible-user-candidates', formDepartmentId]) || [];
       const user = effectiveEmployees.find(emp => emp.id === userId)
         || employees.find(emp => emp.id === userId)
         || candidates.find(emp => emp.id === userId);
@@ -418,7 +437,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
         </h2>
 
-        {userSubDepartments.length > 0 && (
+        {userSubDepartments.length > 0 && !crossDepartmentEdit && (
           <div className="space-y-1.5">
             <Label htmlFor="sub-department">Underafdeling</Label>
             <Select
@@ -479,8 +498,9 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           cars={effectiveCars}
           employees={effectiveEmployees}
           employeesLoading={effectiveEmployeesLoading}
-          vacations={vacations}
+          vacations={effectiveVacations}
           assignmentId={currentAssignment?.id}
+          departmentId={formDepartmentId}
           assignments={assignments}
           zipCode={zipCode}
           setZipCode={setZipCode}
@@ -588,7 +608,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
 
       <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-3 flex flex-col sm:flex-row gap-3 z-10">
-        <Button type="submit" disabled={isSubmitting || conflictDetails.length > 0} className="flex-1">
+        <Button type="submit" disabled={isSubmitting || conflictDetails.length > 0 || (crossDepartmentEdit && (sourceVacationsLoading || !!sourceVacationsError))} className="flex-1">
           <Edit3 className="mr-2 h-4 w-4" />
           {isSubmitting ? t('planner.operations.saving') : currentAssignment ? t('common.update') : t('common.create')}
         </Button>

@@ -22,6 +22,7 @@ import type { CalendarChange } from '@/utils/calendarDrag';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
+  calendarAssignments?: Assignment[];
   /** All assignments already loaded by PlannerPage — used for case series lookups. */
   allAssignments?: Assignment[];
   resourceAssignments?: Assignment[];
@@ -56,6 +57,7 @@ interface PlannerContentProps {
 
 const PlannerContent: React.FC<PlannerContentProps> = ({
   weekAssignments = [],
+  calendarAssignments = [],
   allAssignments = [],
   resourceAssignments,
   filtersActive = false,
@@ -207,7 +209,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
         <PlannerWidgetErrorBoundary label="Calendar">
           <PlannerCalendarView
             dates={weekDateStrings.length ? weekDateStrings : getAllWeekDays(weekDates)}
-            assignments={weekAssignments}
+            assignments={[...weekAssignments, ...calendarAssignments]}
             employees={employees}
             vacations={vacations || []}
             onViewDetails={setDetailsDialogAssignment}

@@ -17,25 +17,29 @@ import { isEligibleResponsibleUser } from '@/utils/responsibleUsers';
 interface ResponsibleUserSelectorProps {
   selectedUserId: string;
   onUserSelect: (userId: string) => void;
+  departmentId?: string | null;
 }
 
 const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
   selectedUserId,
-  onUserSelect
+  onUserSelect,
+  departmentId
 }) => {
   const { t } = useTranslation();
   const { employees: scopedEmployees } = useEmployees();
   const { user, isDemoMode } = useAuth();
   const { selectedDepartmentId } = useDepartment();
+  const sourceDepartmentId = departmentId ?? selectedDepartmentId;
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
   // Case managers are chosen from the whole department, regardless of the sub-department filter.
   const { data: departmentEmployees } = useQuery({
-    queryKey: ['responsible-user-candidates', selectedDepartmentId],
-    enabled: !isDemoMode && !!selectedDepartmentId,
+    queryKey: ['responsible-user-candidates', sourceDepartmentId],
+    enabled: !isDemoMode && !!sourceDepartmentId,
     queryFn: async () => {
-      const res = await unifiedDataService.fetchEmployees(selectedDepartmentId!, null);
+      if (!sourceDepartmentId) throw new Error('Afdeling mangler');
+      const res = await unifiedDataService.fetchEmployees(sourceDepartmentId, null);
       if (res.error) throw new Error(res.error);
       return res.data as Employee[];
     },
@@ -44,9 +48,9 @@ const ResponsibleUserSelector: React.FC<ResponsibleUserSelectorProps> = ({
 
   const employees: Employee[] = React.useMemo(() => {
     const map = new Map<string, Employee>();
-    [...(departmentEmployees || []), ...scopedEmployees].forEach(e => { if (!map.has(e.id)) map.set(e.id, e); });
+    [...(departmentEmployees || []), ...(sourceDepartmentId === selectedDepartmentId ? scopedEmployees : [])].forEach(e => { if (!map.has(e.id)) map.set(e.id, e); });
     return Array.from(map.values());
-  }, [departmentEmployees, scopedEmployees]);
+  }, [departmentEmployees, scopedEmployees, sourceDepartmentId, selectedDepartmentId]);
 
   const eligibleUsers = employees.filter(isEligibleResponsibleUser);
   
