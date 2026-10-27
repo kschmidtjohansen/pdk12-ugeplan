@@ -67,27 +67,31 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const { t } = useTranslation();
   const { canEdit, canPublishTasks } = usePermissions();
   const { userSubDepartments, selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
+  const formDepartmentId = currentAssignment?.departmentId ?? selectedDepartmentId;
+  const crossDepartmentEdit = formDepartmentId !== selectedDepartmentId;
   const { isDemoMode } = useAuth();
   const queryClient = useQueryClient();
 
   // Resources must follow the sub-department chosen IN the form, not the planner page filter.
   const formSubDeptId = formData.subDepartmentId === undefined ? (selectedSubDepartmentId || null) : formData.subDepartmentId;
-  const needsOwnResources = !isDemoMode && !!selectedDepartmentId && formSubDeptId !== (selectedSubDepartmentId || null);
+  const needsOwnResources = !isDemoMode && !!formDepartmentId && (crossDepartmentEdit || formSubDeptId !== (selectedSubDepartmentId || null));
   const { data: formEmployees, isLoading: formEmployeesLoading } = useQuery({
-    queryKey: ['assignment-form-employees', selectedDepartmentId, formSubDeptId],
+    queryKey: ['assignment-form-employees', formDepartmentId, formSubDeptId],
     enabled: needsOwnResources,
     queryFn: async () => {
-      const res = await unifiedDataService.fetchEmployees(selectedDepartmentId!, formSubDeptId);
+      if (!formDepartmentId) throw new Error('Afdeling mangler');
+      const res = await unifiedDataService.fetchEmployees(formDepartmentId, formSubDeptId);
       if (res.error) throw new Error(res.error);
       return res.data as Employee[];
     },
     staleTime: 60_000,
   });
   const { data: formCars } = useQuery({
-    queryKey: ['assignment-form-cars', selectedDepartmentId, formSubDeptId],
+    queryKey: ['assignment-form-cars', formDepartmentId, formSubDeptId],
     enabled: needsOwnResources,
     queryFn: async () => {
-      const res = await unifiedDataService.fetchCars(selectedDepartmentId!, formSubDeptId);
+      if (!formDepartmentId) throw new Error('Afdeling mangler');
+      const res = await unifiedDataService.fetchCars(formDepartmentId, formSubDeptId);
       if (res.error) throw new Error(res.error);
       return res.data as Car[];
     },
@@ -324,7 +328,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
 
   const setResponsibleUserById = (userId: string) => {
     if (userId) {
-      const candidates = queryClient.getQueryData<Employee[]>(['responsible-user-candidates', selectedDepartmentId]) || [];
+      const candidates = queryClient.getQueryData<Employee[]>(['responsible-user-candidates', formDepartmentId]) || [];
       const user = effectiveEmployees.find(emp => emp.id === userId)
         || employees.find(emp => emp.id === userId)
         || candidates.find(emp => emp.id === userId);
@@ -418,7 +422,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           {currentAssignment ? t('planner.editAssignment') : t('planner.createNew')}
         </h2>
 
-        {userSubDepartments.length > 0 && (
+        {userSubDepartments.length > 0 && !crossDepartmentEdit && (
           <div className="space-y-1.5">
             <Label htmlFor="sub-department">Underafdeling</Label>
             <Select

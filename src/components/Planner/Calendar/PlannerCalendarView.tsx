@@ -14,7 +14,7 @@ import { Vacation } from '@/types/vacation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ChevronDown, Users, Send, Trash2 } from 'lucide-react';
+import { ChevronDown, Users, Send, Trash2, Pencil } from 'lucide-react';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import { getEmployeeColor } from './employeeColors';
@@ -269,7 +269,9 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                           style={{ top: (h - DAY_START_HOUR) * HOUR_PX, height: HOUR_PX }}
                           aria-label={`Opret opgave ${hourLabel(h)}`} />
                       ))}
-                      {(crossBusyByDate?.[day]?.ranges.employees.get(e.id) || []).map((r, ri) => {
+                      {(crossBusyByDate?.[day]?.ranges.employees.get(e.id) || []).filter(r => !items.some(a =>
+                        a.fromTime.slice(0, 5) === r.from_time?.slice(0, 5) && a.toTime.slice(0, 5) === r.to_time?.slice(0, 5) && a.title === r.title
+                      )).map((r, ri) => {
                         const s = toMinutes(r.from_time ?? '') ?? 8 * 60;
                         const en = Math.max(toMinutes(r.to_time ?? '') ?? s + 60, s + 20);
                         const label = `${r.from_time?.slice(0, 5) ?? ''}–${r.to_time?.slice(0, 5) ?? ''}`;
@@ -305,7 +307,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                                 startLabel={tr('planner.calendarDrag.resizeStart')} endLabel={tr('planner.calendarDrag.resizeEnd')}
                                 className={cn('absolute z-[5] rounded-md border-l-4 text-left overflow-hidden shadow-sm', !a.published && 'border-dashed opacity-80')}
                                 style={{ top, height, left: `calc(${(slot.column / slot.columns) * 100}% + 2px)`, width: `calc(${100 / slot.columns}% - 4px)`, backgroundColor: c.background, borderColor: c.border, color: c.text }}>
-                                <div className="text-[10px] font-medium opacity-80">{timeLabel}</div>
+                                <div className="text-[10px] font-medium opacity-80">{timeLabel}{a.departmentName ? ` · ${a.departmentName}` : ''}</div>
                                 <div className="text-xs font-semibold leading-tight line-clamp-2">{a.title}</div>
                                 {height > 60 && <div className="text-[10px] opacity-80 truncate">{a.location}</div>}
                               </CalendarTask>
@@ -320,8 +322,9 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                               {a.location && <div className="text-[11px] opacity-90">{tr('ui.addressLabel')}: {a.location}</div>}
                             </TooltipContent>
                           </Tooltip>
-                          {(onPublishAssignment && !a.published) || onDeleteAssignment ? (
+                          {(canEdit && onEditAssignment) || (onPublishAssignment && !a.published) || onDeleteAssignment ? (
                             <ContextMenuContent>
+                              {canEdit && onEditAssignment && <ContextMenuItem disabled={busy} onClick={() => onEditAssignment(a)} className="gap-2"><Pencil className="h-4 w-4" />{tr('common.edit')}</ContextMenuItem>}
                               {onPublishAssignment && !a.published && (
                                 <ContextMenuItem disabled={busy} onClick={() => onPublishAssignment(a.id)} className="gap-2"><Send className="h-4 w-4" />{tr('planner.publish')}</ContextMenuItem>
                               )}
