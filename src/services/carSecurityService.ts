@@ -2,9 +2,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { getSchemaClient } from '@/integrations/supabase/demoSchemaClient';
 import { CarData } from '@/components/Cars/types';
 import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { carIdsForSubDepartment, carIdsLinkedInDepartment } from '@/services/data/carScope';
+import { sortCarsByNumber } from '@/utils/sortCars';
 
 export class CarSecurityService {
-  static async fetchCars(canViewFuelCardCode: boolean, departmentId?: string, subDepartmentId?: string | null): Promise<CarData[]> {
+  static async fetchCars(canViewFuelCardCode: boolean, departmentId?: string, subDepartmentId?: string | null, excludeSubDepartmentCars = false): Promise<CarData[]> {
     try {
       const isDemoMode = sessionStorage.getItem('demo-mode') === 'true';
       const client = getSchemaClient(isDemoMode);

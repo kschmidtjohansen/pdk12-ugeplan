@@ -1,4 +1,5 @@
 import { sortCarsByNumber } from "@/utils/sortCars";
+import { carIdsForSubDepartment, carIdsLinkedInDepartment } from "@/services/data/carScope";
 
 import { supabase } from '@/integrations/supabase/client';
 import { getEffectiveRole } from '@/utils/roleHierarchy';
