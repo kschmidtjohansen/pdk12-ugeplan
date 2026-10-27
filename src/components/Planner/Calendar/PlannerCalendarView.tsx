@@ -1,4 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { DndContext, DragOverlay, TouchSensor, KeyboardSensor, useSensor, useSensors, pointerWithin, closestCenter, type DragStartEvent, type DragEndEvent, type DragMoveEvent } from '@dnd-kit/core';
+import { CalendarMouseSensor } from './CalendarDragElements';
+import { toast } from 'sonner';
+import { CalendarLane, CalendarTask } from './CalendarDragElements';
+import { calendarChange, calendarEmployeeIds, type CalendarChange, type CalendarDragMode } from '@/utils/calendarDrag';
 import { format, parseISO, isSameDay } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { useDateLocale } from '@/hooks/useDateLocale';
@@ -38,6 +43,7 @@ interface Props {
   onCreateAssignment?: (date: string) => void;
   canEdit: boolean;
   onEditAssignment?: (a: Assignment) => void;
+  onCalendarChange?: (a: Assignment, change: CalendarChange) => Promise<void>;
   onPreviousWeek?: () => void;
   onNextWeek?: () => void;
   onPublishAssignment?: (id: string) => void;
@@ -51,8 +57,39 @@ const dateLabel = (d: string | undefined, dateLocale: Locale) => {
   try { return format(parseISO(d), 'EEE d. MMM yyyy', { locale: dateLocale }); } catch { return d; }
 };
 
-const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onPreviousWeek, onNextWeek, onPublishAssignment, onDeleteAssignment, operationStates = {} }) => {
+const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, vacations, onViewDetails, onCreateAssignment, canEdit, onEditAssignment, onCalendarChange, onPreviousWeek, onNextWeek, onPublishAssignment, onDeleteAssignment, operationStates = {} }) => {
   const { t: tr } = useTranslation();
+  const sensors = useSensors(useSensor(CalendarMouseSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 8 } }), useSensor(KeyboardSensor));
+  const [drag, setDrag] = useState<{ task: Assignment; employeeId: string; mode: CalendarDragMode; change: CalendarChange | null } | null>(null);
+  const dragging = React.useRef(false);
+  const suppressClick = React.useRef(false);
+  const [saving, setSaving] = useState(false);
+  const startDrag = ({ active }: DragStartEvent) => {
+    dragging.current = true; suppressClick.current = true;
+    const data = active.data.current;
+    if (!data?.task || !canEdit || saving) return;
+    const task = data.task as Assignment;
+    if (calendarEmployeeIds(task).length > 1) { toast.warning(tr('planner.calendarDrag.multipleEmployees')); return; }
+    setDrag({ task, employeeId: data.employeeId as string, mode: data.mode as CalendarDragMode, change: null });
+  };
+  const moveDrag = ({ delta, over }: DragMoveEvent) => {
+    if (!drag) return;
+    const employeeId = over ? String(over.id) : drag.employeeId;
+    setDrag({ ...drag, change: calendarChange(drag.task, drag.mode, delta.y, employeeId) });
+  };
+  const finishDrag = async ({ delta, over }: DragEndEvent) => {
+    dragging.current = false;
+    setTimeout(() => { suppressClick.current = false; }, 100);
+    const current = drag; setDrag(null);
+    if (!current || !over || !canEdit || !onCalendarChange || saving) return;
+    const employeeId = String(over.id);
+    if (!employees.some(e => e.id === employeeId)) return;
+    const change = calendarChange(current.task, current.mode, delta.y, employeeId);
+    if (!change || (change.fromTime === current.task.fromTime.slice(0, 5) && change.toTime === current.task.toTime.slice(0, 5) && change.employeeId === current.employeeId)) return;
+    setSaving(true);
+    try { await onCalendarChange(current.task, change); } catch { /* Existing save handler reports failures and rolls back. */ }
+    finally { setSaving(false); }
+  };
   const { user } = useAuth();
   const dateLocale = useDateLocale();
   const swipeRef = React.useRef<{ x: number; y: number; scroller: Element | null; scrollLeft: number } | null>(null);
@@ -64,6 +101,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
     swipeRef.current = { x: t.clientX, y: t.clientY, scroller, scrollLeft: scroller?.scrollLeft ?? 0 };
   };
   const onTouchEnd = (e: React.TouchEvent) => {
+    if (dragging.current || suppressClick.current) { swipeRef.current = null; return; }
     const st = swipeRef.current; swipeRef.current = null; if (!st) return;
     const t = e.changedTouches[0]; const dx = t.clientX - st.x; const dy = t.clientY - st.y;
     if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
@@ -73,6 +111,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   };
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const [day, setDay] = useState<string>(() => (dates.includes(todayStr) ? todayStr : dates[0]));
+  useEffect(() => { setDrag(null); dragging.current = false; }, [day, canEdit, employees]);
   useEffect(() => { if (!dates.includes(day)) setDay(dates.includes(todayStr) ? todayStr : dates[0]); }, [dates, day, todayStr]);
 
   // Egen kalender først, derefter de andres alfabetisk
@@ -124,6 +163,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
   }, [day, todayStr, nowMin, lanes.length]);
 
   return (
+    <DndContext sensors={sensors} autoScroll={drag?.mode === 'move'} collisionDetection={args => args.pointerCoordinates ? pointerWithin(args) : closestCenter(args)} onDragStart={startDrag} onDragMove={moveDrag} onDragEnd={finishDrag} onDragCancel={() => { dragging.current = false; setDrag(null); setTimeout(() => { suppressClick.current = false; }, 100); }}>
     <TooltipProvider delayDuration={300}>
     <div className="flex flex-col lg:flex-row gap-3 lg:gap-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Filterkolonne — sammenklappelig på mobil */}
@@ -215,7 +255,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                   const items = dayAssignments.filter(a => a.assignedEmployees?.some(x => x.id === e.id) || a.employees?.includes(e.id));
                   const c = getEmployeeColor(e.id, sorted.findIndex(s => s.id === e.id));
                   return (
-                    <div key={e.id} className={cn('flex-1 min-w-[130px] sm:min-w-[150px] border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
+                    <CalendarLane key={e.id} id={e.id} className={cn('flex-1 min-w-[130px] sm:min-w-[150px] border-l border-border relative', absentOn(e.id) && 'bg-muted/40')}>
                       {hours.map(h => (
                         <button key={h} type="button" disabled={!canEdit || !onCreateAssignment}
                           onClick={() => onCreateAssignment?.(day)}
@@ -238,13 +278,17 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                           <Tooltip delayDuration={300}>
                             <ContextMenuTrigger asChild>
                             <TooltipTrigger asChild>
-                              <button type="button" onClick={() => (isTouch ? setTapped(a) : onViewDetails(a))}
-                                className={cn('absolute z-[5] rounded-md border-l-4 px-1.5 py-1 text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow', !a.published && 'border-dashed opacity-80')}
+                              <div>
+                              <CalendarTask task={a} employeeId={e.id} disabled={!canEdit || !onCalendarChange || busy || saving}
+                                onClick={() => { if (suppressClick.current) return; if (isTouch) setTapped(a); else onViewDetails(a); }}
+                                startLabel={tr('planner.calendarDrag.resizeStart')} endLabel={tr('planner.calendarDrag.resizeEnd')}
+                                className={cn('absolute z-[5] rounded-md border-l-4 text-left overflow-hidden shadow-sm', !a.published && 'border-dashed opacity-80')}
                                 style={{ top, height, left: `calc(${(slot.column / slot.columns) * 100}% + 2px)`, width: `calc(${100 / slot.columns}% - 4px)`, backgroundColor: c.background, borderColor: c.border, color: c.text }}>
                                 <div className="text-[10px] font-medium opacity-80">{timeLabel}</div>
                                 <div className="text-xs font-semibold leading-tight line-clamp-2">{a.title}</div>
                                 {height > 60 && <div className="text-[10px] opacity-80 truncate">{a.location}</div>}
-                              </button>
+                              </CalendarTask>
+                              </div>
                             </TooltipTrigger>
                             </ContextMenuTrigger>
                             <TooltipContent side="right" className="max-w-64 p-2.5">
@@ -270,7 +314,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
                       });
                       })()}
                       {showNow && li >= 0 && <div className="absolute inset-x-0 z-[6] h-0.5 bg-destructive pointer-events-none" style={{ top: minuteToPx(nowMin) }} />}
-                    </div>
+                    </CalendarLane>
                   );
                 })}
               </div>
@@ -306,6 +350,8 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
       )}
     </div>
     </TooltipProvider>
+    <DragOverlay dropAnimation={null}>{drag && <div className="rounded-md border-2 border-primary bg-card text-card-foreground p-2 shadow-sm text-xs pointer-events-none"><strong className="block truncate">{drag.task.title}</strong><span>{drag.change?.fromTime ?? drag.task.fromTime.slice(0, 5)}–{drag.change?.toTime ?? drag.task.toTime.slice(0, 5)}</span><span className="block truncate">{employees.find(e => e.id === (drag.change?.employeeId ?? drag.employeeId))?.name}</span></div>}</DragOverlay>
+    </DndContext>
   );
 };
 

@@ -1,3 +1,9 @@
+## Kalender træk-og-slip (2026-10-27)
+- [x] Mus/touch-flytning, medarbejderskift, start/slut-resize, flermedarbejderadvarsel og forhåndsvisning.
+- [x] Eksisterende permissions, fuldt payload, fravær/kursus/overlap, serievalg og Fortryd; ingen nye backend writes/deploy.
+- [x] 259 tests, lint:ci og automatisk preview-build; desktop/touch browserfixtures for flytning og resize.
+- [ ] Indlogget gemning/Fortryd og fysisk mobilkontrol — ekstern unmanaged Supabase-session; fixtures er ikke live E2E.
+
 ## PolyPlan v1.4.1 (2026-10-25)
 - [x] Medarbejdere: afdeling/rolle, kontrollerede filtre, resultater/nulstil, tomtilstande og tabel/mobilhierarki; user_id/lokal dato og virtualisering >=50 testet.
 - [x] Biler: ledighed adskilt fra aktive/kommende perioder, filtre/resultater og skannbare liste-/kortvisninger med bevarede handlinger.

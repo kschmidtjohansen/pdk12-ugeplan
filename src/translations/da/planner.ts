@@ -1,5 +1,14 @@
 
 const planner = {
+  calendarDrag: {
+    multipleEmployees: 'Opgaver med flere tildelte medarbejdere kan ikke flyttes eller tidsjusteres via træk-og-slip. Åbn opgaven for at ændre den.',
+    resizeStart: 'Juster starttid', resizeEnd: 'Juster sluttid',
+    saved: 'Opgaven er flyttet / tidsjusteret',
+    seriesReview: 'Vælg hvilke dage i serien der skal ændres, og gem ændringen.',
+    conflictReview: 'Der er overlap. Gennemgå ændringen i opgaven før du gemmer.',
+    availabilityFailed: 'Ledighed kunne ikke kontrolleres. Opgaven er ikke ændret.',
+    changed: 'Opgaven eller den valgte afdeling er ændret. Åbn opgaven igen.',
+  },
   operationsOverview: {
     expandDay: 'Vis opgaver for', collapseDay: 'Skjul opgaver for',
     title: 'Ugens plan', attention: 'Kræver opmærksomhed', all: 'Opgaver i ugen', drafts: 'Kladder / upublicerede', unassigned: 'Uden medarbejdertilknytning', conflicts: 'Opgaver med overlap', information: 'Medarbejdertilknytning er et informationssignal; overlap tælles pr. opgave.', clearIssue: 'Ryd statusfilter', currentWeek: 'Denne uge', allDays: 'Alle dage', results: '{count} af {total} opgaver', noMatch: 'Ingen opgaver matcher filtrene', error: 'Ugens opgaver kunne ikke indlæses', retry: 'Prøv igen',

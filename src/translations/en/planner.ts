@@ -1,5 +1,14 @@
 
 const planner = {
+  calendarDrag: {
+    multipleEmployees: 'Tasks assigned to multiple employees cannot be moved or resized by drag and drop. Open the task to change it.',
+    resizeStart: 'Adjust start time', resizeEnd: 'Adjust end time',
+    saved: 'Task moved / resized',
+    seriesReview: 'Choose which dates in the series to change, then save your changes.',
+    conflictReview: 'There is an overlap. Review the task changes before saving.',
+    availabilityFailed: 'Availability could not be checked. The task has not changed.',
+    changed: 'The task or selected department has changed. Open the task again.',
+  },
   operationsOverview: {
     expandDay: 'Expand tasks for', collapseDay: 'Collapse tasks for',
     title: 'Weekly plan', attention: 'Needs attention', all: 'Tasks this week', drafts: 'Drafts / unpublished', unassigned: 'Without assigned employees', conflicts: 'Tasks with overlaps', information: 'Employee assignment is informational; overlaps are counted per task.', clearIssue: 'Clear status filter', currentWeek: 'This week', allDays: 'All days', results: '{count} of {total} tasks', noMatch: 'No tasks match the filters', error: 'Unable to load tasks for this week', retry: 'Try again',

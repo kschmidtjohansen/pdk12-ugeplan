@@ -31,6 +31,9 @@ import { assignmentsInWeek, summarizeWeek, filterPlannerAssignments, readPlanner
 import { PlannerWeekDataProvider } from '@/context/PlannerWeekDataContext';
 import { todayLocalYYYYMMDD } from '@/utils/dateUtils';
 import { toast as sonnerToast } from 'sonner';
+import { calendarEmployeeIds, calendarPayload, type CalendarChange } from '@/utils/calendarDrag';
+import { computeConflicts, timesOverlap } from '@/utils/assignmentConflicts';
+import { isTemporaryExpiredOn } from '@/utils/employeeAvailability';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -47,6 +50,7 @@ const PlannerPage: React.FC = () => {
   } = useTranslation();
   const {
     canCreate,
+    canEdit,
     canPublishTasks
   } = usePermissions();
   const {
@@ -415,6 +419,62 @@ const PlannerPage: React.FC = () => {
 
   const plannerActions = useMemo(() => ({ quickMove: handleQuickMove }), [handleQuickMove]);
 
+  // Calendar gestures use the same scoped mutation and form/series decisions as ordinary edits.
+  const calendarContext = React.useRef({ assignments, selectedDepartmentId, selectedSubDepartmentId, userId: user?.id, canEdit });
+  calendarContext.current = { assignments, selectedDepartmentId, selectedSubDepartmentId, userId: user?.id, canEdit };
+  const handleCalendarChange = useCallback(async (task: Assignment, change: CalendarChange) => {
+    if (!canEdit || !selectedDepartmentId || operationStates[task.id]) return;
+    const original = assignments.find(a => a.id === task.id);
+    if (!original || calendarEmployeeIds(original).length !== 1) {
+      sonnerToast.warning(t('planner.calendarDrag.multipleEmployees')); return;
+    }
+    const scope = { department: selectedDepartmentId, subDepartment: selectedSubDepartmentId, userId: user?.id };
+    const sameScope = () => calendarContext.current.canEdit && calendarContext.current.selectedDepartmentId === scope.department && calendarContext.current.selectedSubDepartmentId === scope.subDepartment && calendarContext.current.userId === scope.userId;
+    const employee = employees.find(e => e.id === change.employeeId);
+    if (!employee || change.fromTime >= change.toTime) return;
+    const proposal = calendarPayload(original, change);
+    if (findSeriesSiblings(original).length > 1) {
+      sonnerToast.info(t('planner.calendarDrag.seriesReview'));
+      handleOpenEditDialog(proposal); return;
+    }
+    // Fail closed if training availability cannot be read. No new write path or permissions.
+    const training = await queryClient.fetchQuery({
+      queryKey: ['calendar-training', selectedDepartmentId, employee.id, original.date],
+      queryFn: async () => {
+        const { data, error } = await supabase.from('trainings').select('user_id')
+          .eq('department_id', selectedDepartmentId).eq('user_id', employee.id)
+          .lte('start_date', original.date).gte('end_date', original.date);
+        if (error) throw error;
+        return data ?? [];
+      }, staleTime: 0,
+    }).catch(() => { sonnerToast.error(t('planner.calendarDrag.availabilityFailed')); return null; });
+    if (!training || !sameScope()) return;
+    const absence = vacations.some(v => v.user_id === employee.id && v.status === 'approved' && v.start_date <= original.date && v.end_date >= original.date &&
+      (v.request_type !== 'partial_day' || !v.start_time || !v.end_time || timesOverlap(change.fromTime, change.toTime, v.start_time.slice(0, 5), v.end_time.slice(0, 5))));
+    if (employee.onLeave || employee.status === 'on_leave' || isTemporaryExpiredOn(employee, original.date) || training.length || absence) {
+      sonnerToast.warning(t('planner.conflicts.absenceBlockDescription')); return;
+    }
+    const conflicts = computeConflicts([...assignments.filter(a => a.id !== original.id), { ...proposal, assignedEmployees: [{ id: employee.id, name: employee.name, email: employee.email }] }], employees, cars).byAssignment.get(original.id);
+    if (conflicts?.length) {
+      sonnerToast.warning(t('planner.calendarDrag.conflictReview'));
+      openEditDialogDirect(proposal); return;
+    }
+    // Re-read after async availability so a concurrent edit cannot silently overwrite the source.
+    const latest = calendarContext.current.assignments.find(a => a.id === original.id);
+    if (!latest || latest.updatedAt !== original.updatedAt || latest.fromTime !== original.fromTime || latest.toTime !== original.toTime || calendarEmployeeIds(latest).join() !== calendarEmployeeIds(original).join()) {
+      sonnerToast.warning(t('planner.calendarDrag.changed')); return;
+    }
+    await updateAssignment(original.id, proposal);
+    sonnerToast.success(t('planner.calendarDrag.saved'), { duration: 6000, action: { label: t('planner.undo'), onClick: async () => {
+      const current = calendarContext.current.assignments.find(a => a.id === original.id);
+      if (!sameScope() || !current || current.fromTime.slice(0, 5) !== change.fromTime || current.toTime.slice(0, 5) !== change.toTime || calendarEmployeeIds(current).join() !== change.employeeId) {
+        sonnerToast.warning(t('planner.calendarDrag.changed')); return;
+      }
+      try { await updateAssignment(original.id, calendarPayload(current, { fromTime: original.fromTime, toTime: original.toTime, employeeId: calendarEmployeeIds(original)[0] })); }
+      catch { sonnerToast.error(t('ui.undoMoveFailed')); }
+    } } });
+  }, [canEdit, selectedDepartmentId, selectedSubDepartmentId, operationStates, assignments, user?.id, employees, vacations, cars, findSeriesSiblings, handleOpenEditDialog, openEditDialogDirect, updateAssignment, queryClient, t]);
+
 
 
   const handleDeleteAssignment = useCallback(async (id: string) => {
@@ -604,6 +664,7 @@ const PlannerPage: React.FC = () => {
               onClearFilters={clearFilters}
               onToggleExpansion={handleToggleExpansion}
               onEditAssignment={handleOpenEditDialog} 
+              onCalendarChange={handleCalendarChange}
               onDeleteAssignment={handleDeleteAssignment} 
               onPublishAssignment={handlePublishAssignment} 
               onPublishDay={handlePublishDay} 
