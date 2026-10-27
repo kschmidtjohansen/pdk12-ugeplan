@@ -1,7 +1,8 @@
 # PolyPlan v1.4.1
 ## Calendar drag and resize
-- [ ] Desktop/mobile movement, employee reassignment and start/end resizing with multi-employee warning.
-- [ ] Existing validation/series/permissions, undo, regression tests and documentation.
+- [x] Desktop/mobile movement, employee reassignment and start/end resizing with multi-employee warning.
+- [x] Existing validation/series/permissions, undo, regression tests and documentation.
+- [ ] Authenticated calendar save/undo and physical mobile verification — external unmanaged session unavailable.
 
 - [x] Employees core page/table/mobile: explicit filters, result counts, empty states and preserved actions.
 - [x] Cars core page/table/mobile: separate availability and scheduled periods, accessible details.

@@ -1,5 +1,11 @@
 # Design System
 
+## Kalender: træk og tidsjustering (2026-10-27)
+- Opgaveknap og separate start-/sluthåndtag (ingen indlejrede knapper); transient forhåndsvisning med tid og destinationsmedarbejder i semantiske card/primary-tokens.
+- Mus/pointer aktiveres efter 5px; mobil touch efter 500ms med 8px scroll-tolerance. Almindelige tryk bevarer detaljer/handlinger. Resize slår auto-scroll fra for at undgå utilsigtet tidsforlængelse nær skærmkanten.
+- 15-minutters trin, samme lokale dato, positive intervaller og dagsgrænser 00:00–23:59. Flere medarbejdere giver advarsel; ingen ændring. Overlap/serier bruger eksisterende formularvalg før gemning.
+- QA: 259 automatiske tests, lint:ci og automatisk preview-build OK. Isoleret Playwright-fixture på 1280px/mus og 390px/touch verificerer flytning og forlængelse. Ikke indlogget E2E, fysisk telefon eller atomart relink; eksisterende serverflow er uændret.
+
 > **Stilretning (v1.2 — "Nordic Operations"):** Professionelt, nordisk
 > operationsværktøj. Fladt look med subtile borders, diskrete skygger,
 > redaktionelt informationshierarki og disciplineret 8px-spacing.
