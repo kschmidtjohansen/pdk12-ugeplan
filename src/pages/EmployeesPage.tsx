@@ -11,6 +11,7 @@ import EmployeeTrainingDialog from '@/components/Employees/EmployeeTrainingDialo
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
 import ListPageShell from '@/components/shared/ListPageShell';
+import WorkspaceSection from '@/components/shared/WorkspaceSection';
 import { FilterSegment } from '@/components/shared/SegmentedFilterBar';
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
@@ -153,7 +154,7 @@ const EmployeesPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-      <ListPageShell workspace
+      <ListPageShell workspace className="border-t-0 bg-transparent pt-3"
         title={t('navigation.employees')}
         description={t('employees.description')}
         actions={
@@ -183,6 +184,18 @@ const EmployeesPage: React.FC = () => {
           </>
         }
       >
+        <WorkspaceSection
+          title={currentLanguage === 'da' ? 'Medarbejderliste' : 'Employee list'}
+          description={segments.find((sg) => sg.key === segment)?.label}
+          meta={
+            <span data-testid="employees-result-count">
+              {segment !== 'all' || search.trim()
+                ? (currentLanguage === 'da' ? `${filteredEmployees.length} af ${employees.length}` : `${filteredEmployees.length} of ${employees.length}`)
+                : (currentLanguage === 'da' ? `${employees.length} i alt` : `${employees.length} total`)}
+            </span>
+          }
+          flush
+        >
         <EmployeesTable
           employees={filteredEmployees}
           isFiltered={segment !== 'all' || !!search.trim()}
@@ -200,6 +213,7 @@ const EmployeesPage: React.FC = () => {
           loading={loading}
           onRetry={fetchEmployees}
         />
+        </WorkspaceSection>
       </ListPageShell>
 
       <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
