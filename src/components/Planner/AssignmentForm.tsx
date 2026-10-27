@@ -100,6 +100,17 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
   const effectiveEmployees = needsOwnResources ? (formEmployees || []) : employees;
   const effectiveCars = needsOwnResources ? (formCars || []) : cars;
   const effectiveEmployeesLoading = needsOwnResources ? formEmployeesLoading : employeesLoading;
+  const { data: sourceVacations = [], isLoading: sourceVacationsLoading, error: sourceVacationsError } = useQuery({
+    queryKey: ['assignment-form-vacations', formDepartmentId],
+    enabled: crossDepartmentEdit && !!formDepartmentId,
+    queryFn: async () => {
+      if (!formDepartmentId) throw new Error('Afdeling mangler');
+      const { data, error } = await supabase.from('vacations').select('*').eq('department_id', formDepartmentId).eq('status', 'approved');
+      if (error) throw error;
+      return data as Vacation[];
+    },
+  });
+  const effectiveVacations = crossDepartmentEdit ? sourceVacations : vacations;
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = React.useRef(false);
@@ -485,6 +496,7 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
           employeesLoading={effectiveEmployeesLoading}
           vacations={vacations}
           assignmentId={currentAssignment?.id}
+          departmentId={formDepartmentId}
           assignments={assignments}
           zipCode={zipCode}
           setZipCode={setZipCode}

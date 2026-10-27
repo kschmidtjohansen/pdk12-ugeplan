@@ -74,6 +74,7 @@ const lastUndoAction = () => {
 describe('Ugeplan: opret, ret, slet og fortryd', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    svc.deleteAssignment.mockResolvedValue(true);
     svc.fetchAllAssignments.mockResolvedValue([row('a1')]);
   });
   afterEach(() => vi.useRealTimers());
@@ -156,6 +157,49 @@ describe('Ugeplan: opret, ret, slet og fortryd', () => {
 
     expect(result.current.assignments.map(a => a.id)).toEqual(['a1']);
     expect(toastMock).toHaveBeenCalledWith(expect.objectContaining({ variant: 'destructive' }));
+  });
+});
+
+describe('Original tasks from another authorized department', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    svc.deleteAssignment.mockResolvedValue(true);
+    svc.fetchAllAssignments.mockImplementation((_role, _email, departmentId) => Promise.resolve(departmentId === '03' ? [row('external')] : [row('local')]));
+  });
+  afterEach(() => vi.useRealTimers());
+  const setupShared = async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: React.ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+    const hook = renderHook(() => useOptimizedAssignments('all', ['03']), { wrapper });
+    await waitFor(() => expect(hook.result.current.assignments).toHaveLength(2));
+    return hook;
+  };
+  it('reads 03 explicitly and retains source identity while editing from 12', async () => {
+    const hook = await setupShared();
+    const external = hook.result.current.assignments.find(a => a.id === 'external');
+    expect(external?.departmentId).toBe('03');
+    await act(async () => { if (external) await hook.result.current.updateAssignment(external.id, { ...external, fromTime: '10:00', toTime: '12:00' }); });
+    expect(svc.updateAssignment).toHaveBeenCalledWith('external', expect.objectContaining({ from_time: '10:00', to_time: '12:00' }), 'leder@pdk12.dk');
+    expect(svc.updateAssignment.mock.calls[0][1]).not.toHaveProperty('department_id');
+  });
+  it('rejects moving ownership from 03 to 12', async () => {
+    const hook = await setupShared();
+    const external = hook.result.current.assignments.find(a => a.id === 'external');
+    await act(async () => { await expect(hook.result.current.updateAssignment('external', { ...external, departmentId: 'dept-12' })).rejects.toThrow('Opgavens afdeling'); });
+    expect(svc.updateAssignment).not.toHaveBeenCalled();
+  });
+  it('publishes the original ID, not a copy in the selected department', async () => {
+    const hook = await setupShared();
+    await act(async () => { await hook.result.current.publishAssignment('external'); });
+    expect(svc.publishAssignment).toHaveBeenCalledExactlyOnceWith('external', 'leder@pdk12.dk');
+  });
+  it('undo cancels deleting the original task', async () => {
+    const hook = await setupShared(); vi.useFakeTimers();
+    act(() => { void hook.result.current.deleteAssignment('external'); });
+    act(() => lastUndoAction().props.onClick());
+    await act(async () => { vi.advanceTimersByTime(6000); });
+    expect(svc.deleteAssignment).not.toHaveBeenCalled();
+    expect(hook.result.current.assignments.some(a => a.id === 'external')).toBe(true);
   });
 });
 

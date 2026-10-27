@@ -44,6 +44,7 @@ interface AssignmentFormFieldsProps {
   employeesLoading?: boolean;
   vacations: Vacation[];
   assignmentId?: string;
+  departmentId?: string | null;
   assignments?: Assignment[];
   isEditMode?: boolean;
   zipCode: string;
@@ -79,6 +80,7 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
   employeesLoading = false,
   vacations,
   assignmentId,
+  departmentId,
   assignments = [],
   isEditMode = false,
   zipCode,
@@ -346,7 +348,8 @@ const AssignmentFormFields: React.FC<AssignmentFormFieldsProps> = ({
       {/* RIGHT COLUMN */}
       <div className="space-y-4">
         {canAssignResponsibleUser && (
-          <ResponsibleUserSelector
+        <ResponsibleUserSelector
+          departmentId={departmentId}
             selectedUserId={selectedResponsibleUserId}
             onUserSelect={(userId) => setSelectedResponsibleUserId(userId)}
           />
