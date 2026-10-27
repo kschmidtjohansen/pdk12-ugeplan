@@ -29,6 +29,7 @@ interface RawAssignmentRecord {
   case_number?: string | null;
   group_id?: string | null;
   sub_department_id?: string | null;
+  department_id?: string | null;
   lat?: number | null;
   lng?: number | null;
   responsible_user?: { id: string; name: string } | null;
@@ -57,6 +58,7 @@ export interface OptimizedAssignmentData {
   case_number: string | null;
   group_id: string | null;
   sub_department_id?: string | null;
+  department_id?: string | null;
   lat: number | null;
   lng: number | null;
   responsible_user: {
@@ -749,7 +751,7 @@ export class OptimizedAssignmentService {
       const { error } = await supabase
         .from('assignments')
         .delete()
-        .eq('id', assignmentId);
+        .eq('id', assignmentId).select('id').single();
 
       if (error) {
         if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Demo delete error:', error);
@@ -765,7 +767,7 @@ export class OptimizedAssignmentService {
       const { error } = await supabase
         .from('assignments')
         .delete()
-        .eq('id', assignmentId);
+        .eq('id', assignmentId).select('id').single();
       
       if (error) {
         if (import.meta.env.DEV) console.error('[OptimizedAssignmentService] Error deleting assignment:', error);

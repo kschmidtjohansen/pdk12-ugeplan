@@ -34,6 +34,7 @@ import { toast as sonnerToast } from 'sonner';
 import { calendarEmployeeIds, calendarPayload, type CalendarChange } from '@/utils/calendarDrag';
 import { computeConflicts, timesOverlap } from '@/utils/assignmentConflicts';
 import { isTemporaryExpiredOn } from '@/utils/employeeAvailability';
+import { sharedCalendarTasks, sameAssignmentScope } from '@/utils/calendarScope';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -67,7 +68,7 @@ const PlannerPage: React.FC = () => {
     vacations
   } = useVacations();
   const { employees: allEmployees } = useEmployeeData();
-  const { selectedDepartmentId, selectedSubDepartmentId } = useDepartment();
+  const { selectedDepartmentId, selectedSubDepartmentId, userDepartments } = useDepartment();
   const queryClient = useQueryClient();
 
   const [urlParams, setUrlParams] = useSearchParams();
@@ -81,6 +82,10 @@ const PlannerPage: React.FC = () => {
   
   
   
+  const [viewMode, setViewMode] = useState<'standard' | 'compact' | 'grid' | 'calendar'>(() => {
+    const saved = localStorage.getItem('plannerViewMode');
+    return saved === 'compact' || saved === 'grid' || saved === 'calendar' ? saved : 'standard';
+  });
   // Use optimized assignments hook for unified data management
   const {
     assignments,
@@ -97,7 +102,10 @@ const PlannerPage: React.FC = () => {
     publishAssignment,
     publishAssignmentsByDate,
     publishAssignmentsByIds
-  } = useOptimizedAssignments('all');
+  } = useOptimizedAssignments('all', viewMode === 'calendar' ? userDepartments.map(d => d.id) : []);
+  const localAssignments = useMemo(() => assignments.filter(a => !a.departmentId || a.departmentId === selectedDepartmentId), [assignments, selectedDepartmentId]);
+  const calendarAssignments = useMemo(() => sharedCalendarTasks(assignments, selectedDepartmentId, employees.map(e => e.id))
+    .map(a => ({ ...a, departmentName: userDepartments.find(d => d.id === a.departmentId)?.name })), [assignments, selectedDepartmentId, employees, userDepartments]);
 
   // Simplified planner state management using ISO week numbers with localStorage persistence
   const [selectedWeek, setSelectedWeek] = useState(() => {
@@ -110,10 +118,6 @@ const PlannerPage: React.FC = () => {
   });
   
   // View mode state with localStorage persistence
-  const [viewMode, setViewMode] = useState<'standard' | 'compact' | 'grid' | 'calendar'>(() => {
-    const saved = localStorage.getItem('plannerViewMode');
-    return (saved === 'compact' || saved === 'standard' || saved === 'grid' || saved === 'calendar') ? saved : 'standard';
-  });
   
   
   // Expanded days state - only today is expanded by default
@@ -199,7 +203,8 @@ const PlannerPage: React.FC = () => {
     }
   }, [allExpanded, weekDates]);
 
-  const weekAssignments = useMemo(() => assignmentsInWeek(assignments || [], selectedWeek, selectedYear), [assignments, selectedWeek, selectedYear]);
+  const weekAssignments = useMemo(() => assignmentsInWeek(localAssignments, selectedWeek, selectedYear), [localAssignments, selectedWeek, selectedYear]);
+  const externalWeekAssignments = useMemo(() => assignmentsInWeek(calendarAssignments, selectedWeek, selectedYear), [calendarAssignments, selectedWeek, selectedYear]);
   const weekSummary = useMemo(() => summarizeWeek(weekAssignments, employees, cars), [weekAssignments, employees, cars]);
   const sharedWeekData = useMemo(() => ({ assignments: weekAssignments, employees, summary: weekSummary }), [weekAssignments, employees, weekSummary]);
 
@@ -268,14 +273,14 @@ const PlannerPage: React.FC = () => {
   // (same case_number/title + same department + multiple dates)
   const findSeriesSiblings = useCallback((assignment: Assignment): Assignment[] => {
     if (assignment.groupId) {
-      return assignments.filter(a => a.groupId === assignment.groupId);
+      return assignments.filter(a => a.groupId === assignment.groupId && sameAssignmentScope(a, assignment));
     }
     // Legacy fallback: match on case_number first, then on title
     const key = (assignment.case_number && assignment.case_number.trim()) || assignment.title?.trim();
     if (!key) return [assignment];
     return assignments.filter(a => {
       const aKey = (a.case_number && a.case_number.trim()) || a.title?.trim();
-      return aKey === key;
+      return aKey === key && sameAssignmentScope(a, assignment);
     });
   }, [assignments]);
 
@@ -433,16 +438,26 @@ const PlannerPage: React.FC = () => {
     const employee = employees.find(e => e.id === change.employeeId);
     if (!employee || change.fromTime >= change.toTime) return;
     const proposal = calendarPayload(original, change);
+    const sourceDepartmentId = original.departmentId ?? selectedDepartmentId;
+    // Check destination employee eligibility in the original department, not the viewing department.
+    const eligibility = await supabase.rpc('get_department_absences', { p_department_id: sourceDepartmentId, p_date: original.date });
+    if (eligibility.error || !sameScope()) { sonnerToast.error(t('planner.calendarDrag.availabilityFailed')); return; }
+    if (eligibility.data?.some(e => e.id === employee.id)) { sonnerToast.warning(t('planner.conflicts.absenceBlockDescription')); return; }
+    const membership = await supabase.from('user_access').select('user_id').eq('department_id', sourceDepartmentId).eq('user_id', employee.id);
+    if (membership.error || !sameScope()) { sonnerToast.error(t('planner.calendarDrag.availabilityFailed')); return; }
+    if (change.employeeId !== calendarEmployeeIds(original)[0] && !membership.data?.length) {
+      sonnerToast.warning(t('planner.calendarDrag.availabilityFailed')); return;
+    }
     if (findSeriesSiblings(original).length > 1) {
       sonnerToast.info(t('planner.calendarDrag.seriesReview'));
       handleOpenEditDialog(proposal); return;
     }
     // Fail closed if training availability cannot be read. No new write path or permissions.
     const training = await queryClient.fetchQuery({
-      queryKey: ['calendar-training', selectedDepartmentId, employee.id, original.date],
+      queryKey: ['calendar-training', sourceDepartmentId, employee.id, original.date],
       queryFn: async () => {
         const { data, error } = await supabase.from('trainings').select('user_id')
-          .eq('department_id', selectedDepartmentId).eq('user_id', employee.id)
+          .eq('department_id', sourceDepartmentId).eq('user_id', employee.id)
           .lte('start_date', original.date).gte('end_date', original.date);
         if (error) throw error;
         return data ?? [];
@@ -657,6 +672,7 @@ const PlannerPage: React.FC = () => {
             <PlannerContent 
               weekAssignments={sortedWeekAssignments} 
               allAssignments={assignments}
+              calendarAssignments={externalWeekAssignments}
               operationStates={operationStates}
               expandedDays={visibleExpandedDays}
               resourceAssignments={weekAssignments}
