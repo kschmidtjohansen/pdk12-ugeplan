@@ -18,9 +18,10 @@ import TodayDutyCard from '@/components/Duty/TodayDutyCard';
 import DutyProximitySearch from '@/components/Duty/DutyProximitySearch';
 import { useDutyRosterMembers } from '@/hooks/duty/useDutyRosterMembers';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import PageHeader from '@/components/Layout/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, RefreshCw, Shield } from 'lucide-react';
+import { Plus, RefreshCw, Shield, CalendarDays } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { parseYYYYMMDD } from '@/utils/dateUtils';
 import type { Duty } from '@/types/duty';
@@ -162,37 +163,34 @@ export default function DutyPage() {
     <DataFetchErrorBoundary>
     
       <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5 space-y-3 sm:space-y-4">
-        <div className="mb-1">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1 min-w-0">
-              <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">{t('duty.title')}</h1>
-              <p className="text-sm text-muted-foreground leading-relaxed">{t('duty.upcomingDuties')}</p>
-            </div>
-            <div className="flex gap-2 flex-wrap flex-shrink-0">
-              {canManage && (
-                <Button onClick={() => setDialogOpen(true)} size="sm">
-                  <Plus className="h-4 w-4 mr-1 sm:mr-2" />
-                  {t('duty.assignDuty')}
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSwapSelectDialogOpen(true)}
-                disabled={
-                  dutiesWithRoles.length === 0 ||
-                  (user?.role === 'servicemedarbejder'
-                    ? !dutiesWithRoles.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
-                    : !dutiesWithRoles.some(d => d.employee_id === user.id))
-                }
-              >
-                <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
-                {t('duty.swapDuty')}
-              </Button>
-            </div>
-          </div>
-          <div className="mt-4 h-px bg-border" />
-        </div>
+        <PageHeader
+          title={t('duty.title')}
+          description={t('duty.upcomingDuties')}
+          eyebrow={selectedDepartment?.name}
+          meta={loading ? undefined : `${upcomingDuties.length} ${currentLanguage === 'en' ? 'upcoming' : 'kommende'}`}
+        >
+          {canManage && (
+            <Button onClick={() => setDialogOpen(true)} size="sm" className="min-h-11">
+              <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+              {t('duty.assignDuty')}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="min-h-11"
+            onClick={() => setSwapSelectDialogOpen(true)}
+            disabled={
+              dutiesWithRoles.length === 0 ||
+              (user?.role === 'servicemedarbejder'
+                ? !dutiesWithRoles.some(d => d.duty_type === 'kørevagt' && d.employee_id === user.id)
+                : !dutiesWithRoles.some(d => d.employee_id === user.id))
+            }
+          >
+            <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
+            {t('duty.swapDuty')}
+          </Button>
+        </PageHeader>
 
       {error && (
         <ErrorState onRetry={refetch} />
@@ -229,17 +227,9 @@ export default function DutyPage() {
           {loading ? (
             <ListSkeleton />
           ) : dutiesWithRoles.length === 0 ? (
-            <Card className="border-2 border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground text-center">{t('duty.noDutiesInPlan')}</p>
-              </CardContent>
-            </Card>
+            <EmptyState compact icon={<CalendarDays />} title={t('duty.noDutiesInPlan')} />
           ) : upcomingDuties.length === 0 ? (
-            <Card className="border-2 border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground text-center">{t('duty.noUpcomingDuties')}</p>
-              </CardContent>
-            </Card>
+            <EmptyState compact icon={<CalendarDays />} title={t('duty.noUpcomingDuties')} />
           ) : (
             <DutyList
               duties={upcomingDuties}

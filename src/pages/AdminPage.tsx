@@ -30,7 +30,7 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 
 const AdminPage: React.FC = () => {
   const { user, loading, isDemoMode, demoRole } = useAuth();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { isWarehouseEnabled } = useDepartment();
   const [tab, setTab] = useState('users');
 
@@ -137,7 +137,7 @@ const AdminPage: React.FC = () => {
             {showOperations && (
               <TabsTrigger value="operations" className="gap-2">
                 <Gauge className="h-4 w-4" />
-                Driftscenter
+                {currentLanguage === 'en' ? 'Operations' : 'Driftscenter'}
               </TabsTrigger>
             )}
           </TabsList>
