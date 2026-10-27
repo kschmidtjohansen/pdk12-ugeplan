@@ -18,6 +18,7 @@ import { useCrossSubDeptBusy } from '@/hooks/useCrossSubDeptBusy';
 const AssignmentDetailsDialog = lazy(() => import('@/components/Dashboard/AssignmentDetailsDialog'));
 import { PlannerWidgetErrorBoundary } from '@/components/ErrorBoundary/PlannerWidgetErrorBoundary';
 import { getSeriesSiblingIds } from '@/utils/assignmentSeries';
+import type { CalendarChange } from '@/utils/calendarDrag';
 
 interface PlannerContentProps {
   weekAssignments: Assignment[];
@@ -30,6 +31,7 @@ interface PlannerContentProps {
   expandedDays: Record<string, boolean>;
   onToggleExpansion: (date: string) => void;
   onEditAssignment: (assignment: Assignment) => void;
+  onCalendarChange?: (assignment: Assignment, change: CalendarChange) => Promise<void>;
   onDeleteAssignment: (assignmentId: string) => void;
   onPublishAssignment: (assignmentId: string) => void;
   onPublishDay: (date: string) => void;
@@ -62,6 +64,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
   expandedDays,
   onToggleExpansion,
   onEditAssignment,
+  onCalendarChange,
   onDeleteAssignment,
   onPublishAssignment,
   onPublishDay,
@@ -211,6 +214,7 @@ const PlannerContent: React.FC<PlannerContentProps> = ({
             onCreateAssignment={onCreateAssignment}
             canEdit={canEdit}
             onEditAssignment={onEditAssignment}
+            onCalendarChange={onCalendarChange}
             onPublishAssignment={canPublishTasks ? onPublishAssignment : undefined}
             onDeleteAssignment={canEdit ? onDeleteAssignment : undefined}
             operationStates={operationStates}
