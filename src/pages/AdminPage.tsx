@@ -38,6 +38,7 @@ const AdminPage: React.FC = () => {
   const isSuperAdmin = effectiveRole === 'super_admin';
   const isAdmin = effectiveRole === 'administrator' || isSuperAdmin;
   const showOperations = canOpenOperationsCenter(effectiveRole);
+  const [opsTab, setOpsTab] = useState(showOperations ? 'overview' : 'diagnostics');
 
   // Cached head-count instead of a fetch on every mount.
   const { data: userCount = null } = useQuery({
@@ -111,42 +112,12 @@ const AdminPage: React.FC = () => {
               </TabsTrigger>
             )}
             {(isSuperAdmin || isAdmin) && (
-              <TabsTrigger value="autoPublish" className="gap-2">
-                <Clock className="h-4 w-4" />
-                {t('admin.tabs.autoPublish')}
-              </TabsTrigger>
-            )}
-            {(isSuperAdmin || isAdmin) && (
-              <TabsTrigger value="diagnostics" className="gap-2">
-                <Radio className="h-4 w-4" />
-                {t('admin.realtimeDiagnostics.title')}
-              </TabsTrigger>
-            )}
-            {isSuperAdmin && (
-              <TabsTrigger value="rolePermissions" className="gap-2">
-                <KeyRound className="h-4 w-4" />
-                Rolle-rettigheder
-              </TabsTrigger>
-            )}
-            {isSuperAdmin && (
-              <TabsTrigger value="webVitals" className="gap-2">
-                <Activity className="h-4 w-4" />
-                Web Vitals
-              </TabsTrigger>
-            )}
-            {showOperations && (
               <TabsTrigger value="operations" className="gap-2">
                 <Gauge className="h-4 w-4" />
                 {currentLanguage === 'en' ? 'Operations' : 'Driftscenter'}
               </TabsTrigger>
             )}
           </TabsList>
-
-          {showOperations && (
-            <TabsContent value="operations" className="animate-fade-in">
-              <OperationsCenter onOpenBroadcast={() => setTab('broadcast')} onOpenWebVitals={() => setTab('webVitals')} />
-            </TabsContent>
-          )}
 
           <TabsContent value="users" className="animate-fade-in">
             <Card>
@@ -200,46 +171,83 @@ const AdminPage: React.FC = () => {
           )}
 
           {(isSuperAdmin || isAdmin) && (
-            <TabsContent value="autoPublish" className="animate-fade-in">
-              <AutoPublishLogWidget />
-            </TabsContent>
-          )}
+            <TabsContent value="operations" className="animate-fade-in">
+              <Tabs value={opsTab} onValueChange={setOpsTab} className="w-full space-y-4">
+                <TabsList className="w-full justify-start flex-wrap h-auto gap-1 p-1">
+                  {showOperations && (
+                    <TabsTrigger value="overview" className="gap-2">
+                      <Gauge className="h-4 w-4" />
+                      {currentLanguage === 'en' ? 'Overview' : 'Overblik'}
+                    </TabsTrigger>
+                  )}
+                  {isSuperAdmin && (
+                    <TabsTrigger value="webVitals" className="gap-2">
+                      <Activity className="h-4 w-4" />
+                      Web Vitals
+                    </TabsTrigger>
+                  )}
+                  <TabsTrigger value="diagnostics" className="gap-2">
+                    <Radio className="h-4 w-4" />
+                    {t('admin.realtimeDiagnostics.title')}
+                  </TabsTrigger>
+                  <TabsTrigger value="autoPublish" className="gap-2">
+                    <Clock className="h-4 w-4" />
+                    {t('admin.tabs.autoPublish')}
+                  </TabsTrigger>
+                  {isSuperAdmin && (
+                    <TabsTrigger value="rolePermissions" className="gap-2">
+                      <KeyRound className="h-4 w-4" />
+                      Rolle-rettigheder
+                    </TabsTrigger>
+                  )}
+                </TabsList>
 
-          {(isSuperAdmin || isAdmin) && (
-            <TabsContent value="diagnostics" className="animate-fade-in">
-              <RealtimeDiagnostics />
-            </TabsContent>
-          )}
+                {showOperations && (
+                  <TabsContent value="overview">
+                    <OperationsCenter onOpenBroadcast={() => setTab('broadcast')} onOpenWebVitals={() => setOpsTab('webVitals')} />
+                  </TabsContent>
+                )}
 
-          {isSuperAdmin && (
-            <TabsContent value="rolePermissions" className="animate-fade-in">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Rolle-rettigheder</CardTitle>
-                  <CardDescription>
-                    Giv en rolle ekstra adgang ud over det normale. Rollen beholder altid sin standardadgang. Gælder i de afdelinger medarbejderen har adgang til.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <RolePermissionsManagement />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
+                {isSuperAdmin && (
+                  <TabsContent value="webVitals">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Core Web Vitals</CardTitle>
+                        <CardDescription>
+                          LCP, INP, CLS, FCP og TTFB målt fra ægte brugersessions. Værdier vises som p75 pr. metric.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <WebVitalsOverview />
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                )}
 
-          {isSuperAdmin && (
-            <TabsContent value="webVitals" className="animate-fade-in">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Core Web Vitals</CardTitle>
-                  <CardDescription>
-                    LCP, INP, CLS, FCP og TTFB målt fra ægte brugersessions. Værdier vises som p75 pr. metric.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <WebVitalsOverview />
-                </CardContent>
-              </Card>
+                <TabsContent value="diagnostics">
+                  <RealtimeDiagnostics />
+                </TabsContent>
+
+                <TabsContent value="autoPublish">
+                  <AutoPublishLogWidget />
+                </TabsContent>
+
+                {isSuperAdmin && (
+                  <TabsContent value="rolePermissions">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Rolle-rettigheder</CardTitle>
+                        <CardDescription>
+                          Giv en rolle ekstra adgang ud over det normale. Rollen beholder altid sin standardadgang. Gælder i de afdelinger medarbejderen har adgang til.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <RolePermissionsManagement />
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                )}
+              </Tabs>
             </TabsContent>
           )}
         </Tabs>
