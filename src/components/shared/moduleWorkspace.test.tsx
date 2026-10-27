@@ -66,7 +66,7 @@ it('vacation filters show no match separately and never reveal other users pendi
   const view = render(<VacationTabContent vacations={[vacation, { ...vacation, id: 'hidden', user_id: 'other', user: { id: 'other', name: 'Secret', email: '' } }]} tabValue="pending" search="Secret" onApprove={noop} onReject={noop} onEdit={noop} onDelete={noop} />);
   expect(screen.getByText('Ingen anmodninger matcher')).toBeInTheDocument(); expect(screen.queryByText('Secret')).not.toBeInTheDocument();
   view.rerender(<VacationTabContent vacations={[]} tabValue="all" onApprove={noop} onReject={noop} onEdit={noop} onDelete={noop} />);
-  expect(screen.getByText('Ingen anmodninger endnu')).toBeInTheDocument();
+  expect(screen.getByText('Ingen anmodninger i afdelingen endnu')).toBeInTheDocument();
 });
 it('renders controlled module fixtures in Danish and English (not authenticated pages)', () => {
   if (process.env.POLYPLAN_CAPTURE_FIXTURE !== '1') return;
