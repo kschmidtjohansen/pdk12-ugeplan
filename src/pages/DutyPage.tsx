@@ -27,6 +27,10 @@ import { parseYYYYMMDD } from '@/utils/dateUtils';
 import type { Duty } from '@/types/duty';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import ErrorState from '@/components/shared/ErrorState';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { filterDuties, isDutyFilterActive, DEFAULT_DUTY_FILTERS, type DutyFilterState, type DutyTypeFilter } from '@/utils/dutyFilters';
 
 export default function DutyPage() {
   const { t, currentLanguage } = useTranslation();
@@ -43,6 +47,7 @@ export default function DutyPage() {
   const [dutyToSwap, setDutyToSwap] = useState<Duty | null>(null);
   const [pendingNewDate, setPendingNewDate] = useState<Date | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [filters, setFilters] = useState<DutyFilterState>(DEFAULT_DUTY_FILTERS);
   
   const today = new Date();
   const todayStart = new Date(today);
@@ -118,12 +123,25 @@ export default function DutyPage() {
     });
   }, [duties, employees, selectedDepartmentId, departmentNameMap]);
 
-  const upcomingDuties = dutiesWithRoles.filter((duty) => {
+  const filteredDuties = useMemo(() => filterDuties(dutiesWithRoles, filters), [dutiesWithRoles, filters]);
+
+  const filterEmployeeOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    rosterEmployees.forEach((e) => map.set(e.id, e.name));
+    dutiesWithRoles.forEach((d) => {
+      if (d.employee_id && d.employee?.name && !map.has(d.employee_id)) map.set(d.employee_id, d.employee.name);
+    });
+    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name, 'da'));
+  }, [rosterEmployees, dutiesWithRoles]);
+
+  const upcomingDuties = filteredDuties.filter((duty) => {
     // duty_date is a date-only string; parse it as a LOCAL date. `new Date(str)`
     // would parse it as UTC midnight and shift the day in the Danish timezone.
     const dutyDate = parseYYYYMMDD(duty.duty_date);
     return dutyDate !== null && dutyDate >= todayStart;
   });
+  const da = currentLanguage !== 'en';
+  const filterActive = isDutyFilterActive(filters);
 
   const employeesWithRoles = employees.map((emp) => ({
     id: emp.id,
