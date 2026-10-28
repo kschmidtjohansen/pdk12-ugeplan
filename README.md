@@ -63,7 +63,7 @@ Systemet understøtter en hierarkisk organisationsstruktur:
 |--------------------|--------------------------------------------------------------------------------|
 | Super Admin        | Global adgang til alle afdelinger og funktioner                                |
 | Administrator      | Fuld adgang til alle funktioner inkl. brugerhåndtering                         |
-| Skadeleder         | Kan oprette og redigere opgaver, godkende ferie                                |
+| Skadeleder         | Kan oprette og redigere opgaver; feriegodkendelse kræver eksplicit tilladelse |
 | Servicemedarbejder | Kan se alle medarbejdere i afdelingen, se egne opgaver, anmode om ferie        |
 | Vikar              | Midlertidig adgang med automatisk udløb                                        |
 
@@ -233,7 +233,7 @@ The system supports a hierarchical organizational structure:
 |------------------|--------------------------------------------------------------------------------|
 | Super Admin      | Global access to all departments and features                                 |
 | Administrator    | Full access to all features including user management                          |
-| Supervisor       | Can create and edit tasks, approve vacation requests                           |
+| Supervisor       | Can create and edit tasks; vacation approval requires an explicit grant       |
 | Employee         | Can view all employees in department, view own tasks, request vacation          |
 | Temp             | Temporary access with automatic expiration                                     |
 
