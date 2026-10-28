@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Send, Edit3, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import AssignmentFormFields from './AssignmentFormFields';
-import { getEmployeeVacationStatus } from '@/utils/employeeAvailability';
+import { getEmployeeVacationStatus, getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { unifiedDataService } from '@/services/data/unifiedDataService';
@@ -250,6 +250,22 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({
               to: overlap.toTime
             })
           });
+        }
+
+        // 4. Fully booked (8+ h) without direct overlap → non-blocking conflict
+        if (overlapping.length === 0) {
+          const others = currentAssignment ? assignments.filter(a => a.id !== currentAssignment.id) : assignments;
+          const avail = getEmployeeAvailabilityStatus(emp, dateObj, others, effectiveVacations, t);
+          if (avail.status === 'fullyBooked') {
+            const hours = ((avail.bookedMinutes ?? 480) / 60).toFixed(1).replace('.', ',');
+            conflicts.push({
+              employeeId: empId,
+              employeeName: emp.name,
+              date: dateStr,
+              reason: 'booking',
+              details: `${t('employees.status.fullyBooked')} (${hours} t)`,
+            });
+          }
         }
       }
     }

@@ -185,14 +185,13 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
       try {
         const vac = getEmployeeVacationStatus(emp.id, dateForComparison, vacations);
         const expired = isExpiredOn(emp, dateForComparison);
-        const avail = getEmployeeAvailabilityStatus(emp, dateForComparison, assignments, vacations, t);
+        // Fully booked (8+ h) stays selectable: shown red and flagged as a conflict on save.
         if (
           (vac.isOnVacation && vac.vacationType === 'full_day')
           || emp.onLeave
           || expired
           || trainingIdsForDate.has(emp.id)
           || sickIdsForDate.has(emp.id)
-          || avail.status === 'fullyBooked'
           || emp.status === 'terminated'
           || emp.status === 'inactive'
         ) {

@@ -1,3 +1,7 @@
+## 2026-10-28 — Fuldt bookede medarbejdere kan vælges
+- EmployeeSelector: fuldt booket (8+ t) låser ikke længere; rød markering bevaret.
+- AssignmentForm: fuldt booket giver ikke-blokerende booking-konflikt ("Opret alligevel").
+
 ## 2026-10-28 — Fridage: særskilt godkendelsesret
 - Skadeleder har ikke længere automatisk canManageVacations; canApproveVacation følger samme capability. Kalender-/planlægningsoversigt, egne ansøgninger og øvrige planlægningsrettigheder bevares.
 - Approve/reject-actions, status-security-hook og ferie-tabellens desktop/mobilhandlinger kan ikke omgå personligt Fra med et rolletjek. Administrator, super_admin og eksplicitte rolle/personlige grants bevares.
