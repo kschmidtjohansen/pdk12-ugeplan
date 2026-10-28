@@ -85,7 +85,7 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
             <TabsTrigger value="week" className="min-h-11 px-4">{t('ui.tabWeekOverview')}</TabsTrigger>
           </TabsList>
           <TabsContent value="today" className="mt-0">
-            <TodayTimeline active={tab === 'today'} />
+            <TodayTimeline active={tab === 'today'} onlyMine={showMyTasks} />
           </TabsContent>
           <TabsContent value="week" className="mt-0">
             {assignmentsLoading && personalWeekAssignments.length === 0 ? (
