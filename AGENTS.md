@@ -1,4 +1,5 @@
 # Frontend architecture
+- Vacation approval/status changes use the derived approval capability; a database trigger guards status and reviewer fields independently of broader edit/read policies to preserve planning visibility and self-service.
 - Calendar drag proposals use dnd-kit mouse/touch sensors and pure calendarDrag geometry; PlannerPage validates scope/availability and retains existing mutation, undo and series/form decisions, so gestures do not bypass permissions or introduce backend writes.
 - Cross-department calendars load original tasks through each accessible department's existing authorized reader; retain source department IDs for mutations, resource selection and series matching instead of treating busy summaries as editable tasks.
 - Dashboard presentation stays in existing widgets; preserve their hooks, filtering and action handlers when changing layout.

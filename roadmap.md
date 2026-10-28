@@ -1,4 +1,8 @@
 # PolyPlan v1.4.1
+## Vacation approval permissions
+- [x] Remove automatic skadeleder approval in UI/actions and enforce status changes server-side; retain explicit grants and administrator access.
+- [x] Regression tests, live rule inspection and documentation: 282 tests, lint and preview build OK.
+- [ ] Authenticated approval E2E — external unmanaged Supabase session unavailable.
 ## Cross-department calendar actions
 - [x] Load shared employees' authorized original tasks and preserve source scope.
 - [x] Enable original-task details/edit/delete/publish/drag with existing permissions and series/undo flows.

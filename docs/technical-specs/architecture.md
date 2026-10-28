@@ -51,7 +51,7 @@ Detaljeret beskrivelse af projektets sikkerhedsarkitektur, kryptering, adgangsko
 | `user_roles` | Alle autentificerede | Service role | Service role | Service role |
 | `assignments` | Admin/skadeleder/tilknyttet | Admin/skadeleder | Admin/skadeleder/ansvarlig | Admin/skadeleder |
 | `cars` | Alle autentificerede | Admin/skadeleder | Admin/skadeleder | Admin/skadeleder |
-| `vacations` | Egen/admin/skadeleder (afd.) | Egen/admin | Egen (pending)/admin/skadeleder | Egen (pending)/admin |
+| `vacations` | Egen/admin/skadeleder (afd.) | Egen/admin | Egen (pending)/admin/skadeleder; status/reviewer kræver særskilt godkendelsesret | Egen (pending)/admin |
 | `warehouse_items` | Alle | Admin/skadeleder | Admin/skadeleder | Admin/skadeleder |
 | `notifications` | Egen bruger | Egen bruger | Egen bruger | Egen bruger |
 | `on_call_duties` | Alle autentificerede | Admin/skadeleder | Admin/skadeleder/egen | Admin/skadeleder |
@@ -59,6 +59,7 @@ Detaljeret beskrivelse af projektets sikkerhedsarkitektur, kryptering, adgangsko
 | `logs` | Admin (via JWT metadata) | Admin / service role | Admin | Admin |
 
 ### Kendte undtagelser
+- Fridagsgodkendelse: Skadeleder har ingen automatisk godkendelses-/afvisningsret. `enforce_vacation_review_permission` beskytter status/reviewer ved både oprettelse og ændring, også egne ansøgninger. Administrator eller eksplicit `approve_vacations` kræver adgang til afdeling; personligt Fra vinder over rollegrant. Super Admin bevarer adgang. Hjælpefunktionerne er interne (ingen anon/authenticated EXECUTE). Læseadgang og normale pending-redigeringer er uændrede.
 - `profiles` og `user_roles` er **offentligt læsbare** for alle autentificerede brugere — nødvendigt for app-funktionalitet (navne, roller i UI)
 - `warehouse_items` SELECT er åben for alle autentificerede brugere
 

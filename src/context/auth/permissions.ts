@@ -57,7 +57,7 @@ export function derivePermissions(
   const has = (p: GrantablePermission) => !isDemoMode && grants.has(p);
   const editor = isAdmin || isSkadeleder || realIsSuperAdmin;
   const planner = editor || has('plan_assignments');
-  const manageVacations = editor || has('approve_vacations');
+  const manageVacations = isAdmin || realIsSuperAdmin || has('approve_vacations');
   // Personal on/off choices per employee win over role defaults.
   // IT-Support (real super_admin, not impersonating someone else) is never restricted.
   const ov = (p: PersonalPermission, base: boolean) => {
@@ -77,12 +77,12 @@ export function derivePermissions(
     isEffectiveServicemedarbejder: isServicemedarbejder,
     canViewFuelCardCode: ov('view_fuel_codes', isAdmin || realIsSuperAdmin),
     canPublishTasks: ov('publish_assignments', editor || has('publish_assignments')),
-    canApproveVacation: ov('approve_vacations', isAdmin || realIsSuperAdmin || has('approve_vacations')),
+    canApproveVacation: canManage,
     canEdit: canPlan,
     canCreate: canPlan,
     canSeeUnpublishedTasks: ov('view_unpublished', planner),
     canManageVacations: canManage,
-    canViewAllVacations: ov('view_all_vacations', manageVacations || has('view_all_vacations')),
+    canViewAllVacations: ov('view_all_vacations', editor || canManage || has('view_all_vacations')),
     canViewWarehouse: ov('view_warehouse', true),
     canManageWarehouse: ov('manage_warehouse', editor),
     canViewDuty: ov('view_duty', true),

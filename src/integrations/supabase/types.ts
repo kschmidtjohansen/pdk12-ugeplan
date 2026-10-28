@@ -1733,6 +1733,10 @@ export type Database = {
         Args: { _duty_department_id: string }
         Returns: boolean
       }
+      can_review_vacations: {
+        Args: { _department_id: string }
+        Returns: boolean
+      }
       can_user_access_assignment: {
         Args: { assignment_id: string; user_id: string }
         Returns: boolean

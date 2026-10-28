@@ -36,11 +36,11 @@ const VacationTable: React.FC<VacationTableProps> = ({
   onEdit,
   isLoading = false 
 }) => {
-  const { isEffectiveAdmin, canManageVacations } = useAuth();
+  const { canManageVacations } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const isMobile = useIsMobile();
   
-  const canApprove = isEffectiveAdmin || canManageVacations;
+  const canApprove = canManageVacations;
 
   const formatDateWithWeek = (date: Date) => {
     const locale = currentLanguage === 'da' ? da : undefined;
