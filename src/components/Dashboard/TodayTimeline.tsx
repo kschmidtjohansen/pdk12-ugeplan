@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/TranslationContext';
+import { useAuth } from '@/context/AuthContext';
 
 const AssignmentDetailsDialog = lazy(() => import('./AssignmentDetailsDialog'));
 
@@ -18,8 +19,9 @@ const toMin = (t?: string) => {
   return (parseInt(h, 10) || 0) * 60 + (parseInt(m, 10) || 0);
 };
 
-const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
+const TodayTimeline: React.FC<{ active?: boolean; onlyMine?: boolean }> = ({ active = true, onlyMine = false }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const currentRef = useRef<HTMLLIElement>(null);
   const { assignments, loading } = useAssignments();
   const { cars } = useCars();
@@ -39,8 +41,17 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
     }
   }, [active, itemsReady]);
   const items = useMemo(
-    () => (assignments ?? []).filter(a => a.date === todayStr).sort((a, b) => toMin(a.fromTime) - toMin(b.fromTime)),
-    [assignments, todayStr]
+    () => (assignments ?? [])
+      .filter(a => a.date === todayStr)
+      .filter(a => {
+        if (!onlyMine || !user?.id) return true;
+        const isResp = (a.responsibleUser?.id ?? a.responsibleUserId) === user.id;
+        const isAssigned = a.assignedEmployees?.some(e => e.id === user.id) ?? false;
+        const isLegacy = Array.isArray(a.employees) && a.employees.includes(user.id);
+        return isResp || isAssigned || isLegacy;
+      })
+      .sort((a, b) => toMin(a.fromTime) - toMin(b.fromTime)),
+    [assignments, todayStr, onlyMine, user?.id]
   );
 
   const carNames = (a: Assignment) => {
@@ -76,7 +87,7 @@ const TodayTimeline: React.FC<{ active?: boolean }> = ({ active = true }) => {
             {i === nowIdx && !items.some(x => nowMin >= toMin(x.fromTime) && nowMin <= toMin(x.toTime)) && <NowMarker />}
             <li ref={current ? currentRef : undefined} className="relative">
               <Button variant="ghost" type="button" onClick={() => setSelected(a)}
-                className={cn('grid h-auto min-h-24 w-full grid-cols-[minmax(0,1fr)] gap-3 rounded-none border-l-2 border-transparent px-3 py-4 text-left whitespace-normal sm:grid-cols-[88px_minmax(0,1fr)] sm:px-4', current && 'border-primary bg-accent')}>
+                className={cn('grid h-auto sm:h-auto min-h-24 w-full grid-cols-[minmax(0,1fr)] gap-3 rounded-none border-l-2 border-transparent px-3 py-4 text-left whitespace-normal sm:grid-cols-[88px_minmax(0,1fr)] sm:px-4', current && 'border-primary bg-accent')}>
                 <span className="flex items-center gap-2 sm:flex-col sm:items-start text-xs tabular-nums">
                   <span className="font-semibold text-foreground">{a.fromTime?.slice(0, 5)}</span>
                   <span className="text-muted-foreground">– {a.toTime?.slice(0, 5)}</span>

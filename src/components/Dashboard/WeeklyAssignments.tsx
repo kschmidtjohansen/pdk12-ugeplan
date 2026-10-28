@@ -315,7 +315,7 @@ const WeeklyAssignments: React.FC<WeeklyAssignmentsProps> = ({
                   >
                     <Button variant="ghost"
                       onClick={() => handleAssignmentClick(assignment)}
-                      className="block h-auto w-full p-0 rounded-none text-left whitespace-normal hover:bg-transparent"
+                      className="block h-auto sm:h-auto w-full p-0 rounded-none text-left whitespace-normal hover:bg-transparent"
                     >
                       <div className="flex flex-wrap justify-between items-start gap-2 mb-2 pr-6">
                         <div className="flex flex-col min-w-0">
