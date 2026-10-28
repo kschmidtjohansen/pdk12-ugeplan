@@ -236,10 +236,58 @@ export default function DutyPage() {
 
 
       <Tabs defaultValue="calendar" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
-          <TabsTrigger value="list">{t('duty.list')}</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-wrap items-center gap-2">
+          <TabsList>
+            <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
+            <TabsTrigger value="list">{t('duty.list')}</TabsTrigger>
+          </TabsList>
+          <div role="group" aria-label={t('duty.filterByType')} className="inline-flex items-center rounded-lg bg-muted/60 p-1">
+            {([
+              { key: 'all', label: t('duty.allTypes'), dot: null },
+              { key: 'skadeleder_vagt', label: t('duty.skadelederVagt'), dot: 'bg-info' },
+              { key: 'kørevagt', label: t('duty.kørevagt'), dot: 'bg-success' },
+            ] as { key: DutyTypeFilter; label: string; dot: string | null }[]).map((seg) => {
+              const active = filters.type === seg.key;
+              return (
+                <button
+                  key={seg.key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setFilters((f) => ({ ...f, type: seg.key }))}
+                  className={cn(
+                    'flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors',
+                    active ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
+                  )}
+                >
+                  {seg.dot && <span aria-hidden className={cn('h-2 w-2 rounded-full', seg.dot)} />}
+                  {seg.label}
+                </button>
+              );
+            })}
+          </div>
+          <Select value={filters.employeeId} onValueChange={(v) => setFilters((f) => ({ ...f, employeeId: v }))}>
+            <SelectTrigger className="h-9 w-[220px]" aria-label={da ? 'Filtrer efter medarbejder' : 'Filter by employee'}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{da ? 'Alle medarbejdere' : 'All employees'}</SelectItem>
+              {filterEmployeeOptions.map((e) => (
+                <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {filterActive && (
+            <>
+              <span role="status" className="text-xs text-muted-foreground tabular-nums">
+                {da ? `Viser ${filteredDuties.length} af ${dutiesWithRoles.length} vagter` : `Showing ${filteredDuties.length} of ${dutiesWithRoles.length} duties`}
+              </span>
+              <Button variant="ghost" size="sm" className="h-8 gap-1" onClick={() => setFilters(DEFAULT_DUTY_FILTERS)}>
+                <X className="h-3.5 w-3.5" />
+                {da ? 'Ryd filtre' : 'Clear filters'}
+              </Button>
+            </>
+          )}
+        </div>
 
         <TabsContent value="list" className="space-y-4">
           {loading ? (
@@ -263,7 +311,7 @@ export default function DutyPage() {
             <ListSkeleton />
           ) : (
             <DutyMonthCalendar
-              duties={dutiesWithRoles}
+              duties={filteredDuties}
               month={calendarMonth}
               onMonthChange={setCalendarMonth}
               onDutyClick={handleDutyClick}
