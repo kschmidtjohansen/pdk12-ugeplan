@@ -109,8 +109,8 @@ export const useVacationSecurity = () => {
 
   // Check if user can approve/reject vacations
   const canManageVacationStatus = useCallback((): boolean => {
-    return isAdmin || isSkadeleder || canManageVacations;
-  }, [isAdmin, isSkadeleder, canManageVacations]);
+    return !!user && canManageVacations;
+  }, [user, canManageVacations]);
 
   return {
     canViewVacation,

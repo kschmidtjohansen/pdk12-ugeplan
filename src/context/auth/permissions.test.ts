@@ -8,7 +8,7 @@ describe('derivePermissions (role access)', () => {
   });
   it('skadeleder can edit/publish but not approve vacation or see fuel codes', () => {
     const p = derivePermissions('skadeleder', 'skadeleder', false);
-    expect(p).toMatchObject({ canEdit: true, canPublishTasks: true, canApproveVacation: false, canViewFuelCardCode: false });
+    expect(p).toMatchObject({ canEdit: true, canPublishTasks: true, canApproveVacation: false, canManageVacations: false, canViewAllVacations: true, canViewFuelCardCode: false });
   });
   it.each(['servicemedarbejder', 'fugttekniker', 'vikar'] as const)('%s is read-only', role => {
     const p = derivePermissions(role, role, false);
@@ -53,6 +53,27 @@ describe('role grants from IT-Support', () => {
 });
 
 describe('personal permission overrides', () => {
+  it('skadeleder may approve only with an explicit role or personal grant', () => {
+    for (const p of [
+      derivePermissions('skadeleder', 'skadeleder', false, new Set(['approve_vacations'])),
+      derivePermissions('skadeleder', 'skadeleder', false, new Set(), new Map([['approve_vacations', true]])),
+    ]) {
+      expect(p.canManageVacations).toBe(true);
+      expect(p.canApproveVacation).toBe(true);
+    }
+  });
+  it('personal approval deny overrides combined role grants', () => {
+    const p = derivePermissions('skadeleder', 'skadeleder', false, new Set(['plan_assignments', 'approve_vacations']), new Map([['approve_vacations', false]]));
+    expect(p.canManageVacations).toBe(false);
+    expect(p.canApproveVacation).toBe(false);
+    expect(p.canViewAllVacations).toBe(true);
+  });
+  it('administrator personal approval deny is respected', () => {
+    expect(derivePermissions('administrator', 'administrator', false, new Set(), new Map([['approve_vacations', false]])).canManageVacations).toBe(false);
+  });
+  it('super_admin keeps approval even with personal deny', () => {
+    expect(derivePermissions('super_admin', 'super_admin', false, new Set(), new Map([['approve_vacations', false]])).canManageVacations).toBe(true);
+  });
   it('turns planning ON for a servicemedarbejder', () => {
     const p = derivePermissions('servicemedarbejder', 'servicemedarbejder', false, new Set(), new Map([['plan_assignments', true]]));
     expect(p.canEdit).toBe(true);

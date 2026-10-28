@@ -342,7 +342,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
   // Approve vacation with security checks
   const approveVacation = async (vacation: Vacation, notes?: string) => {
     notifyOwnAction();
-    if (!isAdmin && !isSkadeleder && !canManageVacations) {
+    if (!user || !canManageVacations) {
       await logSecurityEvent(
         'vacation_unauthorized_approval',
         'User attempted to approve vacation without proper role',
@@ -470,7 +470,7 @@ export const useVacationActions = (refreshVacations: () => Promise<void>) => {
   // Reject vacation with security checks
   const rejectVacation = async (vacation: Vacation, reason?: string) => {
     notifyOwnAction();
-    if (!isAdmin && !isSkadeleder && !canManageVacations) {
+    if (!user || !canManageVacations) {
       await logSecurityEvent(
         'vacation_unauthorized_rejection',
         'User attempted to reject vacation without proper role',
