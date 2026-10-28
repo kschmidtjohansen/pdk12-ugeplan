@@ -52,11 +52,12 @@ describe('vacation approval action authorization', () => {
     await act(async () => { expect(await result.current.approveVacation(vacation)).toBe(false); });
     expect(mocks.from).not.toHaveBeenCalled();
   });
-  it('security status check follows the capability, not the skadeleder role', () => {
+  it('security status check follows the capability, not the skadeleder role', async () => {
     const { result, rerender } = renderHook(() => useVacationSecurity());
     expect(result.current.canManageVacationStatus()).toBe(false);
     mocks.auth.canManageVacations = true;
     rerender();
     expect(result.current.canManageVacationStatus()).toBe(true);
+    await act(async () => { await Promise.resolve(); });
   });
 });

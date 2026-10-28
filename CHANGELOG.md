@@ -2,7 +2,7 @@
 - Skadeleder har ikke længere automatisk canManageVacations; canApproveVacation følger samme capability. Kalender-/planlægningsoversigt, egne ansøgninger og øvrige planlægningsrettigheder bevares.
 - Approve/reject-actions, status-security-hook og ferie-tabellens desktop/mobilhandlinger kan ikke omgå personligt Fra med et rolletjek. Administrator, super_admin og eksplicitte rolle/personlige grants bevares.
 - Database-trigger beskytter status/reviewer på INSERT/UPDATE uanset brede eksisterende edit-policies, inklusive egen pending-ansøgning. Godkendelsescheck kræver kilde-/målafdeling og deny-precedence; super_admin/service_role bevares. Nye interne funktioner har tom search_path og ingen anon/authenticated EXECUTE. Ingen eksisterende ansøgninger ændret; ingen app-publicering eller Edge-deploy.
-- Regressionstests for skadeleder, grants, personligt Fra, admin/super_admin og begge action-handlers. Indlogget E2E kan ikke verificeres via ekstern unmanaged Supabase; 46 eksisterende linterfund er uden for ændringen.
+- 282/282 regressionstests bestået, lint:ci og automatisk preview-build OK. Tests for skadeleder, grants, personligt Fra, admin/super_admin og begge action-handlers. Live trigger/EXECUTE kontrolleret; indlogget E2E kan ikke verificeres via ekstern unmanaged Supabase; 46 eksisterende linterfund er uden for ændringen.
 
 ## 2026-10-27 — Originale kalenderopgaver på tværs af afdelinger
 - Kalenderen henter originale opgaver via eksisterende autoriserede afdelingslæsninger for brugerens tilgængelige afdelinger, og viser kun andre afdelingers opgaver for kalenderens medarbejdere. Ingen ny RPC, RLS eller kopiering af opgaver.
