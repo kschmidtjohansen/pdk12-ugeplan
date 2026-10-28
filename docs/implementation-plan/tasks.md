@@ -1,3 +1,9 @@
+## Fridagsgodkendelse (2026-10-28)
+- [x] Fjern automatisk skadeleder-godkendelse i capability, handlers og desktop/mobilhandlinger; behold godkendt fravær i planlægningen.
+- [x] Database-trigger håndhæver godkendelsesrettighed for status/reviewer, eksplicit grants/Fra og afdelingsadgang uden ændring af eksisterende ansøgninger.
+- [x] Tilføj regressionstests og dokumentér adskilt læse-/godkendelsesadgang.
+- [ ] Indlogget godkendelsesflow — ekstern unmanaged Supabase-session er ikke tilgængelig.
+
 ## Originale kryds-afdelingskalendere (2026-10-27)
 - [x] Autoriserede originalopgaver med kildeafdeling og samlet overlaplayout i medarbejderkalendere.
 - [x] Eksisterende edit/publish/delete/drag/resize og Fortryd; formularressourcer og serier følger original afdeling.
