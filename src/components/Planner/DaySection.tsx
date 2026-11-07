@@ -1,5 +1,6 @@
 
 import React, { useRef } from 'react';
+import { dayPersonHours, dayLoadLevel } from '@/utils/dayLoad';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
@@ -86,6 +87,12 @@ const DaySection: React.FC<DaySectionProps> = ({
   const draftCount = draftAssignments.length;
   const assignmentsCount = Array.isArray(dayAssignments) ? dayAssignments.length : 0;
 
+  const loadHours = Array.isArray(dayAssignments) ? dayPersonHours(dayAssignments) : 0;
+  const loadLevel = dayLoadLevel(loadHours);
+  const loadLabel = currentLanguage === 'da'
+    ? ['', 'Rolig dag', 'Travl dag', 'Meget travl dag'][loadLevel]
+    : ['', 'Quiet day', 'Busy day', 'Very busy day'][loadLevel];
+
   const taskText = currentLanguage === 'da' 
     ? (assignmentsCount === 1 ? 'opgave' : 'opgaver')
     : (assignmentsCount === 1 ? 'task' : 'tasks');
@@ -149,6 +156,14 @@ const DaySection: React.FC<DaySectionProps> = ({
           <span className="ml-2 shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground tabular-nums select-none">
             {assignmentsCount} {taskText}
           </span>
+          {loadLevel > 0 && (
+            <span className="ml-2 flex items-end gap-0.5 shrink-0" role="img" aria-label={`${loadLabel}: ${Math.round(loadHours)} t`} title={`${loadLabel} · ${Math.round(loadHours)} mandetimer`}>
+              {[1, 2, 3].map(n => (
+                <span key={n} className={cn('w-1.5 rounded-sm', n === 1 ? 'h-2' : n === 2 ? 'h-3' : 'h-4',
+                  n > loadLevel ? 'bg-muted' : loadLevel === 3 ? 'bg-destructive' : loadLevel === 2 ? 'bg-warning' : 'bg-success')} />
+              ))}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
