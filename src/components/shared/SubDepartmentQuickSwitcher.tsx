@@ -3,6 +3,7 @@ import { useDepartment } from '@/context/DepartmentContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { cn } from '@/lib/utils';
 import { Building2, Layers } from 'lucide-react';
+import { SlidingSegments } from '@/components/ui/sliding-segments';
 
 /**
  * Compact pill bar shown on the dashboard so users can quickly switch
@@ -33,15 +34,6 @@ const SubDepartmentQuickSwitcher: React.FC<{ showDepartments?: boolean }> = ({ s
       : 'bg-card text-foreground border-border hover:bg-accent/40'
   );
 
-  const renderPill = (id: string | null, label: string) => {
-    const active = (selectedSubDepartmentId || '') === (id || '');
-    return (
-      <button key={id ?? 'all'} type="button" aria-pressed={active} onClick={() => setSelectedSubDepartmentId(id)} className={pillClass(active)}>
-        {label}
-      </button>
-    );
-  };
-
   return (
     <div className="space-y-1">
       {showDeptRow && (
@@ -66,8 +58,13 @@ const SubDepartmentQuickSwitcher: React.FC<{ showDepartments?: boolean }> = ({ s
             <Layers className="h-3.5 w-3.5" />
             <span>{t('common.subDepartment') || 'Underafdeling'}</span>
           </div>
-          {userSubDepartments.length > 0 && renderPill(null, t('common.all') || 'Alle')}
-          {userSubDepartments.map((sub) => renderPill(sub.id, sub.name))}
+          <SlidingSegments<string>
+            ariaLabel={t('common.subDepartment') || 'Underafdeling'}
+            value={selectedSubDepartmentId || ''}
+            onChange={(v) => setSelectedSubDepartmentId(v || null)}
+            className="shrink-0"
+            segments={[{ key: '', label: t('common.all') || 'Alle' }, ...userSubDepartments.map((sub) => ({ key: sub.id, label: sub.name }))]}
+          />
         </div>
       )}
     </div>
