@@ -2552,3 +2552,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Spotlight-hover (lyskegle følger musen) på opgavekort og dashboardkort via én delt pointer-listener (`src/lib/spotlight.ts`).
 - Diskret pulserende ring på konfliktmærker.
 - Blur-fade ved filterskift i Vagtplan. Respekterer "reduceret bevægelse".
+- Avatar-stak (initialer, spreder sig ved hover) på opgavekort med 2+ medarbejdere.
+- Flydende markør i vagttype-filteret (`SlidingSegments`).
+- "I dag": afsluttede opgaver dæmpes. Notifikationer glider ind; læste dæmpes.
+- Ugeplan: genvejstaster 1–4 for Standard/Gitter/Kompakt/Kalender (desktop, ikke i felter/dialoger).

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { SlidingSegments } from '@/components/ui/sliding-segments';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions, useAuth } from '@/context/AuthContext';
@@ -241,30 +242,16 @@ export default function DutyPage() {
             <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
             <TabsTrigger value="list">{t('duty.list')}</TabsTrigger>
           </TabsList>
-          <div role="group" aria-label={t('duty.filterByType')} className="inline-flex items-center rounded-lg bg-muted/60 p-1">
-            {([
+          <SlidingSegments<DutyTypeFilter>
+            ariaLabel={t('duty.filterByType')}
+            value={filters.type}
+            onChange={(v) => setFilters((f) => ({ ...f, type: v }))}
+            segments={[
               { key: 'all', label: t('duty.allTypes'), dot: null },
               { key: 'skadeleder_vagt', label: t('duty.skadelederVagt'), dot: 'bg-info' },
               { key: 'kørevagt', label: t('duty.kørevagt'), dot: 'bg-success' },
-            ] as { key: DutyTypeFilter; label: string; dot: string | null }[]).map((seg) => {
-              const active = filters.type === seg.key;
-              return (
-                <button
-                  key={seg.key}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setFilters((f) => ({ ...f, type: seg.key }))}
-                  className={cn(
-                    'flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors',
-                    active ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
-                  )}
-                >
-                  {seg.dot && <span aria-hidden className={cn('h-2 w-2 rounded-full', seg.dot)} />}
-                  {seg.label}
-                </button>
-              );
-            })}
-          </div>
+            ]}
+          />
           <Select value={filters.employeeId} onValueChange={(v) => setFilters((f) => ({ ...f, employeeId: v }))}>
             <SelectTrigger className="h-9 w-[220px]" aria-label={da ? 'Filtrer efter medarbejder' : 'Filter by employee'}>
               <SelectValue />
