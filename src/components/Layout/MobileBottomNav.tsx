@@ -31,23 +31,22 @@ const MobileBottomNav: React.FC = () => {
     <nav
       role="navigation"
       className={cn(
-        'lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card',
-        'border-t border-border/70',
-        'pb-[env(safe-area-inset-bottom)]'
+        'lg:hidden fixed inset-x-2 bottom-[calc(0.5rem+env(safe-area-inset-bottom))] z-40',
+        'overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-lg backdrop-blur-md'
       )}
       aria-label="Mobil navigation"
     >
-      <ul className="flex items-stretch justify-around min-h-[64px] px-2 gap-1">
+      <ul className="flex items-stretch justify-around min-h-[60px] px-1.5 gap-1">
         {TABS.map(({ to, label, icon: Icon, badge }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'relative flex flex-col items-center justify-center gap-1 h-full w-full min-h-[64px] text-[11px] font-medium',
-                  'transition-colors active:opacity-80',
+                  'relative flex flex-col items-center justify-center gap-1 h-full w-full min-h-[60px] rounded-xl text-[11px] font-medium',
+                  'motion-safe:transition-[color,background-color,transform] motion-safe:active:scale-95',
                   isActive
-                    ? 'text-foreground bg-accent after:absolute after:top-0 after:h-0.5 after:inset-x-3 after:bg-primary'
+                    ? 'text-foreground bg-accent after:absolute after:top-0 after:h-0.5 after:inset-x-5 after:rounded-full after:bg-primary'
                     : 'text-muted-foreground hover:text-foreground'
                 )
               }
@@ -78,10 +77,10 @@ const MobileBottomNav: React.FC = () => {
             aria-expanded={openMobile}
             onClick={() => setOpenMobile(true)}
             className={cn(
-              'relative flex flex-col items-center justify-center gap-1 h-full w-full min-h-[64px] text-[11px] font-medium',
-              'transition-colors active:opacity-80',
+              'relative flex flex-col items-center justify-center gap-1 h-full w-full min-h-[60px] rounded-xl text-[11px] font-medium',
+              'motion-safe:transition-[color,background-color,transform] motion-safe:active:scale-95',
               moreActive
-                ? 'text-foreground bg-accent after:absolute after:top-0 after:h-0.5 after:inset-x-3 after:bg-primary'
+                ? 'text-foreground bg-accent after:absolute after:top-0 after:h-0.5 after:inset-x-5 after:rounded-full after:bg-primary'
                 : 'text-muted-foreground hover:text-foreground'
             )}
             aria-label={isDa ? 'Mere' : 'More'}
