@@ -137,7 +137,7 @@ const NotificationsDrawer: React.FC = () => {
   const renderRow = (n: Row) => (
     <div
       key={n.id}
-      className="w-full text-left flex items-start gap-3 p-3 rounded-lg hover:bg-muted/60 transition-colors group"
+      className={cn('w-full text-left flex items-start gap-3 p-3 rounded-lg hover:bg-muted/60 transition-colors group animate-fade-in-up motion-reduce:animate-none', n.read && 'opacity-80')}
     >
       <span
         className={cn(
