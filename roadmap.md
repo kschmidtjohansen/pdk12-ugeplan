@@ -35,3 +35,5 @@
 - [x] Shared planner conflict/resources context with backward-compatible standalone cards.
 - [x] Regression tests, responsive fixture verification, lint and documentation.
 - [ ] Authenticated full-screen verification — blocked by external unmanaged Supabase session.
+- [x] Visual polish: avatar stack, sliding segments (duty + sub-departments), capacity rings, day load meter, mobile swipe publish/delete, timeline dimming, notification glide, planner keys 1–4.
+- [ ] Logged-in check of swipe/load meter on a phone — external unmanaged session unavailable.
