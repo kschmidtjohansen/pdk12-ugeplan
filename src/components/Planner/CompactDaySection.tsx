@@ -59,7 +59,7 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
 
   return (
     <div className={`bg-card rounded-xl border border-border/60 overflow-hidden ${
-      isToday ? 'border-primary/40 ring-1 ring-primary/20' : ''
+      isToday ? 'border-primary/40 ring-1 ring-primary/20 border-beam' : ''
     } ${isWeekend ? 'bg-muted/40' : ''}`}>
       {/* Day Header - Compact */}
       <div 
