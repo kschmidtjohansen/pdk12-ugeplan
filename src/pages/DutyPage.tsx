@@ -30,8 +30,7 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 import ErrorState from '@/components/shared/ErrorState';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { filterDuties, isDutyFilterActive, DEFAULT_DUTY_FILTERS, type DutyFilterState, type DutyTypeFilter } from '@/utils/dutyFilters';
+import { filterDuties, isDutyFilterActive, DEFAULT_DUTY_FILTERS, type DutyFilterState } from '@/utils/dutyFilters';
 
 export default function DutyPage() {
   const { t, currentLanguage } = useTranslation();
