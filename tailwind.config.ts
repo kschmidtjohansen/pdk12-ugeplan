@@ -184,13 +184,9 @@ export default {
 					'0%': { transform: 'scale(1)', opacity: '0.6' },
 					'80%, 100%': { transform: 'scale(2.4)', opacity: '0' }
 				},
-				'border-beam': {
-					to: { '--beam-angle': '360deg' }
-				},
 			},
 			animation: {
 				'live-ping': 'live-ping 1.8s cubic-bezier(0,0,0.2,1) infinite',
-				'border-beam': 'border-beam 6s linear infinite',
 				'accordion-down': 'accordion-down 200ms ease-out',
 				'accordion-up': 'accordion-up 200ms ease-out',
 				'fade-in': 'fade-in 200ms ease-out',
