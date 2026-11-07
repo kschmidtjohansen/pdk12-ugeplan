@@ -2557,3 +2557,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - "I dag": afsluttede opgaver dæmpes. Notifikationer glider ind; læste dæmpes.
 - Ugeplan: genvejstaster 1–4 for Standard/Gitter/Kompakt/Kalender (desktop, ikke i felter/dialoger).
 - Medarbejdervælger: kapacitetsring (grøn/gul/rød) viser booket tid af 8 t.
+- Underafdelingsvælger: flydende markør (`SlidingSegments`).
+- Dagsektioner i Ugeplan: belastningsmåler (mandetimer; rolig < 16 t, travl < 40 t, meget travl ≥ 40 t) – `src/utils/dayLoad.ts`.
+- Mobil: swipe opgavekort til højre = publicér, til venstre = slet (med eksisterende fortryd) – `useSwipeAction`.
