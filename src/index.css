@@ -508,6 +508,48 @@
   }
 }
 
+/* Login-only Cult/Magic-inspired presentation; workspace tokens stay unchanged. */
+.login-workspace {
+  --primary: 196.31799163179917 100% 46.86274509803922%;
+  --primary-foreground: 200 100% 16%;
+  --login-dot: var(--muted-foreground);
+  --login-shimmer: var(--primary-foreground);
+}
+.login-workspace h1, .login-workspace h2, .login-workspace label {
+  letter-spacing: 0;
+}
+.login-dot-pattern {
+  background-image: radial-gradient(hsl(var(--login-dot) / 0.2) 0.8px, transparent 0.8px);
+  background-size: 20px 20px;
+  mask-image: radial-gradient(ellipse at center, transparent 10%, hsl(var(--foreground)) 100%);
+}
+.login-surface { transition: border-color 150ms ease, box-shadow 150ms ease; }
+.login-surface:focus-within { border-color: hsl(var(--primary) / 0.4); }
+.login-module { transition: background-color 150ms ease, transform 150ms ease; }
+.login-module:hover { background: hsl(var(--brand-deep-foreground) / 0.08); transform: translateY(-2px); }
+.login-submit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, hsl(var(--login-shimmer) / 0.12) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+.login-submit:hover::after { animation: login-shimmer 650ms ease-out; }
+.login-passkey:hover .login-fingerprint { animation: login-scan 1.2s ease-in-out infinite; }
+.login-shake { animation: login-shake 220ms ease-in-out; }
+@keyframes login-shimmer { to { transform: translateX(120%); } }
+@keyframes login-scan { 50% { opacity: 0.55; } }
+@keyframes login-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .login-workspace *, .login-workspace *::before, .login-workspace *::after {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  .login-submit::after { display: none; }
+}
+
 /* Magic UI-inspireret border beam: diskret roterende lyskant (respekterer reduced motion) */
 @property --beam-angle {
   syntax: '<angle>';

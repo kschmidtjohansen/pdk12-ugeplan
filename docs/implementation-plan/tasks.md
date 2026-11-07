@@ -834,5 +834,6 @@ Implementeres ét step ad gangen — jf. `.lovable/plan.md`.
 - [x] 75/75 tests grønne, typecheck/lint/build OK. Ikke publiceret.
 
 ## Kalender/Outlook-visning: hele døgnet (2026-10-26)
+- [x] Login Cult/Magic presentation (2026-11-07): dot pattern, spotlight/busy beam, module tiles, passkey and mobile installation; no backend changes.
 - [x] Dagsgitteret i `PlannerCalendarView` dækker nu 00:00–23:59 i stedet for 06:00–19:00 (rene helpers i `src/utils/calendarTimeGrid.ts` + tests)
 - [x] Automatisk scroll til "nu" når dagens dato åbnes, så et fuldt døgn stadig er læsbart. 157/157 tests grønne, ikke publiceret.

@@ -1,4 +1,7 @@
 # PolyPlan v1.4.1
+## Login presentation
+- [x] Full Cult/Magic-inspired login polish with unchanged authentication and reduced-motion support.
+- [ ] Public login desktop/mobile, themes, validation and installation checks.
 ## Vacation approval permissions
 - [x] Remove automatic skadeleder approval in UI/actions and enforce status changes server-side; retain explicit grants and administrator access.
 - [x] Regression tests, live rule inspection and documentation: 282 tests, lint and preview build OK.
