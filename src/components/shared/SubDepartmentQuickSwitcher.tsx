@@ -58,7 +58,7 @@ const SubDepartmentQuickSwitcher: React.FC<{ showDepartments?: boolean }> = ({ s
             <Layers className="h-3.5 w-3.5" />
             <span>{t('common.subDepartment') || 'Underafdeling'}</span>
           </div>
-          <SlidingSegments<string>
+          <SlidingSegments
             ariaLabel={t('common.subDepartment') || 'Underafdeling'}
             value={selectedSubDepartmentId || ''}
             onChange={(v) => setSelectedSubDepartmentId(v || null)}
