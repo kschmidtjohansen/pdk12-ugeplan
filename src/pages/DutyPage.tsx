@@ -242,7 +242,7 @@ export default function DutyPage() {
             <TabsTrigger value="calendar">{t('duty.calendar')}</TabsTrigger>
             <TabsTrigger value="list">{t('duty.list')}</TabsTrigger>
           </TabsList>
-          <SlidingSegments<DutyTypeFilter>
+          <SlidingSegments
             ariaLabel={t('duty.filterByType')}
             value={filters.type}
             onChange={(v) => setFilters((f) => ({ ...f, type: v }))}
