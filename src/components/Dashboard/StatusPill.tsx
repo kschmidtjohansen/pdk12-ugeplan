@@ -1,3 +1,4 @@
+import { LiveDot } from '@/components/ui/live-dot';
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,8 @@ interface StatusPillProps extends React.ButtonHTMLAttributes<HTMLButtonElement> 
   icon: LucideIcon;
   label: React.ReactNode;
   tone?: 'default' | 'primary' | 'warning';
+  /** Show a pulsing live dot (e.g. person on duty right now). */
+  live?: boolean;
 }
 
 const toneMap = {
@@ -16,7 +19,7 @@ const toneMap = {
 };
 
 const StatusPill = React.forwardRef<HTMLButtonElement, StatusPillProps>(
-  ({ icon: Icon, label, tone = 'default', className, ...rest }, ref) => (
+  ({ icon: Icon, label, tone = 'default', live = false, className, ...rest }, ref) => (
     <Button
       variant="ghost"
       ref={ref}
@@ -30,6 +33,7 @@ const StatusPill = React.forwardRef<HTMLButtonElement, StatusPillProps>(
     >
       <Icon className="h-3.5 w-3.5 shrink-0" />
       <span className="whitespace-normal text-left break-words">{label}</span>
+      {live && <LiveDot className="ml-auto" />}
     </Button>
   )
 );

@@ -86,6 +86,14 @@ const AppTopBar: React.FC = () => {
         </div>
         <div className="order-3 flex min-w-0 basis-full items-center justify-center border-t border-border pt-1.5 md:order-2 md:basis-auto md:flex-1 md:border-t-0 md:pt-0">
           <GlobalAssignmentSearch />
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event('open-command-palette'))}
+            className="ml-2 hidden h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:inline-flex"
+            aria-label={currentLanguage === 'da' ? 'Åbn hurtigsøgning (⌘K)' : 'Open quick search (⌘K)'}
+          >
+            <kbd className="font-sans">⌘K</kbd>
+          </button>
         </div>
       </div>
     </header>

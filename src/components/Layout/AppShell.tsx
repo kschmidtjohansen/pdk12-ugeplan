@@ -5,6 +5,7 @@ import AppTopBar from './AppTopBar';
 import MobileBottomNav from './MobileBottomNav';
 import { applyColorScheme, getStoredColorScheme } from '@/hooks/useColorScheme';
 import AssignmentDetailsDialog from '@/components/Planner/AssignmentDetailsDialog';
+import CommandPalette from './CommandPalette';
 import { UnreadMessagesProvider } from '@/context/UnreadMessagesContext';
 
 interface AppShellProps {
@@ -42,6 +43,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </div>
           <MobileBottomNav />
           <AssignmentDetailsDialog />
+          <CommandPalette />
         </SidebarProvider>
       </UnreadMessagesProvider>
     </>

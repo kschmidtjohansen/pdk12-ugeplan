@@ -117,10 +117,10 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
             <StatusPill className="snap-start" icon={Phone} tone="primary" label={t('ui.noDutyToday')} onClick={() => setPanel('duty')} />
           )}
           {leaderDuties.length > 0 && (
-            <StatusPill className="snap-start" icon={Shield} tone="primary" label={`${t('ui.caseManager')}: ${names(leaderDuties)}`} onClick={() => setPanel('duty')} />
+            <StatusPill className="snap-start" icon={Shield} tone="primary" live label={`${t('ui.caseManager')}: ${names(leaderDuties)}`} onClick={() => setPanel('duty')} />
           )}
           {driveDuties.length > 0 && (
-            <StatusPill className="snap-start" icon={Phone} tone="primary" label={`${driveDuties.length > 1 ? t('ui.drivingDuties') : t('ui.drivingDuty')}: ${names(driveDuties)}`} onClick={() => setPanel('duty')} />
+            <StatusPill className="snap-start" icon={Phone} tone="primary" live label={`${driveDuties.length > 1 ? t('ui.drivingDuties') : t('ui.drivingDuty')}: ${names(driveDuties)}`} onClick={() => setPanel('duty')} />
           )}
           <StatusPill className="snap-start" icon={Users} label={`${metrics.availableEmployees.count}/${metrics.availableEmployees.total} ${t('ui.availableLower')}`} onClick={() => setPanel('emp')} />
           <StatusPill className="snap-start" icon={Car} label={`${metrics.availableCars.count}/${metrics.availableCars.total} ${t('ui.carsLower')}`} onClick={() => setPanel('car')} />

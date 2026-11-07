@@ -1,3 +1,13 @@
+## 2026-11-07 – UI-løft inspireret af Magic UI / Cult UI
+- Glidende aktiv-indikator i alle faner (`ui/tabs.tsx`, MutationObserver/ResizeObserver).
+- Taktil tryk-feedback (`active:scale-[0.98]`, motion-safe) på alle knapper.
+- `NumberTicker` til nøgletal på dashboard; `bento-card` hover på nøgletalskort.
+- `border-beam` lyskant på dagens dag i Ugeplan (respekterer reduced motion).
+- `LiveDot` pulserende prik på dagens vagter i dashboardets statusbjælke.
+- Global hurtigsøgning (`CommandPalette`, Cmd/Ctrl+K + ⌘K-knap): sager via eksisterende `search_assignments`, sider (rettighedsfiltreret), afdelingsskift.
+- Mobil bundmenu som flydende dock.
+- Ingen database-/RLS-ændringer.
+
 ## 2026-10-28 — Fuldt bookede medarbejdere kan vælges
 - EmployeeSelector: fuldt booket (8+ t) låser ikke længere; rød markering bevaret.
 - AssignmentForm: fuldt booket giver ikke-blokerende booking-konflikt ("Opret alligevel").

@@ -111,7 +111,7 @@ const DaySection: React.FC<DaySectionProps> = ({
       className={cn(
         "w-full scroll-mt-20 bg-card rounded-xl border border-border/60 p-4 space-y-3",
         isWeekend && "bg-muted/40",
-        isToday && "border-primary/40 ring-1 ring-primary/20"
+        isToday && "border-primary/40 ring-1 ring-primary/20 border-beam"
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
