@@ -150,7 +150,7 @@ const PlannerPage: React.FC = () => {
   }, [viewMode]);
   // Genvejstaster: 1-4 skifter visning (ignoreres i tekstfelter og dialoger)
   useEffect(() => {
-    const modes = ['standard', 'compact', 'grid', 'calendar'] as const;
+    const modes = ['standard', 'grid', 'compact', 'calendar'] as const;
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const el = e.target as HTMLElement | null;
