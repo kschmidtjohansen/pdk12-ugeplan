@@ -289,7 +289,7 @@ export default function DutyPage() {
           )}
         </div>
 
-        <TabsContent value="list" className="space-y-4">
+        <TabsContent value="list" className="space-y-4 blur-fade" key={`list-${filters.type}-${filters.employeeId}`}>
           {loading ? (
             <ListSkeleton />
           ) : dutiesWithRoles.length === 0 ? (
@@ -306,7 +306,7 @@ export default function DutyPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="calendar" className="space-y-4">
+        <TabsContent value="calendar" className="space-y-4 blur-fade" key={`cal-${filters.type}-${filters.employeeId}`}>
           {loading ? (
             <ListSkeleton />
           ) : (
