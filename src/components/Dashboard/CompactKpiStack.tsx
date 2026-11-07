@@ -10,6 +10,7 @@ import CarAvailabilityModal from './CarAvailabilityModal';
 import AbsentEmployeesModal from './AbsentEmployeesModal';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { NumberTicker } from '@/components/ui/number-ticker';
 
 interface KpiRowProps {
   label: string;
@@ -36,7 +37,7 @@ const KpiRow: React.FC<KpiRowProps> = ({ label, value, total, icon: Icon, onClic
       </span>
       <ArrowUpRight aria-hidden className="h-3.5 w-3.5 text-muted-foreground" />
       <span className="col-span-2 flex items-baseline gap-1 pl-6 tabular-nums">
-        <span className="text-3xl font-semibold leading-none text-foreground">{value}</span>
+        <NumberTicker value={value} className="text-3xl font-semibold leading-none text-foreground" />
         {total !== undefined && <span className="text-sm text-muted-foreground">/ {total}</span>}
       </span>
     </Button>
