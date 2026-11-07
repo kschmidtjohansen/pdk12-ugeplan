@@ -48,7 +48,7 @@ const ConflictBadge: React.FC<ConflictBadgeProps> = ({
       aria-label="Booking conflict"
       onClick={(e) => { e.stopPropagation(); }}
       className={cn(
-        'inline-flex items-center gap-1 rounded-md font-semibold chip-glass-destructive',
+        'inline-flex items-center gap-1 rounded-md font-semibold chip-glass-destructive conflict-pulse',
         canResolve ? 'cursor-pointer hover:opacity-90' : 'cursor-help',
         size === 'sm' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-0.5 text-xs',
         className,

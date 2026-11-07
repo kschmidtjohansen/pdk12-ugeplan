@@ -156,7 +156,7 @@ const AssignmentCardBody: React.FC<AssignmentCardProps & { employees: Employee[]
       <ContextMenuTrigger asChild>
         <Card
           className={cn(
-            'group relative flex h-full w-full flex-col p-3 brand-card-hover bg-card border-border/60 shadow-xs overflow-hidden',
+            'group spotlight relative flex h-full w-full flex-col p-3 brand-card-hover bg-card border-border/60 shadow-xs overflow-hidden',
             hasConflict && 'border-destructive/40',
 
             isLoading && 'opacity-75',
