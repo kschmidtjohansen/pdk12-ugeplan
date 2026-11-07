@@ -23,6 +23,8 @@ import { usePlannerWeekData } from '@/context/PlannerWeekDataContext';
 import type { Employee } from '@/types/employee';
 import type { AssignmentConflict } from '@/utils/assignmentConflicts';
 import { cn } from '@/lib/utils';
+import { useSwipeAction } from '@/hooks/ui/useSwipeAction';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AssignmentCardProps {
   assignment: Assignment;
@@ -138,7 +140,15 @@ const AssignmentCardBody: React.FC<AssignmentCardProps & { employees: Employee[]
     }
   };
 
+  const isMobile = useIsMobile();
+  const swipe = useSwipeAction({
+    enabled: isMobile && canEdit && !selectionActive && !operationState,
+    onRight: !isPublished && onPublish ? () => { void handlePublishClick(assignment.id); } : undefined,
+    onLeft: onDelete,
+  });
+
   const handleCardClick = (e: React.MouseEvent) => {
+    if (swipe.consumeSwipe()) return;
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('a') || target.closest('[role="button"]') || target.closest('[data-select-checkbox]')) {
       return;
@@ -155,16 +165,25 @@ const AssignmentCardBody: React.FC<AssignmentCardProps & { employees: Employee[]
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
+        <div className="relative h-full w-full">
+        {swipe.dx !== 0 && (
+          <div aria-hidden className={cn('absolute inset-0 flex items-center rounded-xl px-4 text-sm font-semibold', swipe.dx > 0 ? 'justify-start bg-success text-success-foreground' : 'justify-end bg-destructive text-destructive-foreground')}>
+            {swipe.dx > 0 ? <><Send className="mr-2 h-4 w-4" />{t('planner.contextMenu.publish')}</> : <>{t('planner.contextMenu.delete')}<Trash2 className="ml-2 h-4 w-4" /></>}
+          </div>
+        )}
         <Card
           className={cn(
             'group spotlight relative flex h-full w-full flex-col p-3 brand-card-hover bg-card border-border/60 shadow-xs overflow-hidden',
             hasConflict && 'border-destructive/40',
 
             isLoading && 'opacity-75',
+            swipe.dx === 0 && 'transition-transform duration-200',
             (onViewDetails || selectionActive) && 'cursor-pointer',
             selected && 'ring-2 ring-primary'
           )}
           onClick={handleCardClick}
+          {...swipe.handlers}
+          style={swipe.dx ? { transform: `translateX(${swipe.dx}px)` } : undefined}
           tabIndex={onViewDetails ? 0 : undefined}
           onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onViewDetails?.(); } }}
           aria-busy={isLoading}
@@ -271,6 +290,7 @@ const AssignmentCardBody: React.FC<AssignmentCardProps & { employees: Employee[]
       </div>
 
         </Card>
+        </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
         {canEdit && (
