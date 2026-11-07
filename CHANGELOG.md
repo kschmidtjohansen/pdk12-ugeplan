@@ -2556,3 +2556,4 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Flydende markør i vagttype-filteret (`SlidingSegments`).
 - "I dag": afsluttede opgaver dæmpes. Notifikationer glider ind; læste dæmpes.
 - Ugeplan: genvejstaster 1–4 for Standard/Gitter/Kompakt/Kalender (desktop, ikke i felter/dialoger).
+- Medarbejdervælger: kapacitetsring (grøn/gul/rød) viser booket tid af 8 t.

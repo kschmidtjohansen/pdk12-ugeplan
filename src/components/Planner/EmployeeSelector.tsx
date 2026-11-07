@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { CapacityRing } from '@/components/ui/capacity-ring';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { Employee } from '@/types/employee';
@@ -483,6 +484,9 @@ export const EmployeeSelector: React.FC<EmployeeSelectorProps> = ({
                 disabled={isDisabled}
                 className="pointer-events-none"
               />
+              {(availabilityInfo.bookedMinutes ?? 0) > 0 && (
+                <CapacityRing minutes={availabilityInfo.bookedMinutes ?? 0} />
+              )}
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
