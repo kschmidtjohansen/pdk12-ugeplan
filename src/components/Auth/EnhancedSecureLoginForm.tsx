@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +12,7 @@ import { toast } from 'sonner';
 
 interface EnhancedSecureLoginFormProps {
   onSuccess?: () => void;
+  onBusyChange?: (busy: boolean) => void;
 }
 
 const REMEMBER_KEY = 'auth_remember_me';
@@ -36,6 +36,7 @@ const classifyError = (raw: unknown): ErrorKind => {
 
 export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = ({
   onSuccess,
+  onBusyChange,
 }) => {
   const [email, setEmail] = useState(() =>
     typeof window !== 'undefined' ? window.localStorage.getItem(LAST_EMAIL_KEY) ?? '' : ''
@@ -58,6 +59,10 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   );
   const [isPasskeyLoading, setIsPasskeyLoading] = useState(false);
   const [passkeyAvailable] = useState(isPasskeyAvailable);
+
+  useEffect(() => {
+    onBusyChange?.(isLoading || isPasskeyLoading);
+  }, [isLoading, isPasskeyLoading, onBusyChange]);
 
   const emailRef = useRef<HTMLInputElement | null>(null);
   const errorRef = useRef<HTMLDivElement | null>(null);
@@ -232,8 +237,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
   };
 
   return (
-    <Card className="w-full mx-auto shadow-none border-0 bg-transparent">
-      <CardContent className="space-y-5 p-0">
+    <div className="w-full mx-auto space-y-5">
         {/* Network banner */}
         {!isOnline && (
           <Alert variant="destructive" className="animate-fade-in" role="status">
@@ -262,7 +266,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate aria-describedby={errorKind ? 'login-error' : undefined}>
+        <form onSubmit={handleSubmit} className={`space-y-4 ${errorKind === 'invalid' ? 'login-shake' : ''}`} noValidate aria-describedby={errorKind ? 'login-error' : undefined}>
           <div className="space-y-1.5 group">
             <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1 transition-colors group-focus-within:text-primary">Email</Label>
             <Input
@@ -376,13 +380,13 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
 
           <Button
             type="submit"
-            className="w-full h-12 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all duration-300 active:scale-[0.98] group"
+            className="login-submit relative overflow-hidden w-full h-12 sm:h-12 rounded-xl font-semibold transition-all duration-150 motion-safe:active:scale-[0.98] group"
             disabled={isLoading || isBlocked || loginTimeout || !isOnline}
             aria-busy={isLoading}
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <span aria-hidden className="animate-spin rounded-full h-4 w-4 border-2 border-background/40 border-t-white" />
+                <span aria-hidden className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground/40 border-t-primary-foreground" />
                 <span>{t('login.buttonLoading')}</span>
               </span>
             ) : (
@@ -403,7 +407,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98]"
+                className="login-passkey w-full h-auto sm:h-auto min-h-12 py-3 rounded-xl border-primary/30 bg-primary/5 font-semibold transition-all duration-150 hover:border-primary/60 hover:bg-primary/10 motion-safe:active:scale-[0.98]"
                 onClick={handlePasskeyLogin}
                 disabled={isLoading || isPasskeyLoading || isBlocked || !isOnline}
                 aria-busy={isPasskeyLoading}
@@ -414,16 +418,15 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
                     <span>{isDanish ? 'Bekræft på enheden…' : 'Confirm on your device…'}</span>
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <Fingerprint className="h-5 w-5" aria-hidden />
-                    {isDanish ? 'Log ind med Face ID / fingeraftryk' : 'Sign in with Face ID / fingerprint'}
+                  <span className="flex items-center justify-center gap-2 whitespace-normal text-left">
+                    <Fingerprint className="login-fingerprint h-5 w-5 shrink-0 text-primary" aria-hidden />
+                    <span>{isDanish ? 'Log ind med Face ID / fingeraftryk' : 'Sign in with Face ID / fingerprint'}</span>
                   </span>
                 )}
               </Button>
             </>
           )}
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 };
