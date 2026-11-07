@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { AvatarStack } from '@/components/ui/avatar-stack';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card } from '@/components/ui/card';
 import { Assignment } from '../../types/assignment';
@@ -249,6 +250,9 @@ const AssignmentCardBody: React.FC<AssignmentCardProps & { employees: Employee[]
         <div className="min-w-0 flex-1">
           <AssignmentDetails assignment={assignment} cars={cars} assignments={assignments} showFullTeamDetails={true} />
         </div>
+        {(assignment.assignedEmployees?.length ?? 0) >= 2 && (
+          <AvatarStack people={assignment.assignedEmployees!} className="shrink-0" />
+        )}
         {warehouseItemCount > 0 && (
           <TooltipProvider delayDuration={100}>
             <Tooltip>

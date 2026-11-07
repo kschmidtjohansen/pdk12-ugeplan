@@ -148,6 +148,19 @@ const PlannerPage: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('plannerViewMode', viewMode);
   }, [viewMode]);
+  // Genvejstaster: 1-4 skifter visning (ignoreres i tekstfelter og dialoger)
+  useEffect(() => {
+    const modes = ['standard', 'grid', 'compact', 'calendar'] as const;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el?.closest('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return;
+      const idx = ['1', '2', '3', '4'].indexOf(e.key);
+      if (idx >= 0 && window.innerWidth >= 768) setViewMode(modes[idx]);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // Persist selected week and year
   useEffect(() => {
