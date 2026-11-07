@@ -544,3 +544,34 @@
   .border-beam::after { animation: none; }
   .bento-card:hover { transform: none; }
 }
+
+/* Magic UI-inspireret spotlight: svag lyskegle følger musen (sættes af spotlight.ts) */
+@layer components {
+  .spotlight, .bento-card { position: relative; isolation: isolate; }
+  .spotlight::before, .bento-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 200ms ease;
+    background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), hsl(var(--primary) / 0.07), transparent 75%);
+    z-index: 0;
+  }
+  .spotlight:hover::before, .bento-card:hover::before { opacity: 1; }
+  .conflict-pulse { animation: conflict-pulse 2.4s ease-in-out infinite; }
+  .blur-fade { animation: blur-fade 160ms ease-out; }
+}
+@keyframes conflict-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--destructive) / 0); }
+  50% { box-shadow: 0 0 0 3px hsl(var(--destructive) / 0.18); }
+}
+@keyframes blur-fade {
+  from { opacity: 0; filter: blur(3px); }
+  to { opacity: 1; filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .conflict-pulse, .blur-fade { animation: none; }
+  .spotlight::before, .bento-card::before { display: none; }
+}

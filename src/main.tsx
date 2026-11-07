@@ -3,6 +3,8 @@ import App from './App.tsx';
 import './index.css';
 import { Sentry, initSentry } from './lib/sentry';
 import { resetCachesOnNewBuild } from './lib/appVersionReset';
+import { installSpotlight } from './lib/spotlight';
+installSpotlight();
 
 initSentry();
 

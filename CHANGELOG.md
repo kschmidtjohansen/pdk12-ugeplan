@@ -2547,3 +2547,8 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-10-28 – Vagtplan filtre
 - /duty: filter på vagttype (Alle/Skadeleder/Kørevagt) og medarbejder; gælder kalender og liste. Ren helper `src/utils/dutyFilters.ts` + tests.
+
+## 2026-11-07 — UI-løft (Cult/Magic UI, runde 2)
+- Spotlight-hover (lyskegle følger musen) på opgavekort og dashboardkort via én delt pointer-listener (`src/lib/spotlight.ts`).
+- Diskret pulserende ring på konfliktmærker.
+- Blur-fade ved filterskift i Vagtplan. Respekterer "reduceret bevægelse".
