@@ -1,3 +1,11 @@
+## 2026-11-07 – Login: Cult UI / Magic UI
+- Login-only dot pattern, shared spotlight and busy-state border beam; desktop module mini-tiles preserve existing navigation labels and Polygon/P branding.
+- Exact #00AEEF with contrasting brand ink, button shimmer, invalid-credential shake and passkey emphasis. Reduced motion disables login effects.
+- Mobile installation uses the P-icon, full-width touch target and wrapping label; existing prompt/help logic retained.
+- Authentication, remember-me, offline handling and access rules unchanged. No invented live-system status, backend change or publication.
+- QA: 296/296 existing tests, lint:ci and automatic preview build pass. Public login verified at 1280/390px with no overflow/runtime errors; password visibility, required-field error, light/dark, mobile three-step installation help and reduced motion checked. Real sign-in and physical-device passkey/native install not exercised.
+- Removed two pre-existing unused DutyPage imports exposed by lint; no duty behavior changes.
+
 ## 2026-11-07 – UI-løft inspireret af Magic UI / Cult UI
 - Glidende aktiv-indikator i alle faner (`ui/tabs.tsx`, MutationObserver/ResizeObserver).
 - Taktil tryk-feedback (`active:scale-[0.98]`, motion-safe) på alle knapper.

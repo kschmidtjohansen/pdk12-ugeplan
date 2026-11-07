@@ -1,5 +1,10 @@
 # Design System
 
+## Login: Cult UI / Magic UI (2026-11-07)
+- Approved login-only exception to the historical flat v1.2 presentation: subtle dot pattern, shared spotlight, busy-state border beam, module mini-tiles and tactile buttons.
+- Exact Polygon blue and contrasting brand ink, P-monogram, light/dark, Danish/English and reduced-motion support. No invented system-health claims or keyboard-help copy.
+- Existing password, passkey, remember-me, offline/error handling and mobile install behavior are preserved; mobile install adds the product icon and a wrapping label.
+
 ## Kalender: træk og tidsjustering (2026-10-27)
 - Aktive træk bevares gennem identiske medarbejderliste-opdateringer; kun ændrede medarbejder-ID'er, dato, bruger eller redigeringsadgang annullerer. Browserfixture med 100ms refresh verificeret med mus og touch (1280/390px); indlogget gemning ikke verificeret.
 - Opgaveknap og separate start-/sluthåndtag (ingen indlejrede knapper); transient forhåndsvisning med tid og destinationsmedarbejder i semantiske card/primary-tokens.

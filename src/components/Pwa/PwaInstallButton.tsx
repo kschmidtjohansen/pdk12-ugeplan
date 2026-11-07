@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { usePwaInstall } from '@/hooks/usePwaInstall';
 import { useTranslation } from '@/context/TranslationContext';
+import PolyPlanMark from '@/components/branding/PolyPlanMark';
 
 /** True on touch devices (phones/tablets) — false on desktop with mouse/keyboard. */
 const useIsTouchDevice = () => {
@@ -98,10 +99,11 @@ export const PwaInstallButton = () => {
           type="button"
           variant="outline"
           onClick={handleClick}
-          className="min-h-[44px] gap-2 rounded-full border-border/60 bg-card/70 px-5 text-xs font-semibold text-muted-foreground backdrop-blur hover:text-primary"
+          className="h-auto sm:h-auto min-h-[64px] w-full justify-between gap-3 rounded-xl border-border bg-card px-4 py-3 text-sm font-semibold text-foreground shadow-xs hover:border-primary/40"
         >
-          <Download className="h-4 w-4 text-polygon-blue" aria-hidden />
-          {label}
+          <PolyPlanMark size={32} decorative />
+          <span className="flex-1 whitespace-normal text-left">{label}</span>
+          <Download className="h-4 w-4 shrink-0 text-primary" aria-hidden />
         </Button>
       </div>
 
