@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
 /** Path of the standalone 3D-scanninger page (public/3d/index.html). */
-export const SCANS_URL = '/3d/index.html';
+export const SCANS_URL = '/3d/';
 
 const HAS_ACCESS = new Set(['viewer', 'editor', 'admin']);
 

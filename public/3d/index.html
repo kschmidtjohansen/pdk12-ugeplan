@@ -2581,8 +2581,8 @@ function staffSection() {
     const deptOf = {}, deptName = {};
     try {
       const ids = rows.map(r => r.user_id);
-      const [pr, dr] = await Promise.all([S.store.sb.from('profiles').select('id, home_department_id').in('id', ids), S.store.sb.from('departments').select('id, name, code')]);
-      (dr.data || []).forEach(d => { deptName[d.id] = (d.code ? d.code + ' · ' : '') + d.name; });
+      const [pr, dr] = await Promise.all([S.store.sb.from('profiles').select('id, home_department_id').in('id', ids), S.store.sb.from('departments').select('id, name')]);
+      (dr.data || []).forEach(d => { deptName[d.id] = d.name; });
       (pr.data || []).forEach(p => { deptOf[p.id] = p.home_department_id; });
     } catch (e) {}
     const groups = new Map();
