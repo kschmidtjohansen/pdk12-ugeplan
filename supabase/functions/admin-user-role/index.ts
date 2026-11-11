@@ -96,7 +96,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
+    console.log(`[${requestId}] User authenticated: ${user.id}`);
 
     // Enhanced admin role check with better error handling
     console.log(`[${requestId}] Checking admin role for user: ${user.id}`);
@@ -123,7 +123,7 @@ serve(async (req) => {
     }
 
     if (!isAdminCaller) {
-      console.error(`[${requestId}] User not admin. Roles: ${callerRoles.join(',') || 'none'}, User: ${user.email}`);
+      console.error(`[${requestId}] User not admin. Roles: ${callerRoles.join(',') || 'none'}`);
       return new Response(
         JSON.stringify({
           error: 'Administrator access required',
@@ -203,7 +203,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Target user found: ${targetUser.name} (${targetUser.email})`);
+    console.log(`[${requestId}] Target user found: ${targetUserId ?? "ok"}`);
 
     // Replace user's roles atomically: delete all, then insert the requested set
     const { error: delErr } = await supabaseAdmin
