@@ -74,3 +74,7 @@ verify_jwt = false
 # Authentication and admin-role checks happen inside the function.
 [functions.broadcast-notification]
 verify_jwt = false
+
+# 3D-scanninger: AI analysis of 360 photos. JWT required; the function also checks p360_can_edit().
+[functions.p360-ai]
+verify_jwt = true

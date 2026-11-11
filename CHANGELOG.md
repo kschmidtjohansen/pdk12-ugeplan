@@ -2593,3 +2593,24 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 ## 2026-11-11 – 3D-scanninger branding
 - Polygon-trekant som logo (menu/login) og som gulvpunkt i rundvisninger.
 - Brugere i Indstillinger: afdelingsknapper (Alle + hver afdeling) med antal; starter i aktuel PolyPlan-afdeling.
+
+## 2026-11-11 — 3D-scanninger: automatisk plantegning, rum og indhold
+- Gulvringe synlige igen: den seneste ændring gjorde dem til en trekant på ca. 4-10 cm med en udefineret gradient (`#p3TriG`), så de næsten forsvandt. Nu en hvid ring (Ø 52 cm) med en hvid Polygon-trekant, der peger i gåretningen.
+- "Fil til forsikring" virker igen: den indlejrede kopi af fremviseren (`#p3-bundle`) var ugyldig JSON efter skrifttypeskiftet (anførselstegn uden escape). Den bygges nu altid som gyldig JSON.
+- Plantegning → Automatisk: "Lav plantegning automatisk" (AI) finder rumtype, gulvhjørner (m² og mål ud fra kamerahøjden), indhold, trapper og etage pr. billede og lægger gulvringe begge veje mellem billeder i optagerækkefølge. Rummene placeres derefter ud fra ringene (retning + afstand fra ringens vinkel; drejning fra ringen tilbage). "Placér ud fra ringene" virker også uden AI.
+- Etager: etagevælger i plantegning og minikort; etage pr. scene kan rettes. Panel "Rum og indhold" i fremviseren (også i links og filer til forsikring). Rumoversigt som CSV.
+- Ny Edge Function `p360-ai` (JWT påkrævet + `p360_can_edit()`), via den eksisterende `LOVABLE_API_KEY`. Model kan ændres med secret `P360_AI_MODEL`. Billeder gemmes ikke i funktionen.
+- Alle Lovables ændringer i siden er bevaret (design, sidemenu, IT-Support-indstillinger, afdelingssynk).
+
+## 2026-11-11 — 3D-scanninger: arkiv i 3 dage, arkivér fra oversigten, automatiske ringe efter upload
+- Arkiv: "Arkivér" (i Detaljer og på kortet i oversigten, vises ved hover) flytter rundvisningen til Arkiv med "Fortryd". Den kan gendannes i 3 dage og slettes derefter automatisk for altid (scener, billeder, forsikringslinks). Kortene i Arkiv viser "Slettes om …" og har Gendan/Slet nu.
+- "Slet" i Detaljer er fjernet for aktive rundvisninger; endelig sletning sker fra Arkiv. Tidsgrænsen bruger serverens tid fra login-tokenet, så et forkert ur på en enhed ikke kan slette for tidligt. Oprydningen kører, når en redaktør åbner siden.
+- Efter upload af billeder tilbydes "Forbind scenerne automatisk" (AI-ringe + plantegning). Samme funktion som knap i redigeringslinjen: "Ringe og plan automatisk".
+- Forsikringslinks indeholder nu også etage og "Rum og indhold".
+
+## 2026-11-11 — 3D-scanninger: ringe på scener uden forbindelser, 3D-scan fra LiDAR
+- Gulvringe: en scene uden forbindelser viser automatiske ringe til næste og forrige scene i rækkefølge, så en ny rundvisning kan gås igennem med det samme. De gemmes først, når en redaktør flytter eller åbner dem.
+- 3D-scan (LiDAR): "Tilføj billeder" → "Vælg 3D-scan (.glb)". En browser kan ikke læse telefonens LiDAR direkte, så scanningen laves i en app (fx Scaniverse eller Polycam) og eksporteres som GLB. Scenen vises i 3D (drej, zoom), i "Plan" (set ovenfra, snit med vægomrids) og kan måles i meter. Mål gemmes og følger med i links til forsikringen. 3D-scanninger er ikke med i "Fil til forsikring".
+- Begrænsninger: komprimerede GLB-filer (Draco/meshopt), USDZ, OBJ og punktskyer afvises med en forklaring. Filstørrelsen er begrænset af Supabase-projektets filgrænse (typisk 50 MB).
+- Indbygget GLB-læser og WebGL-fremviser i `public/3d/index.html`; ingen nye afhængigheder og ingen databaseændringer.
+
