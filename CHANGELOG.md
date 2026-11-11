@@ -2583,3 +2583,9 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - role_permissions læses kun for egne roller (super_admin alle).
 - vacation-cleanup-assignments kræver super_admin eller administrator/skadeleder i samme afdeling.
 - Admin-Edge Functions logger ikke længere e-mail, navn eller telefonnummer.
+
+## 2026-11-11 — 3D-scanninger: ensartet design og IT-Support-indstillinger
+- 3D-siden bruger nu Inter/JetBrains Mono som resten af PolyPlan.
+- Adresselinjen viser polyplan.dk/3d (index.html fjernes; /3d i appen viderestiller).
+- Indstillinger: kun "Standard for optagelse" og optageguide for andre end IT-Support; logo, farver, lager samt roller/brugere kun for super_admin.
+- Brugerlisten grupperes pr. hjemafdeling.

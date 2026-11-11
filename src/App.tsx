@@ -4,6 +4,9 @@ import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+// /3d is served by the static page at public/3d/; this only bounces SPA fallback hits there.
+const ScansRedirect = () => { if (typeof window !== "undefined") window.location.replace("/3d/index.html" + window.location.search + window.location.hash); return null; };
 import { ThemeProvider } from "./components/theme-provider";
 import { SecurityProvider } from "./context/SecurityContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -164,6 +167,7 @@ const AppContent = () => {
           <Route path="/screen-display" element={<ScreenDisplayPage />} />
           
           {/* Catch all other routes */}
+          <Route path="/3d" element={<ScansRedirect />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
