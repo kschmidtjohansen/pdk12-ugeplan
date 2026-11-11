@@ -2608,3 +2608,9 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Efter upload af billeder tilbydes "Forbind scenerne automatisk" (AI-ringe + plantegning). Samme funktion som knap i redigeringslinjen: "Ringe og plan automatisk".
 - Forsikringslinks indeholder nu også etage og "Rum og indhold".
 
+## 2026-11-11 — 3D-scanninger: ringe på scener uden forbindelser, 3D-scan fra LiDAR
+- Gulvringe: en scene uden forbindelser viser automatiske ringe til næste og forrige scene i rækkefølge, så en ny rundvisning kan gås igennem med det samme. De gemmes først, når en redaktør flytter eller åbner dem.
+- 3D-scan (LiDAR): "Tilføj billeder" → "Vælg 3D-scan (.glb)". En browser kan ikke læse telefonens LiDAR direkte, så scanningen laves i en app (fx Scaniverse eller Polycam) og eksporteres som GLB. Scenen vises i 3D (drej, zoom), i "Plan" (set ovenfra, snit med vægomrids) og kan måles i meter. Mål gemmes og følger med i links til forsikringen. 3D-scanninger er ikke med i "Fil til forsikring".
+- Begrænsninger: komprimerede GLB-filer (Draco/meshopt), USDZ, OBJ og punktskyer afvises med en forklaring. Filstørrelsen er begrænset af Supabase-projektets filgrænse (typisk 50 MB).
+- Indbygget GLB-læser og WebGL-fremviser i `public/3d/index.html`; ingen nye afhængigheder og ingen databaseændringer.
+
