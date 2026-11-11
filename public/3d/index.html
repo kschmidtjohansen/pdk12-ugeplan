@@ -478,9 +478,9 @@ video.grab{width:100%;max-height:46vh;background:#000;border-radius:10px}
   .side-burger:hover,.side.open .side-burger{background:var(--sb-acc)}
   .side-nav,.side-foot{display:none}
   .side.open .side-nav,.side.open .side-foot{display:flex;flex-direction:column;flex:1 0 100%;gap:2px}
-  .side.open .side-nav{max-height:calc(100dvh - 140px);overflow-y:auto;padding:8px 0;border-top:1px solid var(--sb-line)}
+  .side.open .side-nav{flex:0 0 100%;padding:8px 0;border-top:1px solid var(--sb-line)}
   .side.open .side-foot{padding:8px 0 10px;margin:0;border-top:1px solid var(--sb-line)}
-  .side.open{position:fixed;left:0;right:0;top:0;box-shadow:0 12px 32px rgba(15,23,42,.18)}
+  .side.open{position:fixed;left:0;right:0;top:0;bottom:0;align-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;box-shadow:0 12px 32px rgba(15,23,42,.18)}
   .nav{min-height:44px}
   .nav .ed{display:none}
   .main-in{padding:16px 16px 48px}
@@ -1887,7 +1887,7 @@ function renderSide() {
   list.append(h('div', { class: 'side-h' }, h('span', { text: 'Mere' })),
     nav(v.kind === 'shares', 'Delt med forsikringer', icon('share'), () => setView({ kind: 'shares' })),
     nav(v.kind === 'archive', 'Arkiv', icon('trash'), () => setView({ kind: 'archive' })));
-  const ppLogo = h('a', { class: 'side-brand', href: '/dashboard', 'aria-label': 'PolyPlan – gå til forsiden' }); ppLogo.innerHTML = '<svg class="pg-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="pgTri" cx="50%" cy="58%" r="55%"><stop offset="0" stop-color="#3CC8F5"/><stop offset=".55" stop-color="#00AEEF"/><stop offset="1" stop-color="#0068B0"/></radialGradient></defs><path fill="url(#pgTri)" d="M42 15Q50 2 58 15L88 68Q96 83 80 85Q50 90 20 85Q4 83 12 68Z"/></svg><span class="pp-word">PolyPlan</span><span class="side-app">3D</span>';
+  const ppLogo = h('a', { class: 'side-brand', href: '/dashboard', 'aria-label': 'PolyPlan – gå til forsiden' }); ppLogo.innerHTML = '<img class="pg-mark" src="/favicon.svg" width="28" height="28" alt="" aria-hidden="true" draggable="false" style="border-radius:22%;width:28px;height:28px"><span class="pp-word">PolyPlan</span><span class="side-app">3D</span>';
   const burger = h('button', { class: 'side-burger', type: 'button', 'aria-label': 'Menu', 'aria-expanded': S.sideOpen ? 'true' : 'false', onclick: () => { S.sideOpen = !S.sideOpen; el.classList.toggle('open', S.sideOpen); burger.setAttribute('aria-expanded', String(S.sideOpen)); } });
   burger.innerHTML = '<svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
   el.classList.toggle('open', !!S.sideOpen);
