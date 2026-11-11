@@ -12,6 +12,6 @@ describe('scanRoleHasAccess', () => {
     expect(scanRoleHasAccess({ role: 'admin' })).toBe(false);
   });
   it('points at the static page, not a React route', () => {
-    expect(SCANS_URL).toBe('/3d/');
+    expect(SCANS_URL).toBe('/3d/index.html');
   });
 });
