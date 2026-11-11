@@ -2593,3 +2593,11 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 ## 2026-11-11 – 3D-scanninger branding
 - Polygon-trekant som logo (menu/login) og som gulvpunkt i rundvisninger.
 - Brugere i Indstillinger: afdelingsknapper (Alle + hver afdeling) med antal; starter i aktuel PolyPlan-afdeling.
+
+## 2026-11-11 — 3D-scanninger: automatisk plantegning, rum og indhold
+- Gulvringe synlige igen: den seneste ændring gjorde dem til en trekant på ca. 4-10 cm med en udefineret gradient (`#p3TriG`), så de næsten forsvandt. Nu en hvid ring (Ø 52 cm) med en hvid Polygon-trekant, der peger i gåretningen.
+- "Fil til forsikring" virker igen: den indlejrede kopi af fremviseren (`#p3-bundle`) var ugyldig JSON efter skrifttypeskiftet (anførselstegn uden escape). Den bygges nu altid som gyldig JSON.
+- Plantegning → Automatisk: "Lav plantegning automatisk" (AI) finder rumtype, gulvhjørner (m² og mål ud fra kamerahøjden), indhold, trapper og etage pr. billede og lægger gulvringe begge veje mellem billeder i optagerækkefølge. Rummene placeres derefter ud fra ringene (retning + afstand fra ringens vinkel; drejning fra ringen tilbage). "Placér ud fra ringene" virker også uden AI.
+- Etager: etagevælger i plantegning og minikort; etage pr. scene kan rettes. Panel "Rum og indhold" i fremviseren (også i links og filer til forsikring). Rumoversigt som CSV.
+- Ny Edge Function `p360-ai` (JWT påkrævet + `p360_can_edit()`), via den eksisterende `LOVABLE_API_KEY`. Model kan ændres med secret `P360_AI_MODEL`. Billeder gemmes ikke i funktionen.
+- Alle Lovables ændringer i siden er bevaret (design, sidemenu, IT-Support-indstillinger, afdelingssynk).

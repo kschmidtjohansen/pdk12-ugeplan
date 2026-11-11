@@ -54,3 +54,14 @@ Adgangen følger rollerne i `user_roles`, som kun bliver læst, aldrig ændret. 
 
 Kør `002_polygon_360_rollback.sql`. Tøm og slet derefter bucket'en `p360` under Storage, og slet funktionen `p360-link`.
 Menupunktet forsvinder af sig selv. Fjern `public/3d/` for at fjerne siden helt.
+
+## Automatisk plantegning (AI)
+
+- **Hvor:** Redigér → Plantegning → Automatisk → "Lav plantegning automatisk". Kun redaktører kan bruge den.
+- **Hvad AI gør:**
+  - Rumanalyse pr. billede: rumtype, gulvhjørner, indhold, trapper og etage. Kun hvis scenen ikke allerede er analyseret, og eksisterende omrids overskrives ikke.
+  - Én analyse pr. par af billeder i optagerækkefølge, der lægger gulvringe begge veje, hvis de mangler.
+  - Bagefter placeres rummene ud fra ringene.
+- **Funktion:** `supabase/functions/p360-ai`, udrulles af Lovable ved merge (`verify_jwt = true`). Den kalder `p360_can_edit()` med brugerens JWT og bruger `LOVABLE_API_KEY`. Model: secret `P360_AI_MODEL`, ellers `openai/gpt-6-astra`.
+- **Nøjagtighed:** mål, hjørner og ringe er forslag. Ret dem i 360-visningen ("Tegn igen", træk ringen) og i plantegningen ("Placér ud fra ringene").
+- **Kildekode:** `public/3d/index.html` bygges uden for repoet. Lovables direkte ændringer i filen flettes ind ved hver ny version, og `#p3-bundle` genopbygges som gyldig JSON.
