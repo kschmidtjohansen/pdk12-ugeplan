@@ -156,14 +156,6 @@ const DaySection: React.FC<DaySectionProps> = ({
           <span className="ml-2 shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground tabular-nums select-none">
             {assignmentsCount} {taskText}
           </span>
-          {loadLevel > 0 && (
-            <span className="ml-2 flex items-end gap-0.5 shrink-0" role="img" aria-label={`${loadLabel}: ${Math.round(loadHours)} t`} title={`${loadLabel} · ${Math.round(loadHours)} mandetimer`}>
-              {[1, 2, 3].map(n => (
-                <span key={n} className={cn('w-1.5 rounded-sm', n === 1 ? 'h-2' : n === 2 ? 'h-3' : 'h-4',
-                  n > loadLevel ? 'bg-muted' : loadLevel === 3 ? 'bg-destructive' : loadLevel === 2 ? 'bg-warning' : 'bg-success')} />
-              ))}
-            </span>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
