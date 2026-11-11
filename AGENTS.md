@@ -12,3 +12,4 @@
 - Module list toolbars are opt-in controlled UI; employee/car filters and vacation visibility-before-counting use shared pure helpers to retain the existing data hooks and action handlers.
 
 - Edge authorization decisions live in src/security/backend/policies.ts with a byte-identical copy in supabase/staged/functions/_shared (test-enforced); unreviewed server changes are staged under supabase/staged/ so they are never auto-deployed.
+- 3D-scanninger is a standalone static page (public/3d/index.html, built outside this repo) sharing PolyPlan's Supabase session; access is read-only from user_roles via staged p360_* SQL, and the sidebar link is gated by useScanAccess so nothing appears before the SQL is applied.
