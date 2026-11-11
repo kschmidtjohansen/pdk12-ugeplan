@@ -1808,7 +1808,7 @@ function renderGrid() {
     if (searching) g.append(h('section', { class: 'empty' }, h('h2', { text: 'Ingen rundvisninger passer' }), h('p', { text: 'Prøv færre ord, eller en del af sagsnummeret.' })));
     else if (v.kind === 'archive') g.append(h('section', { class: 'empty' }, h('h2', { text: 'Arkivet er tomt' }), h('p', { text: 'Afsluttede sager, du arkiverer, havner her. De beholder alle scener og kan gendannes.' })));
     else if (v.status) g.append(h('section', { class: 'empty' }, h('h2', { text: 'Ingen rundvisninger med denne status' }), h('p', { text: 'Vælg en anden status ovenfor, eller Alle.' })));
-    else g.append(h('section', { class: 'empty' }, h('h2', { text: v.kind === 'dept' ? 'Ingen rundvisninger i ' + viewTitle() + ' yet' : 'Start din første 360°-rundvisning' }), h('p', { text: 'En rundvisning er en række 360-billeder, ét pr. rum, forbundet så man kan gå rundt på stedet fra sit skrivebord.' }),
+    else g.append(h('section', { class: 'empty' }, h('h2', { text: v.kind === 'dept' ? 'Ingen rundvisninger i ' + viewTitle() : 'Start din første 360°-rundvisning' }), h('p', { text: 'En rundvisning er en række 360-billeder, ét pr. rum, forbundet så man kan gå rundt på stedet fra sit skrivebord.' }),
       h('ol', { class: 'steps' }, h('li', null, h('b', { text: 'Optag' }), 'Ét 360-billede fra midten af hvert rum, kameraet i vater i ca. 1,5 m højde.'), h('li', null, h('b', { text: 'Upload' }), 'Tilføj JPG-filerne fra GoPro MAX.'), h('li', null, h('b', { text: 'Forbind og del' }), 'Forbind rummene, markér skaderne og del et link med forsikringen.')),
       canWrite() ? h('button', { class: 'btn pri', type: 'button', onclick: newTourDialog }, icon('plus'), 'Ny rundvisning') : null));
     return;
