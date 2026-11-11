@@ -9,25 +9,25 @@
 <style>
 :root{
   /* layout: white sidebar + card grid like a property CRM; viewer uses floating white controls over the photo */
-  --bg:#F3F4F6; --surface:#FFFFFF; --ink:#151821; --muted:#646B78; --line:#E2E5EA; --tint:#F7F8FA;
-  --accent:#E9600C; --accent-ink:#FFFFFF;
+  --bg:#F8FAFC; --surface:#FFFFFF; --ink:#0F172A; --muted:#64748B; --line:#E2E8F0; --tint:#F1F5F9;
+  --accent:#00AEEF; --accent-ink:#FFFFFF;
   --good:#1E7F4F; --warn:#A15C07; --crit:#C2362A; --water:#1F6FB2;
-  --f-display:"Plus Jakarta Sans","Segoe UI",Arial,sans-serif;
-  --f-body:"Plus Jakarta Sans","Segoe UI",Arial,sans-serif;
+  --f-display:"Barlow Semi Condensed","Plus Jakarta Sans","Segoe UI",Arial,sans-serif;
+  --f-body:"Barlow","Plus Jakarta Sans","Segoe UI",Arial,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
   --r:12px; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.08);
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#111317; --surface:#1B1E24; --ink:#EEF0F3; --muted:#9AA1AD; --line:#2E333B; --tint:#22262D;
+    --bg:#020817; --surface:#0B1220; --ink:#F1F5F9; --muted:#94A3B8; --line:#1E293B; --tint:#111A2E;
     --good:#4FB880; --warn:#E3A33C; --crit:#EE6A5A; --water:#5AA9E6;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#111317; --surface:#1B1E24; --ink:#EEF0F3; --muted:#9AA1AD; --line:#2E333B; --tint:#22262D;
+  --bg:#020817; --surface:#0B1220; --ink:#F1F5F9; --muted:#94A3B8; --line:#1E293B; --tint:#111A2E;
   --good:#4FB880; --warn:#E3A33C; --crit:#EE6A5A; --water:#5AA9E6;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);
   color-scheme:dark;
@@ -44,7 +44,7 @@ button{cursor:pointer}
 
 /* ---------- 360 player: floating white controls over the photo ---------- */
 .p3{position:relative;width:100%;height:100%;overflow:hidden;background:#0d0e10;color:#151821;font-family:var(--f-body);-webkit-user-select:none;user-select:none;overscroll-behavior:contain;
-  --p3-accent:var(--accent,#E9600C);--p3-accent-ink:var(--accent-ink,#fff);--p3-card:rgba(255,255,255,.96);--p3-ink:#151821;--p3-muted:#5F6672;--p3-line:#E3E6EB;
+  --p3-accent:var(--accent,#00AEEF);--p3-accent-ink:var(--accent-ink,#fff);--p3-card:rgba(255,255,255,.96);--p3-ink:#151821;--p3-muted:#5F6672;--p3-line:#E3E6EB;
   --p3-sh:0 2px 6px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.18)}
 .p3-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;cursor:grab;touch-action:none}
 .p3-canvas:active{cursor:grabbing}
@@ -64,7 +64,7 @@ button{cursor:pointer}
 .p3-ml.draft{stroke:var(--p3-accent);stroke-dasharray:6 5}
 .p3-ml.outline{stroke:var(--p3-accent)}
 .p3-poly{fill:rgba(255,255,255,.16);stroke:none}
-.p3-poly.outline{fill:rgba(233,96,12,.16)}
+.p3-poly.outline{fill:rgba(0,174,239,.16)}
 .p3-md{fill:#fff;stroke:rgba(0,0,0,.55);stroke-width:1.5}
 .p3-md.draft{fill:var(--p3-accent)}
 .p3-md.first{fill:var(--p3-accent);stroke:#fff;stroke-width:2}
@@ -1671,9 +1671,9 @@ const canWrite = () => !!(S.store && S.store.canWrite);
 const canUpload = () => canWrite() && !!S.store.canUpload;
 
 function applyBrand() {
-  const a = /^#[0-9a-f]{6}$/i.test(S.cfg.accent || '') ? S.cfg.accent : '#E9600C', st = document.documentElement.style;
+  const a = '#00AEEF', st = document.documentElement.style;
   st.setProperty('--accent', a); st.setProperty('--accent-ink', P.inkFor(a));
-  document.title = (S.cfg.company || 'Polygon') + ' 360-rundvisninger';
+  document.title = '3D-scanninger · PolyPlan';
   if (S.player) S.player.setBrand(brand());
 }
 function brandMark() { return S.cfg.logo && /^data:image\/(png|jpeg|webp);/.test(S.cfg.logo) ? h('img', { src: S.cfg.logo, alt: S.cfg.company || 'Logo' }) : h('span', { class: 'wordmark', text: S.cfg.company || 'Polygon' }); }
@@ -1684,8 +1684,28 @@ const DCOLORS = ['#C2362A', '#1F6FB2', '#1E7F4F', '#8A6A12', '#7A3FB0', '#0F7C86
 S.depts = S.depts || []; S.view = S.view || { kind: 'all', dept: null, status: '', limit: 48 };
 const deptById = id => S.depts.find(d => d.id === id);
 const sortedDepts = () => S.depts.slice().sort((a, b) => (a.order || 0) - (b.order || 0) || String(a.name).localeCompare(String(b.name)));
+const normName = x => String(x || '').toLowerCase().replace(/^\s*(afd\.?|afdeling)\s*/, '').replace(/\s+/g, ' ').trim();
+const deptMatches = (a, b) => { a = normName(a); b = normName(b); return !!a && !!b && (a === b || a.startsWith(b + ' ') || b.startsWith(a + ' ')); };
+async function ppDepartments() {
+  if (S._ppDepts) return S._ppDepts;
+  try { const r = await S.store.sb.from('departments').select('id, name'); S._ppDepts = (r && r.data) || []; } catch (e) { S._ppDepts = []; }
+  return S._ppDepts;
+}
+async function syncFromPolyPlan() {
+  if (S._ppSynced || !S.store || S.store.mode !== 'supabase' || !S.depts.length) return; S._ppSynced = true;
+  const sel = localStorage.getItem('selected_department_id'); if (!sel) return;
+  const pp = (await ppDepartments()).find(d => d.id === sel); if (!pp) return;
+  const m = S.depts.find(d => deptMatches(d.name, pp.name));
+  if (m && !location.hash) { S.view = Object.assign({}, S.view, { kind: 'dept', dept: m.id, status: '', limit: 48 }); renderLibrary(); }
+}
+async function syncToPolyPlan(deptId) {
+  const d = deptById(deptId); if (!d || !S.store || S.store.mode !== 'supabase') return;
+  const pp = (await ppDepartments()).find(x => deptMatches(d.name, x.name));
+  if (pp) localStorage.setItem('selected_department_id', pp.id);
+}
 function setView(v) {
   S.view = Object.assign({ kind: 'all', dept: null, status: '', limit: 48 }, v); S.q = '';
+  if (S.view.kind === 'dept') syncToPolyPlan(S.view.dept);
   S.store.setPrefs({ view: { kind: S.view.kind === 'shares' ? 'all' : S.view.kind, dept: S.view.dept } });
   if (location.hash) location.hash = ''; else renderLibrary();
 }
@@ -1709,7 +1729,7 @@ function renderSide() {
   list.append(h('div', { class: 'side-h' }, h('span', { text: 'Mere' })),
     nav(v.kind === 'shares', 'Delt med forsikringer', icon('share'), () => setView({ kind: 'shares' })),
     nav(v.kind === 'archive', 'Arkiv', icon('trash'), () => setView({ kind: 'archive' })));
-  el.append(h('div', { class: 'side-brand' }, brandMark(), h('span', { class: 'side-app', text: '360-rundvisninger' })), list,
+  el.append(h('div', { class: 'side-brand' }, brandMark(), h('span', { class: 'side-app', text: '3D-scanninger' })), list,
     h('div', { class: 'side-foot' }, nav(false, 'Indstillinger', icon('gear'), settingsDialog), S.store && S.store.mode === 'supabase' && S.store.uid ? (HOST() && HOST().home ? nav(false, 'Tilbage til ' + HOST().name, icon('back'), () => { location.href = HOST().home; }) : nav(false, 'Log ud', icon('back'), () => S.store.signOut())) : null));
 }
 function viewTitle() { const v = S.view; return v.kind === 'dept' ? ((deptById(v.dept) || {}).name || 'Afdeling') : v.kind === 'archive' ? 'Arkiv' : v.kind === 'shares' ? 'Delt med forsikringer' : 'Alle rundvisninger'; }
@@ -2626,7 +2646,7 @@ async function boot() {
   try { const pr = await S.store.getPrefs(); if (pr && pr.view && (pr.view.kind === 'all' || pr.view.kind === 'dept' || pr.view.kind === 'archive')) Object.assign(S.view, { kind: pr.view.kind, dept: pr.view.dept || null }); } catch (e) {}
   applyBrand();
   if (S.store.mode === 'supabase' && !/^#l-/.test(location.hash)) { if (S.store.signedOut) return renderLogin(); if (S.store.role === 'pending') return renderPending(); }
-  S.store.watchDepts(list => { S.depts = list; if (S.view.kind === 'dept' && !deptById(S.view.dept) && S.depts.length) { /* department removed */ } renderSide(); if (S.gridEl && S.gridEl.isConnected) { renderMain(); } }, () => {});
+  S.store.watchDepts(list => { S.depts = list; syncFromPolyPlan(); if (S.view.kind === 'dept' && !deptById(S.view.dept) && S.depts.length) { /* department removed */ } renderSide(); if (S.gridEl && S.gridEl.isConnected) { renderMain(); } }, () => {});
   S.store.listShares().then(r => { S.insurers = Array.from(new Set(r.map(x => x.insurer).filter(Boolean))).sort(); }, () => {});
   window.addEventListener('hashchange', route); route();
 }
