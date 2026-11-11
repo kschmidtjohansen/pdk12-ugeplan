@@ -119,7 +119,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
+    console.log(`[${requestId}] User authenticated: ${user.id}`);
 
     // Check if user has admin role (user may have multiple roles)
     const { data: roleRows, error: roleError } = await supabaseAdmin
@@ -129,7 +129,7 @@ serve(async (req) => {
       .in('role', ['administrator', 'super_admin']);
 
     if (roleError || !roleRows || roleRows.length === 0) {
-      console.error(`[${requestId}] User not admin. Roles: ${JSON.stringify(roleRows)}, Error: ${roleError?.message}, User: ${user.email}`);
+      console.error(`[${requestId}] User not admin. Roles: ${JSON.stringify(roleRows)}, Error: ${roleError?.message}, User: ${user.id}`);
       return new Response(
         JSON.stringify({ error: 'Administrator access required' }),
         { 
@@ -169,7 +169,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Creating user - temporary: ${isTemporary}, email: ${email || 'none'}, name: ${name}, role: ${role}`);
+    console.log(`[${requestId}] Creating user - temporary: ${isTemporary}, hasEmail: ${!!email}, role: ${role}`);
 
     let userId: string;
     let finalEmail: string;
@@ -178,7 +178,7 @@ serve(async (req) => {
       // For temporary users, generate UUID and temporary email
       userId = crypto.randomUUID();
       finalEmail = email || `vikar-${Date.now()}-${userId.substring(0, 8)}@temp.local`;
-      console.log(`[${requestId}] Generated UUID for temporary user: ${userId}, temp email: ${finalEmail}`);
+      console.log(`[${requestId}] Generated UUID for temporary user: ${userId}`);
     } else {
       finalEmail = email;
     }
@@ -278,7 +278,7 @@ serve(async (req) => {
 
     // Use the auth-generated user ID for consistency
     userId = newUser.user.id;
-    console.log(`[${requestId}] User created:`, { userId, email: finalEmail, temporary: isTemporary });
+    console.log(`[${requestId}] User created:`, { userId, temporary: isTemporary });
 
     // Create profile entry
     if (userId) {
@@ -296,7 +296,7 @@ serve(async (req) => {
           if (phonePattern.test(trimmed)) {
             sanitizedPhone = trimmed;
           } else {
-            console.error(`[admin-create-user] Invalid phone format: "${trimmed}"`);
+            console.error(`[admin-create-user] Invalid phone format (length ${trimmed.length})`);
             // Return error instead of proceeding with invalid phone
             return new Response(
               JSON.stringify({ 

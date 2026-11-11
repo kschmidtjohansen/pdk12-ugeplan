@@ -106,7 +106,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
+    console.log(`[${requestId}] User authenticated: ${user.id}`);
 
     // Users can hold multiple roles — fetch the full list instead of expecting one row.
     const { data: roleRows, error: roleError } = await supabaseAdmin
@@ -128,7 +128,7 @@ serve(async (req) => {
     const userRolesList: string[] = (roleRows || []).map((r: { role: string }) => r.role).filter(Boolean);
 
     if (userRolesList.length === 0) {
-      console.error(`[${requestId}] No role found for user: ${user.email}`);
+      console.error(`[${requestId}] No role found for user: ${user.id}`);
       return new Response(
         JSON.stringify({ 
           error: 'No role assigned to user. Please contact administrator.',
@@ -145,7 +145,7 @@ serve(async (req) => {
     const effectiveRole = userRolesList.find((r) => allowedRoles.includes(r));
 
     if (!effectiveRole) {
-      console.error(`[${requestId}] User not authorized. Roles: ${userRolesList.join(', ')}, User: ${user.email}`);
+      console.error(`[${requestId}] User not authorized. Roles: ${userRolesList.join(', ')}, User: ${user.id}`);
       return new Response(
         JSON.stringify({ 
           error: 'Administrator, Skadeleder or Super Admin access required',
@@ -159,7 +159,7 @@ serve(async (req) => {
     }
 
 
-    console.log(`[${requestId}] Access granted for role: ${effectiveRole} (${user.email}), fetching users...`);
+    console.log(`[${requestId}] Access granted for role: ${effectiveRole}; fetching users...`);
 
     // FIXED: Get profiles and roles separately to avoid JOIN issues
     console.log(`[${requestId}] Fetching profiles...`);

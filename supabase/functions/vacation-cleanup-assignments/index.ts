@@ -115,6 +115,33 @@ serve(async (req) => {
       );
     }
 
+    // Authorization: only planners (super_admin, or administrator/skadeleder
+    // sharing a department with the employee) may trigger cleanup.
+    {
+      const { data: roleRows } = await admin
+        .from("user_roles").select("role").eq("user_id", callerId);
+      const roles = (roleRows || []).map((r: { role: string }) => r.role);
+      let allowed = roles.includes("super_admin");
+      if (!allowed && (roles.includes("administrator") || roles.includes("skadeleder"))) {
+        const [{ data: callerAccess }, { data: targetAccess }, { data: targetProfile }] = await Promise.all([
+          admin.from("user_access").select("department_id").eq("user_id", callerId),
+          admin.from("user_access").select("department_id").eq("user_id", userId),
+          admin.from("profiles").select("home_department_id").eq("id", userId).maybeSingle(),
+        ]);
+        const callerDepts = new Set((callerAccess || []).map((r: { department_id: string }) => r.department_id));
+        const targetDepts = (targetAccess || []).map((r: { department_id: string }) => r.department_id);
+        const home = (targetProfile as { home_department_id?: string } | null)?.home_department_id;
+        if (home) targetDepts.push(home);
+        allowed = targetDepts.some((d) => callerDepts.has(d));
+      }
+      if (!allowed) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     log("Processing cleanup", { userId, startDate, endDate, reason, isPartial });
 
     const { data: employee } = await admin
