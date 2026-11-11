@@ -1693,7 +1693,7 @@ function applyBrand() {
   document.title = '3D-scanninger · PolyPlan';
   if (S.player) S.player.setBrand(brand());
 }
-function brandMark() { return S.cfg.logo && /^data:image\/(png|jpeg|webp);/.test(S.cfg.logo) ? h('img', { src: S.cfg.logo, alt: S.cfg.company || 'Logo' }) : (() => { const w = h('span', { class: 'wordmark pg-brand' }); w.innerHTML = '<svg class="pg-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="pgTri" cx="50%" cy="58%" r="55%"><stop offset="0" stop-color="#3CC8F5"/><stop offset=".55" stop-color="#00AEEF"/><stop offset="1" stop-color="#0068B0"/></radialGradient></defs><path fill="url(#pgTri)" d="M50 6C57 6 95 70 95 79C95 88 62 94 50 94C38 94 5 88 5 79C5 70 43 6 50 6Z"/></svg>'; w.append(document.createTextNode(S.cfg.company || 'Polygon')); return w; })(); }
+function brandMark() { return S.cfg.logo && /^data:image\/(png|jpeg|webp);/.test(S.cfg.logo) ? h('img', { src: S.cfg.logo, alt: S.cfg.company || 'Logo' }) : (() => { const w = h('span', { class: 'wordmark pg-brand' }); w.innerHTML = '<svg class="pg-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="pgTri" cx="50%" cy="58%" r="55%"><stop offset="0" stop-color="#3CC8F5"/><stop offset=".55" stop-color="#00AEEF"/><stop offset="1" stop-color="#0068B0"/></radialGradient></defs><path fill="url(#pgTri)" d="M42 15Q50 2 58 15L88 68Q96 83 80 85Q50 90 20 85Q4 83 12 68Z"/></svg>'; w.append(document.createTextNode(S.cfg.company || 'Polygon')); return w; })(); }
 
 // ---------- library ----------
 const STATUS = { draft: 'Kladde', ready: 'Klar', shared: 'Delt med forsikring' };
@@ -1746,7 +1746,7 @@ function renderSide() {
   list.append(h('div', { class: 'side-h' }, h('span', { text: 'Mere' })),
     nav(v.kind === 'shares', 'Delt med forsikringer', icon('share'), () => setView({ kind: 'shares' })),
     nav(v.kind === 'archive', 'Arkiv', icon('trash'), () => setView({ kind: 'archive' })));
-  const ppLogo = h('a', { class: 'side-brand', href: '/dashboard', 'aria-label': 'PolyPlan – gå til forsiden' }); ppLogo.innerHTML = '<svg class="pg-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="pgTri" cx="50%" cy="58%" r="55%"><stop offset="0" stop-color="#3CC8F5"/><stop offset=".55" stop-color="#00AEEF"/><stop offset="1" stop-color="#0068B0"/></radialGradient></defs><path fill="url(#pgTri)" d="M50 6C57 6 95 70 95 79C95 88 62 94 50 94C38 94 5 88 5 79C5 70 43 6 50 6Z"/></svg><span class="pp-word">PolyPlan</span><span class="side-app">3D</span>';
+  const ppLogo = h('a', { class: 'side-brand', href: '/dashboard', 'aria-label': 'PolyPlan – gå til forsiden' }); ppLogo.innerHTML = '<svg class="pg-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="pgTri" cx="50%" cy="58%" r="55%"><stop offset="0" stop-color="#3CC8F5"/><stop offset=".55" stop-color="#00AEEF"/><stop offset="1" stop-color="#0068B0"/></radialGradient></defs><path fill="url(#pgTri)" d="M42 15Q50 2 58 15L88 68Q96 83 80 85Q50 90 20 85Q4 83 12 68Z"/></svg><span class="pp-word">PolyPlan</span><span class="side-app">3D</span>';
   el.append(ppLogo, list,
     h('div', { class: 'side-foot' }, nav(false, 'Indstillinger', icon('gear'), settingsDialog), S.store && S.store.mode === 'supabase' && S.store.uid ? (HOST() && HOST().home ? nav(false, 'Tilbage til ' + HOST().name, icon('back'), () => { location.href = HOST().home; }) : nav(false, 'Log ud', icon('back'), () => S.store.signOut())) : null));
 }
