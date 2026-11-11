@@ -2589,3 +2589,7 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Adresselinjen viser polyplan.dk/3d (index.html fjernes; /3d i appen viderestiller).
 - Indstillinger: kun "Standard for optagelse" og optageguide for andre end IT-Support; logo, farver, lager samt roller/brugere kun for super_admin.
 - Brugerlisten grupperes pr. hjemafdeling.
+
+## 2026-11-11 – 3D-scanninger branding
+- Polygon-trekant som logo (menu/login) og som gulvpunkt i rundvisninger.
+- Brugere i Indstillinger: afdelingsknapper (Alle + hver afdeling) med antal; starter i aktuel PolyPlan-afdeling.
