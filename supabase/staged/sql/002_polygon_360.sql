@@ -294,6 +294,8 @@ end $$;
 revoke all on function public.p360_account_ok(uuid) from public, anon, authenticated;
 revoke all on function public.p360_join(text), public.p360_lock(text, text, int), public.p360_bump_view(text), public.p360_staff_list(), public.p360_role_map_list(), public.p360_set_role_map(text, text), public.p360_set_staff_role(uuid, text), public.p360_find_roles() from public, anon;
 grant execute on function public.p360_join(text), public.p360_lock(text, text, int), public.p360_bump_view(text), public.p360_staff_list(), public.p360_role_map_list(), public.p360_set_role_map(text, text), public.p360_set_staff_role(uuid, text) to authenticated;
+revoke all on function public.p360_find_roles() from authenticated;
+revoke all on function public.p360_role(), public.p360_is_staff(), public.p360_can_edit(), public.p360_is_admin() from public, anon;
 grant execute on function public.p360_role(), public.p360_is_staff(), public.p360_can_edit(), public.p360_is_admin() to authenticated;
 
 -- ---------- Billedlager ----------
