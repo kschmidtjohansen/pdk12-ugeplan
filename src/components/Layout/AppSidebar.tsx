@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Clock, Users, Car, Calendar, Shield, Package, Settings } from 'lucide-react';
+import { LayoutDashboard, Clock, Users, Car, Calendar, Shield, Package, Settings, Rotate3d } from 'lucide-react';
 import PolyPlanBrand from '@/components/branding/PolyPlanBrand';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -22,6 +22,7 @@ import { useUnreadMessagesContext } from '@/context/UnreadMessagesContext';
 import { cn } from '@/lib/utils';
 import { PRODUCT_NAME } from '@/config/product';
 import DepartmentSwitcherPill from './NavComponents/DepartmentSwitcherPill';
+import { useScanAccess, SCANS_URL } from '@/hooks/useScanAccess';
 
 interface NavItem {
   path: string;
@@ -42,6 +43,7 @@ const AppSidebar: React.FC = () => {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const collapsed = state === 'collapsed' && !isMobile;
+  const canSeeScans = useScanAccess();
 
   const closeMobile = () => { if (isMobile) setOpenMobile(false); };
 
@@ -143,7 +145,24 @@ const AppSidebar: React.FC = () => {
       <SidebarContent className="py-3" role="navigation" aria-label={t('ui.primaryNavigation')}>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>{items.map(renderItem)}</SidebarMenu>
+            <SidebarMenu>
+              {items.map(renderItem)}
+              {canSeeScans && (
+                // Standalone static page (public/3d), so a plain link instead of a router NavLink.
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="3D-scanninger"
+                    className="h-11 text-sm font-medium cursor-pointer rounded-md transition-[background-color,color,opacity] duration-150 ease-out text-sidebar-foreground hover:bg-sidebar-accent"
+                  >
+                    <a href={SCANS_URL} onClick={closeMobile}>
+                      <Rotate3d className="h-[18px] w-[18px] shrink-0" />
+                      <span className="truncate">3D-scanninger</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

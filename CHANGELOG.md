@@ -1,3 +1,10 @@
+## 2026-11-11 – 3D-scanninger (Polygon 360-rundvisninger)
+- Ny selvstændig side `public/3d/index.html` med 360-rundvisninger fra GoPro, afdelinger, status, deling med forsikringsselskaber (visningslink uden login) og import fra den gamle side. Bruger samme login/session ("Husk mig") og samme supabase-js-version som PolyPlan; ingen kontooprettelse på siden.
+- Adgang følger `user_roles`, som kun bliver læst: super_admin/administrator → administrator, skadeleder/fugttekniker → redaktør, servicemedarbejder → læser, vikar → ingen. Inaktive, fratrådte, udløbne og demo-profiler har aldrig adgang. Oversættelsen kan ændres på 3D-siden.
+- Sidemenu: "3D-scanninger" vises kun for brugere med adgang (`useScanAccess`, read-only `p360_role()`); skjult indtil SQL'en er kørt.
+- STAGED: `supabase/staged/sql/002_polygon_360.sql` (+ rollback) og `supabase/staged/functions/p360-link`. Nye `p360_*`-objekter, RLS på alle, privat bucket `p360`; ingen eksisterende tabeller, funktioner eller policies ændret. Se `docs/operations/3d-scanninger.md`.
+- QA: 298/298 tests (2 nye), lint:ci, typecheck og build OK. SQL testet på Postgres 16 med PolyPlans `user_roles`/`profiles`-struktur: alle roller, inaktiv/udløbet/demo, rollback og gentagen kørsel. 3D-siden testet i browser mod simuleret Supabase, og den rigtige klient læser en PolyPlan-session uden "Husk mig".
+
 ## 2026-11-07 – Login: Cult UI / Magic UI
 - Login-only dot pattern, shared spotlight and busy-state border beam; desktop module mini-tiles preserve existing navigation labels and Polygon/P branding.
 - Exact #00AEEF with contrasting brand ink, button shimmer, invalid-credential shake and passkey emphasis. Reduced motion disables login effects.
