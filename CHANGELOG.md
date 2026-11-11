@@ -2601,3 +2601,10 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Etager: etagevælger i plantegning og minikort; etage pr. scene kan rettes. Panel "Rum og indhold" i fremviseren (også i links og filer til forsikring). Rumoversigt som CSV.
 - Ny Edge Function `p360-ai` (JWT påkrævet + `p360_can_edit()`), via den eksisterende `LOVABLE_API_KEY`. Model kan ændres med secret `P360_AI_MODEL`. Billeder gemmes ikke i funktionen.
 - Alle Lovables ændringer i siden er bevaret (design, sidemenu, IT-Support-indstillinger, afdelingssynk).
+
+## 2026-11-11 — 3D-scanninger: arkiv i 3 dage, arkivér fra oversigten, automatiske ringe efter upload
+- Arkiv: "Arkivér" (i Detaljer og på kortet i oversigten, vises ved hover) flytter rundvisningen til Arkiv med "Fortryd". Den kan gendannes i 3 dage og slettes derefter automatisk for altid (scener, billeder, forsikringslinks). Kortene i Arkiv viser "Slettes om …" og har Gendan/Slet nu.
+- "Slet" i Detaljer er fjernet for aktive rundvisninger; endelig sletning sker fra Arkiv. Tidsgrænsen bruger serverens tid fra login-tokenet, så et forkert ur på en enhed ikke kan slette for tidligt. Oprydningen kører, når en redaktør åbner siden.
+- Efter upload af billeder tilbydes "Forbind scenerne automatisk" (AI-ringe + plantegning). Samme funktion som knap i redigeringslinjen: "Ringe og plan automatisk".
+- Forsikringslinks indeholder nu også etage og "Rum og indhold".
+

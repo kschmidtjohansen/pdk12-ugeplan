@@ -510,6 +510,18 @@ video.grab{width:100%;max-height:46vh;background:#000;border-radius:10px}
 .pe-auto .p3-row{flex-wrap:wrap}
 .pe-side select{padding:5px 8px;border-radius:8px;border:1px solid #E3E6EB;background:#fff}
 
+/* card actions (archive / restore) and toast action */
+.card-acts{position:absolute;right:8px;top:8px;display:flex;gap:6px;opacity:0;transition:opacity .15s}
+.card:hover .card-acts,.card:focus-within .card-acts{opacity:1}
+@media (hover:none){.card-acts{opacity:1}}
+.card-act{width:34px;height:34px;border:0;border-radius:999px;background:#fff;color:#151821;display:grid;place-items:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.card-act .ic{width:17px;height:17px}
+.card-act:hover{background:#151821;color:#fff}
+.card-act.danger:hover{background:var(--crit);color:#fff}
+.lib-toast{display:flex;align-items:center;gap:12px}
+.lib-toast[hidden]{display:none !important}
+.lib-toast button{border:0;border-radius:999px;background:#fff;color:#151821;font-weight:700;font-size:13px;padding:5px 12px}
+
 </style>
 </head>
 <body>
@@ -1438,10 +1450,11 @@ A.mb = n => n >= 1048576 * 1024 ? (n / 1073741824).toFixed(1) + ' GB' : (n / 104
 A.host = () => S.player ? S.player.overlay : document.body;
 
 // ---------- feedback ----------
-A.toast = (msg, ms) => {
-  if (S.player) return S.player.toast(msg, ms);
+A.toast = (msg, ms, action) => {
+  if (S.player && !action) return S.player.toast(msg, ms);
   let el = document.querySelector('.lib-toast'); if (!el) { el = h('div', { class: 'lib-toast', role: 'status' }); document.body.append(el); }
-  el.textContent = msg; el.hidden = false; clearTimeout(A._tt); A._tt = setTimeout(() => { el.hidden = true; }, ms || 2800);
+  el.textContent = msg; el.hidden = false; clearTimeout(A._tt); A._tt = setTimeout(() => { el.hidden = true; }, ms || (action ? 8000 : 2800));
+  if (action) el.append(h('button', { type: 'button', onclick: () => { el.hidden = true; action.fn(); } }, action.label));
 };
 A.writeFailed = e => {
   const c = e && e.code;
@@ -1709,8 +1722,13 @@ A.supabaseStore = function (cfg) {
   const St = { mode: 'supabase', sb, caps: {}, canWrite: false, canAdmin: false, canUpload: false, uid: null, role: null, email: '', holder: 'h' + uid(), signedOut: false };
   const subs = new Set(), dsubs = new Set();
   const refresh = () => { subs.forEach(f => f()); }, drefresh = () => { dsubs.forEach(f => f()); };
+  // Clock anchored to the server: the login token carries the server's issue and expiry times (about an hour apart),
+  // so a device with a wrong date can never delete archived tours early.
+  const setWin = tok => { try { const c = JSON.parse(atob(String(tok).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); if (c.iat && c.exp) St._tw = [c.iat * 1000, c.exp * 1000]; } catch (e) {} };
+  St.now = () => { const t = Date.now(), w = St._tw; return w ? Math.min(Math.max(t, w[0]), w[1]) : t; };
+  try { sb.auth.onAuthStateChange((ev, sess) => { if (sess && sess.access_token) setWin(sess.access_token); }); } catch (e) {}
   St.ready = (async () => {
-    const { data } = await sb.auth.getSession(); const s = data && data.session;
+    const { data } = await sb.auth.getSession(); const s = data && data.session; if (s && s.access_token) setWin(s.access_token);
     if (!s) { St.signedOut = true; return; }
     St.uid = s.user.id; St.email = s.user.email || '';
     St.role = ok(await sb.rpc('p360_join', { p_name: null })) || 'pending';
@@ -1919,6 +1937,7 @@ function renderMain() {
   inner.append(f, S.gridEl, S.moreEl); renderGrid();
 }
 function watchList() {
+  purgeArchive();
   if (S.unsubList) { S.unsubList(); S.unsubList = null; }
   if (!S.store || S.view.kind === 'shares') return;
   if (S.q.trim()) return runSearch();
@@ -1945,7 +1964,12 @@ function coverImg(t) {
   }
   return t.cover && /^data:image\//.test(t.cover) ? h('img', { src: t.cover, alt: '' }) : icon('image');
 }
-function renderGrid() {
+
+function cardActs(t) {
+  if (!canWrite()) return null;
+  const b = (ic, label, fn, cls) => h('button', { class: 'card-act' + (cls ? ' ' + cls : ''), type: 'button', title: label, 'aria-label': label + ': ' + P.tourName(t), onclick: e => { e.preventDefault(); e.stopPropagation(); fn(t); } }, icon(ic));
+  return h('span', { class: 'card-acts' }, t.arch ? [b('undo', 'Gendan', restoreFromList), b('trash', 'Slet nu', deleteFromList, 'danger')] : [b('trash', 'Arkivér', archiveFromList)]);
+}function renderGrid() {
   const g = S.gridEl; if (!g || !g.isConnected) return; g.textContent = ''; S.moreEl.textContent = ''; S.countEl.textContent = '';
   const searching = !!S.q.trim(), v = S.view;
   if (!searching && !S.loaded) {
@@ -1957,7 +1981,7 @@ function renderGrid() {
   S.countEl.textContent = searching ? list.length + (list.length === 1 ? ' resultat' : ' resultater') : list.length + (list.length >= v.limit ? '+' : '') + (list.length === 1 ? ' rundvisning' : ' rundvisninger');
   if (!list.length) {
     if (searching) g.append(h('section', { class: 'empty' }, h('h2', { text: 'Ingen rundvisninger passer' }), h('p', { text: 'Prøv færre ord, eller en del af sagsnummeret.' })));
-    else if (v.kind === 'archive') g.append(h('section', { class: 'empty' }, h('h2', { text: 'Arkivet er tomt' }), h('p', { text: 'Afsluttede sager, du arkiverer, havner her. De beholder alle scener og kan gendannes.' })));
+    else if (v.kind === 'archive') g.append(h('section', { class: 'empty' }, h('h2', { text: 'Arkivet er tomt' }), h('p', { text: 'Rundvisninger, du arkiverer, ligger her i ' + KEEP_DAYS + ' dage og kan gendannes. Derefter slettes de automatisk for altid.' })));
     else if (v.status) g.append(h('section', { class: 'empty' }, h('h2', { text: 'Ingen rundvisninger med denne status' }), h('p', { text: 'Vælg en anden status ovenfor, eller Alle.' })));
     else g.append(h('section', { class: 'empty' }, h('h2', { text: v.kind === 'dept' ? 'Ingen rundvisninger i ' + viewTitle() : 'Start din første 360°-rundvisning' }), h('p', { text: 'En rundvisning er en række 360-billeder, ét pr. rum, forbundet så man kan gå rundt på stedet fra sit skrivebord.' }),
       h('ol', { class: 'steps' }, h('li', null, h('b', { text: 'Optag' }), 'Ét 360-billede fra midten af hvert rum, kameraet i vater i ca. 1,5 m højde.'), h('li', null, h('b', { text: 'Upload' }), 'Tilføj JPG-filerne fra GoPro MAX.'), h('li', null, h('b', { text: 'Forbind og del' }), 'Forbind rummene, markér skaderne og del et link med forsikringen.')),
@@ -1967,7 +1991,7 @@ function renderGrid() {
   for (const t of list) {
     const n = +t.count || 0, d = deptById(t.dept), stt = STATUS[t.status] ? t.status : 'draft';
     g.append(h('a', { class: 'card', href: '#t-' + t.id },
-      h('div', { class: 'card-img' }, coverImg(t), h('span', { class: 'badge ' + stt, text: t.arch ? 'Arkiveret' : STATUS[stt] }), h('span', { class: 'card-count' }, icon('look'), n + (n === 1 ? ' scene' : ' scener'))),
+      h('div', { class: 'card-img' }, coverImg(t), h('span', { class: 'badge ' + stt, text: t.arch ? archText(t) : STATUS[stt] }), cardActs(t), h('span', { class: 'card-count' }, icon('look'), n + (n === 1 ? ' scene' : ' scener'))),
       h('div', { class: 'card-body' }, h('h2', { text: P.tourName(t) }), h('p', { class: 'addr', text: t.ref ? 'Sagsnr. ' + t.ref : 'Intet sagsnummer' }), t.address && t.title ? h('p', { class: 'desc', text: t.title }) : null,
         h('div', { class: 'card-meta' }, d ? h('span', { class: 'dchip' }, h('i', { style: { background: d.color || '#4A5565' } }), d.name) : null, null),
         h('div', { class: 'card-foot', text: 'Opdateret ' + A.fmtDate(t.updatedAt || t.createdAt) + (t.insurer ? ' · ' + t.insurer : '') }))));
@@ -2082,7 +2106,7 @@ function leaveTour() {
 function saveScene(sc) { const cur = S.cur; if (!cur || cur.ro) return Promise.resolve(); touchTour(); mirrorScene(cur, sc); return S.store.setScene(cur.id, sc.id, sc).catch(A.writeFailed); }
 // ---------- view-only links ----------
 const linkTour = (t, id) => ({ tid: id, title: t.title || '', ref: t.ref || '', address: t.address || '', insurer: t.insurer || '', claim: t.claim || '', camHeight: t.camHeight || 1.5, square: t.square !== false, plan: t.plan || { mode: 'traced' }, order: t.order || [], count: t.count || 0, at: Date.now() });
-const linkScene = (sc, l) => ({ name: sc.name || '', asset: sc.asset, w: sc.w || 0, h: sc.h || 0, thumb: sc.thumb || '', yaw0: sc.yaw0 || 0, pitch0: sc.pitch0 || 0, hotspots: (sc.hotspots || []).filter(x => x.type === 'nav' || l.tags), measures: l.meas ? (sc.measures || []) : [], blurs: sc.blurs || [], outline: sc.outline || null, place: sc.place || null, at: sc.at || 0 });
+const linkScene = (sc, l) => ({ name: sc.name || '', asset: sc.asset, w: sc.w || 0, h: sc.h || 0, thumb: sc.thumb || '', yaw0: sc.yaw0 || 0, pitch0: sc.pitch0 || 0, hotspots: (sc.hotspots || []).filter(x => x.type === 'nav' || l.tags), measures: l.meas ? (sc.measures || []) : [], blurs: sc.blurs || [], outline: sc.outline || null, place: sc.place || null, level: sc.level == null ? null : sc.level, ai: sc.ai || null, kind: sc.kind || null, model: sc.model || null, measures3: l.meas ? (sc.measures3 || []) : [], at: sc.at || 0 });
 function mirrorScene(cur, sc) { for (const l of cur.tour.links || []) S.store.setLinkScene(l.tok, sc.id, linkScene(sc, l)).catch(() => {}); }
 function mirrorTour(cur) { for (const l of cur.tour.links || []) S.store.setLinkTour(l.tok, linkTour(cur.tour, cur.id)).catch(() => {}); }
 function newTok() { const a = 'abcdefghijkmnopqrstuvwxyz0123456789', r = crypto.getRandomValues(new Uint8Array(24)); let s = ''; for (const v of r) s += a[v % a.length]; return s; }
@@ -2201,7 +2225,7 @@ function renderEditBar() {
   tool('nav', 'link', 'Forbindelse', t === 'nav'); tool('tag', 'tag', 'Markering', t === 'tag'); tool('blur', 'blur', 'Slør', t === 'blur'); tool('dist', 'ruler', 'Mål', meas); tool('outline', 'room', 'Tegn rum', t === 'outline');
   bar.append(h('span', { class: 'eb-sep' }));
   const act = (ic, label, fn) => bar.append(h('button', { class: 'eb-btn', type: 'button', onclick: fn }, icon(ic), label));
-  act('home', 'Sæt startvisning', setStartView); act('map', 'Plantegning', planEditor); if (canUpload()) act('plus', 'Tilføj billeder', addDialog); act('gear', 'Detaljer', detailsDialog);
+  act('home', 'Sæt startvisning', setStartView); act('map', 'Plantegning', planEditor); if (aiOn()) act('spark', 'Ringe og plan automatisk', () => autoPlan()); if (canUpload()) act('plus', 'Tilføj billeder', addDialog); act('gear', 'Detaljer', detailsDialog);
 }
 function pickTool(t) {
   const player = S.player; if (!player.scene && t !== 'look') { A.toast('Tilføj først et 360-billede.'); return; }
@@ -2358,6 +2382,7 @@ async function importFiles(files) {
   }
   if (first) await afterAdd(cur, first);
   done.disabled = false; if (!bad) m.close();
+  if (first && !bad) offerAuto(cur);
 }
 function frameGrabber(file) {
   const cur = S.cur, url = URL.createObjectURL(file), video = h('video', { class: 'grab', src: url, controls: true, playsinline: true, muted: true, preload: 'auto' });
@@ -2376,27 +2401,62 @@ function frameGrabber(file) {
   };
 }
 
+// ---------- archive: kept for 3 days, then deleted for good ----------
+const KEEP_DAYS = 3, DAY = 86400000;
+const nowMs = () => (S.store && S.store.now ? S.store.now() : Date.now());
+function archText(t) {
+  if (!t.archAt) return 'Arkiveret'; const left = KEEP_DAYS * DAY - (nowMs() - t.archAt);
+  return left <= 0 ? 'Slettes nu' : left < DAY ? 'Slettes om ' + Math.max(1, Math.round(left / 3600000)) + ' t' : 'Slettes om ' + Math.ceil(left / DAY) + ' dage';
+}
+async function setArchived(id, tour, on) {
+  const next = Object.assign({}, tour, { arch: on, updatedAt: nowMs(), updatedBy: S.store.uid || '' }); if (on) next.archAt = nowMs(); else delete next.archAt;
+  await S.store.setTour(id, next); return next;
+}
+function archiveFromList(t) {
+  setArchived(t.id, t, true).then(() => A.toast('“' + P.tourName(t) + '” er flyttet til Arkiv og slettes om ' + KEEP_DAYS + ' dage.', 8000, { label: 'Fortryd', fn: () => setArchived(t.id, t, false).catch(A.writeFailed) }), A.writeFailed);
+}
+function restoreFromList(t) { setArchived(t.id, t, false).then(() => A.toast('“' + P.tourName(t) + '” er gendannet.'), A.writeFailed); }
+// Removes a tour for good: scenes, images, insurer links and view counts.
+async function removeTour(id, tour, scenes) {
+  for (const sc of scenes) { await S.store.delScene(id, sc.id); if (sc.asset) S.store.delBlob(sc.asset); (sc.hotspots || []).forEach(x => { if (x.photo) S.store.delBlob(x.photo); }); }
+  for (const l of tour.links || []) { try { await S.store.delLink(l.tok, scenes.map(x => x.id)); } catch (e) {} }
+  if (tour.plan && tour.plan.asset) S.store.delBlob(tour.plan.asset); if (tour.coverAsset) S.store.delBlob(tour.coverAsset);
+  await S.store.delViews(id); await S.store.delTour(id);
+}
+async function deleteFromList(t) {
+  if (!(await A.confirmBox('Slet rundvisningen nu?', '“' + P.tourName(t) + '” og alle dens scener fjernes for alle med det samme. Det kan ikke fortrydes.', 'Slet nu', true))) return;
+  A.toast('Sletter…', 8000); try { await removeTour(t.id, t, await S.store.getScenes(t.id)); A.toast('Rundvisningen er slettet.'); } catch (e) { A.writeFailed(e); }
+}
+// Runs when an editor opens the page: archived tours older than 3 days are deleted; older archive entries start their 3 days now.
+async function purgeArchive() {
+  if (!canWrite() || S._purged) return; S._purged = true;
+  try {
+    for (const t of await S.store.allTours()) {
+      if (t.arch !== true) continue;
+      if (!(+t.archAt > 0)) { await S.store.setTour(t.id, Object.assign({}, t, { archAt: nowMs() })); continue; }
+      if (nowMs() - t.archAt > KEEP_DAYS * DAY) await removeTour(t.id, t, await S.store.getScenes(t.id));
+    }
+  } catch (e) {}
+}
+
 // ---------- tour details ----------
 async function detailsDialog() {
   const cur = S.cur, f = tourFields(cur.tour, true), act = h('p', { class: 'mono', text: '' }), arch = !!cur.tour.arch;
   const save = h('button', { class: 'btn pri', type: 'button' }, 'Gem');
   const m = A.modal({ title: 'Detaljer', wide: true, body: f.nodes.concat([h('div', { class: 'sec' }, h('h3', { text: 'Aktivitet' }), act)]), foot: [
-    h('button', { class: 'btn danger left', type: 'button', onclick: () => { m.close(); deleteTour(); } }, icon('trash'), 'Slet'),
-    h('button', { class: 'btn', type: 'button', onclick: () => { cur.tour.arch = !arch; saveTour(); m.close(); A.toast(arch ? 'Rundvisningen er gendannet fra arkivet.' : 'Rundvisningen er arkiveret. Find den under Arkiv.'); } }, arch ? 'Gendan' : 'Arkivér'),
+    arch ? h('button', { class: 'btn danger left', type: 'button', onclick: () => { m.close(); deleteTour(); } }, icon('trash'), 'Slet nu')
+      : h('button', { class: 'btn left', type: 'button', onclick: async () => { m.close(); cur.tour.arch = true; cur.tour.archAt = nowMs(); await saveTour(); const id = cur.id, t = Object.assign({}, cur.tour); location.hash = ''; setTimeout(() => A.toast('Rundvisningen er flyttet til Arkiv og slettes om ' + KEEP_DAYS + ' dage.', 8000, { label: 'Fortryd', fn: () => setArchived(id, t, false).catch(A.writeFailed) }), 80); } }, icon('trash'), 'Arkivér'),
+    arch ? h('button', { class: 'btn', type: 'button', onclick: () => { cur.tour.arch = false; delete cur.tour.archAt; saveTour(); m.close(); A.toast('Rundvisningen er gendannet fra arkivet.'); } }, 'Gendan') : null,
     h('button', { class: 'btn', type: 'button', onclick: () => m.close() }, 'Annullér'), save] });
   save.onclick = () => { const v = f.read(); if (!v.address && !v.title) { f.address.focus(); A.toast('Skriv adressen.'); return; } Object.assign(cur.tour, v); delete cur.tour.demo; S.lastDept = v.dept; saveTour(); S.player.refresh(); m.close(); };
   act.textContent = 'Oprettet ' + A.fmtDate(cur.tour.createdAt) + ' \u00B7 ' + cur.scenes.length + ' scener';
+  if (arch) act.textContent += ' \u00B7 i Arkiv (' + archText(cur.tour).toLowerCase() + ')'; else act.textContent += '. Arkivér flytter rundvisningen til Arkiv, hvor den kan gendannes i ' + KEEP_DAYS + ' dage og derefter slettes.';
   const v = await S.store.views(cur.id); if (v && v.opens) act.textContent += ' \u00B7 åbnet ' + v.opens + (v.opens === 1 ? ' gang af ' : ' gange af ') + v.people + (v.people === 1 ? ' person' : ' personer') + ', senest den ' + A.fmtDate(v.last);
 }
 async function deleteTour() {
-  const cur = S.cur; if (!(await A.confirmBox('Slet rundvisningen?', '“' + P.tourName(cur.tour) + '” og dens ' + cur.scenes.length + ' scener fjernes for alle. Det kan ikke fortrydes.', 'Slet rundvisning', true))) return;
+  const cur = S.cur; if (!(await A.confirmBox('Slet rundvisningen nu?', '“' + P.tourName(cur.tour) + '” og dens ' + cur.scenes.length + ' scener fjernes for alle med det samme. Det kan ikke fortrydes.', 'Slet nu', true))) return;
   A.toast('Sletter…', 8000);
-  try {
-    for (const sc of cur.scenes) { await S.store.delScene(cur.id, sc.id); S.store.delBlob(sc.asset); (sc.hotspots || []).forEach(x => { if (x.photo) S.store.delBlob(x.photo); }); }
-    for (const l of cur.tour.links || []) { try { await S.store.delLink(l.tok, cur.scenes.map(x => x.id)); } catch (e) {} }
-    if (cur.tour.plan && cur.tour.plan.asset) S.store.delBlob(cur.tour.plan.asset); if (cur.tour.coverAsset) S.store.delBlob(cur.tour.coverAsset);
-    await S.store.delViews(cur.id); clearTimeout(S._touch); await S.store.delTour(cur.id); location.hash = '';
-  } catch (e) { A.writeFailed(e); }
+  try { clearTimeout(S._touch); await removeTour(cur.id, cur.tour, cur.scenes); location.hash = ''; } catch (e) { A.writeFailed(e); }
 }
 
 // ---------- floor plan ----------
@@ -2459,6 +2519,11 @@ async function autoPlan(done) {
   m.close(); S.player.refresh();
   A.toast(fails ? 'Plantegningen er lavet, men ' + fails + ' trin mislykkedes (' + aiMsg(lastErr) + '). Kør igen for at prøve dem.' : 'Plantegningen er lavet. Tjek hjørner og ringe, og ret dem, hvor AI har gættet forkert.', 7000);
   if (done) done();
+}
+async function offerAuto(cur) {
+  if (S.cur !== cur || !aiOn() || cur.scenes.filter(o => o.kind !== 'model').length < 2) return; const n = cur.scenes.length;
+  if (!(await A.confirmBox('Forbind scenerne automatisk?', 'AI lægger gulvringe mellem de ' + n + ' scener, så man kan gå fra rum til rum, og finder rum, mål og indhold til plantegningen. Det tager cirka ' + Math.max(1, Math.round(n * 0.5)) + ' min. Du kan rette alt bagefter.', 'Start'))) return;
+  autoPlan();
 }
 function roomsCsvDownload() { const cur = S.cur; A.saveFile(P.slug(P.tourName(cur.tour)) + '-rumoversigt.csv', P.roomsCsv(cur.tour, cur.scenes)); }
 
