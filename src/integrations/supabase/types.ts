@@ -1050,6 +1050,250 @@ export type Database = {
         }
         Relationships: []
       }
+      p360_config: {
+        Row: {
+          doc: Json
+          id: number
+        }
+        Insert: {
+          doc?: Json
+          id?: number
+        }
+        Update: {
+          doc?: Json
+          id?: number
+        }
+        Relationships: []
+      }
+      p360_depts: {
+        Row: {
+          doc: Json
+          id: string
+        }
+        Insert: {
+          doc: Json
+          id: string
+        }
+        Update: {
+          doc?: Json
+          id?: string
+        }
+        Relationships: []
+      }
+      p360_link_scenes: {
+        Row: {
+          doc: Json
+          id: string
+          token: string
+        }
+        Insert: {
+          doc: Json
+          id: string
+          token: string
+        }
+        Update: {
+          doc?: Json
+          id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "p360_link_scenes_token_fkey"
+            columns: ["token"]
+            isOneToOne: false
+            referencedRelation: "p360_links"
+            referencedColumns: ["token"]
+          },
+        ]
+      }
+      p360_links: {
+        Row: {
+          created_at: string
+          doc: Json
+          token: string
+          tour_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc: Json
+          token: string
+          tour_id: string
+        }
+        Update: {
+          created_at?: string
+          doc?: Json
+          token?: string
+          tour_id?: string
+        }
+        Relationships: []
+      }
+      p360_locks: {
+        Row: {
+          by_user: string | null
+          holder: string
+          tour_id: string
+          until: string
+        }
+        Insert: {
+          by_user?: string | null
+          holder: string
+          tour_id: string
+          until: string
+        }
+        Update: {
+          by_user?: string | null
+          holder?: string
+          tour_id?: string
+          until?: string
+        }
+        Relationships: []
+      }
+      p360_prefs: {
+        Row: {
+          doc: Json
+          user_id: string
+        }
+        Insert: {
+          doc?: Json
+          user_id?: string
+        }
+        Update: {
+          doc?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      p360_role_map: {
+        Row: {
+          role: string
+          site_role: string
+        }
+        Insert: {
+          role: string
+          site_role: string
+        }
+        Update: {
+          role?: string
+          site_role?: string
+        }
+        Relationships: []
+      }
+      p360_scenes: {
+        Row: {
+          doc: Json
+          id: string
+          tour_id: string
+        }
+        Insert: {
+          doc: Json
+          id: string
+          tour_id: string
+        }
+        Update: {
+          doc?: Json
+          id?: string
+          tour_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "p360_scenes_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "p360_tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      p360_shares: {
+        Row: {
+          at: number | null
+          doc: Json
+          id: string
+        }
+        Insert: {
+          at?: number | null
+          doc: Json
+          id: string
+        }
+        Update: {
+          at?: number | null
+          doc?: Json
+          id?: string
+        }
+        Relationships: []
+      }
+      p360_staff: {
+        Row: {
+          created_at: string
+          email: string | null
+          name: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          name?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          name?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      p360_tours: {
+        Row: {
+          arch: boolean | null
+          dept: string | null
+          doc: Json
+          id: string
+          status: string | null
+          updated_at: number | null
+        }
+        Insert: {
+          arch?: boolean | null
+          dept?: string | null
+          doc: Json
+          id: string
+          status?: string | null
+          updated_at?: number | null
+        }
+        Update: {
+          arch?: boolean | null
+          dept?: string | null
+          doc?: Json
+          id?: string
+          status?: string | null
+          updated_at?: number | null
+        }
+        Relationships: []
+      }
+      p360_views: {
+        Row: {
+          at: string
+          n: number
+          tour_id: string
+          user_id: string
+        }
+        Insert: {
+          at?: string
+          n?: number
+          tour_id: string
+          user_id: string
+        }
+        Update: {
+          at?: string
+          n?: number
+          tour_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       planner_change_log: {
         Row: {
           assignment_id: string | null
@@ -2277,6 +2521,55 @@ export type Database = {
       notify_admins_of_pending_user: {
         Args: { _email: string; _name: string }
         Returns: undefined
+      }
+      p360_account_ok: { Args: { p_uid: string }; Returns: boolean }
+      p360_bump_view: { Args: { p_tour: string }; Returns: undefined }
+      p360_can_edit: { Args: never; Returns: boolean }
+      p360_find_roles: { Args: never; Returns: string }
+      p360_is_admin: { Args: never; Returns: boolean }
+      p360_is_staff: { Args: never; Returns: boolean }
+      p360_join: { Args: { p_name?: string }; Returns: string }
+      p360_lock: {
+        Args: { p_holder: string; p_tour: string; p_ttl_ms: number }
+        Returns: Json
+      }
+      p360_rank: { Args: { r: string }; Returns: number }
+      p360_role: { Args: never; Returns: string }
+      p360_role_map_list: {
+        Args: never
+        Returns: {
+          role: string
+          site_role: string
+          users: number
+        }[]
+      }
+      p360_set_role_map: {
+        Args: { p_role: string; p_site_role: string }
+        Returns: undefined
+      }
+      p360_set_staff_role: {
+        Args: { p_role: string; p_user: string }
+        Returns: undefined
+      }
+      p360_site_roles: {
+        Args: never
+        Returns: {
+          site_role: string
+          user_id: string
+        }[]
+      }
+      p360_staff_list: {
+        Args: never
+        Returns: {
+          created_at: string
+          effective: string
+          email: string
+          name: string
+          role: string
+          site_level: string
+          site_roles: string
+          user_id: string
+        }[]
       }
       perform_database_maintenance: { Args: never; Returns: Json }
       recalc_broadcast_stats: {
