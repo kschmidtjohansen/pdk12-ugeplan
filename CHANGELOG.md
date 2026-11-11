@@ -2575,3 +2575,11 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Underafdelingsvælger: flydende markør (`SlidingSegments`).
 - Dagsektioner i Ugeplan: belastningsmåler (mandetimer; rolig < 16 t, travl < 40 t, meget travl ≥ 40 t) – `src/utils/dayLoad.ts`.
 - Mobil: swipe opgavekort til højre = publicér, til venstre = slet (med eksisterende fortryd) – `useSwipeAction`.
+
+## 2026-11-11 – Sikkerhedsrettelser
+- Publicering kræver planlægningsret (trigger på assignments.published).
+- delete_old_rejected_vacations kun for administrator/super_admin.
+- get_user_department_ids/can_access_department_data svarer kun for kalderen (super_admin undtaget).
+- role_permissions læses kun for egne roller (super_admin alle).
+- vacation-cleanup-assignments kræver super_admin eller administrator/skadeleder i samme afdeling.
+- Admin-Edge Functions logger ikke længere e-mail, navn eller telefonnummer.
