@@ -283,6 +283,7 @@ button{cursor:pointer}
 .wordmark{font-family:var(--f-display);font-weight:600;font-size:15px;line-height:1}
 .side-app{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--sb-acc);color:var(--sb-acc-fg);padding:2px 6px;border-radius:6px}
 .side-nav{display:flex;flex-direction:column;gap:2px}
+.side-cur,.side-burger{display:none}
 .nav{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 12px;border:0;border-radius:6px;background:none;color:var(--sb-fg);font-weight:500;font-size:14px;text-align:left;text-decoration:none;transition:background-color .15s ease-out,color .15s ease-out}
 .nav .ic{width:18px;height:18px}
 .nav:hover{background:var(--sb-acc);color:var(--sb-fg)}
@@ -450,21 +451,20 @@ video.grab{width:100%;max-height:46vh;background:#000;border-radius:10px}
 
 @media (max-width:860px){
   .shell{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
-  .side{flex-direction:row;align-items:center;gap:6px;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
-  .side::-webkit-scrollbar{display:none}
-  .side-brand{flex-direction:row;align-items:center;padding:0 8px 0 2px;flex:none}
-.side-brand{min-height:0;margin:0;border:0}
-.side-brand .pp-word{display:none}
-  .side-brand img{max-height:26px;max-width:110px}
-  .wordmark{font-size:18px}
-  .side-app{display:none}
-  .side-nav{flex-direction:row;gap:4px}
-  .nav{width:auto;flex:none;min-height:36px;padding:0 12px;white-space:nowrap;border-radius:999px}
-  .nav .nl{overflow:visible}
+  .side{position:relative;z-index:40;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;padding:0 8px 0 12px;min-height:56px;border-right:0;border-bottom:1px solid var(--sb-line);overflow:visible}
+  .side-brand{flex:none;min-height:56px;margin:0;padding:0;border:0;gap:8px}
+  .side-brand .pp-word{display:inline}
+  .side-brand .side-app{margin-left:0}
+  .side-cur{flex:1 1 auto;min-width:0;padding-left:10px;margin-left:2px;border-left:1px solid var(--sb-line);font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .side-burger{display:grid;place-items:center;flex:none;width:44px;height:44px;border:0;border-radius:8px;background:none;color:var(--sb-fg)}
+  .side-burger:hover,.side.open .side-burger{background:var(--sb-acc)}
+  .side-nav,.side-foot{display:none}
+  .side.open .side-nav,.side.open .side-foot{display:flex;flex-direction:column;flex:1 0 100%;gap:2px}
+  .side.open .side-nav{max-height:calc(100dvh - 140px);overflow-y:auto;padding:8px 0;border-top:1px solid var(--sb-line)}
+  .side.open .side-foot{padding:8px 0 10px;margin:0;border-top:1px solid var(--sb-line)}
+  .side.open{position:fixed;left:0;right:0;top:0;box-shadow:0 12px 32px rgba(15,23,42,.18)}
+  .nav{min-height:44px}
   .nav .ed{display:none}
-  .side-h{display:none}
-  .side-foot{margin:0;padding:0;border:0;display:flex;gap:4px}
-  .side-empty{display:none}
   .main-in{padding:16px 16px 48px}
   .topbar h1{font-size:22px;width:100%}
   .search{width:auto;flex:1 1 180px}
@@ -1735,7 +1735,7 @@ function renderLibrary() {
 function renderSide() {
   const el = S.sideEl; if (!el || !el.isConnected) return; el.textContent = '';
   const v = S.view, admin = !!(S.store && S.store.canAdmin);
-  const nav = (on, label, lead, fn, extra) => h('button', { class: 'nav' + (on ? ' on' : ''), type: 'button', 'aria-current': on ? 'page' : null, onclick: fn }, lead, h('span', { class: 'nl', text: label }), extra || null);
+  const nav = (on, label, lead, fn, extra) => h('button', { class: 'nav' + (on ? ' on' : ''), type: 'button', 'aria-current': on ? 'page' : null, onclick: e => { S.sideOpen = false; el.classList.remove('open'); fn(e); } }, lead, h('span', { class: 'nl', text: label }), extra || null);
   const list = h('nav', { class: 'side-nav' }, nav(v.kind === 'all', 'Alle rundvisninger', icon('home'), () => setView({ kind: 'all' })));
   list.append(h('div', { class: 'side-h' }, h('span', { text: 'Afdelinger' }), admin ? h('button', { class: 'side-add', type: 'button', title: 'Tilføj afdeling', 'aria-label': 'Tilføj afdeling', onclick: () => deptDialog() }, icon('plus')) : null));
   if (!S.depts.length) list.append(h('div', { class: 'side-empty', text: admin ? 'Ingen afdelinger endnu. Tilføj en med +.' : 'Ingen afdelinger endnu.' }));
@@ -1747,7 +1747,10 @@ function renderSide() {
     nav(v.kind === 'shares', 'Delt med forsikringer', icon('share'), () => setView({ kind: 'shares' })),
     nav(v.kind === 'archive', 'Arkiv', icon('trash'), () => setView({ kind: 'archive' })));
   const ppLogo = h('a', { class: 'side-brand', href: '/dashboard', 'aria-label': 'PolyPlan – gå til forsiden' }); ppLogo.innerHTML = '<svg class="pg-mark" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="pgTri" cx="50%" cy="58%" r="55%"><stop offset="0" stop-color="#3CC8F5"/><stop offset=".55" stop-color="#00AEEF"/><stop offset="1" stop-color="#0068B0"/></radialGradient></defs><path fill="url(#pgTri)" d="M42 15Q50 2 58 15L88 68Q96 83 80 85Q50 90 20 85Q4 83 12 68Z"/></svg><span class="pp-word">PolyPlan</span><span class="side-app">3D</span>';
-  el.append(ppLogo, list,
+  const burger = h('button', { class: 'side-burger', type: 'button', 'aria-label': 'Menu', 'aria-expanded': S.sideOpen ? 'true' : 'false', onclick: () => { S.sideOpen = !S.sideOpen; el.classList.toggle('open', S.sideOpen); burger.setAttribute('aria-expanded', String(S.sideOpen)); } });
+  burger.innerHTML = '<svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+  el.classList.toggle('open', !!S.sideOpen);
+  el.append(ppLogo, h('span', { class: 'side-cur', text: viewTitle() }), burger, list,
     h('div', { class: 'side-foot' }, nav(false, 'Indstillinger', icon('gear'), settingsDialog), S.store && S.store.mode === 'supabase' && S.store.uid ? (HOST() && HOST().home ? nav(false, 'Tilbage til ' + HOST().name, icon('back'), () => { location.href = HOST().home; }) : nav(false, 'Log ud', icon('back'), () => S.store.signOut())) : null));
 }
 function viewTitle() { const v = S.view; return v.kind === 'dept' ? ((deptById(v.dept) || {}).name || 'Afdeling') : v.kind === 'archive' ? 'Arkiv' : v.kind === 'shares' ? 'Delt med forsikringer' : 'Alle rundvisninger'; }
