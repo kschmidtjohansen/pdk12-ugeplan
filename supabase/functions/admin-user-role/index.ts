@@ -203,7 +203,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] Target user found: ${targetUserId ?? "ok"}`);
+    console.log(`[${requestId}] Target user found`);
 
     // Replace user's roles atomically: delete all, then insert the requested set
     const { error: delErr } = await supabaseAdmin
@@ -232,7 +232,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] User roles updated successfully: ${targetUser.name} -> ${uniqueRoles.join(',')}`);
+    console.log(`[${requestId}] User roles updated successfully -> ${uniqueRoles.join(',')}`);
 
     return new Response(
       JSON.stringify({ 

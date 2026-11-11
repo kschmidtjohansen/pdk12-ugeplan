@@ -91,7 +91,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[${requestId}] User authenticated: ${user.id} (${user.email})`);
+    console.log(`[${requestId}] User authenticated: ${user.id}`);
 
     // Check if user has admin role
     const { data: roleData, error: roleError } = await supabaseAdmin
@@ -101,7 +101,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (roleError || !roleData || !['administrator', 'super_admin'].includes(roleData.role)) {
-      console.error(`[${requestId}] User not admin. Role: ${roleData?.role}, User: ${user.email}`);
+      console.error(`[${requestId}] User not admin. Role: ${roleData?.role}, User: ${user.id}`);
       return new Response(
         JSON.stringify({ error: 'Administrator access required' }),
         { 
