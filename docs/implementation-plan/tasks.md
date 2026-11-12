@@ -1,3 +1,7 @@
+## Fælles login til 3D-scanninger (2026-11-12)
+- [x] Brug eksisterende PolyPlan-login frem for separat 3D-login, med tilbagevenden til /3d og bevaret sagslink.
+- [x] Bevar loginmetoder, delt session, offentlig deling og eksisterende adgangskontrol; ingen backendændringer eller deploy.
+
 ## Preview-typefejl i vagtpåmindelser (2026-11-12)
 - [x] Angiv forespørgslens resultat som `Duty[]` og fjern inkompatibel typekonvertering uden ændringer i adgang eller påmindelser.
 

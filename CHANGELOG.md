@@ -1,3 +1,9 @@
+## 2026-11-12 – 3D-scanninger: fælles PolyPlan-login
+- Den separate loginformular erstattes af viderestilling til eksisterende `/login`, så design, sprog, adgangskode, passkey og Husk mig er de samme.
+- Login returnerer til `/3d` med bevaret query/sagsanker via en allowlist-valideret destination; almindeligt login fortsætter til dashboard.
+- Offentlige visningslinks, adgangskontrol og eksisterende adgangskodegendannelse er uændrede; ingen backendændringer eller deploy.
+- Regressionstests dækker login-destination og afvisning af eksterne destinationslinks. Indlogget end-to-end-kontrol er ikke tilgængelig med ekstern unmanaged Supabase.
+
 ## 2026-11-12 – 3D-scanninger: uden plantegning, billedgenkendelse, hurtigere visning
 - Plantegningen er fjernet fra 3D-scanningerne (minikort, plantegningsknap, hjørneværktøjer, indstillinger og m²). Den kommer fra Encircle senere.
 - "Forbind automatisk" bruger billedgenkendelse: ringene lægges præcis, hvor det andet stativ stod, når billederne deler nok detaljer. Ellers bruges AI'ens gæt.
