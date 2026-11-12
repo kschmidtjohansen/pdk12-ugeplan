@@ -1,3 +1,8 @@
+## 2026-11-12 – 3D-scanninger: uden plantegning, billedgenkendelse, hurtigere visning
+- Plantegningen er fjernet fra 3D-scanningerne (minikort, plantegningsknap, hjørneværktøjer, indstillinger og m²). Den kommer fra Encircle senere.
+- "Forbind automatisk" bruger billedgenkendelse: ringene lægges præcis, hvor det andet stativ stod, når billederne deler nok detaljer. Ellers bruges AI'ens gæt.
+- Billeder åbner hurtigere: et lille forhåndsbillede vises med det samme og skiftes til det skarpe, og naboerne hentes i baggrunden.
+
 ## 2026-11-12 – 3D-scanninger: ringe på stativets plads
 - Ringene sidder, hvor det andet billede er taget, i stedet for oven i hinanden tæt ved kameraet. Gamle sager rettes, når de åbnes.
 - Ringe til flere billeder bag samme dør bliver til én.

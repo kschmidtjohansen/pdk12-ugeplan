@@ -224,3 +224,22 @@ Dette findes i "Ret hjørner".
 - **Samme rum:** gælder kun billeder på samme etage.
 - **Afprøvet på data fra "Test":** AI'ens svar om, hvor stativerne stod, modsiger hinanden med op til 140° mellem par. Derfor kan en plantegning ikke bygges ud fra dem.
   - En prøve med billedgenkendelse (SIFT og vandret relativ position mellem billederne) fandt 18 pålidelige billedpar, der dækker alle billeder i stueetagen, med under 2° hældning. Det er grundlaget, hvis vi vil placere billederne præcist.
+
+## Uden plantegning, billedgenkendelse og hurtigere visning (12-11-2026)
+
+- **Plantegning slået helt fra:** plantegningen kommer fra Encircle, når deres API er klar. Konstanten `NO_PLAN = true` i viewer-koden skjuler:
+  - minikort og plantegningsknap;
+  - "Tegn rum", "Ret hjørner" og "Plantegning" i redigeringen;
+  - indstillingerne "Plantegning fra 360-billeder" og "Plantegningsmodel";
+  - kvadratmeter i "Rum og indhold".
+  - Koden er bevaret, så en Encircle-plan kan vises senere. LiDAR-scannets egen "Plan"-visning (målevisning) er uændret.
+- **"Forbind automatisk" med billedgenkendelse:** før AI-parrene sammenlignes billederne direkte:
+  - OpenCV (AKAZE, 6000 punkter pr. billede) finder fælles punkter mellem billeder på samme etage, op til 3 billeder fra hinanden i optagerækkefølgen (eller som AI'en så fra hinanden).
+  - Kameraerne står vandret, så kun drejning og retning skal findes. Afstanden findes ud fra punkter på gulvet og kamerahøjden.
+  - Drejningerne skal gå op rundt i hver løkke (A→B→C = A→C). Par, der ikke gør det, kasseres; svage par beholdes kun, hvis de passer med de stærke.
+  - Ringen lægges præcis i retningen af det andet stativ (`vision` på ringen). Hvor billedgenkendelsen ikke finder nok, bruges AI'ens gæt som før.
+  - OpenCV hentes fra jsDelivr (`opencv-wasm@4.3.0-10`, ca. 7 MB, caches bagefter) og kører i en baggrundsworker, så siden ikke fryser. Ca. 6 s pr. billede.
+  - Afprøvet på billeder fra "Test": ringene mellem to billeder peger modsat hinanden og stemmer med kameraernes drejning.
+- **Hurtigere visning:**
+  - Når man går til et nyt billede, vises det lille forhåndsbillede med det samme, og det skarpe billede skifter ind, når det er hentet (samme visning, ingen hop).
+  - Billederne, man kan gå til fra det billede, man står i, hentes i baggrunden (højst 5 ad gangen, de 8 seneste gemmes). De åbner derfor skarpt med det samme.
