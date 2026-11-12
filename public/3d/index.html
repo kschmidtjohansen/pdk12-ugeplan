@@ -3092,7 +3092,7 @@ async function openTour(id, tok) {
   root.addEventListener('drop', e => { if (!cur.edit) return; e.preventDefault(); if (e.dataTransfer && e.dataTransfer.files.length) importFiles(e.dataTransfer.files); });
   for (const sc of scenes) if (!sc.thumb && sc.asset) { try { sc._thumbUrl = await S.store.blobUrl(sc.asset); } catch (e) {} }
   if (S.player !== player) return;
-  player.setTour(tour, scenes, sceneUrl);
+  player.setTour(tour, scenes, sceneUrl); renderTourSide();
   if (!scenes.length) emptyTour(); else if (!ro) setTimeout(() => { healThumbs(cur); if (canUpload() && !tour.coverAsset && scenes[0]) setCover(cur, scenes[0], true); }, 1500);
   liveStart(); if (!ro) S.store.bumpView(id);
   if (S.editNext === id && canWrite()) { S.editNext = null; setEdit(true); }
