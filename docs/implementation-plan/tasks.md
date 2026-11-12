@@ -1,3 +1,6 @@
+## Typografi i 3D-scanninger (2026-11-12)
+- [x] Match PolyPlans Inter-bogstavformer, fallback, bogstavafstand og semibold-overskrifter i siden og eksporterede visningsfiler.
+
 ## Fælles login til 3D-scanninger (2026-11-12)
 - [x] Brug eksisterende PolyPlan-login frem for separat 3D-login, med tilbagevenden til /3d og bevaret sagslink.
 - [x] Bevar loginmetoder, delt session, offentlig deling og eksisterende adgangskontrol; ingen backendændringer eller deploy.
