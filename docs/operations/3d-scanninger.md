@@ -87,3 +87,82 @@ Menupunktet forsvinder af sig selv. Fjern `public/3d/` for at fjerne siden helt.
 - **Deling:** virker i links til forsikringen (`p360-link` signerer filen). Er ikke med i "Fil til forsikring".
 - **Ikke understøttet:** Draco-/meshopt-komprimeret GLB, USDZ, OBJ, PLY, punktskyer og splats.
 
+## Plantegning fra LiDAR-scan
+
+- **Sådan:**
+  1. Scan hver etage med en LiDAR-app, fx Polycam Room/LiDAR eller Scaniverse, og eksportér som GLB.
+  2. Tilføj billeder → "Vælg 3D-scan (.glb)".
+  3. Plantegning → "Fra 3D-scan" → "Lav plantegning".
+- **Resultat:** gemmes i `tour.plan.scans[sceneId]` = `{ level, cut, walls (polylinjer i m), rooms [{x, y, area, w, h, box}], bbox }`. Visningen bruger `plan.mode = 'scan'`.
+- **Billeder:** et 360-billedes position på tegningen er `scene.spot = {x, y, rot}`.
+- **Ringe:** "Lav ringe ud fra plantegningen" laver ringe med `by: 'plan'` og erstatter AI-ringe mellem placerede billeder. Ringe, man selv har sat, bliver stående. Mangler et billede retning, findes den ud fra de gamle ringe, når det er muligt.
+- **Nøjagtighed:** testet på en syntetisk scanning af et hus på 6,86 × 6,65 m med rum ned til ca. 5 % fra de rigtige m². Stuer og køkkener med åben forbindelse bliver ét rum.
+
+
+## Præcise hjørner fra 360-billeder
+
+Dette findes i "Ret hjørner".
+
+- **Lup:** når man trækker et hjørne, viser en lup billedet forstørret 5×, så hjørnet kan sættes på den præcise pixel.
+- **Ovenfra-billede:** panelet viser gulvet (eller loftet) set ovenfra i målestok, med rummets omrids. Lige vægge ser lige ud, så skæve hjørner er nemme at se.
+- **Gulv/Loft:** er gulvet dækket af møbler, kan hjørnerne i stedet sættes, hvor væggene møder loftet. Det kræver rumhøjden (`scene.roomHeight`, ellers `tour.roomHeight`, ellers 2,50 m).
+- **Find kanterne:** `P360.snapOutline` finder vægge ved gulv og loft. Hver væg tilpasses som en ret linje gennem mange kantpunkter, og hjørnerne bliver, hvor nabovæggene krydser hinanden.
+  - Vægge, der ses både ved gulv og loft, giver også rumhøjden.
+  - Vægge uden tydelig kant bliver stående, og man får besked om, hvilke vægge der skal rettes i hånden.
+  - Under "Ret hjørnerne nu?" efter AI-plantegningen køres det automatisk én gang pr. rum (±15 cm omkring AI's gæt).
+- **Kendt mål:** man vælger en væg og skriver dens rigtige længde i cm. Kamerahøjden (`tour.camHeight`) rettes, så alle rum i sagen får samme skala.
+  - Det gemmes som `tour.calib = { len, scene, at }`.
+  - Ændrer man kamerahøjden i hånden, fjernes kalibreringen.
+- **Nøjagtighed:** panelet viser ± pr. rum: billedets pixelstørrelse på gulvet ved det fjerneste hjørne plus skalausikkerhed. Den er 3 % uden kendt mål og 0,4 % med.
+  - Et billede på 5760 px med kendt mål giver ca. ±1–2 cm på vægge op til 3 m.
+  - Et billede på 2576 px giver det dobbelte.
+- **Begrænsning:** på testbillederne ("Test") fandt "Find kanterne" kun en del af væggene automatisk, fordi gulvkanterne var skjult af møbler, og cremefarvede vægge mødte et cremefarvet loft. Resten skal sættes med luppen.
+  - Der er endnu ingen sammenlægning af flere billeder fra samme rum.
+
+## Ét rum i flere billeder
+
+- **Hvad:** er et rum fotograferet fra flere steder, samler "Saml billeder (n)" i "Ret hjørner" dem. Det sker også automatisk, når man trykker "Færdig" efter hjørnegennemgangen.
+- **Hvilke billeder hører til samme rum:**
+  - billeder på samme etage, hvis kameraposition ligger inde i rummets omrids;
+  - eller billeder, hvis eget omrids har midten inde i det (`roomGroup`).
+- **Sådan virker det** (`P360.fuseRoom`):
+  1. Væggene findes i hvert billede med "Find kanterne".
+  2. Hvert ekstra billede bliver placeret præcist (drejning og position) ud fra de vægge, det deler med hovedbilledet. Startpunktet er placeringen fra ringene.
+  3. Hver væg bliver et vægtet gennemsnit af alle tydelige observationer. Nære, skarpe billeder vægter mest. Er billederne uenige, bliver usikkerheden større.
+  4. Hjørnerne bliver, hvor væggene krydser hinanden.
+- **Gemmes:**
+  - Hovedbilledet får `scene.fused = { with, seen, err, at }`.
+  - De andre får `scene.roomOf` (hovedbilledets id) og `scene.roomRel` (placering i forhold til hovedbilledet, som "Placér alle" bevarer).
+  - Alle billeder får samme omrids.
+  - Plantegningen tegner rummet én gang med en nål pr. billede, og CSV'en skriver "Samme rum som …" i stedet for at tælle arealet to gange.
+- **Testet:**
+  - Syntetiske rum: med 2–3 billeder, der deler mindst to vægge, er hjørnerne 1–3,5 cm fra de rigtige. Deler de næsten ingen vægge, er det 5–12 cm, og den viste ± afspejler det.
+  - Browsertest: et syntetisk møbleret rum på 4,03 × 3,20 m. Rummet blev målt til 4,01 × 3,21 m ud fra to billeder, med AI-hjørner op til 12 cm ved siden af og billede 2 placeret 35 cm / 6° forkert. Billede 2 endte 1,6 cm fra sin rigtige plads.
+- **Afprøvet på de rigtige billeder fra "Test"** (mod Floorfys mål):
+  - Badeværelset (2,08 × 1,52 m) blev 2,05 × 1,63–1,70 m. Hvert billede fandt kun én tydelig væg, så billederne kunne ikke samles.
+  - Soveværelset: loftkanterne blev fundet, men målene hoppede 10–20 % efter startgættet.
+  - Konklusion: på rodede, dunkle billeder i 2576 px når den automatiske del ikke få cm. Hjørnerne skal sættes med luppen, og ét kendt mål skal indtastes.
+- **Rettet efter afprøvningen:** vægge, der kun ses ved loftet, bruges ikke længere sammen med gulvvægge, når loftafstanden er gættet. Det kunne før bøje rummet: badeværelsets dybde sprang fra 1,70 til 2,11 m. Er det kun loftkanterne, der ses, beholdes formen, og appen siger, at størrelsen er et skøn.
+- **Begrænsning:**
+  - Loftkanten forudsætter et fladt loft. I rum med skråt loft (fx stuen i "Test") må man stole på gulvkanterne.
+  - Det er ikke afprøvet mod Floorfys mål på de rigtige billeder.
+
+## Plantegningsmodel (trænet på Polygons egne rum)
+
+- **Hvorfor egen model:** de offentlige modeller til 360-billeder (HorizonNet, LGT-Net m.fl.) er trænet på datasæt, der kun må bruges til ikke-kommerciel forskning. Derfor træner vi vores egen med samme opbygning (MIT-kode).
+  - Træningssættet ligger i `tools/layout-model/`. Se README dér.
+- **Træningsdata:**
+  - "Rummet passer" i "Ret hjørner" gemmer `scene.layoutOk`. Det fjernes igen, hvis et hjørne flyttes.
+  - `export_polyplan.py` henter de bekræftede rum.
+  - Rumhøjden skal være kendt (`scene.roomHeight` eller `tour.roomHeight`).
+- **Model i brug:** administratorer uploader `layout.int8.onnx` under Indstillinger → Plantegningsmodel.
+  - Filen gemmes i bucket `p360`, og `p360_config.doc.layoutModel = { id, name, size, at }`.
+  - Modellen kører i browseren med ONNX Runtime Web 1.20.1, som hentes fra jsDelivr, kun når der er en model.
+- **Når der er en model:**
+  - "Ringe og plan automatisk" sætter hjørnerne med modellen i stedet for AI's gæt. `outlineBy = 'model'`, rumhøjden måles, og vægliner gemmes i `scene.modelLines`.
+  - "Find rummet" gør det samme for ét billede.
+  - "Saml billeder" bruger modellens vægge, når de findes.
+- **Testet:**
+  - Hele kæden i browseren (upload → hent ONNX Runtime → kør → hjørner → bekræft) er testet med en testmodel, der returnerer det rigtige svar for et syntetisk rum på 4,03 × 3,20 m. Resultat: 4,03 × 3,20 m og rumhøjde 2,50 m.
+  - Træning, ONNX-eksport og kørsel i ONNX Runtime Web er afprøvet med en minimal træning på CPU. En ResNet18-model kører på ca. 1,5 s pr. billede i én tråd.
+- **Status:** der er ingen trænet model endnu. Det kræver bekræftede rum og en GPU. Indtil da bruges AI-hjørnerne og "Find kanterne" som før.

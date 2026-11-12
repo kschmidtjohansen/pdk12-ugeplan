@@ -1,3 +1,29 @@
+## 2026-11-12 – 3D-scanninger: egen plantegningsmodel
+- Ny `tools/layout-model/` til en model, der finder væggene i 360-billeder, trænet på Polygons egne data:
+  - syntetiske rum;
+  - eksport af bekræftede rum fra Supabase;
+  - træning (HorizonNet-opbygning, MIT);
+  - ONNX-eksport med int8-version;
+  - måling mod kendte rumstørrelser.
+- 3D-siden:
+  - "Rummet passer" i "Ret hjørner" markerer et rum som træningsdata.
+  - Indstillinger → Plantegningsmodel uploader en `.onnx`-model.
+  - "Find rummet" og "Ringe og plan automatisk" kører modellen i browseren (ONNX Runtime Web), når den findes.
+- Indstillinger følger Lovables ændring: firmanavn, logo, lager og brugere vises kun for IT (super_admin).
+- QA: browsertests består. Ny test kører modelkæden i browseren end-to-end. Træning og eksport er røgtestet på CPU.
+
+## 2026-11-12 – 3D-scanninger: præcise mål fra 360-billeder
+- "Ret hjørner" har nu disse værktøjer:
+  - lup ved træk og et ovenfra-billede i målestok;
+  - hjørner kan sættes ved gulv eller loft;
+  - "Find kanterne", der finder væggene i billedet;
+  - "Kendt mål", der kalibrerer hele sagen ud fra én væg;
+  - nøjagtighed ± vist pr. rum.
+- Rumhøjde pr. rum (målt eller indtastet) bruges til m³.
+- AI-gennemgangen finjusterer automatisk hjørnerne én gang pr. rum.
+- Ét rum fotograferet fra flere steder bliver samlet. Billederne bliver placeret præcist ud fra de vægge, de deler, og hver væg bliver et gennemsnit af de billeder, der ser den. Det sker med "Saml billeder" eller automatisk efter hjørnegennemgangen.
+- QA: plan-, LiDAR-, arkiv- og PolyPlan-browsertests består. Ny test med to syntetiske billeder af et rum på 4,03 × 3,20 m giver 4,01 × 3,21 m.
+
 ## 2026-11-11 – 3D-scanninger (Polygon 360-rundvisninger)
 - Ny selvstændig side `public/3d/index.html` med 360-rundvisninger fra GoPro, afdelinger, status, deling med forsikringsselskaber (visningslink uden login) og import fra den gamle side. Bruger samme login/session ("Husk mig") og samme supabase-js-version som PolyPlan; ingen kontooprettelse på siden.
 - Adgang følger `user_roles`, som kun bliver læst: super_admin/administrator → administrator, skadeleder/fugttekniker → redaktør, servicemedarbejder → læser, vikar → ingen. Inaktive, fratrådte, udløbne og demo-profiler har aldrig adgang. Oversættelsen kan ændres på 3D-siden.
@@ -2613,4 +2639,10 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - 3D-scan (LiDAR): "Tilføj billeder" → "Vælg 3D-scan (.glb)". En browser kan ikke læse telefonens LiDAR direkte, så scanningen laves i en app (fx Scaniverse eller Polycam) og eksporteres som GLB. Scenen vises i 3D (drej, zoom), i "Plan" (set ovenfra, snit med vægomrids) og kan måles i meter. Mål gemmes og følger med i links til forsikringen. 3D-scanninger er ikke med i "Fil til forsikring".
 - Begrænsninger: komprimerede GLB-filer (Draco/meshopt), USDZ, OBJ og punktskyer afvises med en forklaring. Filstørrelsen er begrænset af Supabase-projektets filgrænse (typisk 50 MB).
 - Indbygget GLB-læser og WebGL-fremviser i `public/3d/index.html`; ingen nye afhængigheder og ingen databaseændringer.
+
+## 2026-11-12 — 3D-scanninger: plantegning fra LiDAR-scan, ret hjørner, ringe på gulvet
+- Plantegning → "Fra 3D-scan": vægge og rum med m² og mål laves automatisk ud fra en LiDAR-scanning (GLB), én pr. etage. Snit i ca. 1,2 m højde; døråbninger op til ca. 0,9 m (1,4 m for yderdøre) lukkes, så rummene adskilles. 360-billeder placeres på tegningen med et tryk og drejes, og "Lav ringe ud fra plantegningen" lægger ringene præcis på gulvet, hvor næste kamera stod, mellem billeder uden væg imellem.
+- Ret hjørner: nyt værktøj i redigeringslinjen. Hjørnerne i et rum er nummererede håndtag, der trækkes hen, hvor væggene møder gulvet; m² opdateres med det samme. Efter "Ringe og plan automatisk" tilbydes en gennemgang rum for rum.
+- Gulvringe: de automatiske næste/forrige-ringe, der pegede lige frem (ofte ind i en væg), er fjernet. AI-ringe holdes nu på gulvet inde i rummet eller i døråbningen (0,8 m til 35 cm før væggen).
+- AI-analysen er hurtigere: flere billeder ad gangen og mindre billeder.
 
