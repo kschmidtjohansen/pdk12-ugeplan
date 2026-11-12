@@ -1,3 +1,9 @@
+## 2026-11-12 – 3D-scanninger: tomme sidebar-sektioner skjult
+- Rundvisningens sidebar viser nu kun sektioner med indhold: Markeringer, Mål og Slør uden indhold vises ikke længere i visningstilstand.
+- I redigeringstilstand bliver sektionerne stående med +-knappen, så man stadig kan tilføje markeringer, mål og slør.
+- Er der slet intet at vise, skjules hele sidebaren inklusive menuknappen i viserens topbjælke.
+- Ingen ændringer i data, login eller adgang; alle 7 scripts valideret, og siden indlæses uden fejl.
+
 ## 2026-11-12 – 3D-scanninger: forbindelser fjernet
 - Forbindelser mellem scener er helt væk fra viseren: ingen ringe/markører på billedet (hverken i visning eller redigering), og klik på gamle forbindelsesdata gør intet.
 - "Forbindelse"-værktøjet, dets redigeringspanel og placering af nye forbindelser er fjernet fra redigeringslinjen; knappen "Lav ringe ud fra plantegningen" er også fjernet.

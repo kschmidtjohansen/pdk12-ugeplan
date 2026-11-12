@@ -3018,7 +3018,7 @@ const sceneUrl = async sc => sc._url || (sc._url = await S.store.blobUrl(sc.asse
 function leaveTour() {
   A.closeSheet(); if (S.live) liveStop();
   if (S.cur && S.cur.lockTimer) { clearInterval(S.cur.lockTimer); S.store.unlock(S.cur.id); }
-  if (S.player) { S.player.destroy(); S.player = null; } S.cur = null; S.tourSide = null;
+  if (S.player) { S.player.destroy(); S.player = null; } S.cur = null; S.tourSide = null; S.tourBurger = null;
 }
 function saveScene(sc) { const cur = S.cur; if (!cur || cur.ro) return Promise.resolve(); touchTour(); mirrorScene(cur, sc); renderTourSide(); return S.store.setScene(cur.id, sc.id, sc).catch(A.writeFailed); }
 // ---------- view-only links ----------
@@ -3055,7 +3055,7 @@ async function openTour(id, tok) {
   const main = h('div', { class: 'tour-main' });
   root.append(side, main);
   const player = S.player = new P.Player(main, { brand: brand(), saveFile: A.saveFile, assetUrl: a => S.store.blobUrl(a), onStrip: decorateStrip });
-  player.slotLeft.append(h('button', { class: 'p3-btn tour-burger', type: 'button', 'aria-label': 'Markeringer, mål og slør', title: 'Markeringer, mål og slør', onclick: () => side.classList.toggle('open') }, icon('list')));
+  player.slotLeft.append(S.tourBurger = h('button', { class: 'p3-btn tour-burger', type: 'button', 'aria-label': 'Markeringer, mål og slør', title: 'Markeringer, mål og slør', onclick: () => side.classList.toggle('open') }, icon('list')));
   if (!ro) player.slotLeft.append(h('button', { class: 'p3-btn', type: 'button', 'aria-label': 'Tilbage til alle rundvisninger', title: 'Alle rundvisninger', onclick: () => { location.hash = ''; } }, icon('back')));
   player.loadEl.hidden = false;
   let tour = null, scenes = [];
@@ -3160,24 +3160,34 @@ function renderTourSide() {
   const item = (ic, label, sub, fn) => h('button', { class: 'nav', type: 'button', onclick: () => { el.classList.remove('open'); fn(); } }, icon(ic), h('span', { class: 'nl', text: label }), sub ? h('span', { class: 'side-sub', text: sub }) : null);
   const empty = txt => h('div', { class: 'side-empty', text: txt });
 
+  // sections only appear when they have content; in edit mode they stay so you can add with +
   const tags = []; for (const s2 of cur.scenes) for (const hs of s2.hotspots || []) if (hs.type === 'tag') tags.push([s2, hs]);
-  el.append(head('Markeringer', () => pickTool('tag'), 'Ny markering'));
-  if (!tags.length) el.append(empty(canAdd ? 'Ingen markeringer endnu. Tilføj en med +.' : 'Ingen markeringer.'));
-  for (const [s2, hs] of tags) { const kd = KINDS[hs.kind] ? hs.kind : 'info';
-    el.append(item(KINDS[kd].icon, hs.title || KINDS[kd].label, s2.name, () => { player._jumpTag(s2, hs); if (cur.edit) tagSheet(s2, hs); })); }
+  if (tags.length || canAdd) {
+    el.append(head('Markeringer', () => pickTool('tag'), 'Ny markering'));
+    if (!tags.length) el.append(empty('Ingen markeringer endnu. Tilføj en med +.'));
+    for (const [s2, hs] of tags) { const kd = KINDS[hs.kind] ? hs.kind : 'info';
+      el.append(item(KINDS[kd].icon, hs.title || KINDS[kd].label, s2.name, () => { player._jumpTag(s2, hs); if (cur.edit) tagSheet(s2, hs); })); }
+  }
 
-  el.append(head('Mål', () => pickTool('dist'), 'Nyt mål'));
   const ms = sc ? (sc.measures || []) : [], names = { dist: 'Afstand', height: 'Højde', area: 'Areal' };
-  if (!sc) el.append(empty('Åbn en scene for at se dens mål.'));
-  else if (!ms.length) el.append(empty(canAdd ? 'Ingen mål i scenen. Tilføj et med +.' : 'Ingen mål i scenen.'));
-  else { const hgt = P.camHeightOf(sc, cur.tour);
-    for (const m of ms) el.append(item(m.t, names[m.t] || 'Mål', P.measureText(m, hgt), () => { player.panelMode = 'measure'; player._renderPanel(); })); }
+  if (ms.length || canAdd) {
+    el.append(head('Mål', () => pickTool('dist'), 'Nyt mål'));
+    if (!ms.length) el.append(empty('Ingen mål i scenen. Tilføj et med +.'));
+    else { const hgt = P.camHeightOf(sc, cur.tour);
+      for (const m of ms) el.append(item(m.t, names[m.t] || 'Mål', P.measureText(m, hgt), () => { player.panelMode = 'measure'; player._renderPanel(); })); }
+  }
 
-  el.append(head('Slør', () => pickTool('blur'), 'Ny slør'));
   const bl = sc ? (sc.blurs || []) : [];
-  if (!sc) el.append(empty('Åbn en scene for at se dens slørede områder.'));
-  else if (!bl.length) el.append(empty(canAdd ? 'Ingen slørede områder. Tilføj et med +.' : 'Ingen slørede områder.'));
-  else bl.forEach((b, i) => el.append(item('blur', 'Sløret område ' + (i + 1), sc.name, () => { if (cur.edit) blurSheet(sc, b); else player.setView({ yaw: b.yaw, pitch: b.pitch }, true); })));
+  if (bl.length || canAdd) {
+    el.append(head('Slør', () => pickTool('blur'), 'Ny slør'));
+    if (!bl.length) el.append(empty('Ingen slørede områder. Tilføj et med +.'));
+    else bl.forEach((b, i) => el.append(item('blur', 'Sløret område ' + (i + 1), sc.name, () => { if (cur.edit) blurSheet(sc, b); else player.setView({ yaw: b.yaw, pitch: b.pitch }, true); })));
+  }
+  // nothing to show at all: hide the sidebar and its menu button
+  const hasContent = el.childNodes.length > 0;
+  el.hidden = !hasContent;
+  if (S.tourBurger) S.tourBurger.hidden = !hasContent;
+  if (!hasContent) el.classList.remove('open');
 }
 function renderEditBar() {
   const cur = S.cur, player = S.player; if (!cur || !player) return; const bar = player.editBar; bar.textContent = ''; renderTourSide(); if (!cur.edit) return;
