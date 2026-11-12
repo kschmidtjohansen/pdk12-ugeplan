@@ -1,3 +1,10 @@
+## 2026-11-12 – 3D-scanninger: markeringer, mål og slør i sidebar
+- Rundvisningen har nu en venstre sidebar i PolyPlan-stil med tre sektioner: Markeringer (hele sagen), Mål og Slør (aktuel scene).
+- Klik på en markering springer til stedet i billedet; klik på et mål åbner målepanelet; klik på en slør åbner dens redigering (eller viser stedet i læsetilstand).
+- I redigeringstilstand har hver sektion en +-knap, der starter værktøjet; knapperne Markering, Mål og Slør er fjernet fra redigeringslinjen øverst (Forbindelse og rumværktøjer bliver).
+- På mobil er sidebaren en udskyder, der åbnes fra en knap i viserens topbjælke.
+- Ingen ændringer i data, login eller adgang; siden indlæses uden fejl. Ikke testet i indlogget tilstand (ekstern Supabase).
+
 ## 2026-11-12 – 3D-scanninger: gulvpunkter fjernet fra visning
 - Gulvpunkterne (ringe/trekant og trappe-/gå-til-knapper på billedet) vises ikke længere i visningstilstand; rum skiftes kun via scenelisten nederst.
 - Forbindelserne bevares i data og vises stadig i redigeringstilstand, så de kan rettes eller fjernes.
