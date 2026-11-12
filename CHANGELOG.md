@@ -1,3 +1,18 @@
+## 2026-11-12 – 3D-scanninger: gå frit rundt, trapper i hele rummet, plantegning valgfri
+- "Forbind automatisk" lader AI'en sammenligne alle billeder på samme etage. Der kommer ringe til alle steder, man kan gå direkte hen, ikke kun til næste billede.
+- "Op til 1. sal" vises i alle billeder af et rum med trappe.
+- Plantegning ud fra 360-billeder er slået fra som standard; den kan slås til under Indstillinger. Billederne placeres ud fra AI'ens rigtige stativpunkter.
+- Rettet: indstillingerne for plantegningsmodel og plantegning blev ikke indlæst efter genindlæsning.
+
+## 2026-11-12 – 3D-scanninger: ét rum, uanset hvor mange billeder
+- "Ringe og plan automatisk" kender nu billeder taget i samme rum og samler dem til ét rum:
+  - én omrids og én plads på plantegningen;
+  - én række i rumoversigt og CSV;
+  - én tur gennem "Ret hjørner".
+- p360-ai spørger også, om to billeder er taget i samme rum (deployet som version 2).
+- Ringe til alle billeder i samme rum og gennem døre til naborum, så man kan gå frit rundt og ikke kun i rækkefølge.
+- Trapper vises som "Op til 1. sal" / "Ned til stueetagen", som i Floorfy.
+
 ## 2026-11-12 – 3D-scanninger: egen plantegningsmodel
 - Ny `tools/layout-model/` til en model, der finder væggene i 360-billeder, trænet på Polygons egne data:
   - syntetiske rum;

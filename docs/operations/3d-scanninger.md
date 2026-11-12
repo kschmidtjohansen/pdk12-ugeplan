@@ -166,3 +166,49 @@ Dette findes i "Ret hjørner".
   - Hele kæden i browseren (upload → hent ONNX Runtime → kør → hjørner → bekræft) er testet med en testmodel, der returnerer det rigtige svar for et syntetisk rum på 4,03 × 3,20 m. Resultat: 4,03 × 3,20 m og rumhøjde 2,50 m.
   - Træning, ONNX-eksport og kørsel i ONNX Runtime Web er afprøvet med en minimal træning på CPU. En ResNet18-model kører på ca. 1,5 s pr. billede i én tråd.
 - **Status:** der er ingen trænet model endnu. Det kræver bekræftede rum og en GPU. Indtil da bruges AI-hjørnerne og "Find kanterne" som før.
+
+## Flere billeder i samme rum giver ét rum
+
+- **Automatisk:** "Ringe og plan automatisk" grupperer billederne efter rum, når ringe og placering er lavet (`roomClusters`). To billeder er samme rum, når:
+  - AI'en har sagt det: `same_room` fra p360-ai's link-svar, gemt som `scene.ai.same[id]`. Har AI'en sagt "forskellige rum", vinder det altid, også over hele grupper.
+  - eller hvert kamera står mindst 35 cm inde i det andet billedes rum;
+  - eller det ene gør, og AI'en har kaldt begge rum det samme (fx "Stue").
+- **Hovedbillede:** det billede, hvis rum er størst.
+  - Billederne bliver samlet med "Saml billeder", så vægge set i flere billeder bliver præcise.
+  - Kan et billedes vægge ikke matches, kommer det alligevel med i rummet på sin ring-placering. Rummet tegnes aldrig to gange.
+- **Rumgennemgang og plan:**
+  - "Ret hjørnerne nu?" viser kun ét billede pr. rum.
+  - Plantegningen tegner rummet én gang med en nål pr. billede.
+  - Rumoversigt og CSV viser én række med indholdet fra alle billederne, samme genstand talt én gang (højeste antal), og "Samlet fra N billeder".
+- **p360-ai:** link-prompten spørger nu også om `same_room`. Version 2 er deployet 12-11-2026. Kildekoden ligger i `supabase/staged/functions/p360-ai/`.
+- **Forskellige rumtyper:** har AI'en kaldt de to rum noget forskelligt (fx Køkken og Stue), forbliver de to rum, medmindre AI'en har set begge billeder og sagt "samme rum".
+- **Testet:**
+  - To billeder af ét syntetisk rum plus et køkken. Resultat: 2 rum, 3 nåle, rumgennemgang "1 af 2", og stuens indhold talt én gang.
+  - Den eksisterende test med 3 forskellige rum giver stadig 3 rum.
+
+## Ringe til alle steder og trapper
+
+- **Ringe til alle billeder i rummet:** "Ringe og plan automatisk" og "Færdig" efter hjørnegennemgangen laver ringe ud fra plantegningen (`planRings`, `by: 'plan'`). Man er ikke længere låst til billedernes rækkefølge.
+  - Der kommer en ring til hvert andet billede i samme rum, på dets stativplads.
+  - Der kommer en ring gennem hver dør eller åbning, AI'en har set, til billedet i rummet bag den, når rummene støder op til hinanden (højst 60 cm imellem).
+  - Ringene laves om hver gang. Ringe, en person har sat, røres aldrig.
+  - Ringene bruges ikke til at placere billederne (`autoPlace` springer `by: 'plan'` over).
+- **Trapper:** en forbindelse til et billede på en anden etage vises som et orange trappeskilt "Op til 1. sal" / "Ned til stueetagen" i stedet for en gulvring.
+  - Ser AI'en en trappe op (ned), forbindes billedet til et billede på etagen over (under), helst ét med trappe den anden vej, ellers det nærmeste i rækkefølgen.
+  - Skiltet sidder ved trappen, AI'en så.
+- **Testet:** 3 billeder i én stue plus et loft. Stuen blev ét rum med ringe mellem alle tre billeder, "Op til 1. sal" ved trappen, og klik førte op og "Ned til stueetagen" tilbage.
+
+## Forbind automatisk (uden plantegning)
+
+- **Standard nu:** plantegning ud fra 360-billeder er slået fra. Den kom ikke tæt nok på Floorfys plan for "Test".
+  - Knappen hedder "Forbind automatisk".
+  - Den laver rumanalyse (navn, etage, indhold, trapper), samler billeder af samme rum, laver ringe og trapper og viser ingen plantegning. `tour.plan.mode = 'none'`.
+  - Plantegningen kommer i stedet fra LiDAR eller et uploadet billede (fx Encircle) under Plantegning → Billede.
+  - Indstillinger → "Lav plantegning ud fra 360-billederne (eksperimentel)" slår den gamle opførsel til igen (`config.planFrom360`).
+- **Gå frit rundt:** ud over billederne i rækkefølge sammenligner AI'en alle par på samme etage (højst 120 par, nærmeste i rækkefølgen først).
+  - Der laves ringe, når AI'en siger, at man kan gå direkte derhen: `visible`, dvs. samme rum eller lige gennem en dør eller åbning, eller når det er samme rum.
+  - Svarene gemmes i `scene.ai.vis`. Par, der allerede er spurgt om, spørges ikke igen.
+- **Placering:** ringen trækkes ind på gulvet i rummet, så den ikke står i en væg. AI'ens rigtige punkt for stativet gemmes i `hotspot.spot` og bruges til at placere billederne. Før blev de presset sammen på 1–2 m.
+- **Trapper i hele rummet:** ser blot ét billede i et rum trappen, får alle billeder i rummet skiltet "Op til 1. sal" i trappens retning.
+- **Indstillinger:** `planFrom360` og `layoutModel` indlæses nu fra databasen. Før blev ukendte nøgler sprunget over ved genindlæsning.
+- **p360-ai version 3** (spørger om `visible`) er deployet 12-11-2026. Kildekoden ligger i `supabase/staged/functions/p360-ai/`.
