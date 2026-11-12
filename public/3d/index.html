@@ -1302,7 +1302,7 @@ class Player {
     for (const hs of this.tool === 'corners' ? [] : sc.hotspots || []) {
       // walk-through points on the floor were wrong and confusing: in view mode rooms are
       // switched from the scene strip only; editors still see the connections to manage them
-      if (hs.type === 'nav' && !this.editable) continue;
+      if (hs.type === 'nav') continue; // rooms are switched from the scene list, never through on-image links
       let el;
       const stair = hs.type === 'nav' && this.byId[hs.target] && levelOf(this.byId[hs.target]) !== levelOf(sc) ? (levelOf(this.byId[hs.target]) > levelOf(sc) ? 'up' : 'down') : null;
       if (stair) { const tg = this.byId[hs.target], lv = levelOf(tg), txt = (stair === 'up' ? 'Op til ' : 'Ned til ') + (lv === 0 ? 'stueetagen' : lv === -1 ? 'kælderen' : levelName(lv).toLowerCase());
@@ -3078,7 +3078,7 @@ async function openTour(id, tok) {
     player.slotRight.append(cur.editBtn);
   }
   player.on('place', onPlace);
-  player.on('edit', ev => { const sc = player.scene; if (ev.kind === 'blur') blurSheet(sc, ev.item); else if (ev.item.type === 'nav') navSheet(sc, ev.item); else tagSheet(sc, ev.item); });
+  player.on('edit', ev => { const sc = player.scene; if (ev.kind === 'blur') blurSheet(sc, ev.item); else tagSheet(sc, ev.item); });
   player.on('change', ev => { if (ev.what === 'outline') onOutline(ev.scene); if (ev.what === 'outline' || ev.what === 'corner') fixRings(ev.scene); if (ev.what === 'corner') player._renderPanel(); saveScene(ev.scene); });
   player.on('scene-menu', ev => sceneMenu(ev.scene, ev.anchor));
   player.on('camheight', () => camHeightDialog());
@@ -3184,7 +3184,7 @@ function renderEditBar() {
   const t = player.tool, meas = player.isMeasuring();
   const tool = (key, ic, label, on) => bar.append(h('button', { class: 'eb-btn' + (on ? ' on' : ''), type: 'button', 'aria-pressed': String(!!on), onclick: () => pickTool(on ? 'look' : key) }, icon(ic), label));
   const scan = !!(player.scene && player.scene.kind === 'model'); // a 3D scan has its own tools (3D, Plan, Mål) above the view
-  if (!scan) { tool('nav', 'link', 'Forbindelse', t === 'nav'); if (!P.NO_PLAN) { tool('outline', 'room', 'Tegn rum', t === 'outline'); if (player.scene && player.scene.outline) tool('corners', 'edit', 'Ret hjørner', t === 'corners'); }
+  if (!scan) { if (!P.NO_PLAN) { tool('outline', 'room', 'Tegn rum', t === 'outline'); if (player.scene && player.scene.outline) tool('corners', 'edit', 'Ret hjørner', t === 'corners'); }
     bar.append(h('span', { class: 'eb-sep' })); }
   const act = (ic, label, fn) => bar.append(h('button', { class: 'eb-btn', type: 'button', onclick: fn }, icon(ic), label));
   if (!scan) act('home', 'Sæt startvisning', setStartView); if (!P.NO_PLAN) act('map', 'Plantegning', planEditor); if (aiOn()) act('spark', planOn() ? 'Ringe og plan automatisk' : 'Forbind automatisk', () => autoPlan()); if (canUpload()) act('plus', 'Tilføj billeder', addDialog); act('gear', 'Detaljer', detailsDialog);
@@ -3193,19 +3193,13 @@ function pickTool(t) {
   const player = S.player; if (!player.scene && t !== 'look') { A.toast('Tilføj først et 360-billede.'); return; }
   if (player.scene && player.scene.kind === 'model' && t !== 'look') { A.toast('Det værktøj virker i 360-billeder. I en 3D-scanning kan du dreje, se plan og måle med knapperne øverst.', 5000); return; }
   A.closeSheet(); player.setTool(t);
-  const hint = { nav: 'Tryk, hvor forbindelsen til en anden scene skal sidde, typisk i døråbningen.', tag: 'Tryk på stedet, du vil markere.', blur: 'Tryk midt på det, der skal sløres.' }[t];
+  const hint = { tag: 'Tryk på stedet, du vil markere.', blur: 'Tryk midt på det, der skal sløres.' }[t];
   if (hint) A.toast(hint, 4200);
 }
 function setStartView() { const p = S.player, sc = p.scene; if (!sc) return; if (sc.kind === 'model') { A.toast('Startvisning gælder 360-billeder.'); return; } sc.yaw0 = r2(p.view.yaw); sc.pitch0 = r2(p.view.pitch); saveScene(sc); A.toast('Denne visning åbner nu først i “' + sc.name + '”.'); }
 function onPlace(ev) {
   const player = S.player, sc = player.scene, cur = S.cur; if (!sc || !cur) return;
-  if (ev.tool === 'nav') {
-    const others = cur.scenes.filter(o => o.id !== sc.id);
-    if (!others.length) { A.toast('Tilføj først en scene mere, og forbind så de to.'); player.setTool('look'); return; }
-    const linked = {}; (sc.hotspots || []).forEach(x => { if (x.type === 'nav') linked[x.target] = 1; });
-    const hs = { id: uid(), type: 'nav', yaw: ev.yaw, pitch: ev.pitch, target: (others.find(o => !linked[o.id]) || others[0]).id };
-    (sc.hotspots = sc.hotspots || []).push(hs); saveScene(sc); player.setTool('look'); navSheet(sc, hs);
-  } else if (ev.tool === 'tag') {
+  if (ev.tool === 'tag') {
     const hs = { id: uid(), type: 'tag', kind: 'info', yaw: ev.yaw, pitch: ev.pitch, title: '', text: '' };
     (sc.hotspots = sc.hotspots || []).push(hs); saveScene(sc); player.setTool('look'); tagSheet(sc, hs);
   } else if (ev.tool === 'blur') {
@@ -3217,16 +3211,6 @@ function onPlace(ev) {
 function select(item) { const p = S.player; p.selItem = item; p._renderHotspots(); }
 function lazySave(sc) { clearTimeout(S._lazy); S._lazy = setTimeout(() => saveScene(sc), 500); S.player._renderHotspots(); }
 function sheetFoot(onDelete, label) { return [h('button', { class: 'btn sm danger left', type: 'button', onclick: onDelete }, icon('trash'), label), h('button', { class: 'btn sm pri', type: 'button', onclick: () => A.closeSheet() }, 'Færdig')]; }
-function navSheet(sc, hs) {
-  const cur = S.cur, player = S.player; select(hs);
-  const sel = h('select', null, cur.scenes.filter(o => o.id !== sc.id).map(o => h('option', { value: o.id, selected: o.id === hs.target ? true : null }, o.name)));
-  const lab = h('input', { type: 'text', value: hs.title || '', maxlength: '60', placeholder: 'Bruger scenens navn' });
-  sel.addEventListener('change', () => { hs.target = sel.value; lazySave(sc); });
-  lab.addEventListener('input', () => { hs.title = lab.value.trim(); lazySave(sc); });
-  A.sheet('Forbindelse til scene', [A.fld('Går til', sel), A.fld('Tekst', lab), h('p', { class: 'hint', text: 'Træk i markøren for at flytte den. Tilføj også en forbindelse tilbage fra den anden scene.' }),
-    h('button', { class: 'btn sm', type: 'button', onclick: () => { A.closeSheet(); player.goTo(hs.target, { keepHeading: true }); } }, icon('chevR'), 'Åbn scenen')],
-    sheetFoot(() => { sc.hotspots = sc.hotspots.filter(x => x !== hs); saveScene(sc); A.closeSheet(); }, 'Slet forbindelse'), () => select(null));
-}
 function tagSheet(sc, hs) {
   const player = S.player, cap = S.store.caps || {}; select(hs);
   const seg = h('div', { class: 'seg kinds' }), drawSeg = () => { seg.textContent = ''; for (const k in P.KINDS) seg.append(h('button', { type: 'button', class: (hs.kind || 'info') === k ? 'on' : '', 'aria-pressed': String((hs.kind || 'info') === k), onclick: () => { hs.kind = k; drawSeg(); lazySave(sc); } }, icon(P.KINDS[k].icon), P.KINDS[k].label)); };
@@ -3915,16 +3899,6 @@ function planEditor() {
       const turn = d => { s0.spot.rot = r2(P.wrap180((s0.spot.rot || 0) + d)); s0.spot.turned = true; saveScene(s0); drawSvg(); };
       side.append(h('div', { class: 'p3-row' }, btn('rotL', '90°', () => turn(-90)), btn('rotR', '90°', () => turn(90)), btn('rotL', '10°', () => turn(-10)), btn('rotR', '10°', () => turn(10)), btn('trash', 'Fjern', () => { delete s0.spot; saveScene(s0); draw(); })));
     }
-    const placed = cur.scenes.filter(o => o.spot && o.kind !== 'model');
-    if (placed.length > 1) side.append(h('div', { class: 'pe-auto' }, h('h3', { text: 'Gulvringe' }), h('p', { text: 'Ringene lægges præcis på gulvet, hvor kameraet til næste billede stod, mellem billeder der kan se hinanden (ingen væg imellem). Dine egne ringe bliver stående.' }),
-      h('div', { class: 'p3-row' }, btn('link', 'Lav ringe ud fra plantegningen', () => {
-        let rot = 0; for (const sc of placed) if (!sc.spot.turned) { const r = headingFromRings(sc); if (r != null) { sc.spot.rot = r; rot++; } }
-        const walls = Object.values(tour.plan.scans).flatMap(x => x.walls), rs = P.ringsFromSpots(tour, placed, walls), ids = new Set(placed.map(o => o.id));
-        for (const sc of placed) sc.hotspots = (sc.hotspots || []).filter(hs => !(hs.type === 'nav' && (hs.by === 'ai' || hs.by === 'plan') && ids.has(hs.target)));
-        for (const r of rs) { const sc = byId(r.from); if (!navTo(sc, byId(r.to))) sc.hotspots.push({ id: uid(), type: 'nav', target: r.to, yaw: r.yaw, pitch: r.pitch, by: 'plan' }); }
-        for (const sc of placed) saveScene(sc); player.refresh(); drawSvg();
-        A.toast(rs.length + ' ringe er lagt' + (rot ? ', og retningen er fundet for ' + rot + ' billeder ud fra de gamle ringe' : '') + '.', 6000);
-      }, true))));
   }
   svg.addEventListener('click', e => {
     if (svg._noClick || !scanMode() || !sel || !info || !svg.getScreenCTM || (e.target.closest && e.target.closest('[data-pin]'))) return; const sc = byId(sel); if (!sc || sc.kind === 'model') return;
