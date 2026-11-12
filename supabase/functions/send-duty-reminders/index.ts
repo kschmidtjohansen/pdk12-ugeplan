@@ -56,7 +56,8 @@ Deno.serve(async (req) => {
         employee:profiles!on_call_duties_employee_id_fkey(id, name)
       `)
       .eq('duty_date', tomorrowStr)
-      .not('employee_id', 'is', null);
+      .not('employee_id', 'is', null)
+      .returns<Duty[]>();
 
     if (dutiesError) {
       console.error('Error fetching duties:', dutiesError);
@@ -75,7 +76,7 @@ Deno.serve(async (req) => {
     const remindersSent: string[] = [];
     const errors: string[] = [];
 
-    for (const duty of duties as Duty[]) {
+    for (const duty of duties) {
       if (!duty.employee_id) continue;
 
       const dutyTypeLabel = duty.duty_type === 'skadeleder_vagt' 

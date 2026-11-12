@@ -1,3 +1,7 @@
+## 2026-11-12 – Vagtpåmindelser: rettet typefejl
+- Angivet resultattypen på Supabase-forespørgslen for `send-duty-reminders`, så relationen til medarbejderprofilen behandles som én profil og ikke en liste.
+- Fjernet den inkompatible typekonvertering i løkken; adgangskontrol, modtagere og beskeder er uændrede. Ingen deploy eller udsendelse af påmindelser.
+
 ## 2026-11-12 – 3D-scanninger: gå frit rundt, trapper i hele rummet, plantegning valgfri
 - "Forbind automatisk" lader AI'en sammenligne alle billeder på samme etage. Der kommer ringe til alle steder, man kan gå direkte hen, ikke kun til næste billede.
 - "Op til 1. sal" vises i alle billeder af et rum med trappe.

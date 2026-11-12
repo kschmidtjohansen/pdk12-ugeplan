@@ -1,3 +1,6 @@
+## Preview-typefejl i vagtpåmindelser (2026-11-12)
+- [x] Angiv forespørgslens resultat som `Duty[]` og fjern inkompatibel typekonvertering uden ændringer i adgang eller påmindelser.
+
 ## Fridagsgodkendelse (2026-10-28)
 - [x] Fjern automatisk skadeleder-godkendelse i capability, handlers og desktop/mobilhandlinger; behold godkendt fravær i planlægningen.
 - [x] Database-trigger håndhæver godkendelsesrettighed for status/reviewer, eksplicit grants/Fra og afdelingsadgang uden ændring af eksisterende ansøgninger.
