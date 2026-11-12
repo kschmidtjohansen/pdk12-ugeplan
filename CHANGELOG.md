@@ -2721,3 +2721,4 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Gulvringe: de automatiske næste/forrige-ringe, der pegede lige frem (ofte ind i en væg), er fjernet. AI-ringe holdes nu på gulvet inde i rummet eller i døråbningen (0,8 m til 35 cm før væggen).
 - AI-analysen er hurtigere: flere billeder ad gangen og mindre billeder.
 
+- 2026-11-12: 3D – Del-knap på sagskort ved hover; Rum og indhold viser ikke længere gættede etager, og AI sætter ikke etage.
