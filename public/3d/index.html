@@ -1531,19 +1531,23 @@ class Player {
       if (!list.length) { p.append(h('p', { class: 'p3-hint', text: 'Ingen rum er tegnet eller analyseret endnu.' })); return; }
       const tot = list.reduce((a, x) => a + (x[1].area || 0), 0), nItems = list.reduce((a, x) => a + x[1].items.reduce((b, it) => b + (+it.count || 1), 0), 0);
       p.append(h('p', { class: 'p3-rsum', text: list.length + ' rum' + (tot ? ' · ' + fmtArea(tot) : '') + (nItems ? ' · ' + nItems + ' genstande' : '') }));
+      // the room you are in stays open; the others fold out when you want to see more
+      if (!this._roomsOpen) this._roomsOpen = new Set([this.scene && this.scene.id]);
+      const open = this._roomsOpen;
       const levels = Array.from(new Set(list.map(a => a[1].level))).sort((a, b) => a - b);
       for (const lv of levels) {
         if (levels.length > 1) p.append(h('h4', { class: 'p3-rlevel', text: levelName(lv) }));
         for (const [sc, r] of list.filter(a => a[1].level === lv)) {
-          const box = h('div', { class: 'p3-room' + (this.scene === sc ? ' on' : '') });
-          box.append(h('button', { type: 'button', class: 'p3-room-h', onclick: () => { if (this.scene !== sc) this.goTo(sc.id); } },
-            h('span', { class: 't', text: r.name }), h('span', { class: 's', text: [r.area != null ? fmtArea(r.area) : '', r.dims ? dk(r.dims[0], 2) + ' × ' + dk(r.dims[1], 2) + ' m' : '', r.stairs ? 'Trappe ' + (r.stairs === 'up' ? 'op' : r.stairs === 'down' ? 'ned' : 'op og ned') : ''].filter(Boolean).join(' · ') })));
-          if (r.items.length) {
+          const isOpen = open.has(sc.id), isCur = this.scene === sc;
+          const box = h('div', { class: 'p3-room' + (isCur ? ' on' : '') });
+          box.append(h('button', { type: 'button', class: 'p3-room-h', 'aria-expanded': String(isOpen), onclick: () => { if (open.has(sc.id) && !isCur) open.delete(sc.id); else open.add(sc.id); this._renderPanel(); } },
+            icon(isOpen ? 'chevD' : 'chevR'), h('span', { class: 't', text: r.name }), h('span', { class: 's', text: [r.area != null ? fmtArea(r.area) : '', r.dims ? dk(r.dims[0], 2) + ' × ' + dk(r.dims[1], 2) + ' m' : '', r.stairs ? 'Trappe ' + (r.stairs === 'up' ? 'op' : r.stairs === 'down' ? 'ned' : 'op og ned') : ''].filter(Boolean).join(' · ') })));
+          if (isOpen && r.items.length) {
             const ul = h('ul', { class: 'p3-items' });
             for (const it of r.items) ul.append(h('li', null, h('button', { type: 'button', onclick: () => { const go = () => this.setView({ yaw: +it.yaw || 0, pitch: +it.pitch || 0 }, true); if (this.scene !== sc) this.goTo(sc.id, { yaw: +it.yaw || 0, pitch: +it.pitch || 0 }); else go(); } }, h('span', { class: 't', text: it.name || 'Genstand' }), (+it.count || 1) > 1 ? h('span', { class: 'n', text: '× ' + it.count }) : null)));
             box.append(ul);
           }
-          if (r.notes) box.append(h('p', { class: 'p3-rnote', text: r.notes }));
+          if (isOpen && r.notes) box.append(h('p', { class: 'p3-rnote', text: r.notes }));
           p.append(box);
         }
       }
