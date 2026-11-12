@@ -1,3 +1,10 @@
+## 2026-11-12 – 3D-scanninger: ét rum, uanset hvor mange billeder
+- "Ringe og plan automatisk" kender nu billeder taget i samme rum og samler dem til ét rum:
+  - én omrids og én plads på plantegningen;
+  - én række i rumoversigt og CSV;
+  - én tur gennem "Ret hjørner".
+- p360-ai spørger også, om to billeder er taget i samme rum. Kildekoden er staged og skal deployes. Indtil da afgøres det ud fra placeringen.
+
 ## 2026-11-12 – 3D-scanninger: egen plantegningsmodel
 - Ny `tools/layout-model/` til en model, der finder væggene i 360-billeder, trænet på Polygons egne data:
   - syntetiske rum;

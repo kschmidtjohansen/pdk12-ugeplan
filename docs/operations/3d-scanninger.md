@@ -166,3 +166,21 @@ Dette findes i "Ret hjørner".
   - Hele kæden i browseren (upload → hent ONNX Runtime → kør → hjørner → bekræft) er testet med en testmodel, der returnerer det rigtige svar for et syntetisk rum på 4,03 × 3,20 m. Resultat: 4,03 × 3,20 m og rumhøjde 2,50 m.
   - Træning, ONNX-eksport og kørsel i ONNX Runtime Web er afprøvet med en minimal træning på CPU. En ResNet18-model kører på ca. 1,5 s pr. billede i én tråd.
 - **Status:** der er ingen trænet model endnu. Det kræver bekræftede rum og en GPU. Indtil da bruges AI-hjørnerne og "Find kanterne" som før.
+
+## Flere billeder i samme rum giver ét rum
+
+- **Automatisk:** "Ringe og plan automatisk" grupperer billederne efter rum, når ringe og placering er lavet (`roomClusters`). To billeder er samme rum, når:
+  - AI'en har sagt det: `same_room` fra p360-ai's link-svar, gemt som `scene.ai.same[id]`. Har AI'en sagt "forskellige rum", vinder det altid, også over hele grupper.
+  - eller hvert kamera står mindst 35 cm inde i det andet billedes rum;
+  - eller det ene gør, og AI'en har kaldt begge rum det samme (fx "Stue").
+- **Hovedbillede:** det billede, hvis rum er størst.
+  - Billederne bliver samlet med "Saml billeder", så vægge set i flere billeder bliver præcise.
+  - Kan et billedes vægge ikke matches, kommer det alligevel med i rummet på sin ring-placering. Rummet tegnes aldrig to gange.
+- **Rumgennemgang og plan:**
+  - "Ret hjørnerne nu?" viser kun ét billede pr. rum.
+  - Plantegningen tegner rummet én gang med en nål pr. billede.
+  - Rumoversigt og CSV viser én række med indholdet fra alle billederne, samme genstand talt én gang (højeste antal), og "Samlet fra N billeder".
+- **p360-ai:** link-prompten spørger nu også om `same_room`. Kildekoden ligger i `supabase/staged/functions/p360-ai/` og skal deployes, før AI'ens svar bruges. Indtil da bruges kun placeringen.
+- **Testet:**
+  - To billeder af ét syntetisk rum plus et køkken. Resultat: 2 rum, 3 nåle, rumgennemgang "1 af 2", og stuens indhold talt én gang.
+  - Den eksisterende test med 3 forskellige rum giver stadig 3 rum.
