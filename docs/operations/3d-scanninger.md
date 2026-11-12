@@ -212,3 +212,15 @@ Dette findes i "Ret hjørner".
 - **Trapper i hele rummet:** ser blot ét billede i et rum trappen, får alle billeder i rummet skiltet "Op til 1. sal" i trappens retning.
 - **Indstillinger:** `planFrom360` og `layoutModel` indlæses nu fra databasen. Før blev ukendte nøgler sprunget over ved genindlæsning.
 - **p360-ai version 3** (spørger om `visible`) er deployet 12-11-2026. Kildekoden ligger i `supabase/staged/functions/p360-ai/`.
+
+## Ringe på stativets plads og etager rettet (12-11-2026)
+
+- **Ringenes placering:** ringene sidder nu, hvor AI'en så det andet stativ (`hotspot.spot`), 0,6–7 m væk.
+  - Før blev de trukket ind til ca. 0,8 m, fordi AI'ens grove rumhjørner blev brugt som vægge, og så lå ringene oven i hinanden.
+  - Kun et omrids, en person har tjekket (eller modellen eller LiDAR har fundet), må stoppe en ring ved væggen (`trustedOutline`).
+- **Ringe i samme retning:** ligger flere ringe oven i hinanden (fx flere billeder bag samme dør), beholdes én (`spreadRings`): først samme rum, så synlig, ellers den nærmeste. Ringe, en person har sat, røres aldrig.
+- **Ældre sager:** rettes automatisk, når en redaktør åbner sagen.
+- **Etager:** et billede, som AI'en satte på en anden etage end alle de billeder, det hænger sammen med, flyttes til deres etage (`smoothLevels`). I "Test" havde AI'en sat ét stuebillede på 1. sal.
+- **Samme rum:** gælder kun billeder på samme etage.
+- **Afprøvet på data fra "Test":** AI'ens svar om, hvor stativerne stod, modsiger hinanden med op til 140° mellem par. Derfor kan en plantegning ikke bygges ud fra dem.
+  - En prøve med billedgenkendelse (SIFT og vandret relativ position mellem billederne) fandt 18 pålidelige billedpar, der dækker alle billeder i stueetagen, med under 2° hældning. Det er grundlaget, hvis vi vil placere billederne præcist.
