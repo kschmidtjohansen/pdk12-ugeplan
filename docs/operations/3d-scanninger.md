@@ -180,7 +180,20 @@ Dette findes i "Ret hjørner".
   - "Ret hjørnerne nu?" viser kun ét billede pr. rum.
   - Plantegningen tegner rummet én gang med en nål pr. billede.
   - Rumoversigt og CSV viser én række med indholdet fra alle billederne, samme genstand talt én gang (højeste antal), og "Samlet fra N billeder".
-- **p360-ai:** link-prompten spørger nu også om `same_room`. Kildekoden ligger i `supabase/staged/functions/p360-ai/` og skal deployes, før AI'ens svar bruges. Indtil da bruges kun placeringen.
+- **p360-ai:** link-prompten spørger nu også om `same_room`. Version 2 er deployet 12-11-2026. Kildekoden ligger i `supabase/staged/functions/p360-ai/`.
+- **Forskellige rumtyper:** har AI'en kaldt de to rum noget forskelligt (fx Køkken og Stue), forbliver de to rum, medmindre AI'en har set begge billeder og sagt "samme rum".
 - **Testet:**
   - To billeder af ét syntetisk rum plus et køkken. Resultat: 2 rum, 3 nåle, rumgennemgang "1 af 2", og stuens indhold talt én gang.
   - Den eksisterende test med 3 forskellige rum giver stadig 3 rum.
+
+## Ringe til alle steder og trapper
+
+- **Ringe til alle billeder i rummet:** "Ringe og plan automatisk" og "Færdig" efter hjørnegennemgangen laver ringe ud fra plantegningen (`planRings`, `by: 'plan'`). Man er ikke længere låst til billedernes rækkefølge.
+  - Der kommer en ring til hvert andet billede i samme rum, på dets stativplads.
+  - Der kommer en ring gennem hver dør eller åbning, AI'en har set, til billedet i rummet bag den, når rummene støder op til hinanden (højst 60 cm imellem).
+  - Ringene laves om hver gang. Ringe, en person har sat, røres aldrig.
+  - Ringene bruges ikke til at placere billederne (`autoPlace` springer `by: 'plan'` over).
+- **Trapper:** en forbindelse til et billede på en anden etage vises som et orange trappeskilt "Op til 1. sal" / "Ned til stueetagen" i stedet for en gulvring.
+  - Ser AI'en en trappe op (ned), forbindes billedet til et billede på etagen over (under), helst ét med trappe den anden vej, ellers det nærmeste i rækkefølgen.
+  - Skiltet sidder ved trappen, AI'en så.
+- **Testet:** 3 billeder i én stue plus et loft. Stuen blev ét rum med ringe mellem alle tre billeder, "Op til 1. sal" ved trappen, og klik førte op og "Ned til stueetagen" tilbage.

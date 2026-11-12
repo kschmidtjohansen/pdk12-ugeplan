@@ -3,7 +3,9 @@
   - én omrids og én plads på plantegningen;
   - én række i rumoversigt og CSV;
   - én tur gennem "Ret hjørner".
-- p360-ai spørger også, om to billeder er taget i samme rum. Kildekoden er staged og skal deployes. Indtil da afgøres det ud fra placeringen.
+- p360-ai spørger også, om to billeder er taget i samme rum (deployet som version 2).
+- Ringe til alle billeder i samme rum og gennem døre til naborum, så man kan gå frit rundt og ikke kun i rækkefølge.
+- Trapper vises som "Op til 1. sal" / "Ned til stueetagen", som i Floorfy.
 
 ## 2026-11-12 – 3D-scanninger: egen plantegningsmodel
 - Ny `tools/layout-model/` til en model, der finder væggene i 360-billeder, trænet på Polygons egne data:
