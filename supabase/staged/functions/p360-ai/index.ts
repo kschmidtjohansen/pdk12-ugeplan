@@ -29,11 +29,12 @@ Answer with ONLY one JSON object, no markdown:
  "notes": one short Danish sentence about visible damage (soot, water, mould, fire), or ""}`;
 
 const LINK = `Both images use this format. ${GRID}
-The two photos were taken in the same building from a tripod; photo B was taken right after photo A, usually a few metres away or in the next room.
+The two photos were taken in the same building from a tripod, usually a few metres apart, in the same room or in rooms next to each other (they may also be far apart).
 Find in photo A the spot on the floor where the tripod of photo B stood, and in photo B the spot on the floor where the tripod of photo A stood. Use the furniture, doors and walls that both photos show to work it out. If the other position is not visible (for example round a corner or behind a door), point to the floor in the doorway or opening that leads there.
+Decide whether you can walk straight from A to B: "visible" is true when the tripod spot of B can be seen from A, either in the same room or straight through an open doorway or opening (not round corners, not through walls, not via a third room).
 Also decide whether both photos were taken inside the same room (same floor area with no wall or doorway between the two tripods; an open kitchen-living area counts as one room only if there is no wall or partition between them).
 Answer with ONLY one JSON object, no markdown:
-{"a_to_b": {"x": number, "y": number}, "b_to_a": {"x": number, "y": number}, "same_room": true | false, "confidence": number between 0 and 1}`;
+{"a_to_b": {"x": number, "y": number}, "b_to_a": {"x": number, "y": number}, "same_room": true | false, "visible": true | false, "confidence": number between 0 and 1}`;
 
 async function ask(key: string, model: string, prompt: string, images: string[]) {
   const content: unknown[] = [{ type: "text", text: prompt }];
@@ -95,7 +96,7 @@ Deno.serve(async (req) => {
       if ("error" in r) return json({ error: r.error }, r.status);
       const ab = pt(r.data?.a_to_b), ba = pt(r.data?.b_to_a);
       if (!ab || !ba) return json({ error: "bad_answer" }, 502);
-      return json({ link: { a_to_b: ab, b_to_a: ba, same_room: typeof r.data?.same_room === "boolean" ? r.data.same_room : null, confidence: num(r.data?.confidence, 0, 1) ?? 0.5 } });
+      return json({ link: { a_to_b: ab, b_to_a: ba, same_room: typeof r.data?.same_room === "boolean" ? r.data.same_room : null, visible: typeof r.data?.visible === "boolean" ? r.data.visible : null, confidence: num(r.data?.confidence, 0, 1) ?? 0.5 } });
     }
     return json({ error: "bad_kind" }, 400);
   } catch (e) {

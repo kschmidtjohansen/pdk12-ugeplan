@@ -197,3 +197,18 @@ Dette findes i "Ret hjørner".
   - Ser AI'en en trappe op (ned), forbindes billedet til et billede på etagen over (under), helst ét med trappe den anden vej, ellers det nærmeste i rækkefølgen.
   - Skiltet sidder ved trappen, AI'en så.
 - **Testet:** 3 billeder i én stue plus et loft. Stuen blev ét rum med ringe mellem alle tre billeder, "Op til 1. sal" ved trappen, og klik førte op og "Ned til stueetagen" tilbage.
+
+## Forbind automatisk (uden plantegning)
+
+- **Standard nu:** plantegning ud fra 360-billeder er slået fra. Den kom ikke tæt nok på Floorfys plan for "Test".
+  - Knappen hedder "Forbind automatisk".
+  - Den laver rumanalyse (navn, etage, indhold, trapper), samler billeder af samme rum, laver ringe og trapper og viser ingen plantegning. `tour.plan.mode = 'none'`.
+  - Plantegningen kommer i stedet fra LiDAR eller et uploadet billede (fx Encircle) under Plantegning → Billede.
+  - Indstillinger → "Lav plantegning ud fra 360-billederne (eksperimentel)" slår den gamle opførsel til igen (`config.planFrom360`).
+- **Gå frit rundt:** ud over billederne i rækkefølge sammenligner AI'en alle par på samme etage (højst 120 par, nærmeste i rækkefølgen først).
+  - Der laves ringe, når AI'en siger, at man kan gå direkte derhen: `visible`, dvs. samme rum eller lige gennem en dør eller åbning, eller når det er samme rum.
+  - Svarene gemmes i `scene.ai.vis`. Par, der allerede er spurgt om, spørges ikke igen.
+- **Placering:** ringen trækkes ind på gulvet i rummet, så den ikke står i en væg. AI'ens rigtige punkt for stativet gemmes i `hotspot.spot` og bruges til at placere billederne. Før blev de presset sammen på 1–2 m.
+- **Trapper i hele rummet:** ser blot ét billede i et rum trappen, får alle billeder i rummet skiltet "Op til 1. sal" i trappens retning.
+- **Indstillinger:** `planFrom360` og `layoutModel` indlæses nu fra databasen. Før blev ukendte nøgler sprunget over ved genindlæsning.
+- **p360-ai version 3** (spørger om `visible`) ligger i `supabase/staged/functions/p360-ai/` og venter på deploy. Med version 2 laves ekstra ringe kun mellem billeder i samme rum.
