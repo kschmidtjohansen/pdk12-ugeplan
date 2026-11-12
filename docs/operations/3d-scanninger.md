@@ -146,3 +146,23 @@ Dette findes i "Ret hjørner".
 - **Begrænsning:**
   - Loftkanten forudsætter et fladt loft. I rum med skråt loft (fx stuen i "Test") må man stole på gulvkanterne.
   - Det er ikke afprøvet mod Floorfys mål på de rigtige billeder.
+
+## Plantegningsmodel (trænet på Polygons egne rum)
+
+- **Hvorfor egen model:** de offentlige modeller til 360-billeder (HorizonNet, LGT-Net m.fl.) er trænet på datasæt, der kun må bruges til ikke-kommerciel forskning. Derfor træner vi vores egen med samme opbygning (MIT-kode).
+  - Træningssættet ligger i `tools/layout-model/`. Se README dér.
+- **Træningsdata:**
+  - "Rummet passer" i "Ret hjørner" gemmer `scene.layoutOk`. Det fjernes igen, hvis et hjørne flyttes.
+  - `export_polyplan.py` henter de bekræftede rum.
+  - Rumhøjden skal være kendt (`scene.roomHeight` eller `tour.roomHeight`).
+- **Model i brug:** administratorer uploader `layout.int8.onnx` under Indstillinger → Plantegningsmodel.
+  - Filen gemmes i bucket `p360`, og `p360_config.doc.layoutModel = { id, name, size, at }`.
+  - Modellen kører i browseren med ONNX Runtime Web 1.20.1, som hentes fra jsDelivr, kun når der er en model.
+- **Når der er en model:**
+  - "Ringe og plan automatisk" sætter hjørnerne med modellen i stedet for AI's gæt. `outlineBy = 'model'`, rumhøjden måles, og vægliner gemmes i `scene.modelLines`.
+  - "Find rummet" gør det samme for ét billede.
+  - "Saml billeder" bruger modellens vægge, når de findes.
+- **Testet:**
+  - Hele kæden i browseren (upload → hent ONNX Runtime → kør → hjørner → bekræft) er testet med en testmodel, der returnerer det rigtige svar for et syntetisk rum på 4,03 × 3,20 m. Resultat: 4,03 × 3,20 m og rumhøjde 2,50 m.
+  - Træning, ONNX-eksport og kørsel i ONNX Runtime Web er afprøvet med en minimal træning på CPU. En ResNet18-model kører på ca. 1,5 s pr. billede i én tråd.
+- **Status:** der er ingen trænet model endnu. Det kræver bekræftede rum og en GPU. Indtil da bruges AI-hjørnerne og "Find kanterne" som før.

@@ -1,3 +1,17 @@
+## 2026-11-12 – 3D-scanninger: egen plantegningsmodel
+- Ny `tools/layout-model/` til en model, der finder væggene i 360-billeder, trænet på Polygons egne data:
+  - syntetiske rum;
+  - eksport af bekræftede rum fra Supabase;
+  - træning (HorizonNet-opbygning, MIT);
+  - ONNX-eksport med int8-version;
+  - måling mod kendte rumstørrelser.
+- 3D-siden:
+  - "Rummet passer" i "Ret hjørner" markerer et rum som træningsdata.
+  - Indstillinger → Plantegningsmodel uploader en `.onnx`-model.
+  - "Find rummet" og "Ringe og plan automatisk" kører modellen i browseren (ONNX Runtime Web), når den findes.
+- Indstillinger følger Lovables ændring: firmanavn, logo, lager og brugere vises kun for IT (super_admin).
+- QA: browsertests består. Ny test kører modelkæden i browseren end-to-end. Træning og eksport er røgtestet på CPU.
+
 ## 2026-11-12 – 3D-scanninger: præcise mål fra 360-billeder
 - "Ret hjørner" har nu disse værktøjer:
   - lup ved træk og et ovenfra-billede i målestok;
