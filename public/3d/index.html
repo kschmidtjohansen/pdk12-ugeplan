@@ -1455,6 +1455,7 @@ class Player {
   // ----- panel -----
   _renderPanel() {
     const p = this.panel, mode = this.panelMode; p.textContent = '';
+    if (mode !== 'rooms') this._roomsOpen = null;
     this.root.classList.toggle('has-panel', !!mode); p.hidden = !mode; this.btn.tags.classList.toggle('on', mode === 'tags'); this.btn.rooms.classList.toggle('on', mode === 'rooms'); if (!mode) return;
     const head = (title, close) => h('div', { class: 'p3-ph' }, h('h3', { text: title }), h('button', { class: 'p3-x', type: 'button', 'aria-label': 'Luk', onclick: close }, icon('x')));
     const mini = (ic, label, fn, pri) => h('button', { class: 'p3-mini-btn' + (pri ? ' pri' : ''), type: 'button', onclick: fn }, ic ? icon(ic) : null, label);
@@ -1532,7 +1533,8 @@ class Player {
       const tot = list.reduce((a, x) => a + (x[1].area || 0), 0), nItems = list.reduce((a, x) => a + x[1].items.reduce((b, it) => b + (+it.count || 1), 0), 0);
       p.append(h('p', { class: 'p3-rsum', text: list.length + ' rum' + (tot ? ' · ' + fmtArea(tot) : '') + (nItems ? ' · ' + nItems + ' genstande' : '') }));
       // the room you are in stays open; the others fold out when you want to see more
-      if (!this._roomsOpen) this._roomsOpen = new Set([this.scene && this.scene.id]);
+      if (!this._roomsOpen) this._roomsOpen = new Set();
+      if (this.scene) this._roomsOpen.add(this.scene.id);
       const open = this._roomsOpen;
       const levels = Array.from(new Set(list.map(a => a[1].level))).sort((a, b) => a - b);
       for (const lv of levels) {
