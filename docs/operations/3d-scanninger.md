@@ -211,4 +211,4 @@ Dette findes i "Ret hjørner".
 - **Placering:** ringen trækkes ind på gulvet i rummet, så den ikke står i en væg. AI'ens rigtige punkt for stativet gemmes i `hotspot.spot` og bruges til at placere billederne. Før blev de presset sammen på 1–2 m.
 - **Trapper i hele rummet:** ser blot ét billede i et rum trappen, får alle billeder i rummet skiltet "Op til 1. sal" i trappens retning.
 - **Indstillinger:** `planFrom360` og `layoutModel` indlæses nu fra databasen. Før blev ukendte nøgler sprunget over ved genindlæsning.
-- **p360-ai version 3** (spørger om `visible`) ligger i `supabase/staged/functions/p360-ai/` og venter på deploy. Med version 2 laves ekstra ringe kun mellem billeder i samme rum.
+- **p360-ai version 3** (spørger om `visible`) er deployet 12-11-2026. Kildekoden ligger i `supabase/staged/functions/p360-ai/`.
