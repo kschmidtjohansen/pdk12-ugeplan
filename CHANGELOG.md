@@ -7,7 +7,8 @@
   - nøjagtighed ± vist pr. rum.
 - Rumhøjde pr. rum (målt eller indtastet) bruges til m³.
 - AI-gennemgangen finjusterer automatisk hjørnerne én gang pr. rum.
-- QA: plan-, LiDAR-, arkiv- og PolyPlan-browsertests består.
+- Ét rum fotograferet fra flere steder bliver samlet. Billederne bliver placeret præcist ud fra de vægge, de deler, og hver væg bliver et gennemsnit af de billeder, der ser den. Det sker med "Saml billeder" eller automatisk efter hjørnegennemgangen.
+- QA: plan-, LiDAR-, arkiv- og PolyPlan-browsertests består. Ny test med to syntetiske billeder af et rum på 4,03 × 3,20 m giver 4,01 × 3,21 m.
 
 ## 2026-11-11 – 3D-scanninger (Polygon 360-rundvisninger)
 - Ny selvstændig side `public/3d/index.html` med 360-rundvisninger fra GoPro, afdelinger, status, deling med forsikringsselskaber (visningslink uden login) og import fra den gamle side. Bruger samme login/session ("Husk mig") og samme supabase-js-version som PolyPlan; ingen kontooprettelse på siden.

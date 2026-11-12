@@ -118,3 +118,26 @@ Dette findes i "Ret hjørner".
   - Et billede på 2576 px giver det dobbelte.
 - **Begrænsning:** på testbillederne ("Test") fandt "Find kanterne" kun en del af væggene automatisk, fordi gulvkanterne var skjult af møbler, og cremefarvede vægge mødte et cremefarvet loft. Resten skal sættes med luppen.
   - Der er endnu ingen sammenlægning af flere billeder fra samme rum.
+
+## Ét rum i flere billeder
+
+- **Hvad:** er et rum fotograferet fra flere steder, samler "Saml billeder (n)" i "Ret hjørner" dem. Det sker også automatisk, når man trykker "Færdig" efter hjørnegennemgangen.
+- **Hvilke billeder hører til samme rum:**
+  - billeder på samme etage, hvis kameraposition ligger inde i rummets omrids;
+  - eller billeder, hvis eget omrids har midten inde i det (`roomGroup`).
+- **Sådan virker det** (`P360.fuseRoom`):
+  1. Væggene findes i hvert billede med "Find kanterne".
+  2. Hvert ekstra billede bliver placeret præcist (drejning og position) ud fra de vægge, det deler med hovedbilledet. Startpunktet er placeringen fra ringene.
+  3. Hver væg bliver et vægtet gennemsnit af alle tydelige observationer. Nære, skarpe billeder vægter mest. Er billederne uenige, bliver usikkerheden større.
+  4. Hjørnerne bliver, hvor væggene krydser hinanden.
+- **Gemmes:**
+  - Hovedbilledet får `scene.fused = { with, seen, err, at }`.
+  - De andre får `scene.roomOf` (hovedbilledets id) og `scene.roomRel` (placering i forhold til hovedbilledet, som "Placér alle" bevarer).
+  - Alle billeder får samme omrids.
+  - Plantegningen tegner rummet én gang med en nål pr. billede, og CSV'en skriver "Samme rum som …" i stedet for at tælle arealet to gange.
+- **Testet:**
+  - Syntetiske rum: med 2–3 billeder, der deler mindst to vægge, er hjørnerne 1–3,5 cm fra de rigtige. Deler de næsten ingen vægge, er det 5–12 cm, og den viste ± afspejler det.
+  - Browsertest: et syntetisk møbleret rum på 4,03 × 3,20 m. Rummet blev målt til 4,01 × 3,21 m ud fra to billeder, med AI-hjørner op til 12 cm ved siden af og billede 2 placeret 35 cm / 6° forkert. Billede 2 endte 1,6 cm fra sin rigtige plads.
+- **Begrænsning:**
+  - Loftkanten forudsætter et fladt loft. I rum med skråt loft (fx stuen i "Test") må man stole på gulvkanterne.
+  - Det er ikke afprøvet mod Floorfys mål på de rigtige billeder.
