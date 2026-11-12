@@ -3012,7 +3012,7 @@ const sceneUrl = async sc => sc._url || (sc._url = await S.store.blobUrl(sc.asse
 function leaveTour() {
   A.closeSheet(); if (S.live) liveStop();
   if (S.cur && S.cur.lockTimer) { clearInterval(S.cur.lockTimer); S.store.unlock(S.cur.id); }
-  if (S.player) { S.player.destroy(); S.player = null; } S.cur = null;
+  if (S.player) { S.player.destroy(); S.player = null; } S.cur = null; S.tourSide = null;
 }
 function saveScene(sc) { const cur = S.cur; if (!cur || cur.ro) return Promise.resolve(); touchTour(); mirrorScene(cur, sc); return S.store.setScene(cur.id, sc.id, sc).catch(A.writeFailed); }
 // ---------- view-only links ----------
@@ -3045,7 +3045,11 @@ function orderScenes(tour, scenes) {
 async function openTour(id, tok) {
   leaveTour(); app.textContent = ''; app.className = 'tour'; const ro = !!tok;
   const root = h('div', { class: 'tour-root' }); app.append(root);
-  const player = S.player = new P.Player(root, { brand: brand(), saveFile: A.saveFile, assetUrl: a => S.store.blobUrl(a), onStrip: decorateStrip });
+  const side = S.tourSide = h('aside', { class: 'tour-side', 'aria-label': 'Markeringer, mål og slør' });
+  const main = h('div', { class: 'tour-main' });
+  root.append(side, main);
+  const player = S.player = new P.Player(main, { brand: brand(), saveFile: A.saveFile, assetUrl: a => S.store.blobUrl(a), onStrip: decorateStrip });
+  player.slotLeft.append(h('button', { class: 'p3-btn tour-burger', type: 'button', 'aria-label': 'Markeringer, mål og slør', title: 'Markeringer, mål og slør', onclick: () => side.classList.toggle('open') }, icon('list')));
   if (!ro) player.slotLeft.append(h('button', { class: 'p3-btn', type: 'button', 'aria-label': 'Tilbage til alle rundvisninger', title: 'Alle rundvisninger', onclick: () => { location.hash = ''; } }, icon('back')));
   player.loadEl.hidden = false;
   let tour = null, scenes = [];
