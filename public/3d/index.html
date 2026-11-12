@@ -4079,41 +4079,12 @@ function authCard(title, text, nodes) {
 }
 const HOST = () => (window.P360_CONFIG && window.P360_CONFIG.host) || null;
 const hostName = () => (HOST() && HOST().name) || 'polyplan.dk';
-function renderLogin(mode) {
-  mode = mode || 'in'; const sb = S.store.sb;
-  const email = h('input', { type: 'email', id: 'au-email', autocomplete: 'username', placeholder: 'E-mail', 'aria-label': 'E-mail' });
-  const pass = h('input', { type: 'password', id: 'au-pass', autocomplete: mode === 'up' ? 'new-password' : 'current-password', placeholder: 'Adgangskode', 'aria-label': 'Adgangskode' });
-  const name = h('input', { type: 'text', id: 'au-name', autocomplete: 'name', placeholder: 'Dit navn', 'aria-label': 'Dit navn' });
-  const err = h('p', { class: 'err', role: 'alert', hidden: true }), go = h('button', { type: 'submit' }, mode === 'up' ? 'Opret konto' : mode === 'reset' ? 'Send link' : 'Log ind');
-  const alt = (label, m) => h('a', { href: '#', style: { color: 'var(--accent)', fontWeight: '600', fontSize: '14px' }, onclick: e => { e.preventDefault(); renderLogin(m); } }, label);
-  const title = mode === 'up' ? 'Opret konto' : mode === 'reset' ? 'Glemt adgangskode' : 'Log ind på 360-rundvisninger';
-  const host = HOST(), ext = (label, href) => h('a', { href, style: { color: 'var(--accent)', fontWeight: '600', fontSize: '14px' } }, label);
-  if (host && (mode === 'up' || (mode === 'reset' && host.reset))) mode = 'in';
-  const text = mode === 'up' ? 'En administrator skal godkende din konto, før du kan se rundvisningerne.' : mode === 'reset' ? 'Du får en e-mail med et link til at vælge en ny adgangskode.' : host ? 'Log ind med din ' + host.name + '-konto. Har du fået et link til en rundvisning, så åbn det link i stedet.' : 'Kun for medarbejdere. Har du fået et link til en rundvisning, så åbn det link i stedet.';
-  const links = host ? [host.home ? ext('Tilbage til ' + host.name, host.home) : null, host.reset ? ext('Glemt adgangskode?', host.reset) : alt('Glemt adgangskode?', 'reset')]
-    : [mode === 'in' ? alt('Opret konto', 'up') : alt('Tilbage til login', 'in'), mode === 'in' ? alt('Glemt adgangskode?', 'reset') : null];
-  const form = authCard(title, text, [mode === 'up' ? name : null, email, mode === 'reset' ? null : pass, err, go,
-    h('div', { class: 'rowf', style: { justifyContent: 'space-between' } }, ...links.filter(Boolean))]);
-  const fail = msg => { err.textContent = msg; err.hidden = false; go.disabled = false; };
-  form.addEventListener('submit', async e => {
-    e.preventDefault(); err.hidden = true; const em = email.value.trim(), pw = pass.value;
-    if (!/^\S+@\S+\.\S+$/.test(em)) return fail('Skriv en gyldig e-mailadresse.');
-    if (mode !== 'reset' && pw.length < (mode === 'up' ? 8 : 1)) return fail(mode === 'up' ? 'Adgangskoden skal være mindst 8 tegn.' : 'Skriv din adgangskode.');
-    go.disabled = true;
-    try {
-      if (mode === 'reset') { const r = await sb.auth.resetPasswordForEmail(em, { redirectTo: location.origin + location.pathname }); if (r.error) throw r.error; authCard('Tjek din e-mail', 'Hvis adressen har en konto, har vi sendt et link til at vælge en ny adgangskode.', [alt('Tilbage til login', 'in')]); return; }
-      if (mode === 'up') {
-        const r = await sb.auth.signUp({ email: em, password: pw, options: { emailRedirectTo: location.origin + location.pathname } }); if (r.error) throw r.error;
-        if (!r.data.session) { authCard('Bekræft din e-mail', 'Vi har sendt en e-mail til ' + em + '. Klik på linket i den, og log så ind.', [alt('Til login', 'in')]); return; }
-        await sb.rpc('p360_join', { p_name: name.value.trim() || null });
-      } else { const r = await sb.auth.signInWithPassword({ email: em, password: pw }); if (r.error) throw r.error; }
-      location.reload();
-    } catch (x) {
-      const m = String((x && x.message) || '');
-      fail(/invalid login/i.test(m) ? 'Forkert e-mail eller adgangskode.' : /already registered/i.test(m) ? 'Der findes allerede en konto med den e-mail. Log ind i stedet.' : /not confirmed/i.test(m) ? 'Bekræft din e-mail først. Tjek indbakken.' : /rate|too many/i.test(m) ? 'For mange forsøg. Vent lidt og prøv igen.' : 'Det lykkedes ikke. Prøv igen.');
-    }
-  });
+function renderLogin() {
+  // Reuse PolyPlan's login UI and all its authentication methods, not a visual copy.
+  const returnTo = '/3d' + location.search + location.hash;
+  location.replace('/login?returnTo=' + encodeURIComponent(returnTo));
 }
+
 function renderNewPassword() {
   const pass = h('input', { type: 'password', id: 'au-new', autocomplete: 'new-password', placeholder: 'Ny adgangskode', 'aria-label': 'Ny adgangskode' }), err = h('p', { class: 'err', role: 'alert', hidden: true }), go = h('button', { type: 'submit' }, 'Gem adgangskode');
   const form = authCard('Vælg en ny adgangskode', 'Mindst 8 tegn.', [pass, err, go]);
