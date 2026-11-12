@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CalendarDays, Phone, Palmtree, Car, ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginForm';
 import { useTranslation } from '@/context/TranslationContext';
@@ -9,10 +9,13 @@ import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { PRODUCT_NAME, ORG_NAME, PRODUCT_TAGLINE_DA, ORG_LOGO_URL } from '@/config/product';
 import PolyPlanBrand from '@/components/branding/PolyPlanBrand';
 import PolyPlanMark from '@/components/branding/PolyPlanMark';
+import { getLoginDestination } from '@/utils/loginDestination';
 
 const LoginPage = () => {
   const { isAuthenticated, authReady, session, userDataLoaded } = useAuth();
   const navigate = useNavigate();
+  const { search } = useLocation();
+  const destination = getLoginDestination(search);
   const { t } = useTranslation();
   const [loginBusy, setLoginBusy] = useState(false);
   const departmentName = localStorage.getItem('selected_department_name');
@@ -24,9 +27,10 @@ const LoginPage = () => {
       console.log('[LoginPage] Auth state:', { isAuthenticated, authReady, session: !!session, userDataLoaded });
     }
     if (authReady && isAuthenticated && session && userDataLoaded) {
-      navigate('/dashboard', { replace: true });
+      if (destination === '/dashboard') navigate(destination, { replace: true });
+      else window.location.replace(destination);
     }
-  }, [isAuthenticated, authReady, session, userDataLoaded, navigate]);
+  }, [isAuthenticated, authReady, session, userDataLoaded, navigate, destination]);
 
   const handleLoginSuccess = () => {
     // Navigation handled by the useEffect when session is available

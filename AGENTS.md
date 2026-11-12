@@ -14,3 +14,4 @@
 - Edge authorization decisions live in src/security/backend/policies.ts with a byte-identical copy in supabase/staged/functions/_shared (test-enforced); unreviewed server changes are staged under supabase/staged/ so they are never auto-deployed.
 - 3D-scanninger is a standalone static page (public/3d/index.html, built outside this repo) sharing PolyPlan's Supabase session; access is read-only from user_roles via staged p360_* SQL, and the sidebar link is gated by useScanAccess so nothing appears before the SQL is applied.
 - 3D-scanninger scenes are 360 photos or LiDAR scans (GLB, scene kind: model) shown by a built-in WebGL viewer; archived tours carry archAt and are purged client-side after 3 days by an editor's browser.
+- Signed-out 3D visitors use the existing PolyPlan login page with an allowlisted /3d return destination and full-document navigation; public share links and existing recovery flows remain standalone.
