@@ -138,6 +138,11 @@ Dette findes i "Ret hjørner".
 - **Testet:**
   - Syntetiske rum: med 2–3 billeder, der deler mindst to vægge, er hjørnerne 1–3,5 cm fra de rigtige. Deler de næsten ingen vægge, er det 5–12 cm, og den viste ± afspejler det.
   - Browsertest: et syntetisk møbleret rum på 4,03 × 3,20 m. Rummet blev målt til 4,01 × 3,21 m ud fra to billeder, med AI-hjørner op til 12 cm ved siden af og billede 2 placeret 35 cm / 6° forkert. Billede 2 endte 1,6 cm fra sin rigtige plads.
+- **Afprøvet på de rigtige billeder fra "Test"** (mod Floorfys mål):
+  - Badeværelset (2,08 × 1,52 m) blev 2,05 × 1,63–1,70 m. Hvert billede fandt kun én tydelig væg, så billederne kunne ikke samles.
+  - Soveværelset: loftkanterne blev fundet, men målene hoppede 10–20 % efter startgættet.
+  - Konklusion: på rodede, dunkle billeder i 2576 px når den automatiske del ikke få cm. Hjørnerne skal sættes med luppen, og ét kendt mål skal indtastes.
+- **Rettet efter afprøvningen:** vægge, der kun ses ved loftet, bruges ikke længere sammen med gulvvægge, når loftafstanden er gættet. Det kunne før bøje rummet: badeværelsets dybde sprang fra 1,70 til 2,11 m. Er det kun loftkanterne, der ses, beholdes formen, og appen siger, at størrelsen er et skøn.
 - **Begrænsning:**
   - Loftkanten forudsætter et fladt loft. I rum med skråt loft (fx stuen i "Test") må man stole på gulvkanterne.
   - Det er ikke afprøvet mod Floorfys mål på de rigtige billeder.
