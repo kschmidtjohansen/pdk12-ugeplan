@@ -1293,6 +1293,9 @@ class Player {
   _renderHotspots() {
     this.hot.textContent = ''; this.hs = []; const sc = this.scene; if (!sc) return;
     for (const hs of this.tool === 'corners' ? [] : sc.hotspots || []) {
+      // walk-through points on the floor were wrong and confusing: in view mode rooms are
+      // switched from the scene strip only; editors still see the connections to manage them
+      if (hs.type === 'nav' && !this.editable) continue;
       let el;
       const stair = hs.type === 'nav' && this.byId[hs.target] && levelOf(this.byId[hs.target]) !== levelOf(sc) ? (levelOf(this.byId[hs.target]) > levelOf(sc) ? 'up' : 'down') : null;
       if (stair) { const tg = this.byId[hs.target], lv = levelOf(tg), txt = (stair === 'up' ? 'Op til ' : 'Ned til ') + (lv === 0 ? 'stueetagen' : lv === -1 ? 'kælderen' : levelName(lv).toLowerCase());
