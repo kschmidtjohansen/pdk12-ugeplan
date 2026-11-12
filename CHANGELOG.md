@@ -2614,3 +2614,9 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - Begrænsninger: komprimerede GLB-filer (Draco/meshopt), USDZ, OBJ og punktskyer afvises med en forklaring. Filstørrelsen er begrænset af Supabase-projektets filgrænse (typisk 50 MB).
 - Indbygget GLB-læser og WebGL-fremviser i `public/3d/index.html`; ingen nye afhængigheder og ingen databaseændringer.
 
+## 2026-11-12 — 3D-scanninger: plantegning fra LiDAR-scan, ret hjørner, ringe på gulvet
+- Plantegning → "Fra 3D-scan": vægge og rum med m² og mål laves automatisk ud fra en LiDAR-scanning (GLB), én pr. etage. Snit i ca. 1,2 m højde; døråbninger op til ca. 0,9 m (1,4 m for yderdøre) lukkes, så rummene adskilles. 360-billeder placeres på tegningen med et tryk og drejes, og "Lav ringe ud fra plantegningen" lægger ringene præcis på gulvet, hvor næste kamera stod, mellem billeder uden væg imellem.
+- Ret hjørner: nyt værktøj i redigeringslinjen. Hjørnerne i et rum er nummererede håndtag, der trækkes hen, hvor væggene møder gulvet; m² opdateres med det samme. Efter "Ringe og plan automatisk" tilbydes en gennemgang rum for rum.
+- Gulvringe: de automatiske næste/forrige-ringe, der pegede lige frem (ofte ind i en væg), er fjernet. AI-ringe holdes nu på gulvet inde i rummet eller i døråbningen (0,8 m til 35 cm før væggen).
+- AI-analysen er hurtigere: flere billeder ad gangen og mindre billeder.
+

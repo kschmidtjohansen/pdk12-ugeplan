@@ -87,3 +87,14 @@ Menupunktet forsvinder af sig selv. Fjern `public/3d/` for at fjerne siden helt.
 - **Deling:** virker i links til forsikringen (`p360-link` signerer filen). Er ikke med i "Fil til forsikring".
 - **Ikke understøttet:** Draco-/meshopt-komprimeret GLB, USDZ, OBJ, PLY, punktskyer og splats.
 
+## Plantegning fra LiDAR-scan
+
+- **Sådan:**
+  1. Scan hver etage med en LiDAR-app, fx Polycam Room/LiDAR eller Scaniverse, og eksportér som GLB.
+  2. Tilføj billeder → "Vælg 3D-scan (.glb)".
+  3. Plantegning → "Fra 3D-scan" → "Lav plantegning".
+- **Resultat:** gemmes i `tour.plan.scans[sceneId]` = `{ level, cut, walls (polylinjer i m), rooms [{x, y, area, w, h, box}], bbox }`. Visningen bruger `plan.mode = 'scan'`.
+- **Billeder:** et 360-billedes position på tegningen er `scene.spot = {x, y, rot}`.
+- **Ringe:** "Lav ringe ud fra plantegningen" laver ringe med `by: 'plan'` og erstatter AI-ringe mellem placerede billeder. Ringe, man selv har sat, bliver stående. Mangler et billede retning, findes den ud fra de gamle ringe, når det er muligt.
+- **Nøjagtighed:** testet på en syntetisk scanning af et hus på 6,86 × 6,65 m med rum ned til ca. 5 % fra de rigtige m². Stuer og køkkener med åben forbindelse bliver ét rum.
+
