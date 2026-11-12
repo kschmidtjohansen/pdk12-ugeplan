@@ -3018,7 +3018,7 @@ const sceneUrl = async sc => sc._url || (sc._url = await S.store.blobUrl(sc.asse
 function leaveTour() {
   A.closeSheet(); if (S.live) liveStop();
   if (S.cur && S.cur.lockTimer) { clearInterval(S.cur.lockTimer); S.store.unlock(S.cur.id); }
-  if (S.player) { S.player.destroy(); S.player = null; } S.cur = null; S.tourSide = null;
+  if (S.player) { S.player.destroy(); S.player = null; } S.cur = null; S.tourSide = null; S.tourBurger = null;
 }
 function saveScene(sc) { const cur = S.cur; if (!cur || cur.ro) return Promise.resolve(); touchTour(); mirrorScene(cur, sc); renderTourSide(); return S.store.setScene(cur.id, sc.id, sc).catch(A.writeFailed); }
 // ---------- view-only links ----------
