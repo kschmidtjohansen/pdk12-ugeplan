@@ -1,3 +1,8 @@
+## 2026-11-12 – 3D-scanninger: ringe på stativets plads
+- Ringene sidder, hvor det andet billede er taget, i stedet for oven i hinanden tæt ved kameraet. Gamle sager rettes, når de åbnes.
+- Ringe til flere billeder bag samme dør bliver til én.
+- Et billede på en forkert etage (efter AI'en) flyttes til etagen for de billeder, det hænger sammen med.
+
 ## 2026-11-12 – Vagtpåmindelser: rettet typefejl
 - Angivet resultattypen på Supabase-forespørgslen for `send-duty-reminders`, så relationen til medarbejderprofilen behandles som én profil og ikke en liste.
 - Fjernet den inkompatible typekonvertering i løkken; adgangskontrol, modtagere og beskeder er uændrede. Ingen deploy eller udsendelse af påmindelser.
