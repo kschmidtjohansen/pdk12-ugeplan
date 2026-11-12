@@ -1,3 +1,8 @@
+## 2026-11-12 – 3D-scanninger: rundvisningens sidebar fjernet
+- Hele sidebaren (Markeringer, Mål og Slør) er fjernet fra rundvisningen sammen med dens menuknap i viserens topbjælke; viseren fylder nu hele bredden igen.
+- Markeringer åbnes stadig ved at trykke på dem i billedet, og mål/slør håndteres via viserens egne paneler og redigeringslinjen som før sidebaren.
+- Tilhørende CSS og oprydning ved forladelse af rundvisningen er fjernet. Ingen ændringer i data, login eller adgang; alle 7 scripts valideret, og siden indlæses uden fejl.
+
 ## 2026-11-12 – 3D-scanninger: tomme sidebar-sektioner skjult
 - Rundvisningens sidebar viser nu kun sektioner med indhold: Markeringer, Mål og Slør uden indhold vises ikke længere i visningstilstand.
 - I redigeringstilstand bliver sektionerne stående med +-knappen, så man stadig kan tilføje markeringer, mål og slør.

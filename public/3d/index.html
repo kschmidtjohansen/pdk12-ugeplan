@@ -310,9 +310,6 @@ button{cursor:pointer}
 #app.tour{height:100%;overflow:hidden}
 .tour-root{height:100%;display:flex}
 .tour-main{flex:1 1 auto;min-width:0;position:relative}
-.tour-side{flex:none;width:264px;background:var(--sb-bg);border-right:1px solid var(--sb-line);display:flex;flex-direction:column;gap:2px;padding:8px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-.tour-side .side-sub{flex:none;max-width:42%;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tour-burger{display:none}
 
 .btn{height:42px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;text-decoration:none}
 .btn:hover{border-color:var(--muted)}
@@ -530,9 +527,7 @@ video.grab{width:100%;max-height:46vh;background:#000;border-radius:10px}
   .row2{grid-template-columns:1fr}
   .pe-main{flex-direction:column}
   .pe-side{width:auto;border-left:0;border-top:1px solid #E3E6EB;max-height:44%}
-  .tour-side{position:fixed;left:0;top:0;bottom:0;z-index:60;width:min(300px,84vw);transform:translateX(-102%);transition:transform .2s ease-out;box-shadow:0 12px 32px rgba(15,23,42,.18)}
-  .tour-side.open{transform:none}
-  .tour-burger{display:grid}
+
 }
 
 .nadir-row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
@@ -3018,9 +3013,9 @@ const sceneUrl = async sc => sc._url || (sc._url = await S.store.blobUrl(sc.asse
 function leaveTour() {
   A.closeSheet(); if (S.live) liveStop();
   if (S.cur && S.cur.lockTimer) { clearInterval(S.cur.lockTimer); S.store.unlock(S.cur.id); }
-  if (S.player) { S.player.destroy(); S.player = null; } S.cur = null; S.tourSide = null; S.tourBurger = null;
+  if (S.player) { S.player.destroy(); S.player = null; } S.cur = null;
 }
-function saveScene(sc) { const cur = S.cur; if (!cur || cur.ro) return Promise.resolve(); touchTour(); mirrorScene(cur, sc); renderTourSide(); return S.store.setScene(cur.id, sc.id, sc).catch(A.writeFailed); }
+function saveScene(sc) { const cur = S.cur; if (!cur || cur.ro) return Promise.resolve(); touchTour(); mirrorScene(cur, sc); return S.store.setScene(cur.id, sc.id, sc).catch(A.writeFailed); }
 // ---------- view-only links ----------
 const linkTour = (t, id) => ({ tid: id, title: t.title || '', ref: t.ref || '', address: t.address || '', insurer: t.insurer || '', claim: t.claim || '', camHeight: t.camHeight || 1.5, square: t.square !== false, plan: t.plan || { mode: 'traced' }, order: t.order || [], count: t.count || 0, at: Date.now() });
 const linkScene = (sc, l) => ({ name: sc.name || '', asset: sc.asset, w: sc.w || 0, h: sc.h || 0, thumb: sc.thumb || '', yaw0: sc.yaw0 || 0, pitch0: sc.pitch0 || 0, hotspots: (sc.hotspots || []).filter(x => x.type === 'nav' || l.tags), measures: l.meas ? (sc.measures || []) : [], blurs: sc.blurs || [], outline: sc.outline || null, place: sc.place || null, level: sc.level == null ? null : sc.level, ai: sc.ai || null, kind: sc.kind || null, model: sc.model || null, measures3: l.meas ? (sc.measures3 || []) : [], at: sc.at || 0 });
@@ -3051,11 +3046,9 @@ function orderScenes(tour, scenes) {
 async function openTour(id, tok) {
   leaveTour(); app.textContent = ''; app.className = 'tour'; const ro = !!tok;
   const root = h('div', { class: 'tour-root' }); app.append(root);
-  const side = S.tourSide = h('aside', { class: 'tour-side', 'aria-label': 'Markeringer, mål og slør' });
   const main = h('div', { class: 'tour-main' });
-  root.append(side, main);
+  root.append(main);
   const player = S.player = new P.Player(main, { brand: brand(), saveFile: A.saveFile, assetUrl: a => S.store.blobUrl(a), onStrip: decorateStrip });
-  player.slotLeft.append(S.tourBurger = h('button', { class: 'p3-btn tour-burger', type: 'button', 'aria-label': 'Markeringer, mål og slør', title: 'Markeringer, mål og slør', onclick: () => side.classList.toggle('open') }, icon('list')));
   if (!ro) player.slotLeft.append(h('button', { class: 'p3-btn', type: 'button', 'aria-label': 'Tilbage til alle rundvisninger', title: 'Alle rundvisninger', onclick: () => { location.hash = ''; } }, icon('back')));
   player.loadEl.hidden = false;
   let tour = null, scenes = [];
@@ -3098,7 +3091,7 @@ async function openTour(id, tok) {
   root.addEventListener('drop', e => { if (!cur.edit) return; e.preventDefault(); if (e.dataTransfer && e.dataTransfer.files.length) importFiles(e.dataTransfer.files); });
   for (const sc of scenes) if (!sc.thumb && sc.asset) { try { sc._thumbUrl = await S.store.blobUrl(sc.asset); } catch (e) {} }
   if (S.player !== player) return;
-  player.setTour(tour, scenes, sceneUrl); renderTourSide();
+  player.setTour(tour, scenes, sceneUrl);
   if (!scenes.length) emptyTour(); else if (!ro) setTimeout(() => { healThumbs(cur); if (canUpload() && !tour.coverAsset && scenes[0]) setCover(cur, scenes[0], true); }, 1500);
   liveStart(); if (!ro) S.store.bumpView(id);
   if (S.editNext === id && canWrite()) { S.editNext = null; setEdit(true); }
@@ -3151,46 +3144,8 @@ async function setEdit(on) {
 }
 // Sidebar in the tour view: markings, measurements and blurs for the whole tour,
 // with add-buttons for editors. Rooms are switched from the scene strip, not floor points.
-function renderTourSide() {
-  const el = S.tourSide, cur = S.cur, player = S.player;
-  if (!el || !el.isConnected || !cur || !player) return;
-  el.textContent = '';
-  const sc = player.scene, canAdd = cur.edit && !cur.ro;
-  const head = (txt, fn, label) => h('div', { class: 'side-h' }, h('span', { text: txt }), canAdd && fn ? h('button', { class: 'side-add', type: 'button', title: label, 'aria-label': label, onclick: () => { el.classList.remove('open'); fn(); } }, icon('plus')) : null);
-  const item = (ic, label, sub, fn) => h('button', { class: 'nav', type: 'button', onclick: () => { el.classList.remove('open'); fn(); } }, icon(ic), h('span', { class: 'nl', text: label }), sub ? h('span', { class: 'side-sub', text: sub }) : null);
-  const empty = txt => h('div', { class: 'side-empty', text: txt });
-
-  // sections only appear when they have content; in edit mode they stay so you can add with +
-  const tags = []; for (const s2 of cur.scenes) for (const hs of s2.hotspots || []) if (hs.type === 'tag') tags.push([s2, hs]);
-  if (tags.length || canAdd) {
-    el.append(head('Markeringer', () => pickTool('tag'), 'Ny markering'));
-    if (!tags.length) el.append(empty('Ingen markeringer endnu. Tilføj en med +.'));
-    for (const [s2, hs] of tags) { const kd = KINDS[hs.kind] ? hs.kind : 'info';
-      el.append(item(KINDS[kd].icon, hs.title || KINDS[kd].label, s2.name, () => { player._jumpTag(s2, hs); if (cur.edit) tagSheet(s2, hs); })); }
-  }
-
-  const ms = sc ? (sc.measures || []) : [], names = { dist: 'Afstand', height: 'Højde', area: 'Areal' };
-  if (ms.length || canAdd) {
-    el.append(head('Mål', () => pickTool('dist'), 'Nyt mål'));
-    if (!ms.length) el.append(empty('Ingen mål i scenen. Tilføj et med +.'));
-    else { const hgt = P.camHeightOf(sc, cur.tour);
-      for (const m of ms) el.append(item(m.t, names[m.t] || 'Mål', P.measureText(m, hgt), () => { player.panelMode = 'measure'; player._renderPanel(); })); }
-  }
-
-  const bl = sc ? (sc.blurs || []) : [];
-  if (bl.length || canAdd) {
-    el.append(head('Slør', () => pickTool('blur'), 'Ny slør'));
-    if (!bl.length) el.append(empty('Ingen slørede områder. Tilføj et med +.'));
-    else bl.forEach((b, i) => el.append(item('blur', 'Sløret område ' + (i + 1), sc.name, () => { if (cur.edit) blurSheet(sc, b); else player.setView({ yaw: b.yaw, pitch: b.pitch }, true); })));
-  }
-  // nothing to show at all: hide the sidebar and its menu button
-  const hasContent = el.childNodes.length > 0;
-  el.hidden = !hasContent;
-  if (S.tourBurger) S.tourBurger.hidden = !hasContent;
-  if (!hasContent) el.classList.remove('open');
-}
 function renderEditBar() {
-  const cur = S.cur, player = S.player; if (!cur || !player) return; const bar = player.editBar; bar.textContent = ''; renderTourSide(); if (!cur.edit) return;
+  const cur = S.cur, player = S.player; if (!cur || !player) return; const bar = player.editBar; bar.textContent = ''; if (!cur.edit) return;
   const t = player.tool, meas = player.isMeasuring();
   const tool = (key, ic, label, on) => bar.append(h('button', { class: 'eb-btn' + (on ? ' on' : ''), type: 'button', 'aria-pressed': String(!!on), onclick: () => pickTool(on ? 'look' : key) }, icon(ic), label));
   const scan = !!(player.scene && player.scene.kind === 'model'); // a 3D scan has its own tools (3D, Plan, Mål) above the view
