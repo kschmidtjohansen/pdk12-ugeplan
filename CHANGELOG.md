@@ -1,3 +1,8 @@
+## 2026-11-12 – 3D-scanninger: gulvpunkter fjernet fra visning
+- Gulvpunkterne (ringe/trekant og trappe-/gå-til-knapper på billedet) vises ikke længere i visningstilstand; rum skiftes kun via scenelisten nederst.
+- Forbindelserne bevares i data og vises stadig i redigeringstilstand, så de kan rettes eller fjernes.
+- Ingen ændringer i login, adgang eller data; siden indlæses uden fejl (viderestiller korrekt til /login).
+
 ## 2026-11-12 – 3D-scanninger: ensartet typografi
 - Matchet PolyPlans Inter-feature-settings (`cv02`, `cv03`, `cv04`, `cv11`, `ss01`), komplette systemfallback og metric-matched Inter Fallback.
 - Fjernet særskilt bogstavafstand og tunge 800/700-overskrifter til fordel for PolyPlans semibold-hierarki; også i CSS til eksporterede visningsfiler.
