@@ -1,3 +1,9 @@
+## 2026-11-12 – 3D-scanninger: Rum og indfoldet rum for rum
+- Panelet "Rum og indhold" viser nu kun det rum, man står i, foldet ud; øvrige rum er lukkede og foldes ud med et klik (pil viser tilstand, aria-expanded for skærmlæsere).
+- Det aktuelle rum kan ikke lukkes og følger med, når man skifter scene; fold-tilstanden nulstilles, når panelet lukkes.
+- Samme ændring er spejlet i eksport-bundlen, så eksporterede visningsfiler opfører sig ens.
+- Ingen ændringer i data, login eller adgang; alle 7 scripts valideret, og siden indlæses uden fejl.
+
 ## 2026-11-12 – 3D-scanninger: markeringer, mål og slør i sidebar
 - Rundvisningen har nu en venstre sidebar i PolyPlan-stil med tre sektioner: Markeringer (hele sagen), Mål og Slør (aktuel scene).
 - Klik på en markering springer til stedet i billedet; klik på et mål åbner målepanelet; klik på en slør åbner dens redigering (eller viser stedet i læsetilstand).
