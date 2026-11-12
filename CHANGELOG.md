@@ -1,3 +1,8 @@
+## 2026-11-12 – 3D-scanninger: ensartet typografi
+- Matchet PolyPlans Inter-feature-settings (`cv02`, `cv03`, `cv04`, `cv11`, `ss01`), komplette systemfallback og metric-matched Inter Fallback.
+- Fjernet særskilt bogstavafstand og tunge 800/700-overskrifter til fordel for PolyPlans semibold-hierarki; også i CSS til eksporterede visningsfiler.
+- Ingen ændringer i login, adgang eller data.
+
 ## 2026-11-12 – 3D-scanninger: fælles PolyPlan-login
 - Den separate loginformular erstattes af viderestilling til eksisterende `/login`, så design, sprog, adgangskode, passkey og Husk mig er de samme.
 - Login returnerer til `/3d` med bevaret query/sagsanker via en allowlist-valideret destination; almindeligt login fortsætter til dashboard.
