@@ -3055,7 +3055,7 @@ async function openTour(id, tok) {
   const main = h('div', { class: 'tour-main' });
   root.append(side, main);
   const player = S.player = new P.Player(main, { brand: brand(), saveFile: A.saveFile, assetUrl: a => S.store.blobUrl(a), onStrip: decorateStrip });
-  player.slotLeft.append(h('button', { class: 'p3-btn tour-burger', type: 'button', 'aria-label': 'Markeringer, mål og slør', title: 'Markeringer, mål og slør', onclick: () => side.classList.toggle('open') }, icon('list')));
+  player.slotLeft.append(S.tourBurger = h('button', { class: 'p3-btn tour-burger', type: 'button', 'aria-label': 'Markeringer, mål og slør', title: 'Markeringer, mål og slør', onclick: () => side.classList.toggle('open') }, icon('list')));
   if (!ro) player.slotLeft.append(h('button', { class: 'p3-btn', type: 'button', 'aria-label': 'Tilbage til alle rundvisninger', title: 'Alle rundvisninger', onclick: () => { location.hash = ''; } }, icon('back')));
   player.loadEl.hidden = false;
   let tour = null, scenes = [];
@@ -3183,6 +3183,11 @@ function renderTourSide() {
     if (!bl.length) el.append(empty('Ingen slørede områder. Tilføj et med +.'));
     else bl.forEach((b, i) => el.append(item('blur', 'Sløret område ' + (i + 1), sc.name, () => { if (cur.edit) blurSheet(sc, b); else player.setView({ yaw: b.yaw, pitch: b.pitch }, true); })));
   }
+  // nothing to show at all: hide the sidebar and its menu button
+  const hasContent = el.childNodes.length > 0;
+  el.hidden = !hasContent;
+  if (S.tourBurger) S.tourBurger.hidden = !hasContent;
+  if (!hasContent) el.classList.remove('open');
 }
 function renderEditBar() {
   const cur = S.cur, player = S.player; if (!cur || !player) return; const bar = player.editBar; bar.textContent = ''; renderTourSide(); if (!cur.edit) return;
