@@ -1,3 +1,9 @@
+## 2026-11-12 – 3D-scanninger: forbindelser fjernet
+- Forbindelser mellem scener er helt væk fra viseren: ingen ringe/markører på billedet (hverken i visning eller redigering), og klik på gamle forbindelsesdata gør intet.
+- "Forbindelse"-værktøjet, dets redigeringspanel og placering af nye forbindelser er fjernet fra redigeringslinjen; knappen "Lav ringe ud fra plantegningen" er også fjernet.
+- Rum skiftes udelukkende via scenelisten nederst (og Rum og indhold-panelet). Eksport-bundlen er opdateret, så eksporterede visningsfiler heller ikke viser forbindelser.
+- Interne data (AI-placering til plantegningen) beholdes usynligt, så plantegninger stadig kan lægges automatisk. Ingen ændringer i login eller adgang; alle 7 scripts valideret, og siden indlæses uden fejl.
+
 ## 2026-11-12 – 3D-scanninger: Rum og indfoldet rum for rum
 - Panelet "Rum og indhold" viser nu kun det rum, man står i, foldet ud; øvrige rum er lukkede og foldes ud med et klik (pil viser tilstand, aria-expanded for skærmlæsere).
 - Det aktuelle rum kan ikke lukkes og følger med, når man skifter scene; fold-tilstanden nulstilles, når panelet lukkes.
