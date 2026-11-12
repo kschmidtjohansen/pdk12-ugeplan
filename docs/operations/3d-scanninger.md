@@ -98,3 +98,23 @@ Menupunktet forsvinder af sig selv. Fjern `public/3d/` for at fjerne siden helt.
 - **Ringe:** "Lav ringe ud fra plantegningen" laver ringe med `by: 'plan'` og erstatter AI-ringe mellem placerede billeder. Ringe, man selv har sat, bliver stående. Mangler et billede retning, findes den ud fra de gamle ringe, når det er muligt.
 - **Nøjagtighed:** testet på en syntetisk scanning af et hus på 6,86 × 6,65 m med rum ned til ca. 5 % fra de rigtige m². Stuer og køkkener med åben forbindelse bliver ét rum.
 
+
+## Præcise hjørner fra 360-billeder
+
+Dette findes i "Ret hjørner".
+
+- **Lup:** når man trækker et hjørne, viser en lup billedet forstørret 5×, så hjørnet kan sættes på den præcise pixel.
+- **Ovenfra-billede:** panelet viser gulvet (eller loftet) set ovenfra i målestok, med rummets omrids. Lige vægge ser lige ud, så skæve hjørner er nemme at se.
+- **Gulv/Loft:** er gulvet dækket af møbler, kan hjørnerne i stedet sættes, hvor væggene møder loftet. Det kræver rumhøjden (`scene.roomHeight`, ellers `tour.roomHeight`, ellers 2,50 m).
+- **Find kanterne:** `P360.snapOutline` finder vægge ved gulv og loft. Hver væg tilpasses som en ret linje gennem mange kantpunkter, og hjørnerne bliver, hvor nabovæggene krydser hinanden.
+  - Vægge, der ses både ved gulv og loft, giver også rumhøjden.
+  - Vægge uden tydelig kant bliver stående, og man får besked om, hvilke vægge der skal rettes i hånden.
+  - Under "Ret hjørnerne nu?" efter AI-plantegningen køres det automatisk én gang pr. rum (±15 cm omkring AI's gæt).
+- **Kendt mål:** man vælger en væg og skriver dens rigtige længde i cm. Kamerahøjden (`tour.camHeight`) rettes, så alle rum i sagen får samme skala.
+  - Det gemmes som `tour.calib = { len, scene, at }`.
+  - Ændrer man kamerahøjden i hånden, fjernes kalibreringen.
+- **Nøjagtighed:** panelet viser ± pr. rum: billedets pixelstørrelse på gulvet ved det fjerneste hjørne plus skalausikkerhed. Den er 3 % uden kendt mål og 0,4 % med.
+  - Et billede på 5760 px med kendt mål giver ca. ±1–2 cm på vægge op til 3 m.
+  - Et billede på 2576 px giver det dobbelte.
+- **Begrænsning:** på testbillederne ("Test") fandt "Find kanterne" kun en del af væggene automatisk, fordi gulvkanterne var skjult af møbler, og cremefarvede vægge mødte et cremefarvet loft. Resten skal sættes med luppen.
+  - Der er endnu ingen sammenlægning af flere billeder fra samme rum.

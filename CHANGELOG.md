@@ -1,3 +1,14 @@
+## 2026-11-12 – 3D-scanninger: præcise mål fra 360-billeder
+- "Ret hjørner" har nu disse værktøjer:
+  - lup ved træk og et ovenfra-billede i målestok;
+  - hjørner kan sættes ved gulv eller loft;
+  - "Find kanterne", der finder væggene i billedet;
+  - "Kendt mål", der kalibrerer hele sagen ud fra én væg;
+  - nøjagtighed ± vist pr. rum.
+- Rumhøjde pr. rum (målt eller indtastet) bruges til m³.
+- AI-gennemgangen finjusterer automatisk hjørnerne én gang pr. rum.
+- QA: plan-, LiDAR-, arkiv- og PolyPlan-browsertests består.
+
 ## 2026-11-11 – 3D-scanninger (Polygon 360-rundvisninger)
 - Ny selvstændig side `public/3d/index.html` med 360-rundvisninger fra GoPro, afdelinger, status, deling med forsikringsselskaber (visningslink uden login) og import fra den gamle side. Bruger samme login/session ("Husk mig") og samme supabase-js-version som PolyPlan; ingen kontooprettelse på siden.
 - Adgang følger `user_roles`, som kun bliver læst: super_admin/administrator → administrator, skadeleder/fugttekniker → redaktør, servicemedarbejder → læser, vikar → ingen. Inaktive, fratrådte, udløbne og demo-profiler har aldrig adgang. Oversættelsen kan ændres på 3D-siden.
