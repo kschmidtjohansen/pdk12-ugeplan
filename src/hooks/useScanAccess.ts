@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
-/** Path of the standalone 3D-scanninger page (public/3d/index.html). */
+/** Path of the 3D-scanninger app (public/3d/index.html); inside PolyPlan it runs in a frame on SCANS_ROUTE. */
 export const SCANS_URL = '/3d/index.html';
+/** PolyPlan's own page for 3D-scanninger (menu, top bar and login stay PolyPlan's). */
+export const SCANS_ROUTE = '/3d-scanninger';
 
 const HAS_ACCESS = new Set(['viewer', 'editor', 'admin']);
 
@@ -16,9 +18,14 @@ export const scanRoleHasAccess = (role: unknown): boolean =>
  * a missing function, an error or no role all mean "no link". Never writes anything.
  */
 export function useScanAccess(): boolean {
+  return useScanAccessState() === 'granted';
+}
+
+/** Same check with a loading state, for the 3D-scanninger page itself. */
+export function useScanAccessState(): 'loading' | 'granted' | 'denied' {
   const { user } = useAuth();
   const userId = user?.id ?? null;
-  const { data } = useQuery({
+  const { data, isPending } = useQuery({
     queryKey: ['scan-access', userId],
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
@@ -30,5 +37,6 @@ export function useScanAccess(): boolean {
       return error ? false : scanRoleHasAccess(role);
     },
   });
-  return data === true;
+  if (userId && isPending) return 'loading';
+  return data === true ? 'granted' : 'denied';
 }

@@ -1,3 +1,14 @@
+## 2026-11-12 – Sikkerhed
+- Skærmvisning: hver skærm kan få sit eget hemmelige link (Admin → Skærme), som kan lukkes igen. Gamle skærmadresser virker, indtil `supabase/staged/sql/004_screen_display_lockdown.sql` køres.
+- Uddannelser kan kun ses af ejeren, kolleger i samme afdeling og admin/skadeledere (`003_security_hardening.sql`).
+- Links til forsikringer udløber efter 90 dage; den, der åbner et udløbet link, får besked (kræver den nye p360-link-funktion).
+- PolyPlan og 3D kan ikke længere vises i en ramme på andre sider end polyplan.dk (beskyttelse mod clickjacking).
+
+## 2026-11-12 – 3D-scanninger som en del af PolyPlan
+- 3D-scanninger åbner nu inde i PolyPlan på /3d-scanninger med PolyPlans menu, topbar, login og lys/mørk tilstand. 3D har ikke længere sit eget logo, login, "Log ud" eller "Tilbage til PolyPlan".
+- Adressen følger den rundvisning, der er åben, så den kan bogmærkes og deles med kolleger. Gamle /3d-links flytter med; links til forsikringer virker stadig uden login.
+- 3D bruger PolyPlans farver, hjørner og skygger.
+
 ## 2026-11-12 – 3D-scanninger: rundvisningens sidebar fjernet
 - Hele sidebaren (Markeringer, Mål og Slør) er fjernet fra rundvisningen sammen med dens menuknap i viserens topbjælke; viseren fylder nu hele bredden igen.
 - Markeringer åbnes stadig ved at trykke på dem i billedet, og mål/slør håndteres via viserens egne paneler og redigeringslinjen som før sidebaren.

@@ -8,7 +8,7 @@ import { ScreenDisplayCarList } from '@/components/ScreenDisplay/ScreenDisplayCa
 import { ScreenDisplayErrorBoundary } from '@/components/ScreenDisplay/ScreenDisplayErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { screenRpc } from '@/lib/screenDisplayRpc';
 import { subscribeToTables } from '@/lib/realtimeChannels';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import { useScreenDisplayAbsences } from '@/hooks/useScreenDisplayAbsences';
@@ -71,7 +71,7 @@ const ScreenDisplayPage: React.FC = () => {
     if (!rotateEnabled || !departmentId) return;
     let cancelled = false;
     (async () => {
-      const { data } = await supabase.rpc('list_screen_display_sub_departments', {
+      const { data } = await screenRpc('list_screen_display_sub_departments', {
         p_department_id: departmentId,
       });
       if (cancelled) return;

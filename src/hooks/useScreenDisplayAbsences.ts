@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { screenRpc } from '@/lib/screenDisplayRpc';
 
 export interface AbsentEmployee {
   id: string;
@@ -35,7 +35,7 @@ export const useScreenDisplayAbsences = (
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('list_screen_display_absences', {
+      const { data, error } = await screenRpc('list_screen_display_absences', {
         p_department_id: departmentId,
         p_date: date,
       });

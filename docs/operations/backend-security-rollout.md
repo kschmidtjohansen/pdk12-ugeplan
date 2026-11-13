@@ -81,3 +81,15 @@ Kode (i repo, ikke deployet):
 | Dato (UTC) | Handling | Hvem |
 |---|---|---|
 | 2026-10-27 | Audit + staged kode/SQL/tests oprettet. Intet deployet. | Lovable-agent |
+
+
+## Sikkerhedsrettelser 12-11-2026 (rækkefølge for udrulning)
+
+Alle trin kan rulles tilbage, og ingen data slettes.
+
+1. **Merge PR'en** (frontend og 3D). Sikkert alene: skærme uden kode bruger de gamle funktioner, og fanen Admin → Skærme skriver "ikke slået til endnu", indtil trin 2 er kørt. Nye forsikringslinks får en udløbsdato, som den gamle funktion bare ignorerer.
+2. **Kør `supabase/staged/sql/003_security_hardening.sql`** (rollback: `003_security_hardening_rollback.sql`). Snævrer læseadgang til uddannelser ind, opretter skærmlinks og lukker `verify_complete_fix`. Afprøvet på en lokal Postgres 16 med samme politikker: admin og skadeleder ser alt som før, en servicemedarbejder ser sin afdeling, en vikar sin egen afdeling.
+3. **Udrul `supabase/staged/functions/p360-link`** (`verify_jwt = false`, som nu). Afviser udløbne links med 410 `expired`; links uden udløbsdato virker som før.
+4. **Lav et skærmlink til hver skærm** under Admin → Skærme og skift skærmenes adresse.
+5. **Kør `supabase/staged/sql/004_screen_display_lockdown.sql`**, når alle skærme bruger skærmlinks. Derefter kan de gamle adresser kun læses af indloggede.
+6. **Valgfrit, anbefalet:** Cloudflare foran polyplan.dk med rigtige headers (HSTS, `Content-Security-Policy: frame-ancestors 'self'`, `X-Content-Type-Options`, `Referrer-Policy`). Lovables hosting kan ikke sende egne headers; indtil da skjuler en lille script-vagt siden, hvis en fremmed side viser den i en ramme.

@@ -243,3 +243,11 @@ Dette findes i "Ret hjørner".
 - **Hurtigere visning:**
   - Når man går til et nyt billede, vises det lille forhåndsbillede med det samme, og det skarpe billede skifter ind, når det er hentet (samme visning, ingen hop).
   - Billederne, man kan gå til fra det billede, man står i, hentes i baggrunden (højst 5 ad gangen, de 8 seneste gemmes). De åbner derfor skarpt med det samme.
+
+## En del af PolyPlan (12-11-2026)
+
+- **Hvor:** menupunktet "3D-scanninger" åbner `/3d-scanninger` (`src/pages/ScansPage.tsx`) inde i PolyPlans layout. Selve 3D-appen (`public/3d/index.html`) kører i en ramme fra samme side med `?embed=1`.
+- **Login og roller:** kun PolyPlan. Er man logget ud, sendes hele siden til PolyPlans login og tilbage bagefter (`returnTo=/3d-scanninger`). Uden 3D-rolle vises en kort besked uden links.
+- **Adresse:** rammen sender den åbne rundvisning (`#t-…`) til PolyPlan, som skriver den i adressen. Rammen tager kun imod beskeder fra samme side og samme vindue.
+- **Gamle adresser:** `/3d` og `/3d/index.html` flytter til `/3d-scanninger`. Undtaget er links til forsikringer (`#l-…`) og links fra e-mails om adgangskode; de bliver på den offentlige side.
+- **Udseende:** 3D følger PolyPlans lys/mørk-valg og bruger PolyPlans tokens (farver, radius 10 px, skygger).

@@ -21,6 +21,9 @@ Deno.serve(async (req) => {
     const { data: link, error } = await sb.from("p360_links").select("doc").eq("token", token).maybeSingle();
     if (error) throw error;
     if (!link) return json({ error: "not_found" }, 404);
+    // links made after 12-11-2026 carry an expiry (90 days); older links have none and keep working
+    const exp = Number((link.doc as Record<string, unknown>)?.expiresAt);
+    if (Number.isFinite(exp) && exp > 0 && exp < Date.now()) return json({ error: "expired" }, 410);
     const { data: rows, error: e2 } = await sb.from("p360_link_scenes").select("id, doc").eq("token", token);
     if (e2) throw e2;
     const scenes = (rows ?? []).map((r: { id: string; doc: Record<string, unknown> }) => ({ ...r.doc, id: r.id }));
