@@ -30,5 +30,10 @@ export function screenRpc<T = unknown>(name: ScreenRpc, args: Record<string, unk
 
 /** The address a screen should open. */
 export function screenUrl(origin: string, departmentId: string, token: string): string {
-  return `${origin}/screen-display?departmentId=${encodeURIComponent(departmentId)}&screen=${encodeURIComponent(token)}`;
+  const host = new URL(origin).hostname;
+  // Lovable editor/preview addresses require a Lovable session, which signage players cannot share.
+  const publicOrigin = /(^|\.)(lovableproject\.com|lovable\.app)$/.test(host) && host !== 'polyplan.lovable.app'
+    ? 'https://polyplan.lovable.app'
+    : origin;
+  return `${publicOrigin}/screen-display?departmentId=${encodeURIComponent(departmentId)}&screen=${encodeURIComponent(token)}`;
 }

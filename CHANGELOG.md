@@ -1,3 +1,8 @@
+## 2026-11-13 – EasySignage skærmpreview
+- Editor-adressen fra fejlskærmbilledet returnerer HTTP 401 uden Lovable-login. Skærmlinks dannet fra editor/preview bruger nu den offentlige polyplan.lovable.app-adresse med afdeling og skærmkode bevaret.
+- Clickjacking-beskyttelsen på polyplan.dk undtager kun den præcise /screen-display-adresse med syntaktisk gyldig skærmkode. Koden valideres stadig af eksisterende token-RPC'er; ingen ændringer i RLS, login, andre sider eller deploy.
+- Regressionstests dækker linkadresser og den eksekverede frame-guards tilladte/afviste grænser. Brugerens EasySignage og reelle afdelingsdata kræver særskilt kontrol efter publicering.
+
 ## 2026-11-13 – 3D-adresse ved login og genindlæsning
 - Begrænset normalisering fra `/3d/index.html` til `/3d` til standalone-visning. Den indlejrede visning beholder sin statiske adresse, så genindlæsning ikke rammer Reacts legacy-redirect og åbner PolyPlan inde i 3D-rammen.
 - Regressionstest dækker indlejret adresse og standalone-normalisering med query/hash bevaret. Browserreproduktion anvender isolerede sessions-/API-fixtures, ikke brugerens rigtige login.
