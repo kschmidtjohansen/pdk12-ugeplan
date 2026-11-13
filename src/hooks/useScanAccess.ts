@@ -23,8 +23,8 @@ export function useScanAccess(): boolean {
 
 /** Same check with a loading state, for the 3D-scanninger page itself. */
 export function useScanAccessState(): 'loading' | 'granted' | 'denied' {
-  const { user } = useAuth();
-  const userId = user?.id ?? null;
+  const { user, session, authReady } = useAuth();
+  const userId = user?.id ?? session?.user?.id ?? null;
   const { data, isPending } = useQuery({
     queryKey: ['scan-access', userId],
     enabled: !!userId,
@@ -37,6 +37,6 @@ export function useScanAccessState(): 'loading' | 'granted' | 'denied' {
       return error ? false : scanRoleHasAccess(role);
     },
   });
-  if (userId && isPending) return 'loading';
+  if (!authReady || (session && !user) || (userId && isPending)) return 'loading';
   return data === true ? 'granted' : 'denied';
 }

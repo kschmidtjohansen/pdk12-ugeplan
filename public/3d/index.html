@@ -2651,7 +2651,7 @@ A.supabaseStore = function (cfg) {
   const hybrid = { getItem: k => { const r = localStorage.getItem('auth_remember_me'); return (r === null || r === '1') ? localStorage.getItem(k) : (sessionStorage.getItem(k) ?? localStorage.getItem(k)); },
     setItem: (k, v) => { const r = localStorage.getItem('auth_remember_me'); if (r === null || r === '1') { localStorage.setItem(k, v); sessionStorage.removeItem(k); } else { sessionStorage.setItem(k, v); localStorage.removeItem(k); } },
     removeItem: k => { localStorage.removeItem(k); sessionStorage.removeItem(k); } };
-  const sb = window.supabase.createClient(cfg.url, cfg.key, { auth: Object.assign({ persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }, cfg.sharedStorage ? { storage: hybrid } : {}) });
+  const sb = window.supabase.createClient(cfg.url, cfg.key, { auth: Object.assign({ persistSession: true, autoRefreshToken: !A.EMBED, detectSessionInUrl: !A.EMBED }, cfg.sharedStorage ? { storage: hybrid } : {}) });
   const St = { mode: 'supabase', sb, caps: {}, canWrite: false, canAdmin: false, canUpload: false, uid: null, role: null, email: '', holder: 'h' + uid(), signedOut: false };
   const subs = new Set(), dsubs = new Set();
   const refresh = () => { subs.forEach(f => f()); }, drefresh = () => { dsubs.forEach(f => f()); };
