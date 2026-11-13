@@ -1,3 +1,6 @@
+## 2026-11-13 – 3D: markering og sløring i værktøjsbaren
+- Knapperne "Sæt markering" og "Slør område" i 3D-fremviserens lodrette bar; kræver ikke Redigér. Kun 3D-redaktører (Fugttekniker og op efter rollekortet).
+
 ## 2026-11-13 – Bil 25 i Hillerøds Alle
 - Live læsekontrol: Hillerøds bil 25 er ledig, synlig i planlægningen og uden underafdelingstilknytning. Værkstedsbesøget er 17.–18. november og er ikke ændret.
 - Bilnummeret BIL25 blev sorteret efter de numeriske bilnumre; med 28 biler i Hillerød og 25 biler pr. side blev den skjult på side 2. Fælles sortering normaliserer nu BIL-præfikset uden at ændre bilnummeret, og biloversigten anvender samme sortering som bilvalget.
