@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Assignment } from '@/types/assignment';
-import { supabase } from '@/integrations/supabase/client';
+import { screenRpc } from '@/lib/screenDisplayRpc';
 import { convertOptimizedAssignmentToAssignment, OptimizedAssignmentData } from '@/utils/assignmentDataConverter';
 
 interface UseScreenDisplayDataResult {
@@ -40,7 +40,7 @@ export const useScreenDisplayData = (
         return;
       }
 
-      const { data, error: rpcError } = await supabase.rpc(
+      const { data, error: rpcError } = await screenRpc(
         'list_screen_display_assignments',
         {
           p_department_id: departmentId,

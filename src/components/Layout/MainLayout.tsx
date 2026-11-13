@@ -67,9 +67,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   useEffect(() => {
     if (authReady && !isAuthenticated) {
       if (import.meta.env.DEV) console.log('[MainLayout] SESSION EXPIRATION FIX - User not authenticated, redirecting to login');
-      navigate('/login', { replace: true });
+      // 3D-scanninger (and the tour open there) is the one page that asks to come back after login
+      const back = location.pathname === '/3d-scanninger' ? '?returnTo=' + encodeURIComponent(location.pathname + location.hash) : '';
+      navigate('/login' + back, { replace: true });
     }
-  }, [authReady, isAuthenticated, navigate]);
+  }, [authReady, isAuthenticated, navigate, location.pathname, location.hash]);
 
 
   // Don't show layout for login page or password reset page

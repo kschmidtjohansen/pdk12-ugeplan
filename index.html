@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Clickjacking guard: on polyplan.dk the app may only be shown in a frame from polyplan.dk itself.
+         (The host cannot send frame-ancestors / X-Frame-Options headers, and browsers ignore them in <meta>.) -->
+    <script>(function(){try{if(!/(^|\.)polyplan\.dk$/.test(location.hostname)||window.top===window.self)return;var same=false;try{same=window.top.location.origin===location.origin}catch(e){}if(!same){document.documentElement.style.display='none';window.top.location.href=location.href}}catch(e){}})();</script>
     
     <!-- Performance hints -->
     <meta http-equiv="x-dns-prefetch-control" content="on" />

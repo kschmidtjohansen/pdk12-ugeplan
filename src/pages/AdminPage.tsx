@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RealtimeDiagnostics from '@/components/Admin/RealtimeDiagnostics';
-import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock, Megaphone, KeyRound, Gauge } from 'lucide-react';
+import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock, Megaphone, KeyRound, Gauge, Monitor } from 'lucide-react';
+import ScreenDisplayLinks from '@/components/Admin/ScreenDisplayLinks';
 import BroadcastNotification from '@/components/Admin/BroadcastNotification';
 import BroadcastDeliveryStatus from '@/components/Admin/BroadcastDeliveryStatus';
 
@@ -112,6 +113,12 @@ const AdminPage: React.FC = () => {
               </TabsTrigger>
             )}
             {(isSuperAdmin || isAdmin) && (
+              <TabsTrigger value="screens" className="gap-2">
+                <Monitor className="h-4 w-4" />
+                {currentLanguage === 'en' ? 'Screens' : 'Skærme'}
+              </TabsTrigger>
+            )}
+            {(isSuperAdmin || isAdmin) && (
               <TabsTrigger value="operations" className="gap-2">
                 <Gauge className="h-4 w-4" />
                 {currentLanguage === 'en' ? 'Operations' : 'Driftscenter'}
@@ -168,6 +175,12 @@ const AdminPage: React.FC = () => {
               <BroadcastDeliveryStatus />
             </TabsContent>
 
+          )}
+
+          {(isSuperAdmin || isAdmin) && (
+            <TabsContent value="screens" className="animate-fade-in">
+              <ScreenDisplayLinks />
+            </TabsContent>
           )}
 
           {(isSuperAdmin || isAdmin) && (

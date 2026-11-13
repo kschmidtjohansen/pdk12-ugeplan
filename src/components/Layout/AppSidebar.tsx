@@ -22,7 +22,7 @@ import { useUnreadMessagesContext } from '@/context/UnreadMessagesContext';
 import { cn } from '@/lib/utils';
 import { PRODUCT_NAME } from '@/config/product';
 import DepartmentSwitcherPill from './NavComponents/DepartmentSwitcherPill';
-import { useScanAccess, SCANS_URL } from '@/hooks/useScanAccess';
+import { useScanAccess, SCANS_ROUTE } from '@/hooks/useScanAccess';
 
 interface NavItem {
   path: string;
@@ -147,21 +147,7 @@ const AppSidebar: React.FC = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map(renderItem)}
-              {canSeeScans && (
-                // Standalone static page (public/3d), so a plain link instead of a router NavLink.
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip="3D-scanninger"
-                    className="h-11 text-sm font-medium cursor-pointer rounded-md transition-[background-color,color,opacity] duration-150 ease-out text-sidebar-foreground hover:bg-sidebar-accent"
-                  >
-                    <a href={SCANS_URL} onClick={closeMobile}>
-                      <Rotate3d className="h-[18px] w-[18px] shrink-0" />
-                      <span className="truncate">3D-scanninger</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
+              {canSeeScans && renderItem({ path: SCANS_ROUTE, label: '3D-scanninger', icon: Rotate3d })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

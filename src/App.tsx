@@ -5,8 +5,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// /3d is served by the static page at public/3d/; this only bounces SPA fallback hits there.
-const ScansRedirect = () => { if (typeof window !== "undefined") window.location.replace("/3d/index.html" + window.location.search + window.location.hash); return null; };
+// /3d (old address): links shared with insurers (#l-...) and e-mail recovery links stay on the public page in
+// public/3d/; everything else opens 3D-scanninger inside PolyPlan.
+const ScansRedirect = () => {
+  if (typeof window !== "undefined") {
+    const h = window.location.hash;
+    window.location.replace(/^#l-|type=recovery|access_token=|error_description=/.test(h) ? "/3d/index.html" + window.location.search + h : "/3d-scanninger" + h);
+  }
+  return null;
+};
 import { ThemeProvider } from "./components/theme-provider";
 import { SecurityProvider } from "./context/SecurityContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -44,6 +51,7 @@ const DutyPage = lazyWithRetry(() => import("./pages/DutyPage"));
 const WarehousePage = lazyWithRetry(() => import("./pages/WarehousePage"));
 const ChangeLogPage = lazyWithRetry(() => import("./pages/ChangeLogPage"));
 const AdminPage = lazyWithRetry(() => import("./pages/AdminPage"));
+const ScansPage = lazyWithRetry(() => import("./pages/ScansPage"));
 const PasswordResetPage = lazyWithRetry(() => import("./pages/PasswordResetPage"));
 const ScreenDisplayPage = lazyWithRetry(() => import("./pages/ScreenDisplayPage"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
@@ -162,6 +170,7 @@ const AppContent = () => {
           <Route path="/warehouse" element={<MainLayout><WarehousePage /></MainLayout>} />
           <Route path="/changelog" element={<MainLayout><ChangeLogPage /></MainLayout>} />
           <Route path="/admin" element={<MainLayout><AdminPage /></MainLayout>} />
+          <Route path="/3d-scanninger" element={<MainLayout><ScansPage /></MainLayout>} />
           
           {/* Special routes */}
           <Route path="/screen-display" element={<ScreenDisplayPage />} />
