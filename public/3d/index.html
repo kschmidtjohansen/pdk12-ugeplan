@@ -3105,6 +3105,11 @@ async function openTour(id, tok) {
   if (canWrite() && !ro) {
     cur.editBtn = h('button', { class: 'p3-btn txt', type: 'button', onclick: () => setEdit(!cur.edit) }, icon('edit'), h('span', { text: 'Redigér' }));
     player.slotRight.append(cur.editBtn);
+    // Fugttekniker and up (3D editor role): place markings and blurs straight from the tool bar, no edit mode needed
+    const tb = player.addTool('tagAdd', 'tag', 'Sæt markering', () => pickTool(player.tool === 'tag' ? 'look' : 'tag'));
+    const bb = player.addTool('blurAdd', 'blur', 'Slør område', () => pickTool(player.tool === 'blur' ? 'look' : 'blur'));
+    player.tools.insertBefore(tb, player.btn.tags); player.tools.insertBefore(bb, player.btn.tags);
+    player.on('tool', t => { tb.classList.toggle('on', t === 'tag'); bb.classList.toggle('on', t === 'blur'); });
   }
   player.on('place', onPlace);
   player.on('edit', ev => { const sc = player.scene; if (ev.kind === 'blur') blurSheet(sc, ev.item); else tagSheet(sc, ev.item); });
