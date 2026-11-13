@@ -11,7 +11,6 @@ import EmployeeTrainingDialog from '@/components/Employees/EmployeeTrainingDialo
 import EmployeeFormDialog from '@/components/Employees/EmployeeFormDialog';
 import EmployeeDeleteDialog from '@/components/Employees/EmployeeDeleteDialog';
 import ListPageShell from '@/components/shared/ListPageShell';
-import WorkspaceSection from '@/components/shared/WorkspaceSection';
 import { FilterSegment } from '@/components/shared/SegmentedFilterBar';
 import { Dialog } from '@/components/ui/dialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
@@ -22,7 +21,8 @@ import { useSickToday } from '@/hooks/useSickDays';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Employee } from '@/types/employee';
-import ModuleListTools, { ModuleContext } from '@/components/shared/ModuleListTools';
+import ModuleListTools from '@/components/shared/ModuleListTools';
+import { formatListCount } from '@/components/shared/listCount';
 import { filterEmployees, vacationEmployeeIds } from '@/utils/moduleListFilters';
 import { format } from 'date-fns';
 
@@ -157,6 +157,10 @@ const EmployeesPage: React.FC = () => {
       <ListPageShell workspace className="border-t-0 bg-transparent pt-3"
         title={t('navigation.employees')}
         description={t('employees.description')}
+        eyebrow={selectedDepartment?.name}
+        meta={loading ? undefined : (
+          <span data-testid="employees-result-count">{formatListCount(filteredEmployees.length, employees.length, segment !== 'all' || !!search.trim(), currentLanguage === 'da')}</span>
+        )}
         actions={
           isAdmin && (
             <>
@@ -176,26 +180,12 @@ const EmployeesPage: React.FC = () => {
           )
         }
         filterBar={
-          <>
-            <ModuleContext department={selectedDepartment?.name} role={isAdmin ? t('employees.administrator') : undefined} />
-            <ModuleListTools segments={segments} active={segment} onSelect={k => setSegment(k as EmployeeSegment)}
-              search={search} onSearch={setSearch} placeholder={t('common.searchPlaceholder')}
+          <ModuleListTools segments={segments} active={segment} onSelect={k => setSegment(k as EmployeeSegment)}
+              search={search} onSearch={setSearch} placeholder={t('employees.searchPlaceholder')}
               count={filteredEmployees.length} total={employees.length} onReset={resetFilters} />
-          </>
         }
       >
-        <WorkspaceSection
-          title={currentLanguage === 'da' ? 'Medarbejderliste' : 'Employee list'}
-          description={segments.find((sg) => sg.key === segment)?.label}
-          meta={
-            <span data-testid="employees-result-count">
-              {segment !== 'all' || search.trim()
-                ? (currentLanguage === 'da' ? `${filteredEmployees.length} af ${employees.length}` : `${filteredEmployees.length} of ${employees.length}`)
-                : (currentLanguage === 'da' ? `${employees.length} i alt` : `${employees.length} total`)}
-            </span>
-          }
-          flush
-        >
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
         <EmployeesTable
           employees={filteredEmployees}
           isFiltered={segment !== 'all' || !!search.trim()}
@@ -213,7 +203,7 @@ const EmployeesPage: React.FC = () => {
           loading={loading}
           onRetry={fetchEmployees}
         />
-        </WorkspaceSection>
+        </div>
       </ListPageShell>
 
       <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>

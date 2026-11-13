@@ -72,7 +72,7 @@ describe('Handlingsbart ugeoverblik', () => {
     const view = render(<AssignmentActionButtons {...base} operationState="updating" />);
     fireEvent.click(screen.getByRole('button', { name: 'Opdaterer' })); expect(edit).not.toHaveBeenCalled();
     view.rerender(<AssignmentActionButtons {...base} operationState={null} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Rediger Opgave' })); expect(edit).toHaveBeenCalledWith(task);
+    fireEvent.click(screen.getByRole('button', { name: 'Rediger opgave' })); expect(edit).toHaveBeenCalledWith(task);
   });
   it('header bevarer navigation og read-only uden opret; fixture er ikke live data', () => {
     const current = vi.fn();

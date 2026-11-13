@@ -1,5 +1,5 @@
 export const changeLog = {
-  title: 'Planner Ændringer',
+  title: 'Ændringer i ugeplanen',
   removed: 'Har fjernet',
   added: 'Har tilføjet',
   deleted: 'Har slettet sag',
@@ -34,7 +34,7 @@ export const changeLog = {
   user: 'Bruger',
   action: 'Handling',
   caseNumber: 'Sagsnummer',
-  recentChanges: 'Seneste Ændringer',
+  recentChanges: 'Seneste ændringer',
   noRecentChanges: 'Ingen seneste ændringer',
   vacationRequested: 'Anmodede om fri',
   vacationApproved: 'Godkendte fri',

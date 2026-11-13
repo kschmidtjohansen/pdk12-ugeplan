@@ -12,7 +12,12 @@ const prefersReducedMotion = () =>
   typeof window.matchMedia === "function" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-/** Magic UI-inspired rolling number. Animates from the previous value to the new one. */
+/**
+ * Magic UI-inspired rolling number. Animates from the previous value to the new one.
+ * The animation runs on requestAnimationFrame, which browsers pause in hidden tabs; the number must never
+ * be left half-way (it once showed 2 instead of 4 on the dashboard), so the final value is set when the tab
+ * is hidden and again by a timer right after the animation should have ended.
+ */
 const NumberTicker: React.FC<NumberTickerProps> = ({ value, duration = 600, className, ...props }) => {
   const [display, setDisplay] = React.useState(value)
   const fromRef = React.useRef(value)
@@ -20,7 +25,8 @@ const NumberTicker: React.FC<NumberTickerProps> = ({ value, duration = 600, clas
   React.useEffect(() => {
     const from = fromRef.current
     fromRef.current = value
-    if (from === value || prefersReducedMotion() || typeof requestAnimationFrame !== "function") {
+    const hidden = typeof document !== "undefined" && document.visibilityState === "hidden"
+    if (from === value || hidden || prefersReducedMotion() || typeof requestAnimationFrame !== "function") {
       setDisplay(value)
       return
     }
@@ -33,7 +39,8 @@ const NumberTicker: React.FC<NumberTickerProps> = ({ value, duration = 600, clas
       if (p < 1) frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
+    const settle = setTimeout(() => { cancelAnimationFrame(frame); setDisplay(value) }, duration + 150)
+    return () => { cancelAnimationFrame(frame); clearTimeout(settle) }
   }, [value, duration])
 
   return (

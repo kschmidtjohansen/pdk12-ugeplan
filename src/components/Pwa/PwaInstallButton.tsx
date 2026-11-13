@@ -110,7 +110,7 @@ export const PwaInstallButton = () => {
       <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogContent className="max-w-sm max-sm:bottom-0 max-sm:left-0 max-sm:top-auto max-sm:max-w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-t-2xl">
           <DialogHeader>
-            <DialogTitle>{isDa ? 'Installer Ugeplanen' : 'Install the planner'}</DialogTitle>
+            <DialogTitle>{isDa ? 'Installer ugeplanen' : 'Install the planner'}</DialogTitle>
             <DialogDescription>
               {isDa
                 ? 'Følg de tre trin, så ligger Ugeplanen som en app på din startskærm.'

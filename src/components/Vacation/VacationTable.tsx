@@ -191,9 +191,10 @@ const VacationTable: React.FC<VacationTableProps> = ({
                     {onEdit && (
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="ghost"
                         onClick={() => onEdit(vacation)}
-                        aria-label={t('common.edit')} className="min-h-11 min-w-11 text-primary hover:text-primary hover:bg-primary/10"
+                        title={t('common.edit')}
+                        aria-label={vacation.user?.name ? `${t('common.edit')}: ${vacation.user.name}` : t('common.edit')} className="h-9 w-9 p-0"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>

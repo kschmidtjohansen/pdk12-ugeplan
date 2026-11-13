@@ -3,7 +3,6 @@ import React, { memo } from 'react';
 import { usePermissions } from '../../context/AuthContext';
 import { useTranslation } from '../../context/TranslationContext';
 import { TableRow, TableCell } from "@/components/ui/table";
-import { Button } from '@/components/ui/button';
 import { Edit, Mail, Phone, Trash2, UserMinus, UserCheck, HardHat, Truck, Forklift, FlaskConical, GraduationCap, Thermometer, HeartPulse } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,6 +10,7 @@ import { Employee } from '@/types/employee';
 import { Vacation } from '@/types/vacation';
 import { getEmployeeAvailabilityStatus } from '@/utils/employeeAvailability';
 import TempExpiryBadge from '@/components/Employees/TempExpiryBadge';
+import RowActions from '@/components/shared/RowActions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
@@ -215,115 +215,17 @@ const EmployeeTableRow: React.FC<EmployeeTableRowProps> = memo(({ employee, vaca
         )}
       </TableCell>
       {isAdmin && (
-        <TableCell>
-          <div className="flex space-x-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => onEdit(employee)} 
-                    className="h-11 min-h-11 w-11 p-0"
-                  >
-                    <span className="sr-only">{t("common.edit")}</span>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("common.edit")}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {onTraining && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onTraining(employee)}
-                      className="h-11 min-h-11 w-11 p-0 text-warning"
-                    >
-                      <span className="sr-only">{currentLanguage === 'da' ? 'Kursus' : 'Training'}</span>
-                      <GraduationCap className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{currentLanguage === 'da' ? 'Meld på kursus' : 'Register training'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-
-            {onToggleSick && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onToggleSick(employee)}
-                      className={`h-11 min-h-11 w-11 p-0 ${isSick ? 'text-success' : 'text-destructive'}`}
-                    >
-                      <span className="sr-only">{isSick ? (currentLanguage === 'da' ? 'Fjern sygemelding' : 'Remove sick leave') : (currentLanguage === 'da' ? 'Meld syg i dag' : 'Report sick today')}</span>
-                      {isSick ? <HeartPulse className="h-4 w-4" /> : <Thermometer className="h-4 w-4" />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{isSick ? (currentLanguage === 'da' ? 'Fjern sygemelding' : 'Remove sick leave') : (currentLanguage === 'da' ? 'Meld syg i dag' : 'Report sick today')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-
-            {onToggleLeave && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => onToggleLeave(employee)}
-                      className={`h-11 min-h-11 w-11 p-0 ${employee.onLeave ? 'text-success' : 'text-warning'}`}
-                    >
-                      <span className="sr-only">
-                        {employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}
-                      </span>
-                      {employee.onLeave ? (
-                        <UserCheck className="h-4 w-4" />
-                      ) : (
-                        <UserMinus className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{employee.onLeave ? t("employees.markAvailable") : t("employees.markOnLeave")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => onDelete(employee)} 
-                    className="h-11 min-h-11 w-11 p-0 text-destructive"
-                  >
-                    <span className="sr-only">{t("common.delete")}</span>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("common.delete")}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+        <TableCell className="text-right">
+          <RowActions
+            subject={employee.name}
+            primary={{ key: 'edit', label: t('common.edit'), icon: Edit, onClick: () => onEdit(employee) }}
+            items={[
+              onTraining && { key: 'training', label: currentLanguage === 'da' ? 'Meld på kursus' : 'Register training', icon: GraduationCap, onClick: () => onTraining(employee) },
+              onToggleSick && { key: 'sick', label: isSick ? (currentLanguage === 'da' ? 'Fjern sygemelding' : 'Remove sick leave') : (currentLanguage === 'da' ? 'Meld syg i dag' : 'Report sick today'), icon: isSick ? HeartPulse : Thermometer, onClick: () => onToggleSick(employee) },
+              onToggleLeave && { key: 'leave', label: employee.onLeave ? t('employees.markAvailable') : t('employees.markOnLeave'), icon: employee.onLeave ? UserCheck : UserMinus, onClick: () => onToggleLeave(employee) },
+              { key: 'delete', label: t('common.delete'), icon: Trash2, onClick: () => onDelete(employee), destructive: true },
+            ]}
+          />
         </TableCell>
       )}
     </TableRow>

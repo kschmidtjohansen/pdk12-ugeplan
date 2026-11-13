@@ -112,7 +112,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
       <div className="mt-3 border-l-2 border-border pl-3"><DailyQuoteCard quote={getDailyQuote()} compact /></div>
 
       <div className="mt-4">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {leaderDuties.length === 0 && driveDuties.length === 0 && (
             <StatusPill className="snap-start" icon={Phone} tone="primary" label={t('ui.noDutyToday')} onClick={() => setPanel('duty')} />
           )}
@@ -123,7 +123,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
             <StatusPill className="snap-start" icon={Phone} tone="primary" live label={`${driveDuties.length > 1 ? t('ui.drivingDuties') : t('ui.drivingDuty')}: ${names(driveDuties)}`} onClick={() => setPanel('duty')} />
           )}
           <StatusPill className="snap-start" icon={Users} label={`${metrics.availableEmployees.count}/${metrics.availableEmployees.total} ${t('ui.availableLower')}`} onClick={() => setPanel('emp')} />
-          <StatusPill className="snap-start" icon={Car} label={`${metrics.availableCars.count}/${metrics.availableCars.total} ${t('ui.carsLower')}`} onClick={() => setPanel('car')} />
+          <StatusPill className="snap-start" icon={Car} label={`${metrics.availableCars.count}/${metrics.availableCars.total} ${t('ui.availableCarsLower')}`} onClick={() => setPanel('car')} />
           {expiring.length > 0 && (
             <StatusPill className="snap-start" icon={Clock} tone="warning" label={`${expiring.length} ${expiring.length === 1 ? t('ui.tempExpiringOne') : t('ui.tempExpiringMany')}`} onClick={() => setPanel('temp')} />
           )}

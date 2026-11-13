@@ -56,7 +56,7 @@ const vacation = {
   newVacationRequest: "Ny ferieanmodning",
   newVacationRequestActionRequired: "Ny ferieanmodning fra {name} fra {from} til {to} kræver handling",
   days: "dage",
-  cleanupComplete: "Oprydning Fuldført",
+  cleanupComplete: "Oprydning fuldført",
   cleanupCompleteDescription: "Forældede ferieansøgninger er blevet ryddet op",
   
   // New missing keys
@@ -115,7 +115,7 @@ const vacation = {
   // Admin notification for pending requests
   pendingRequestsTitle: "Afventende anmodninger",
   pendingRequestsDescription: "fridags-anmodning(er) venter på godkendelse",
-  openVacationPage: "Åbn Fridage",
+  openVacationPage: "Åbn fridage",
   
   // New keys for partial day support - updated workingHours
   requestType: "Anmodningstype",

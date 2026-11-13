@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Edit, Key, Trash, UserCheck, UserX, MoreHorizontal, UserCog } from 'lucide-react';
+import RowActions from '@/components/shared/RowActions';
 import {
   Avatar,
   AvatarFallback,
@@ -12,7 +13,6 @@ import {
 import { UserRole, useAuth } from '@/context/AuthContext';
 import { sortRolesByRank } from '@/utils/roleHierarchy';
 import { useTranslation } from '@/context/TranslationContext';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -97,62 +97,16 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
   );
 
   const DesktopActions = () => (
-    <div className="flex justify-end gap-2">
-      {showImpersonate && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleImpersonate} className="h-8 w-8" aria-label={t('ui.impersonationAct')}>
-                <UserCog className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent><p>{t('ui.impersonationActFor', { name: user.name })}</p></TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => onToggleUserStatus(user)}
-              aria-label={isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser')}
-              className={`h-8 w-8 ${isUserActive ? 'text-destructive hover:text-destructive-soft-foreground' : 'text-success hover:text-success-soft-foreground'}`}>
-              {isUserActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent><p>{isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser')}</p></TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => onResetPassword(user)} className="h-8 w-8" aria-label={t('admin.passwords.resetPasswordFor', { name: user.name }) || 'Nulstil adgangskode'}>
-              <Key className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent><p>{t('admin.passwords.resetPasswordFor', { name: user.name })}</p></TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => onEditUser(user)} className="h-8 w-8" aria-label={t('admin.userManagement.editUser') || 'Rediger bruger'}>
-              <Edit className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent><p>{t('admin.userManagement.editUser')}</p></TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => onDeleteUser(user)} className="h-8 w-8 text-destructive hover:text-destructive" aria-label={t('common.delete') || 'Slet'}>
-              <Trash className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent><p>{t('common.delete')}</p></TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
+    <RowActions
+      subject={user.name}
+      primary={{ key: 'edit', label: t('admin.userManagement.editUser'), icon: Edit, onClick: () => onEditUser(user) }}
+      items={[
+        showImpersonate && { key: 'act', label: t('ui.impersonationAct'), icon: UserCog, onClick: handleImpersonate },
+        { key: 'password', label: t('admin.passwords.resetPassword') || 'Nulstil adgangskode', icon: Key, onClick: () => onResetPassword(user) },
+        { key: 'status', label: isUserActive ? t('admin.userManagement.deactivateUser') : t('admin.userManagement.activateUser'), icon: isUserActive ? UserX : UserCheck, onClick: () => onToggleUserStatus(user) },
+        { key: 'delete', label: t('common.delete'), icon: Trash, onClick: () => onDeleteUser(user), destructive: true },
+      ]}
+    />
   );
 
   return (

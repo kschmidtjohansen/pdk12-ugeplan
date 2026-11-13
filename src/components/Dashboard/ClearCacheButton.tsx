@@ -17,9 +17,9 @@ import { useTranslation } from '@/context/TranslationContext';
  * Clears app caches + unregisters stale service workers, then hard-reloads.
  * Auth storage (localStorage/sessionStorage) is intentionally untouched.
  */
-export const ClearCacheButton: React.FC = () => {
+/** The confirm dialog on its own, so the user menu can open it (the menu closes before the dialog shows). */
+export const ClearCacheDialog: React.FC<{ open: boolean; onOpenChange: (open: boolean) => void }> = ({ open, onOpenChange: setOpen }) => {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const handleClear = async () => {
@@ -41,17 +41,6 @@ export const ClearCacheButton: React.FC = () => {
   };
 
   return (
-    <>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="gap-2 text-muted-foreground"
-        onClick={() => setOpen(true)}
-      >
-        <RotateCcw className="h-4 w-4" />
-        {t('dashboard.clearCache.button')}
-      </Button>
-
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -74,6 +63,19 @@ export const ClearCacheButton: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+  );
+};
+
+export const ClearCacheButton: React.FC = () => {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={() => setOpen(true)}>
+        <RotateCcw className="h-4 w-4" />
+        {t('dashboard.clearCache.button')}
+      </Button>
+      <ClearCacheDialog open={open} onOpenChange={setOpen} />
     </>
   );
 };

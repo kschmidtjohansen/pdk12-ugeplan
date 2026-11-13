@@ -4,8 +4,6 @@ import { useVacations } from '@/hooks/useVacations';
 import { useAuth } from '@/context/AuthContext';
 import { Vacation } from '@/types/vacation';
 import { visibleVacations } from '@/utils/moduleListFilters';
-import { ModuleContext } from '@/components/shared/ModuleListTools';
-import { useDepartment } from '@/context/DepartmentContext';
 import { useQueryClient } from '@tanstack/react-query';
 import ErrorState from '@/components/shared/ErrorState';
 import WorkspaceSection from '@/components/shared/WorkspaceSection';
@@ -26,7 +24,6 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   const queryClient = useQueryClient();
   const { t, currentLanguage } = useTranslation();
   const da = currentLanguage === 'da';
-  const { selectedDepartment } = useDepartment();
   const [search, setSearch] = React.useState('');
   const [activeTab, setActiveTab] = React.useState("all");
   
@@ -148,7 +145,6 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   return (
     <div>
       {headerComponent}
-      <ModuleContext department={selectedDepartment?.name} />
       
       <WorkspaceSection
         className="mt-2"

@@ -648,18 +648,18 @@ const UserManagement: React.FC = () => {
     };
     const getStatusText = () => {
       switch (connectionStatus) {
-        case 'connected':
-          return edgeFunctionWorking ? 'Edge Function Active' : 'Connected';
         case 'fallback':
-          return 'Database Fallback';
+          return 'Begrænset visning';
         case 'disconnected':
-          return 'Connection Issues';
+          return 'Ingen forbindelse';
         case 'error':
-          return 'Error';
+          return 'Fejl ved hentning';
         default:
-          return 'Unknown';
+          return '';
       }
     };
+    // only shown when something is wrong; a working connection needs no badge
+    if (connectionStatus === 'connected' || !getStatusText()) return null;
     return (
       <div className={`flex items-center space-x-1 text-xs ${getStatusColor()}`}>
         {getStatusIcon()}

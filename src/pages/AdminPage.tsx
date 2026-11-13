@@ -28,6 +28,7 @@ import AutoPublishLogWidget from '@/components/Dashboard/AutoPublishLogWidget';
 import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler';
 import { supabase } from '@/integrations/supabase/client';
 import ListSkeleton from '@/components/shared/ListSkeleton';
+import PageHeader from '@/components/Layout/PageHeader';
 
 const AdminPage: React.FC = () => {
   const { user, loading, isDemoMode, demoRole } = useAuth();
@@ -70,14 +71,16 @@ const AdminPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5">
       <VacationCleanupHandler />
 
       <div className="space-y-6">
-        <div className="flex items-center space-x-2">
-          <Shield className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-bold">{t('admin.title')}</h1>
-        </div>
+        {/* same page header as the other PolyPlan pages */}
+        <PageHeader
+          title={t('admin.title')}
+          description={t('admin.description')}
+          meta={userCount !== null ? t('admin.userManagement.totalCount').replace('{count}', String(userCount)) : undefined}
+        />
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="w-full justify-start flex-wrap h-auto gap-1 p-1">
@@ -127,22 +130,7 @@ const AdminPage: React.FC = () => {
           </TabsList>
 
           <TabsContent value="users" className="animate-fade-in">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('admin.userManagement.title')}</CardTitle>
-                <CardDescription>
-                  {t('admin.userManagement.description')}
-                  {userCount !== null && (
-                    <span className="ml-2 text-muted-foreground">
-                      — {t('admin.userManagement.totalCount').replace('{count}', String(userCount))}
-                    </span>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UserManagement />
-              </CardContent>
-            </Card>
+            <UserManagement />
           </TabsContent>
 
           {isSuperAdmin && (

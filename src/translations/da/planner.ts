@@ -11,7 +11,7 @@ const planner = {
   },
   operationsOverview: {
     expandDay: 'Vis opgaver for', collapseDay: 'Skjul opgaver for',
-    title: 'Ugens plan', attention: 'Kræver opmærksomhed', all: 'Opgaver i ugen', drafts: 'Kladder / upublicerede', unassigned: 'Uden medarbejdertilknytning', conflicts: 'Opgaver med overlap', information: 'Medarbejdertilknytning er et informationssignal; overlap tælles pr. opgave.', clearIssue: 'Ryd statusfilter', currentWeek: 'Denne uge', allDays: 'Alle dage', results: '{count} af {total} opgaver', noMatch: 'Ingen opgaver matcher filtrene', error: 'Ugens opgaver kunne ikke indlæses', retry: 'Prøv igen',
+    title: 'Ugens plan', attention: 'Kræver opmærksomhed', all: 'Opgaver i ugen', drafts: 'Kladder / upublicerede', unassigned: 'Uden medarbejdertilknytning', conflicts: 'Opgaver med overlap', information: 'Tal for den valgte uge. Klik på et tal for at se opgaverne.', clearIssue: 'Ryd statusfilter', currentWeek: 'Denne uge', allDays: 'Alle dage', results: '{count} af {total} opgaver', noMatch: 'Ingen opgaver matcher filtrene', error: 'Ugens opgaver kunne ikke indlæses', retry: 'Prøv igen',
   },
 
   title: 'Planner',
@@ -21,44 +21,44 @@ const planner = {
   assignments: 'Opgaver',
   noAssignments: 'Ingen opgaver fundet',
   noAssignmentsWeek: 'Ingen opgaver i denne uge',
-  createNew: 'Opret Ny Opgave',
+  createNew: 'Opret ny opgave',
   
   // Assignment details
   titlePlaceholder: 'Sagsnummer',
   locationPlaceholder: 'Indtast adresse',
-  fromTime: 'Fra Tid',
-  toTime: 'Til Tid',
+  fromTime: 'Fra tid',
+  toTime: 'Til tid',
   location: 'Adresse',
-  selectEmployees: 'Vælg Medarbejdere',
+  selectEmployees: 'Vælg medarbejdere',
   car: 'Bil',
-  selectCar: 'Vælg Bil',
+  selectCar: 'Vælg bil',
   responsibleUser: 'Sagsansvarlig',
-  selectResponsibleUser: 'Vælg Sagsansvarlig',
+  selectResponsibleUser: 'Vælg sagsansvarlig',
   noResponsibleUser: 'Ingen sagsansvarlig',
   
   // Actions
-  addAssignment: 'Tilføj Opgave',
+  addAssignment: 'Tilføj opgave',
   createAssignment: 'Opret opgave',
-  editAssignment: 'Rediger Opgave',
-  copyAssignment: 'Kopier Opgave',
-  deleteAssignment: 'Slet Opgave',
+  editAssignment: 'Rediger opgave',
+  copyAssignment: 'Kopier opgave',
+  deleteAssignment: 'Slet opgave',
   publish: 'Publicer',
-  publishDayTasks: 'Publicer Dagens Opgaver',
+  publishDayTasks: 'Publicer dagens opgaver',
   showOnScreen: 'Vis på Skærm',
-  newAssignment: 'Ny Opgave',
+  newAssignment: 'Ny opgave',
   
   // Messages
-  assignmentCreated: 'Opgave Oprettet',
+  assignmentCreated: 'Opgave oprettet',
   assignmentCreatedMsg: 'Opgaven {title} er blevet oprettet',
-  assignmentsCreated: 'Opgaver Oprettet',
+  assignmentsCreated: 'Opgaver oprettet',
   assignmentCreatedMultipleDays: 'Opgave "{title}" oprettet på {count} dage',
   assignmentsCreatedAcrossDays: 'Oprettet {count} opgaver på {days} dage',
   assignmentsCreatedPartialFail: 'Oprettet {success} af {total} opgaver. {failed} fejlede.',
   assignmentsUpdatedAcrossDays: 'Opdateret og oprettet opgaver på {days} dage',
   assignmentsUpdatedPartialFail: 'Opdateret 1 og oprettet {success} af {total} ekstra opgaver. {failed} fejlede.',
-  assignmentUpdated: 'Opgave Opdateret',
+  assignmentUpdated: 'Opgave opdateret',
   assignmentUpdatedMsg: 'Opgaven {title} er blevet opdateret',
-  assignmentDeleted: 'Opgave Slettet',
+  assignmentDeleted: 'Opgave slettet',
   assignmentDeletedMsg: 'Opgaven er blevet slettet',
   assignmentDeletedMsgWithCase: 'Sag {caseNumber} er blevet slettet',
   errorCreatingAssignment: 'Fejl ved oprettelse af opgave',
@@ -67,7 +67,7 @@ const planner = {
   
   // Change Log
   changeLog: {
-    title: 'Planner Ændringer',
+    title: 'Ændringer i ugeplanen',
     subtitle: 'Seneste aktivitet i planneren',
     noChanges: 'Ingen ændringer endnu',
     created: 'oprettede',
@@ -83,10 +83,10 @@ const planner = {
   
   // Status
   published: 'Aftalt',
-  notPublished: 'Ikke Aftalt',
+  notPublished: 'Ikke aftalt',
   
   // Confirmation dialogs
-  deleteConfirm: 'Slet Opgave',
+  deleteConfirm: 'Slet opgave',
   deleteWarning: 'Er du sikker på, at du vil slette denne opgave?',
   
   // Empty states
@@ -94,15 +94,15 @@ const planner = {
   nothingPlannedToday: 'Intet planlagt i dag',
   
   // Publishing messages
-  assignmentPublished: 'Opgave Publiceret',
+  assignmentPublished: 'Opgave publiceret',
   assignmentPublishedMsg: 'Opgaven er blevet publiceret med succes',
-  assignmentsPublished: 'Opgaver Publiceret',
+  assignmentsPublished: 'Opgaver publiceret',
   assignmentsPublishedMsg: 'Opgaverne er blevet publiceret med succes',
   publishingInProgress: 'Publicerer',
   noAssignmentsToPublish: 'Ingen Opgaver at Publicere',
   noUnpublishedAssignments: 'Ingen upublicerede opgaver fundet',
   errorPublishingAssignments: 'Kunne ikke publicere opgaver',
-  dayPublished: 'Dag Publiceret',
+  dayPublished: 'Dag publiceret',
   dayPublishedMsg: 'Alle opgaver for {date} er blevet publiceret',
   errorPublishingAssignment: 'Kunne ikke publicere opgave',
   errorPublishingDay: 'Kunne ikke publicere opgaver for dagen',
@@ -170,22 +170,22 @@ const planner = {
   createFirst: 'Opret din første opgave',
   
   // Unassigned resources
-  unassignedResources: 'Ikke-tildelte Ressourcer',
-  unassignedEmployees: 'Ikke-tildelte Medarbejdere',
-  unassignedCars: 'Ikke-tildelte Biler',
+  unassignedResources: 'Ikke-tildelte ressourcer',
+  unassignedEmployees: 'Ikke-tildelte medarbejdere',
+  unassignedCars: 'Ikke-tildelte biler',
   employeesOnVacation: 'Medarbejdere på Ferie',
-  availableEmployees: 'Tilgængelige Medarbejdere',
-  availableCars: 'Tilgængelige Biler',
+  availableEmployees: 'Tilgængelige medarbejdere',
+  availableCars: 'Tilgængelige biler',
   
   // Car-related translations
-  availableCarsTitle: 'Tilgængelige Biler',
-  unavailableCarsTitle: 'Ikke Tilgængelige Biler',
+  availableCarsTitle: 'Tilgængelige biler',
+  unavailableCarsTitle: 'Ikke tilgængelige biler',
   noCarsAvailable: 'Ingen biler tilgængelige',
   noCarsUnavailable: 'Alle biler er tilgængelige',
   carWithTrailer: 'Bil med trailer',
   carWithoutTrailer: 'Bil uden trailer',
   cars: 'Biler',
-  selectCars: 'Vælg Biler',
+  selectCars: 'Vælg biler',
   carsSelected: '{count} biler valgt',
   unavailable: 'Ikke tilgængelig',
   available: 'Tilgængelig',
@@ -231,15 +231,15 @@ const planner = {
   previousDays: 'Forrige dage',
   
   // Additional translations for enhanced unassigned resources
-  fullyAvailableEmployees: 'Fuldt Tilgængelige Medarbejdere',
-  partiallyAvailableEmployees: 'Delvist Tilgængelige Medarbejdere',
+  fullyAvailableEmployees: 'Fuldt tilgængelige medarbejdere',
+  partiallyAvailableEmployees: 'Delvist tilgængelige medarbejdere',
   onVacationEmployees: 'Medarbejdere fraværende',
   onTrainingEmployees: 'Medarbejdere på Kursus',
   absentEmployees: 'Fraværende medarbejdere',
   availableCount: 'Tilgængelige',
-  onVacationCount: 'På Ferie',
-  partiallyBookedCount: 'Delvist Optaget',
-  noAvailableResources: 'Ingen Ledige Ressourcer',
+  onVacationCount: 'På ferie',
+  partiallyBookedCount: 'Delvist optaget',
+  noAvailableResources: 'Ingen ledige ressourcer',
   allResourcesAssigned: 'Alle medarbejdere og biler er tildelt opgaver på denne dag.',
   employeeStatusAvailable: 'Ledig',
   employeeStatusPartial: 'Delvist',

@@ -149,6 +149,7 @@ export const ui = {
   bulkAssignEmployeeTitle: "Tildel medarbejder til {count} opgave(r)",
   call: "Ring",
   carsLower: "biler",
+  availableCarsLower: "ledige biler",
   carsToday: "Biler i dag",
   caseManager: "Skadeleder",
   comment: "Kommentar",
