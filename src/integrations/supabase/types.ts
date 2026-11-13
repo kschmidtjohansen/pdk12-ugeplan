@@ -1497,6 +1497,41 @@ export type Database = {
         }
         Relationships: []
       }
+      screen_display_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          department_id: string
+          label: string
+          revoked_at: string | null
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          department_id: string
+          label?: string
+          revoked_at?: string | null
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          department_id?: string
+          label?: string
+          revoked_at?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screen_display_links_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sick_days: {
         Row: {
           created_at: string
@@ -2426,6 +2461,13 @@ export type Database = {
           name: string
         }[]
       }
+      list_screen_display_absences_by_token: {
+        Args: { p_date: string; p_department_id: string; p_token: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       list_screen_display_assignments: {
         Args: {
           p_date?: string
@@ -2453,8 +2495,43 @@ export type Database = {
           updated_at: string
         }[]
       }
+      list_screen_display_assignments_by_token: {
+        Args: {
+          p_date?: string
+          p_department_id: string
+          p_sub_department_id?: string
+          p_token: string
+        }
+        Returns: {
+          assignment_date: string
+          car_id: string
+          car_ids: string[]
+          cars: Json
+          case_number: string
+          created_at: string
+          description: string
+          from_time: string
+          id: string
+          location: string
+          published: boolean
+          responsible_user: Json
+          responsible_user_id: string
+          team: Json
+          title: string
+          to_time: string
+          type: Database["public"]["Enums"]["assignment_type"]
+          updated_at: string
+        }[]
+      }
       list_screen_display_sub_departments: {
         Args: { p_department_id: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
+      list_screen_display_sub_departments_by_token: {
+        Args: { p_department_id: string; p_token: string }
         Returns: {
           id: string
           name: string
@@ -2585,6 +2662,10 @@ export type Database = {
         Returns: string
       }
       schedule_maintenance_tasks: { Args: never; Returns: Json }
+      screen_display_token_ok: {
+        Args: { p_department_id: string; p_token: string }
+        Returns: boolean
+      }
       search_assignments: {
         Args: { dept_id: string; query: string }
         Returns: {

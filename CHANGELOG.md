@@ -1,3 +1,8 @@
+## 2026-11-13 – 3D-adresse ved login og genindlæsning
+- Begrænset normalisering fra `/3d/index.html` til `/3d` til standalone-visning. Den indlejrede visning beholder sin statiske adresse, så genindlæsning ikke rammer Reacts legacy-redirect og åbner PolyPlan inde i 3D-rammen.
+- Regressionstest dækker indlejret adresse og standalone-normalisering med query/hash bevaret. Browserreproduktion anvender isolerede sessions-/API-fixtures, ikke brugerens rigtige login.
+- Loginmetoder, roller, RLS og offentlig deling uændrede; ingen deploy. Rigtig indlogget end-to-end-kontrol er ikke tilgængelig med ekstern unmanaged Supabase.
+
 ## 2026-11-12 – Sikkerhed
 - Skærmvisning: hver skærm kan få sit eget hemmelige link (Admin → Skærme), som kan lukkes igen. Gamle skærmadresser virker, indtil `supabase/staged/sql/004_screen_display_lockdown.sql` køres.
 - Uddannelser kan kun ses af ejeren, kolleger i samme afdeling og admin/skadeledere (`003_security_hardening.sql`).

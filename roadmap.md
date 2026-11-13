@@ -1,4 +1,7 @@
 # PolyPlan v1.4.1
+## 3D login regression
+- [x] Reproduce and prevent embedded 3D URL normalization from redirecting the viewer on reload; add regression tests.
+- [ ] Verify access with the requesting user's real session — external unmanaged Supabase has no injectable session.
 ## Login presentation
 - [x] Full Cult/Magic-inspired login polish with unchanged authentication and reduced-motion support.
 - [x] Public login at 1280px/390px, light/dark, password visibility, empty-field validation, mobile installation help and reduced-motion checks.
