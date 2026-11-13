@@ -1,3 +1,8 @@
+## EasySignage preview (2026-11-13)
+- [x] Bekræft HTTP 401 på editor-adressen og brug den offentligt udgivne adresse til skærmlinks fra preview.
+- [x] Tillad ekstern indlejring kun af /screen-display med skærmkode; behold beskyttelse af resten af PolyPlan og databasekontrol af skærmkoden.
+- [ ] Kontrol i brugerens EasySignage med afd. 12 — kræver adgang til EasySignage og publicering af rettelsen.
+
 ## Adgang til 3D efter login (2026-11-13)
 - [x] Bevar den statiske adresse inde i 3D-rammen, så genindlæsning ikke åbner PolyPlans /3d-viderestilling inde i rammen.
 - [x] Regressionstest for indlejret adresse, offentlige standalone-links og genindlæsning med isoleret sessionfixture.

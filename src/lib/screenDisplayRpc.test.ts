@@ -20,4 +20,16 @@ describe('screen display calls', () => {
   it('builds the screen address', () => {
     expect(screenUrl('https://polyplan.dk', 'd-1', tok)).toBe('https://polyplan.dk/screen-display?departmentId=d-1&screen=' + tok);
   });
+  it('uses the published address instead of the Lovable-login-protected editor address', () => {
+    expect(screenUrl('https://36e31d23-3e75-40a2-a667-29e15996f644.lovableproject.com', 'd-12', tok))
+      .toBe('https://polyplan.lovable.app/screen-display?departmentId=d-12&screen=' + tok);
+  });
+  it('uses the published address instead of a preview address', () => {
+    expect(screenUrl('https://id-preview--36e31d23-3e75-40a2-a667-29e15996f644.lovable.app', 'd-12', tok))
+      .toBe('https://polyplan.lovable.app/screen-display?departmentId=d-12&screen=' + tok);
+  });
+  it('retains the published address', () => {
+    expect(screenUrl('https://polyplan.lovable.app', 'd-12', tok))
+      .toBe('https://polyplan.lovable.app/screen-display?departmentId=d-12&screen=' + tok);
+  });
 });

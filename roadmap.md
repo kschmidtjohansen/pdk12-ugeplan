@@ -1,4 +1,7 @@
 # PolyPlan v1.4.1
+## EasySignage preview
+- [x] Diagnose the editor address returning HTTP 401; generate published screen links and keep token-only external framing.
+- [ ] Verify department 12 in the user's EasySignage player — requires the user's player access and published changes.
 ## 3D login regression
 - [x] Reproduce and prevent embedded 3D URL normalization from redirecting the viewer on reload; add regression tests.
 - [ ] Verify access with the requesting user's real session — external unmanaged Supabase has no injectable session.
