@@ -1,4 +1,7 @@
 # PolyPlan v1.4.1
+## Bil 25 i Hillerøds Alle
+- [ ] Ret sortering af BIL-præfiks i biloversigt og bilvalg; kontrollér afdeling og uændret værkstedsperiode med regressionstests.
+- [ ] Kontrol med brugerens rigtige login — ekstern unmanaged Supabase-session kan ikke injiceres.
 ## EasySignage preview
 - [x] Diagnose the editor address returning HTTP 401; generate published screen links and keep token-only external framing.
 - [ ] Verify department 12 in the user's EasySignage player — requires the user's player access and published changes.
