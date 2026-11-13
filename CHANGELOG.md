@@ -1,3 +1,7 @@
+## 2026-11-13 – Login: adgangskodefelt uden pladsholder
+- Fjernet pladsholderteksten fra adgangskodefeltet på loginsiden. Den tomme grå tekst lignede en gemt adgangskode fra fx Edges adgangskodehåndtering og fik brugere til at tro, at feltet allerede var udfyldt.
+- Kun præsentation: emailfeltets pladsholder, validering, autoComplete og loginflow er uændrede.
+
 ## 2026-11-13 – EasySignage skærmpreview
 - Editor-adressen fra fejlskærmbilledet returnerer HTTP 401 uden Lovable-login. Skærmlinks dannet fra editor/preview bruger nu den offentlige polyplan.lovable.app-adresse med afdeling og skærmkode bevaret.
 - Clickjacking-beskyttelsen på polyplan.dk undtager kun den præcise /screen-display-adresse med syntaktisk gyldig skærmkode. Koden valideres stadig af eksisterende token-RPC'er; ingen ændringer i RLS, login, andre sider eller deploy.

@@ -299,7 +299,6 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); if (errorKind) clearError(); }}
-                placeholder={t('login.passwordPlaceholder')}
                 required
                 disabled={isLoading || isBlocked}
                 autoComplete="current-password"
