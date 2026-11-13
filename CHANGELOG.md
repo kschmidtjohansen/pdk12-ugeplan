@@ -1,3 +1,8 @@
+## 2026-11-13 – Bil 25 i Hillerøds Alle
+- Live læsekontrol: Hillerøds bil 25 er ledig, synlig i planlægningen og uden underafdelingstilknytning. Værkstedsbesøget er 17.–18. november og er ikke ændret.
+- Bilnummeret BIL25 blev sorteret efter de numeriske bilnumre; med 28 biler i Hillerød og 25 biler pr. side blev den skjult på side 2. Fælles sortering normaliserer nu BIL-præfikset uden at ændre bilnummeret, og biloversigten anvender samme sortering som bilvalget.
+- Regressionstest dækker BIL25 på første side mellem 24 og 26. Ingen database-, rettigheds- eller værkstedsændringer; reelt indlogget flow kan ikke verificeres med ekstern unmanaged Supabase.
+
 ## 2026-11-13 – Login: adgangskodefelt uden pladsholder
 - Fjernet pladsholderteksten fra adgangskodefeltet på loginsiden. Den tomme grå tekst lignede en gemt adgangskode fra fx Edges adgangskodehåndtering og fik brugere til at tro, at feltet allerede var udfyldt.
 - Kun præsentation: emailfeltets pladsholder, validering, autoComplete og loginflow er uændrede.

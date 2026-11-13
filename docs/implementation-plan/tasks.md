@@ -1,3 +1,9 @@
+## Bil 25 i Hillerøds Alle (2026-11-13)
+- [x] Kontrollér Hillerøds bil 25, afdeling, underafdeling og værkstedsperiode med læseforespørgsler.
+- [x] Ret BIL-præfiks-sortering og biloversigtens afvigende sortering, så BIL25 ligger ved 25 frem for bagest på side 2.
+- [x] Regressionstest for bil 25 på første side; ingen ændringer i værkstedsperioden 17.–18. november.
+- [ ] Kontrol af bilvalg med brugerens rigtige login — ekstern unmanaged Supabase-session kan ikke injiceres.
+
 ## EasySignage preview (2026-11-13)
 - [x] Bekræft HTTP 401 på editor-adressen og brug den offentligt udgivne adresse til skærmlinks fra preview.
 - [x] Tillad ekstern indlejring kun af /screen-display med skærmkode; behold beskyttelse af resten af PolyPlan og databasekontrol af skærmkoden.

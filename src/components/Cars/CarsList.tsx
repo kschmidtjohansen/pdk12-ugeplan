@@ -8,6 +8,7 @@ import { Car } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import SimplePagination from '@/components/shared/SimplePagination';
 import { useCarDailyDrivers } from '@/hooks/car/useCarDailyDrivers';
+import { sortCarsByNumber } from '@/utils/sortCars';
 
 interface CarsListProps {
   cars: CarData[];
@@ -38,7 +39,7 @@ const CarsList: React.FC<CarsListProps> = ({
   const { t } = useTranslation();
   const todayDrivers = useCarDailyDrivers();
   const sortedCars = useMemo(
-    () => [...cars].sort((a, b) => a.car_number.localeCompare(b.car_number)),
+    () => sortCarsByNumber(cars),
     [cars]
   );
 
