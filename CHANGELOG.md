@@ -2738,3 +2738,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 - AI-analysen er hurtigere: flere billeder ad gangen og mindre billeder.
 
 - 2026-11-12: 3D – Del-knap på sagskort ved hover; Rum og indhold viser ikke længere gættede etager, og AI sætter ikke etage.
+
+## 2026-11-13
+- Fix: 3D-scanninger lukkede efter login. Den indlejrede 3D-ramme fornyer ikke længere selv login-sessionen (PolyPlan ejer fornyelsen), AuthContext nulstiller ikke brugerdata ved gentaget SIGNED_IN for samme bruger, og useScanAccessState viser "indlæser" i stedet for "ingen adgang" mens brugerdata hentes.

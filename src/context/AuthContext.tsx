@@ -139,6 +139,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const manualLogoutRef = useRef(false);
+  // Signed-in user id, so a repeated SIGNED_IN for the same account (e.g. from the embedded 3D frame) keeps loaded data
+  const userIdRef = useRef<string | null>(null);
+  useEffect(() => { userIdRef.current = user?.id ?? null; }, [user]);
   const sessionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
   // Safe translation hook with fallback. Stored in a ref so the auth-init effect
@@ -358,7 +361,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
             
             // Handle token refresh events
-            if (event === 'TOKEN_REFRESHED' && newSession) {
+            if ((event === 'TOKEN_REFRESHED' || (event === 'SIGNED_IN' && newSession?.user.id === userIdRef.current)) && newSession) {
               setSession(newSession);
               setSessionExpired(false);
               return;
