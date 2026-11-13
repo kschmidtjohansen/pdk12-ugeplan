@@ -1,3 +1,8 @@
+## Adgang til 3D efter login (2026-11-13)
+- [x] Bevar den statiske adresse inde i 3D-rammen, så genindlæsning ikke åbner PolyPlans /3d-viderestilling inde i rammen.
+- [x] Regressionstest for indlejret adresse, offentlige standalone-links og genindlæsning med isoleret sessionfixture.
+- [ ] Kontrol med brugerens rigtige login — ekstern unmanaged Supabase-session kan ikke injiceres.
+
 ## Typografi i 3D-scanninger (2026-11-12)
 - [x] Match PolyPlans Inter-bogstavformer, fallback, bogstavafstand og semibold-overskrifter i siden og eksporterede visningsfiler.
 

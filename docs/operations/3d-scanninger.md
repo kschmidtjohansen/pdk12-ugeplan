@@ -249,5 +249,6 @@ Dette findes i "Ret hjørner".
 - **Hvor:** menupunktet "3D-scanninger" åbner `/3d-scanninger` (`src/pages/ScansPage.tsx`) inde i PolyPlans layout. Selve 3D-appen (`public/3d/index.html`) kører i en ramme fra samme side med `?embed=1`.
 - **Login og roller:** kun PolyPlan. Er man logget ud, sendes hele siden til PolyPlans login og tilbage bagefter (`returnTo=/3d-scanninger`). Uden 3D-rolle vises en kort besked uden links.
 - **Adresse:** rammen sender den åbne rundvisning (`#t-…`) til PolyPlan, som skriver den i adressen. Rammen tager kun imod beskeder fra samme side og samme vindue.
+- **Genindlæsning:** rammens egen adresse forbliver `/3d/index.html?embed=1`; kun standalone-visning normaliserer til `/3d`. Ellers åbner genindlæsning Reacts legacy-redirect inde i rammen i stedet for 3D-viseren.
 - **Gamle adresser:** `/3d` og `/3d/index.html` flytter til `/3d-scanninger`. Undtaget er links til forsikringer (`#l-…`) og links fra e-mails om adgangskode; de bliver på den offentlige side.
 - **Udseende:** 3D følger PolyPlans lys/mørk-valg og bruger PolyPlans tokens (farver, radius 10 px, skygger).
