@@ -107,6 +107,7 @@ export const common = {
   darkMode: "Dark mode",
   toggleTheme: "Toggle theme",
   actions: "Actions",
+  moreActions: "More actions",
   language: "Language",
   team: "Team",
   areYouSure: "Are you sure?",

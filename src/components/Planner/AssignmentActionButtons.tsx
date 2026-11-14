@@ -5,7 +5,8 @@ import { useTranslation } from '@/context/TranslationContext';
 import { usePermissions } from '@/context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { Assignment } from '@/types/assignment';
-import { Edit3, Trash2, Eye, Copy, Monitor, Loader2 } from 'lucide-react';
+import { Edit3, Trash2, Eye, Copy, Monitor, Loader2, MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface AssignmentActionButtonsProps {
   assignment: Assignment;
@@ -118,18 +119,6 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         )}
       </Button>}
       
-      {canEdit && <Button 
-        variant="ghost" 
-        size="sm" 
-        onClick={handleCopyClick}
-        disabled={isLoading}
-        className="h-7 w-7 p-0 touch-target" 
-        title={t('planner.copyAssignment')}
-        aria-label={t('planner.copyAssignment')}
-      >
-        <Copy className="h-3 w-3" />
-      </Button>}
-      
       {canPublishTasks && !assignment.published && (
         <Button 
           variant="ghost" 
@@ -148,35 +137,37 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
         </Button>
       )}
       
-      {canShowOnScreen && assignment.published && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={handleShowOnScreen}
-          disabled={isLoading}
-          className="h-7 w-7 p-0 touch-target" 
-          title={t('common.showOnScreen')}
-          aria-label={t('common.showOnScreen')}
-        >
-          <Monitor className="h-3 w-3" />
-        </Button>
+      {/* copy, show on screen and delete live in the menu; delete is never a loose red button on the card */}
+      {(canEdit || (canShowOnScreen && assignment.published)) && (
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" disabled={isLoading} className="h-7 w-7 p-0 touch-target"
+              title={t('common.moreActions')} aria-label={t('common.moreActions')}>
+              {isDeleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <MoreHorizontal className="h-3.5 w-3.5" />}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-44">
+            {canEdit && (
+              <DropdownMenuItem onSelect={handleCopyClick} className="cursor-pointer gap-2">
+                <Copy className="h-4 w-4 text-muted-foreground" />{t('planner.copyAssignment')}
+              </DropdownMenuItem>
+            )}
+            {canShowOnScreen && assignment.published && (
+              <DropdownMenuItem onSelect={handleShowOnScreen} className="cursor-pointer gap-2">
+                <Monitor className="h-4 w-4 text-muted-foreground" />{t('common.showOnScreen')}
+              </DropdownMenuItem>
+            )}
+            {canEdit && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={handleDeleteClick} className="cursor-pointer gap-2 text-destructive focus:bg-destructive-soft focus:text-destructive">
+                  <Trash2 className="h-4 w-4" />{deleteLabel}
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
-      
-      {canEdit && <Button 
-        variant="ghost" 
-        size="sm" 
-        onClick={handleDeleteClick}
-        disabled={isLoading}
-        className="h-7 w-7 p-0 touch-target text-destructive hover:text-destructive hover:bg-destructive-soft disabled:opacity-50" 
-        title={deleteLabel}
-        aria-label={deleteLabel}
-      >
-        {isDeleting ? (
-          <Loader2 className="h-3 w-3 animate-spin" />
-        ) : (
-          <Trash2 className="h-3 w-3" />
-        )}
-      </Button>}
     </div>
   );
 };

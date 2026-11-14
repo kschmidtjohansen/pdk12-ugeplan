@@ -1,7 +1,7 @@
 
 export const auth = {
   sessionExpired: 'Din session er udløbet. Log venligst ind igen.',
-  sessionExpiredTitle: 'Session Udløbet',
+  sessionExpiredTitle: 'Session udløbet',
   sessionExpiredDescription: 'Din session er udløbet. Log venligst ind igen for at fortsætte.',
   authenticationRequired: 'Godkendelse påkrævet',
   authenticationRequiredDescription: 'Du skal være logget ind for at få adgang til denne funktion.',

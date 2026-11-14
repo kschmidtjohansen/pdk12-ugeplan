@@ -16,7 +16,7 @@ export const common = {
   close: "Luk",
   open: "Åbn",
   search: "Søg",
-  searchPlaceholder: "Søgefelt",
+  searchPlaceholder: "Søg",
   filter: "Filter",
   sort: "Sorter",
   clear: "Ryd",
@@ -82,11 +82,11 @@ export const common = {
   operation_in_progress: "Operation i gang",
   
   // Database and system messages
-  database_fix_applied: "Database Fix Anvendt",
+  database_fix_applied: "Databaserettelse anvendt",
   database_fix_description: "Databasen er blevet opdateret og optimeret for servicemedarbejdere",
-  system_optimized: "System Optimeret",
+  system_optimized: "System optimeret",
   system_optimized_description: "Alle systemkomponenter kører nu optimalt for din rolle",
-  data_loaded_successfully: "Data Indlæst Med Succes",
+  data_loaded_successfully: "Data indlæst med succes",
   data_loaded_description: "Alle opgaver og ressourcer er nu synlige",
   
   // Error handling
@@ -107,38 +107,39 @@ export const common = {
   darkMode: "Mørk tilstand",
   toggleTheme: "Skift tema",
   actions: "Handlinger",
+  moreActions: "Flere handlinger",
   language: "Sprog",
   team: "Team",
   areYouSure: "Er du sikker?",
   deleteWarning: "Din handling kan ikke ændres når du sletter denne.",
   
   // Demo Dashboard
-  demoDashboard: "Demo Dashboard",
+  demoDashboard: "Demo-dashboard",
   demoMode: "Du er i demo tilstand",
   currentlyInDemoMode: "I øjeblikket i demo-tilstand som",
-  cleanDemoData: "Ryd Demo Data",
-  totalOperations: "Samlede Operationer",
-  createdRecords: "Oprettede Poster",
-  updatedRecords: "Opdaterede Poster",
-  tablesAffected: "Berørte Tabeller",
-  affectedTables: "Berørte Tabeller",
+  cleanDemoData: "Ryd demodata",
+  totalOperations: "Samlede operationer",
+  createdRecords: "Oprettede poster",
+  updatedRecords: "Opdaterede poster",
+  tablesAffected: "Berørte tabeller",
+  affectedTables: "Berørte tabeller",
   demoDataAutoClean: "Alle demo data ryddes automatisk når du logger ud eller skifter sessioner",
   
   // Demo cleanup toasts
-  demoDataCleaned: "Demo Data Ryddet",
+  demoDataCleaned: "Demodata ryddet",
   demoDataCleanedDescription: "Alle demo data er blevet fjernet med succes.",
-  cleanupFailed: "Oprydning Mislykkedes",
+  cleanupFailed: "Oprydning mislykkedes",
   failedToCleanupDemo: "Kunne ikke rydde demo data",
   
   // Demo role switching
-  switchRole: "Skift Rolle",
-  roleChanged: "Rolle Ændret",
+  switchRole: "Skift rolle",
+  roleChanged: "Rolle ændret",
   roleChangedTo: "Skiftet til {role}",
   switchingToRole: "Skifter til {role}...",
   unknown: "Ukendt",
   
   // Auto-cleanup timer translations
-  autoCleanupTimer: "Automatisk Oprydningstimer",
+  autoCleanupTimer: "Automatisk oprydningstimer",
   untilNextCleanup: "Indtil næste oprydning",
   extendFifteenMin: "Forlæng 15 min",
   warningCleanupImminent: "Advarsel: Oprydning nær forestående!",

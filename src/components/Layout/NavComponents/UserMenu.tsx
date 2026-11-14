@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor, Bell, Fingerprint } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor, Bell, Fingerprint, RotateCcw } from 'lucide-react';
+import { ClearCacheDialog } from '@/components/Dashboard/ClearCacheButton';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -35,6 +36,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const [profilePictureDialogOpen, setProfilePictureDialogOpen] = useState(false);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [biometricDialogOpen, setBiometricDialogOpen] = useState(false);
+  const [clearCacheOpen, setClearCacheOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string | null>(null);
   const { scheme, setScheme } = useColorScheme();
@@ -177,6 +179,11 @@ const UserMenu: React.FC<UserMenuProps> = ({
             <Fingerprint className="mr-2 h-4 w-4" />
             <span>{currentLanguage === 'da' ? 'Hurtig login (Face ID / fingeraftryk)' : 'Quick sign-in (Face ID / fingerprint)'}</span>
           </DropdownMenuItem>
+          {/* moved here from the dashboard: a fix for a stuck app, not a daily action */}
+          <DropdownMenuItem onClick={() => setClearCacheOpen(true)} className="cursor-pointer">
+            <RotateCcw className="mr-2 h-4 w-4" />
+            <span>{t('dashboard.clearCache.button')}</span>
+          </DropdownMenuItem>
           
           <DropdownMenuSeparator />
 
@@ -224,6 +231,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
         open={biometricDialogOpen}
         onOpenChange={setBiometricDialogOpen}
       />
+      <ClearCacheDialog open={clearCacheOpen} onOpenChange={setClearCacheOpen} />
 
       <PasswordChangeDialog 
         isOpen={passwordDialogOpen} 

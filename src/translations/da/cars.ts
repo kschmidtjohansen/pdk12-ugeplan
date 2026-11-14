@@ -14,8 +14,8 @@ const cars = {
   totalWeight: 'Totalvægt',
   
   // Dialog actions
-  editVehicle: "Rediger Køretøj",
-  addNewVehicle: "Tilføj Nyt Køretøj",
+  editVehicle: "Rediger køretøj",
+  addNewVehicle: "Tilføj nyt køretøj",
   updateVehicleInfo: "Opdater køretøjsoplysningerne nedenfor",
   addNewVehicleDesc: "Udfyld detaljerne for det nye køretøj",
   
@@ -73,7 +73,7 @@ const cars = {
   
   // Page content
   pageDescription: 'Ret biler og deres tilgængelighed',
-  addNewCar: 'Tilføj Nyt Køretøj',
+  addNewCar: 'Tilføj nyt køretøj',
   searchPlaceholder: 'Søg bilnr, navn, nummerplade…',
   noResults: 'Ingen biler matcher dit filter',
   

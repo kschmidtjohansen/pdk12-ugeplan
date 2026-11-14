@@ -32,19 +32,19 @@ const employees = {
   },
   
   // Actions
-  addEmployee: 'Tilføj Medarbejder',
-  addVikar: 'Tilføj Vikar',
-  editEmployee: 'Rediger Medarbejder',
-  deleteEmployee: 'Slet Medarbejder',
-  save: 'Gem Medarbejder',
+  addEmployee: 'Tilføj medarbejder',
+  addVikar: 'Tilføj vikar',
+  editEmployee: 'Rediger medarbejder',
+  deleteEmployee: 'Slet medarbejder',
+  save: 'Gem medarbejder',
   cancel: 'Annuller',
   
   // Messages
-  employeeCreated: 'Medarbejder Oprettet',
+  employeeCreated: 'Medarbejder oprettet',
   employeeCreatedMsg: 'Medarbejderen {name} er blevet oprettet',
-  employeeUpdated: 'Medarbejder Opdateret',
+  employeeUpdated: 'Medarbejder opdateret',
   employeeUpdatedMsg: 'Medarbejderen {name} er blevet opdateret',
-  employeeDeleted: 'Medarbejder Slettet',
+  employeeDeleted: 'Medarbejder slettet',
   employeeDeletedMsg: 'Medarbejderen er blevet slettet',
   errorCreatingEmployee: 'Fejl ved oprettelse af medarbejder',
   errorUpdatingEmployee: 'Fejl ved opdatering af medarbejder',
@@ -58,10 +58,10 @@ const employees = {
   // Leave management
   markOnLeave: 'Marker som fraværende',
   markAvailable: 'Marker som tilgængelig',
-  leaveMarked: 'Status Opdateret',
+  leaveMarked: 'Status opdateret',
   leaveMarkedMsg: 'Medarbejderens status er blevet opdateret',
-  employeeOnLeave: 'Medarbejder Fraværende',
-  employeeAvailable: 'Medarbejder Tilgængelig',
+  employeeOnLeave: 'Medarbejder fraværende',
+  employeeAvailable: 'Medarbejder tilgængelig',
   employeeOnLeaveMsg: '{name} er nu markeret som fraværende',
   employeeAvailableMsg: '{name} er nu markeret som tilgængelig',
   onLeaveConfirmTitle: 'Markér som fraværende?',
@@ -88,10 +88,10 @@ const employees = {
   employees: 'Medarbejdere',
   
   // Form dialog
-  addNewEmployee: 'Tilføj Ny Medarbejder',
-  updateInfo: 'Opdater Information',
-  createAccount: 'Opret Konto',
-  fullName: 'Fulde Navn',
+  addNewEmployee: 'Tilføj ny medarbejder',
+  updateInfo: 'Opdater information',
+  createAccount: 'Opret konto',
+  fullName: 'Fulde navn',
   passwordRequirements: 'Adgangskode skal være mindst 6 tegn',
   weakPassword: 'Adgangskoden er for usikker eller kendt fra datalæk — vælg en anden adgangskode',
   pwTitle: 'Adgangskoden skal indeholde:',
@@ -127,15 +127,15 @@ const employees = {
   viewNotesOnly: 'Se noter (kun læsning)',
   
   // Delete dialog
-  deleteConfirm: 'Bekræft Sletning',
+  deleteConfirm: 'Bekræft sletning',
   deleteWarning: 'Er du sikker på, at du vil slette {name}? Denne handling kan ikke fortrydes.',
   
   // Leave management
-  markAvailableTitle: 'Marker Som Tilgængelig',
+  markAvailableTitle: 'Marker som tilgængelig',
   markAvailableDescription: 'Ønsker du at markere {name} som tilgængelig? Hvad skal der ske med den eksisterende note?',
-  removeNote: 'Fjern Note',
-  keepNote: 'Behold Note',
-  markOnLeaveTitle: 'Marker Som Fraværende',
+  removeNote: 'Fjern note',
+  keepNote: 'Behold note',
+  markOnLeaveTitle: 'Marker som fraværende',
   markOnLeaveDescription: 'Marker {name} som fraværende. Tilføj venligst en note med årsagen.',
   
   // Roles
@@ -150,8 +150,8 @@ const employees = {
   noResponsibleUsersFound: 'Ingen sagsansvarlige fundet',
   
   // Temporary users
-  temporaryUser: 'Midlertidig Bruger',
-  isTemporary: 'Er Vikar',
+  temporaryUser: 'Midlertidig bruger',
+  isTemporary: 'Er vikar',
   expiresAt: 'Udløber',
   expirationDate: 'Udløbsdato',
   temporaryUserNote: 'Vikarer udløber automatisk og slettes efter udløbsdatoen',

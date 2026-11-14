@@ -1,10 +1,10 @@
 import React from 'react';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Pencil, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WarehouseTableRowProps } from './types';
+import RowActions from '@/components/shared/RowActions';
 import { useDepartment } from '@/context/DepartmentContext';
 import { useLocations } from '@/hooks/warehouse/useLocations';
 
@@ -55,24 +55,11 @@ const WarehouseTableRow: React.FC<WarehouseTableRowProps> = ({ item, onEdit, onD
       </TableCell>
       {canEdit && (
         <TableCell className="text-right">
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDelete(item)}
-              className="gap-2 hover:bg-success/90 hover:text-primary-foreground hover:border-success transition-colors"
-            >
-              <CheckCircle className="h-4 w-4" />
-              {t('warehouse.actions.markAsDelivered')}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(item)}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          </div>
+          <RowActions
+            subject={item.address}
+            primary={{ key: 'delivered', label: t('warehouse.actions.markAsDelivered'), icon: CheckCircle, onClick: () => onDelete(item) }}
+            items={[{ key: 'edit', label: t('common.edit'), icon: Pencil, onClick: () => onEdit(item) }]}
+          />
         </TableCell>
       )}
     </TableRow>

@@ -1,3 +1,10 @@
+## 2026-11-13 – UI-runde 1: rækkehandlinger, ens listesider og kompakt visning
+- Rækkehandlinger: Medarbejdere, Biler, Admin-brugere, Lager og ugeplanens opgavekort viser den primære handling og samler resten i en "…"-menu (fælles RowActions). Slet ligger kun i menuen, adskilt og rød. Fridage har en roligere redigér-knap. Mobilkort er uændrede.
+- Listesider: afdeling som eyebrow og antal ("12 i alt" / "3 af 12") i sidehovedet; filterlinjen (status, søgning, ekstra filtre, resultat, ryd filtre) er én kompakt række, også på Lager. Valgfri kompakt visning af tabelrækker huskes pr. browser (localStorage, kun præsentation).
+- Dashboard: tal-animationen sætter altid slutværdien, også når fanen er skjult (forklarer tal på ca. halv værdi); inforækken på én linje; "Ryd offline-cache" flyttet til brugermenuen.
+- Tekster i dansk sætningsstil (ca. 140), tekniske statustekster skjult når alt er i orden, Admin med fælles sidehoved.
+- Kun frontend: ingen ændringer i data-hooks, rettigheder, RLS eller backend. Reelle afdelingstal kan ikke kontrolleres herfra med ekstern Supabase.
+
 ## 2026-11-13 – 3D: markering og sløring i værktøjsbaren
 - Knapperne "Sæt markering" og "Slør område" i 3D-fremviserens lodrette bar; kræver ikke Redigér. Kun 3D-redaktører (Fugttekniker og op efter rollekortet).
 

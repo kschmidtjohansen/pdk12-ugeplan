@@ -22,7 +22,8 @@ import ListPageShell from '@/components/shared/ListPageShell';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import ErrorState from '@/components/shared/ErrorState';
 import { FilterSegment } from '@/components/shared/SegmentedFilterBar';
-import ModuleListTools, { ModuleContext } from '@/components/shared/ModuleListTools';
+import ModuleListTools from '@/components/shared/ModuleListTools';
+import { formatListCount } from '@/components/shared/listCount';
 import EmptyState from '@/components/shared/EmptyState';
 import { useDepartment } from '@/context/DepartmentContext';
 import { filterCars } from '@/utils/moduleListFilters';
@@ -93,7 +94,8 @@ const CarsPage: React.FC = () => {
           <ListPageShell workspace
             title={t('navigation.cars')}
             description={t('cars.pageDescription')}
-            meta={loading ? undefined : `${filteredCars.length} / ${cars.length}`}
+            eyebrow={selectedDepartment?.name}
+            meta={loading ? undefined : formatListCount(filteredCars.length, cars.length, segment !== 'all' || !!search.trim(), da)}
             actions={
               <>
                 <FalckSubscriptionButton isAdmin={isAdmin} />
@@ -107,15 +109,12 @@ const CarsPage: React.FC = () => {
               </>
             }
             filterBar={
-              <>
-                <ModuleContext department={selectedDepartment?.name} />
-                <ModuleListTools segments={segments} active={segment} onSelect={k => setSegment(k as CarSegment)} search={search} onSearch={setSearch}
-                  placeholder={t('cars.searchPlaceholder')} count={filteredCars.length} total={cars.length} onReset={resetFilters} />
-                <div className="mb-4 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
+              <ModuleListTools segments={segments} active={segment} onSelect={k => setSegment(k as CarSegment)} search={search} onSearch={setSearch}
+                placeholder={t('cars.searchPlaceholder')} count={filteredCars.length} total={cars.length} onReset={resetFilters}
+                note={<>
                   <span>{da ? 'Utilgængelig i planlagt periode i dag' : 'Scheduled unavailable today'} <strong className="text-warning-soft-foreground tabular-nums">{enrichedCars.filter(c => c._scheduledActive).length}</strong></span>
                   <span>{da ? 'Kommende perioder' : 'Upcoming periods'} <strong className="text-foreground tabular-nums">{enrichedCars.filter(c => c._scheduledUpcoming).length}</strong></span>
-                </div>
-              </>
+                </>} />
             }
           >
             {loading ? (

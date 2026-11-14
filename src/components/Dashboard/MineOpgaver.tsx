@@ -148,7 +148,7 @@ const MineOpgaver: React.FC = () => {
         <CardHeader className="brand-card-header">
           <CardTitle className="text-sm font-semibold brand-dot flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary" />
-            {t('dashboard.myTasks') || 'Mine Opgaver'}
+            {t('dashboard.myTasks') || 'Mine opgaver'}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
@@ -165,7 +165,7 @@ const MineOpgaver: React.FC = () => {
         <CardHeader className="brand-card-header">
           <CardTitle className="text-sm font-semibold brand-dot flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary" />
-            {t('dashboard.myTasks') || 'Mine Opgaver'}
+            {t('dashboard.myTasks') || 'Mine opgaver'}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
@@ -188,7 +188,7 @@ const MineOpgaver: React.FC = () => {
         <CardHeader className="brand-card-header">
           <CardTitle className="text-sm font-semibold brand-dot flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary" />
-            {t('dashboard.myTasks') || 'Mine Opgaver'}
+            {t('dashboard.myTasks') || 'Mine opgaver'}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
@@ -205,7 +205,7 @@ const MineOpgaver: React.FC = () => {
         <CardHeader className="brand-card-header">
           <CardTitle className="text-sm font-semibold brand-dot flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary" />
-            {t('dashboard.myTasks') || 'Mine Opgaver'}
+            {t('dashboard.myTasks') || 'Mine opgaver'}
             <span className="text-xs font-normal text-muted-foreground">
               - Uge {getCurrentWeekInfo().week}
             </span>

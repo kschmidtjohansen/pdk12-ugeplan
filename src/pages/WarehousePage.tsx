@@ -16,7 +16,8 @@ import ListSkeleton from '@/components/shared/ListSkeleton';
 import EmptyState from '@/components/shared/EmptyState';
 import ErrorState from '@/components/shared/ErrorState';
 import ListPageShell from '@/components/shared/ListPageShell';
-import SegmentedFilterBar from '@/components/shared/SegmentedFilterBar';
+import ModuleListTools from '@/components/shared/ModuleListTools';
+import { formatListCount } from '@/components/shared/listCount';
 
 const WarehousePage = () => {
   const { t, currentLanguage } = useTranslation();
@@ -79,7 +80,7 @@ const WarehousePage = () => {
         title={t('warehouse.title')}
         description={t('warehouse.description') || ''}
         eyebrow={selectedDepartment?.name}
-        meta={loading ? undefined : `${filteredItems.length} / ${items.length}`}
+        meta={loading ? undefined : formatListCount(filteredItems.length, items.length, cleanedFilter !== 'all' || hallFilter !== 'all' || !!searchQuery.trim(), currentLanguage !== 'en')}
         actions={
           canEdit && (
             <Button onClick={openAddDialog} size="sm">
@@ -89,17 +90,21 @@ const WarehousePage = () => {
           )
         }
         filterBar={
-          <SegmentedFilterBar
+          <ModuleListTools
             segments={segments}
-            activeKey={cleanedFilter}
-            onSegmentChange={(key) => setCleanedFilter(key)}
-            searchValue={searchQuery}
-            onSearchChange={setSearchQuery}
-            searchPlaceholder={t('warehouse.searchPlaceholder')}
+            active={cleanedFilter}
+            filtered={cleanedFilter !== 'all' || hallFilter !== 'all' || !!searchQuery.trim()}
+            onSelect={(key) => setCleanedFilter(key)}
+            search={searchQuery}
+            onSearch={setSearchQuery}
+            placeholder={t('warehouse.searchPlaceholder')}
+            count={filteredItems.length}
+            total={items.length}
+            onReset={() => { setSearchQuery(''); setCleanedFilter('all'); setHallFilter('all'); }}
             trailing={
               locations.length > 0 && (
                 <Select value={hallFilter} onValueChange={setHallFilter}>
-                  <SelectTrigger className="h-8 w-[160px] text-xs">
+                  <SelectTrigger className="h-11 w-[180px] text-xs sm:h-9" aria-label={t('warehouse.fields.hall')}>
                     <SelectValue placeholder={t('warehouse.fields.hall')} />
                   </SelectTrigger>
                   <SelectContent>

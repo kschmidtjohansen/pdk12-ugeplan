@@ -149,6 +149,7 @@ export const ui = {
   bulkAssignEmployeeTitle: "Assign employee to {count} assignment(s)",
   call: "Call",
   carsLower: "cars",
+  availableCarsLower: "available cars",
   carsToday: "Cars today",
   caseManager: "Case manager",
   comment: "Comment",

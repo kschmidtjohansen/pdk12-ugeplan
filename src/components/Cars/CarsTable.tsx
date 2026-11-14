@@ -1,5 +1,6 @@
 
 import React from 'react';
+import RowActions from '@/components/shared/RowActions';
 import { Edit, Trash2, Check, X, ToggleLeft, ToggleRight, Info, Truck, Recycle, CalendarClock, Wrench, StickyNote } from 'lucide-react';
 import { 
   Table,
@@ -9,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from '@/components/ui/button';
 import { CarData } from './types';
 import { useTranslation } from '@/context/TranslationContext';
 import { 
@@ -57,7 +57,7 @@ const CarsTable: React.FC<CarsTableProps> = ({
             {canViewFuelCardCode && <TableHead className="text-muted-foreground font-medium">{t('cars.fuelCardCode')}</TableHead>}
             <TableHead className="text-muted-foreground font-medium">{t('cars.hasTrailerHitch')}</TableHead>
             <TableHead className="text-muted-foreground font-medium">{t('cars.isAvailable')}</TableHead>
-            <TableHead className="w-[240px] text-muted-foreground font-medium">{t('common.actions')}</TableHead>
+            <TableHead className="w-[104px] text-right text-muted-foreground font-medium">{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -174,108 +174,19 @@ const CarsTable: React.FC<CarsTableProps> = ({
                   )}
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  {onEditNote && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEditNote(car)}
-                          className="h-11 min-h-11 w-11 p-0"
-                        >
-                          <span className="sr-only">Note</span>
-                          <StickyNote className="h-4 w-4 text-primary" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent><p>{t('ui.addEditNote')}</p></TooltipContent>
-                    </Tooltip>
-                  )}
-                  {isAdmin && (
-                    <>
-                    <Tooltip>
-
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onToggleAvailability(car)}
-                          className="h-11 min-h-11 w-11 p-0"
-                        >
-                          <span className="sr-only">
-                            {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
-                          </span>
-                          {car.is_available ? (
-                            <ToggleRight className="h-4 w-4 text-success" />
-                          ) : (
-                            <ToggleLeft className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          {car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable')}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                    {onSchedule && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onSchedule(car)}
-                            className="h-11 min-h-11 w-11 p-0"
-                          >
-                            <span className="sr-only">{t('ui.scheduleWorkshopVisit')}</span>
-                            <Wrench className="h-4 w-4 text-warning" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{t('ui.scheduleWorkshopVisit')}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-
-                    
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEdit(car)}
-                          className="h-11 min-h-11 w-11 p-0"
-                        >
-                          <span className="sr-only">{t('common.edit')}</span>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t('common.edit')}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDelete(car)}
-                          className="h-11 min-h-11 w-11 p-0 text-destructive hover:text-destructive hover:bg-destructive-soft"
-                        >
-                          <span className="sr-only">{t('common.delete')}</span>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t('common.delete')}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    </>
-                  )}
-                </div>
+              <TableCell className="text-right">
+                <RowActions
+                  subject={car.name}
+                  primary={isAdmin
+                    ? { key: 'edit', label: t('common.edit'), icon: Edit, onClick: () => onEdit(car) }
+                    : onEditNote ? { key: 'note', label: t('ui.addEditNote'), icon: StickyNote, onClick: () => onEditNote(car) } : undefined}
+                  items={isAdmin ? [
+                    onEditNote && { key: 'note', label: t('ui.addEditNote'), icon: StickyNote, onClick: () => onEditNote(car) },
+                    { key: 'avail', label: car.is_available ? t('cars.markUnavailable') : t('cars.markAvailable'), icon: car.is_available ? ToggleLeft : ToggleRight, onClick: () => onToggleAvailability(car) },
+                    onSchedule && { key: 'schedule', label: t('ui.scheduleWorkshopVisit'), icon: Wrench, onClick: () => onSchedule(car) },
+                    { key: 'delete', label: t('common.delete'), icon: Trash2, onClick: () => onDelete(car), destructive: true },
+                  ] : []}
+                />
               </TableCell>
 
             </TableRow>

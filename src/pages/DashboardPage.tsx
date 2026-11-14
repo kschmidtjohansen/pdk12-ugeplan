@@ -13,7 +13,6 @@ import ServicemedarbejderDashboard from '@/components/Dashboard/Servicemedarbejd
 import { useEnhancedUnifiedData } from '@/hooks/useEnhancedUnifiedData';
 import { useDepartment } from '@/context/DepartmentContext';
 import { LastRefreshIndicator } from '@/components/shared/LastRefreshIndicator';
-import ClearCacheButton from '@/components/Dashboard/ClearCacheButton';
 import PwaInstallButton from '@/components/Pwa/PwaInstallButton';
 import PushNotificationCard from '@/components/Pwa/PushNotificationCard';
 
@@ -88,7 +87,6 @@ const DashboardPage: React.FC = () => {
               userName={user?.name}
               actions={
                 <>
-                  <ClearCacheButton />
                   <LastRefreshIndicator lastRefresh={lastRefresh} isRefreshing={isRefreshing} onRefresh={handleRefresh} />
                 </>
               }
