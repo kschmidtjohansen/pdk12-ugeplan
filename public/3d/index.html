@@ -2895,7 +2895,8 @@ A.navigate = async data => {
   const first = !S.hostNavigation;
   S.hostNavigation = key;
   S.hostDept = dept.id;
-  if (section === 'settings') { if (data.adminSettings === true && S.store.isIT) { renderLibrary(); settingsDialog(S.mainEl); } return; }
+  if (section === 'settings') { if (data.adminSettings === true && S.store.isIT) { S.adminSettings = true; renderLibrary(); } return; }
+  S.adminSettings = false;
   if (first && section === 'tours' && /^#t-/.test(location.hash)) return;
   A.closeSheet();
   setView({ kind: section === 'shares' ? 'shares' : section === 'archive' ? 'archive' : 'dept', dept: dept.id });
@@ -2936,6 +2937,7 @@ function renderSide() {
 function viewTitle() { const v = S.view; return v.kind === 'dept' ? ((deptById(v.dept) || {}).name || 'Afdeling') : v.kind === 'archive' ? 'Arkiv' : v.kind === 'shares' ? 'Delt med forsikringer' : 'Alle rundvisninger'; }
 function renderMain() {
   const m = S.mainEl; if (!m) return; m.textContent = ''; const v = S.view, st = S.store, inner = h('div', { class: 'main-in' }); m.append(inner);
+  if (S.adminSettings && st && st.isIT) { settingsDialog(m); return; }
   let q = null;
   if (v.kind !== 'shares') {
     q = h('input', { id: 'lib-q', type: 'search', placeholder: 'Søg i alle: titel, sagsnr., adresse', value: S.q, 'aria-label': 'Søg i rundvisninger' });
@@ -3077,6 +3079,7 @@ function newTourDialog() {
 
 // ---------- settings ----------
 async function settingsDialog(target) {
+  if (!(target instanceof Element)) target = null;
   const c = S.cfg, it = !!(S.store && (S.store.isIT || S.store.mode !== 'supabase')), admin = !!(S.store && S.store.canAdmin), dis = admin ? null : true; let logo = c.logo || '';
   const name = h('input', { type: 'text', value: c.company || '', maxlength: '40', disabled: dis }), accent = h('input', { type: 'color', value: /^#[0-9a-f]{6}$/i.test(c.accent) ? c.accent : '#E9600C', disabled: dis });
   const cam = h('input', { type: 'number', value: (+c.camHeight || 1.5).toFixed(2), step: '0.01', min: '0.3', max: '4', inputmode: 'decimal', disabled: dis });

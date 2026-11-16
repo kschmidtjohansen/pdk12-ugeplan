@@ -49,7 +49,7 @@ describe.each([['active', core], ['export', bundle.js]])('%s 360 wall measuremen
     tap(ray(0, 2)); expect(committed).toBe(1);
   });
   it('reuses the same image reference for two-click height and width and wall area', () => {
-    const player = { scene: { id: 'one' }, wallRefs: {} as Record<string, Point | false>, tool: 'height', measureSurface: 'wall', draft: null as Measurement | null, wallReference: api.Player.prototype.wallReference, camH: () => 1.5, toast: () => { throw new Error('Valid click rejected'); }, _renderPanel: () => {}, dirty: false, _commit() { this.draft = null; committed++; } };
+    const player = { scene: { id: 'one' }, wallRefs: {} as Record<string, Point | false>, tool: 'height', measureSurface: 'wall', draft: null as Measurement | null, wallReference: api.Player.prototype.wallReference, ypToScreen: () => null, camH: () => 1.5, toast: () => { throw new Error('Valid click rejected'); }, _renderPanel: () => {}, dirty: false, _commit() { this.draft = null; committed++; } };
     let committed = 0;
     const tap = (p: Point) => api.Player.prototype._measureTap.call(player, p, 0, 0);
     tap(base); tap(ray(0, 0.9)); tap(ray(0, 2));
