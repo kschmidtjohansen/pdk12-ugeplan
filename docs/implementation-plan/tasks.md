@@ -1,3 +1,9 @@
+## 3D undermenu og vægmål (2026-11-16)
+- [x] Foldbar PolyPlan-undermenu og skjult indre menu; afdelingsafgrænsning og IT-indstillinger i dialog.
+- [x] Vægafstand, vindueshøjde og vægareal med sokkelreference i aktiv viewer og eksport; ældre mål bevares.
+- [x] 18 regressionstests, lint og desktop-/mobil-browserfixtures med kendte mål.
+- [ ] Kontrol på brugerens rigtige rundvisning og login — ekstern unmanaged Supabase-session er ikke tilgængelig.
+
 ## Bil 25 i Hillerøds Alle (2026-11-13)
 - [x] Kontrollér Hillerøds bil 25, afdeling, underafdeling og værkstedsperiode med læseforespørgsler.
 - [x] Ret BIL-præfiks-sortering og biloversigtens afvigende sortering, så BIL25 ligger ved 25 frem for bagest på side 2.

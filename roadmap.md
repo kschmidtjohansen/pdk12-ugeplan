@@ -1,8 +1,9 @@
 # PolyPlan v1.4.1
 ## 3D undermenu og vægmål
-- [ ] Foldbar PolyPlan-undermenu, skjult indre menu og IT-indstillinger som dialog.
-- [ ] Aktiv og eksporteret måling af vægafstand, vindueshøjde og vægareal med sokkelreference.
-- [ ] Regressionstests og desktop-/mobilkontrol; ingen deploy eller databaseændringer.
+- [x] Foldbar PolyPlan-undermenu, skjult indre menu og IT-indstillinger som dialog.
+- [x] Aktiv og eksporteret måling af vægafstand, vindueshøjde og vægareal med sokkelreference.
+- [x] Regressionstests og desktop-/mobilkontrol; ingen deploy eller databaseændringer.
+- [ ] Rigtig indlogget rundvisning — ekstern unmanaged Supabase-session er ikke tilgængelig.
 ## Bil 25 i Hillerøds Alle
 - [x] Ret sortering af BIL-præfiks i biloversigt og bilvalg; kontrollér afdeling og uændret værkstedsperiode med regressionstests.
 - [ ] Kontrol med brugerens rigtige login — ekstern unmanaged Supabase-session kan ikke injiceres.

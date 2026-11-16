@@ -2874,7 +2874,7 @@ A.navigate = async data => {
   if (!dept) return; // Never fall back to all departments when PolyPlan has no selected/matched department.
   const section = data.section;
   const key = section + ':' + dept.id;
-  if (S.hostNavigation === key) return;
+  if (S.hostNavigation === key && section !== 'settings') return;
   const first = !S.hostNavigation;
   S.hostNavigation = key;
   S.hostDept = dept.id;

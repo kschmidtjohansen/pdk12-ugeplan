@@ -19,7 +19,7 @@ const ScansPage: React.FC = () => {
   const sendNavigation = () => frame.current?.contentWindow?.postMessage({ type: 'p360:navigate', section, department: selectedDepartment ? { id: selectedDepartment.id, name: selectedDepartment.name } : null }, window.location.origin);
   const navigationRef = useRef(sendNavigation);
   navigationRef.current = sendNavigation;
-  useEffect(() => { navigationRef.current(); }, [section, selectedDepartment]);
+  useEffect(() => { navigationRef.current(); }, [section, selectedDepartment, location.key]);
   // the address at the time the page opened decides which tour the frame starts on
   const [src] = useState(() => `${SCANS_URL}?embed=1${window.location.hash}`);
 

@@ -252,3 +252,11 @@ Dette findes i "Ret hjørner".
 - **Genindlæsning:** rammens egen adresse forbliver `/3d/index.html?embed=1`; kun standalone-visning normaliserer til `/3d`. Ellers åbner genindlæsning Reacts legacy-redirect inde i rammen i stedet for 3D-viseren.
 - **Gamle adresser:** `/3d` og `/3d/index.html` flytter til `/3d-scanninger`. Undtaget er links til forsikringer (`#l-…`) og links fra e-mails om adgangskode; de bliver på den offentlige side.
 - **Udseende:** 3D følger PolyPlans lys/mørk-valg og bruger PolyPlans tokens (farver, radius 10 px, skygger).
+
+## Undermenu og vægmål (16-11-2026)
+- PolyPlans 3D-punkt kan foldes sammen med pilen. Rundvisninger, Delt med forsikringer og Arkiv vises for den valgte afdeling; den indre sidebar er skjult i indlejret visning.
+- Indstillinger åbner som eksisterende dialog via undermenuen, kun for IT-support (`super_admin`). Eksisterende optagelsesstandarder og backendrettigheder er ikke ændret.
+- Mål har Gulv og Væg / lodret. På væg fastlægger første klik ved gulv/sokkel dybden; derefter måles start/slut (afstand/højde) eller polygonhjørner (areal). Klik over horisonten accepteres efter referencen.
+- Nye vægmål bruger `surface: wall`; ældre gulv-/højdemål ændres ikke. Aktiv viewer og eksport-bundle anvender samme kerne og regressionstests.
+- Resultater er skøn, ikke certificerede mål: afhænger af kamerahøjde, kamera i vater og en væg vinkelret på referencens retning. En forkert reference eller skrå væg kan stadig give betydelige fejl.
+- Browserfixture ved 1641×960 og 390×844: kendt vindue 1,20×1,10 m giver 1,20 m afstand, 1,10 m højde og 1,32 m² areal. Ekstern unmanaged Supabase tillader ikke brugerens autentificerede E2E her; ingen deploy.

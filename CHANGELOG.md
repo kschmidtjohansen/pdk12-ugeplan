@@ -1,3 +1,9 @@
+## 2026-11-16 – 3D undermenu, vægafstand, højde og areal
+- Foldbar 3D-undermenu i PolyPlan med Rundvisninger, Delt med forsikringer, Arkiv og IT-indstillinger i eksisterende dialog; indre sidebar skjult. Same-origin/source-valideret navigation bevarer rundvisningslinks og filtrerer lister til PolyPlans valgte afdeling.
+- Aktiv viewer og eksport-bundle bruger samme målekerne: sokkelreference efterfulgt af reelle endepunkter på lodret plan, eller polygonhjørner for vægareal. Højdemål på nye vinduer lægger ikke kamerahøjden til karmens position. Ældre gemte mål er uændrede.
+- 18 tests og målrettet lint bestået; browserfixture på desktop/mobil giver 1,10 m højde, 1,20 m bredde og 1,32 m² for kendt vindue. Ingen script-/previewfejl. Reelle brugerdata kan ikke E2E-testes med ekstern unmanaged Supabase; ingen SQL/backendændring eller deploy.
+- Målinger er stadig estimater afhængige af korrekt kamerahøjde, sokkelreference og vægretning; ingen garanti om fotografisk målenøjagtighed.
+
 ## 2026-11-13 – UI-runde 1: rækkehandlinger, ens listesider og kompakt visning
 - Rækkehandlinger: Medarbejdere, Biler, Admin-brugere, Lager og ugeplanens opgavekort viser den primære handling og samler resten i en "…"-menu (fælles RowActions). Slet ligger kun i menuen, adskilt og rød. Fridage har en roligere redigér-knap. Mobilkort er uændrede.
 - Listesider: afdeling som eyebrow og antal ("12 i alt" / "3 af 12") i sidehovedet; filterlinjen (status, søgning, ekstra filtre, resultat, ryd filtre) er én kompakt række, også på Lager. Valgfri kompakt visning af tabelrækker huskes pr. browser (localStorage, kun præsentation).
