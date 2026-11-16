@@ -11,6 +11,7 @@ vi.mock('@/hooks/vacation/useVacationRequestsStatus', () => ({ useVacationReques
 vi.mock('@/context/UnreadMessagesContext', () => ({ useUnreadMessagesContext: () => ({ totalUnread: 0 }) }));
 vi.mock('@/hooks/useScanAccess', () => ({ useScanAccess: () => true, SCANS_ROUTE: '/3d-scanninger' }));
 vi.mock('./NavComponents/DepartmentSwitcherPill', () => ({ default: () => null }));
+vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
 describe('3D submenu interaction', () => {
   it('can be collapsed manually while staying on a 3D page, and reopened with the arrow', () => {
