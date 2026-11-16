@@ -29,6 +29,7 @@ import VacationCleanupHandler from '@/components/Vacation/VacationCleanupHandler
 import { supabase } from '@/integrations/supabase/client';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import PageHeader from '@/components/Layout/PageHeader';
+import ScansPage from './ScansPage';
 
 const AdminPage: React.FC = () => {
   const { user, loading, isDemoMode, demoRole } = useAuth();
@@ -132,6 +133,8 @@ const AdminPage: React.FC = () => {
           <TabsContent value="users" className="animate-fade-in">
             <UserManagement />
           </TabsContent>
+
+          {isSuperAdmin && <TabsContent value="scans"><ScansPage adminSettings /></TabsContent>}
 
           {isSuperAdmin && (
             <TabsContent value="departments" className="animate-fade-in">

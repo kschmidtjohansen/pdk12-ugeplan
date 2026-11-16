@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 import { PRODUCT_NAME } from '@/config/product';
 import DepartmentSwitcherPill from './NavComponents/DepartmentSwitcherPill';
 import { useScanAccess, SCANS_ROUTE } from '@/hooks/useScanAccess';
-import { canOpenScanSettings, scanSectionFromSearch } from '@/lib/scansNavigation';
+import { scanSectionFromSearch } from '@/lib/scansNavigation';
 
 interface NavItem {
   path: string;
@@ -41,7 +41,7 @@ interface NavItem {
 
 const AppSidebar: React.FC = () => {
   const { t } = useTranslation();
-  const { isEffectiveAdmin, canViewDuty, canViewWarehouse, user } = useAuth();
+  const { isEffectiveAdmin, canViewDuty, canViewWarehouse } = useAuth();
   const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
   const { totalUnread } = useUnreadMessagesContext();
@@ -169,7 +169,6 @@ const AppSidebar: React.FC = () => {
                   {scansOpen && !collapsed && <SidebarMenuSub id="scans-submenu">
                     {([
                       ['tours', 'Rundvisninger'], ['shares', 'Delt med forsikringer'], ['archive', 'Arkiv'],
-                      ...(canOpenScanSettings(user?.role) ? [['settings', 'Indstillinger']] : []),
                     ]).map(([section, label]) => (
                       <SidebarMenuSubItem key={section}>
                         <SidebarMenuSubButton asChild isActive={onScans && scanSection === section} className="min-h-11 h-auto py-2">
