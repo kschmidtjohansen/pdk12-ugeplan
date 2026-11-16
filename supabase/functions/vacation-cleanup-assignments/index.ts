@@ -76,11 +76,12 @@ serve(async (req) => {
     let partialEndTime: string | null = null;
     let reason: Reason = "approved_vacation";
     let vacationId: string | null = null;
+    let vacationDeptId: string | null = null;
 
     if (body.vacationId) {
       const { data: vacation, error: vacErr } = await admin
         .from("vacations")
-        .select("id, user_id, start_date, end_date, start_time, end_time, status, request_type")
+        .select("id, user_id, department_id, start_date, end_date, start_time, end_time, status, request_type")
         .eq("id", body.vacationId)
         .maybeSingle();
       if (vacErr) throw vacErr;
@@ -103,6 +104,7 @@ serve(async (req) => {
       partialStartTime = vacation.start_time;
       partialEndTime = vacation.end_time;
       vacationId = vacation.id;
+      vacationDeptId = (vacation as { department_id?: string | null }).department_id ?? null;
     } else if (body.userId && body.startDate && body.endDate) {
       userId = body.userId;
       startDate = body.startDate;
@@ -133,6 +135,12 @@ serve(async (req) => {
         const home = (targetProfile as { home_department_id?: string } | null)?.home_department_id;
         if (home) targetDepts.push(home);
         allowed = targetDepts.some((d) => callerDepts.has(d));
+      }
+      // Approvers with the approve_vacations permission (role or personal grant)
+      // may clean up after approving a vacation in a department they can access.
+      if (!allowed && reason === "approved_vacation" && vacationDeptId) {
+        const { data: canReview } = await userClient.rpc("can_review_vacations", { _department_id: vacationDeptId });
+        allowed = canReview === true;
       }
       if (!allowed) {
         return new Response(

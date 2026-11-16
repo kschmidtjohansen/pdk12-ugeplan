@@ -146,7 +146,7 @@ export const AssignmentActionButtons: React.FC<AssignmentActionButtonsProps> = (
               {isDeleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <MoreHorizontal className="h-3.5 w-3.5" />}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-44">
+          <DropdownMenuContent align="end" className="min-w-44" onClick={(e) => e.stopPropagation()}>
             {canEdit && (
               <DropdownMenuItem onSelect={handleCopyClick} className="cursor-pointer gap-2">
                 <Copy className="h-4 w-4 text-muted-foreground" />{t('planner.copyAssignment')}
