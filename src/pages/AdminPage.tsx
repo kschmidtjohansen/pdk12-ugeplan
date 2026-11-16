@@ -128,6 +128,7 @@ const AdminPage: React.FC = () => {
                 {currentLanguage === 'en' ? 'Operations' : 'Driftscenter'}
               </TabsTrigger>
             )}
+            {isSuperAdmin && <TabsTrigger value="scans" className="gap-2"><Layers className="h-4 w-4" />3D-scanninger</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="users" className="animate-fade-in">
