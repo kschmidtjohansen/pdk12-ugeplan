@@ -1,4 +1,9 @@
 # PolyPlan v1.4.1
+## 3D Admin, vagtdelte afdelinger og billedreference
+- [ ] Flyt 3D-indstillinger til selvstændig IT-fane i Admin.
+- [ ] Afdelingsvalg direkte i 3D: aktiv afdeling først, vagtpartnere eller alle for IT.
+- [ ] Genbrug gulvreference pr. billede mellem højde, afstand og areal; rød førstegangsbesked og Skift væg.
+- [ ] Regressionstests og mobil-/desktopkontrol uden publicering.
 ## 3D undermenu og vægmål
 - [x] Foldbar PolyPlan-undermenu, skjult indre menu og IT-indstillinger som dialog.
 - [x] Aktiv og eksporteret måling af vægafstand, vindueshøjde og vægareal med sokkelreference.
