@@ -2768,3 +2768,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-11-16
 - Added app-wide SwapOfferGate in AppShell: incoming duty swap offers show a blocking dialog on every page until accepted/declined.
+
+## 3D: Vægmål (2026-11-16)
+- Nyt "Væg"-værktøj i Mål-panelet: klik ved fodpanel (reference), derefter to punkter på væggen; afstanden beregnes på det lodrette vægplan (bredde, højde eller skråt).
