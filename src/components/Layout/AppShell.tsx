@@ -7,6 +7,7 @@ import { applyColorScheme, getStoredColorScheme } from '@/hooks/useColorScheme';
 import AssignmentDetailsDialog from '@/components/Planner/AssignmentDetailsDialog';
 import CommandPalette from './CommandPalette';
 import { UnreadMessagesProvider } from '@/context/UnreadMessagesContext';
+import { SwapOfferGate } from '@/components/Duty/SwapOfferGate';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -44,6 +45,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           <MobileBottomNav />
           <AssignmentDetailsDialog />
           <CommandPalette />
+          <SwapOfferGate />
         </SidebarProvider>
       </UnreadMessagesProvider>
     </>

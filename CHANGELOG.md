@@ -2765,3 +2765,6 @@ Stort visuelt overhaul mod et roligt, premium "Apple/Arc"-look. Funktionalitet u
 
 ## 2026-11-13
 - Fix: 3D-scanninger lukkede efter login. Den indlejrede 3D-ramme fornyer ikke længere selv login-sessionen (PolyPlan ejer fornyelsen), AuthContext nulstiller ikke brugerdata ved gentaget SIGNED_IN for samme bruger, og useScanAccessState viser "indlæser" i stedet for "ingen adgang" mens brugerdata hentes.
+
+## 2026-11-16
+- Added app-wide SwapOfferGate in AppShell: incoming duty swap offers show a blocking dialog on every page until accepted/declined.
