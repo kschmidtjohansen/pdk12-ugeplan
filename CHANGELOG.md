@@ -1,3 +1,10 @@
+## 2026-11-16 – Admin-fane, afdelingsskift og gulvreference pr. billede
+- Flyttet indstillingsformularen til selvstændig IT-fane i Admin. Indstillinger fjernet fra 3D-undermenuen; formularen genbruger eksisterende config/storage med bevarelse af øvrige configfelter.
+- Lokalt afdelingsvalg direkte over 3D-visningen: aktiv afdeling som standard, vagtpartnere for medarbejdere og alle afdelinger for IT-support. Globalt PolyPlan-afdelingsvalg ændres ikke. Eksisterende afdelingsmærker bevares.
+- Scene-keyed gulvreferencer genbruges på tværs af højde, bredde og areal. Rød førstegangsbesked, Skift væg og gemt reference for redigerbare scener. Hver måling indeholder en uafhængig reference; aktiv og eksporteret viewer-core forbliver identiske.
+- 25 tests, målrettet lint og scriptsyntax OK. Browserfixtures 1641×960/390×844: afdelingsskift, inline Admin-formular/gemning, rød besked og genbrug giver 1,10 m/1,20 m/1,32 m². Fixtures er ikke indlogget live E2E; ekstern unmanaged session utilgængelig.
+- Ingen publicering, migration eller backendændringer. Eksisterende p360-politikker er rollebaserede, ikke afdelingsisolerede; UI-valgmuligheder er ikke en ny server-sikkerhedsgrænse.
+
 ## 2026-11-16 – 3D undermenu, vægafstand, højde og areal
 - Foldbar 3D-undermenu i PolyPlan med Rundvisninger, Delt med forsikringer, Arkiv og IT-indstillinger i eksisterende dialog; indre sidebar skjult. Same-origin/source-valideret navigation bevarer rundvisningslinks og filtrerer lister til PolyPlans valgte afdeling.
 - Aktiv viewer og eksport-bundle bruger samme målekerne: sokkelreference efterfulgt af reelle endepunkter på lodret plan, eller polygonhjørner for vægareal. Højdemål på nye vinduer lægger ikke kamerahøjden til karmens position. Ældre gemte mål er uændrede.

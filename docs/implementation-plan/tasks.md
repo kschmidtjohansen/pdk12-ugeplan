@@ -1,3 +1,10 @@
+## 3D Admin og billedreference (2026-11-16)
+- [x] Selvstændig IT-fane i Admin med eksisterende indstillinger; fjernet fra 3D-undermenuen.
+- [x] Lokalt afdelingsvalg i 3D, aktiv afdeling først; vagtpartnere eller alle afdelinger for IT-support.
+- [x] Rød gulvreferencebesked, reference pr. scene og genbrug mellem højde/afstand/areal; Skift væg nulstiller kun aktivt billede.
+- [x] 25 regressionstests og desktop-/mobilfixtures: målinger, afdelingsskift, inline indstillinger og gemning.
+- [ ] Indlogget afprøvning med rigtige sager og indstillingsgemning — ekstern unmanaged Supabase-session utilgængelig.
+
 ## 3D undermenu og vægmål (2026-11-16)
 - [x] Foldbar PolyPlan-undermenu og skjult indre menu; afdelingsafgrænsning og IT-indstillinger i dialog.
 - [x] Vægafstand, vindueshøjde og vægareal med sokkelreference i aktiv viewer og eksport; ældre mål bevares.

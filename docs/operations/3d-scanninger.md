@@ -255,8 +255,11 @@ Dette findes i "Ret hjørner".
 
 ## Undermenu og vægmål (16-11-2026)
 - PolyPlans 3D-punkt kan foldes sammen med pilen. Rundvisninger, Delt med forsikringer og Arkiv vises for den valgte afdeling; den indre sidebar er skjult i indlejret visning.
-- Indstillinger åbner som eksisterende dialog via undermenuen, kun for IT-support (`super_admin`). Eksisterende optagelsesstandarder og backendrettigheder er ikke ændret.
+- Indstillinger ligger nu i en selvstændig Admin → 3D-scanninger-fane, kun synlig for IT-support (`super_admin`); eksisterende formular vises inline i en separat embedded ramme. 3D-undermenuen indeholder kun Rundvisninger, Delt med forsikringer og Arkiv.
 - Mål har Gulv og Væg / lodret. På væg fastlægger første klik ved gulv/sokkel dybden; derefter måles start/slut (afstand/højde) eller polygonhjørner (areal). Klik over horisonten accepteres efter referencen.
 - Nye vægmål bruger `surface: wall`; ældre gulv-/højdemål ændres ikke. Aktiv viewer og eksport-bundle anvender samme kerne og regressionstests.
 - Resultater er skøn, ikke certificerede mål: afhænger af kamerahøjde, kamera i vater og en væg vinkelret på referencens retning. En forkert reference eller skrå væg kan stadig give betydelige fejl.
+- Gulvreference genbruges pr. billede mellem Højde, Afstand og Areal. Rød besked vises når billedet mangler reference; Skift væg nulstiller den aktive reference, ikke tidligere mål. Redigér gemmer `scene.wallReference`; i visningstilstand er referenceændringer lokale for rundvisningens aktuelle visning. Et nyt billede bruger kun sin egen reference, og tilbagevenden henter det pågældende billedes tidligere reference.
+- Afdelingsvælgeren i 3D starter på PolyPlans aktive afdeling og ændrer ikke afdeling i resten af PolyPlan. IT-support får alle afdelinger; andre får aktiv afdeling og `shared_duty_departments`-partnere. Eksisterende afdelingsmærker i rundvisningslisten bevares.
+- Live læseaudit: `p360_tours`/`p360_scenes` bruger eksisterende staff/editor-politikker uden afdelingsafgrænsning; denne ændring indsnævrer kun de tilbudte valg, indfører ingen RLS-lempelse og hævder ikke serverbaseret afdelingsisolering. Config-write bruger eksisterende p360-admin-politik; Admin-fanens IT-begrænsning er UI-adgang, ikke ny serverregel.
 - Browserfixture ved 1641×960 og 390×844: kendt vindue 1,20×1,10 m giver 1,20 m afstand, 1,10 m højde og 1,32 m² areal. Ekstern unmanaged Supabase tillader ikke brugerens autentificerede E2E her; ingen deploy.
