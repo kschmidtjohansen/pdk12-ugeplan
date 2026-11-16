@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Rotate3d } from 'lucide-react';
 import { useScanAccessState, SCANS_URL } from '@/hooks/useScanAccess';
+import { useLocation } from 'react-router-dom';
+import { useDepartment } from '@/context/DepartmentContext';
+import { scanSectionFromSearch } from '@/lib/scansNavigation';
 
 /**
  * 3D-scanninger as a part of PolyPlan: PolyPlan's menu, top bar, login and light/dark stay around it, and the
@@ -10,6 +13,13 @@ import { useScanAccessState, SCANS_URL } from '@/hooks/useScanAccess';
 const ScansPage: React.FC = () => {
   const access = useScanAccessState();
   const frame = useRef<HTMLIFrameElement>(null);
+  const location = useLocation();
+  const { selectedDepartment } = useDepartment();
+  const section = scanSectionFromSearch(location.search);
+  const sendNavigation = () => frame.current?.contentWindow?.postMessage({ type: 'p360:navigate', section, department: selectedDepartment ? { id: selectedDepartment.id, name: selectedDepartment.name } : null }, window.location.origin);
+  const navigationRef = useRef(sendNavigation);
+  navigationRef.current = sendNavigation;
+  useEffect(() => { navigationRef.current(); }, [section, selectedDepartment]);
   // the address at the time the page opened decides which tour the frame starts on
   const [src] = useState(() => `${SCANS_URL}?embed=1${window.location.hash}`);
 
@@ -17,8 +27,9 @@ const ScansPage: React.FC = () => {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin || e.source !== frame.current?.contentWindow) return;
       const d = e.data as { type?: unknown; hash?: unknown } | null;
+      if (d?.type === 'p360:ready') { navigationRef.current(); return; }
       if (!d || d.type !== 'p360:hash' || typeof d.hash !== 'string' || !/^(#[\w-]*)?$/.test(d.hash)) return;
-      if (d.hash !== window.location.hash) window.history.replaceState(window.history.state, '', window.location.pathname + d.hash);
+      if (d.hash !== window.location.hash) window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search + d.hash);
     };
     // back/forward or an edited address: tell the frame which tour to show
     const onHash = () => frame.current?.contentWindow?.postMessage({ type: 'p360:go', hash: window.location.hash }, window.location.origin);
@@ -45,6 +56,7 @@ const ScansPage: React.FC = () => {
       <iframe
         ref={frame}
         src={src}
+        onLoad={() => navigationRef.current()}
         title="3D-scanninger"
         className="block h-full w-full border-0 bg-background"
         allow="fullscreen; xr-spatial-tracking; gyroscope; accelerometer"

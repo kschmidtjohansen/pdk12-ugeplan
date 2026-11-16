@@ -10,9 +10,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuAction,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Clock, Users, Car, Calendar, Shield, Package, Settings, Rotate3d } from 'lucide-react';
+import { LayoutDashboard, Clock, Users, Car, Calendar, Shield, Package, Settings, Rotate3d, ChevronDown } from 'lucide-react';
 import PolyPlanBrand from '@/components/branding/PolyPlanBrand';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -23,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { PRODUCT_NAME } from '@/config/product';
 import DepartmentSwitcherPill from './NavComponents/DepartmentSwitcherPill';
 import { useScanAccess, SCANS_ROUTE } from '@/hooks/useScanAccess';
+import { canOpenScanSettings, scanSectionFromSearch } from '@/lib/scansNavigation';
 
 interface NavItem {
   path: string;
@@ -36,7 +41,7 @@ interface NavItem {
 
 const AppSidebar: React.FC = () => {
   const { t } = useTranslation();
-  const { isEffectiveAdmin, canViewDuty, canViewWarehouse } = useAuth();
+  const { isEffectiveAdmin, canViewDuty, canViewWarehouse, user } = useAuth();
   const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
   const { totalUnread } = useUnreadMessagesContext();
@@ -44,6 +49,10 @@ const AppSidebar: React.FC = () => {
   const location = useLocation();
   const collapsed = state === 'collapsed' && !isMobile;
   const canSeeScans = useScanAccess();
+  const onScans = location.pathname === SCANS_ROUTE;
+  const [scansOpen, setScansOpen] = React.useState(onScans);
+  React.useEffect(() => { if (onScans) setScansOpen(true); }, [onScans]);
+  const scanSection = scanSectionFromSearch(location.search);
 
   const closeMobile = () => { if (isMobile) setOpenMobile(false); };
 
@@ -147,7 +156,30 @@ const AppSidebar: React.FC = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map(renderItem)}
-              {canSeeScans && renderItem({ path: SCANS_ROUTE, label: '3D-scanninger', icon: Rotate3d })}
+              {canSeeScans && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={onScans} tooltip="3D-scanninger" className="h-11 text-sm font-medium">
+                    <Link to={SCANS_ROUTE} onClick={() => { setScansOpen(true); closeMobile(); }}>
+                      <Rotate3d className="h-[18px] w-[18px] shrink-0" /><span>3D-scanninger</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  <SidebarMenuAction onClick={() => setScansOpen(open => !open)} aria-label={scansOpen ? 'Fold 3D-scanninger sammen' : 'Fold 3D-scanninger ud'} aria-expanded={scansOpen} aria-controls="scans-submenu" className="top-2 h-7 w-7">
+                    <ChevronDown className={cn('transition-transform motion-reduce:transition-none', !scansOpen && '-rotate-90')} />
+                  </SidebarMenuAction>
+                  {scansOpen && !collapsed && <SidebarMenuSub id="scans-submenu">
+                    {([
+                      ['tours', 'Rundvisninger'], ['shares', 'Delt med forsikringer'], ['archive', 'Arkiv'],
+                      ...(canOpenScanSettings(user?.role) ? [['settings', 'Indstillinger']] : []),
+                    ]).map(([section, label]) => (
+                      <SidebarMenuSubItem key={section}>
+                        <SidebarMenuSubButton asChild isActive={onScans && scanSection === section} className="min-h-11 h-auto py-2">
+                          <Link to={`${SCANS_ROUTE}?view=${section}`} onClick={closeMobile}><span className="whitespace-normal">{label}</span></Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>}
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
