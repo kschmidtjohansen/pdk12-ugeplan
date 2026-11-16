@@ -10,7 +10,7 @@ interface Measurement { t: string; surface?: string; p: Point[] }
 interface Core {
   measure: (m: Measurement, height: number) => { len: number; area?: number };
   wall3: (base: Point, point: Point, height: number) => number[] | null;
-  Player: { prototype: { _measureTap: (this: unknown, p: Point, x: number, y: number) => void } };
+  Player: { prototype: { _measureTap: (this: unknown, p: Point, x: number, y: number) => void; wallReference: (this: unknown) => Point | null; resetWallReference: (this: unknown) => void } };
 }
 function load(source: string): Core {
   const window = { P360: {} };
@@ -43,9 +43,28 @@ describe.each([['active', core], ['export', bundle.js]])('%s 360 wall measuremen
   });
   it('accepts above-horizon endpoint clicks after the reference, committing only after three clicks', () => {
     let committed = 0;
-    const player = { tool: 'height', measureSurface: 'wall', draft: null, camH: () => 1.5, toast: () => { throw new Error('Valid wall click rejected'); }, _commit: () => { committed++; }, _renderPanel: () => {}, dirty: false };
+    const player = { tool: 'height', measureSurface: 'wall', draft: null, wallReference: () => null, camH: () => 1.5, toast: () => { throw new Error('Valid wall click rejected'); }, _commit: () => { committed++; }, _renderPanel: () => {}, dirty: false };
     const tap = (p: Point) => api.Player.prototype._measureTap.call(player, p, 0, 0);
     tap(base); tap(ray(0, 0.9)); expect(committed).toBe(0);
     tap(ray(0, 2)); expect(committed).toBe(1);
+  });
+  it('reuses the same image reference for two-click height and width and wall area', () => {
+    const player = { scene: { id: 'one' }, wallRefs: {} as Record<string, Point | false>, tool: 'height', measureSurface: 'wall', draft: null as Measurement | null, wallReference: api.Player.prototype.wallReference, ypToScreen: () => null, camH: () => 1.5, toast: () => { throw new Error('Valid click rejected'); }, _renderPanel: () => {}, dirty: false, _commit() { this.draft = null; committed++; } };
+    let committed = 0;
+    const tap = (p: Point) => api.Player.prototype._measureTap.call(player, p, 0, 0);
+    tap(base); tap(ray(0, 0.9)); tap(ray(0, 2));
+    expect(committed).toBe(1);
+    player.tool = 'dist'; tap(ray(-0.6, 2)); tap(ray(0.6, 2));
+    expect(committed).toBe(2);
+    player.tool = 'area'; tap(ray(-0.6, 0.9)); tap(ray(0.6, 0.9)); tap(ray(0.6, 2)); tap(ray(-0.6, 2));
+    expect(player.draft?.p).toHaveLength(5);
+    expect(api.measure(player.draft as Measurement, 1.5).area).toBeCloseTo(1.32, 8);
+    player.scene = { id: 'two' }; expect(player.wallReference()).toBeNull();
+    player.scene = { id: 'one' }; expect(player.wallReference()).toEqual(base);
+    api.Player.prototype.resetWallReference.call(player); expect(player.wallReference()).toBeNull();
+  });
+  it('loads a saved reference only from the current image', () => {
+    expect(api.Player.prototype.wallReference.call({ scene: { id: 'one', wallReference: base } })).toEqual(base);
+    expect(api.Player.prototype.wallReference.call({ scene: { id: 'two' }, wallRefs: { one: base } })).toBeNull();
   });
 });
