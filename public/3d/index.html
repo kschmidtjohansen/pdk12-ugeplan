@@ -2873,8 +2873,13 @@ A.navigate = async data => {
   const dept = data.department && S.depts.find(d => d.id === data.department.id || deptMatches(d.name, data.department.name));
   if (!dept) return; // Never fall back to all departments when PolyPlan has no selected/matched department.
   const section = data.section;
+  const key = section + ':' + dept.id;
+  if (S.hostNavigation === key) return;
+  const first = !S.hostNavigation;
+  S.hostNavigation = key;
   S.hostDept = dept.id;
-  if (section === 'settings') { if (S.store.isIT && !document.querySelector('.modal-bg')) settingsDialog(); return; }
+  if (section === 'settings') { if (S.store.isIT && !document.querySelector('.md-back')) settingsDialog(); return; }
+  if (first && section === 'tours' && /^#t-/.test(location.hash)) return;
   A.closeSheet();
   setView({ kind: section === 'shares' ? 'shares' : section === 'archive' ? 'archive' : 'dept', dept: dept.id });
 };
@@ -3002,6 +3007,11 @@ async function renderShares(inner) {
   const wrap = h('div', { class: 'tbl-wrap' }, h('p', { class: 'hint', style: { padding: '16px' }, text: 'Henter…' })); inner.append(wrap);
   inner.insertBefore(h('p', { class: 'hint', style: { marginTop: '10px' }, text: 'Alle links og visningsfiler sendt til forsikringsselskaber, nyeste først. Adgangskoder gemmes aldrig.' }), wrap);
   let rows = []; try { rows = await S.store.listShares(); } catch (e) {}
+  if (A.EMBED) {
+    const tours = await S.store.allTours().catch(() => []);
+    const ids = new Set(tours.filter(t => t.dept === S.hostDept).map(t => t.id));
+    rows = rows.filter(r => ids.has(r.tour));
+  }
   if (!wrap.isConnected) return; wrap.textContent = '';
   if (!rows.length) { wrap.append(h('p', { class: 'hint', style: { padding: '16px' }, text: 'Intet delt endnu. Åbn en rundvisning og vælg Del.' })); return; }
   let names = {}; const user = S.store.caps && S.store.caps.user; if (user) { try { names = await user.profiles(rows.map(r => r.by).filter(Boolean)); } catch (e) {} }
