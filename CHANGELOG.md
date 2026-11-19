@@ -1,3 +1,9 @@
+## 2026-11-19 – 3D: Polygon-brand på delte links
+- Delte links og filer til forsikringen åbner med et velkomstkort: logo, adresse, sagsnr., skadenr., modtager, dato for billederne og udløbsdato, og en "Start rundvisning"-knap.
+- "Leveret af Polygon A/S · Gyldigt til …" under titlen, adressen i browserfanen og logoet på stillbilleder.
+- Rettet en gammel tekst om at logge ind på Claude på links, der ikke virker.
+- Kun `public/3d/index.html`. Ingen backend og intet om Encircle.
+
 ## 2026-11-19 – 3D-runde 1: plantegning med rumliste, døre, vinduer, møbler, udskrift og links på markeringer
 - Plantegningen i 3D-scanninger er slået til igen (efter Kaspers valg). Ved plantegningen står en rumliste med mål og areal, etagens og husets samlede areal, og et klik på et rum åbner det.
 - "Udskriv eller gem som PDF" laver en side pr. etage med plantegning og rumliste. Vægmål står langs væggen; små rum viser kun navn og areal.

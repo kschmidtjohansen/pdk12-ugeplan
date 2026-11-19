@@ -278,3 +278,13 @@ Dette findes i "Ret hjørner".
 - **Link på markeringer:** en markering kan have et valgfrit link. Kun `https://` og `http://` bliver til links; `javascript:`, `data:` og andre adresser vises aldrig som link. Linket åbner i en ny fane (`noopener`) og står også i CSV-eksporten.
 - **Lovables ændringer** fra 13.–16. november (vægmål, indlejret visning, værktøjsknapper til markering og sløring) er flettet ind i kilden, før ændringerne blev bygget.
 - **Tests:** `test/round1.mjs` (9 tjek) og de eksisterende pakker (plan2, polyplan, lidar, archive, embed) er grønne. Testene, der tidligere krævede, at plantegningen var væk, tjekker nu, at den er der.
+
+## Polygon-brand på delte links (19-11-2026)
+
+- **Velkomstkort:** et delt link åbner med et kort med firmaets logo, "360°-rundvisning fra Polygon A/S", adressen, rundvisningens titel, sagsnr., skadenr., hvem linket er til (forsikringsselskab og skadebehandler fra delingsdialogen), datoen for billederne, antal scener og hvornår linket udløber. "Start rundvisning" (fokus fra start, Enter eller Esc) lukker kortet. Filer til forsikringen (offline) får samme kort uden udløbsdato.
+- **Linje i hovedet:** "Leveret af Polygon A/S · Gyldigt til …" under titlen på delte links. Skjult på telefon.
+- **Fanetitel:** adressen og firmanavnet, fx "Skovvej 12, 6000 Kolding · Polygon A/S".
+- **Logo på stillbilleder:** billeder taget med kamera-knappen får logoet på et hvidt kort i nederste højre hjørne ved siden af den eksisterende billedtekst.
+- **Hvem linket er til** gemmes nu i linkets kopi (`to`, `toContact`). Ældre links får det, næste gang rundvisningen gemmes; indtil da vises forsikringsselskabet fra rundvisningen.
+- **Rettet tekst:** et link, der ikke virker, siger ikke længere "log ind på Claude", men beder om at kontakte Polygon for et nyt link.
+- Kun 3D-appen. Logo, firmanavn og accentfarve kommer fra de eksisterende 3D-indstillinger (`p360_config`). Ingen ændringer i database, p360-link eller Encircle.
