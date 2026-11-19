@@ -1,3 +1,8 @@
+## 2026-11-19 – Deldagsfravær i ikke-tildelte ressourcer
+- Medarbejdernes fraværsbadges viser nu klokkeslæt og urikon ved godkendt deldagsfravær, fx 13:00–16:00 eller 14:30–15:00, for den valgte ressourcedato. Flere perioder for samme medarbejder bevares.
+- Fælles lokal-dato-/tidsformatering med dagsrækkens fravær; tooltip viser eksisterende fraværsstatus. Ingen ændringer i booking, rettigheder, data-hooks eller Supabase.
+- Regressionstests dækker perioder, valgt dato, godkendelsesstatus og heldagsfravær. Indlogget kontrol med rigtige medarbejdere er utilgængelig med ekstern unmanaged Supabase.
+
 ## 2026-11-16 – Admin-fane, afdelingsskift og gulvreference pr. billede
 - Flyttet indstillingsformularen til selvstændig IT-fane i Admin. Indstillinger fjernet fra 3D-undermenuen; formularen genbruger eksisterende config/storage med bevarelse af øvrige configfelter.
 - Lokalt afdelingsvalg direkte over 3D-visningen: aktiv afdeling som standard, vagtpartnere for medarbejdere og alle afdelinger for IT-support. Globalt PolyPlan-afdelingsvalg ændres ikke. Eksisterende afdelingsmærker bevares.

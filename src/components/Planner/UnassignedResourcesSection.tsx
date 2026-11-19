@@ -17,6 +17,7 @@ import { da } from 'date-fns/locale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { buildFirstNameResolver } from '@/utils/people';
 import EmployeeContactActions from '@/components/Shared/EmployeeContactActions';
+import { approvedAbsencesOnDate, partialAbsencePeriod } from '@/utils/plannerAbsence';
 
 const AvailabilityDetails: React.FC<{ emp: Employee & { availabilityInfo?: { status: string; statusText?: string } }; date: string; assignments: Assignment[]; da: boolean }> = ({ emp, date, assignments, da }) => {
   if (emp.availabilityInfo?.status !== 'partiallyBooked') {
@@ -100,6 +101,14 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
 
   const targetDate = selectedDate;
   const targetDateObj = parseISO(targetDate);
+  const absencePeriods = useMemo(() => {
+    const byEmployee = new Map<string, string[]>();
+    for (const absence of approvedAbsencesOnDate(vacations, targetDate)) {
+      const period = partialAbsencePeriod(absence);
+      if (period) byEmployee.set(absence.user_id, [...(byEmployee.get(absence.user_id) ?? []), period]);
+    }
+    return byEmployee;
+  }, [vacations, targetDate]);
   const { trainingIds, trainingInfo } = useActiveTrainingsForDate(targetDate);
   // Sick employees for the selected date. Non-privileged roles only get the
   // ids (no reason), so the badge falls back to a neutral "Fraværende".
@@ -579,12 +588,18 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
                               className="text-xs bg-warning-soft border-warning/30 text-warning-soft-foreground cursor-default"
                             >
                               {displayFirstName(employee.name)}
+                              {absencePeriods.has(employee.id) && (
+                                <>
+                                  <Clock className="h-3 w-3 ml-1 mr-1 shrink-0" aria-hidden="true" />
+                                  <span>({absencePeriods.get(employee.id)?.join(', ')})</span>
+                                </>
+                              )}
                             </Badge>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="font-medium">{employee.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              {employee.availabilityInfo?.text || t('employees.lockedReasonAbsent')}
+                              {employee.availabilityInfo?.statusText || t('employees.lockedReasonAbsent')}
                             </p>
                             <EmployeeContactActions phone={employee.phone} name={employee.name} size="sm" className="mt-1" />
                           </TooltipContent>

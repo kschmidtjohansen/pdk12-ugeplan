@@ -1,3 +1,7 @@
+## Deldagsfravær i ikke-tildelte ressourcer (2026-11-19)
+- [x] Vis klokkeslæt ved godkendt deldagsfravær på den valgte dato med samme oplysninger som dagsrækken.
+- [x] Bevar flere fraværsperioder og eksisterende booking-/adgangsregler; tilføj regressionstests.
+
 ## 3D Admin og billedreference (2026-11-16)
 - [x] Selvstændig IT-fane i Admin med eksisterende indstillinger; fjernet fra 3D-undermenuen.
 - [x] Lokalt afdelingsvalg i 3D, aktiv afdeling først; vagtpartnere eller alle afdelinger for IT-support.

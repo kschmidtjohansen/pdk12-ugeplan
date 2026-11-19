@@ -1,4 +1,7 @@
 # PolyPlan v1.4.1
+## Klokkeslæt i ikke-tildelte ressourcer
+- [x] Vis godkendte deldagsfraværsperioder ved medarbejderne på den valgte dato; 15 målrettede tests bestået og preview build OK.
+- [ ] Kontrol med rigtige indloggede medarbejdere — ekstern unmanaged Supabase-session utilgængelig.
 ## 3D Admin, vagtdelte afdelinger og billedreference
 - [x] Flyt 3D-indstillinger til selvstændig IT-fane i Admin.
 - [x] Afdelingsvalg direkte i 3D: aktiv afdeling først, vagtpartnere eller alle for IT.

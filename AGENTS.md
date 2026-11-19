@@ -1,4 +1,5 @@
 # Frontend architecture
+- Planner day rows and unassigned resource absence badges share local-date filtering and partial-period formatting in plannerAbsence, so approved absence times stay consistent without changing booking rules.
 - Car lists and pickers use sortCarsByNumber with BIL-prefix normalization so labels do not move numbered cars onto later pages; stored car numbers remain unchanged.
 - Login effects are scoped to login-workspace; the existing form reports busy state for decoration without changing authentication or workspace visuals.
 - Vacation approval/status changes use the derived approval capability; a database trigger guards status and reviewer fields independently of broader edit/read policies to preserve planning visibility and self-service.

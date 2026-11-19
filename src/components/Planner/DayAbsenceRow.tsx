@@ -5,6 +5,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useSickForDateValue } from '@/hooks/useSickDays';
 import { useTranslation } from '@/context/TranslationContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { approvedAbsencesOnDate, partialAbsencePeriod } from '@/utils/plannerAbsence';
 
 interface DayAbsenceRowProps {
   /** ISO date string (yyyy-MM-dd) for the day to render absences for */
@@ -28,11 +29,7 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
 
   const dayVacations = useMemo(() => {
     if (!Array.isArray(vacations)) return [];
-    return vacations.filter((v) => {
-      if (v.status !== 'approved') return false;
-      // String compare yyyy-MM-dd avoids UTC timezone shifts (per project memory).
-      return dateKey >= v.start_date && dateKey <= v.end_date;
-    });
+    return approvedAbsencesOnDate(vacations, dateKey);
   }, [vacations, dateKey]);
 
   const sickEmployees = useMemo(() => {
@@ -72,10 +69,9 @@ const DayAbsenceRow: React.FC<DayAbsenceRowProps> = ({ dateKey }) => {
         </span>
         {dayVacations.map((v) => {
           const name = resolveName(v.user_id, v.user?.name);
-          // Strip seconds: "08:00:00" → "08:00"
-          const fmt = (t?: string) => (t ? t.slice(0, 5) : '');
-          const isPartial = v.request_type === 'partial_day' && v.start_time && v.end_time;
-          const label = isPartial ? `${name} (${fmt(v.start_time)}–${fmt(v.end_time)})` : name;
+          const period = partialAbsencePeriod(v);
+          const isPartial = Boolean(period);
+          const label = period ? `${name} (${period})` : name;
           return (
             <Tooltip key={v.id}>
               <TooltipTrigger asChild>
