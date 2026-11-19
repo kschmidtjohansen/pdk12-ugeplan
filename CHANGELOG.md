@@ -1,3 +1,11 @@
+## 2026-11-19 – 3D-runde 1: plantegning med rumliste, døre, vinduer, møbler, udskrift og links på markeringer
+- Plantegningen i 3D-scanninger er slået til igen (efter Kaspers valg). Ved plantegningen står en rumliste med mål og areal, etagens og husets samlede areal, og et klik på et rum åbner det.
+- "Udskriv eller gem som PDF" laver en side pr. etage med plantegning og rumliste. Vægmål står langs væggen; små rum viser kun navn og areal.
+- Minikortet viser rummet og etagen. Markeringer kan få et valgfrit link (kun http/https).
+- Plantegningen viser døre (med slagbue), åbninger og vinduer, som AI'en så, samt møbler og hvidevarer (kan slås fra). Vægge har tykkelse, og nabotum, der er fotograferet op til 0,7 m fra hinanden, tegnes væg mod væg uden at gemte placeringer ændres. Rum kan omdøbes fra rumlisten.
+- Lovables 3D-ændringer fra 13.–16. november er flettet ind i kilden først. Alle 3D-testpakker og den nye `round1`-test er grønne.
+- Kun `public/3d/index.html` og dokumentation. Ingen backend, SQL eller deploy.
+
 ## 2026-11-19 – Deldagsfravær i ikke-tildelte ressourcer
 - Medarbejdernes fraværsbadges viser nu klokkeslæt og urikon ved godkendt deldagsfravær, fx 13:00–16:00 eller 14:30–15:00, for den valgte ressourcedato. Flere perioder for samme medarbejder bevares.
 - Fælles lokal-dato-/tidsformatering med dagsrækkens fravær; tooltip viser eksisterende fraværsstatus. Ingen ændringer i booking, rettigheder, data-hooks eller Supabase.
