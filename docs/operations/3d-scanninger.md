@@ -288,3 +288,10 @@ Dette findes i "Ret hjørner".
 - **Hvem linket er til** gemmes nu i linkets kopi (`to`, `toContact`). Ældre links får det, næste gang rundvisningen gemmes; indtil da vises forsikringsselskabet fra rundvisningen.
 - **Rettet tekst:** et link, der ikke virker, siger ikke længere "log ind på Claude", men beder om at kontakte Polygon for et nyt link.
 - Kun 3D-appen. Logo, firmanavn og accentfarve kommer fra de eksisterende 3D-indstillinger (`p360_config`). Ingen ændringer i database, p360-link eller Encircle.
+
+## Billeder, video og statistik på links (19-11-2026)
+- Kameraknappen åbner en menu: **Skærmbillede**, **Billede i Full HD** (1920 px bredt), **Billede i 4K** (3840 px bredt) og **Video af rundvisningen**. Billederne tages i skærmens format med logoet i hjørnet; fremviseren vender tilbage til sin egen størrelse bagefter.
+- Videoen laves i browseren (MP4 i Chrome/Edge/Safari, ellers WebM), 1920 × 1080: et titelkort med logo, adresse og sagsnr., derefter en rolig 360°-drejning i hvert rum i rundvisningens rækkefølge med rummets navn nederst til venstre og logoet nederst til højre. Fanen skal være åben og synlig, mens den optages; "Annullér" stopper uden fil.
+- **Statistik på delte links** (kræver backend, se nedenfor): under Del → Link til forsikring står for hvert link "Åbnet N gange · senest … · i alt … · rum", og "Seneste visninger" viser de sidste 10 med tid, varighed, antal rum og skærmtype (computer, tablet, telefon). Der gemmes ikke IP-adresse, browser eller hvem der kiggede. Visninger fra nogen, der er logget ind, tælles ikke.
+- Fremviseren på et link sender "stadig her" hvert 20. sekund og når fanen skjules. Serveren hæver kun tiden, aldrig ud over tiden siden linket blev åbnet (højst 4 timer), og antal rum højst til linkets antal rum.
+- **Rækkefølge ved udrulning:** 1) kør `supabase/staged/sql/005_p360_link_stats.sql`, 2) deploy `supabase/staged/functions/p360-link`, 3) udgiv `public/3d/index.html`. Siden virker i enhver rækkefølge; uden tabellen tælles der bare ikke. Rollback: `005_p360_link_stats_rollback.sql`.

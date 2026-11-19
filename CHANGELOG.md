@@ -1,3 +1,9 @@
+## 2026-11-19 – 3D-runde 3: billeder i Full HD/4K, video af rundvisningen og statistik på delte links
+- Kameraknappen har nu en menu med skærmbillede, billede i Full HD og 4K og en automatisk video af rundvisningen (titelkort, 360° i hvert rum, rumnavn og logo). Videoen laves i browseren som MP4/WebM i 1920 × 1080.
+- Delte links tæller åbninger, tid, rum og skærmtype uden IP, browser eller navn. Statistikken vises pr. link under Del. Egne visninger som logget ind tælles ikke.
+- Backend er kun forberedt: `supabase/staged/sql/005_p360_link_stats.sql` (+ rollback) og en ny version af `supabase/staged/functions/p360-link`. Intet er kørt eller deployet. SQL'en er testet i en lokal Postgres (rettigheder, grænser, sletning med linket).
+- Nye tests: `round3` (8 tjek) og et statistiktrin i `embed`. Alle 3D-testpakker er grønne.
+
 ## 2026-11-19 – 3D: Polygon-brand på delte links
 - Delte links og filer til forsikringen åbner med et velkomstkort: logo, adresse, sagsnr., skadenr., modtager, dato for billederne og udløbsdato, og en "Start rundvisning"-knap.
 - "Leveret af Polygon A/S · Gyldigt til …" under titlen, adressen i browserfanen og logoet på stillbilleder.
