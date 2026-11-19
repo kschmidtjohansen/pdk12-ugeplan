@@ -19,6 +19,6 @@ drop policy if exists "p360 read link views" on public.p360_link_views;
 drop policy if exists "p360 delete link views" on public.p360_link_views;
 create policy "p360 read link views" on public.p360_link_views for select to authenticated using ((select public.p360_is_staff()));
 create policy "p360 delete link views" on public.p360_link_views for delete to authenticated using ((select public.p360_can_edit()));
-revoke all on table public.p360_link_views from public, anon;
+revoke all on table public.p360_link_views from public, anon, authenticated;
 grant select, delete on table public.p360_link_views to authenticated;
 commit;
