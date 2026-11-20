@@ -20,7 +20,8 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['Inter', 'Inter Fallback', 'system-ui', '-apple-system', 'sans-serif'],
-				mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+				display: ['Schibsted Grotesk', 'Inter', 'Inter Fallback', 'system-ui', 'sans-serif'],
+				mono: ['Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
 			},
 			fontSize: {
 				'xs': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0' }],
@@ -55,7 +56,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					strong: 'hsl(var(--primary-strong))'
 				},
 				brand: {
 					ink: 'hsl(var(--brand-ink))',
@@ -140,6 +142,10 @@ export default {
 				xl: 'calc(var(--radius) + 4px)',
 				'2xl': 'calc(var(--radius) + 8px)',
 				'3xl': 'calc(var(--radius) + 12px)',
+				control: 'var(--facet-radius-control)',
+				card: 'var(--facet-radius-card)',
+				panel: 'var(--facet-radius-panel)',
+				sheet: 'var(--facet-radius-sheet)',
 			},
 			spacing: {
 				'18': '4.5rem',
@@ -154,10 +160,20 @@ export default {
 				'lg': 'var(--shadow-lg)',
 				'xl': 'var(--shadow-xl)',
 				'2xl': 'var(--shadow-xl)',
+				flade: 'var(--shadow-flade)',
+				loeftet: 'var(--shadow-loeftet)',
+				flydende: 'var(--shadow-flydende)',
+				oeverst: 'var(--shadow-oeverst)',
+				brand: 'var(--shadow-brand)',
 			},
 			transitionDuration: {
+				'140': '140ms',
 				'150': '150ms',
 				'200': '200ms',
+				'320': '320ms',
+			},
+			transitionTimingFunction: {
+				facet: 'cubic-bezier(0.2, 0, 0, 1)',
 			},
 			keyframes: {
 				'accordion-down': {

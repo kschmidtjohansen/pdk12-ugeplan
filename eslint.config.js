@@ -37,5 +37,23 @@ export default tseslint.config(
       "no-useless-escape": "warn",
       "prefer-const": "warn",
     },
+  },
+  {
+    // Facet (docs/design/facet.md): colours come from tokens, never literals in components.
+    files: ["src/components/**/*.tsx", "src/pages/**/*.tsx"],
+    ignores: ["**/*.test.tsx", "src/components/branding/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector: "Literal[value=/#[0-9a-fA-F]{6}\\b|\\b(bg|text|border|from|to|ring|fill|stroke)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-[0-9]{2,3}\\b/]",
+          message: "Facet: brug farvetokens (fx bg-primary, text-muted-foreground) i stedet for farvekoder eller faste Tailwind-farver.",
+        },
+        {
+          selector: "TemplateElement[value.raw=/#[0-9a-fA-F]{6}\\b|\\b(bg|text|border|ring)-(slate|gray|zinc|red|orange|amber|yellow|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|pink|rose)-[0-9]{2,3}\\b/]",
+          message: "Facet: brug farvetokens i stedet for farvekoder eller faste Tailwind-farver.",
+        },
+      ],
+    },
   }
 );

@@ -1,3 +1,5 @@
+@import './styles/facet.css';
+
 /* Metric-matched fallback for Inter — prevents text reflow (CLS) when the
    web font finishes loading after first paint. Values match Inter's metrics. */
 @font-face {
@@ -14,9 +16,9 @@
 @tailwind utilities;
 
 /* ----------------------------------------------------------------------------
-   Design tokens — PolyPlan "Nordic Operations" (v1.2).
-   Calm, editorial operations tool. Primary blue (#00aeef) and the Polygon
-   brand are intentionally preserved. No gradients, glow or glass.
+   Design tokens — PolyPlan "Facet" (docs/design/facet.md).
+   Polygon's own colours are kept. Depth, glass, light and motion live in
+   src/styles/facet.css. Text on Polygon blue is brand-ink, never white.
    ---------------------------------------------------------------------------- */
 
 @layer base {
@@ -33,7 +35,8 @@
 
     /* Brand */
     --primary: 197 100% 47%;
-    --primary-foreground: 0 0% 100%;
+    /* Brand-ink on Polygon blue: 4.9:1 (white was 2.6:1) */
+    --primary-foreground: 200 100% 16%;
     /* Ink for text/icons placed ON brand-blue surfaces (AA contrast) */
     --brand-ink: 200 100% 16%;
     /* Deep brand surface — login brand panel, dark lockups */
@@ -71,8 +74,8 @@
     --destructive-soft-foreground: 0 65% 36%;
     --info-soft: 199 90% 93%;
     --info-soft-foreground: 199 85% 28%;
-    --accent-soft: 265 85% 94%;
-    --accent-soft-foreground: 265 55% 38%;
+    --accent-soft: 197 100% 94%;
+    --accent-soft-foreground: 197 100% 26%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
@@ -104,7 +107,7 @@
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 20% 14%;
     --sidebar-primary: 197 100% 47%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary-foreground: 200 100% 16%;
     --sidebar-accent: 197 100% 96%;
     --sidebar-accent-foreground: 197 100% 28%;
     --sidebar-border: 220 13% 91%;
@@ -158,8 +161,8 @@
     --destructive-soft-foreground: 0 80% 80%;
     --info-soft: 199 50% 20%;
     --info-soft-foreground: 199 85% 78%;
-    --accent-soft: 265 40% 22%;
-    --accent-soft-foreground: 265 80% 82%;
+    --accent-soft: 197 60% 16%;
+    --accent-soft-foreground: 197 100% 80%;
 
     --border: 222 16% 18%;
     --input: 222 16% 18%;
@@ -201,6 +204,8 @@
     @apply font-semibold text-foreground;
     letter-spacing: -0.01em;
   }
+  /* Facet: display face for page and section titles */
+  h1, h2, h3 { @apply font-display; }
   h1 { @apply text-2xl md:text-3xl; letter-spacing: -0.02em; line-height: 1.2; }
   h2 { @apply text-xl md:text-2xl; line-height: 1.25; }
   h3 { @apply text-lg md:text-xl; line-height: 1.3; }
@@ -314,7 +319,7 @@
   .kpi-number {
     font-feature-settings: "tnum", "lnum";
     font-variant-numeric: tabular-nums;
-    color: hsl(var(--primary));
+    color: hsl(var(--primary-strong));
     font-weight: 600;
     letter-spacing: -0.02em;
   }

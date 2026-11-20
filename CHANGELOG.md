@@ -1,3 +1,12 @@
+## 2026-11-20 – Facet fase 1: fundament
+- Nyt designsprog Facet i `docs/design/facet.md`; `docs/ui-guidelines/design-system.md` peger nu dertil. `AGENTS.md` har reglerne for Lovable.
+- Primærknapper har brand-ink tekst på Polygon-blå (4,9:1 i stedet for 2,6:1 med hvid), en let brandskygge og halvfed tekst. Link-knapper bruger den nye `primary-strong` (#00668F), og store tal (`.kpi-number`) også.
+- Nye tokens og materialer i `src/styles/facet.css`: hjørner, skyggerne Flade, Løftet, Flydende og Øverst, glas, glasbrik, blødt lys, Dagslys, nu-linje, skeleton og bevægelse – i lys og mørk tilstand. Tailwind: `rounded-card` m.fl., `shadow-flade` m.fl., `ease-facet`, `duration-140/320`, `text-primary-strong`.
+- `Card` bruger materialet Flade (14 px hjørner og blød skygge). Den lilla `accent-soft` er nu en blå tone.
+- Skrifter: Schibsted Grotesk til h1–h3 (`font-display`) og Geist Mono til koder (`font-mono`), hentet sammen med Inter.
+- ESLint advarer om hex-koder og faste Tailwind-farver i `src/components` og `src/pages` (25 eksisterende fund, kun advarsler).
+- Ingen ændringer i funktioner, data, rettigheder eller Supabase.
+
 ## 2026-11-19 – Deldagsfravær i ikke-tildelte ressourcer
 - Medarbejdernes fraværsbadges viser nu klokkeslæt og urikon ved godkendt deldagsfravær, fx 13:00–16:00 eller 14:30–15:00, for den valgte ressourcedato. Flere perioder for samme medarbejder bevares.
 - Fælles lokal-dato-/tidsformatering med dagsrækkens fravær; tooltip viser eksisterende fraværsstatus. Ingen ændringer i booking, rettigheder, data-hooks eller Supabase.
