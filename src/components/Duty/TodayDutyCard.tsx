@@ -1,9 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React, { useMemo } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
-import { Phone, CalendarClock, ChevronDown } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import type { Duty } from '@/types/duty';
 import type { Employee } from '@/types/employee';
 
@@ -23,20 +20,9 @@ const externalName = (notes?: string | null): string | null => {
  * Compact overview of who is on duty today, with directly callable phone
  * numbers so nobody has to dig through the plan.
  */
-const STORAGE_KEY = 'duty.todayCard.open';
 
 const TodayDutyCard: React.FC<TodayDutyCardProps> = ({ duties, employees, todayStr }) => {
   const { t } = useTranslation();
-  const [open, setOpen] = useState<boolean>(() => {
-    try { return localStorage.getItem(STORAGE_KEY) !== '0'; } catch { return true; }
-  });
-
-  const toggleOpen = () => {
-    setOpen((prev) => {
-      try { localStorage.setItem(STORAGE_KEY, prev ? '0' : '1'); } catch { /* ignore */ }
-      return !prev;
-    });
-  };
 
   const phoneById = useMemo(() => {
     const map = new Map<string, string>();
@@ -60,86 +46,46 @@ const TodayDutyCard: React.FC<TodayDutyCardProps> = ({ duties, employees, todayS
     [duties, todayStr]
   );
 
-  return (
-    <Card className="rounded-xl border-border/60 shadow-none p-4">
-      <button
-        type="button"
-        onClick={toggleOpen}
-        aria-expanded={open}
-        aria-label={open ? t('duty.collapse') : t('duty.expand')}
-        className="touch-target flex w-full items-center gap-2 text-left"
-      >
-        <CalendarClock className="h-4 w-4 text-muted-foreground shrink-0" />
-        <h2 className="text-sm font-semibold text-foreground">{t('duty.todayDuties')}</h2>
-        {!open && (
-          <span className="text-xs text-muted-foreground">
-            {todayDuties.length > 0
-              ? t('duty.onDutyCount').replace('{{count}}', String(todayDuties.length))
-              : t('duty.noDutyToday')}
-          </span>
-        )}
-        <ChevronDown
-          className={`ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? '' : '-rotate-90'}`}
-        />
-      </button>
+  const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
 
-      <div
-        className={`grid transition-all duration-200 ease-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
-      >
-        <div className="overflow-hidden">
-          <div className="pt-3">
+  return (
+    <section aria-labelledby="today-duty-title" className="facet-duty-hero flex min-h-[11.5rem] flex-col gap-4 rounded-[24px] p-5 sm:p-6">
+      <h2 id="today-duty-title" className="text-sm font-semibold">
+        {t('duty.todayDuties')}
+        {todayDuties.length > 0 && <> · {t('duty.onDutyCount').replace('{{count}}', String(todayDuties.length))}</>}
+      </h2>
       {todayDuties.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('duty.noDutyToday')}</p>
+        <p className="text-sm opacity-90">{t('duty.noDutyToday')}</p>
       ) : (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <ul className="flex flex-wrap gap-2.5">
           {todayDuties.map((duty) => {
             const ext = externalName(duty.notes);
             const name = ext || duty.employee?.name || t('duty.unassignedSlot');
             const phone = duty.employee_id ? phoneById.get(duty.employee_id) : undefined;
+            const dept = duty.employee_id ? deptById.get(duty.employee_id) : undefined;
             return (
-              <li
-                key={duty.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{name}</p>
-                  {duty.employee_id && deptById.get(duty.employee_id) && (
-                    <p className="text-[11px] text-muted-foreground truncate">{deptById.get(duty.employee_id)}</p>
-                  )}
-                  <div className="mt-0.5 flex items-center gap-2">
-                    <Badge variant="secondary" className="text-[11px] font-normal">
-                      {t(`duty.${duty.duty_type === 'kørevagt' ? 'kørevagt' : 'skadelederVagt'}`)}
-                    </Badge>
-                    {phone ? (
-                      <span className="text-xs text-muted-foreground truncate">{phone}</span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">{t('duty.noPhone')}</span>
-                    )}
-                  </div>
-                </div>
-                {phone && (
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="touch-target shrink-0"
-                    aria-label={`${t('duty.call')} ${name}`}
-                  >
-                    <a href={`tel:${phone.replace(/\s/g, '')}`}>
-                      <Phone className="h-4 w-4 sm:mr-1" />
-                      <span className="hidden sm:inline">{t('duty.call')}</span>
-                    </a>
-                  </Button>
+              <li key={duty.id} className="facet-duty-chip flex min-w-[11rem] items-center gap-2.5 rounded-[14px] py-2 pl-2.5 pr-2">
+                <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/85 text-xs font-bold text-primary-foreground">{initials(name)}</span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm font-semibold">{name}</span>
+                  <span className="truncate text-xs opacity-85">
+                    {t(`duty.${duty.duty_type === 'kørevagt' ? 'kørevagt' : 'skadelederVagt'}`)}{dept && ` · ${dept}`}
+                  </span>
+                </span>
+                {phone ? (
+                  <a href={`tel:${phone.replace(/\s/g, '')}`} aria-label={`${t('duty.call')} ${name}`} title={phone}
+                    className="ml-auto inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-primary-foreground shadow-flade transition-transform duration-140 ease-facet hover:-translate-y-px">
+                    <Phone className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <span className="sr-only">{t('duty.noPhone')}</span>
                 )}
               </li>
             );
           })}
         </ul>
       )}
-          </div>
-        </div>
-      </div>
-    </Card>
+    </section>
   );
 };
 

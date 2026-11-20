@@ -16,14 +16,15 @@ import { PendingSwapOffers } from '@/components/Duty/PendingSwapOffers';
 import { DutyList } from '@/components/Duty/DutyList';
 import { DutyMonthCalendar } from '@/components/Duty/DutyMonthCalendar';
 import TodayDutyCard from '@/components/Duty/TodayDutyCard';
+import DutyWeekBoard from '@/components/Duty/DutyWeekBoard';
 import DutyProximitySearch from '@/components/Duty/DutyProximitySearch';
 import { useDutyRosterMembers } from '@/hooks/duty/useDutyRosterMembers';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/Layout/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, RefreshCw, Shield, CalendarDays } from 'lucide-react';
-import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+import { Plus, ArrowLeftRight, Shield, CalendarDays } from 'lucide-react';
+import { startOfMonth, endOfMonth, addMonths, subMonths, getISOWeek, startOfWeek, endOfWeek } from 'date-fns';
 import { parseYYYYMMDD } from '@/utils/dateUtils';
 import type { Duty } from '@/types/duty';
 import ListSkeleton from '@/components/shared/ListSkeleton';
@@ -48,6 +49,9 @@ export default function DutyPage() {
   const [pendingNewDate, setPendingNewDate] = useState<Date | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [filters, setFilters] = useState<DutyFilterState>(DEFAULT_DUTY_FILTERS);
+  // Kalender: lærredets ugetavle by default; the month grid keeps "Vælg flere" and its other tools.
+  const [calendarScale, setCalendarScale] = useState<'week' | 'month'>('week');
+  const [boardWeek, setBoardWeek] = useState(new Date());
   
   const today = new Date();
   const todayStart = new Date(today);
@@ -56,8 +60,13 @@ export default function DutyPage() {
   // Datointerval følger den måned brugeren har åben i kalenderen, med en
   // måneds buffer i hver retning så vagter i synlige overflow-uger og
   // kommende-listen også hentes.
-  const startDate = startOfMonth(subMonths(calendarMonth, 1));
-  const endDate = endOfMonth(addMonths(calendarMonth, 1));
+  const viewAnchor = calendarScale === 'week' ? boardWeek : calendarMonth;
+  const startDate = calendarScale === 'week'
+    ? startOfMonth(subMonths(startOfWeek(boardWeek, { weekStartsOn: 1 }), 1))
+    : startOfMonth(subMonths(viewAnchor, 1));
+  const endDate = calendarScale === 'week'
+    ? endOfMonth(addMonths(endOfWeek(boardWeek, { weekStartsOn: 1 }), 1))
+    : endOfMonth(addMonths(viewAnchor, 1));
 
   const { duties, loading: dutiesLoading, error, refetch } = useDutyData(startDate, endDate);
   const { employees, loading: employeesLoading } = useDutyEmployees();
@@ -142,6 +151,18 @@ export default function DutyPage() {
   });
   const da = currentLanguage !== 'en';
   const filterActive = isDutyFilterActive(filters);
+  const sharedNames = sharedDepartmentIds.map((id) => departmentNameMap[id]).filter(Boolean) as string[];
+  const scaleSwitch = (
+    <SlidingSegments
+      ariaLabel={da ? 'Vis uge eller måned' : 'Show week or month'}
+      value={calendarScale}
+      onChange={(v) => setCalendarScale(v as 'week' | 'month')}
+      segments={[
+        { key: 'week', label: t('planner.week'), dot: null },
+        { key: 'month', label: da ? 'Måned' : 'Month', dot: null },
+      ]}
+    />
+  );
 
   const employeesWithRoles = employees.map((emp) => ({
     id: emp.id,
@@ -183,20 +204,14 @@ export default function DutyPage() {
       <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5 space-y-3 sm:space-y-4">
         <PageHeader
           title={t('duty.title')}
-          description={t('duty.upcomingDuties')}
-          eyebrow={selectedDepartment?.name}
-          meta={loading ? undefined : `${upcomingDuties.length} ${currentLanguage === 'en' ? 'upcoming' : 'kommende'}`}
+          description={sharedNames.length
+            ? `${t('duty.upcomingDuties')}. ${da ? 'Flere vagter pr. dag og delt med' : 'Several duties a day, shared with'} ${sharedNames.join(da ? ' og ' : ' and ')}.`
+            : t('duty.upcomingDuties')}
+          eyebrow={`${t('planner.week')} ${getISOWeek(today)} · ${selectedDepartment?.name ?? ''}${sharedNames.length ? ` ${da ? 'med' : 'with'} ${sharedNames.join(', ')}` : ''}`}
         >
-          {canManage && (
-            <Button onClick={() => setDialogOpen(true)} size="sm" className="min-h-11">
-              <Plus className="h-4 w-4 mr-1 sm:mr-2" />
-              {t('duty.assignDuty')}
-            </Button>
-          )}
           <Button
             variant="outline"
-            size="sm"
-            className="min-h-11"
+            className="min-h-11 rounded-full shadow-flade"
             onClick={() => setSwapSelectDialogOpen(true)}
             disabled={
               dutiesWithRoles.length === 0 ||
@@ -205,22 +220,22 @@ export default function DutyPage() {
                 : !dutiesWithRoles.some(d => d.employee_id === user.id))
             }
           >
-            <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
+            <ArrowLeftRight className="h-4 w-4 mr-1 sm:mr-2" />
             {t('duty.swapDuty')}
           </Button>
+          {canManage && (
+            <Button onClick={() => setDialogOpen(true)} className="min-h-11 rounded-full">
+              <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+              {t('duty.assignDuty')}
+            </Button>
+          )}
         </PageHeader>
 
       {error && (
         <ErrorState onRetry={refetch} />
       )}
 
-      <PendingSwapOffers
-        incoming={incoming}
-        outgoing={outgoing}
-        onChanged={() => { refetchSwap(); refetch(); }}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 items-start">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] items-stretch">
         {loading ? (
           <ListSkeleton rowCount={2} />
         ) : (
@@ -295,7 +310,20 @@ export default function DutyPage() {
         <TabsContent value="calendar" className="space-y-4 blur-fade" key={`cal-${filters.type}-${filters.employeeId}`}>
           {loading ? (
             <ListSkeleton />
+          ) : calendarScale === 'week' ? (
+            <DutyWeekBoard
+              duties={filteredDuties}
+              week={boardWeek}
+              onWeekChange={setBoardWeek}
+              todayStr={todayStr}
+              onDutyClick={handleDutyClick}
+              onAddDuty={canManage ? (date) => { setPendingNewDate(date); setDialogOpen(true); } : undefined}
+              right={scaleSwitch}
+              sharedName={sharedNames[0]}
+            />
           ) : (
+            <>
+            <div className="flex justify-end">{scaleSwitch}</div>
             <DutyMonthCalendar
               duties={filteredDuties}
               month={calendarMonth}
@@ -309,9 +337,16 @@ export default function DutyPage() {
                 setDialogOpen(true);
               } : undefined}
             />
+            </>
           )}
         </TabsContent>
       </Tabs>
+
+      <PendingSwapOffers
+        incoming={incoming}
+        outgoing={outgoing}
+        onChanged={() => { refetchSwap(); refetch(); }}
+      />
 
       {canManage && (
         <>

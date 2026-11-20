@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,71 +61,35 @@ export function PendingSwapOffers({ incoming, outgoing, onChanged }: Props) {
 
   return (
     <div className="space-y-3">
-      {incoming.length > 0 && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ArrowLeftRight className="h-4 w-4" />
-              {t('duty.pendingSwapOffers')}
-              <Badge variant="secondary">{incoming.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {incoming.map((req) => {
-              const duty = req.duty;
-              if (!duty) return null;
-              const dateStr = format(new Date(duty.duty_date), 'EEEE d. MMMM yyyy', { locale });
-              return (
-                <div
-                  key={req.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border bg-card"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={req.requester?.avatar_url || undefined} />
-                      <AvatarFallback>{req.requester?.name?.charAt(0) ?? '?'}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium truncate">
-                          {t('duty.swapOfferFrom', { name: req.requester?.name ?? '—' })}
-                        </span>
-                        <Badge variant="outline" className="gap-1">
-                          {dutyIcon(duty.duty_type)}
-                          {dutyLabel(duty.duty_type)}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{dateStr}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setDeclineTarget(req)}
-                      disabled={loading}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      {t('duty.declineSwap')}
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleAccept(req.id)}
-                      disabled={loading}
-                    >
-                      {t('duty.acceptSwap')}
-                    </Button>
-                  </div>
-
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
+      {incoming.map((req) => {
+        const duty = req.duty;
+        if (!duty) return null;
+        const dateStr = format(new Date(duty.duty_date), 'EEEE d. MMMM', { locale });
+        return (
+          <section key={req.id} aria-label={t('duty.pendingSwapOffers')} className="facet-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5">
+            <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-warning-soft text-warning-soft-foreground">
+              <ArrowLeftRight className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-semibold text-foreground">{t('duty.pendingSwapOffers')}</h2>
+              <p className="text-sm text-muted-foreground">
+                {t('duty.swapOfferFrom', { name: req.requester?.name ?? '—' })} · {dutyLabel(duty.duty_type)} {dateStr}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button className="rounded-full" onClick={() => handleAccept(req.id)} disabled={loading}>
+                {t('duty.acceptSwap')}
+              </Button>
+              <Button variant="outline" className="rounded-full" onClick={() => setDeclineTarget(req)} disabled={loading}>
+                {t('duty.declineSwap')}
+              </Button>
+            </div>
+          </section>
+        );
+      })}
 
       {outgoing.length > 0 && (
-        <Card>
+        <Card className="facet-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <ArrowLeftRight className="h-4 w-4" />

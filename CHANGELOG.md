@@ -1,3 +1,11 @@
+## 2026-11-20 – Lærredets sider: Vagt, Lager, Admin og Changelog
+
+- Vagt følger lærredet: blå vagtkort for i dag ved siden af "Find nærmeste vagtperson", ugetavle med syv dagskolonner, delte vagter med anden afdeling i lilla og ledige vagter stiplet. Måned kan stadig vælges.
+- Lager har tre nøgletal øverst (paller og møbelkasser, opbevaringer, ikke rengjort), søgning og lokationer som faner, og "Marker som afleveret" som knap på hver række.
+- Admin har menuen i venstre side og nøgletal for brugere, afdelinger og systemstatus øverst.
+- Changelog har to faner: "Hvad er nyt" med kort fra denne fil og "Ændringer i ugeplanen" med den hidtidige liste.
+
+
 ## 2026-11-20 – Lærredets ramme: sidemenu og topbjælke
 
 - Sidemenuen følger lærredet. "Afdeling Kolding" ligger øverst i en grå boks, menupunkterne har nye ikoner, og Admin og 3D-scanninger står i menuen. Det valgte punkt har en lysende prik, og nederst sidder et brugerkort, som åbner brugermenuen.

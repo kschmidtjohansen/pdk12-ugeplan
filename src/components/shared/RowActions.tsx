@@ -26,13 +26,15 @@ interface RowActionsProps {
   /** Name of the row's subject, for screen readers: "Flere handlinger for Betina Poulsen". */
   subject?: string;
   className?: string;
+  /** Show the primary action as a labelled pill instead of an icon button (lærredets "Marker som afleveret"). */
+  primaryLabelled?: boolean;
 }
 
 /**
  * The row actions used across PolyPlan's lists: one visible action plus a "…" menu with text labels.
  * Destructive actions only live in the menu, so they cannot be hit by accident while scanning a list.
  */
-const RowActions: React.FC<RowActionsProps> = ({ primary, items, subject, className }) => {
+const RowActions: React.FC<RowActionsProps> = ({ primary, items, subject, className, primaryLabelled = false }) => {
   const { t } = useTranslation();
   const list = items.filter(Boolean) as RowAction[];
   const normal = list.filter(a => !a.destructive);
@@ -42,7 +44,14 @@ const RowActions: React.FC<RowActionsProps> = ({ primary, items, subject, classN
 
   return (
     <div className={cn('flex items-center justify-end gap-1', className)} onClick={stop} onKeyDown={stop}>
-      {primary && (
+      {primary && primaryLabelled && (
+        <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-full px-3.5 font-semibold shadow-flade" onClick={primary.onClick} disabled={primary.disabled}
+          aria-label={subject ? `${primary.label}: ${subject}` : primary.label}>
+          <primary.icon className="h-4 w-4" aria-hidden="true" />
+          {primary.label}
+        </Button>
+      )}
+      {primary && !primaryLabelled && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
