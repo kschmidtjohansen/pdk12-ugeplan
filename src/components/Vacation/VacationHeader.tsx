@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, CalendarRange } from 'lucide-react';
+import { List, CalendarRange, GanttChart } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,8 @@ interface VacationHeaderProps {
   /** Kept for API compatibility; request actions now live in the workspace header. */
   onOpenRequestDialog?: () => void;
   onOpenAdminDialog?: () => void;
+  /** Show the canvas "Overblik" (timeline) view; its activeTab value is 'overview'. */
+  canViewOverview?: boolean;
 }
 
 /**
@@ -20,26 +22,28 @@ interface VacationHeaderProps {
  * on the left and an explicit Liste/Kalender view switch on the right.
  * The 'calendar' value of activeTab is unchanged so existing logic still applies.
  */
-const VacationHeader: React.FC<VacationHeaderProps> = ({ counts, isServicemedarbejder, activeTab, onChangeTab }) => {
+const VacationHeader: React.FC<VacationHeaderProps> = ({ counts, isServicemedarbejder, activeTab, onChangeTab, canViewOverview = false }) => {
   const { currentLanguage } = useTranslation();
   const da = currentLanguage === 'da';
   const { isEffectiveAdmin, isEffectiveSkadeleder, effectiveRole } = useAuth();
   const canViewCalendar = isEffectiveAdmin || isEffectiveSkadeleder || effectiveRole === 'super_admin';
   const isCalendarTab = activeTab === 'calendar';
+  const isOverview = activeTab === 'overview';
 
   const views = [
-    { key: 'list', label: da ? 'Liste' : 'List', icon: List, active: !isCalendarTab, onClick: () => { if (isCalendarTab) onChangeTab('all'); } },
-    { key: 'calendar', label: da ? 'Kalender' : 'Calendar', icon: CalendarRange, active: isCalendarTab, onClick: () => onChangeTab('calendar') },
+    ...(canViewOverview ? [{ key: 'overview', label: da ? 'Overblik' : 'Overview', icon: GanttChart, active: isOverview, onClick: () => onChangeTab('overview') }] : []),
+    { key: 'list', label: da ? 'Liste' : 'List', icon: List, active: !isCalendarTab && !isOverview, onClick: () => { if (isCalendarTab || isOverview) onChangeTab('all'); } },
+    ...(canViewCalendar ? [{ key: 'calendar', label: da ? 'Kalender' : 'Calendar', icon: CalendarRange, active: isCalendarTab, onClick: () => onChangeTab('calendar') }] : []),
   ];
 
   return (
-    <div className="flex flex-col gap-2 border-b border-border px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       {isCalendarTab ? (
         <p className="text-xs text-muted-foreground">{da ? 'Kalenderoversigt over fravær i afdelingen' : 'Calendar overview of absence in the department'}</p>
       ) : (
-        <VacationTabs counts={counts} isServicemedarbejder={isServicemedarbejder} activeTab={activeTab} onChange={onChangeTab} />
+        <VacationTabs counts={counts} isServicemedarbejder={isServicemedarbejder} activeTab={isOverview ? '' : activeTab} onChange={onChangeTab} />
       )}
-      {canViewCalendar && (
+      {views.length > 1 && (
         <div role="group" aria-label={da ? 'Visning' : 'View'} className="inline-flex shrink-0 self-start rounded-full border border-border/70 bg-card/80 p-1 shadow-flade sm:self-auto">
           {views.map(({ key, label, icon: Icon, active, onClick }) => (
             <button

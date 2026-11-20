@@ -11,9 +11,11 @@ import { toast } from 'sonner';
 
 interface FalckSubscriptionButtonProps {
   isAdmin: boolean;
+  /** Small text link for the car cards (lærredets kortfod). */
+  compact?: boolean;
 }
 
-const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdmin }) => {
+const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdmin, compact = false }) => {
   const { t } = useTranslation();
   const { selectedDepartmentId } = useDepartment();
   const queryClient = useQueryClient();
@@ -76,14 +78,18 @@ const FalckSubscriptionButton: React.FC<FalckSubscriptionButtonProps> = ({ isAdm
 
   return (
     <>
-      <Button
-        variant="outline"
-        onClick={() => setOpen(true)}
-        className="border-border bg-background hover:bg-accent text-foreground"
-      >
-        <Shield className="mr-2 h-4 w-4" />
-        {t('cars.falckSubscription')}
-      </Button>
+      {compact ? (
+        <button type="button" onClick={() => setOpen(true)} className="min-h-8 rounded-full px-2 text-[11px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground">{'Falck'}</button>
+      ) : (
+        <Button
+          variant="outline"
+          onClick={() => setOpen(true)}
+          className="border-border bg-background hover:bg-accent text-foreground"
+        >
+          <Shield className="mr-2 h-4 w-4" />
+          {t('cars.falckSubscription')}
+        </Button>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">

@@ -28,6 +28,13 @@ import EmptyState from '@/components/shared/EmptyState';
 import { useDepartment } from '@/context/DepartmentContext';
 import { filterCars } from '@/utils/moduleListFilters';
 import type { Car } from '@/types/car';
+import { format } from 'date-fns';
+import { SlidingSegments } from '@/components/ui/sliding-segments';
+import CarCardGrid from '@/components/Cars/CarCardGrid';
+import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
+import { carStatusKind, carsToday } from '@/lib/carToday';
+
+const VIEW_KEY = 'pp-cars-view';
 import type { CarUnavailability } from '@/services/carUnavailabilityService';
 
 interface EnrichedCar extends Car {
@@ -35,7 +42,7 @@ interface EnrichedCar extends Car {
   _scheduledUpcoming?: CarUnavailability | null;
 }
 
-type CarSegment = 'all' | 'available' | 'unavailable' | 'scheduled';
+type CarSegment = 'all' | 'free' | 'inuse' | 'unavailable' | 'scheduled';
 
 const CarsPage: React.FC = () => {
   const { canViewFuelCardCode, isAdmin } = usePermissions();
@@ -74,26 +81,44 @@ const CarsPage: React.FC = () => {
     });
   }, [cars, periods]);
 
-  const filteredCars = useMemo(() => filterCars(enrichedCars, segment, search), [enrichedCars, segment, search]);
+  const [view, setView] = useState<'cards' | 'table'>(() => { try { return localStorage.getItem(VIEW_KEY) === 'table' ? 'table' : 'cards'; } catch { return 'cards'; } });
+  const changeView = (v: 'cards' | 'table') => { setView(v); try { localStorage.setItem(VIEW_KEY, v); } catch { /* private mode */ } };
+  const { assignments } = useAssignmentDataOptimized();
+  const now = new Date();
+  const todayStr = format(now, 'yyyy-MM-dd');
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const today = useMemo(() => carsToday(assignments, todayStr, nowMinutes), [assignments, todayStr, nowMinutes]);
+  const kindOf = React.useCallback((c: Car) => carStatusKind(c.is_available !== false, today.get(c.id)), [today]);
+
+  const filteredCars = useMemo(() => {
+    if (segment === 'free') return filterCars(enrichedCars, 'all', search).filter(c => kindOf(c) === 'free');
+    if (segment === 'inuse') return filterCars(enrichedCars, 'all', search).filter(c => kindOf(c) === 'inuse' || kindOf(c) === 'missing');
+    return filterCars(enrichedCars, segment, search);
+  }, [enrichedCars, segment, search, kindOf]);
 
   const segments: FilterSegment[] = useMemo(() => {
-    const available = enrichedCars.filter((c: EnrichedCar) => c.is_available !== false).length;
-    const unavailable = enrichedCars.length - available;
+    const free = enrichedCars.filter(c => kindOf(c) === 'free').length;
+    const inUse = enrichedCars.filter(c => kindOf(c) === 'inuse' || kindOf(c) === 'missing').length;
+    const unavailable = enrichedCars.filter(c => c.is_available === false).length;
     const scheduled = enrichedCars.filter((c: EnrichedCar) => c._scheduledActive || c._scheduledUpcoming).length;
     return [
       { key: 'all', label: t('common.all') || 'Alle', count: enrichedCars.length },
-      { key: 'available', label: da ? 'Ledig status' : 'Available status', count: available },
-      { key: 'unavailable', label: da ? 'Ikke-ledig status' : 'Unavailable status', count: unavailable, highlight: unavailable > 0 },
+      { key: 'free', label: da ? 'Ledige' : 'Free', count: free },
+      { key: 'inuse', label: da ? 'I brug' : 'In use', count: inUse },
+      { key: 'unavailable', label: da ? 'Ikke tilgængelige' : 'Unavailable', count: unavailable, highlight: unavailable > 0 },
       { key: 'scheduled', label: da ? 'Planlagte perioder' : 'Scheduled periods', count: scheduled },
     ];
-  }, [enrichedCars, t, da]);
+  }, [enrichedCars, t, da, kindOf]);
 
   return (
     <DataFetchErrorBoundary>
       <TooltipProvider>
-          <ListPageShell workspace
+          <ListPageShell workspace densityToggle={view === 'table'}
+            className={view === 'cards' ? 'overflow-visible border-0 bg-transparent shadow-none' : undefined}
             title={t('navigation.cars')}
-            description={t('cars.pageDescription')}
+            description={loading ? t('cars.pageDescription') : (da
+              ? `${cars.length} biler · ${segments[1].count} ledige · ${segments[3].count} ikke tilgængelige`
+              : `${cars.length} vehicles · ${segments[1].count} free · ${segments[3].count} unavailable`)}
             eyebrow={selectedDepartment?.name}
             meta={loading ? undefined : formatListCount(filteredCars.length, cars.length, segment !== 'all' || !!search.trim(), da)}
             actions={
@@ -111,6 +136,8 @@ const CarsPage: React.FC = () => {
             filterBar={
               <ModuleListTools segments={segments} active={segment} onSelect={k => setSegment(k as CarSegment)} search={search} onSearch={setSearch}
                 placeholder={t('cars.searchPlaceholder')} count={filteredCars.length} total={cars.length} onReset={resetFilters}
+                trailing={<SlidingSegments ariaLabel={da ? 'Visning' : 'View'} value={view} onChange={changeView}
+                  segments={[{ key: 'cards', label: da ? 'Kort' : 'Cards' }, { key: 'table', label: da ? 'Tabel' : 'Table' }]} />}
                 note={<>
                   <span>{da ? 'Utilgængelig i planlagt periode i dag' : 'Scheduled unavailable today'} <strong className="text-warning-soft-foreground tabular-nums">{enrichedCars.filter(c => c._scheduledActive).length}</strong></span>
                   <span>{da ? 'Kommende perioder' : 'Upcoming periods'} <strong className="text-foreground tabular-nums">{enrichedCars.filter(c => c._scheduledUpcoming).length}</strong></span>
@@ -124,11 +151,15 @@ const CarsPage: React.FC = () => {
                 <ErrorState description={error} onRetry={fetchCars} />
               </div>
             ) : (
-              <div className="py-4">
+              <div className={view === 'cards' ? 'pt-1' : 'py-4'}>
                 {filteredCars.length === 0 ? (
                   <EmptyState title={cars.length ? (da ? 'Ingen biler matcher' : 'No matching vehicles') : (da ? 'Ingen biler i afdelingen' : 'No vehicles in this department')}
                     description={cars.length ? (da ? 'Prøv en anden status eller søgning.' : 'Try another status or search.') : undefined}
                     variant={cars.length ? 'filtered' : 'empty'} action={cars.length ? { label: da ? 'Ryd filtre' : 'Clear filters', onClick: resetFilters } : undefined} />
+                ) : view === 'cards' ? (
+                  <CarCardGrid cars={filteredCars} today={today} isAdmin={isAdmin} onEdit={handleEdit} onDelete={handleDelete}
+                    onToggleAvailability={handleToggleAvailability} onSchedule={handleScheduleUnavailability}
+                    onEditNote={(car) => { setNoteCar(car); setNoteDialogOpen(true); }} />
                 ) : (
                   <CarsList
                     cars={filteredCars}

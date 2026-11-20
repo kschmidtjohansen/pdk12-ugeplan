@@ -24,12 +24,36 @@ import { Employee } from '@/types/employee';
 import ModuleListTools from '@/components/shared/ModuleListTools';
 import { formatListCount } from '@/components/shared/listCount';
 import { filterEmployees, vacationEmployeeIds } from '@/utils/moduleListFilters';
-import { format } from 'date-fns';
+import { addDays, format, parseISO, startOfISOWeek } from 'date-fns';
+import { da as daLocale } from 'date-fns/locale';
+import { SlidingSegments } from '@/components/ui/sliding-segments';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import EmployeeCardGrid, { type EmployeeCardInfo } from '@/components/Employees/EmployeeCardGrid';
+import EmployeeDetailPanel, { type WeekDay } from '@/components/Employees/EmployeeDetailPanel';
+import EmptyState from '@/components/shared/EmptyState';
+import ListSkeleton from '@/components/shared/ListSkeleton';
+import ErrorState from '@/components/shared/ErrorState';
+import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
+import { useCarData } from '@/hooks/car/useCarData';
+import { assignmentsFor, currentOrNext, isOnAssignment, todayStatus } from '@/lib/employeeToday';
+import { getEmployeeVacationStatus } from '@/utils/employeeAvailability';
+import type { Assignment } from '@/types/assignment';
 
-type EmployeeSegment = 'all' | 'active' | 'onleave' | 'vikarer';
+const VIEW_KEY = 'pp-employees-view';
+const useWide = () => {
+  const q = '(min-width: 1280px)';
+  const [wide, setWide] = React.useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(q).matches);
+  React.useEffect(() => {
+    const m = window.matchMedia?.(q); if (!m) return;
+    const on = () => setWide(m.matches); m.addEventListener('change', on); return () => m.removeEventListener('change', on);
+  }, []);
+  return wide;
+};
+
+type EmployeeSegment = 'all' | 'active' | 'onjob' | 'onleave' | 'vikarer';
 
 const EmployeesPage: React.FC = () => {
-  const { isAdmin } = usePermissions();
+  const { isAdmin, canCreate } = usePermissions();
   const { t, currentLanguage } = useTranslation();
   const { isSubstituteEnabled, selectedDepartmentId, selectedDepartment } = useDepartment();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -70,8 +94,42 @@ const EmployeesPage: React.FC = () => {
   // Vacation rows key the employee as `user_id` (see src/types/vacation.ts).
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const onLeaveTodayIds = useMemo(() => vacationEmployeeIds(vacations, todayStr), [vacations, todayStr]);
+  const { assignments } = useAssignmentDataOptimized();
+  const { cars } = useCarData();
+  const da = currentLanguage === 'da';
+  const [view, setView] = useState<'cards' | 'table'>(() => { try { return localStorage.getItem(VIEW_KEY) === 'table' ? 'table' : 'cards'; } catch { return 'cards'; } });
+  const changeView = (v: 'cards' | 'table') => { setView(v); try { localStorage.setItem(VIEW_KEY, v); } catch { /* private mode */ } };
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const wide = useWide();
+  const carById = useMemo(() => new Map(cars.map(c => [c.id, c.car_number])), [cars]);
+  const carLabel = React.useCallback((a: Assignment) => {
+    const id = a.cars?.[0] || (typeof a.car === 'string' ? a.car : a.car?.id);
+    const n = id ? carById.get(id) : undefined;
+    return n ? `BIL ${String(n).replace(/^bil\s*/i, '')}` : undefined;
+  }, [carById]);
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  const cardInfo = useMemo(() => {
+    const map = new Map<string, EmployeeCardInfo>();
+    const today = new Date();
+    employees.forEach(e => {
+      const list = assignmentsFor(assignments, e.id, todayStr);
+      const vac = getEmployeeVacationStatus(e.id, today, vacations);
+      const status = todayStatus({
+        today: list, nowMinutes, da,
+        sick: sickIds.has(e.id), canSeeSickReason, training: trainingIds.has(e.id), onLeave: e.onLeave,
+        vacationUntil: vac.isOnVacation && vac.vacationType === 'full_day' ? vac.vacation?.end_date ?? null : null,
+        formatDate: d => format(parseISO(d), 'd. MMM', { locale: da ? daLocale : undefined }),
+      });
+      const cur = currentOrNext(list, nowMinutes);
+      map.set(e.id, { status, carLabel: cur ? carLabel(cur) : undefined });
+    });
+    return map;
+  }, [employees, assignments, vacations, todayStr, nowMinutes, da, sickIds, canSeeSickReason, trainingIds, carLabel]);
+  const onJobIds = useMemo(() => new Set([...cardInfo].filter(([, i]) => i.status.kind === 'onjob' || i.status.kind === 'double').map(([id]) => id)), [cardInfo]);
   const absentIds = useMemo(() => new Set(employees.filter(e => e.onLeave || onLeaveTodayIds.has(e.id) || trainingIds.has(e.id) || sickIds.has(e.id)).map(e => e.id)), [employees, onLeaveTodayIds, trainingIds, sickIds]);
-  const filteredEmployees = useMemo(() => filterEmployees(employees, regularEmployees, vikarer, segment, search, absentIds), [employees, regularEmployees, vikarer, segment, search, absentIds]);
+  const filteredEmployees = useMemo(() => segment === 'onjob'
+    ? filterEmployees(employees, regularEmployees, vikarer, 'all', search, absentIds).filter(e => onJobIds.has(e.id))
+    : filterEmployees(employees, regularEmployees, vikarer, segment, search, absentIds), [employees, regularEmployees, vikarer, segment, search, absentIds, onJobIds]);
   const resetFilters = () => { setSegment('all'); setSearch(''); };
 
   const segments: FilterSegment[] = useMemo(() => {
@@ -80,13 +138,14 @@ const EmployeesPage: React.FC = () => {
     const base: FilterSegment[] = [
       { key: 'all', label: t('common.all') || 'Alle', count: employees.length },
       { key: 'active', label: t('employees.activeSegment') || 'Tilgængelige', count: activeCount },
+      { key: 'onjob', label: da ? 'På opgave' : 'On a job', count: onJobIds.size },
       { key: 'onleave', label: t('employees.onLeaveSegment') || 'Fraværende', count: onLeaveCount, highlight: onLeaveCount > 0 },
     ];
     if (isSubstituteEnabled) {
       base.push({ key: 'vikarer', label: t('ui.substitutes'), count: vikarer.length });
     }
     return base;
-  }, [employees, regularEmployees, vikarer, isSubstituteEnabled, t, onLeaveTodayIds, trainingIds, sickIds]);
+  }, [employees, regularEmployees, vikarer, isSubstituteEnabled, t, onLeaveTodayIds, trainingIds, sickIds, onJobIds, da]);
 
   const handleCreateNew = () => { prepareForCreate(); setFormDialogOpen(true); };
   const handleCreateVikar = () => { prepareForCreateVikar(); setFormDialogOpen(true); };
@@ -152,11 +211,36 @@ const EmployeesPage: React.FC = () => {
     setTrainingDialogOpen(true);
   };
 
+  const panelEmployee = (selectedId && filteredEmployees.find(e => e.id === selectedId)) || (wide ? filteredEmployees[0] : undefined);
+  const weekStart = startOfISOWeek(new Date());
+  const renderPanel = (e: Employee, onClose?: () => void) => {
+    const info = cardInfo.get(e.id);
+    const mine = assignments.filter(a => isOnAssignment(a, e.id));
+    const week: WeekDay[] = [0, 1, 2, 3, 4].map(n => {
+      const d = addDays(weekStart, n), date = format(d, 'yyyy-MM-dd');
+      const vac = getEmployeeVacationStatus(e.id, d, vacations);
+      return { date, label: format(d, 'EEE', { locale: da ? daLocale : undefined }).replace('.', '').replace(/^./, c => c.toUpperCase()), count: mine.filter(a => a.date === date).length, off: vac.isOnVacation && vac.vacationType === 'full_day', isToday: date === todayStr };
+    });
+    const limit = format(addDays(new Date(), 14), 'yyyy-MM-dd');
+    const upcoming = mine.filter(a => a.date >= todayStr && a.date <= limit).sort((x, y) => (x.date + x.fromTime).localeCompare(y.date + y.fromTime)).slice(0, 8);
+    return (
+      <EmployeeDetailPanel
+        employee={e} status={info?.status ?? { kind: 'free', tone: 'muted', label: da ? 'Ledig' : 'Free' }} departmentName={selectedDepartment?.name}
+        roleLabel={t(`employees.${e.role}`)} today={assignmentsFor(assignments, e.id, todayStr)} week={week} upcoming={upcoming}
+        vacations={vacations.filter(v => v.user_id === e.id && v.status !== 'rejected')} carLabel={carLabel} da={da}
+        isAdmin={isAdmin} canCreate={canCreate} canSeeContact isSick={sickIds.has(e.id)} isOnTraining={trainingIds.has(e.id)}
+        onEdit={() => handleEdit(e)} onDelete={() => handleDelete(e)}
+        onToggleSick={isAdmin ? () => handleToggleSick(e) : undefined} onTraining={isAdmin ? () => handleTraining(e) : undefined}
+        onToggleLeave={isAdmin ? () => handleToggleLeave(e) : undefined} onClose={onClose}
+      />
+    );
+  };
+
   return (
     <DataFetchErrorBoundary>
-      <ListPageShell workspace className="border-t-0 bg-transparent pt-3"
+      <ListPageShell workspace densityToggle={view === 'table'} className={view === 'cards' ? 'overflow-visible border-0 bg-transparent shadow-none' : 'border-t-0 bg-transparent pt-3'}
         title={t('navigation.employees')}
-        description={t('employees.description')}
+        description={loading ? t('employees.description') : (da ? `${employees.length} personer · ${absentIds.size} fraværende i dag` : `${employees.length} people · ${absentIds.size} absent today`)}
         eyebrow={selectedDepartment?.name}
         meta={loading ? undefined : (
           <span data-testid="employees-result-count">{formatListCount(filteredEmployees.length, employees.length, segment !== 'all' || !!search.trim(), currentLanguage === 'da')}</span>
@@ -182,29 +266,48 @@ const EmployeesPage: React.FC = () => {
         filterBar={
           <ModuleListTools segments={segments} active={segment} onSelect={k => setSegment(k as EmployeeSegment)}
               search={search} onSearch={setSearch} placeholder={t('employees.searchPlaceholder')}
-              count={filteredEmployees.length} total={employees.length} onReset={resetFilters} />
+              count={filteredEmployees.length} total={employees.length} onReset={resetFilters}
+              trailing={<SlidingSegments ariaLabel={da ? 'Visning' : 'View'} value={view} onChange={changeView}
+                segments={[{ key: 'cards', label: da ? 'Kort' : 'Cards' }, { key: 'table', label: da ? 'Tabel' : 'Table' }]} />} />
         }
       >
+        {view === 'table' ? (
         <div className="facet-card overflow-hidden">
-        <EmployeesTable
-          employees={filteredEmployees}
-          isFiltered={segment !== 'all' || !!search.trim()}
-          onResetFilters={resetFilters}
-          vacations={vacations}
-          trainingIds={trainingIds}
-          sickIds={sickIds}
-          canSeeSickReason={canSeeSickReason}
-          onToggleSick={isAdmin ? handleToggleSick : undefined}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onToggleLeave={handleToggleLeave}
-          onTraining={isAdmin ? handleTraining : undefined}
-          error={error}
-          loading={loading}
-          onRetry={fetchEmployees}
-        />
-        </div>
+          <EmployeesTable
+            employees={filteredEmployees}
+            isFiltered={segment !== 'all' || !!search.trim()}
+            onResetFilters={resetFilters}
+            vacations={vacations}
+            trainingIds={trainingIds}
+            sickIds={sickIds}
+            canSeeSickReason={canSeeSickReason}
+            onToggleSick={isAdmin ? handleToggleSick : undefined}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onToggleLeave={handleToggleLeave}
+            onTraining={isAdmin ? handleTraining : undefined}
+            error={error}
+            loading={loading}
+            onRetry={fetchEmployees}
+          />
+          </div>
+        ) : loading ? <ListSkeleton variant="card" rowCount={6} /> : error ? <ErrorState description={error} onRetry={fetchEmployees} /> : filteredEmployees.length === 0 ? (
+          <EmptyState variant={employees.length ? 'filtered' : 'empty'} title={employees.length ? (da ? 'Ingen medarbejdere matcher' : 'No matching employees') : (da ? 'Ingen medarbejdere i afdelingen' : 'No employees in this department')}
+            action={employees.length ? { label: da ? 'Ryd filtre' : 'Clear filters', onClick: resetFilters } : undefined} />
+        ) : (
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_23rem]">
+            <EmployeeCardGrid employees={filteredEmployees} info={cardInfo} selectedId={wide ? panelEmployee?.id ?? null : selectedId} onSelect={e => setSelectedId(e.id)} />
+            {wide && panelEmployee && <div className="sticky top-20">{renderPanel(panelEmployee)}</div>}
+          </div>
+        )}
       </ListPageShell>
+
+      <Sheet open={!wide && view === 'cards' && !!selectedId && !!panelEmployee} onOpenChange={o => { if (!o) setSelectedId(null); }}>
+        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-md [&>button]:hidden">
+          <SheetTitle className="sr-only">{panelEmployee?.name}</SheetTitle>
+          {!wide && panelEmployee && renderPanel(panelEmployee, () => setSelectedId(null))}
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
         <EmployeeFormDialog

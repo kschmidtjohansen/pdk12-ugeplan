@@ -1,3 +1,10 @@
+## 2026-11-20 – Lærredets sider: Medarbejdere, Biler, Fridage og 3D-scanninger
+
+- Medarbejdere vises som kort med dagens status (på opgave, ledig, syg, ferie eller dobbeltbooket) og bil. Klik på et kort åbner et panel med dagens opgaver, ugen, fravær og kompetencer, og med "Planlæg opgave" og "Registrér fravær". Tabellen kan stadig vælges.
+- Biler vises som kort med nummerplade, status (I brug, Ledig, Mangler hold, Ikke tilgængelig), hvem der kører og hvorhen, og genveje til Falck, VW-assistance og note.
+- Fridage åbner på "Overblik": hvem har fri uge for uge et halvt år frem, med afventende anmodninger skraveret, og "Afventer godkendelse" med Godkend og Afvis. Liste og Kalender er der stadig.
+- 3D-scanninger har fået sidehoved og afdelingsvalg som på lærredet, og rundvisningerne vises som kort i samme stil.
+
 ## 2026-11-20 – Lærredets sider: Vagt, Lager, Admin og Changelog
 
 - Vagt følger lærredet: blå vagtkort for i dag ved siden af "Find nærmeste vagtperson", ugetavle med syv dagskolonner, delte vagter med anden afdeling i lilla og ledige vagter stiplet. Måned kan stadig vælges.
