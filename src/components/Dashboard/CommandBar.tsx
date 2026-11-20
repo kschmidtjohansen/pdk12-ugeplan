@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { useDateLocale } from '@/hooks/useDateLocale';
-import { Phone, Users, Car, Clock, Shield } from 'lucide-react';
+import { Phone, Users, Car, Clock, Shield, Quote } from 'lucide-react';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
@@ -11,7 +11,6 @@ import { getDailyQuote } from '@/utils/dailyQuotes';
 import EmployeeAvailabilityDialog from './EmployeeAvailabilityDialog';
 import CarAvailabilityModal from './CarAvailabilityModal';
 import GlobalSearch from './GlobalSearch';
-import DailyQuoteCard from './DailyQuoteCard';
 import StatusPill from './StatusPill';
 import StatusDetailSheet from './StatusDetailSheet';
 import { DutyDetailPanel, AvailableEmployeesPanel, AvailableCarsPanel, ExpiringTempsPanel } from './StatusPanels';
@@ -88,31 +87,50 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
     return out;
   }, [todayAssignments, metrics.availableCars.cars]);
 
+  const hour = now.getHours();
+  const tid = hour < 10 ? 'morgen' : hour < 17 ? 'dag' : 'aften';
+  const placeCount = useMemo(
+    () => new Set(todayAssignments.map((a: Assignment) => [a.location, a.city].filter(Boolean).join(', ').trim().toLowerCase()).filter(Boolean)).size,
+    [todayAssignments],
+  );
+  const taskCount = todayAssignments.length;
+  const summary = taskCount === 0
+    ? t('ui.daySummaryNone')
+    : t('ui.daySummary', {
+        tasks: taskCount === 1 ? t('ui.dayTasksOne') : t('ui.dayTasksMany', { count: taskCount }),
+        places: placeCount === 1 ? t('ui.dayPlacesOne') : t('ui.dayPlacesMany', { count: placeCount }),
+      });
+
   return (
-    <section className="border-b border-border pb-4">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(240px,360px)] xl:items-center">
-        <div className="flex items-center justify-between gap-3 min-w-0">
-          <div className="min-w-0">
-            <h1 className="truncate text-xl font-semibold tracking-normal text-foreground">
-              {t(greetKey(now.getHours()))}{firstName && `, ${firstName}`}
-            </h1>
-            <p className="text-xs capitalize text-muted-foreground">
+    <section aria-labelledby="dagslys-title" data-tid={tid} className="facet-dagslys facet-glow rounded-panel border border-border/50 px-4 pb-4 pt-4 shadow-flade sm:px-7 sm:pb-7 sm:pt-6">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(240px,380px)] xl:items-start">
+        <div className="flex items-start justify-between gap-3 min-w-0">
+          <div className="min-w-0 space-y-1.5">
+            <p className="text-xs font-medium uppercase tracking-[0.06em] text-muted-foreground">
               <span className="sm:hidden">{format(now, "EEE d. MMM · 'uge' I", { locale: dateLocale })}</span>
               <span className="hidden sm:inline">{format(now, "EEEE d. MMMM · 'uge' I", { locale: dateLocale })}</span>
             </p>
+            <h1 id="dagslys-title" className="font-display text-[1.75rem] font-bold leading-tight tracking-tight text-foreground break-words sm:text-[2.5rem] sm:leading-[1.15]">
+              {t(greetKey(hour))}{firstName && `, ${firstName}`}
+            </h1>
+            <p className="text-sm text-foreground/80 sm:text-base">{summary}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-1 xl:hidden">{actions}</div>
+          <div className="hidden flex-wrap items-center gap-1 sm:flex xl:hidden">{actions}</div>
         </div>
         <div className="flex min-w-0 items-center gap-2">
           <GlobalSearch />
           <div className="hidden items-center gap-1 xl:flex">{actions}</div>
         </div>
+        <div className="flex items-center gap-1 sm:hidden">{actions}</div>
       </div>
 
-      <div className="mt-3 border-l-2 border-border pl-3"><DailyQuoteCard quote={getDailyQuote()} compact /></div>
+      <figure className="mt-3 flex sm:mt-4 max-w-3xl items-start gap-2 text-sm text-muted-foreground">
+        <Quote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+        <blockquote className="italic"><span className="sr-only">{t('ui.dailyQuote')}: </span>{getDailyQuote()}</blockquote>
+      </figure>
 
-      <div className="mt-4">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-4 sm:mt-5">
+        <div className="grid grid-cols-2 gap-2 sm:gap-2.5 xl:grid-cols-4">
           {leaderDuties.length === 0 && driveDuties.length === 0 && (
             <StatusPill className="snap-start" icon={Phone} tone="primary" label={t('ui.noDutyToday')} onClick={() => setPanel('duty')} />
           )}

@@ -51,6 +51,10 @@ Opgaver har ingen status ud over publiceret eller ej; design ikke statusforløb.
 | Blødt lys | `.facet-glow` | Bag Dagslys, panelhoveder og login. Aldrig på lister |
 | Dagslys | `.facet-dagslys` + `data-tid="morgen|dag|aften"` | Toppen af Dashboard |
 | Nu-linje | `.facet-now-line` | Tidslinje og tavle |
+| Glasfelt | `.facet-tile` | Statusbrikker oven på Dagslys |
+| Nål | `.facet-map-pin` (+ `.is-now`, `.is-past`) | Nummer på dagskortet og i "Dagens forløb" |
+| I dag | `.facet-today` + `.facet-today-badge` | Dagens sektion i Ugeplan |
+| Dagskort | `DayMap` (Leaflet, OpenStreetMap) | Kun Dashboard, indlæses dovent. Grundkortet dæmpes med filter |
 | Skeleton | `.facet-skeleton` | Indlæsning i indholdets form |
 | Primærknap | `Button` (default) | Polygon-blå, brand-ink tekst og `shadow-brand` |
 

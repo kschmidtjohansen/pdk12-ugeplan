@@ -332,14 +332,14 @@ const UnassignedResourcesSection: React.FC<UnassignedResourcesSectionProps> = ({
       className="space-y-4"
       style={isResourceDataPending ? { minHeight: isCollapsed ? 132 : 420 } : undefined}
     >
-      <Card className="overflow-hidden border-2 border-primary/20">
+      <Card className="overflow-hidden">
 
-        <CardHeader className="py-2 px-4 bg-muted/40 border-b border-border">
+        <CardHeader className="py-2.5 px-4 bg-sidebar-accent/50 border-b border-border/60">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
+              <span className="facet-chip"><Calendar className="h-4 w-4" aria-hidden /></span>
               <div>
-                <h2 className="text-lg font-semibold text-primary">
+                <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
                   {t('planner.unassignedResources')}
                 </h2>
                 <p className="text-xs text-muted-foreground">

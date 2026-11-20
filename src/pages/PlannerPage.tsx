@@ -635,7 +635,7 @@ const PlannerPage: React.FC = () => {
   
   return (
     <DataFetchErrorBoundary>
-    <div className="min-h-dvh w-full bg-background">
+    <div className="min-h-dvh w-full">
       <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5 space-y-3 sm:space-y-4">
         {/* Clean Header — Apple/Arc style */}
         <PlannerHeader

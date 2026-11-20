@@ -116,14 +116,14 @@ const DaySection: React.FC<DaySectionProps> = ({
     <div
       data-day-section={dateKey}
       className={cn(
-        "w-full scroll-mt-20 bg-card rounded-xl border border-border/60 p-4 space-y-3",
+        "facet-card w-full scroll-mt-20 p-4 space-y-3",
         isWeekend && "bg-muted/40",
-        isToday && "border-primary/40 ring-1 ring-primary/20 border-beam"
+        isToday && "facet-today"
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div 
-          className="flex min-h-11 flex-wrap gap-y-2 items-center min-w-0 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors duration-200" 
+          className="flex min-h-11 flex-wrap gap-y-2 items-center min-w-0 cursor-pointer hover:bg-sidebar-accent/60 rounded-control p-2 -m-2 transition-colors duration-140 ease-facet" 
           onClick={() => onToggleExpansion(dateKey)}
           role="button"
           tabIndex={0}
@@ -143,13 +143,13 @@ const DaySection: React.FC<DaySectionProps> = ({
           )}
           
           <h3 className={cn(
-            "text-sm font-semibold tracking-tight select-none truncate",
+            "font-display text-base font-semibold tracking-tight select-none truncate",
             isWeekend && "text-muted-foreground"
           )}>
             {formattedDate}
           </h3>
           {isToday && (
-            <span className="ml-2 shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+            <span className="facet-today-badge ml-2 shrink-0">
               {currentLanguage === 'da' ? 'I dag' : 'Today'}
             </span>
           )}

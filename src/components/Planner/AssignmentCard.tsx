@@ -173,7 +173,7 @@ const AssignmentCardBody: React.FC<AssignmentCardProps & { employees: Employee[]
         )}
         <Card
           className={cn(
-            'group spotlight relative flex h-full w-full flex-col p-3 brand-card-hover bg-card border-border/60 shadow-xs overflow-hidden',
+            'group spotlight relative flex h-full w-full flex-col p-3 rounded-card bg-card border-border/60 shadow-flade overflow-hidden facet-lift',
             hasConflict && 'border-destructive/40',
 
             isLoading && 'opacity-75',
