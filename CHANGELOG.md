@@ -1,3 +1,11 @@
+## 2026-11-20 – Facet fase 1: fundament
+- Nyt designsprog Facet i `docs/design/facet.md`; `docs/ui-guidelines/design-system.md` peger nu dertil. `AGENTS.md` har reglerne for Lovable.
+- Primærknapper har brand-ink tekst på Polygon-blå (4,9:1 i stedet for 2,6:1 med hvid), en let brandskygge og halvfed tekst. Link-knapper bruger den nye `primary-strong` (#00668F), og store tal (`.kpi-number`) også.
+- Nye tokens og materialer i `src/styles/facet.css`: hjørner, skyggerne Flade, Løftet, Flydende og Øverst, glas, glasbrik, blødt lys, Dagslys, nu-linje, skeleton og bevægelse – i lys og mørk tilstand. Tailwind: `rounded-card` m.fl., `shadow-flade` m.fl., `ease-facet`, `duration-140/320`, `text-primary-strong`.
+- `Card` bruger materialet Flade (14 px hjørner og blød skygge). Den lilla `accent-soft` er nu en blå tone.
+- Skrifter: Schibsted Grotesk til h1–h3 (`font-display`) og Geist Mono til koder (`font-mono`), hentet sammen med Inter.
+- ESLint advarer om hex-koder og faste Tailwind-farver i `src/components` og `src/pages` (25 eksisterende fund, kun advarsler).
+- Ingen ændringer i funktioner, data, rettigheder eller Supabase.
 ## 2026-11-19 – 3D-runde 3: billeder i Full HD/4K, video af rundvisningen og statistik på delte links
 - Kameraknappen har nu en menu med skærmbillede, billede i Full HD og 4K og en automatisk video af rundvisningen (titelkort, 360° i hvert rum, rumnavn og logo). Videoen laves i browseren som MP4/WebM i 1920 × 1080.
 - Delte links tæller åbninger, tid, rum og skærmtype uden IP, browser eller navn. Statistikken vises pr. link under Del. Egne visninger som logget ind tælles ikke.

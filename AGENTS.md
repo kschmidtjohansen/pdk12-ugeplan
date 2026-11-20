@@ -1,4 +1,5 @@
 # Frontend architecture
+- Visual design follows Facet (docs/design/facet.md): tokens in src/index.css and src/styles/facet.css, brand-ink text on Polygon blue, glass only in the top layer, no hex colours or new UI kits in components; ESLint warns on colour literals.
 - Planner day rows and unassigned resource absence badges share local-date filtering and partial-period formatting in plannerAbsence, so approved absence times stay consistent without changing booking rules.
 - Car lists and pickers use sortCarsByNumber with BIL-prefix normalization so labels do not move numbered cars onto later pages; stored car numbers remain unchanged.
 - Login effects are scoped to login-workspace; the existing form reports busy state for decoration without changing authentication or workspace visuals.
