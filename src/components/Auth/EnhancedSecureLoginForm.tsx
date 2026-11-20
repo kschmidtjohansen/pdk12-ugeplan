@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
@@ -267,11 +268,40 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
         )}
 
         <form onSubmit={handleSubmit} className={`space-y-4 ${errorKind === 'invalid' ? 'login-shake' : ''}`} noValidate aria-describedby={errorKind ? 'login-error' : undefined}>
+          {passkeyAvailable && (
+            <>
+              <Button
+                type="button"
+                                className="login-passkey w-full h-auto sm:h-auto min-h-12 py-3 rounded-[14px] font-bold shadow-[inset_0_1px_0_hsl(0_0%_100%/0.45),0_12px_24px_-12px_hsl(var(--primary)/0.8)] transition-all duration-150 motion-safe:active:scale-[0.98]"
+                onClick={handlePasskeyLogin}
+                disabled={isLoading || isPasskeyLoading || isBlocked || !isOnline}
+                aria-busy={isPasskeyLoading}
+              >
+                {isPasskeyLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span aria-hidden className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground/40 border-t-primary-foreground" />
+                    <span>{isDanish ? 'Bekræft på enheden…' : 'Confirm on your device…'}</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2 whitespace-normal text-left">
+                    <Fingerprint className="login-fingerprint h-5 w-5 shrink-0" aria-hidden />
+                    <span>{isDanish ? 'Log ind med Face ID / fingeraftryk' : 'Sign in with Face ID / fingerprint'}</span>
+                  </span>
+                )}
+              </Button>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground" aria-hidden>
+                <span className="h-px flex-1 bg-border" />
+                {isDanish ? 'eller med e-mail' : 'or with email'}
+                <span className="h-px flex-1 bg-border" />
+              </div>
+            </>
+          )}
+
           <div className="space-y-1.5 group">
-            <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1 transition-colors group-focus-within:text-primary">Email</Label>
+            <Label htmlFor="email" className="text-[13px] font-semibold text-foreground">{isDanish ? 'E-mail' : 'Email'}</Label>
             <Input
               id="email"
-              className="h-12 px-4 rounded-xl bg-muted/40 border-border transition-all duration-300 focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:border-primary"
+              className="h-12 px-4 rounded-xl bg-card border-border shadow-[inset_0_1px_2px_hsl(222_46%_11%/0.04)] transition-all duration-300 focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:border-primary"
               ref={emailRef}
               type="email"
               value={email}
@@ -291,7 +321,7 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
 
           <div className="space-y-1.5 group">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1 transition-colors group-focus-within:text-primary">{t('common.password')}</Label>
+              <Label htmlFor="password" className="text-[13px] font-semibold text-foreground">{t('common.password')}</Label>
             </div>
             <div className="relative">
               <Input
@@ -302,9 +332,10 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
                 required
                 disabled={isLoading || isBlocked}
                 autoComplete="current-password"
+                placeholder={isDanish ? 'Din adgangskode' : 'Your password'}
                 aria-invalid={errorKind === 'invalid' || errorKind === 'required'}
                 aria-required="true"
-                className="h-12 px-4 pr-10 rounded-xl bg-muted/40 border-border transition-all duration-300 focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:border-primary"
+                className="h-12 px-4 pr-10 rounded-xl bg-card border-border shadow-[inset_0_1px_2px_hsl(222_46%_11%/0.04)] transition-all duration-300 focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:border-primary"
               />
               <Button
                 type="button"
@@ -336,6 +367,9 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
               />
               <span>{isDanish ? 'Husk mig' : 'Remember me'}</span>
             </label>
+            <Link to="/password-reset" className="rounded text-[13px] font-semibold text-primary-strong hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              {isDanish ? 'Glemt adgangskode?' : 'Forgot password?'}
+            </Link>
           </div>
 
           {errorKind && (
@@ -379,7 +413,8 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
 
           <Button
             type="submit"
-            className="login-submit relative overflow-hidden w-full h-12 sm:h-12 rounded-xl font-semibold transition-all duration-150 motion-safe:active:scale-[0.98] group"
+            variant={passkeyAvailable ? 'secondary' : 'default'}
+            className="login-submit relative overflow-hidden w-full h-12 sm:h-12 rounded-[14px] font-bold transition-all duration-150 motion-safe:active:scale-[0.98] group"
             disabled={isLoading || isBlocked || loginTimeout || !isOnline}
             aria-busy={isLoading}
           >
@@ -396,35 +431,6 @@ export const EnhancedSecureLoginForm: React.FC<EnhancedSecureLoginFormProps> = (
             )}
           </Button>
 
-          {passkeyAvailable && (
-            <>
-              <div className="flex items-center gap-3 py-1" aria-hidden>
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground">{isDanish ? 'eller' : 'or'}</span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="login-passkey w-full h-auto sm:h-auto min-h-12 py-3 rounded-xl border-primary/30 bg-primary/5 font-semibold transition-all duration-150 hover:border-primary/60 hover:bg-primary/10 motion-safe:active:scale-[0.98]"
-                onClick={handlePasskeyLogin}
-                disabled={isLoading || isPasskeyLoading || isBlocked || !isOnline}
-                aria-busy={isPasskeyLoading}
-              >
-                {isPasskeyLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span aria-hidden className="animate-spin rounded-full h-4 w-4 border-2 border-foreground/30 border-t-foreground" />
-                    <span>{isDanish ? 'Bekræft på enheden…' : 'Confirm on your device…'}</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2 whitespace-normal text-left">
-                    <Fingerprint className="login-fingerprint h-5 w-5 shrink-0 text-primary" aria-hidden />
-                    <span>{isDanish ? 'Log ind med Face ID / fingeraftryk' : 'Sign in with Face ID / fingerprint'}</span>
-                  </span>
-                )}
-              </Button>
-            </>
-          )}
         </form>
     </div>
   );

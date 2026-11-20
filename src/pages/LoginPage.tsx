@@ -1,22 +1,36 @@
 import { useEffect, useState } from 'react';
-import { CalendarDays, Phone, Palmtree, Car, ShieldCheck } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { EnhancedSecureLoginForm } from '@/components/Auth/EnhancedSecureLoginForm';
 import { useTranslation } from '@/context/TranslationContext';
 import { PwaInstallButton } from '@/components/Pwa/PwaInstallButton';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
-import { PRODUCT_NAME, ORG_NAME, PRODUCT_TAGLINE_DA, ORG_LOGO_URL } from '@/config/product';
+import { ORG_NAME, ORG_LOGO_URL } from '@/config/product';
 import PolyPlanBrand from '@/components/branding/PolyPlanBrand';
-import PolyPlanMark from '@/components/branding/PolyPlanMark';
 import { getLoginDestination } from '@/utils/loginDestination';
 
+const DAYS_DA = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
+const DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/** "Godmorgen. Klar til fredag?" – hilsen efter tid på dagen, som på lærredet. */
+const greeting = (da: boolean, firstName: string, now = new Date()) => {
+  const h = now.getHours();
+  const hello = da
+    ? (h < 5 ? 'Godnat' : h < 10 ? 'Godmorgen' : h < 12 ? 'God formiddag' : h < 18 ? 'God eftermiddag' : 'Godaften')
+    : (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening');
+  const name = firstName ? `, ${firstName}` : '';
+  const day = (da ? DAYS_DA : DAYS_EN)[now.getDay()];
+  return da ? `${hello}${name}. Klar til ${day}?` : `${hello}${name}. Ready for ${day}?`;
+};
+
+/** Lærredets login: lys himmel med glasflader, budskabet til venstre og login-kortet i glas til højre. */
 const LoginPage = () => {
   const { isAuthenticated, authReady, session, userDataLoaded } = useAuth();
   const navigate = useNavigate();
   const { search } = useLocation();
   const destination = getLoginDestination(search);
-  const { t } = useTranslation();
+  const { currentLanguage } = useTranslation();
+  const da = currentLanguage !== 'en';
   const [loginBusy, setLoginBusy] = useState(false);
   const departmentName = localStorage.getItem('selected_department_name');
   const lastUserName = typeof window !== 'undefined' ? localStorage.getItem('last_user_name') : null;
@@ -36,101 +50,55 @@ const LoginPage = () => {
     // Navigation handled by the useEffect when session is available
   };
 
-  const year = new Date().getFullYear();
-
   return (
-    <div className="login-workspace min-h-dvh w-full bg-background flex flex-col lg:flex-row">
-      {/* Brand-panel — kun bred skærm. Flad, mørk brand-flade uden glow/glas. */}
-      <aside
-        aria-hidden
-        className="hidden lg:flex lg:w-[44%] xl:w-[46%] flex-col justify-between bg-brand-deep text-brand-deep-foreground p-10 xl:p-14"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <img
-            src={ORG_LOGO_URL}
-            data-brand="polygon-group-logo"
-            alt=""
-            className="h-5 w-auto brightness-0 invert"
-            loading="eager"
-            draggable={false}
-          />
-          <span className="flex items-center gap-2 text-xs text-brand-deep-muted">
-            <ShieldCheck className="h-4 w-4 text-primary" />
-            {t('login.button')}
-          </span>
-        </div>
+    <div className="login-workspace login-sky relative isolate flex min-h-dvh w-full flex-col overflow-hidden lg:flex-row">
+      {/* Lys og glas – kun pynt */}
+      <span aria-hidden className="login-glow pointer-events-none absolute -left-40 -top-56 -z-10 h-[700px] w-[900px]" />
+      <span aria-hidden className="login-glow pointer-events-none absolute left-[44%] top-[420px] -z-10 h-[620px] w-[760px] opacity-75" />
+      <span aria-hidden className="login-glass-shape pointer-events-none absolute left-[36%] top-[120px] -z-10 hidden h-[300px] w-[300px] rotate-[14deg] rounded-[40px] lg:block" />
+      <span aria-hidden className="login-glass-shape pointer-events-none absolute left-[50%] top-[520px] -z-10 hidden h-[180px] w-[180px] -rotate-[10deg] rounded-[30px] lg:block" />
 
-        <div className="max-w-md">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-deep-muted">
-            {ORG_NAME}
+      <LanguageSwitcher className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6" />
+
+      {/* Budskab */}
+      <section className="relative flex flex-col px-6 pb-2 pt-8 sm:px-10 lg:flex-1 lg:px-20 lg:py-16">
+        <PolyPlanBrand size={40} className="gap-3" wordmarkClassName="font-display text-[22px] font-bold" />
+        <div className="mt-8 flex max-w-[560px] flex-col gap-3 lg:my-auto lg:gap-5">
+          <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-[-0.035em] text-brand-ink sm:text-5xl lg:text-[64px] lg:leading-[66px]">
+            {da ? 'Hele dagen.' : 'The whole day.'}<br />
+            <span className="text-primary-strong">{da ? 'Ét overblik.' : 'One overview.'}</span>
+          </h1>
+          <p className="max-w-[30rem] text-base text-muted-foreground lg:text-lg lg:leading-7">
+            {da
+              ? 'Planlægning af Polygons servicemedarbejdere, biler og vagter. Fra kontoret og fra marken.'
+              : "Planning Polygon's service staff, vehicles and on-call duty. From the office and from the field."}
           </p>
-          <div className="mt-3 flex items-center gap-4">
-            <PolyPlanMark size={40} decorative />
-          <h1 className="text-4xl xl:text-5xl font-semibold text-brand-deep-foreground">
-              {PRODUCT_NAME}
-            </h1>
-          </div>
-          <p className="mt-4 text-base leading-relaxed text-brand-deep-muted">
-            {PRODUCT_TAGLINE_DA} — ugeplan, vagter, ferie, biler og lager samlet i ét roligt arbejdsredskab.
-          </p>
-
-          <ul className="mt-10 grid grid-cols-2 gap-3 text-sm">
-            {[
-              { label: t('navigation.planner'), icon: CalendarDays },
-              { label: t('navigation.duty'), icon: Phone },
-              { label: t('navigation.vacation'), icon: Palmtree },
-              { label: t('navigation.cars'), icon: Car },
-            ].map(({ label, icon: Icon }) => (
-              <li key={label} className="login-module flex items-center gap-3 rounded-lg border border-brand-deep-foreground/10 bg-brand-deep-foreground/5 p-4">
-                <Icon className="h-4 w-4 shrink-0 text-primary" />
-                <span className="text-brand-deep-foreground/90">{label}</span>
-              </li>
-            ))}
-          </ul>
         </div>
+        <span className="mt-auto hidden items-center gap-2.5 text-[13px] text-muted-foreground lg:flex">
+          <img src={ORG_LOGO_URL} data-brand="polygon-group-logo" alt={ORG_NAME} className="h-5 w-auto" loading="eager" draggable={false} />
+          {da ? 'Et værktøj fra Polygon' : 'A tool from Polygon'}
+        </span>
+      </section>
 
-        <p className="text-xs text-brand-deep-muted">© {year} {ORG_NAME}</p>
-      </aside>
-
-      {/* Form-panel */}
-      <main className="relative isolate flex flex-1 items-center justify-center px-4 sm:px-6 py-16">
-        <div className="login-dot-pattern pointer-events-none absolute inset-0 -z-10" aria-hidden />
-        <LanguageSwitcher className="absolute top-4 right-4 sm:top-6 sm:right-6" />
-
-        <div className="w-full max-w-[400px]">
-          {/* Kompakt brand-lockup (mobil + form-panel) */}
-          <div className="mb-8 flex flex-col items-center text-center lg:items-start lg:text-left">
-            <PolyPlanBrand size={36} wordmarkClassName="text-xl" />
-            <p className="mt-1.5 text-xs text-muted-foreground">{ORG_NAME}</p>
-          </div>
-
-          <div className={`spotlight login-surface rounded-xl border border-border bg-card shadow-md p-6 sm:p-8 ${loginBusy ? 'border-beam' : ''}`}>
-            <div className="relative z-10">
-            <div className="mb-6 space-y-1.5 text-center lg:text-left">
-              <h2 className="text-xl font-semibold tracking-tight text-foreground">
-                {t('login.welcomeMessage')}{firstName ? `, ${firstName}` : ''}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {t('login.loginSubtext')}
-              </p>
-              {departmentName && (
-                <p className="text-xs text-muted-foreground/70 pt-0.5">
-                  {departmentName}
-                </p>
-              )}
+      {/* Login-kort */}
+      <main className="relative flex flex-1 items-start justify-center px-4 pb-10 pt-6 sm:px-6 lg:flex-none lg:basis-[520px] lg:items-center lg:p-10">
+        <div className="w-full max-w-[420px]">
+          <section aria-labelledby="login-title" className={`login-glass-card rounded-[28px] p-6 sm:p-9 ${loginBusy ? 'border-beam' : ''}`}>
+            <div className="mb-5 space-y-1">
+              <h2 id="login-title" className="font-display text-[28px] font-bold leading-[34px] tracking-[-0.02em] text-foreground">{da ? 'Log ind' : 'Sign in'}</h2>
+              <p className="text-sm text-muted-foreground">{greeting(da, firstName)}</p>
+              {departmentName && <p className="pt-0.5 text-xs text-muted-foreground/80">{departmentName}</p>}
             </div>
-
             <EnhancedSecureLoginForm onSuccess={handleLoginSuccess} onBusyChange={setLoginBusy} />
-            </div>
-          </div>
+          </section>
 
-          {/* Installer som app - kun mobil/tablet */}
           <div className="lg:hidden">
             <PwaInstallButton />
           </div>
 
-          <p className="mt-8 text-center text-xs text-muted-foreground/70 tracking-wide lg:hidden">
-            © {year} {ORG_NAME}
+          <p className="mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground lg:hidden">
+            <img src={ORG_LOGO_URL} data-brand="polygon-group-logo" alt={ORG_NAME} className="h-4 w-auto" loading="lazy" draggable={false} />
+            {da ? 'Et værktøj fra Polygon' : 'A tool from Polygon'}
           </p>
         </div>
       </main>

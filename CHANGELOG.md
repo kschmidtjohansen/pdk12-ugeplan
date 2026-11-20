@@ -1,3 +1,10 @@
+## 2026-11-20 – Lærredets login
+
+- Login-siden følger lærredet: lys himmel med glasflader, "Hele dagen. Ét overblik." til venstre og login-kortet i glas til højre. Den mørke brandflade er væk.
+- Kortet hilser efter tid på dagen ("Godmorgen. Klar til fredag?"). Log ind med Face ID / fingeraftryk står øverst, når enheden kan, derefter e-mail og adgangskode.
+- Nyt link "Glemt adgangskode?" går til den eksisterende side for nulstilling.
+- Selve login (adgangskode, passkey, låsning efter forsøg, offline-besked) er uændret.
+
 ## 2026-11-20 – Lærredets sider: Ugeplan og Dashboard
 
 - Ugeplan åbner på Tavlen: medarbejdere × ugedage med opgaverne i hver celle, fravær (ferie, kursus, syg, deldage), en belægningsstreg pr. dag og røde konflikter. Opgaver uden medarbejder står øverst. Klik på en opgave åbner et panel med sag, tid, adresse med Naviger, hold, bil, konflikt og historik, og knappen "Rediger opgave".
