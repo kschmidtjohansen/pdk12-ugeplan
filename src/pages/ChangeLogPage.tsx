@@ -1,3 +1,4 @@
+import PageHeader from '@/components/Layout/PageHeader';
 import React, { useState, useEffect } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '@/context/TranslationContext';
@@ -201,13 +202,11 @@ const ChangeLogPage: React.FC = () => {
 
   return (
     <DataFetchErrorBoundary>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5">
+        <PageHeader title={t('changeLog.title')} />
 
         <Card>
-          <CardHeader>
-            <CardTitle>{t('changeLog.title')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-5">
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">

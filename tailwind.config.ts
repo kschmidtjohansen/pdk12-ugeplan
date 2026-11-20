@@ -18,6 +18,14 @@ export default {
 			}
 		},
 		extend: {
+			// Facet: blue text uses the accessible --primary-strong (4.9:1); Polygon blue stays for fills and borders.
+			textColor: {
+				primary: {
+					DEFAULT: 'hsl(var(--primary-strong))',
+					foreground: 'hsl(var(--primary-foreground))',
+					strong: 'hsl(var(--primary-strong))'
+				}
+			},
 			fontFamily: {
 				sans: ['Inter', 'Inter Fallback', 'system-ui', '-apple-system', 'sans-serif'],
 				display: ['Schibsted Grotesk', 'Inter', 'Inter Fallback', 'system-ui', 'sans-serif'],

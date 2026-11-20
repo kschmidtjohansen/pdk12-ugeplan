@@ -24,7 +24,7 @@ const VacationTabs: React.FC<VacationTabsProps> = ({ counts, activeTab, onChange
     <Tabs value={activeTab} onValueChange={onChange} className="min-w-0">
       <TabsList
         aria-label={currentLanguage === 'da' ? 'Anmodningernes status' : 'Request status'}
-        className="grid h-auto w-full grid-cols-2 gap-1 bg-transparent p-0 sm:inline-flex sm:w-auto"
+        className="grid h-auto w-full grid-cols-2 gap-1 sm:inline-flex sm:w-auto"
       >
         {entries.map((entry) => (
           <TabsTrigger
@@ -35,7 +35,7 @@ const VacationTabs: React.FC<VacationTabsProps> = ({ counts, activeTab, onChange
           >
             <span className="truncate">{entry.label}</span>
             {counts?.[entry.key] !== undefined && (
-              <span className="rounded bg-muted px-1.5 text-[11px] font-semibold tabular-nums text-foreground" data-testid={`vacation-count-${entry.key}`}>
+              <span className="rounded-full bg-muted px-1.5 text-[11px] font-semibold tabular-nums text-foreground" data-testid={`vacation-count-${entry.key}`}>
                 {counts[entry.key]}
               </span>
             )}

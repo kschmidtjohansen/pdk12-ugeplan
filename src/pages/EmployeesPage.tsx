@@ -185,7 +185,7 @@ const EmployeesPage: React.FC = () => {
               count={filteredEmployees.length} total={employees.length} onReset={resetFilters} />
         }
       >
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="facet-card overflow-hidden">
         <EmployeesTable
           employees={filteredEmployees}
           isFiltered={segment !== 'all' || !!search.trim()}

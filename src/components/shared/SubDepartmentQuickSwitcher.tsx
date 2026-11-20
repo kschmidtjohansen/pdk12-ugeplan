@@ -30,8 +30,8 @@ const SubDepartmentQuickSwitcher: React.FC<{ showDepartments?: boolean }> = ({ s
   const pillClass = (active: boolean) => cn(
     'shrink-0 inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
     active
-      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-      : 'bg-card text-foreground border-border hover:bg-accent/40'
+      ? 'facet-tab-thumb border-transparent font-semibold text-primary-strong'
+      : 'bg-card text-foreground border-border/70 shadow-flade hover:bg-sidebar-accent/60'
   );
 
   return (
