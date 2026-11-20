@@ -31,29 +31,27 @@ const MobileBottomNav: React.FC = () => {
     <nav
       role="navigation"
       className={cn(
-        'lg:hidden fixed inset-x-2 bottom-[calc(0.5rem+env(safe-area-inset-bottom))] z-40',
-        'overflow-hidden rounded-2xl border border-border/70 bg-card/95 shadow-lg backdrop-blur-md'
+        'lg:hidden fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40',
+        'facet-bottom-nav overflow-hidden rounded-[26px] p-1.5'
       )}
       aria-label="Mobil navigation"
     >
-      <ul className="flex items-stretch justify-around min-h-[60px] px-1.5 gap-1">
+      <ul className="flex items-stretch justify-around min-h-[56px] gap-1">
         {TABS.map(({ to, label, icon: Icon, badge }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
               className={({ isActive }) =>
                 cn(
-                  'relative flex flex-col items-center justify-center gap-1 h-full w-full min-h-[60px] rounded-xl text-[11px] font-medium',
-                  'motion-safe:transition-[color,background-color,transform] motion-safe:active:scale-95',
-                  isActive
-                    ? 'text-foreground bg-accent after:absolute after:top-0 after:h-0.5 after:inset-x-5 after:rounded-full after:bg-primary'
-                    : 'text-muted-foreground hover:text-foreground'
+                  'group relative flex flex-col items-center justify-center gap-0.5 h-full w-full min-h-[56px] rounded-[20px] text-[11px]',
+                  'motion-safe:transition-[color,transform] motion-safe:duration-140 motion-safe:ease-facet motion-safe:active:scale-95',
+                  isActive ? 'facet-tab-active font-bold' : 'font-medium text-muted-foreground hover:text-foreground'
                 )
               }
             >
               {({ isActive }) => (
                 <>
-                  <span className="relative">
+                  <span className="facet-tab-pill relative flex items-center justify-center rounded-full px-3.5 py-1">
                     <Icon className={cn('h-[22px] w-[22px]', isActive && 'stroke-[2.25]')} />
                     {!!badge && badge > 0 && (
                       <span
@@ -77,15 +75,13 @@ const MobileBottomNav: React.FC = () => {
             aria-expanded={openMobile}
             onClick={() => setOpenMobile(true)}
             className={cn(
-              'relative flex flex-col items-center justify-center gap-1 h-full w-full min-h-[60px] rounded-xl text-[11px] font-medium',
-              'motion-safe:transition-[color,background-color,transform] motion-safe:active:scale-95',
-              moreActive
-                ? 'text-foreground bg-accent after:absolute after:top-0 after:h-0.5 after:inset-x-5 after:rounded-full after:bg-primary'
-                : 'text-muted-foreground hover:text-foreground'
+              'relative flex flex-col items-center justify-center gap-0.5 h-full w-full min-h-[56px] rounded-[20px] text-[11px] hover:bg-transparent',
+              'motion-safe:transition-[color,transform] motion-safe:duration-140 motion-safe:ease-facet motion-safe:active:scale-95',
+              moreActive ? 'facet-tab-active font-bold' : 'font-medium text-muted-foreground hover:text-foreground'
             )}
             aria-label={isDa ? 'Mere' : 'More'}
           >
-            <MoreHorizontal className="h-[22px] w-[22px]" />
+            <span className="facet-tab-pill flex items-center justify-center rounded-full px-3.5 py-1"><MoreHorizontal className="h-[22px] w-[22px]" /></span>
             <span className="leading-none">{isDa ? 'Mere' : 'More'}</span>
           </Button>
         </li>

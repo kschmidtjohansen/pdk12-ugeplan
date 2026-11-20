@@ -55,6 +55,11 @@ Opgaver har ingen status ud over publiceret eller ej; design ikke statusforløb.
 | Nål | `.facet-map-pin` (+ `.is-now`, `.is-past`) | Nummer på dagskortet og i "Dagens forløb" |
 | I dag | `.facet-today` + `.facet-today-badge` | Dagens sektion i Ugeplan |
 | Dagskort | `DayMap` (Leaflet, OpenStreetMap) | Kun Dashboard, indlæses dovent. Grundkortet dæmpes med filter |
+| Næste-banner | `.facet-next-banner` | Min Dag: hvad sker nu eller næste |
+| Opgavekort (felt) | `.facet-task-card` + `.facet-task-hero` i `.facet-deck` | Min Dag, ét kort ad gangen med scroll-snap |
+| Feltknap | `Button` + `.facet-field-btn` | Mindst 56 px høj, til én hånd |
+| Bundmenu | `.facet-bottom-nav`, `.facet-tab-active`, `.facet-tab-pill` | Telefonens navigation |
+| Sollys | `html.sollys` (`src/lib/sollys.ts`, `useSollys`) | Høj kontrast udendørs; slås til i brugermenuen eller via enhedens kontrastindstilling |
 | Skeleton | `.facet-skeleton` | Indlæsning i indholdets form |
 | Primærknap | `Button` (default) | Polygon-blå, brand-ink tekst og `shadow-brand` |
 

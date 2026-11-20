@@ -1,3 +1,13 @@
+## 2026-11-20 – Facet fase 4: Felten
+
+- Min Dag er et kortsæt, man swiper igennem. Det starter ved den opgave, der er i gang eller er den næste. Hvert kort viser opgavetypen, tidspunktet, titlen, adressen, hvem man er med, bilen og den ansvarlige. Store knapper giver Naviger, Ring og "På vej". Prikker og "Swipe til næste" viser, hvad der kommer.
+- Et blåt banner øverst viser, hvad der sker nu eller er det næste ("Nu · til 11:30" eller "Næste · 10:00 · om 18 min").
+- Køretid i Min Dag: banneret og kortene viser et skøn fra forrige opgave, fx "ca. 25 min i bil · 27 km". Skønnet regnes på serveren ud fra luftlinje × 1,3 og en simpel fartmodel, uden ekstern tjeneste. Det kræver den staged SQL `006_drive_estimates.sql`, og indtil den er kørt, vises der ingen køretid.
+- Velkomsten for servicemedarbejdere er et kompakt Dagslys-bånd.
+- Bundmenuen svæver som glas, og det valgte ikon har en blød pille om sig.
+- Ark på telefonen har runde hjørner foroven, et greb og et sløret overlay. Almindelige dialoger glider op nedefra på telefon.
+- Ny tilstand, Sollys, under brugermenuen: høj kontrast til brug udendørs med mørkere tekst og kanter og intet gennemsigtigt glas. Den følger telefonens indstilling for høj kontrast, indtil man selv vælger.
+
 ## 2026-11-20 – Facet fase 3: Dashboard og Ugeplan
 
 - Dashboard har fået Dagslys: en top der følger tiden på dagen (morgen, dag, aften) med en stor hilsen, dagens opsummering ("6 opgaver i dag på 6 adresser") og statusbrikker i glas. Alle paneler bag brikkerne er uændrede.

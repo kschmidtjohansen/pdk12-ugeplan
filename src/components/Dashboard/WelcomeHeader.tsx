@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { format, getISOWeek } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useTranslation } from '@/context/TranslationContext';
-import DailyQuoteCard from './DailyQuoteCard';
+import { Quote } from 'lucide-react';
 
 interface WelcomeHeaderProps {
   userName?: string;
@@ -64,26 +64,35 @@ const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, dailyQuote }) =
   const clockString = useMemo(() => format(clockNow, 'HH:mm'), [clockNow]);
 
 
+  const hour = mountedNow.getHours();
+  const tid = hour < 10 ? 'morgen' : hour < 17 ? 'dag' : 'aften';
+
   return (
-    <div className="rounded-xl border border-border bg-card shadow-xs px-5 py-4 animate-fade-in-up">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0 space-y-2.5">
-          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground truncate">
-            {greeting} <span aria-hidden>👋</span>
+    <div data-tid={tid} className="facet-dagslys facet-glow rounded-panel border border-border/50 px-4 py-4 shadow-flade sm:px-6 sm:py-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 space-y-2">
+          <p className="text-xs font-medium uppercase tracking-[0.06em] text-muted-foreground md:hidden">
+            {headerDate.dayName} · {t('dashboard.week')} {headerDate.weekNumber} · <span className="tabular-nums">{clockString}</span>
+          </p>
+          <h1 className="font-display text-2xl font-bold leading-tight tracking-tight text-foreground break-words md:text-3xl">
+            {greeting}
           </h1>
-          <DailyQuoteCard quote={dailyQuote} />
+          <figure className="flex items-start gap-2 text-sm text-muted-foreground">
+            <Quote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+            <blockquote className="italic"><span className="sr-only">{t('ui.dailyQuote')}: </span>{dailyQuote}</blockquote>
+          </figure>
         </div>
-        <div className="hidden md:flex flex-col items-end text-right border-l border-border pl-4 min-w-[140px]">
+        <div className="hidden min-w-[140px] flex-col items-end text-right md:flex">
           <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             {headerDate.dayName}
           </span>
-          <span className="text-base font-semibold text-primary">
+          <span className="font-display text-base font-semibold text-primary-strong">
             {t('dashboard.week')} {headerDate.weekNumber}
           </span>
           <span className="text-xs text-muted-foreground tabular-nums">
             {headerDate.dateString}
           </span>
-          <span className="text-xs font-semibold text-foreground tabular-nums mt-0.5">
+          <span className="mt-0.5 font-mono text-sm font-medium text-foreground tabular-nums">
             {clockString}
           </span>
         </div>
