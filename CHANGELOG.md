@@ -6,6 +6,25 @@
 - Skrifter: Schibsted Grotesk til h1–h3 (`font-display`) og Geist Mono til koder (`font-mono`), hentet sammen med Inter.
 - ESLint advarer om hex-koder og faste Tailwind-farver i `src/components` og `src/pages` (25 eksisterende fund, kun advarsler).
 - Ingen ændringer i funktioner, data, rettigheder eller Supabase.
+## 2026-11-19 – 3D-runde 3: billeder i Full HD/4K, video af rundvisningen og statistik på delte links
+- Kameraknappen har nu en menu med skærmbillede, billede i Full HD og 4K og en automatisk video af rundvisningen (titelkort, 360° i hvert rum, rumnavn og logo). Videoen laves i browseren som MP4/WebM i 1920 × 1080.
+- Delte links tæller åbninger, tid, rum og skærmtype uden IP, browser eller navn. Statistikken vises pr. link under Del. Egne visninger som logget ind tælles ikke.
+- Backend er kun forberedt: `supabase/staged/sql/005_p360_link_stats.sql` (+ rollback) og en ny version af `supabase/staged/functions/p360-link`. Intet er kørt eller deployet. SQL'en er testet i en lokal Postgres (rettigheder, grænser, sletning med linket).
+- Nye tests: `round3` (8 tjek) og et statistiktrin i `embed`. Alle 3D-testpakker er grønne.
+
+## 2026-11-19 – 3D: Polygon-brand på delte links
+- Delte links og filer til forsikringen åbner med et velkomstkort: logo, adresse, sagsnr., skadenr., modtager, dato for billederne og udløbsdato, og en "Start rundvisning"-knap.
+- "Leveret af Polygon A/S · Gyldigt til …" under titlen, adressen i browserfanen og logoet på stillbilleder.
+- Rettet en gammel tekst om at logge ind på Claude på links, der ikke virker.
+- Kun `public/3d/index.html`. Ingen backend og intet om Encircle.
+
+## 2026-11-19 – 3D-runde 1: plantegning med rumliste, døre, vinduer, møbler, udskrift og links på markeringer
+- Plantegningen i 3D-scanninger er slået til igen (efter Kaspers valg). Ved plantegningen står en rumliste med mål og areal, etagens og husets samlede areal, og et klik på et rum åbner det.
+- "Udskriv eller gem som PDF" laver en side pr. etage med plantegning og rumliste. Vægmål står langs væggen; små rum viser kun navn og areal.
+- Minikortet viser rummet og etagen. Markeringer kan få et valgfrit link (kun http/https).
+- Plantegningen viser døre (med slagbue), åbninger og vinduer, som AI'en så, samt møbler og hvidevarer (kan slås fra). Vægge har tykkelse, og nabotum, der er fotograferet op til 0,7 m fra hinanden, tegnes væg mod væg uden at gemte placeringer ændres. Rum kan omdøbes fra rumlisten.
+- Lovables 3D-ændringer fra 13.–16. november er flettet ind i kilden først. Alle 3D-testpakker og den nye `round1`-test er grønne.
+- Kun `public/3d/index.html` og dokumentation. Ingen backend, SQL eller deploy.
 
 ## 2026-11-19 – Deldagsfravær i ikke-tildelte ressourcer
 - Medarbejdernes fraværsbadges viser nu klokkeslæt og urikon ved godkendt deldagsfravær, fx 13:00–16:00 eller 14:30–15:00, for den valgte ressourcedato. Flere perioder for samme medarbejder bevares.

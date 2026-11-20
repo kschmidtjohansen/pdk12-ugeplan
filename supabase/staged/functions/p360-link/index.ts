@@ -1,5 +1,7 @@
 // p360-link: viser en delt rundvisning uden login.
 // Tjekker tokenet og giver tidsbegrænsede adresser til netop den rundvisnings billeder.
+// Tæller også visninger i p360_link_views: en række pr. åbning (tid, rum og skærmtype, ingen IP eller browser),
+// som fremviseren holder ved lige med et lille "stadig her" hvert 20. sekund, mens fanen er synlig.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const cors = {
@@ -10,14 +12,30 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 const HOURS = 12;
+const MAX_SECONDS = 4 * 3600;
+const DEVICES = new Set(["computer", "tablet", "phone"]);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "method" }, 405);
   try {
-    const { token } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const { token } = body ?? {};
     if (typeof token !== "string" || !/^[a-z0-9]{12,40}$/.test(token)) return json({ error: "not_found" }, 404);
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
+    // "still here" from an open viewer: only raises time and rooms, and never past the time since the link was opened
+    if (body.view !== undefined) {
+      if (typeof body.view !== "string" || !UUID.test(body.view)) return json({ ok: false });
+      const { data: v } = await sb.from("p360_link_views").select("opened_at, seconds, rooms").eq("id", body.view).eq("token", token).maybeSingle();
+      if (!v) return json({ ok: false });
+      const since = Math.floor((Date.now() - Date.parse(v.opened_at)) / 1000) + 5;
+      const sec = Math.min(MAX_SECONDS, since, Math.max(v.seconds, Math.floor(Number(body.seconds) || 0)));
+      const { count: nScenes } = await sb.from("p360_link_scenes").select("id", { count: "exact", head: true }).eq("token", token);
+      const rooms = Math.min(Math.max(1, nScenes ?? 1), 500, Math.max(v.rooms, Math.floor(Number(body.rooms) || 0)));
+      await sb.from("p360_link_views").update({ seconds: sec, rooms, seen_at: new Date().toISOString() }).eq("id", body.view).eq("token", token);
+      return json({ ok: true });
+    }
     const { data: link, error } = await sb.from("p360_links").select("doc").eq("token", token).maybeSingle();
     if (error) throw error;
     if (!link) return json({ error: "not_found" }, 404);
@@ -43,7 +61,14 @@ Deno.serve(async (req) => {
     const { data: cfg } = await sb.from("p360_config").select("doc").eq("id", 1).maybeSingle();
     const c = (cfg?.doc ?? {}) as Record<string, unknown>;
     const brand = { name: c.company, logo: c.logo, accent: c.accent, nadir: c.nadir, nadirOn: c.nadirOn, nadirSize: c.nadirSize };
-    return json({ tour: link.doc, scenes, urls, brand, expiresIn: HOURS * 3600 });
+    // count the visit; if the statistics table is not there yet, the link still works
+    let view: string | null = null;
+    if (body.count !== false) {
+      const device = DEVICES.has(body.device) ? body.device : "computer";
+      const { data: vr } = await sb.from("p360_link_views").insert({ token, device }).select("id").maybeSingle();
+      view = vr?.id ?? null;
+    }
+    return json({ tour: link.doc, scenes, urls, brand, expiresIn: HOURS * 3600, view });
   } catch (_e) {
     return json({ error: "server" }, 500);
   }

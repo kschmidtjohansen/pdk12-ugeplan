@@ -263,3 +263,35 @@ Dette findes i "Ret hjørner".
 - Afdelingsvælgeren i 3D starter på PolyPlans aktive afdeling og ændrer ikke afdeling i resten af PolyPlan. IT-support får alle afdelinger; andre får aktiv afdeling og `shared_duty_departments`-partnere. Eksisterende afdelingsmærker i rundvisningslisten bevares.
 - Live læseaudit: `p360_tours`/`p360_scenes` bruger eksisterende staff/editor-politikker uden afdelingsafgrænsning; denne ændring indsnævrer kun de tilbudte valg, indfører ingen RLS-lempelse og hævder ikke serverbaseret afdelingsisolering. Config-write bruger eksisterende p360-admin-politik; Admin-fanens IT-begrænsning er UI-adgang, ikke ny serverregel.
 - Browserfixture ved 1641×960 og 390×844: kendt vindue 1,20×1,10 m giver 1,20 m afstand, 1,10 m højde og 1,32 m² areal. Ekstern unmanaged Supabase tillader ikke brugerens autentificerede E2E her; ingen deploy.
+
+## Plantegning igen, rumliste, udskrift og links (18-11-2026)
+
+- **Plantegningen er slået til igen** (`NO_PLAN = false`). Minikort, plantegningsknap, "Tegn rum", "Ret hjørner" og kvadratmeter i "Rum og indhold" vises igen. Afsnittet fra 12-11-2026 om at plantegningen er slået fra gælder ikke længere.
+- **Rumliste ved plantegningen:** hvert rum står med mål (længde × bredde for firkantede rum) og areal. Under listen står etagens samlede areal og, ved flere etager, husets. Et klik på et rum åbner rummet. På telefon står listen under plantegningen.
+- **Udskriv eller gem som PDF:** knappen i plantegningens top laver én side pr. etage (A4 på tværs) med plantegning, rumliste, I alt og en note om, at målene skal kontrolleres. Kamerapunkterne udelades. Browserens udskrift gemmer som PDF. Virker også i filer til forsikringen.
+- **Vægmål langs væggen:** målene står nu langs væggen inde i rummet, så de ikke rammer nabovæggen. Rum, der er for små på skærmen, viser kun navn og areal; målene står i rumlisten.
+- **Minikortet** viser rummet (og etagen, når der er flere) nederst, og skærmlæsere får det samme at vide.
+- **Døre, åbninger og vinduer på plantegningen:** AI-analysen af hvert billede gemmer allerede retningen til døre, åbninger og vinduer (`ai.openings`). Plantegningen sætter dem, hvor retningen fra kameraet rammer rummets væg: dør som hul med dørblad og slagbue, åbning som hul, vindue med vinduessymbol. Hullet skærer igennem væggen på begge sider, så en dør mellem to rum ses i begge. Trapper vises ikke på planen. Flere billeder i samme rum giver ikke dobbelte døre (samme type inden for 0,7 m slås sammen).
+- **Møbler og hvidevarer:** inventar fra AI-analysen (`ai.items`) i kategorierne møbler og hvidevarer vises som små firkanter med navn, cirka hvor AI'en så dem og altid inden for rummet. "Vis møbler og hvidevarer" ved rumlisten slår dem fra, også i udskriften.
+- **Sammenhængende rum:** vægge har nu tykkelse (12 cm). På tegningen flyttes et rum op til 0,7 m (eller 0,4 m tilbage), så en væg over for naboens væg ligger oven i den. Gemte placeringer ændres ikke, og plantegningseditoren viser stadig de rigtige placeringer. En fælles væg får kun sit mål skrevet én gang.
+- **Omdøb rum:** redaktører kan omdøbe et rum med blyanten i rumlisten. Rummets navn er billedets navn, så det samme navn står i billedrækken og "Rum og indhold".
+- **Link på markeringer:** en markering kan have et valgfrit link. Kun `https://` og `http://` bliver til links; `javascript:`, `data:` og andre adresser vises aldrig som link. Linket åbner i en ny fane (`noopener`) og står også i CSV-eksporten.
+- **Lovables ændringer** fra 13.–16. november (vægmål, indlejret visning, værktøjsknapper til markering og sløring) er flettet ind i kilden, før ændringerne blev bygget.
+- **Tests:** `test/round1.mjs` (9 tjek) og de eksisterende pakker (plan2, polyplan, lidar, archive, embed) er grønne. Testene, der tidligere krævede, at plantegningen var væk, tjekker nu, at den er der.
+
+## Polygon-brand på delte links (19-11-2026)
+
+- **Velkomstkort:** et delt link åbner med et kort med firmaets logo, "360°-rundvisning fra Polygon A/S", adressen, rundvisningens titel, sagsnr., skadenr., hvem linket er til (forsikringsselskab og skadebehandler fra delingsdialogen), datoen for billederne, antal scener og hvornår linket udløber. "Start rundvisning" (fokus fra start, Enter eller Esc) lukker kortet. Filer til forsikringen (offline) får samme kort uden udløbsdato.
+- **Linje i hovedet:** "Leveret af Polygon A/S · Gyldigt til …" under titlen på delte links. Skjult på telefon.
+- **Fanetitel:** adressen og firmanavnet, fx "Skovvej 12, 6000 Kolding · Polygon A/S".
+- **Logo på stillbilleder:** billeder taget med kamera-knappen får logoet på et hvidt kort i nederste højre hjørne ved siden af den eksisterende billedtekst.
+- **Hvem linket er til** gemmes nu i linkets kopi (`to`, `toContact`). Ældre links får det, næste gang rundvisningen gemmes; indtil da vises forsikringsselskabet fra rundvisningen.
+- **Rettet tekst:** et link, der ikke virker, siger ikke længere "log ind på Claude", men beder om at kontakte Polygon for et nyt link.
+- Kun 3D-appen. Logo, firmanavn og accentfarve kommer fra de eksisterende 3D-indstillinger (`p360_config`). Ingen ændringer i database, p360-link eller Encircle.
+
+## Billeder, video og statistik på links (19-11-2026)
+- Kameraknappen åbner en menu: **Skærmbillede**, **Billede i Full HD** (1920 px bredt), **Billede i 4K** (3840 px bredt) og **Video af rundvisningen**. Billederne tages i skærmens format med logoet i hjørnet; fremviseren vender tilbage til sin egen størrelse bagefter.
+- Videoen laves i browseren (MP4 i Chrome/Edge/Safari, ellers WebM), 1920 × 1080: et titelkort med logo, adresse og sagsnr., derefter en rolig 360°-drejning i hvert rum i rundvisningens rækkefølge med rummets navn nederst til venstre og logoet nederst til højre. Fanen skal være åben og synlig, mens den optages; "Annullér" stopper uden fil.
+- **Statistik på delte links** (kræver backend, se nedenfor): under Del → Link til forsikring står for hvert link "Åbnet N gange · senest … · i alt … · rum", og "Seneste visninger" viser de sidste 10 med tid, varighed, antal rum og skærmtype (computer, tablet, telefon). Der gemmes ikke IP-adresse, browser eller hvem der kiggede. Visninger fra nogen, der er logget ind, tælles ikke.
+- Fremviseren på et link sender "stadig her" hvert 20. sekund og når fanen skjules. Serveren hæver kun tiden, aldrig ud over tiden siden linket blev åbnet (højst 4 timer), og antal rum højst til linkets antal rum.
+- **Rækkefølge ved udrulning:** 1) kør `supabase/staged/sql/005_p360_link_stats.sql`, 2) deploy `supabase/staged/functions/p360-link`, 3) udgiv `public/3d/index.html`. Siden virker i enhver rækkefølge; uden tabellen tælles der bare ikke. Rollback: `005_p360_link_stats_rollback.sql`.
