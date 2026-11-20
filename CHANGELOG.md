@@ -1,3 +1,11 @@
+## 2026-11-20 – Facet fase 3: Dashboard og Ugeplan
+
+- Dashboard har fået Dagslys: en top der følger tiden på dagen (morgen, dag, aften) med en stor hilsen, dagens opsummering ("6 opgaver i dag på 6 adresser") og statusbrikker i glas. Alle paneler bag brikkerne er uændrede.
+- Nyt dagskort på Dashboard: dagens opgaver som nummererede nåle på et OpenStreetMap-kort med prikkede ruter pr. bil eller hold. Numrene er de samme som i "Dagens forløb". Opgaver uden koordinater tælles under kortet, og et klik på en nål åbner opgaven.
+- "Dagens forløb" viser nummererede rækker, en lysende nu-linje og en fremhævning af det, der er i gang.
+- Ugeplan har fået et nyt hoved med "Uge 47" og datoerne, runde visningsknapper og ugenavigation, nøgletal som løftede kort, dagen i dag med en lysende kant og opgavekort i Facet. Det gælder også listen, kompaktvisningen og kalenderen.
+- Ny afhængighed: Leaflet. Den indlæses kun med dagskortet, og grundkortet hentes fra OpenStreetMap.
+
 ## 2026-11-20 – Facet fase 2: rammen
 
 - Sidemenuen er adskilt med en blød skygge i stedet for streger. Det valgte punkt har en blå flade og en lysende streg til venstre. Navne og rækkefølge er uændrede.

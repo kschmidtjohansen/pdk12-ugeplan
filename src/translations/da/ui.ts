@@ -365,6 +365,20 @@ export const ui = {
   impersonationActive: "Du agerer nu som: {name} ({role})",
   impersonationLoggedInAs: "Logget ind som {name}",
   impersonationStop: "Afslut og vend tilbage",
+  daySummary: "{tasks} i dag på {places}.",
+  daySummaryNone: "Ingen opgaver i dag endnu.",
+  dayTasksOne: "1 opgave",
+  dayTasksMany: "{count} opgaver",
+  dayPlacesOne: "1 adresse",
+  dayPlacesMany: "{count} adresser",
+  dayFlow: "Dagens forløb",
+  dayMap: "Dagskortet",
+  dayMapOnMap: "{count} på kortet",
+  dayMapMissing: "{count} uden kortplacering",
+  dayMapEmpty: "Ingen af dagens opgaver har en kortplacering.",
+  dayMapLabel: "Kort over dagens opgaver",
+  dayMapOpen: "Åbn opgave {n}: {title}",
+  nowAt: "Nu {time}",
 };
 
 export default ui;

@@ -365,6 +365,20 @@ export const ui = {
   impersonationActive: "You are acting as: {name} ({role})",
   impersonationLoggedInAs: "Signed in as {name}",
   impersonationStop: "Exit and return",
+  daySummary: "{tasks} today at {places}.",
+  daySummaryNone: "No tasks today yet.",
+  dayTasksOne: "1 task",
+  dayTasksMany: "{count} tasks",
+  dayPlacesOne: "1 address",
+  dayPlacesMany: "{count} addresses",
+  dayFlow: "Today's flow",
+  dayMap: "Day map",
+  dayMapOnMap: "{count} on the map",
+  dayMapMissing: "{count} without a map location",
+  dayMapEmpty: "None of today's tasks have a map location.",
+  dayMapLabel: "Map of today's tasks",
+  dayMapOpen: "Open task {n}: {title}",
+  nowAt: "Now {time}",
 };
 
 export default ui;

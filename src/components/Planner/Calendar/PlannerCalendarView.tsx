@@ -173,7 +173,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
     <TooltipProvider delayDuration={300}>
     <div className="flex flex-col lg:flex-row gap-3 lg:gap-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Filterkolonne — sammenklappelig på mobil */}
-      <aside className={cn('shrink-0 rounded-xl border border-border bg-card p-3 transition-all duration-200', minimized ? 'lg:w-11' : 'lg:w-60')}>
+      <aside className={cn('facet-card shrink-0 p-3 transition-all duration-200 ease-facet', minimized ? 'lg:w-11' : 'lg:w-60')}>
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
@@ -208,7 +208,7 @@ const PlannerCalendarView: React.FC<Props> = ({ dates, assignments, employees, v
         </div>
       </aside>
 
-      <div className="flex-1 min-w-0 rounded-xl border border-border bg-card overflow-hidden">
+      <div className="facet-card flex-1 min-w-0 overflow-hidden">
         {/* Dagsvælger */}
         <div className="flex gap-1 p-2 border-b border-border overflow-x-auto">
           {dates.map(d => {

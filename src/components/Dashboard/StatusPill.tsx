@@ -13,9 +13,9 @@ interface StatusPillProps extends React.ButtonHTMLAttributes<HTMLButtonElement> 
 }
 
 const toneMap = {
-  default: 'border-border/60 bg-background/60 text-foreground hover:bg-accent/60',
-  primary: 'border-border bg-card text-info-soft-foreground hover:bg-accent',
-  warning: 'border-warning/40 bg-warning-soft text-warning-soft-foreground hover:bg-warning-soft/80',
+  default: 'facet-tile text-foreground',
+  primary: 'facet-tile text-primary-strong',
+  warning: 'facet-tile facet-tile-warning text-warning-soft-foreground',
 };
 
 const StatusPill = React.forwardRef<HTMLButtonElement, StatusPillProps>(
@@ -25,13 +25,13 @@ const StatusPill = React.forwardRef<HTMLButtonElement, StatusPillProps>(
       ref={ref}
       type="button"
       className={cn(
-        'inline-flex min-h-11 h-auto items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'inline-flex min-h-12 h-auto items-center justify-start gap-2 rounded-card px-3.5 py-2.5 text-sm font-medium tabular-nums transition-[background-color,box-shadow,transform] duration-140 ease-facet focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         toneMap[tone],
         className
       )}
       {...rest}
     >
-      <Icon className="h-3.5 w-3.5 shrink-0" />
+      <Icon className="h-4 w-4 shrink-0" aria-hidden />
       <span className="whitespace-normal text-left break-words">{label}</span>
       {live && <LiveDot className="ml-auto" />}
     </Button>

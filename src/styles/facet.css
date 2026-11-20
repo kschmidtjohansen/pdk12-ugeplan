@@ -246,3 +246,106 @@
   ::view-transition-old(root),
   ::view-transition-new(root) { animation: none; }
 }
+
+/* ---------- Fase 3: kernesiderne ---------- */
+
+/* Glasfelt oven på Dagslys (statusbrikker) */
+.facet-tile {
+  background: hsl(0 0% 100% / 0.62);
+  border: 1px solid hsl(0 0% 100% / 0.85);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 6px 18px -14px rgb(15 22 41 / 0.35);
+}
+.facet-tile:hover { background: hsl(0 0% 100% / 0.85); transform: translateY(-1px); }
+.facet-tile-warning { background: hsl(var(--warning-soft) / 0.85); border-color: hsl(var(--warning) / 0.35); }
+.dark .facet-tile { background: hsl(var(--card) / 0.6); border-color: hsl(var(--border)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04); }
+.dark .facet-tile:hover { background: hsl(var(--card) / 0.9); }
+@media (prefers-reduced-motion: reduce) { .facet-tile:hover { transform: none; } }
+
+/* Nummererede nåle: samme tal i dagens forløb og på dagskortet */
+.facet-map-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: hsl(var(--card));
+  border: 3px solid hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font: 700 11px/1 var(--font-sans, Inter, system-ui, sans-serif);
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 6px hsl(var(--primary) / 0.16), 0 4px 10px -4px rgb(15 22 41 / 0.35);
+}
+.dark .facet-map-pin { color: hsl(var(--foreground)); }
+.facet-map-pin-sm { width: 26px; height: 26px; border-width: 2px; box-shadow: 0 0 0 4px hsl(var(--primary) / 0.12); }
+.facet-map-pin.is-now { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); box-shadow: 0 0 0 6px hsl(var(--primary) / 0.25), 0 0 18px hsl(var(--primary) / 0.7); }
+.facet-map-pin.is-past { opacity: 0.55; }
+.facet-map-pin-wrap { background: none; border: 0; }
+.facet-map-pin-wrap:focus-visible { outline: none; }
+.facet-map-pin-wrap:focus-visible .facet-map-pin { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+
+/* Rækken der er i gang nu */
+.facet-row-now {
+  background: linear-gradient(90deg, hsl(197 100% 92%), hsl(var(--sidebar-accent) / 0.6)) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8), 0 6px 16px -12px hsl(var(--primary) / 0.7);
+}
+.dark .facet-row-now { background: hsl(197 60% 16%) !important; box-shadow: none; }
+
+/* Dagskortet: dæmpet grundkort i Facets lyse toner */
+.facet-map { background: hsl(var(--muted)); font-family: inherit; }
+.facet-map .leaflet-tile-pane { filter: saturate(0.35) brightness(1.04) contrast(0.95); }
+.dark .facet-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.35); }
+.facet-map-route { stroke: hsl(var(--primary)); stroke-opacity: 0.7; stroke-dasharray: 2 7; stroke-linecap: round; fill: none; }
+.facet-map-label {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-flade);
+}
+.facet-map .leaflet-control-zoom { border: 0 !important; box-shadow: var(--shadow-flydende) !important; border-radius: var(--facet-radius-control) !important; overflow: hidden; }
+.facet-map .leaflet-control-zoom a { background: hsl(var(--card)); color: hsl(var(--foreground)); border-color: hsl(var(--border)) !important; }
+.facet-map .leaflet-control-attribution { background: hsl(var(--card) / 0.75); color: hsl(var(--muted-foreground)); border-radius: 8px 0 0 0; font-size: 10px; }
+.facet-map .leaflet-control-attribution a { color: hsl(var(--primary-strong)); }
+.leaflet-tooltip.facet-map-tip {
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--facet-radius-control);
+  box-shadow: var(--shadow-flydende);
+  font: 500 12px/1.4 var(--font-sans, Inter, system-ui, sans-serif);
+  padding: 6px 10px;
+}
+.leaflet-tooltip-top.facet-map-tip::before { border-top-color: hsl(var(--border)); }
+
+/* I dag i Ugeplan: blå kant og en lysende streg foroven */
+.facet-today {
+  position: relative;
+  border-color: hsl(var(--primary) / 0.45) !important;
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.12), 0 10px 30px -18px hsl(var(--primary) / 0.55), var(--shadow-flade);
+}
+.facet-today::before {
+  content: "";
+  position: absolute;
+  inset: -1px 24px auto 24px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary)), transparent);
+  box-shadow: 0 0 10px hsl(var(--primary) / 0.7);
+  pointer-events: none;
+}
+.facet-today-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 11px;
+  font-weight: 600;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
+}

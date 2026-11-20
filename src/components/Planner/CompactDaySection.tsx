@@ -58,12 +58,12 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
   const isToday = new Date(`${dateKey}T00:00:00`).toDateString() === new Date().toDateString();
 
   return (
-    <div className={`bg-card rounded-xl border border-border/60 overflow-hidden ${
-      isToday ? 'border-primary/40 ring-1 ring-primary/20 border-beam' : ''
+    <div className={`facet-card overflow-hidden ${
+      isToday ? 'facet-today' : ''
     } ${isWeekend ? 'bg-muted/40' : ''}`}>
       {/* Day Header - Compact */}
       <div 
-        className={`flex items-center justify-between gap-2 px-4 py-2.5 border-b border-border/60 cursor-pointer transition-colors ${isWeekend ? 'bg-muted/60 hover:bg-muted' : 'bg-muted/40 hover:bg-muted/70'}`}
+        className={`flex items-center justify-between gap-2 px-4 py-2.5 border-b border-border/60 cursor-pointer transition-colors ${isWeekend ? 'bg-muted/60 hover:bg-muted' : 'bg-background/50 hover:bg-sidebar-accent/60'}`}
 
         onClick={() => onToggleExpansion(dateKey)}
         role="button"
@@ -81,9 +81,9 @@ const CompactDaySection: React.FC<CompactDaySectionProps> = ({
           ) : (
             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
           )}
-          <h3 className={`font-semibold text-sm truncate ${isWeekend ? 'text-muted-foreground' : ''}`}>{formattedDate}</h3>
+          <h3 className={`font-display font-semibold text-sm truncate ${isWeekend ? 'text-muted-foreground' : ''}`}>{formattedDate}</h3>
           {isToday && (
-            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+            <span className="facet-today-badge shrink-0">
               {currentLanguage === 'da' ? 'I dag' : 'Today'}
             </span>
           )}
