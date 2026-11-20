@@ -1,5 +1,4 @@
 import React from 'react';
-import { Separator } from '@/components/ui/separator';
 
 interface PageHeaderProps {
   title: string;
@@ -19,14 +18,14 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   children
 }) => {
   return (
-    <div className="mb-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-5 sm:mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1 min-w-0">
           {eyebrow && (
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{eyebrow}</p>
+            <p className="text-xs font-medium uppercase tracking-[0.06em] text-muted-foreground">{eyebrow}</p>
           )}
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 min-w-0">
-            <h1 className="text-xl font-semibold tracking-tight text-foreground truncate">{title}</h1>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground truncate sm:text-4xl">{title}</h1>
             {meta && <span className="text-sm text-muted-foreground tabular-nums">{meta}</span>}
           </div>
           {description && (
@@ -39,7 +38,6 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           </div>
         )}
       </div>
-      <Separator className="mt-4" />
     </div>
   );
 };

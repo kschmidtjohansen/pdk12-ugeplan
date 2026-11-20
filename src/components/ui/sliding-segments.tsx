@@ -20,11 +20,11 @@ export function SlidingSegments<T extends string>({ segments, value, onChange, a
     if (el) setPill({ left: el.offsetLeft, width: el.offsetWidth });
   }, [value, segments]);
   return (
-    <div role="group" aria-label={ariaLabel} className={cn('relative inline-flex items-center rounded-lg bg-muted/60 p-1', className)}>
+    <div role="group" aria-label={ariaLabel} className={cn('relative isolate inline-flex items-center rounded-full border border-border/70 bg-card/80 p-1 shadow-flade', className)}>
       {pill && (
         <span
           aria-hidden
-          className="absolute top-1 bottom-1 rounded-md bg-primary shadow-sm transition-all duration-200 ease-out motion-reduce:transition-none"
+          className="facet-tab-thumb absolute top-1 bottom-1 rounded-full transition-all duration-200 ease-facet motion-reduce:transition-none"
           style={{ left: pill.left, width: pill.width }}
         />
       )}
@@ -38,8 +38,8 @@ export function SlidingSegments<T extends string>({ segments, value, onChange, a
             aria-pressed={active}
             onClick={() => onChange(seg.key)}
             className={cn(
-              'relative z-10 flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors',
-              active ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
+              'relative z-10 flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-xs font-medium transition-colors duration-140 ease-facet',
+              active ? 'font-semibold text-primary-strong' : 'text-muted-foreground hover:text-foreground',
             )}
           >
             {seg.dot && <span aria-hidden className={cn('h-2 w-2 rounded-full', seg.dot)} />}

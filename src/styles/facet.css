@@ -430,3 +430,14 @@ html.sollys .facet-task-card { border-color: hsl(var(--border)); box-shadow: non
 @media (min-width: 640px) {
   .facet-deck { -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 }
+
+/* ---------- Fase 5: øvrige sider ---------- */
+
+/* Den bløde flade under den valgte fane eller det valgte segment */
+.facet-tab-thumb {
+  background: linear-gradient(180deg, hsl(197 100% 94%), hsl(var(--sidebar-accent)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 2px 6px -3px hsl(var(--primary) / 0.45);
+}
+.dark .facet-tab-thumb { background: hsl(197 60% 18%); box-shadow: none; }
+html.sollys .facet-tab-thumb { background: hsl(var(--primary)); box-shadow: none; }
+html.sollys .facet-tab-thumb, html.sollys [role="tab"][data-state="active"] { color: hsl(var(--primary-foreground)); }

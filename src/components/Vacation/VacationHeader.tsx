@@ -40,7 +40,7 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({ counts, isServicemedarb
         <VacationTabs counts={counts} isServicemedarbejder={isServicemedarbejder} activeTab={activeTab} onChange={onChangeTab} />
       )}
       {canViewCalendar && (
-        <div role="group" aria-label={da ? 'Visning' : 'View'} className="inline-flex shrink-0 self-start rounded-md border border-border p-0.5 sm:self-auto">
+        <div role="group" aria-label={da ? 'Visning' : 'View'} className="inline-flex shrink-0 self-start rounded-full border border-border/70 bg-card/80 p-1 shadow-flade sm:self-auto">
           {views.map(({ key, label, icon: Icon, active, onClick }) => (
             <button
               key={key}
@@ -48,8 +48,8 @@ const VacationHeader: React.FC<VacationHeaderProps> = ({ counts, isServicemedarb
               aria-pressed={active}
               onClick={onClick}
               className={cn(
-                'inline-flex min-h-11 items-center gap-1.5 rounded-[5px] px-3 text-xs font-medium transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                'inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 text-xs font-medium transition-colors duration-140 ease-facet motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-9',
+                active ? 'facet-tab-thumb font-semibold text-primary-strong' : 'text-muted-foreground hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4" aria-hidden />{label}

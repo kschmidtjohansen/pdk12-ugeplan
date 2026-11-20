@@ -1,3 +1,12 @@
+## 2026-11-20 – Facet fase 5: øvrige sider
+
+- Medarbejdere, Biler, Fridage, Vagt, Lager, Admin og Ændringer har fået Facet gennem de fælles byggeklodser. Sidehovedet har en stor titel i Schibsted Grotesk med afdelingen over, og der er ingen skillelinje.
+- Lister og tabeller ligger på kort med blød skygge. Tabelhovedet er roligere, og rækker lyser blåt op ved hover.
+- Faner, statusfiltre, typefiltret på Vagt, Liste/Kalender på Fridage og afdelingsvælgeren er runde segmenter, hvor en blød flade markerer det valgte.
+- Søgefelterne i listerne er runde.
+- Ændringer i ugeplanen bruger nu samme sidehoved som de andre sider.
+- Blå tekst (`text-primary`) bruger overalt den tilgængelige mørkere blå (4,9:1). Polygon-blå bruges fortsat til flader, kanter og knapper.
+
 ## 2026-11-20 – Facet fase 4: Felten
 
 - Min Dag er et kortsæt, man swiper igennem. Det starter ved den opgave, der er i gang eller er den næste. Hvert kort viser opgavetypen, tidspunktet, titlen, adressen, hvem man er med, bilen og den ansvarlige. Store knapper giver Naviger, Ring og "På vej". Prikker og "Swipe til næste" viser, hvad der kommer.

@@ -26,20 +26,20 @@ export default function ModuleListTools({ segments, active, onSelect, search, on
   const filtered = filteredOverride ?? (active !== 'all' || search.trim().length > 0);
   return <section aria-label={da ? 'Filtre og resultater' : 'Filters and results'} className="mb-3">
     <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-      <div className="inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg bg-muted/60 p-1 scrollbar-none" role="group" aria-label="Status">
+      <div className="inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full border border-border/70 bg-card/80 p-1 shadow-flade scrollbar-none" role="group" aria-label="Status">
         {segments.map(segment => {
           const isActive = active === segment.key;
           return <button key={segment.key} type="button" aria-label={`${segment.label}${segment.count === undefined ? '' : ` ${segment.count}`}`} aria-pressed={isActive} onClick={() => onSelect(segment.key)}
-            className={cn('inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-8',
-              isActive ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>
+            className={cn('inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-xs font-medium transition-colors duration-140 ease-facet motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-8',
+              isActive ? 'facet-tab-thumb font-semibold text-primary-strong' : 'text-muted-foreground hover:text-foreground')}>
             <span>{segment.label}</span>
-            {segment.count !== undefined && <span className={cn('tabular-nums', isActive ? 'text-foreground' : 'text-muted-foreground', segment.highlight && 'text-warning-soft-foreground')}>{segment.count}</span>}
+            {segment.count !== undefined && <span className={cn('tabular-nums', isActive ? 'text-primary-strong' : 'text-muted-foreground', segment.highlight && 'text-warning-soft-foreground')}>{segment.count}</span>}
           </button>;
         })}
       </div>
       <div className="relative w-full sm:w-64">
         <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input type="search" aria-label={placeholder} placeholder={placeholder} value={search} onChange={e => onSearch(e.target.value)} className="h-11 min-h-11 pl-9 sm:h-9 sm:min-h-9" />
+        <Input type="search" aria-label={placeholder} placeholder={placeholder} value={search} onChange={e => onSearch(e.target.value)} className="h-11 min-h-11 rounded-full pl-9 shadow-flade sm:h-9 sm:min-h-9" />
       </div>
       {trailing && <div className="flex flex-wrap items-center gap-2">{trailing}</div>}
       <div className="flex items-center gap-2 sm:ml-auto">

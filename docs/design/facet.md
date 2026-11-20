@@ -20,7 +20,7 @@ PolyPlans egne farver i `src/index.css` bevares. Brug altid tokens, aldrig farve
 | --- | --- |
 | `--primary` (Polygon-blå #00ACF0) | Primærknap, valgt punkt, nu-linje, fokus, glød |
 | `--primary-foreground` (brand-ink #003652) | Tekst og ikoner **på** Polygon-blå. Aldrig hvid tekst på blå (2,6:1) |
-| `--primary-strong` (#00668F) | Blå tekst på lyse flader: links, små etiketter, store tal |
+| `--primary-strong` (#00668F) | Blå tekst på lyse flader: links, små etiketter, store tal | `text-primary` peger også hertil (Tailwind `textColor`), så blå tekst altid har nok kontrast |
 | `--sidebar-accent` (#EBF9FF) | Valgt punkt i menuen, bløde markeringer, Dagslys |
 | `--background`, `--card`, `--muted`, `--border` | Flader og linjer |
 | `--success`, `--warning`, `--destructive`, `--info` + `-soft` | Status, altid med ord eller ikon |
@@ -60,6 +60,7 @@ Opgaver har ingen status ud over publiceret eller ej; design ikke statusforløb.
 | Feltknap | `Button` + `.facet-field-btn` | Mindst 56 px høj, til én hånd |
 | Bundmenu | `.facet-bottom-nav`, `.facet-tab-active`, `.facet-tab-pill` | Telefonens navigation |
 | Sollys | `html.sollys` (`src/lib/sollys.ts`, `useSollys`) | Høj kontrast udendørs; slås til i brugermenuen eller via enhedens kontrastindstilling |
+| Segment | `TabsList`, `SlidingSegments`, `ModuleListTools` + `.facet-tab-thumb` | Faner og filtre: rund pille med blød flade under det valgte |
 | Skeleton | `.facet-skeleton` | Indlæsning i indholdets form |
 | Primærknap | `Button` (default) | Polygon-blå, brand-ink tekst og `shadow-brand` |
 

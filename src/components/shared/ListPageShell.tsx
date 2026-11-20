@@ -44,7 +44,7 @@ const ListPageShell: React.FC<ListPageShellProps> = ({
   const label = compact ? (da ? 'Normal visning' : 'Comfortable rows') : (da ? 'Kompakt visning' : 'Compact rows');
 
   return (
-    <div className="min-h-dvh w-full bg-background" data-density={density}>
+    <div className="min-h-dvh w-full" data-density={density}>
       <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5">
         <PageHeader title={title} description={description} eyebrow={eyebrow} meta={meta}>
           {actions}
@@ -53,7 +53,7 @@ const ListPageShell: React.FC<ListPageShellProps> = ({
               type="button"
               variant="ghost"
               size="sm"
-              className="hidden h-9 w-9 p-0 md:inline-flex"
+              className="hidden h-9 w-9 rounded-full p-0 md:inline-flex"
               aria-pressed={compact}
               aria-label={label}
               title={label}
@@ -66,7 +66,7 @@ const ListPageShell: React.FC<ListPageShellProps> = ({
         {filterBar}
         <div
           className={cn(
-            workspace ? 'min-w-0 border-t border-border bg-card' : 'rounded-xl border border-border bg-card shadow-xs overflow-hidden',
+            workspace ? 'facet-card min-w-0 overflow-hidden' : 'facet-card overflow-hidden',
             className
           )}
         >
