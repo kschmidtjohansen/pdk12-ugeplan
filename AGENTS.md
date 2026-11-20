@@ -8,6 +8,8 @@
 - Cross-department calendars load original tasks through each accessible department's existing authorized reader; retain source department IDs for mutations, resource selection and series matching instead of treating busy summaries as editable tasks.
 - Dashboard presentation stays in existing widgets; preserve their hooks, filtering and action handlers when changing layout.
 - Shared UI primitives retain their props and variants; visual defaults belong in semantic tokens and variant classes.
+- Ugeplan's Tavle (people × days) and Kort are views over the same filtered week data; the pure plannerBoard module builds rows, absence (via plannerAbsence), load and the unassigned bar, conflicts come from summarizeWeek, and the side panel reuses the page's edit/copy/publish/delete handlers. Tavle is the default on desktop once (plannerViewMode.v2); phones default to the list.
+- Dashboard 'Kræver handling' (ActionCenter) only surfaces existing data and actions: today's person conflicts (link to the planner filter), pending vacation via the existing approve/reject dialog, incoming duty swaps via useDutyActions, and tasks without crew.
 - Planner and dashboard operation summaries and deep links use the shared pure plannerOperations module; this keeps ISO-week scope, filters and overlap counts consistent.
 - Planner cards consume PlannerWeekDataContext with a standalone fallback; this prevents per-card query subscriptions and repeated week conflict calculations without breaking other callers.
 - Inbox state and drawer query keys are scoped to authenticated user IDs; authoritative catch-up reconciles mutations and missed realtime events without duplicate unread increments.

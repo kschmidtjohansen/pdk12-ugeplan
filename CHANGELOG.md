@@ -1,3 +1,11 @@
+## 2026-11-20 – Lærredets sider: Ugeplan og Dashboard
+
+- Ugeplan åbner på Tavlen: medarbejdere × ugedage med opgaverne i hver celle, fravær (ferie, kursus, syg, deldage), en belægningsstreg pr. dag og røde konflikter. Opgaver uden medarbejder står øverst. Klik på en opgave åbner et panel med sag, tid, adresse med Naviger, hold, bil, konflikt og historik, og knappen "Rediger opgave".
+- Under tavlen viser en glasbjælke, hvem og hvilke biler der ikke er tildelt i dag.
+- Visningerne er Tavle, Liste (med standard, gitter og kompakt), Kalender og det nye Kort, hvor dagens opgaver står som nummererede nåle.
+- Filtrene Alle, Ikke publiceret, Uden medarbejder og Konflikter ligger som knapper under ugen. Ugeskift, "Denne uge" og skærmknappen sidder ved titlen.
+- Dashboard: hilsenen står direkte på himlen med fire nøgletal (opgaver i dag, vagter, fraværende, ledige biler). Dagens forløb og Dagskortet står side om side, og "Kræver handling" samler dobbeltbookinger, fridage der venter (Godkend og Afvis), vagtbytte til dig og opgaver uden hold.
+
 ## 2026-11-20 – Lærredets sider: Medarbejdere, Biler, Fridage og 3D-scanninger
 
 - Medarbejdere vises som kort med dagens status (på opgave, ledig, syg, ferie eller dobbeltbooket) og bil. Klik på et kort åbner et panel med dagens opgaver, ugen, fravær og kompetencer, og med "Planlæg opgave" og "Registrér fravær". Tabellen kan stadig vælges.
