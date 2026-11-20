@@ -1,3 +1,31 @@
+## 2026-11-20 – Lærredets sider: Ugeplan og Dashboard
+
+- Ugeplan åbner på Tavlen: medarbejdere × ugedage med opgaverne i hver celle, fravær (ferie, kursus, syg, deldage), en belægningsstreg pr. dag og røde konflikter. Opgaver uden medarbejder står øverst. Klik på en opgave åbner et panel med sag, tid, adresse med Naviger, hold, bil, konflikt og historik, og knappen "Rediger opgave".
+- Under tavlen viser en glasbjælke, hvem og hvilke biler der ikke er tildelt i dag.
+- Visningerne er Tavle, Liste (med standard, gitter og kompakt), Kalender og det nye Kort, hvor dagens opgaver står som nummererede nåle.
+- Filtrene Alle, Ikke publiceret, Uden medarbejder og Konflikter ligger som knapper under ugen. Ugeskift, "Denne uge" og skærmknappen sidder ved titlen.
+- Dashboard: hilsenen står direkte på himlen med fire nøgletal (opgaver i dag, vagter, fraværende, ledige biler). Dagens forløb og Dagskortet står side om side, og "Kræver handling" samler dobbeltbookinger, fridage der venter (Godkend og Afvis), vagtbytte til dig og opgaver uden hold.
+
+## 2026-11-20 – Lærredets sider: Medarbejdere, Biler, Fridage og 3D-scanninger
+
+- Medarbejdere vises som kort med dagens status (på opgave, ledig, syg, ferie eller dobbeltbooket) og bil. Klik på et kort åbner et panel med dagens opgaver, ugen, fravær og kompetencer, og med "Planlæg opgave" og "Registrér fravær". Tabellen kan stadig vælges.
+- Biler vises som kort med nummerplade, status (I brug, Ledig, Mangler hold, Ikke tilgængelig), hvem der kører og hvorhen, og genveje til Falck, VW-assistance og note.
+- Fridage åbner på "Overblik": hvem har fri uge for uge et halvt år frem, med afventende anmodninger skraveret, og "Afventer godkendelse" med Godkend og Afvis. Liste og Kalender er der stadig.
+- 3D-scanninger har fået sidehoved og afdelingsvalg som på lærredet, og rundvisningerne vises som kort i samme stil.
+
+## 2026-11-20 – Lærredets sider: Vagt, Lager, Admin og Changelog
+
+- Vagt følger lærredet: blå vagtkort for i dag ved siden af "Find nærmeste vagtperson", ugetavle med syv dagskolonner, delte vagter med anden afdeling i lilla og ledige vagter stiplet. Måned kan stadig vælges.
+- Lager har tre nøgletal øverst (paller og møbelkasser, opbevaringer, ikke rengjort), søgning og lokationer som faner, og "Marker som afleveret" som knap på hver række.
+- Admin har menuen i venstre side og nøgletal for brugere, afdelinger og systemstatus øverst.
+- Changelog har to faner: "Hvad er nyt" med kort fra denne fil og "Ændringer i ugeplanen" med den hidtidige liste.
+
+
+## 2026-11-20 – Lærredets ramme: sidemenu og topbjælke
+
+- Sidemenuen følger lærredet. "Afdeling Kolding" ligger øverst i en grå boks, menupunkterne har nye ikoner, og Admin og 3D-scanninger står i menuen. Det valgte punkt har en lysende prik, og nederst sidder et brugerkort, som åbner brugermenuen.
+- Topbjælken viser afdelingen, søgepillen med Ctrl K, klokken som en pille med tal og knappen "Ny opgave", der åbner opret-dialogen i Ugeplan (`/planner?new=1`). Sidetitlen vises kun på telefon.
+
 ## 2026-11-20 – Facet fase 6: skærmvisning og mørkt tema
 
 - Skærmvisningen er bygget om til Facet med logo, sidetitel og et stort ur. Alle størrelser følger skærmens bredde, så 1080p og 4K ser ens ud.

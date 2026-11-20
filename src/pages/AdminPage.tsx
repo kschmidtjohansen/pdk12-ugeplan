@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RealtimeDiagnostics from '@/components/Admin/RealtimeDiagnostics';
-import { Shield, Users, Building2, Layers, Settings, MapPin, Activity, Radio, Clock, Megaphone, KeyRound, Gauge, Monitor } from 'lucide-react';
+import { Shield, Users, Building2, MapPin, Activity, Radio, Clock, KeyRound, Gauge, ScanLine, ListTree, SlidersHorizontal, Bell, Home } from 'lucide-react';
 import ScreenDisplayLinks from '@/components/Admin/ScreenDisplayLinks';
 import BroadcastNotification from '@/components/Admin/BroadcastNotification';
 import BroadcastDeliveryStatus from '@/components/Admin/BroadcastDeliveryStatus';
@@ -30,12 +30,20 @@ import { supabase } from '@/integrations/supabase/client';
 import ListSkeleton from '@/components/shared/ListSkeleton';
 import PageHeader from '@/components/Layout/PageHeader';
 import ScansPage from './ScansPage';
+import FacetKpi from '@/components/shared/FacetKpi';
+import { getRealtimeChannelDiagnostics } from '@/lib/realtimeChannels';
 
 const AdminPage: React.FC = () => {
   const { user, loading, isDemoMode, demoRole } = useAuth();
   const { t, currentLanguage } = useTranslation();
-  const { isWarehouseEnabled } = useDepartment();
+  const { isWarehouseEnabled, departments } = useDepartment();
   const [tab, setTab] = useState('users');
+  // Systemstatus: the app's realtime connections right now (re-read when the section changes)
+  const realtime = React.useMemo(() => {
+    const diag = getRealtimeChannelDiagnostics();
+    return { total: diag.length, waiting: diag.filter((d) => d.status !== 'SUBSCRIBED').length };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   const effectiveRole = isDemoMode && demoRole ? demoRole : user?.role;
   const isSuperAdmin = effectiveRole === 'super_admin';
@@ -78,13 +86,13 @@ const AdminPage: React.FC = () => {
       <div className="space-y-6">
         {/* same page header as the other PolyPlan pages */}
         <PageHeader
-          title={t('admin.title')}
+          title="Admin"
           description={t('admin.description')}
-          meta={userCount !== null ? t('admin.userManagement.totalCount').replace('{count}', String(userCount)) : undefined}
+          eyebrow={currentLanguage === 'en' ? 'Control panel' : 'Kontrolpanel'}
         />
 
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="w-full justify-start flex-wrap h-auto gap-1 p-1">
+        <Tabs value={tab} onValueChange={setTab} orientation="vertical" className="grid w-full gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start">
+          <TabsList aria-label={t('admin.title')} className="facet-admin-nav h-auto w-full flex-row flex-wrap items-stretch justify-start gap-0.5 rounded-card p-2 lg:sticky lg:top-20 lg:flex-col lg:flex-nowrap">
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
               {t('admin.tabs.users')}
@@ -96,11 +104,11 @@ const AdminPage: React.FC = () => {
               </TabsTrigger>
             )}
             <TabsTrigger value="subdepartments" className="gap-2">
-              <Layers className="h-4 w-4" />
+              <ListTree className="h-4 w-4" />
               {t('admin.tabs.subDepartments')}
             </TabsTrigger>
             <TabsTrigger value="features" className="gap-2">
-              <Settings className="h-4 w-4" />
+              <SlidersHorizontal className="h-4 w-4" />
               {t('admin.tabs.features')}
             </TabsTrigger>
             {isWarehouseEnabled && (isSuperAdmin || isAdmin) && (
@@ -112,24 +120,41 @@ const AdminPage: React.FC = () => {
 
             {(isSuperAdmin || isAdmin) && (
               <TabsTrigger value="broadcast" className="gap-2">
-                <Megaphone className="h-4 w-4" />
+                <Bell className="h-4 w-4" />
                 {t('admin.tabs.broadcast')}
               </TabsTrigger>
             )}
             {(isSuperAdmin || isAdmin) && (
               <TabsTrigger value="screens" className="gap-2">
-                <Monitor className="h-4 w-4" />
+                <Home className="h-4 w-4" />
                 {currentLanguage === 'en' ? 'Screens' : 'Skærme'}
               </TabsTrigger>
             )}
             {(isSuperAdmin || isAdmin) && (
               <TabsTrigger value="operations" className="gap-2">
-                <Gauge className="h-4 w-4" />
+                <Activity className="h-4 w-4" />
                 {currentLanguage === 'en' ? 'Operations' : 'Driftscenter'}
               </TabsTrigger>
             )}
-            {isSuperAdmin && <TabsTrigger value="scans" className="gap-2"><Layers className="h-4 w-4" />3D-scanninger</TabsTrigger>}
+            {isSuperAdmin && <TabsTrigger value="scans" className="gap-2"><ScanLine className="h-4 w-4" />3D-scanninger</TabsTrigger>}
           </TabsList>
+
+          <div className="min-w-0 space-y-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <FacetKpi label={t('admin.tabs.users')} value={userCount ?? '–'} onClick={() => setTab('users')} />
+            <FacetKpi label={t('admin.tabs.departments')} value={departments.length || '–'} onClick={isSuperAdmin ? () => setTab('departments') : undefined} />
+            <FacetKpi
+              label={currentLanguage === 'en' ? 'System status' : 'Systemstatus'}
+              value={<span className={`inline-flex items-center gap-2 text-[1.5rem] ${realtime.waiting === 0 ? 'text-success' : 'text-warning-soft-foreground'}`}>
+                <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${realtime.waiting === 0 ? 'bg-success shadow-[0_0_8px_hsl(var(--success)/0.8)]' : 'bg-warning'}`} />
+                {realtime.waiting === 0
+                  ? (currentLanguage === 'en' ? 'All running' : 'Alt kører')
+                  : (currentLanguage === 'en' ? `${realtime.waiting} waiting` : `${realtime.waiting} venter`)}
+              </span>}
+              sub={currentLanguage === 'en' ? `${realtime.total} live connections` : `${realtime.total} realtidsforbindelser`}
+              onClick={showOperations ? () => setTab('operations') : undefined}
+            />
+          </div>
 
           <TabsContent value="users" className="animate-fade-in">
             <UserManagement />
@@ -255,6 +280,7 @@ const AdminPage: React.FC = () => {
               </Tabs>
             </TabsContent>
           )}
+          </div>
         </Tabs>
       </div>
     </div>

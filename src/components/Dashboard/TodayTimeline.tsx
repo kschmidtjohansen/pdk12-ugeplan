@@ -143,14 +143,14 @@ const TodayTimeline: React.FC<TodayTimelineProps> = ({ active = true, onlyMine =
   if (!withMap) return <>{list}{dialog}</>;
 
   return (
-    <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.85fr)] 2xl:items-start">
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,1fr)] xl:items-start">
       <div className="min-w-0">{list}</div>
       <Suspense fallback={<div className="facet-card facet-skeleton h-72 lg:h-80" />}>
         <DayMap
           items={items.map((assignment, i) => ({ assignment, n: i + 1 }))}
           nowMin={nowMin}
           onOpen={setSelected}
-          className="h-72 lg:h-80 2xl:sticky 2xl:top-24 2xl:h-[min(560px,calc(100dvh-8rem))]"
+          className="h-72 lg:h-80 xl:sticky xl:top-24 xl:h-[min(520px,calc(100dvh-8rem))]"
         />
       </Suspense>
       {dialog}

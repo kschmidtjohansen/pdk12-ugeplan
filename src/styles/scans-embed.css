@@ -1,0 +1,18 @@
+/* Facet-tilpasning af 3D-scanninger, når appen vises inde i PolyPlan (?embed=1).
+   PolyPlan sætter dette ark ind i rammen; selve 3D-appen (public/3d) er uændret. */
+.p3-embed .topbar h1 { display: none; }
+.p3-embed .topbar { justify-content: flex-end; }
+.p3-embed .main-in { max-width: none; padding: 6px 48px 48px; }
+@media (max-width: 1023px) { .p3-embed .main-in { padding: 6px 24px 40px; } }
+@media (max-width: 639px) { .p3-embed .main-in { padding: 6px 12px 32px; } }
+.p3-embed .filters { margin: 14px 0 16px; }
+.p3-embed .chip { border-color: transparent; background: transparent; }
+.p3-embed .chip.on { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: 0 1px 2px rgba(16, 24, 40, .08); }
+.p3-embed .grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.p3-embed .card { border-radius: 20px; border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 8px 24px rgba(16, 24, 40, .06); }
+.p3-embed .card-img { background: radial-gradient(160px 110px at 80% 20%, hsl(197 100% 86% / .9), transparent 70%), linear-gradient(135deg, hsl(197 90% 94%), hsl(210 40% 98%)); }
+:root[data-theme="dark"].p3-embed .card-img { background: radial-gradient(160px 110px at 80% 20%, hsl(197 80% 30% / .6), transparent 70%), linear-gradient(135deg, hsl(197 50% 16%), hsl(222 22% 12%)); }
+.p3-embed .badge { left: auto; right: 10px; top: auto; bottom: 10px; }
+.p3-embed .card-count { right: auto; left: 10px; bottom: auto; top: 10px; background: rgba(255, 255, 255, .92); color: #151821; }
+:root[data-theme="dark"].p3-embed .card-count { background: rgba(17, 19, 23, .72); color: #fff; }
+.p3-embed .card h2 { font-size: 15px; font-weight: 700; }

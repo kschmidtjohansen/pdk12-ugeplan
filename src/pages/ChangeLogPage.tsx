@@ -1,4 +1,6 @@
 import PageHeader from '@/components/Layout/PageHeader';
+import WhatsNewList from '@/components/ChangeLog/WhatsNewList';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import React, { useState, useEffect } from 'react';
 import { DataFetchErrorBoundary } from '@/components/ErrorBoundary/DataFetchErrorBoundary';
 import { useTranslation } from '@/context/TranslationContext';
@@ -22,7 +24,7 @@ import {
 } from '@/components/ui/table';
 
 const ChangeLogPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const { fetchChangeLogsByDateRange } = useChangeLogs();
   const navigate = useNavigate();
   const { isEffectiveAdmin, isEffectiveSkadeleder } = usePermissions();
@@ -203,8 +205,19 @@ const ChangeLogPage: React.FC = () => {
   return (
     <DataFetchErrorBoundary>
       <div className="w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5">
-        <PageHeader title={t('changeLog.title')} />
+        <PageHeader
+          title="Changelog"
+          eyebrow={currentLanguage === 'en' ? "What's new" : 'Hvad er nyt'}
+          description={currentLanguage === 'en' ? 'New in PolyPlan, newest first, and every change to the week plan' : 'Nyt i PolyPlan, nyeste først, og alle ændringer i ugeplanen'}
+        />
 
+        <Tabs defaultValue="news" className="space-y-5">
+          <TabsList>
+            <TabsTrigger value="news">{currentLanguage === 'en' ? "What's new" : 'Hvad er nyt'}</TabsTrigger>
+            <TabsTrigger value="planner">{t('changeLog.title')}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="news"><WhatsNewList /></TabsContent>
+          <TabsContent value="planner">
         <Card>
           <CardContent className="space-y-4 pt-5">
             {/* Filters */}
@@ -308,6 +321,8 @@ const ChangeLogPage: React.FC = () => {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DataFetchErrorBoundary>
 

@@ -6,7 +6,8 @@ import { Vacation } from '@/types/vacation';
 import { visibleVacations } from '@/utils/moduleListFilters';
 import { useQueryClient } from '@tanstack/react-query';
 import ErrorState from '@/components/shared/ErrorState';
-import WorkspaceSection from '@/components/shared/WorkspaceSection';
+import ListPageShell from '@/components/shared/ListPageShell';
+import { useDepartment } from '@/context/DepartmentContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
@@ -15,7 +16,8 @@ import VacationHeader from './VacationHeader';
 import VacationDialogs from './VacationDialogs';
 
 interface VacationPageContainerProps {
-  headerComponent: React.ReactNode;
+  /** Kept for API compatibility; the page header now lives here. */
+  headerComponent?: React.ReactNode;
 }
 
 const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerComponent }) => {
@@ -25,7 +27,9 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   const { t, currentLanguage } = useTranslation();
   const da = currentLanguage === 'da';
   const [search, setSearch] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState("all");
+  const { selectedDepartment } = useDepartment();
+  const canViewOverview = canManageVacations || canViewAllVacations || isEffectiveAdmin;
+  const [activeTab, setActiveTab] = React.useState(() => (canViewOverview ? 'overview' : 'all'));
   
   const {
     vacations,
@@ -145,35 +149,37 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
   return (
     <div>
       {headerComponent}
-      
-      <WorkspaceSection
-        className="mt-2"
-        flush
-        title={da ? 'Ferie og fravær' : 'Time off and absence'}
+      <ListPageShell workspace densityToggle={false} className="overflow-visible border-0 bg-transparent shadow-none"
+        title={t('navigation.vacation')}
+        eyebrow={selectedDepartment?.name}
+        description={da ? 'Ferie, feriefridage og afspadsering' : 'Holiday, days off and time off in lieu'}
         meta={<span data-testid="vacation-total-count">{da ? `${counts.all} anmodninger` : `${counts.all} requests`}{counts.pending > 0 && (da ? ` · ${counts.pending} afventer` : ` · ${counts.pending} pending`)}</span>}
         actions={activeTab !== 'calendar' && (
           <>
-            <Button onClick={handleOpenDialog} size="sm" className="min-h-11 flex-1 whitespace-normal sm:flex-none">
-              <Plus className="h-4 w-4" aria-hidden />
-              {t('vacation.applyForVacation')}
-            </Button>
             {canManageVacations && (
-              <Button onClick={handleOpenAdminDialog} size="sm" variant="outline" className="min-h-11 flex-1 whitespace-normal sm:flex-none">
+              <Button onClick={handleOpenAdminDialog} size="sm" variant="outline" className="min-h-11 rounded-full">
                 <Plus className="h-4 w-4" aria-hidden />
                 {t('vacation.requestForEmployee')}
               </Button>
             )}
+            <Button onClick={handleOpenDialog} size="sm" className="min-h-11 rounded-full">
+              <Plus className="h-4 w-4" aria-hidden />
+              {t('vacation.applyForVacation')}
+            </Button>
           </>
         )}
+        filterBar={
+          <VacationHeader
+            counts={counts}
+            isServicemedarbejder={viewAsServicemedarbejder}
+            activeTab={activeTab}
+            onChangeTab={setActiveTab}
+            canViewOverview={canViewOverview}
+          />
+        }
       >
-        <VacationHeader
-          counts={counts}
-          isServicemedarbejder={viewAsServicemedarbejder}
-          activeTab={activeTab}
-          onChangeTab={setActiveTab}
-        />
         {error ? (
-          <div className="p-3 sm:p-4">
+          <div className="facet-card p-3 sm:p-4">
             <ErrorState description={error} onRetry={() => { void queryClient.invalidateQueries({ queryKey: ['vacations'] }); }} />
           </div>
         ) : (
@@ -186,9 +192,10 @@ const VacationPageContainer: React.FC<VacationPageContainerProps> = ({ headerCom
             onEdit={handleEdit}
             onDelete={handleDelete}
             isLoading={loading}
+            canManage={canManageVacations}
           />
         )}
-      </WorkspaceSection>
+      </ListPageShell>
 
       <VacationDialogs
         date={date}

@@ -1,5 +1,7 @@
 import VacationList from './VacationList';
 import VacationGridOverview from './VacationGridOverview';
+import VacationTimeline from './VacationTimeline';
+import PendingApprovals from './PendingApprovals';
 import React from 'react';
 import { Vacation } from '@/types/vacation';
 import { filterVacations, visibleVacations } from '@/utils/moduleListFilters';
@@ -22,6 +24,8 @@ interface VacationTabContentProps {
   onEdit: (vacation: Vacation) => void;
   onDelete: (vacation: Vacation) => void;
   isLoading?: boolean;
+  /** Show Godkend/Afvis on the overview (approval capability). */
+  canManage?: boolean;
 }
 
 const VacationTabContent: React.FC<VacationTabContentProps> = ({
@@ -32,7 +36,8 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   onReject,
   onEdit,
   onDelete,
-  isLoading = false
+  isLoading = false,
+  canManage = false,
 }) => {
   const { user, isEffectiveAdmin, isEffectiveServicemedarbejder, canViewAllVacations } = useAuth();
   
@@ -41,16 +46,26 @@ const VacationTabContent: React.FC<VacationTabContentProps> = ({
   const visible = React.useMemo(() => visibleVacations(vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder, canViewAllVacations), [vacations, user?.id, isEffectiveAdmin, isEffectiveServicemedarbejder, canViewAllVacations]);
   const filteredVacations = React.useMemo(() => filterVacations(visible, tabValue, search, user?.id), [visible, tabValue, search, user?.id]);
 
+  if (tabValue === 'overview') {
+    const pending = visible.filter(v => v.status === 'pending').sort((a, b) => a.start_date.localeCompare(b.start_date));
+    return (
+      <div id="vacation-panel-overview" className="min-w-0 space-y-4">
+        {isLoading ? <ListSkeleton variant="card" rowCount={2} /> : <VacationTimeline vacations={visible} da={da} />}
+        {canManage && <div className="grid gap-4 lg:grid-cols-2"><PendingApprovals pending={pending} all={visible} onApprove={onApprove} onReject={onReject} da={da} /></div>}
+      </div>
+    );
+  }
+
   if (tabValue === 'calendar') {
     return (
-      <div id="vacation-panel-calendar" className="min-w-0 p-3 sm:p-4">
+      <div id="vacation-panel-calendar" className="facet-card min-w-0 p-3 sm:p-4">
         <VacationGridOverview />
       </div>
     );
   }
 
   return (
-    <section id={`vacation-panel-${tabValue}`} aria-label={da ? 'Anmodninger' : 'Requests'} className="min-w-0">
+    <section id={`vacation-panel-${tabValue}`} aria-label={da ? 'Anmodninger' : 'Requests'} className="facet-card min-w-0 overflow-hidden">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-muted/30 px-3 py-2 sm:px-4">
         <div className="relative w-full sm:max-w-sm"><Search aria-hidden className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
           <Input type="search" aria-label={da ? 'Søg navn, årsag eller dato' : 'Search name, reason or date'} placeholder={da ? 'Søg navn, årsag eller dato' : 'Search name, reason or date'} value={search} onChange={e => onSearch?.(e.target.value)} className="h-11 min-h-11 pl-9" />

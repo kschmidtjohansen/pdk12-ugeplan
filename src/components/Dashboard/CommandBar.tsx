@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { useDateLocale } from '@/hooks/useDateLocale';
-import { Phone, Users, Car, Clock, Shield, Quote } from 'lucide-react';
+import { Clock, Quote } from 'lucide-react';
 import { useDutyData } from '@/hooks/duty/useDutyData';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
@@ -16,6 +16,23 @@ import StatusDetailSheet from './StatusDetailSheet';
 import { DutyDetailPanel, AvailableEmployeesPanel, AvailableCarsPanel, ExpiringTempsPanel } from './StatusPanels';
 import { useTranslation } from '@/context/TranslationContext';
 import { Assignment } from '@/types/assignment';
+import { usePermissions } from '@/context/AuthContext';
+import { getAssignmentEmployeeIds } from '@/utils/assignmentConflicts';
+import { cn } from '@/lib/utils';
+
+/** Lærredets nøgletal under hilsenen: stort tal, kort forklaring, klik åbner detaljer. */
+const KpiStat: React.FC<{ label: string; value: React.ReactNode; sub?: string; onClick?: () => void; tone?: 'warning' }> = ({ label, value, sub, onClick, tone }) => {
+  const body = (
+    <>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">{label}</span>
+      <span className="font-display text-3xl font-bold leading-tight tracking-tight text-foreground tabular-nums">{value}</span>
+      {sub && <span className={cn('truncate text-xs', tone === 'warning' ? 'font-semibold text-warning-soft-foreground' : 'text-muted-foreground')}>{sub}</span>}
+    </>
+  );
+  return onClick
+    ? <button type="button" onClick={onClick} className="flex min-w-0 flex-col items-start gap-0.5 rounded-card px-3 py-2 text-left transition-colors duration-140 ease-facet hover:bg-card/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{body}</button>
+    : <div className="flex min-w-0 flex-col items-start gap-0.5 px-3 py-2">{body}</div>;
+};
 
 const greetKey = (h: number) =>
   h >= 5 && h < 10 ? 'ui.goodMorning' : h < 12 && h >= 10 ? 'ui.goodForenoon' : h >= 12 && h < 17 ? 'ui.goodAfternoon' : 'ui.goodEvening';
@@ -27,7 +44,7 @@ interface CommandBarProps {
 
 const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const dateLocale = useDateLocale();
   const now = useMemo(() => new Date(), []);
   const todayStr = format(now, 'yyyy-MM-dd');
@@ -87,6 +104,21 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
     return out;
   }, [todayAssignments, metrics.availableCars.cars]);
 
+  const { isAdmin, isSkadeleder } = usePermissions();
+  const noCrew = todayAssignments.filter((a: Assignment) => getAssignmentEmployeeIds(a).length === 0).length;
+  const absent = metrics.absentEmployees.employees as Array<{ vacation?: unknown; onTraining?: boolean; isSick?: boolean }>;
+  const sick = absent.filter(e => e.isSick).length, onVac = absent.filter(e => !e.isSick && e.vacation).length, onTraining = absent.filter(e => !e.isSick && !e.vacation && e.onTraining).length;
+  const otherAbs = absent.length - sick - onVac - onTraining;
+  const canSeeSick = isAdmin || isSkadeleder;
+  const absentParts = [
+    sick && (canSeeSick ? `${sick} ${sick === 1 ? 'syg' : 'syge'}` : null),
+    onVac && `${onVac} ferie`, onTraining && `${onTraining} kursus`,
+    (otherAbs + (canSeeSick ? 0 : sick)) > 0 && `${otherAbs + (canSeeSick ? 0 : sick)} andet`,
+  ].filter(Boolean).join(', ');
+  const dutyCount = leaderDuties.length + driveDuties.length;
+  const dutySub = [leaderDuties.length && `${t('ui.caseManager')}: ${names(leaderDuties)}`, driveDuties.length && `${driveDuties.length > 1 ? t('ui.drivingDuties') : t('ui.drivingDuty')}: ${names(driveDuties)}`].filter(Boolean).join(' · ');
+  const da = currentLanguage === 'da';
+
   const hour = now.getHours();
   const tid = hour < 10 ? 'morgen' : hour < 17 ? 'dag' : 'aften';
   const placeCount = useMemo(
@@ -102,7 +134,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
       });
 
   return (
-    <section aria-labelledby="dagslys-title" data-tid={tid} className="facet-dagslys facet-glow rounded-panel border border-border/50 px-4 pb-4 pt-4 shadow-flade sm:px-7 sm:pb-7 sm:pt-6">
+    <section aria-labelledby="dagslys-title" data-tid={tid} className="facet-dagslys facet-glow -mx-3 -mt-3 px-3 pb-3 pt-4 sm:-mx-6 sm:-mt-4 sm:px-6 sm:pt-6 lg:-mx-8 lg:px-8 xl:-mx-12 xl:px-12">
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(240px,380px)] xl:items-start">
         <div className="flex items-start justify-between gap-3 min-w-0">
           <div className="min-w-0 space-y-1.5">
@@ -129,24 +161,17 @@ const CommandBar: React.FC<CommandBarProps> = ({ userName, actions }) => {
         <blockquote className="italic"><span className="sr-only">{t('ui.dailyQuote')}: </span>{getDailyQuote()}</blockquote>
       </figure>
 
-      <div className="mt-4 sm:mt-5">
-        <div className="grid grid-cols-2 gap-2 sm:gap-2.5 xl:grid-cols-4">
-          {leaderDuties.length === 0 && driveDuties.length === 0 && (
-            <StatusPill className="snap-start" icon={Phone} tone="primary" label={t('ui.noDutyToday')} onClick={() => setPanel('duty')} />
-          )}
-          {leaderDuties.length > 0 && (
-            <StatusPill className="snap-start" icon={Shield} tone="primary" live label={`${t('ui.caseManager')}: ${names(leaderDuties)}`} onClick={() => setPanel('duty')} />
-          )}
-          {driveDuties.length > 0 && (
-            <StatusPill className="snap-start" icon={Phone} tone="primary" live label={`${driveDuties.length > 1 ? t('ui.drivingDuties') : t('ui.drivingDuty')}: ${names(driveDuties)}`} onClick={() => setPanel('duty')} />
-          )}
-          <StatusPill className="snap-start" icon={Users} label={`${metrics.availableEmployees.count}/${metrics.availableEmployees.total} ${t('ui.availableLower')}`} onClick={() => setPanel('emp')} />
-          <StatusPill className="snap-start" icon={Car} label={`${metrics.availableCars.count}/${metrics.availableCars.total} ${t('ui.availableCarsLower')}`} onClick={() => setPanel('car')} />
-          {expiring.length > 0 && (
-            <StatusPill className="snap-start" icon={Clock} tone="warning" label={`${expiring.length} ${expiring.length === 1 ? t('ui.tempExpiringOne') : t('ui.tempExpiringMany')}`} onClick={() => setPanel('temp')} />
-          )}
-        </div>
+      <div className="mt-4 grid grid-cols-2 gap-x-2 gap-y-1 sm:mt-5 lg:grid-cols-4">
+        <KpiStat label={da ? 'Opgaver i dag' : 'Tasks today'} value={taskCount} sub={noCrew ? (da ? `${noCrew} mangler hold` : `${noCrew} need a crew`) : (da ? `${placeCount} adresser` : `${placeCount} addresses`)} tone={noCrew ? 'warning' : undefined} onClick={() => navigate('/planner')} />
+        <KpiStat label={da ? 'Vagter i dag' : 'Duties today'} value={dutyCount} sub={dutyCount ? dutySub : t('ui.noDutyToday')} onClick={() => setPanel('duty')} />
+        <KpiStat label={da ? 'Fraværende' : 'Absent'} value={metrics.absentEmployees.count} sub={absentParts || (da ? 'Alle er på arbejde' : 'Everyone is in')} onClick={() => setPanel('emp')} />
+        <KpiStat label={da ? 'Ledige biler' : 'Free cars'} value={<>{metrics.availableCars.count}<span className="text-xl text-muted-foreground">/{metrics.availableCars.total}</span></>} sub={da ? `${metrics.availableEmployees.count}/${metrics.availableEmployees.total} medarbejdere ledige` : `${metrics.availableEmployees.count}/${metrics.availableEmployees.total} people free`} onClick={() => setPanel('car')} />
       </div>
+      {expiring.length > 0 && (
+        <div className="mt-2 px-3">
+          <StatusPill icon={Clock} tone="warning" label={`${expiring.length} ${expiring.length === 1 ? t('ui.tempExpiringOne') : t('ui.tempExpiringMany')}`} onClick={() => setPanel('temp')} />
+        </div>
+      )}
 
       <StatusDetailSheet open={panel === 'duty'} onOpenChange={o => !o && setPanel(null)} title={t('ui.duty')} description={t('ui.todaysOnCall')}>
         <DutyDetailPanel today={dutyPeople} upcoming={upcomingDuties} onOpenPlan={() => { setPanel(null); navigate('/duty'); }} />

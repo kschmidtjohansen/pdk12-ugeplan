@@ -16,7 +16,9 @@ import {
   SidebarMenuSubButton,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Clock, Users, Car, Calendar, Shield, Package, Settings, Rotate3d, ChevronDown } from 'lucide-react';
+import { Home, CalendarDays, Users, Car, Sun, Shield, Package, SlidersHorizontal, ScanLine, ChevronDown } from 'lucide-react';
+import UserMenu from './NavComponents/UserMenu';
+import { useToast } from '@/hooks/use-toast';
 import PolyPlanBrand from '@/components/branding/PolyPlanBrand';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAuth } from '@/context/AuthContext';
@@ -40,8 +42,17 @@ interface NavItem {
 }
 
 const AppSidebar: React.FC = () => {
-  const { t } = useTranslation();
-  const { isEffectiveAdmin, canViewDuty, canViewWarehouse } = useAuth();
+  const { t, currentLanguage, setLanguage } = useTranslation();
+  const { user, logout, isEffectiveAdmin, canViewDuty, canViewWarehouse } = useAuth();
+  const { toast } = useToast();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.href = '/login';
+    } catch {
+      toast({ title: t('common.error'), description: t('auth.logoutFailed'), variant: 'destructive' });
+    }
+  };
   const { isDutyEnabled, isWarehouseEnabled } = useDepartment();
   const { hasPendingRequests, pendingCount } = useVacationRequestsStatus();
   const { totalUnread } = useUnreadMessagesContext();
@@ -57,11 +68,11 @@ const AppSidebar: React.FC = () => {
   const closeMobile = () => { if (isMobile) setOpenMobile(false); };
 
   const allItems: NavItem[] = [
-    { path: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
+    { path: '/dashboard', label: t('navigation.dashboard'), icon: Home },
     {
       path: '/planner',
       label: t('navigation.planner'),
-      icon: Clock,
+      icon: CalendarDays,
       hasNotification: totalUnread > 0,
       notificationCount: totalUnread,
     },
@@ -70,17 +81,17 @@ const AppSidebar: React.FC = () => {
     {
       path: '/vacation',
       label: t('navigation.vacation'),
-      icon: Calendar,
+      icon: Sun,
       hasNotification: hasPendingRequests,
       notificationCount: pendingCount,
     },
     { path: '/duty', label: t('navigation.duty'), icon: Shield, featureFlag: 'duty' },
     { path: '/warehouse', label: t('navigation.warehouse'), icon: Package, featureFlag: 'warehouse' },
-    { path: '/admin', label: t('navigation.admin'), icon: Settings, adminOnly: true },
+    { path: '/admin', label: t('navigation.admin'), icon: SlidersHorizontal, adminOnly: true },
   ];
 
   const items = allItems.filter((i) => {
-    if (i.adminOnly) return false; // Admin rendered separately in footer
+    if (i.adminOnly) return false; // Admin comes last, after 3D-scanninger
     if (i.featureFlag === 'duty' && (!isDutyEnabled || !canViewDuty)) return false;
     if (i.featureFlag === 'warehouse' && (!isWarehouseEnabled || !canViewWarehouse)) return false;
     return true;
@@ -99,7 +110,7 @@ const AppSidebar: React.FC = () => {
           isActive={isActive}
           tooltip={item.label}
           className={cn(
-            'h-11 text-sm font-medium cursor-pointer rounded-control transition-[background-color,color,box-shadow] duration-140 ease-facet',
+            'h-10 text-sm font-medium cursor-pointer rounded-control transition-[background-color,color,box-shadow] duration-140 ease-facet',
             isActive
               ? 'facet-nav-active'
               : 'text-sidebar-foreground hover:bg-sidebar-accent [&>svg]:text-muted-foreground'
@@ -122,6 +133,7 @@ const AppSidebar: React.FC = () => {
                   : '!'}
               </span>
             )}
+            {isActive && !item.hasNotification && <span aria-hidden className="facet-nav-dot ml-auto" />}
           </NavLink>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -146,9 +158,8 @@ const AppSidebar: React.FC = () => {
       </SidebarHeader>
 
       {!collapsed && (
-        <div className="px-4 pb-3 pt-1">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t('common.department')}</p>
-          <div className="mt-1.5"><DepartmentSwitcherPill /></div>
+        <div className="px-3 pb-1 pt-1">
+          <DepartmentSwitcherPill variant="box" />
         </div>
       )}
       <SidebarContent className="py-3" role="navigation" aria-label={t('ui.primaryNavigation')}>
@@ -158,9 +169,9 @@ const AppSidebar: React.FC = () => {
               {items.map(renderItem)}
               {canSeeScans && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={onScans} tooltip="3D-scanninger" className={cn('h-11 text-sm font-medium rounded-control transition-[background-color,color,box-shadow] duration-140 ease-facet', onScans ? 'facet-nav-active' : 'text-sidebar-foreground hover:bg-sidebar-accent [&>svg]:text-muted-foreground')}>
+                  <SidebarMenuButton asChild isActive={onScans} tooltip="3D-scanninger" className={cn('h-10 text-sm font-medium rounded-control transition-[background-color,color,box-shadow] duration-140 ease-facet', onScans ? 'facet-nav-active' : 'text-sidebar-foreground hover:bg-sidebar-accent [&>svg]:text-muted-foreground')}>
                     <Link to={SCANS_ROUTE} onClick={() => { setScansOpen(true); closeMobile(); }}>
-                      <Rotate3d className="h-[18px] w-[18px] shrink-0" /><span>3D-scanninger</span>
+                      <ScanLine className="h-[18px] w-[18px] shrink-0" /><span>3D-scanninger</span>
                     </Link>
                   </SidebarMenuButton>
                   <SidebarMenuAction onClick={() => setScansOpen(open => !open)} aria-label={scansOpen ? 'Fold 3D-scanninger sammen' : 'Fold 3D-scanninger ud'} aria-expanded={scansOpen} aria-controls="scans-submenu" className="top-2 h-7 w-7">
@@ -179,22 +190,21 @@ const AppSidebar: React.FC = () => {
                   </SidebarMenuSub>}
                 </SidebarMenuItem>
               )}
+              {showAdmin && adminItem && renderItem(adminItem)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter role="contentinfo" className="p-2 space-y-1">
-        {showAdmin && adminItem && (
-          <SidebarMenu>{renderItem(adminItem)}</SidebarMenu>
-        )}
-        {!collapsed && (
-          <div className="flex flex-col items-center gap-1 px-2 pt-1">
-            <p className="text-[10px] text-muted-foreground text-center leading-tight">
-              {PRODUCT_NAME}
-            </p>
-          </div>
-        )}
+      <SidebarFooter role="contentinfo" className="border-t border-sidebar-border/70 p-2">
+        <UserMenu
+          user={user}
+          currentLanguage={currentLanguage}
+          setLanguage={setLanguage}
+          handleLogout={handleLogout}
+          variant="card"
+          collapsed={collapsed}
+        />
       </SidebarFooter>
     </Sidebar>
   );

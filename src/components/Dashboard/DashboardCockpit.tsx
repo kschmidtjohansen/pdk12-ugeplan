@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useVacations } from '@/hooks/useVacations';
 import { useAssignments } from '@/hooks/useAssignments';
 import { useTranslation } from '@/context/TranslationContext';
+import ActionCenter from './ActionCenter';
 
 interface DashboardCockpitProps {
   showMetrics: boolean;
@@ -75,53 +76,50 @@ const DashboardCockpit: React.FC<DashboardCockpitProps> = ({
     return { startStr: format(monday, 'yyyy-MM-dd'), endStr: format(sunday, 'yyyy-MM-dd') };
   }, [selectedWeek, selectedYear]);
 
-  return (
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
-      {/* LEFT — main work surface (2/3) */}
-      <div className="min-w-0 space-y-4">
-        <Tabs value={tab} onValueChange={changeTab}>
-          <TabsList className="mb-4 grid w-full grid-cols-2 sm:flex sm:w-auto">
-            <TabsTrigger value="today" className="min-h-11 px-4">{t('ui.tabToday')}</TabsTrigger>
-            <TabsTrigger value="week" className="min-h-11 px-4">{t('ui.tabWeekOverview')}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="today" className="mt-0">
-            <TodayTimeline active={tab === 'today'} onlyMine={showMyTasks} withMap />
-          </TabsContent>
-          <TabsContent value="week" className="mt-0">
-            {assignmentsLoading && personalWeekAssignments.length === 0 ? (
-              <ListSkeleton variant="card" rowCount={3} />
-            ) : (
-              <WeeklyAssignments
-                assignments={personalWeekAssignments}
-                selectedWeek={selectedWeek}
-                selectedYear={selectedYear}
-                onPreviousWeek={onPreviousWeek}
-                onNextWeek={onNextWeek}
-              />
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+  const side = (
+    <>
+      {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
+      <UpcomingVacationsWidget vacations={vacations} />
+      <TodayGuardsWidget />
+    </>
+  );
 
-      {/* RIGHT — sticky cockpit panel (1/3) */}
+  return (
+    <div className="space-y-6">
+      <Tabs value={tab} onValueChange={changeTab}>
+        <TabsList className="mb-4 grid w-full grid-cols-2 sm:flex sm:w-auto">
+          <TabsTrigger value="today" className="min-h-11 px-4">{t('ui.tabToday')}</TabsTrigger>
+          <TabsTrigger value="week" className="min-h-11 px-4">{t('ui.tabWeekOverview')}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="today" className="mt-0 space-y-6">
+          <TodayTimeline active={tab === 'today'} onlyMine={showMyTasks} withMap />
+          {showMetrics && <ActionCenter />}
+        </TabsContent>
+        <TabsContent value="week" className="mt-0">
+          {assignmentsLoading && personalWeekAssignments.length === 0 ? (
+            <ListSkeleton variant="card" rowCount={3} />
+          ) : (
+            <WeeklyAssignments
+              assignments={personalWeekAssignments}
+              selectedWeek={selectedWeek}
+              selectedYear={selectedYear}
+              onPreviousWeek={onPreviousWeek}
+              onNextWeek={onNextWeek}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
+
       {isMobile ? (
         <Collapsible open={moreOpen} onOpenChange={setMoreOpen}>
           <CollapsibleTrigger className="flex min-h-11 w-full items-center justify-between rounded-lg border border-border bg-muted px-3 py-3 text-sm font-semibold text-foreground">
             {t('ui.moreKpisDutiesVacations')}
             <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-4 space-y-4">
-        {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
-        <UpcomingVacationsWidget vacations={vacations} />
-        <TodayGuardsWidget />
-          </CollapsibleContent>
+          <CollapsibleContent className="mt-4 space-y-4">{side}</CollapsibleContent>
         </Collapsible>
       ) : (
-      <aside className="space-y-4 pt-4 xl:pt-0 xl:sticky xl:top-36 xl:self-start">
-        {showMetrics && <CompactKpiStack selectedDate={kpiDate} weekRange={kpiWeekRange} />}
-        <UpcomingVacationsWidget vacations={vacations} />
-        <TodayGuardsWidget />
-      </aside>
+        <section aria-label={t('ui.moreKpisDutiesVacations')} className="grid items-start gap-4 lg:grid-cols-3">{side}</section>
       )}
     </div>
   );

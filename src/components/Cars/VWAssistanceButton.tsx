@@ -4,20 +4,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Shield, Phone } from 'lucide-react';
 import { useTranslation } from '@/context/TranslationContext';
 
-const VWAssistanceButton: React.FC = () => {
+const VWAssistanceButton: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <Button
-        variant="outline"
-        onClick={() => setOpen(true)}
-        className="border-border bg-background hover:bg-accent text-foreground"
-      >
-        <Shield className="mr-2 h-4 w-4" />
-        {t('cars.vwAssistance')}
-      </Button>
+      {compact ? (
+        <button type="button" onClick={() => setOpen(true)} className="min-h-8 rounded-full px-2 text-[11px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground">{'VW-assistance'}</button>
+      ) : (
+        <Button
+          variant="outline"
+          onClick={() => setOpen(true)}
+          className="border-border bg-background hover:bg-accent text-foreground"
+        >
+          <Shield className="mr-2 h-4 w-4" />
+          {t('cars.vwAssistance')}
+        </Button>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">

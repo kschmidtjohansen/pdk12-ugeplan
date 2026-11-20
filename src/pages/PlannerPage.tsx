@@ -12,7 +12,17 @@ import { useAuth } from '../context/AuthContext';
 import { useDepartment } from '@/context/DepartmentContext';
 import { supabase } from '@/integrations/supabase/client';
 import PlannerContent from '../components/Planner/PlannerContent';
-import PlannerHeader, { PlannerWeekNav } from '@/components/Planner/page/PlannerHeader';
+import PlannerHeader, { type PlannerViewMode } from '@/components/Planner/page/PlannerHeader';
+import PlannerBoard from '@/components/Planner/Board/PlannerBoard';
+import PlannerTaskPanel from '@/components/Planner/Board/PlannerTaskPanel';
+import PlannerMapView from '@/components/Planner/Board/PlannerMapView';
+import UnassignedBar from '@/components/Planner/Board/UnassignedBar';
+import { buildBoard, unassignedOn } from '@/lib/plannerBoard';
+import { useActiveTrainingsForRange } from '@/hooks/useActiveTrainings';
+import { useSickToday } from '@/hooks/useSickDays';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { addDays } from 'date-fns';
 import PlannerBulkActions from '@/components/Planner/page/PlannerBulkActions';
 import { useAdjacentWeekPrefetch } from '@/hooks/planner/useAdjacentWeekPrefetch';
 import { useCopyDayFromYesterday } from '@/hooks/planner/useCopyDayFromYesterday';
@@ -26,7 +36,6 @@ import SubDepartmentQuickSwitcher from '@/components/shared/SubDepartmentQuickSw
 import PlannerFilterBar from '@/components/Planner/PlannerFilterBar';
 import { PlannerActionsProvider } from '@/context/PlannerActionsContext';
 import { useSearchParams } from 'react-router-dom';
-import WeekOperationsStrip from '@/components/Planner/WeekOperationsStrip';
 import { assignmentsInWeek, summarizeWeek, filterPlannerAssignments, readPlannerLocation, type OperationFilter } from '@/utils/plannerOperations';
 import { PlannerWeekDataProvider } from '@/context/PlannerWeekDataContext';
 import { todayLocalYYYYMMDD } from '@/utils/dateUtils';
@@ -82,9 +91,11 @@ const PlannerPage: React.FC = () => {
   
   
   
-  const [viewMode, setViewMode] = useState<'standard' | 'compact' | 'grid' | 'calendar'>(() => {
+  const [viewMode, setViewMode] = useState<PlannerViewMode>(() => {
+    // Lærredets Tavle er standard; et valg gemt efter Tavlen kom (v2) huskes.
+    if (localStorage.getItem('plannerViewMode.v2') !== '1') return typeof window !== 'undefined' && window.innerWidth < 768 ? 'standard' : 'board';
     const saved = localStorage.getItem('plannerViewMode');
-    return saved === 'compact' || saved === 'grid' || saved === 'calendar' ? saved : 'standard';
+    return saved === 'board' || saved === 'compact' || saved === 'grid' || saved === 'calendar' || saved === 'map' || saved === 'standard' ? saved : 'board';
   });
   // Use optimized assignments hook for unified data management
   const {
@@ -147,10 +158,11 @@ const PlannerPage: React.FC = () => {
   // Persist view mode
   useEffect(() => {
     localStorage.setItem('plannerViewMode', viewMode);
+    localStorage.setItem('plannerViewMode.v2', '1');
   }, [viewMode]);
-  // Genvejstaster: 1-4 skifter visning (ignoreres i tekstfelter og dialoger)
+  // Genvejstaster: 1-4 skifter visning (Tavle, Liste, Kalender, Kort) (ignoreres i tekstfelter og dialoger)
   useEffect(() => {
-    const modes = ['standard', 'grid', 'compact', 'calendar'] as const;
+    const modes = ['board', 'standard', 'calendar', 'map'] as const;
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const el = e.target as HTMLElement | null;
@@ -269,6 +281,15 @@ const PlannerPage: React.FC = () => {
     });
     setIsDialogOpen(true);
   }, [selectedSubDepartmentId]);
+
+  // "Ny opgave" in the top bar navigates here with ?new=1
+  useEffect(() => {
+    if (urlParams.get('new') !== '1' || !canCreate) return;
+    handleOpenCreateDialog(todayLocalYYYYMMDD());
+    const next = new URLSearchParams(urlParams);
+    next.delete('new');
+    setUrlParams(next, { replace: true });
+  }, [urlParams, canCreate, handleOpenCreateDialog, setUrlParams]);
 
   const openEditDialogDirect = useCallback((assignment: Assignment) => {
     setCurrentAssignment(assignment);
@@ -612,6 +633,74 @@ const PlannerPage: React.FC = () => {
   }, []);
 
 
+  // ---- Lærredets Tavle og Kort ----
+  const da = currentLanguage === 'da';
+  const todayStr = todayLocalYYYYMMDD();
+  const { trainingRangesByUser } = useActiveTrainingsForRange(weekDates.startStr, weekDates.endStr);
+  const { sickIds, canSeeSickReason } = useSickToday();
+  const boardDays = useMemo(() => {
+    const all = Array.from({ length: 7 }, (_, i) => format(addDays(weekDates.start, i), 'yyyy-MM-dd'));
+    return all.filter((d, i) => i < 5 || weekAssignments.some(a => a.date === d));
+  }, [weekDates, weekAssignments]);
+  const carById = useMemo(() => new Map((cars || []).map(c => [c.id, c])), [cars]);
+  const carLabelsOf = useCallback((a: Assignment) => {
+    const ids = [...new Set([...(a.cars ?? []), typeof a.car === 'string' ? a.car : a.car?.id].filter(Boolean) as string[])];
+    return ids.map(id => { const c = carById.get(id); return c ? (c.car_number ? `BIL ${String(c.car_number).replace(/^bil\s*/i, '')}` : c.name) : null; }).filter(Boolean) as string[];
+  }, [carById]);
+  const carLabel = useCallback((a: Assignment) => carLabelsOf(a)[0] ?? null, [carLabelsOf]);
+  const boardRows = useMemo(() => {
+    const people = selectedEmployeeIds.length ? employees.filter(e => selectedEmployeeIds.includes(e.id)) : employees;
+    const rows = buildBoard({ employees: people, assignments: sortedWeekAssignments, days: boardDays, vacations, trainingRanges: trainingRangesByUser,
+      sickToday: sickIds, canSeeSickReason, today: todayStr, conflictIds: new Set(weekSummary.conflictMap.keys()), da });
+    return filtersActive ? rows.filter(r => r.cells.some(c => c.tasks.length)) : rows;
+  }, [employees, selectedEmployeeIds, sortedWeekAssignments, boardDays, vacations, trainingRangesByUser, sickIds, canSeeSickReason, todayStr, weekSummary, da, filtersActive]);
+  const focusDay = boardDays.includes(todayStr) ? todayStr : boardDays[0];
+  const unassigned = useMemo(() => unassignedOn({ employees, assignments: weekAssignments, cars: cars || [], vacations, trainingRanges: trainingRangesByUser,
+    sickToday: sickIds, canSeeSickReason, today: todayStr, da }, focusDay), [employees, weekAssignments, cars, vacations, trainingRangesByUser, sickIds, canSeeSickReason, todayStr, da, focusDay]);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [mapDay, setMapDay] = useState<string | null>(null);
+  const selectedTask = useMemo(() => (selectedTaskId ? weekAssignments.find(a => a.id === selectedTaskId) ?? null : null), [selectedTaskId, weekAssignments]);
+  const [wide, setWide] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.('(min-width: 1280px)').matches);
+  useEffect(() => {
+    const m = window.matchMedia?.('(min-width: 1280px)'); if (!m) return;
+    const on = () => setWide(m.matches); m.addEventListener('change', on); return () => m.removeEventListener('change', on);
+  }, []);
+  const panel = selectedTask && (
+    <PlannerTaskPanel assignment={selectedTask} conflicts={weekSummary.conflictMap.get(selectedTask.id) ?? []} carLabels={carLabelsOf(selectedTask)}
+      canEdit={canEdit} canPublish={canPublishTasks}
+      onEdit={() => handleOpenEditDialog(selectedTask)} onCopy={canCreate ? () => handleCopyAssignment(selectedTask) : undefined}
+      onPublish={() => handlePublishAssignment(selectedTask.id)} onDelete={canEdit ? () => { void handleDeleteAssignment(selectedTask.id); setSelectedTaskId(null); } : undefined}
+      onClose={() => setSelectedTaskId(null)} />
+  );
+  const issueChips = (
+    <div role="group" aria-label={da ? 'Vis opgaver' : 'Show tasks'} className="flex flex-wrap items-center gap-1.5">
+      {([
+        { key: 'all', label: da ? `Alle i ${userDepartments.find(d => d.id === selectedDepartmentId)?.name ?? 'afdelingen'}` : 'All', n: null },
+        { key: 'drafts', label: da ? 'Ikke publiceret' : 'Not published', n: weekSummary.drafts },
+        { key: 'unassigned', label: da ? 'Uden medarbejder' : 'No employee', n: weekSummary.unassigned },
+        { key: 'conflicts', label: da ? 'Konflikter' : 'Conflicts', n: weekSummary.conflicts },
+      ] as const).map(c => {
+        const on = issueFilter === c.key;
+        return (
+          <button key={c.key} type="button" aria-pressed={on} onClick={() => selectIssue(c.key)}
+            className={cn('inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold transition-colors',
+              on ? 'bg-foreground text-background' : 'bg-card text-foreground shadow-flade hover:bg-muted')}>
+            {c.label}
+            {c.n !== null && <span className={cn('min-w-[18px] rounded-full px-1 text-center text-[11px] font-bold tabular-nums',
+              c.key === 'conflicts' && c.n > 0 ? 'bg-destructive text-destructive-foreground' : on ? 'bg-background/20' : 'bg-muted text-muted-foreground')}>{c.n}</span>}
+          </button>
+        );
+      })}
+      {viewMode === 'board' && (
+        <span className="ml-1 hidden flex-wrap gap-3 text-xs text-muted-foreground xl:flex">
+          <span className="inline-flex items-center gap-1.5"><span aria-hidden className="h-2.5 w-3.5 rounded-[3px] border-[1.5px] border-dashed border-muted-foreground/60" />{da ? 'Ikke publiceret' : 'Not published'}</span>
+          <span className="inline-flex items-center gap-1.5"><span aria-hidden className="h-2 w-2 rounded-full bg-warning" />{da ? 'Over 85 % booket' : 'Over 85 % booked'}</span>
+          <span className="inline-flex items-center gap-1.5"><span aria-hidden className="h-2 w-2 rounded-full bg-destructive" />{da ? 'Konflikt' : 'Conflict'}</span>
+        </span>
+      )}
+    </div>
+  );
+
   const handleShowOnScreen = () => {
     const today = todayLocalYYYYMMDD();
     const params = new URLSearchParams({
@@ -651,6 +740,7 @@ const PlannerPage: React.FC = () => {
           handleCancelPrefetch={handleCancelPrefetch}
           handleShowOnScreen={handleShowOnScreen}
           handleOpenCreateDialog={handleOpenCreateDialog}
+          chips={issueChips}
           filters={<PlannerFilterBar
           employees={employees}
           selectedEmployeeIds={selectedEmployeeIds}
@@ -670,8 +760,6 @@ const PlannerPage: React.FC = () => {
         {/* Quick sub-department switch, so users don't have to go via the dashboard */}
         <SubDepartmentQuickSwitcher showDepartments />
 
-        <WeekOperationsStrip summary={weekSummary} week={selectedWeek} active={issueFilter} onSelect={selectIssue} loading={loading} error={!!error}
-          navigation={<PlannerWeekNav selectedWeek={selectedWeek} handlePreviousWeek={handlePreviousWeek} handleNextWeek={handleNextWeek} handlePrefetchAssignments={handlePrefetchAssignments} handleCancelPrefetch={handleCancelPrefetch} onCurrentWeek={() => navigateWeek(new Date())} onShowOnScreen={handleShowOnScreen} />} />
 
 
         {/* Main Content — skeleton reserves the same vertical space as the week list */}
@@ -679,6 +767,29 @@ const PlannerPage: React.FC = () => {
         {error ? (<div role="alert" className="border border-destructive p-4"><p>{t('planner.operationsOverview.error')}</p><Button variant="outline" onClick={() => refetch()}>{t('planner.operationsOverview.retry')}</Button></div>) : loading ? (
           <div aria-label={`${t('common.loading')}...`}>
             <ListSkeleton rowCount={5} rowHeight={168} variant="card" className="p-0 sm:p-0" />
+          </div>
+        ) : viewMode === 'board' || viewMode === 'map' ? (
+          <div className={cn('grid items-start gap-4', wide && selectedTask && 'grid-cols-[minmax(0,1fr)_22rem]')}>
+            <div className="min-w-0 space-y-4">
+              {viewMode === 'board' ? (
+                <>
+                  {boardRows.length ? (
+                    <PlannerBoard rows={boardRows} days={boardDays} today={todayStr} selectedId={selectedTaskId} onSelect={a => setSelectedTaskId(a.id)}
+                      onCreate={canCreate ? handleOpenCreateDialog : undefined} carLabel={carLabel} roleLabel={r => t(`employees.${r}`)} />
+                  ) : (
+                    <div className="facet-card p-8 text-center text-sm text-muted-foreground">
+                      {da ? 'Ingen opgaver matcher filtrene.' : 'No tasks match the filters.'}
+                      {filtersActive && <Button variant="link" onClick={clearFilters}>{da ? 'Ryd filtre' : 'Clear filters'}</Button>}
+                    </div>
+                  )}
+                  {!filtersActive && <UnassignedBar date={focusDay} data={unassigned} da={da} onShowAll={() => setViewMode('standard')} />}
+                </>
+              ) : (
+                <PlannerMapView days={boardDays} day={mapDay && boardDays.includes(mapDay) ? mapDay : focusDay} onDayChange={setMapDay} assignments={sortedWeekAssignments}
+                  selectedId={selectedTaskId} onSelect={a => setSelectedTaskId(a.id)} nowMin={new Date().getHours() * 60 + new Date().getMinutes()} da={da} />
+              )}
+            </div>
+            {wide && panel && <div className="sticky top-20">{panel}</div>}
           </div>
         ) : (
           <PlannerWeekDataProvider value={sharedWeekData}><PlannerActionsProvider value={plannerActions}>
@@ -705,7 +816,7 @@ const PlannerPage: React.FC = () => {
               onNextWeek={handleNextWeek}
               selectedYear={selectedYear} 
               weekDates={weekDates}
-              viewMode={viewMode}
+              viewMode={viewMode as 'standard' | 'compact' | 'grid' | 'calendar'}
               selectedIds={selectedIds}
               selectionActive={selectedIds.size > 0}
               onToggleSelect={handleToggleSelect}
@@ -717,6 +828,13 @@ const PlannerPage: React.FC = () => {
           </PlannerActionsProvider></PlannerWeekDataProvider>
         )}
 
+
+        <Sheet open={!wide && !!panel && (viewMode === 'board' || viewMode === 'map')} onOpenChange={o => { if (!o) setSelectedTaskId(null); }}>
+          <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-md [&>button]:hidden">
+            <SheetTitle className="sr-only">{selectedTask?.title}</SheetTitle>
+            {!wide && panel}
+          </SheetContent>
+        </Sheet>
 
         {/* Assignment Dialog */}
         {isDialogOpen && (
