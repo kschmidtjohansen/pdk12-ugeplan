@@ -1,3 +1,8 @@
+## 2026-11-20 – Lærredets ramme: sidemenu og topbjælke
+
+- Sidemenuen følger lærredet. "Afdeling Kolding" ligger øverst i en grå boks, menupunkterne har nye ikoner, og Admin og 3D-scanninger står i menuen. Det valgte punkt har en lysende prik, og nederst sidder et brugerkort, som åbner brugermenuen.
+- Topbjælken viser afdelingen, søgepillen med Ctrl K, klokken som en pille med tal og knappen "Ny opgave", der åbner opret-dialogen i Ugeplan (`/planner?new=1`). Sidetitlen vises kun på telefon.
+
 ## 2026-11-20 – Facet fase 6: skærmvisning og mørkt tema
 
 - Skærmvisningen er bygget om til Facet med logo, sidetitel og et stort ur. Alle størrelser følger skærmens bredde, så 1080p og 4K ser ens ud.

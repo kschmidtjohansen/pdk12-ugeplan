@@ -270,6 +270,15 @@ const PlannerPage: React.FC = () => {
     setIsDialogOpen(true);
   }, [selectedSubDepartmentId]);
 
+  // "Ny opgave" in the top bar navigates here with ?new=1
+  useEffect(() => {
+    if (urlParams.get('new') !== '1' || !canCreate) return;
+    handleOpenCreateDialog(todayLocalYYYYMMDD());
+    const next = new URLSearchParams(urlParams);
+    next.delete('new');
+    setUrlParams(next, { replace: true });
+  }, [urlParams, canCreate, handleOpenCreateDialog, setUrlParams]);
+
   const openEditDialogDirect = useCallback((assignment: Assignment) => {
     setCurrentAssignment(assignment);
     setSelectedDay(assignment.date);

@@ -11,6 +11,8 @@ vi.mock('@/hooks/vacation/useVacationRequestsStatus', () => ({ useVacationReques
 vi.mock('@/context/UnreadMessagesContext', () => ({ useUnreadMessagesContext: () => ({ totalUnread: 0 }) }));
 vi.mock('@/hooks/useScanAccess', () => ({ useScanAccess: () => true, SCANS_ROUTE: '/3d-scanninger' }));
 vi.mock('./NavComponents/DepartmentSwitcherPill', () => ({ default: () => null }));
+vi.mock('./NavComponents/UserMenu', () => ({ default: () => null }));
+vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: () => {} }) }));
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 
 describe('3D submenu interaction', () => {

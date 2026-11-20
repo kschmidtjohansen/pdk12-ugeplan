@@ -14,6 +14,10 @@ import { useToast } from '@/hooks/use-toast';
 import { usePlannerWeek } from '@/stores/plannerWeekStore';
 import { PRODUCT_NAME } from '@/config/product';
 import PolyPlanMark from '@/components/branding/PolyPlanMark';
+import DepartmentSwitcherPill from './NavComponents/DepartmentSwitcherPill';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { usePermissions } from '@/context/AuthContext';
 
 const ROUTE_TITLES: Record<string, string> = {
   '/dashboard': 'navigation.dashboard',
@@ -38,6 +42,7 @@ const AppTopBar: React.FC = () => {
   const title = titleKey ? t(titleKey) : '';
   const { week } = usePlannerWeek();
   const isPlanner = location.pathname === '/planner';
+  const { canCreate } = usePermissions();
   const commandKey = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K';
 
   // Vacation overview dropdown is visible to Skadeleder, Administrator and Super Admin
@@ -69,24 +74,33 @@ const AppTopBar: React.FC = () => {
           <Link to="/dashboard" className="shrink-0 md:hidden" aria-label={PRODUCT_NAME}>
             <PolyPlanMark size={28} decorative />
           </Link>
-          <div className="min-w-0">
+          <div className="min-w-0 md:hidden">
             <h1 className="font-display text-base font-semibold tracking-tight text-foreground break-words">{title}</h1>
           </div>
-          {isPlanner && <span className="hidden sm:block border-l border-border pl-3 text-xs text-muted-foreground tabular-nums">{t('planner.week')} {week}</span>}
+          {isPlanner && <span className="sm:block hidden border-l border-border pl-3 text-xs text-muted-foreground tabular-nums md:hidden">{t('planner.week')} {week}</span>}
+          <div className="hidden min-w-0 md:block"><DepartmentSwitcherPill variant="inline" /></div>
         </div>
         <div className="order-2 flex shrink-0 items-center gap-1 workspace-tools md:order-3">
           {canSeeVacationOverview && <VacationOverviewDropdown />}
           <ChangeLogDropdown />
           <NotificationsDrawer />
-          <UserMenu
-            user={user}
-            currentLanguage={currentLanguage}
-            setLanguage={setLanguage}
-            handleLogout={handleLogout}
-          />
+          {canCreate && (
+            <Button className="ml-1 hidden h-9 gap-1.5 rounded-full px-4 md:inline-flex" onClick={() => navigate('/planner?new=1')}>
+              <Plus className="h-4 w-4" aria-hidden />
+              {t('planner.newAssignment')}
+            </Button>
+          )}
+          <div className="md:hidden">
+            <UserMenu
+              user={user}
+              currentLanguage={currentLanguage}
+              setLanguage={setLanguage}
+              handleLogout={handleLogout}
+            />
+          </div>
         </div>
         <div className="order-3 flex min-w-0 basis-full items-center justify-center border-t border-border/60 pt-1.5 md:order-2 md:basis-auto md:flex-1 md:border-t-0 md:pt-0">
-          <div className="facet-command-pill flex w-full max-w-md items-center pr-1">
+          <div className="facet-command-pill flex w-full max-w-[440px] items-center pr-1">
             <GlobalAssignmentSearch />
             <button
               type="button"

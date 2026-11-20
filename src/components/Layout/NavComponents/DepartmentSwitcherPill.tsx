@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, Layers } from 'lucide-react';
+import { Building2, ChevronDown, Layers } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,12 @@ import { getDepartmentColorClasses } from '@/utils/departmentColor';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-const DepartmentSwitcherPill: React.FC = () => {
+interface Props {
+  /** pill (default), box: the sidebar's "Afdeling Kolding" button, inline: "Kolding ▾" in the top bar. */
+  variant?: 'pill' | 'box' | 'inline';
+}
+
+const DepartmentSwitcherPill: React.FC<Props> = ({ variant = 'pill' }) => {
   const { t } = useTranslation();
   const { isAdmin, isSkadeleder } = useAuth();
   const {
@@ -33,15 +38,39 @@ const DepartmentSwitcherPill: React.FC = () => {
 
   const canSwitchDept = userDepartments.length > 1;
   const canSwitchSub = userSubDepartments.length > 0;
-  if (!canSwitchDept && !canSwitchSub) return null;
-
   const currentSub = userSubDepartments.find((s) => s.id === selectedSubDepartmentId);
-  const colors = getDepartmentColorClasses(currentDept.id);
   const titleText = currentSub ? `${currentDept.name} · ${currentSub.name}` : currentDept.name;
+
+  if (!canSwitchDept && !canSwitchSub) {
+    if (variant === 'box') {
+      return (
+        <div className="flex items-center gap-2 rounded-control bg-muted/80 px-2.5 py-2 text-[13px]">
+          <span className="text-muted-foreground">{t('common.department')}</span>
+          <span className="truncate font-semibold text-foreground">{titleText}</span>
+        </div>
+      );
+    }
+    if (variant === 'inline') return <span className="truncate text-[13px] font-semibold text-foreground">{titleText}</span>;
+    return null;
+  }
+
+  const colors = getDepartmentColorClasses(currentDept.id);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
+        {variant === 'box' ? (
+          <Button variant="ghost" type="button" title={titleText} className="h-auto w-full justify-start gap-2 rounded-control bg-muted/80 px-2.5 py-2 text-[13px] font-normal hover:bg-muted">
+            <span className="text-muted-foreground">{t('common.department')}</span>
+            <span className="truncate font-semibold text-foreground">{titleText}</span>
+            <ChevronDown className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+          </Button>
+        ) : variant === 'inline' ? (
+          <Button variant="ghost" type="button" title={titleText} className="h-8 gap-1.5 rounded-full px-2.5 text-[13px] font-semibold text-foreground">
+            <span className="truncate">{titleText}</span>
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+          </Button>
+        ) : (
         <Button
           variant="ghost"
           type="button"
@@ -59,8 +88,9 @@ const DepartmentSwitcherPill: React.FC = () => {
             </span>
           )}
         </Button>
+        )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" side="top" className="w-56">
+      <DropdownMenuContent align="start" side={variant === 'pill' ? 'top' : 'bottom'} className="w-56">
         {canSwitchDept && (
           <>
             <DropdownMenuLabel className="flex items-center gap-2">

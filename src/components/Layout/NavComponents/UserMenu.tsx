@@ -8,6 +8,7 @@ import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn } from '@/lib/utils';
 import { languageNames } from '../../../translations';
 import PasswordChangeDialog from '../../Profile/PasswordChangeDialog';
 import ProfilePictureDialog from '../../Profile/ProfilePictureDialog';
@@ -22,13 +23,19 @@ interface UserMenuProps {
   currentLanguage: string;
   setLanguage: (lang) => void;
   handleLogout: () => void;
+  /** avatar (default): round button. card: avatar, name and role, for the sidebar foot. */
+  variant?: 'avatar' | 'card';
+  /** card variant in a collapsed sidebar: avatar only. */
+  collapsed?: boolean;
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({
   user,
   currentLanguage,
   setLanguage,
-  handleLogout
+  handleLogout,
+  variant = 'avatar',
+  collapsed = false,
 }) => {
   const { t } = useTranslation();
   const { isDemoMode, demoRole, setDemoRole, userDataLoaded, isAdmin, isSkadeleder } = useAuth();
@@ -80,6 +87,22 @@ const UserMenu: React.FC<UserMenuProps> = ({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
+          {variant === 'card' ? (
+            <Button variant="ghost" className={cn('h-auto w-full justify-start gap-2.5 rounded-control px-2 py-2 text-left hover:bg-sidebar-accent', collapsed && 'justify-center px-0')} aria-label={user?.name || 'Bruger'}>
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarImage src={avatarUrl || undefined} />
+                <AvatarFallback className="facet-user-avatar text-xs font-bold">
+                  {!userDataLoaded ? '...' : (user?.name ? getInitials(user.name) : 'U')}
+                </AvatarFallback>
+              </Avatar>
+              {!collapsed && (
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate text-[13px] font-semibold text-foreground">{user?.name}</span>
+                  <span className="truncate text-xs font-normal text-muted-foreground">{jobTitle || (user?.role ? t(`common.roles.${user.role}`) : '')}</span>
+                </span>
+              )}
+            </Button>
+          ) : (
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-7 w-7 profile-avatar">
               <AvatarImage src={avatarUrl || undefined} />
@@ -88,8 +111,9 @@ const UserMenu: React.FC<UserMenuProps> = ({
               </AvatarFallback>
             </Avatar>
           </Button>
+          )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 max-h-[75dvh] overflow-y-auto overscroll-contain">
+        <DropdownMenuContent align={variant === 'card' ? 'start' : 'end'} side={variant === 'card' ? 'top' : 'bottom'} className="w-56 max-h-[75dvh] overflow-y-auto overscroll-contain">
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">

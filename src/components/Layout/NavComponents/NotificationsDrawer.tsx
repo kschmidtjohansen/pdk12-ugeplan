@@ -185,12 +185,12 @@ const NotificationsDrawer: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-11 w-11 overflow-visible md:h-9 md:w-9"
+          className="relative h-11 min-w-11 gap-1.5 overflow-visible rounded-full border border-border/70 bg-card/80 px-3 shadow-flade md:h-9 md:min-w-9"
           aria-label={t('notifications.title')}
         >
           <Bell className="h-[15px] w-[15px]" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold min-w-[16px] h-[16px] rounded-full flex items-center justify-center leading-none z-[100]">
+            <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[11px] font-bold leading-none text-destructive-foreground">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
