@@ -2,11 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/context/TranslationContext';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { useScreenDisplayData } from '@/hooks/useScreenDisplayData';
-import { ScreenDisplayHeader } from '@/components/ScreenDisplay/ScreenDisplayHeader';
-import { ScreenDisplayContent } from '@/components/ScreenDisplay/ScreenDisplayContent';
-import { ScreenDisplayCarList } from '@/components/ScreenDisplay/ScreenDisplayCarList';
+import { ScreenOverview, ScreenSignage } from '@/components/ScreenDisplay/ScreenFacet';
+import { pickScreenMode } from '@/components/ScreenDisplay/screenModel';
 import { ScreenDisplayErrorBoundary } from '@/components/ScreenDisplay/ScreenDisplayErrorBoundary';
-import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 import { screenRpc } from '@/lib/screenDisplayRpc';
 import { subscribeToTables } from '@/lib/realtimeChannels';
@@ -125,6 +123,15 @@ const ScreenDisplayPage: React.FC = () => {
   }
 
   const { assignments, loading, error, refetch } = useScreenDisplayData(selectedDateStr, departmentId, subDepartmentId);
+
+  // 07:00–09:00 (and other days): the whole day. After 09:00 today: the signage loop. ?mode= locks it.
+  const modeParam = getUrlParam('mode');
+  const [modeTick, setModeTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setModeTick(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const screenMode = pickScreenMode(new Date(modeTick), selectedDate, modeParam);
   const absencesDate = selectedDateStr || format(new Date(), 'yyyy-MM-dd');
   const { absences } = useScreenDisplayAbsences(absencesDate, departmentId);
 
@@ -283,7 +290,7 @@ const ScreenDisplayPage: React.FC = () => {
 
   const rotationOverlay = rotationActive && activeSubDept ? (
     <>
-      <div className="fixed top-3 right-3 z-50 px-3 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md">
+      <div className="fixed bottom-4 left-4 z-50 px-3 py-1 rounded-full bg-primary text-primary-foreground text-sm font-semibold shadow-brand">
         {activeSubDept.name}
       </div>
       <div className="fixed bottom-0 left-0 right-0 h-1 bg-muted z-50">
@@ -331,61 +338,35 @@ const ScreenDisplayPage: React.FC = () => {
   let content: React.ReactNode;
   if (loading) {
     content = (
-      <div className="min-h-dvh w-full bg-background" aria-label="Loading assignments...">
+      <div className="facet-screen min-h-dvh w-full p-[2.4em]" aria-label="Loading assignments...">
         <ListSkeleton />
       </div>
     );
   } else if (error) {
     content = (
-      <div className="min-h-dvh w-full bg-background flex items-center justify-center">
-        <Card className="border-2 border-destructive/20 bg-destructive/5 max-w-lg">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-semibold text-destructive mb-2">{t('ui.couldNotFetchAssignments')}</h2>
-            <p className="text-muted-foreground mb-4">{error.message}</p>
-            <p className="text-xs text-muted-foreground mb-4">{t('ui.retryingEvery30s')}</p>
-            <button
-              onClick={refetch}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Prøv igen
-            </button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-
-  } else {
-    content = (
-      <div className="min-h-dvh w-full bg-background">
-        <div className="w-full px-6 py-4 space-y-6">
-          {!showAllAssignments && (
-            <ScreenDisplayHeader
-              selectedDate={selectedDate}
-              onPreviousDay={handlePreviousDay}
-              onNextDay={handleNextDay}
-              onToday={handleToday}
-              absences={absences}
-            />
-          )}
-
-          {showAllAssignments && (
-            <div className="text-center py-4">
-              <h1 className="text-2xl font-bold text-foreground">All Published Assignments</h1>
-              <p className="text-muted-foreground">Showing all published assignments across all dates</p>
-            </div>
-          )}
-
-          <ScreenDisplayContent
-            assignments={assignments}
-            selectedDate={selectedDate}
-          />
-
-          <ScreenDisplayCarList assignments={assignments} />
-
+      <div className="facet-screen flex min-h-dvh w-full items-center justify-center p-[2.4em]">
+        <div className="facet-screen-card max-w-[32em] border-destructive/40 p-[1.6em] text-center" role="alert">
+          <h2 className="mb-2 font-display text-[1.4em] font-bold text-destructive">{t('ui.couldNotFetchAssignments')}</h2>
+          <p className="mb-4 text-muted-foreground">{error.message}</p>
+          <p className="mb-4 text-xs text-muted-foreground">{t('ui.retryingEvery30s')}</p>
+          <button
+            onClick={refetch}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground shadow-brand hover:bg-primary/90"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Prøv igen
+          </button>
         </div>
       </div>
     );
+  } else {
+    const nav = { onPreviousDay: handlePreviousDay, onNextDay: handleNextDay, onToday: handleToday };
+    const absentNames = absences.map(a => a.name);
+    const now = new Date(modeTick);
+    const showMorningBadge = !modeParam && format(now, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd') && now.getHours() >= 7 && now.getHours() < 9;
+    content = screenMode === 'signage'
+      ? <ScreenSignage assignments={assignments} absentNames={absentNames} selectedDate={selectedDate} nav={nav} />
+      : <ScreenOverview assignments={assignments} absentNames={absentNames} selectedDate={selectedDate} showMorningBadge={showMorningBadge} nav={nav} />;
   }
 
   // INTENTIONAL: wrap the entire page (loading/error/success) so unexpected

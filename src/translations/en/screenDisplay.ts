@@ -10,7 +10,22 @@ const screenDisplay = {
   absent: 'Absent',
   absentMore: '+{count} more',
   carsAndCrew: 'Cars & crew',
-  noCrew: 'No crew'
+  noCrew: 'No crew',
+  overviewTitle: "Today's tasks",
+  crewsTitle: 'Who drives with whom',
+  crewsSub: 'Cars and crews today',
+  morningBadge: 'Morning overview · switches to the loop at 09:00',
+  tasksCount: '{count} tasks',
+  taskCountOne: '1 task',
+  page: 'Page {n} of {m}',
+  nextIn: 'next in {time}',
+  absentTitle: 'Away today',
+  noCar: 'No car',
+  firstTask: 'First task',
+  missingTeam: 'No crew',
+  part: '{n} of {m}',
+  showingDate: 'Showing {date}',
+  pages: 'Pages in the loop',
 };
 
 export default screenDisplay;

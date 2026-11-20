@@ -10,7 +10,22 @@ const screenDisplay = {
   absent: 'Fraværende',
   absentMore: '+{count} mere',
   carsAndCrew: 'Biler & bemanding',
-  noCrew: 'Ingen bemanding'
+  noCrew: 'Ingen bemanding',
+  overviewTitle: 'Dagens opgaver',
+  crewsTitle: 'Hvem kører med hvem',
+  crewsSub: 'Biler og hold i dag',
+  morningBadge: 'Morgenoverblik · skifter til rundvisning kl. 09:00',
+  tasksCount: '{count} opgaver',
+  taskCountOne: '1 opgave',
+  page: 'Side {n} af {m}',
+  nextIn: 'næste om {time}',
+  absentTitle: 'Fravær i dag',
+  noCar: 'Uden bil',
+  firstTask: 'Første opgave',
+  missingTeam: 'Mangler hold',
+  part: '{n} af {m}',
+  showingDate: 'Viser {date}',
+  pages: 'Sider i rundvisningen',
 };
 
 export default screenDisplay;

@@ -61,6 +61,7 @@ Opgaver har ingen status ud over publiceret eller ej; design ikke statusforløb.
 | Bundmenu | `.facet-bottom-nav`, `.facet-tab-active`, `.facet-tab-pill` | Telefonens navigation |
 | Sollys | `html.sollys` (`src/lib/sollys.ts`, `useSollys`) | Høj kontrast udendørs; slås til i brugermenuen eller via enhedens kontrastindstilling |
 | Segment | `TabsList`, `SlidingSegments`, `ModuleListTools` + `.facet-tab-thumb` | Faner og filtre: rund pille med blød flade under det valgte |
+| Skærm | `.facet-screen` (em-skala ud fra vw), `.facet-screen-card`, `-car`, `-avatar`, `-pill`, `-progress` | Storskærm: `ScreenOverview` 07–09, `ScreenSignage` efter 09 (`screenModel.ts`) |
 | Skeleton | `.facet-skeleton` | Indlæsning i indholdets form |
 | Primærknap | `Button` (default) | Polygon-blå, brand-ink tekst og `shadow-brand` |
 
