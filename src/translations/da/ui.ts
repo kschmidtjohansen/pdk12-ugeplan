@@ -379,6 +379,8 @@ export const ui = {
   dayMapLabel: "Kort over dagens opgaver",
   dayMapOpen: "Åbn opgave {n}: {title}",
   nowAt: "Nu {time}",
+  sollys: "Sollys",
+  sollysHint: "Høj kontrast til brug udendørs",
 };
 
 export default ui;

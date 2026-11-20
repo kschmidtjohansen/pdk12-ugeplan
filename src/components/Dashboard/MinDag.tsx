@@ -1,11 +1,11 @@
-import React, { useMemo, useState, useEffect, useCallback, Suspense, lazy } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
 import { useOnlineStatus, saveSnapshot, loadSnapshot } from '@/hooks/useOfflineTodaySnapshot';
 import { format, parseISO } from 'date-fns';
 import { da as daLocale } from 'date-fns/locale';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Navigation, Phone, Clock, MapPin, Car as CarIcon, Users, Package, CalendarCheck, MessageSquare, CloudOff } from 'lucide-react';
+import { Navigation, Phone, MapPin, Car as CarIcon, Users, Package, CalendarCheck, MessageSquare, CloudOff, Droplets, Flame, Sprout, Wrench, UserRound, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useDriveEstimates, formatDrive } from '@/hooks/useDriveEstimates';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/TranslationContext';
 import { useAssignmentDataOptimized } from '@/hooks/assignment/useAssignmentDataOptimized';
@@ -25,6 +25,10 @@ const toMinutes = (time?: string): number => {
   const [h, m] = time.split(':');
   return (parseInt(h, 10) || 0) * 60 + (parseInt(m, 10) || 0);
 };
+
+/** Scroll position that puts a card in the middle of the deck (matches snap-center). */
+const centeredLeft = (deck: HTMLElement, card: HTMLElement) =>
+  Math.max(0, card.offsetLeft - deck.offsetLeft - (deck.clientWidth - card.offsetWidth) / 2);
 
 const buildFullAddress = (assignment: Assignment): string =>
   [assignment.location, assignment.zip_code, assignment.city].filter(Boolean).join(', ');
@@ -158,197 +162,300 @@ const MinDag: React.FC = () => {
     setRetrying(false);
   };
 
-  const headerDate = format(new Date(), 'EEEE d. MMMM', { locale: isDa ? daLocale : undefined });
-  const firstStart = todayAssignments[0]?.fromTime?.slice(0, 5);
+  const headerDate = format(new Date(), 'EEEE d. MMM', { locale: isDa ? daLocale : undefined });
+
+  // The card in focus: what is happening now, else the next one, else the last one.
+  const focusIndex = useMemo(() => {
+    if (todayAssignments.length === 0) return -1;
+    const now = todayAssignments.findIndex(a => nowMinutes >= toMinutes(a.fromTime) && nowMinutes <= toMinutes(a.toTime));
+    if (now !== -1) return now;
+    const next = todayAssignments.findIndex(a => toMinutes(a.fromTime) > nowMinutes);
+    return next !== -1 ? next : todayAssignments.length - 1;
+  }, [todayAssignments, nowMinutes]);
+  const focus = focusIndex >= 0 ? todayAssignments[focusIndex] : null;
+  const focusIsNow = !!focus && nowMinutes >= toMinutes(focus.fromTime) && nowMinutes <= toMinutes(focus.toTime);
+  const focusIsAhead = !!focus && toMinutes(focus.fromTime) > nowMinutes;
+
+  // Swipeable deck of today's tasks, starting at the focus card.
+  const deckRef = useRef<HTMLOListElement>(null);
+  const [visibleIndex, setVisibleIndex] = useState(0);
+  useEffect(() => {
+    const deck = deckRef.current;
+    if (!deck || focusIndex < 0) return;
+    const card = deck.children[focusIndex] as HTMLElement | undefined;
+    if (card) deck.scrollTo({ left: centeredLeft(deck, card), behavior: 'auto' });
+    setVisibleIndex(focusIndex);
+  }, [focusIndex, todayAssignments.length]);
+  const onDeckScroll = () => {
+    const deck = deckRef.current;
+    if (!deck) return;
+    const center = deck.scrollLeft + deck.clientWidth / 2;
+    let best = 0, bestDist = Infinity;
+    Array.from(deck.children).forEach((el, i) => {
+      const c = (el as HTMLElement).offsetLeft - deck.offsetLeft + (el as HTMLElement).offsetWidth / 2;
+      const d = Math.abs(c - center);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    setVisibleIndex(best);
+  };
+  const scrollToCard = (i: number) => {
+    const deck = deckRef.current;
+    const card = deck?.children[i] as HTMLElement | undefined;
+    if (!deck || !card) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    deck.scrollTo({ left: centeredLeft(deck, card), behavior: reduce ? 'auto' : 'smooth' });
+  };
+  const upNext = todayAssignments[visibleIndex + 1];
+
+  const drives = useDriveEstimates(todayStr, todayAssignments.map(a => a.id).join(','), online && !isOfflineMode && todayAssignments.length > 1);
+  const focusDrive = focus && focusIsAhead ? drives.get(focus.id) : undefined;
+
+  const openDetails = (assignment: Assignment) => {
+    setSelectedAssignment(assignment);
+    setIsDialogOpen(true);
+  };
+
+  const typeInfo = (type?: string) => {
+    switch (type) {
+      case 'waterDamage': return { Icon: Droplets, label: t('dashboard.assignments.waterDamage') };
+      case 'fireDamage': return { Icon: Flame, label: t('dashboard.assignments.fireDamage') };
+      case 'mold': return { Icon: Sprout, label: t('dashboard.assignments.mold') };
+      default: return { Icon: Wrench, label: t('dashboard.assignments.other') };
+    }
+  };
+
+  const minutesUntil = focus ? toMinutes(focus.fromTime) - nowMinutes : 0;
+  const bannerLead = focusIsNow
+    ? (isDa ? `Nu · til ${focus?.toTime?.slice(0, 5)}` : `Now · until ${focus?.toTime?.slice(0, 5)}`)
+    : focusIsAhead
+      ? `${isDa ? 'Næste' : 'Next'} · ${focus?.fromTime?.slice(0, 5)}${minutesUntil <= 120 ? (isDa ? ` · om ${minutesUntil} min` : ` · in ${minutesUntil} min`) : ''}`
+      : (isDa ? 'Dagens sidste opgave' : "Today's last task");
 
   return (
-    <Card>
-      <CardHeader className="brand-card-header flex flex-row items-center justify-between gap-2">
-        <CardTitle className="text-sm font-semibold brand-dot capitalize">
-          {isDa ? 'Min dag' : 'My day'} — {headerDate}
-        </CardTitle>
-        <div className="flex items-center gap-2">
-          {firstStart && (
-            <Badge variant="secondary" className="tabular-nums">
-              {isDa ? 'Start' : 'Start'} {firstStart}
-            </Badge>
-          )}
-          <Badge variant="secondary" className="tabular-nums">
-            {todayAssignments.length} {isDa ? (todayAssignments.length === 1 ? 'opgave' : 'opgaver') : 'tasks'}
-          </Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-3">
-        {isOfflineMode && (
-          <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-            <CloudOff className="h-3.5 w-3.5 shrink-0" />
-            <span>
-              {isDa ? 'Offline (kældertilstand)' : 'Offline (basement mode)'} · {isDa ? 'Viser opgaver gemt kl.' : 'Showing tasks saved at'}{' '}
-              {format(new Date(snapshot!.savedAt), 'HH:mm')}
-            </span>
-          </div>
-        )}
-        {loading && !isOfflineMode && todayAssignments.length === 0 ? (
-          <ListSkeleton variant="card" rowCount={2} />
-        ) : error && !isOfflineMode && todayAssignments.length === 0 ? (
-          <ErrorState onRetry={handleRetry} retrying={retrying} />
-        ) : todayAssignments.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-muted/50 px-4 py-8 text-center">
-            <CalendarCheck className="mx-auto mb-2 h-7 w-7 text-muted-foreground/60" />
-            <p className="text-sm text-muted-foreground">
-              {isDa ? 'Ingen opgaver i dag' : 'No tasks today'}
-            </p>
-            {nextAssignment && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedAssignment(nextAssignment);
-                  setIsDialogOpen(true);
-                }}
-                className="mt-2 text-sm font-medium text-primary underline-offset-2 hover:underline"
-              >
-                {isDa ? 'Næste opgave' : 'Next task'}:{' '}
-                {format(parseISO(nextAssignment.date), 'EEEE d. MMM', { locale: isDa ? daLocale : undefined })}{' '}
-                {nextAssignment.fromTime?.slice(0, 5)}
-              </button>
+    <section aria-labelledby="mindag-title" className="space-y-3">
+      {focus && (
+        <div role="status" className="facet-next-banner flex items-center gap-3 rounded-[22px] px-3.5 py-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/55" aria-hidden>
+            <Navigation className="h-[18px] w-[18px]" />
+          </span>
+          <span className="flex min-w-0 flex-col">
+            {focusDrive ? (
+              <>
+                <span className="truncate text-xs font-medium opacity-80">{bannerLead} · {focus.location || focus.title}</span>
+                <span className="truncate font-display text-base font-bold">{formatDrive(focusDrive, isDa)}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-xs font-medium opacity-80">{bannerLead}</span>
+                <span className="truncate font-display text-base font-bold">{focus.location || focus.title}</span>
+              </>
             )}
-          </div>
-        ) : (
-          todayAssignments.map(assignment => {
-            const start = toMinutes(assignment.fromTime);
-            const end = toMinutes(assignment.toTime);
-            const isCurrent = nowMinutes >= start && nowMinutes <= end;
-            const isPast = nowMinutes > end;
-            const carNames = getCarNames(assignment);
-            const colleagues = getColleagues(assignment);
-            const responsible = getResponsible(assignment);
-            const warehouseCount = getWarehouseCount(assignment);
-            const address = buildFullAddress(assignment);
+          </span>
+          {focus.case_number && <span className="ml-auto shrink-0 font-mono text-xs font-medium">#{focus.case_number}</span>}
+        </div>
+      )}
 
-            return (
-              <div
-                key={assignment.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  setSelectedAssignment(assignment);
-                  setIsDialogOpen(true);
-                }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setSelectedAssignment(assignment);
-                    setIsDialogOpen(true);
-                  }
-                }}
-                className={`cursor-pointer rounded-xl border bg-card p-4 transition-colors hover:bg-accent/40 ${
-                  isCurrent ? 'border-primary ring-2 ring-primary/25' : 'border-border/60'
-                } ${isPast ? 'opacity-60' : ''}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 text-base font-semibold tabular-nums">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      {assignment.fromTime?.slice(0, 5)} – {assignment.toTime?.slice(0, 5)}
-                      {isCurrent && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-                          {t('ui.inProgressNow')}
-                        </span>
-                      )}
-                    </div>
-                    <CaseNumber value={assignment.case_number} className="mt-1.5" />
-                    <p className="truncate text-base font-semibold text-foreground">{assignment.title}</p>
-                    {assignment.description && (
-                      <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{assignment.description}</p>
-                    )}
-                  </div>
-                  {warehouseCount > 0 && (
-                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-semibold text-warning-soft-foreground">
-                      <Package className="h-3.5 w-3.5" />
-                      <span className="tabular-nums">{warehouseCount}</span>
-                    </span>
-                  )}
-                </div>
-
-                {address && (
-                  <p className="mt-2 flex items-start gap-2 text-sm font-medium text-foreground/90">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span>{address}</span>
-                  </p>
-                )}
-
-                {responsible?.name && (
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {isDa ? 'Ansvarlig' : 'Responsible'}:{' '}
-                    <span className="font-medium text-foreground">{responsible.name}</span>
-                  </p>
-                )}
-
-                {colleagues.length > 0 && (
-                  <p className="mt-1 flex items-start gap-2 text-sm text-muted-foreground">
-                    <Users className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>{colleagues.join(', ')}</span>
-                  </p>
-                )}
-
-                {carNames.length > 0 && (
-                  <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <CarIcon className="h-4 w-4 shrink-0" />
-                    <span>{carNames.join(', ')}</span>
-                  </p>
-                )}
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {address && (
-                    <Button
-                      size="sm"
-                      variant="brand"
-                      className="min-h-11 flex-1 sm:flex-none"
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleNavigate(assignment);
-                      }}
-                    >
-                      <Navigation className="mr-2 h-4 w-4" />
-                      {isDa ? 'Kør dertil' : 'Navigate'}
-                    </Button>
-                  )}
-                  {responsible?.phone && responsible.id !== user?.id && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      asChild
-                      className="min-h-11 flex-1 sm:flex-none"
-                    >
-                      <a
-                        href={`tel:${responsible.phone.replace(/\s/g, '')}`}
-                        onClick={e => e.stopPropagation()}
-                      >
-                        <Phone className="mr-2 h-4 w-4" />
-                        {isDa ? 'Ring' : 'Call'} {responsible.name.split(' ')[0]}
-                      </a>
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="min-h-11 flex-1 sm:flex-none"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setSmsCaseNumber(assignment.case_number ?? null);
-                      setIsSmsOpen(true);
-                    }}
-                  >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    {isDa ? 'SMS: På vej' : 'SMS: On my way'}
-                  </Button>
-                </div>
-              </div>
-            );
-          })
+      <header className="flex items-end justify-between gap-3 px-1">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.06em] text-muted-foreground">{headerDate}</p>
+          <h2 id="mindag-title" className="font-display text-[2rem] font-bold leading-tight tracking-tight text-foreground">
+            {isDa ? 'Min Dag' : 'My Day'}
+          </h2>
+        </div>
+        {todayAssignments.length > 0 && (
+          <span className="pb-1 text-sm text-muted-foreground tabular-nums">
+            {visibleIndex + 1} {isDa ? 'af' : 'of'} {todayAssignments.length}
+          </span>
         )}
-      </CardContent>
+      </header>
+
+      {isOfflineMode && (
+        <div className="flex items-center gap-2 rounded-card border border-border/60 bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+          <CloudOff className="h-3.5 w-3.5 shrink-0" />
+          <span>
+            {isDa ? 'Offline (kældertilstand)' : 'Offline (basement mode)'} · {isDa ? 'Viser opgaver gemt kl.' : 'Showing tasks saved at'}{' '}
+            {format(new Date(snapshot!.savedAt), 'HH:mm')}
+          </span>
+        </div>
+      )}
+
+      {loading && !isOfflineMode && todayAssignments.length === 0 ? (
+        <ListSkeleton variant="card" rowCount={2} />
+      ) : error && !isOfflineMode && todayAssignments.length === 0 ? (
+        <ErrorState onRetry={handleRetry} retrying={retrying} />
+      ) : todayAssignments.length === 0 ? (
+        <div className="facet-card px-4 py-10 text-center">
+          <CalendarCheck className="mx-auto mb-2 h-7 w-7 text-muted-foreground/60" aria-hidden />
+          <p className="text-sm text-muted-foreground">
+            {isDa ? 'Ingen opgaver i dag' : 'No tasks today'}
+          </p>
+          {nextAssignment && (
+            <button
+              type="button"
+              onClick={() => openDetails(nextAssignment)}
+              className="mt-2 text-sm font-semibold text-primary-strong underline-offset-2 hover:underline"
+            >
+              {isDa ? 'Næste opgave' : 'Next task'}:{' '}
+              {format(parseISO(nextAssignment.date), 'EEEE d. MMM', { locale: isDa ? daLocale : undefined })}{' '}
+              {nextAssignment.fromTime?.slice(0, 5)}
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <ol
+            ref={deckRef}
+            onScroll={onDeckScroll}
+            aria-label={isDa ? 'Dagens opgaver' : "Today's tasks"}
+            className="facet-deck -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 pt-1 sm:-mx-6 sm:px-6"
+          >
+            {todayAssignments.map((assignment, i) => {
+              const start = toMinutes(assignment.fromTime);
+              const end = toMinutes(assignment.toTime);
+              const isCurrent = nowMinutes >= start && nowMinutes <= end;
+              const isPast = nowMinutes > end;
+              const carNames = getCarNames(assignment);
+              const colleagues = getColleagues(assignment);
+              const responsible = getResponsible(assignment);
+              const warehouseCount = getWarehouseCount(assignment);
+              const address = buildFullAddress(assignment);
+              const { Icon: TypeIcon, label: typeLabel } = typeInfo(assignment.type);
+
+              return (
+                <li
+                  key={assignment.id}
+                  aria-label={`${i + 1} ${isDa ? 'af' : 'of'} ${todayAssignments.length}`}
+                  className="w-[88%] max-w-[440px] shrink-0 snap-center sm:w-[420px]"
+                >
+                  <article
+                    onClick={() => openDetails(assignment)}
+                    className={cn('facet-task-card flex h-full cursor-pointer flex-col overflow-hidden rounded-[26px]', isCurrent && 'is-now', isPast && 'opacity-60')}
+                  >
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); openDetails(assignment); }}
+                      className="facet-task-hero relative block w-full px-[18px] pb-4 pt-[18px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="facet-chip"><TypeIcon className="h-4 w-4" aria-hidden /></span>
+                        <span className="text-xs font-bold uppercase tracking-[0.04em]">{typeLabel}</span>
+                        {isCurrent && <span className="facet-today-badge">{t('ui.inProgressNow')}</span>}
+                        <CaseNumber value={assignment.case_number} className="ml-auto font-mono text-xs" />
+                      </span>
+                      <span className="mt-3 block font-mono text-[15px] font-medium tabular-nums">
+                        {assignment.fromTime?.slice(0, 5)}–{assignment.toTime?.slice(0, 5)}
+                      </span>
+                      <span className="mt-0.5 flex items-start gap-2">
+                        <span className="font-display text-2xl font-bold leading-[1.2] tracking-tight break-words">{assignment.title}</span>
+                        <ChevronRight className="mt-1.5 h-5 w-5 shrink-0 opacity-50" aria-hidden />
+                      </span>
+                    </button>
+
+                    <dl className="grid grid-cols-[22px_minmax(0,1fr)] gap-x-2.5 gap-y-3 px-[18px] py-4 text-[15px] leading-snug">
+                      {address && (
+                        <>
+                          <dt className="pt-0.5 text-muted-foreground"><MapPin className="h-[18px] w-[18px]" aria-hidden /><span className="sr-only">{isDa ? 'Adresse' : 'Address'}</span></dt>
+                          <dd className="font-semibold text-foreground">
+                            {address}
+                            {drives.get(assignment.id) && !isPast && (
+                              <span className="mt-0.5 block text-[13px] font-normal text-muted-foreground">
+                                {formatDrive(drives.get(assignment.id)!, isDa)}{drives.get(assignment.id)!.durationMin > 0 && (isDa ? ' fra forrige' : ' from previous')}
+                              </span>
+                            )}
+                          </dd>
+                        </>
+                      )}
+                      {(colleagues.length > 0 || carNames.length > 0) && (
+                        <>
+                          <dt className="pt-0.5 text-muted-foreground"><Users className="h-[18px] w-[18px]" aria-hidden /><span className="sr-only">{isDa ? 'Med' : 'With'}</span></dt>
+                          <dd className="text-foreground">
+                            {colleagues.length > 0 && <>{isDa ? 'Med' : 'With'} {colleagues.join(', ')}</>}
+                            {colleagues.length > 0 && carNames.length > 0 && ' · '}
+                            {carNames.length > 0 && <span className="inline-flex items-center gap-1 font-mono text-sm"><CarIcon className="h-3.5 w-3.5" aria-hidden />{carNames.join(', ')}</span>}
+                          </dd>
+                        </>
+                      )}
+                      {responsible?.name && (
+                        <>
+                          <dt className="pt-0.5 text-muted-foreground"><UserRound className="h-[18px] w-[18px]" aria-hidden /><span className="sr-only">{isDa ? 'Ansvarlig' : 'Responsible'}</span></dt>
+                          <dd className="text-muted-foreground">{isDa ? 'Ansvarlig' : 'Responsible'}: <span className="font-medium text-foreground">{responsible.name}</span></dd>
+                        </>
+                      )}
+                      {warehouseCount > 0 && (
+                        <>
+                          <dt className="pt-0.5 text-warning-soft-foreground"><Package className="h-[18px] w-[18px]" aria-hidden /><span className="sr-only">{isDa ? 'Lager' : 'Warehouse'}</span></dt>
+                          <dd><span className="inline-flex items-center rounded-full bg-warning-soft px-2 py-0.5 text-xs font-semibold text-warning-soft-foreground tabular-nums">{warehouseCount} {isDa ? 'på lager' : 'in storage'}</span></dd>
+                        </>
+                      )}
+                    </dl>
+
+                    {assignment.description && (
+                      <p className="mx-[18px] mb-4 line-clamp-3 rounded-[14px] bg-muted/70 px-3 py-2.5 text-[13px] text-muted-foreground">{assignment.description}</p>
+                    )}
+
+                    <div className="mt-auto flex gap-2 px-3.5 pb-3.5">
+                      {address && (
+                        <Button
+                          className="facet-field-btn flex-[1.3]"
+                          onClick={e => { e.stopPropagation(); handleNavigate(assignment); }}
+                        >
+                          <Navigation className="h-5 w-5" aria-hidden />
+                          {isDa ? 'Naviger' : 'Navigate'}
+                        </Button>
+                      )}
+                      {responsible?.phone && responsible.id !== user?.id && (
+                        <Button variant="secondary" asChild className="facet-field-btn flex-1">
+                          <a href={`tel:${responsible.phone.replace(/\s/g, '')}`} onClick={e => e.stopPropagation()} aria-label={`${isDa ? 'Ring til' : 'Call'} ${responsible.name}`}>
+                            <Phone className="h-5 w-5" aria-hidden />
+                            {isDa ? 'Ring' : 'Call'}
+                          </a>
+                        </Button>
+                      )}
+                      <Button
+                        variant="secondary"
+                        className="facet-field-btn flex-1"
+                        aria-label={isDa ? 'SMS: På vej' : 'SMS: On my way'}
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSmsCaseNumber(assignment.case_number ?? null);
+                          setIsSmsOpen(true);
+                        }}
+                      >
+                        <MessageSquare className="h-5 w-5" aria-hidden />
+                        {isDa ? 'På vej' : 'On my way'}
+                      </Button>
+                    </div>
+                  </article>
+                </li>
+              );
+            })}
+          </ol>
+
+          {todayAssignments.length > 1 && (
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-1.5" role="group" aria-label={isDa ? 'Gå til opgave' : 'Go to task'}>
+                {todayAssignments.map((a, i) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => scrollToCard(i)}
+                    aria-label={`${i + 1}: ${a.fromTime?.slice(0, 5) ?? ''} ${a.title}`}
+                    aria-current={i === visibleIndex ? 'true' : undefined}
+                    className="flex h-6 min-w-6 items-center justify-center"
+                  >
+                    <span className={cn('block h-1.5 rounded-full transition-all duration-200 ease-facet', i === visibleIndex ? 'w-5 bg-primary' : 'w-1.5 bg-muted-foreground/35')} />
+                  </button>
+                ))}
+              </div>
+              {upNext && (
+                <p className="text-center text-xs text-muted-foreground">
+                  {isDa ? 'Swipe til næste' : 'Swipe for next'} · <span className="font-mono">{upNext.fromTime?.slice(0, 5)}</span> {upNext.title}
+                </p>
+              )}
+            </div>
+          )}
+        </>
+      )}
 
       {isDialogOpen && selectedAssignment && (
         <Suspense fallback={null}>
@@ -376,7 +483,7 @@ const MinDag: React.FC = () => {
           />
         </Suspense>
       )}
-    </Card>
+    </section>
   );
 };
 

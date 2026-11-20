@@ -349,3 +349,84 @@
   color: hsl(var(--primary-foreground));
   box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
 }
+
+/* ---------- Fase 4: felten ---------- */
+
+/* Sollys: høj kontrast udendørs. Mørkere tekst og kanter, intet gennemsigtigt glas. */
+html.sollys {
+  --foreground: 222 30% 6%;
+  --muted-foreground: 220 14% 26%;
+  --border: 220 14% 62%;
+  --input: 220 14% 52%;
+  --primary-strong: 199 100% 22%;
+  --ring: 199 100% 26%;
+  --glass-bg: hsl(var(--card));
+  --glass-border: hsl(var(--border));
+  --glass-blur: 0px;
+}
+html.sollys.dark {
+  --foreground: 0 0% 100%;
+  --muted-foreground: 220 14% 84%;
+  --border: 220 12% 52%;
+  --input: 220 12% 60%;
+  --primary-strong: 197 100% 80%;
+  --ring: 197 100% 70%;
+}
+html.sollys body { font-weight: 500; }
+html.sollys .facet-tile,
+html.sollys .facet-command-pill,
+html.sollys .facet-map-label { background: hsl(var(--card)); border-color: hsl(var(--border)); -webkit-backdrop-filter: none; backdrop-filter: none; }
+html.sollys .facet-dagslys { background: hsl(var(--card)); }
+html.sollys .facet-glow::before { display: none; }
+html.sollys :focus-visible { outline: 3px solid hsl(var(--ring)) !important; outline-offset: 2px; }
+html.sollys .facet-map .leaflet-tile-pane { filter: contrast(1.15) saturate(0.6); }
+
+/* Bundmenuen: svævende glas med en pille om det valgte ikon */
+.facet-bottom-nav {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 16px 32px -16px rgb(15 22 41 / 0.45);
+}
+.dark .facet-bottom-nav { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 16px 32px -16px rgb(0 0 0 / 0.7); }
+.facet-tab-active { color: hsl(var(--primary-strong)); }
+.facet-tab-pill { transition: background-color var(--dur-fast) var(--ease-facet); }
+.facet-tab-active .facet-tab-pill { background: hsl(197 100% 92%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8); }
+.dark .facet-tab-active .facet-tab-pill { background: hsl(197 60% 20%); box-shadow: none; }
+html.sollys .facet-tab-active .facet-tab-pill { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+
+/* Min Dag */
+.facet-next-banner {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(197 88% 66%));
+  color: hsl(var(--primary-foreground));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 12px 28px -14px hsl(var(--primary) / 0.8);
+}
+.facet-deck { scrollbar-width: none; overscroll-behavior-x: contain; }
+.facet-deck::-webkit-scrollbar { display: none; }
+.facet-task-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.6);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 2px 4px rgb(15 22 41 / 0.05), 0 24px 48px -24px rgb(15 22 41 / 0.35);
+}
+.facet-task-card.is-now { border-color: hsl(var(--primary) / 0.55); box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 24px 48px -22px hsl(var(--primary) / 0.55); }
+.facet-task-hero {
+  background: linear-gradient(135deg, hsl(197 90% 87%) 0%, hsl(var(--sidebar-accent)) 60%, hsl(var(--card)) 100%);
+  color: hsl(var(--primary-foreground));
+}
+.dark .facet-task-card { box-shadow: 0 24px 48px -24px rgb(0 0 0 / 0.7); }
+.dark .facet-task-hero { background: linear-gradient(135deg, hsl(197 60% 18%) 0%, hsl(var(--card)) 100%); color: hsl(var(--foreground)); }
+.facet-field-btn {
+  min-height: 3.5rem;
+  border-radius: 18px;
+  font-size: 15px;
+  font-weight: 700;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+}
+html.sollys .facet-next-banner { background: hsl(var(--primary)); box-shadow: none; }
+html.sollys .facet-task-hero { background: hsl(var(--card)); color: hsl(var(--foreground)); border-bottom: 1px solid hsl(var(--border)); }
+html.sollys .facet-task-card { border-color: hsl(var(--border)); box-shadow: none; }
+@media (min-width: 640px) {
+  .facet-deck { -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+}

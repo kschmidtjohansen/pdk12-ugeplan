@@ -4,6 +4,8 @@ import './index.css';
 import { Sentry, initSentry } from './lib/sentry';
 import { resetCachesOnNewBuild } from './lib/appVersionReset';
 import { installSpotlight } from './lib/spotlight';
+import { applySollys, readSollys } from './lib/sollys';
+applySollys(readSollys());
 installSpotlight();
 
 initSentry();

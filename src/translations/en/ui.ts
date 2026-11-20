@@ -379,6 +379,8 @@ export const ui = {
   dayMapLabel: "Map of today's tasks",
   dayMapOpen: "Open task {n}: {title}",
   nowAt: "Now {time}",
+  sollys: "Sunlight",
+  sollysHint: "High contrast for outdoor use",
 };
 
 export default ui;

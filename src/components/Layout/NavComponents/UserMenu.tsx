@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor, Bell, Fingerprint, RotateCcw } from 'lucide-react';
+import { LogIn, Camera, Lock, Crown, Building2, Layers, Sun, Moon, Monitor, Bell, Fingerprint, RotateCcw, SunMedium } from 'lucide-react';
+import { useSollys } from '@/hooks/useSollys';
 import { ClearCacheDialog } from '@/components/Dashboard/ClearCacheButton';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/context/TranslationContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { languageNames } from '../../../translations';
 import PasswordChangeDialog from '../../Profile/PasswordChangeDialog';
 import ProfilePictureDialog from '../../Profile/ProfilePictureDialog';
@@ -37,6 +38,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [biometricDialogOpen, setBiometricDialogOpen] = useState(false);
   const [clearCacheOpen, setClearCacheOpen] = useState(false);
+  const [sollys, setSollys] = useSollys();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [jobTitle, setJobTitle] = useState<string | null>(null);
   const { scheme, setScheme } = useColorScheme();
@@ -197,6 +199,13 @@ const UserMenu: React.FC<UserMenuProps> = ({
             <DropdownMenuRadioItem value="dark" className="cursor-pointer">{t('ui.darkTheme')}</DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="system" className="cursor-pointer">System</DropdownMenuRadioItem>
           </DropdownMenuRadioGroup>
+          <DropdownMenuCheckboxItem checked={sollys} onCheckedChange={(v) => setSollys(v === true)} className="cursor-pointer">
+            <SunMedium className="mr-2 h-4 w-4" aria-hidden />
+            <span className="flex flex-col">
+              <span>{t('ui.sollys')}</span>
+              <span className="text-xs text-muted-foreground">{t('ui.sollysHint')}</span>
+            </span>
+          </DropdownMenuCheckboxItem>
 
           <DropdownMenuSeparator />
 
