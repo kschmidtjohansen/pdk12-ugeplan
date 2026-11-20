@@ -108,10 +108,10 @@ const CommandPalette: React.FC = () => {
   let lastGroup = '';
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="top-[15%] translate-y-0 max-w-xl gap-0 overflow-hidden p-0 motion-safe:animate-scale-in">
+      <DialogContent className="facet-glass facet-top top-[15%] translate-y-0 max-w-xl gap-0 overflow-hidden rounded-panel border-0 p-0 motion-safe:animate-scale-in sm:rounded-panel">
         <DialogTitle className="sr-only">{da ? 'Hurtigsøgning' : 'Quick search'}</DialogTitle>
         <DialogDescription className="sr-only">{da ? 'Søg efter sager, sider og afdelinger' : 'Search cases, pages and departments'}</DialogDescription>
-        <div className="flex items-center gap-2 border-b border-border px-3">
+        <div className="flex items-center gap-2 border-b border-border/60 pl-4 pr-12">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
           <input
             autoFocus
@@ -123,7 +123,7 @@ const CommandPalette: React.FC = () => {
             role="combobox"
             aria-expanded
             aria-controls="command-palette-list"
-            className="h-12 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            className="h-14 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />}
         </div>
@@ -143,7 +143,7 @@ const CommandPalette: React.FC = () => {
                     type="button"
                     onMouseEnter={() => setActive(idx)}
                     onClick={it.run}
-                    className={cn('flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm transition-colors', idx === active ? 'bg-accent text-foreground' : 'text-foreground/90')}
+                    className={cn('flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm transition-colors', idx === active ? 'bg-sidebar-accent text-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.7)]' : 'text-foreground/90')}
                   >
                     <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
                     <span className="min-w-0 flex-1">
@@ -157,10 +157,10 @@ const CommandPalette: React.FC = () => {
             );
           })}
         </ul>
-        <div className="hidden items-center gap-3 border-t border-border px-3 py-2 text-[11px] text-muted-foreground sm:flex">
+        <div className="hidden items-center gap-3 border-t border-border/60 bg-background/40 px-4 py-2 text-[11px] text-muted-foreground sm:flex">
           <span><kbd className="rounded border border-border px-1">↑↓</kbd> {da ? 'vælg' : 'select'}</span>
           <span><kbd className="rounded border border-border px-1">↵</kbd> {da ? 'åbn' : 'open'}</span>
-          <span className="ml-auto"><kbd className="rounded border border-border px-1">⌘K</kbd></span>
+          <span className="ml-auto"><kbd className="rounded border border-border px-1 font-mono">{typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K'}</kbd></span>
         </div>
       </DialogContent>
     </Dialog>

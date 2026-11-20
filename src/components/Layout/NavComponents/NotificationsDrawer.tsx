@@ -137,12 +137,12 @@ const NotificationsDrawer: React.FC = () => {
   const renderRow = (n: Row) => (
     <div
       key={n.id}
-      className={cn('w-full text-left flex items-start gap-3 p-3 rounded-lg hover:bg-muted/60 transition-colors group animate-fade-in-up motion-reduce:animate-none', n.read && 'opacity-80')}
+      className={cn('w-full text-left flex items-start gap-3 p-3 rounded-card transition-[background-color,box-shadow] duration-140 ease-facet group hover:bg-card hover:shadow-flade', !n.read && 'bg-sidebar-accent/60', n.read && 'opacity-80')}
     >
       <span
         className={cn(
           'mt-1.5 h-2 w-2 rounded-full shrink-0',
-          n.read ? 'bg-muted-foreground/40' : 'bg-primary'
+          n.read ? 'bg-muted-foreground/40' : 'bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.8)]'
         )}
         aria-label={n.read ? t('ui.read') : t('ui.unread')}
       />
@@ -196,9 +196,9 @@ const NotificationsDrawer: React.FC = () => {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
-        <SheetHeader className="px-4 py-3 border-b flex-row items-center justify-between space-y-0">
-          <SheetTitle className="text-base">{t('notifications.title')}</SheetTitle>
+      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col facet-canvas">
+        <SheetHeader className="facet-topbar px-4 py-3 flex-row items-center justify-between space-y-0">
+          <SheetTitle className="font-display text-lg">{t('notifications.title')}</SheetTitle>
           <Button
             variant="ghost"
             size="sm"
