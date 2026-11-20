@@ -1,3 +1,11 @@
+## 2026-11-20 – Facet fase 6: skærmvisning og mørkt tema
+
+- Skærmvisningen er bygget om til Facet med logo, sidetitel og et stort ur. Alle størrelser følger skærmens bredde, så 1080p og 4K ser ens ud.
+- Fra 07:00 til 09:00, og når man ser en anden dag, viser skærmen dagens opgaver og "Hvem kører med hvem" side om side. Med op til 9 opgaver vises store kort. Ellers vises kompakte rækker i tre kolonner, og er der mere end 27, skiftes der side hver 20. sekund. Opgaver uden hold er markeret "Mangler hold", og fravær står nederst.
+- Efter 09:00 kører en rundvisning med 1 minut pr. side i en løkke: "Hvem kører med hvem" med bil, hold og første opgave, derefter "Dagens opgaver" uden de afsluttede og til sidst "Fravær i dag", hvis nogen er væk. Prikker, "Side 2 af 5 · næste om 0:42" og en lysende fremdriftslinje viser, hvor man er, og man kan trykke på en prik for at hoppe.
+- `?mode=overview` eller `?mode=signage` låser visningen. Dato-knapperne og hjem-knappen er dæmpede, indtil man holder musen over dem. Rotation mellem underafdelinger virker som før.
+- Mørkt tema er gennemgået side for side. Dagskortet var gråt, fordi Leaflets egen baggrund vandt, og det er rettet i både lyst og mørkt tema.
+
 ## 2026-11-20 – Facet fase 5: øvrige sider
 
 - Medarbejdere, Biler, Fridage, Vagt, Lager, Admin og Ændringer har fået Facet gennem de fælles byggeklodser. Sidehovedet har en stor titel i Schibsted Grotesk med afdelingen over, og der er ingen skillelinje.
