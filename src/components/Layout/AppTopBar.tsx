@@ -38,6 +38,7 @@ const AppTopBar: React.FC = () => {
   const title = titleKey ? t(titleKey) : '';
   const { week } = usePlannerWeek();
   const isPlanner = location.pathname === '/planner';
+  const commandKey = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K';
 
   // Vacation overview dropdown is visible to Skadeleder, Administrator and Super Admin
   const canSeeVacationOverview = canViewAllVacations;
@@ -61,7 +62,7 @@ const AppTopBar: React.FC = () => {
   };
 
   return (
-    <header role="banner" className="sticky top-0 z-40 border-b border-border bg-card">
+    <header role="banner" className="sticky top-0 z-40 facet-topbar facet-vt-topbar">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-1.5 sm:px-4">
         <div className="order-1 flex min-w-0 items-center gap-3">
           <SidebarTrigger className="text-muted-foreground hover:text-foreground min-h-9 min-w-9 hidden md:inline-flex" />
@@ -69,7 +70,7 @@ const AppTopBar: React.FC = () => {
             <PolyPlanMark size={28} decorative />
           </Link>
           <div className="min-w-0">
-            <h1 className="text-sm font-semibold text-foreground break-words">{title}</h1>
+            <h1 className="font-display text-base font-semibold tracking-tight text-foreground break-words">{title}</h1>
           </div>
           {isPlanner && <span className="hidden sm:block border-l border-border pl-3 text-xs text-muted-foreground tabular-nums">{t('planner.week')} {week}</span>}
         </div>
@@ -84,16 +85,18 @@ const AppTopBar: React.FC = () => {
             handleLogout={handleLogout}
           />
         </div>
-        <div className="order-3 flex min-w-0 basis-full items-center justify-center border-t border-border pt-1.5 md:order-2 md:basis-auto md:flex-1 md:border-t-0 md:pt-0">
-          <GlobalAssignmentSearch />
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new Event('open-command-palette'))}
-            className="ml-2 hidden h-8 shrink-0 items-center gap-1 rounded-md border border-border px-2 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:inline-flex"
-            aria-label={currentLanguage === 'da' ? 'Åbn hurtigsøgning (⌘K)' : 'Open quick search (⌘K)'}
-          >
-            <kbd className="font-sans">⌘K</kbd>
-          </button>
+        <div className="order-3 flex min-w-0 basis-full items-center justify-center border-t border-border/60 pt-1.5 md:order-2 md:basis-auto md:flex-1 md:border-t-0 md:pt-0">
+          <div className="facet-command-pill flex w-full max-w-md items-center pr-1">
+            <GlobalAssignmentSearch />
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('open-command-palette'))}
+              className="hidden h-7 shrink-0 items-center gap-1 rounded-full border border-border/80 bg-background/70 px-2.5 text-[11px] font-medium text-muted-foreground transition-colors duration-140 ease-facet hover:bg-accent hover:text-foreground md:inline-flex"
+              aria-label={currentLanguage === 'da' ? `Åbn kommandolinjen (${commandKey})` : `Open command line (${commandKey})`}
+            >
+              <kbd className="font-mono">{commandKey}</kbd>
+            </button>
+          </div>
         </div>
       </div>
     </header>

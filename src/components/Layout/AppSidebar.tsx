@@ -99,10 +99,10 @@ const AppSidebar: React.FC = () => {
           isActive={isActive}
           tooltip={item.label}
           className={cn(
-            'h-11 text-sm font-medium cursor-pointer rounded-md transition-[background-color,color,opacity] duration-150 ease-out',
+            'h-11 text-sm font-medium cursor-pointer rounded-control transition-[background-color,color,box-shadow] duration-140 ease-facet',
             isActive
-              ? 'list-row-selected text-sidebar-accent-foreground hover:text-sidebar-accent-foreground'
-              : 'text-sidebar-foreground hover:bg-sidebar-accent'
+              ? 'facet-nav-active'
+              : 'text-sidebar-foreground hover:bg-sidebar-accent [&>svg]:text-muted-foreground'
           )}
         >
           <NavLink to={item.path} end onClick={closeMobile}>
@@ -113,7 +113,7 @@ const AppSidebar: React.FC = () => {
                 className={cn(
                   'ml-auto inline-flex items-center justify-center rounded-full text-[10px] font-semibold tabular-nums px-1.5 h-4 min-w-[16px]',
                   isActive
-                    ? 'bg-primary/15 text-primary'
+                    ? 'bg-primary/20 text-primary-strong'
                     : 'bg-destructive text-destructive-foreground'
                 )}
               >
@@ -129,8 +129,8 @@ const AppSidebar: React.FC = () => {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="border-b border-sidebar-border min-h-20 flex items-center justify-center px-3">
+    <Sidebar collapsible="icon" className="facet-sidebar facet-vt-sidebar border-r-0">
+      <SidebarHeader className="min-h-16 flex items-center justify-center px-3 pt-3">
         <Link
           to="/dashboard"
           onClick={closeMobile}
@@ -146,9 +146,9 @@ const AppSidebar: React.FC = () => {
       </SidebarHeader>
 
       {!collapsed && (
-        <div className="px-4 py-4 border-b border-sidebar-border">
-          <p className="text-xs text-muted-foreground mb-1">{t('common.department')}</p>
-          <div className="mt-2"><DepartmentSwitcherPill /></div>
+        <div className="px-4 pb-3 pt-1">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t('common.department')}</p>
+          <div className="mt-1.5"><DepartmentSwitcherPill /></div>
         </div>
       )}
       <SidebarContent className="py-3" role="navigation" aria-label={t('ui.primaryNavigation')}>
@@ -158,7 +158,7 @@ const AppSidebar: React.FC = () => {
               {items.map(renderItem)}
               {canSeeScans && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={onScans} tooltip="3D-scanninger" className="h-11 text-sm font-medium">
+                  <SidebarMenuButton asChild isActive={onScans} tooltip="3D-scanninger" className={cn('h-11 text-sm font-medium rounded-control transition-[background-color,color,box-shadow] duration-140 ease-facet', onScans ? 'facet-nav-active' : 'text-sidebar-foreground hover:bg-sidebar-accent [&>svg]:text-muted-foreground')}>
                     <Link to={SCANS_ROUTE} onClick={() => { setScansOpen(true); closeMobile(); }}>
                       <Rotate3d className="h-[18px] w-[18px] shrink-0" /><span>3D-scanninger</span>
                     </Link>
@@ -184,7 +184,7 @@ const AppSidebar: React.FC = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter role="contentinfo" className="border-t border-sidebar-border p-2 space-y-1">
+      <SidebarFooter role="contentinfo" className="p-2 space-y-1">
         {showAdmin && adminItem && (
           <SidebarMenu>{renderItem(adminItem)}</SidebarMenu>
         )}

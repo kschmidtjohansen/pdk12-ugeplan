@@ -28,9 +28,9 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       </a>
       <UnreadMessagesProvider>
         <SidebarProvider defaultOpen={true} className="operations-shell">
-          <div className="flex min-h-dvh w-full bg-background">
+          <div className="flex min-h-dvh w-full facet-canvas">
             <AppSidebar />
-            <div className="flex-1 flex flex-col min-w-0 border-l border-border">
+            <div className="flex-1 flex flex-col min-w-0">
               <AppTopBar />
               <main
                 id="main-content"

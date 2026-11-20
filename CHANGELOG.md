@@ -1,3 +1,12 @@
+## 2026-11-20 – Facet fase 2: rammen
+
+- Sidemenuen er adskilt med en blød skygge i stedet for streger. Det valgte punkt har en blå flade og en lysende streg til venstre. Navne og rækkefølge er uændrede.
+- Topbjælken er af glas. Søgningen ligger i en kommandopille med en Ctrl K- eller ⌘K-knap, der åbner kommandolinjen.
+- Kommandolinjen er af glas og har et større søgefelt uden kantet fokusramme. Tastaturgenvejen vises efter styresystem.
+- Notifikationer har et glashoved, og ulæste rækker har en blå baggrund og en lysende prik.
+- Dialoger og paneler har et sløret overlay, materialet Øverst, rundere hjørner og facet-easing.
+- Indholdsfladen har et svagt blåt lys øverst. CSS til sideskift med View Transitions er klar.
+
 ## 2026-11-20 – Facet fase 1: fundament
 - Nyt designsprog Facet i `docs/design/facet.md`; `docs/ui-guidelines/design-system.md` peger nu dertil. `AGENTS.md` har reglerne for Lovable.
 - Primærknapper har brand-ink tekst på Polygon-blå (4,9:1 i stedet for 2,6:1 med hvid), en let brandskygge og halvfed tekst. Link-knapper bruger den nye `primary-strong` (#00668F), og store tal (`.kpi-number`) også.
